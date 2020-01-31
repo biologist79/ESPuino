@@ -169,14 +169,14 @@ IPAddress apIP(192, 168, 4, 1);                     // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0);              // Access-point's netmask
 
 // FTP
-const char *ftpUser = "esp32";                      // FTP-user
-const char *ftpPassword = "esp32";                  // FTP-password
+char ftpUser[10] = "esp32";                         // FTP-user
+char ftpPassword[15] = "esp32";                     // FTP-password
 
 // MQTT-configuration
 #define DEVICE_HOSTNAME "ESP32-Tonuino"             // Name that that is used for MQTT
 bool enableMqtt = true;
 uint8_t mqttFailCount = 3;                          // Number of times mqtt-reconnect is allowed to fail. If >= mqttFailCount to further reconnects take place
-const char *mqtt_server = "192.168.2.43";           // IP-address of MQTT-server
+char mqtt_server[16] = "192.168.2.43";              // IP-address of MQTT-server
 static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
 static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
 static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
@@ -837,10 +837,6 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
         loggerNl((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
         return NULL;
     }
-    /*if (!SD.exists(_fileOrDirectory.name())) {
-        loggerNl((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
-        return files;
-    }*/
 
     // File-mode
     if (!_fileOrDirectory.isDirectory()) {
@@ -939,13 +935,9 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 
 /* Wraps putString for writing settings into NVS for RFID-cards */
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
-    char prefBuf[255];
+    char prefBuf[275];
     char trackBuf[255];
     snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
-    /*Serial.println(_playPosition);
-        Serial.println(_playMode);
-            Serial.println(_trackLastPlayed);
-                Serial.println(_numberOfTracks);*/
 
     // If it's a directory we want to play/save we just need basename(path).
     if (_numberOfTracks > 1) {
@@ -2249,7 +2241,7 @@ void setup() {
         prefsSettings.putString("ftpuser", (String) ftpUser);
         loggerNl((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
     } else {
-        ftpUser = nvsFtpUser.c_str();
+        strncpy(ftpUser, nvsFtpUser.c_str(), sizeof(ftpUser)/sizeof(ftpUser[0]));
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedFtpUserFromNvs), nvsFtpUser.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -2260,7 +2252,7 @@ void setup() {
         prefsSettings.putString("ftppassword", (String) ftpPassword);
         loggerNl((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
     } else {
-        ftpPassword = nvsFtpPassword.c_str();
+        strncpy(ftpPassword, nvsFtpPassword.c_str(), sizeof(ftpPassword)/sizeof(ftpPassword[0]));
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedFtpPwdFromNvs), nvsFtpPassword.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -2316,17 +2308,16 @@ void setup() {
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
     }
-
     // Get MQTT-server from NVS
-/*    String nvsMqttServer = prefsSettings.getString("mqttServer", "-1");
+    String nvsMqttServer = prefsSettings.getString("mqttServer", "-1");
     if (!nvsMqttServer.compareTo("-1")) {
         prefsSettings.putString("mqttServer", (String) mqtt_server);
         loggerNl((char*) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
     } else {
-        mqtt_server = nvsMqttServer.c_str();
+        strncpy(mqtt_server, nvsMqttServer.c_str(), sizeof(mqtt_server)/sizeof(mqtt_server[0]));
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttServerFromNvs), nvsMqttServer.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
-    }*/
+    }
 
 
     // Create 1000Hz-HW-Timer (currently only used for buttons)
