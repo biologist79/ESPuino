@@ -263,7 +263,8 @@ Preferences prefsSettings;
 static const char prefsRfidNamespace[] PROGMEM = "rfidTags";        // Namespace used to save IDs of rfid-tags
 static const char prefsSettingsNamespace[] PROGMEM = "settings";    // Namespace used for generic settings
 
-char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings
+char stringDelimiter[] = "#";                                       // Character used to encapsulate data in linear NVS-strings
+bool bootComplete = false;
 
 QueueHandle_t volumeQueue;
 QueueHandle_t trackQueue;
@@ -1345,6 +1346,13 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
+        if (!bootComplete) {
+            FastLED.clear();
+            FastLED.show();
+            vTaskDelay(portTICK_RATE_MS*10);
+            esp_task_wdt_reset();
+            continue;
+        }
         if (lastLedBrightness != ledBrightness) {
             FastLED.setBrightness(ledBrightness);
             lastLedBrightness = ledBrightness;
@@ -1380,8 +1388,8 @@ void showLed(void *parameter) {
             volumeChangeShown = true;
             FastLED.clear();
 
-            for(int led = 0; led < numLedsToLight; led++) {
-                leds[led] = CRGB::Orange;
+            for(int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) to red (0)
+                leds[led].setHue((uint8_t) (85 - ((double) 85 / NUM_LEDS) * led));
             }
             FastLED.show();
 
@@ -1430,15 +1438,15 @@ void showLed(void *parameter) {
                 for (uint8_t nLed=0; nLed < NUM_LEDS; nLed++) {
                     FastLED.clear();
                     if (nLed == 0) {
-                        leds[0] = CRGB::Violet;
-                        leds[NUM_LEDS/4] = CRGB::Violet;
-                        leds[NUM_LEDS/2] = CRGB::Violet;
-                        leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::Violet;
+                        leds[0] = CRGB::BlueViolet;
+                        leds[NUM_LEDS/4] = CRGB::BlueViolet;
+                        leds[NUM_LEDS/2] = CRGB::BlueViolet;
+                        leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::BlueViolet;
                     } else {
-                        leds[nLed % NUM_LEDS] = CRGB::Violet;
-                        leds[(nLed+NUM_LEDS/4) % NUM_LEDS] = CRGB::Violet;
-                        leds[(nLed+NUM_LEDS/2) % NUM_LEDS] = CRGB::Violet;
-                        leds[(nLed+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::Violet;
+                        leds[nLed % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(nLed+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(nLed+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(nLed+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::BlueViolet;
                     }
                     FastLED.show();
                     if (playProperties.playMode != BUSY) {
@@ -1472,8 +1480,8 @@ void showLed(void *parameter) {
                             for(uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
                                     leds[led] = CRGB::Red;
-                                } else if (!playProperties.pausePlay) {
-                                    leds[led] = CRGB::DeepSkyBlue;
+                                } else if (!playProperties.pausePlay) { // Hue-rainbow
+                                    leds[led].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
                                 } else if (playProperties.pausePlay) {
                                     leds[led] = CRGB::Orange;
                                 }
@@ -2172,12 +2180,14 @@ void setup() {
     prefsRfid.putString("018030087052", "#http://shouthost.com.19.streams.bassdrive.com:8200#0#8#0");
     prefsRfid.putString("182146124043", "#http://ibizaglobalradio.streaming-pro.com:8024#0#8#0");
     prefsRfid.putString("018162219052", "#http://stream2.friskyradio.com:8000/frisky_mp3_hi#0#8#0");
-    prefsRfid.putString("160243107050", "#/mp3/Hoerspiele/Sonstige/Dingi und der Containerdiebe.mp3#0#3#0");
+    prefsRfid.putString("160243107050", "#/mp3/Hoerspiele/Sonstige/Dingi und der Containerdieb.mp3#0#3#0");
     prefsRfid.putString("244189084042", "#/mp3/Hoerspiele/Yakari/Yakari und die Pferdediebe#0#3#0");
     prefsRfid.putString("244042007042", "#/mp3/Hoerspiele/Yakari/Der Gesang des Raben#0#3#0");
     prefsRfid.putString("176063100050", "#/mp3/Hoerspiele/Yakari/Best of Lagerfeuergeschichten#0#3#0");
     prefsRfid.putString("004134024043", "#/mp3/Hoerspiele/Yakari/Schneeball in Gefahr#0#3#0");
     prefsRfid.putString("242216118051", "#/mp3/Hoerspiele/Weihnachten mit Astrid Lindgren#0#3#0");
+    prefsRfid.putString("176008145050", "#/mp3/Hoerspiele/Janosch/Oh wie schoen ist Panama#0#3#0");
+    prefsRfid.putString("036073235043", "#/mp3/Hoerspiele/Paw Patrol/Rettet Weihnachten#0#3#0");
 
 
     // Init uSD-SPI
@@ -2410,7 +2420,7 @@ void setup() {
     wServer.onNotFound(notFound);
 
     wServer.begin();
-
+    bootComplete = true;
     /*File root = SD.open("/");
     printDirectory(root, 0);*/
 }
