@@ -200,6 +200,7 @@ unsigned long const stillOnlineInterval = 60;       // Interval 'I'm still alive
 // Neopixel-helper
 bool showLedError = false;
 bool showLedOk = false;
+bool showPlaylistProgress = false;
 
 // MQTT-helper
 PubSubClient MQTTclient(wifiClient);
@@ -300,7 +301,7 @@ void sortPlaylist(const char** arr, int n);
 bool startsWith(const char *str, const char *pre);
 void trackControlToQueueSender(const uint8_t trackCommand);
 void rfidPreferenceLookupHandler (void);
-void trackQueueDispatcher(char *_sdFile, uint32_t _lastPlayPos, uint32_t _playMode, uint16_t _trackLastPlaed);
+void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
 void volumeToQueueSender(const int32_t _newVolume);
 wl_status_t wifiManager(void);
@@ -1229,6 +1230,7 @@ void playAudio(void *parameter) {
                     continue;
                 } else {
                     audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
+                    showPlaylistProgress = true;
                     if (playProperties.startAtFilePos > 0) {
                         audio.setFilePos(playProperties.startAtFilePos);
                         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s %u", (char *) FPSTR(trackStartatPos), audio.getFilePos());
@@ -1337,6 +1339,7 @@ void showLed(void *parameter) {
     static bool volumeChangeShown = false;
     static uint8_t ledPosWebstream = 0;
     static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
+    static uint8_t webstreamColor = 0;
     static unsigned long lastSwitchTimestamp = 0;
     static bool redrawProgress = false;
     static uint8_t lastLedBrightness = ledBrightness;
@@ -1358,7 +1361,7 @@ void showLed(void *parameter) {
             lastLedBrightness = ledBrightness;
         }
 
-        if (showLedError) {             // If error occured
+        if (showLedError) {             // If error occured (e.g. RFID-modification not accepted)
             showLedError = false;
             notificationShown = true;
             FastLED.clear();
@@ -1388,8 +1391,8 @@ void showLed(void *parameter) {
             volumeChangeShown = true;
             FastLED.clear();
 
-            for(int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) to red (0)
-                leds[led].setHue((uint8_t) (85 - ((double) 85 / NUM_LEDS) * led));
+            for(int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
+                leds[led].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
             }
             FastLED.show();
 
@@ -1405,21 +1408,56 @@ void showLed(void *parameter) {
             }
         }
 
+        if (showPlaylistProgress) {
+            showPlaylistProgress = false;
+            if (playProperties.numberOfTracks > 1 && playProperties.currentTrackNumber < playProperties.numberOfTracks) {
+                uint8_t numLedsToLight = map(playProperties.currentTrackNumber, 0, playProperties.numberOfTracks, 0, NUM_LEDS);
+                FastLED.clear();
+                for (uint8_t i=0; i < numLedsToLight; i++) {
+                    leds[i] = CRGB::Blue;
+                    FastLED.show();
+                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                        break;
+                    } else {
+                        vTaskDelay(portTICK_RATE_MS*30);
+                    }
+                }
+
+                for (uint8_t i=0; i<=100; i++) {
+                   if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                        break;
+                    } else {
+                        vTaskDelay(portTICK_RATE_MS*20);
+                    }
+                }
+
+                for (uint8_t i=numLedsToLight; i>0; i--) {
+                    leds[i-1] = CRGB::Black;
+                    FastLED.show();
+                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                        break;
+                    } else {
+                        vTaskDelay(portTICK_RATE_MS*30);
+                    }
+                }
+            }
+        }
+
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
                 if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
-                    for (uint8_t npLed=0; npLed < NUM_LEDS; npLed++) {
+                    for (uint8_t i=0; i < NUM_LEDS; i++) {
                         FastLED.clear();
-                        if (npLed == 0) {
+                        if (i == 0) {
                             leds[0] = CRGB::White;
                             leds[NUM_LEDS/4] = CRGB::White;
                             leds[NUM_LEDS/2] = CRGB::White;
                             leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::White;
                         } else {
-                            leds[npLed % NUM_LEDS] = CRGB::White;
-                            leds[(npLed+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
-                            leds[(npLed+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
-                            leds[(npLed+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::White;
+                            leds[i % NUM_LEDS] = CRGB::White;
+                            leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
+                            leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
+                            leds[(i+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::White;
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
@@ -1435,18 +1473,18 @@ void showLed(void *parameter) {
 
             case BUSY:                          // If uC is busy (parsing SD-card)
                 ledBusyShown = true;
-                for (uint8_t nLed=0; nLed < NUM_LEDS; nLed++) {
+                for (uint8_t i=0; i < NUM_LEDS; i++) {
                     FastLED.clear();
-                    if (nLed == 0) {
+                    if (i == 0) {
                         leds[0] = CRGB::BlueViolet;
                         leds[NUM_LEDS/4] = CRGB::BlueViolet;
                         leds[NUM_LEDS/2] = CRGB::BlueViolet;
                         leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::BlueViolet;
                     } else {
-                        leds[nLed % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(nLed+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(nLed+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(nLed+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[i % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(i+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::BlueViolet;
                     }
                     FastLED.show();
                     if (playProperties.playMode != BUSY) {
@@ -1501,8 +1539,10 @@ void showLed(void *parameter) {
                                 leds[ledPosWebstream] = CRGB::Red;
                                 leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Red;
                             } else if (!playProperties.pausePlay) {
-                                leds[ledPosWebstream] = CRGB::DeepSkyBlue;
-                                leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::DeepSkyBlue;
+                                //leds[ledPosWebstream] = CRGB::DeepSkyBlue;
+                                leds[ledPosWebstream].setHue(webstreamColor);
+                                //leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::DeepSkyBlue;
+                                leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS].setHue(webstreamColor++);
                             } else if (playProperties.pausePlay) {
                                 leds[ledPosWebstream] = CRGB::Orange;
                                 leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
@@ -1604,7 +1644,7 @@ void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
-void trackQueueDispatcher(char *_sdFile, uint32_t _lastPlayPos, uint32_t _playMode, uint16_t _trackLastPlayed) {
+void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
     char *filename = (char *) malloc(sizeof(char) * 255);
     strncpy(filename, _sdFile, 255);
     playProperties.startAtFilePos = _lastPlayPos;
