@@ -14,6 +14,7 @@
 #include <FastLED.h>
 #include "logmessages.h"
 #include <ESPAsyncWebServer.h>
+#include "website.h"
 
 // Info-docs:
 // https://docs.aws.amazon.com/de_de/freertos-kernel/latest/dg/queue-management.html
@@ -432,7 +433,7 @@ void doButtonActions(void) {
                         break;
 
                     case 3:
-                        gotoSleep = true;
+                        //gotoSleep = true;
                         break;
                     }
                 }
@@ -1006,7 +1007,6 @@ void playAudio(void *parameter) {
                     continue;
                 }
                 if (playProperties.saveLastPlayPosition) {     // Don't save for AUDIOBOOK_LOOP because not necessary
-                    Serial.println(1);
                     if (playProperties.currentTrackNumber + 1 < playProperties.numberOfTracks) {
                         // Only save if there's another track, otherwise it will be saved at end of playlist
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber+1, playProperties.numberOfTracks);
@@ -1046,7 +1046,6 @@ void playAudio(void *parameter) {
                     if (playProperties.saveLastPlayPosition) {
                         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "Titel wurde bei Position %u pausiert.", audio.getFilePos());
                         loggerNl(logBuf, LOGLEVEL_INFO);
-                        Serial.println(2);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), audio.getFilePos(), playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                     }
                     continue;
@@ -1065,7 +1064,6 @@ void playAudio(void *parameter) {
                     if (playProperties.currentTrackNumber+1 < playProperties.numberOfTracks) {
                         playProperties.currentTrackNumber++;
                         if (playProperties.saveLastPlayPosition) {
-                            Serial.println(3);
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                             loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
@@ -1096,7 +1094,6 @@ void playAudio(void *parameter) {
                     if (playProperties.currentTrackNumber > 0) {
                         playProperties.currentTrackNumber--;
                         if (playProperties.saveLastPlayPosition) {
-                            Serial.println(4);
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                             loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
@@ -1132,7 +1129,6 @@ void playAudio(void *parameter) {
                     if (playProperties.currentTrackNumber > 0) {
                         playProperties.currentTrackNumber = 0;
                         if (playProperties.saveLastPlayPosition) {
-                            Serial.println(5);
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                             loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
@@ -1157,7 +1153,6 @@ void playAudio(void *parameter) {
                     if (playProperties.currentTrackNumber+1 < playProperties.numberOfTracks) {
                         playProperties.currentTrackNumber = playProperties.numberOfTracks-1;
                         if (playProperties.saveLastPlayPosition) {
-                            Serial.println(6);
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                             loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
@@ -1189,7 +1184,6 @@ void playAudio(void *parameter) {
                 if (!playProperties.repeatPlaylist) {
                     if (playProperties.saveLastPlayPosition) {
                         // Set back to first track
-                        Serial.println(7);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + 0), 0, playProperties.playMode, 0, playProperties.numberOfTracks);
                     }
                     publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
@@ -1212,7 +1206,6 @@ void playAudio(void *parameter) {
                     loggerNl((char *) FPSTR(repeatPlaylistDueToPlaymode), LOGLEVEL_NOTICE);
                     playProperties.currentTrackNumber = 0;
                     if (playProperties.saveLastPlayPosition) {
-                        Serial.println(8);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + 0), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                     }
                 }
@@ -1246,7 +1239,7 @@ void playAudio(void *parameter) {
             }
         }
 
-        // Calculate relative position in file (for neopixel)
+        // Calculate relative position in file (for neopixel) for SD-card-mode
         if (!playProperties.playlistFinished && playProperties.playMode != WEBSTREAM) {
             double fp = (double) audio.getFilePos() / (double) audio.getFileSize();
             if (millis() % 100 == 0) {
@@ -1361,6 +1354,22 @@ void showLed(void *parameter) {
             lastLedBrightness = ledBrightness;
         }
 
+        if (!buttons[3].currentState) {
+            FastLED.clear();
+            for(uint8_t led = 0; led < NUM_LEDS; led++) {
+                leds[led] = CRGB::Red;
+                if (buttons[3].currentState) {
+                    FastLED.clear();
+                    FastLED.show();
+                    delay(5);
+                    deepSleepManager();
+                    break;
+                }
+                FastLED.show();
+                vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
+            }
+        }
+
         if (showLedError) {             // If error occured (e.g. RFID-modification not accepted)
             showLedError = false;
             notificationShown = true;
@@ -1397,7 +1406,7 @@ void showLed(void *parameter) {
             FastLED.show();
 
             for (uint8_t i=0; i<=50; i++) {
-                if (hlastVolume != currentVolume || showLedError || showLedOk) {
+                if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[3].currentState) {
                     if (hlastVolume != currentVolume) {
                         volumeChangeShown = false;
                     }
@@ -1416,7 +1425,7 @@ void showLed(void *parameter) {
                 for (uint8_t i=0; i < numLedsToLight; i++) {
                     leds[i] = CRGB::Blue;
                     FastLED.show();
-                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*30);
@@ -1424,7 +1433,7 @@ void showLed(void *parameter) {
                 }
 
                 for (uint8_t i=0; i<=100; i++) {
-                   if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                   if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*20);
@@ -1434,7 +1443,7 @@ void showLed(void *parameter) {
                 for (uint8_t i=numLedsToLight; i>0; i--) {
                     leds[i-1] = CRGB::Black;
                     FastLED.show();
-                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk) {
+                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*30);
@@ -1461,7 +1470,7 @@ void showLed(void *parameter) {
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
-                            if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST) {
+                            if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
                                 break;
                             } else {
                                 vTaskDelay(portTICK_RATE_MS * 10);
@@ -1496,7 +1505,7 @@ void showLed(void *parameter) {
 
             default:                            // If playlist is active (doesn't matter which type)
                 if (!playProperties.playlistFinished) {
-                    if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown) {
+                    if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[3].currentState) {
                         lastPlayState = playProperties.pausePlay;
                         lastLockState = lockControls;
                         notificationShown = false;
@@ -1539,9 +1548,7 @@ void showLed(void *parameter) {
                                 leds[ledPosWebstream] = CRGB::Red;
                                 leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Red;
                             } else if (!playProperties.pausePlay) {
-                                //leds[ledPosWebstream] = CRGB::DeepSkyBlue;
                                 leds[ledPosWebstream].setHue(webstreamColor);
-                                //leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::DeepSkyBlue;
                                 leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS].setHue(webstreamColor++);
                             } else if (playProperties.pausePlay) {
                                 leds[ledPosWebstream] = CRGB::Orange;
@@ -1644,9 +1651,9 @@ void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
-void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
+void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
     char *filename = (char *) malloc(sizeof(char) * 255);
-    strncpy(filename, _sdFile, 255);
+    strncpy(filename, _itemToPlay, 255);
     playProperties.startAtFilePos = _lastPlayPos;
     playProperties.currentTrackNumber = _trackLastPlayed;
     char **musicFiles;
@@ -1998,7 +2005,6 @@ void doRfidCardModifications(const uint32_t mod) {
                 }
                 playProperties.repeatCurrentTrack = !playProperties.repeatCurrentTrack;
                 char rBuf[2];
-                Serial.println("Deaktiviert!");
                 snprintf(rBuf, 2, "%u", getRepeatMode());
                 publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                 showLedOk = true;
@@ -2390,7 +2396,7 @@ void setup() {
     xTaskCreatePinnedToCore(
         playAudio, /* Function to implement the task */
         "mp3play", /* Name of the task */
-        10000,  /* Stack size in words */
+        11000,  /* Stack size in words */
         NULL,  /* Task input parameter */
         2 | portPRIVILEGE_BIT,  /* Priority of the task */
         &mp3Play,  /* Task handle. */
