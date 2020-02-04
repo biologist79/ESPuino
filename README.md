@@ -1,7 +1,7 @@
 # Tonuino based on ESP32 with I2S-output
 
 ## Disclaimer
-This is a fork of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. Said this I want to make clear, that the code-basis is completely different. So there might be features, that a supported by my fork whereas others are missing or implemented different. For sure both share, that's it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
+This is a fork of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. Said this I want to make clear, that the code-basis is completely different. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that's it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
 ## What's different (basically)?
 The original project makes use of microcontrollers (uC) like Arduino nano (which is the Microchip AVR-platform behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which also has a uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with the uC using an api provided.
@@ -135,3 +135,15 @@ This mode is different, as the last playposition is saved. Playposition is saved
 * first/previous track requested by button
 * pause was pressed
 * playlist is over (playposition is set back to the first track and fileposition 0)
+
+### Webinterface-configuration
+Todo; currently under development. Will make it possible to assign actions/files/folders to RFID-tags and configure some things.
+
+### FTP
+In order to avoid disassembling the Tonuino, it's possible to transfer music onto the sd-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel.
+
+### Energy saving
+As already described in the modify-section, there are different sleepmodes available. Additionaly, uC will be put into deepsleep after 10 minutes (maxInactivityTime) unless Tonuino doesn't play music, no FTP-client is connected and there's no input via buttons.
+
+### MQTT
+Everything, that can be controlled via RFID-tags and buttons can also be done via MQTT. All manual interactions (buttons, RFID-tags) are also sent to MQTT, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to encapsulate MQTT into a nice GUI, that's accessible via APP + web. ToDo: Publish sample-configuration for openHAB.
