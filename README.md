@@ -24,17 +24,17 @@ So it's about time to have a look at the hardware I used. I'm using an ESP32 on 
 Most of them can be ordered cheaper directly in China. It's just a give an short impression of the hardware.
 
 ## Getting Started
-I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) My project in Github contains platformio.ini, so libararies used should be fetched automatically. Please note: If you use another ESP32-develboard (Lolin32) you have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
+I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) My project in Github contains platformio.ini, so libraries used should be fetched automatically. Please note: If you use another ESP32-develboard (Lolin32) you have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
 
 ## Wiring
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment  |
-| ------------- |:---------------------:| ------:| --------:|
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
+| ------------- |:---------------------:| ------:| ------------------------------------------------------------:|
+| 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     |                                                              |
 | 13            | SD-reader             | MOSI   |                                                              |
 | 16            | SD-reader             | MISO   |                                                              |
 | 14            | SD-reader             | SCK    |                                                              |
-| 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
-| GND           | SD-reader             | GND    |                                                              |
 | 17            | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 22            | RFID-reader           | RST    |                                                              |
@@ -61,9 +61,28 @@ I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alo
 | 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | Neopixel              | GND    |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
-| 17            | BC337 (via R5)        | Base   |                                                              |
+| 17            | BC337 (via R5)        | Base   | Don't forget R5!                                             |
 
 Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off current. Transistor-current is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
-## Interacting with Tonuino-ESP32
-Todo...
+## Prerequisites
+* For debugging-purposes serialDebug can be set (before compiling) to ERROR, NOTICE, INFO or DEBUG.
+* Make decision, if MQTT should be enabled (enableMqtt)
+* If yes, set the IP of the MQTT-server and check the MQTT-topics (states and commands)
+* In setup() RFID-cards can be statically linked to an action/file.
+* Compile and upload the sketch
+
+## Starting Tonuino-ESP32 first time
+After pluggin in it takes a few seconds until neopixel indicates that uC is ready by four (slow) rotating LEDs. If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Place to favourite RFID-tag next to the RFID-reader and the music should start to play.
+
+## Interacting with Tonuino
+### Playmodes
+It's not just simply playing music; different playmodes are supported:
+* single track
+* single track (loop)
+* audiobook (single file or playlist; last play-position is saved when next track is played, pause, previous, next is pressed)
+* audiobook (loop)
+* Folder/playlist (alph. sorted)
+* Folder/playlist (random order)
+* Folder/playlist (alph. sorted) as loop
+* Folder/playlist (random order) as loop
