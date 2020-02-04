@@ -32,8 +32,9 @@ I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alo
 
 ## Wiring
 A lot of wiring is needed to get it working. After my first experients I soldered the stuff to avoid wild-west-cabling. Feel free to design your own PCBs.
+
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
-| -------------:|----------------------:| ------:| ------------------------------------------------------------:|
+| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     |                                                              |
