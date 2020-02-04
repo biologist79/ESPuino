@@ -80,9 +80,57 @@ After pluggin in it takes a few seconds until neopixel indicates that uC is read
 It's not just simply playing music; different playmodes are supported:
 * single track
 * single track (loop)
-* audiobook (single file or playlist; last play-position is saved when next track is played, pause, previous, next is pressed)
+* audiobook (single file or playlist; last play-position is saved)
 * audiobook (loop)
-* Folder/playlist (alph. sorted)
-* Folder/playlist (random order)
-* Folder/playlist (alph. sorted) as loop
-* Folder/playlist (random order) as loop
+* folder/playlist (alph. sorted)
+* folder/playlist (random order)
+* folder/playlist (alph. sorted) as loop
+* folder/playlist (random order) as loop
+* webradio (always only one "track")
+
+### Modification RFID-tags
+There are special RFID-tags available, that don't start music by themself but can modify things. If applied a second time, the corresponding acting will be reversed.
+* lock/unlock all buttons
+* sleep after 5/30/60/120 minutes
+* sleep after end of current track
+* sleep after end of playlist
+* dimm neopixel
+* current track in loop-mode (is "stronger" than playlist-loop but doesn't overwrite it!)
+* playlist in loop-mode
+
+### Neopixel
+Indicates different things:
+* IDLE: four LEDs slow rotating
+* ERROR: all LEDs flashing red (1x)
+* OK: all LEDs flashing green (1x)
+* BUSY: violet; four fast rotating LEDs
+* track-progress: rainbow; number of LEDs relative to progress
+* playlist-progress: blue; appears only in playlist-mode with every new track; number of LEDs relative to progress
+* loudness: green => red-gradient; number of LEDs relative from current to max loudness
+* switching off: red; circle that grows until long-press-time is reached
+* buttons locked: track-progress-LEDs in red
+* paused: track-progress-LEDs in orange
+
+### Buttons
+* previous (short): previous track
+* previous (long): first track in playlist
+* next (short): next track in playlist
+* next (long): last track in playlist
+* pause/play (short/long): pause/play
+* rotary encoder (turning): vol +/-
+* rotary encoder (press long): switch off (only when on)
+* rotary encoder (press short): switch on (only when off)
+
+### Music-play
+* music starts playing after valid RFID-tag was applies
+* if playing a folder should be played that contains many mp3s, the playlist generation can take a few seconds
+* while playlist is generated Neopixel indicates BUSY-mode
+* after last track was played, Neopixel indicates IDLE-mode
+* in audiobook-mode, last play-position is remembered
+
+### Audiobook-mode
+This mode is different, as the last playposition is saved. Playposition is saved when...
+* next track starts
+* first/previous track requested by button
+* pause was pressed
+* playlist is over (playposition is set back to the first track and fileposition 0)
