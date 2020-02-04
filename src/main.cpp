@@ -1590,6 +1590,9 @@ void deepSleepManager(void) {
         MQTTclient.disconnect();
         FastLED.clear();
         FastLED.show();
+        MQTTclient.disconnect();
+        SPI.end();
+        spiSD.end();
         delay(200);
         esp_deep_sleep_start();
     }
