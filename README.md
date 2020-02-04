@@ -63,7 +63,7 @@ I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alo
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | BC337 (via R5)        | Base   | Don't forget R5!                                             |
 
-Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off current. Transistor-current is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
 ## Prerequisites
 * For debugging-purposes serialDebug can be set (before compiling) to ERROR, NOTICE, INFO or DEBUG.
@@ -89,7 +89,7 @@ It's not just simply playing music; different playmodes are supported:
 * webradio (always only one "track")
 
 ### Modification RFID-tags
-There are special RFID-tags available, that don't start music by themself but can modify things. If applied a second time, the corresponding acting will be reversed.
+There are special RFID-tags available, that don't start music by themself but can modify things. If applied a second time, the corresponding acting will be reversed. Please note: all sleep-modes do dimming automatically because it's supposed to be used in the evening when going to bed. Well, at least that's my children's indication :-)
 * lock/unlock all buttons
 * sleep after 5/30/60/120 minutes
 * sleep after end of current track
@@ -97,6 +97,7 @@ There are special RFID-tags available, that don't start music by themself but ca
 * dimm neopixel
 * current track in loop-mode (is "stronger" than playlist-loop but doesn't overwrite it!)
 * playlist in loop-mode
+* track und playlist loop-mode can be activated in parallel, but unless track-loop isn't deactivated, playlist-loop doesn't come into "play"
 
 ### Neopixel
 Indicates different things:
