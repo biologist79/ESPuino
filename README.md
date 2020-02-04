@@ -1,7 +1,9 @@
 # Tonuino based on ESP32 with I2S-output
 
 ## Disclaimer
-This is a fork of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. Said this I want to make clear, that the code-basis is completely different. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
+This is a fork of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. **Said this I want to make clear, that the code-basis is completely different**. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/.
+
+**Please note: This project is still under development. So it's not yet feature-complete (e.g. webinterface is missing).**
 
 ## What's different (basically)?
 The original project makes use of microcontrollers (uC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which also has a uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with the uC using an API provided.
@@ -24,7 +26,7 @@ So it's about time to have a look at the hardware I used. It's a ESP32 on a deve
 Most of them can be ordered cheaper directly in China. It's just a give an short impression of the hardware; feel free to order where ever you want to. I don't earn money with my links :-)
 
 ## Getting Started
-I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) Since my project on Github contains platformio.ini, libraries used should be fetched automatically. Please note: If you use another ESP32-develboard (Lolin32) you might have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
+I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) Since my project on Github contains [platformio.ini](platformio.ini), libraries used should be fetched automatically. Please note: If you use another ESP32-develboard (Lolin32) you might have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
 
 ## Wiring
 A lot of wiring is needed to get it running. After my first experients I soldered the stuff to avoid wild-west-cabling. Feel free to design your own PCBs.
@@ -148,3 +150,6 @@ As already described in the modify-section, there are different sleepmodes avail
 
 ### MQTT
 Everything, that can be controlled via RFID-tags and buttons can also be done via MQTT. All manual interactions (buttons, RFID-tags) are also sent to MQTT, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to encapsulate MQTT into a nice GUI, that's accessible via APP + web. ToDo: Publish sample-configuration for openHAB.
+
+### Supported file/stream-types
+Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), as this is the lib I integrated for music-decoding.
