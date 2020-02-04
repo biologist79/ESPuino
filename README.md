@@ -69,7 +69,7 @@ A lot of wiring is needed to get it working. After my first experients I soldere
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | BC337 (via R5)        | Base   | Don't forget R5!                                             |
 
-Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
 ## Prerequisites
 * for debugging-purposes serialDebug can be set (before compiling) to ERROR, NOTICE, INFO or DEBUG.
@@ -77,18 +77,18 @@ Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls
 * if yes, set the IP of the MQTT-server and check the MQTT-topics (states and commands)
 * in setup() RFID-cards can be statically linked to an action/file. Everything is stored in NVS.
 * set NUM_LEDS to the LED-number of your Neopixel-ring.
-* please note: Iy using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
+* please note: by using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
 * compile and upload the sketch
 
 ## Starting Tonuino-ESP32 first time
-After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Place to favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown.
+After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist contains the longer this step takes.
 
 ## Interacting with Tonuino
 ### Playmodes
 It's not just simply playing music; different playmodes are supported:
 * single track
 * single track (loop)
-* audiobook (single file or playlist; last play-position is saved)
+* audiobook (single file or playlist; last play-position (file and playlist) is saved)
 * audiobook (loop)
 * folder/playlist (alph. sorted)
 * folder/playlist (random order)
