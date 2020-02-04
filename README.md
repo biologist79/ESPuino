@@ -1,7 +1,7 @@
-# Tonuino based on ESP32 with I2S-output
+# Tonuino based on ESP32 with I2S-DAC-support
 
 ## Disclaimer
-This is a fork of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. **Said this I want to make clear, that the code-basis is completely different**. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/.
+This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling music-play by RFID-tags and buttons. **Said this I want to make clear, that the code-basis is completely different**. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/.
 
 **Please note: This project is still under development. So it's not yet feature-complete (e.g. webinterface is missing).**
 
@@ -22,14 +22,16 @@ So it's about time to have a look at the hardware I used. It's a ESP32 on a deve
 * [Neopixel-ring](https://www.ebay.de/itm/16Bit-RGB-LED-Ring-WS2812-5V-ahnl-Neopixel-fur-Arduino-Raspberry-Pi/173881828935)
 * [Rotary Encoder](https://www.amazon.de/gp/product/B07T3672VK)
 * [Buttons](https://de.aliexpress.com/item/32697109472.html)
+* [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
+* uSD-card doesn't have to be super-fast; uC is limiting the throughput. Tested 32GB without any problems.
 
 Most of them can be ordered cheaper directly in China. It's just a give an short impression of the hardware; feel free to order where ever you want to. I don't earn money with my links :-)
 
 ## Getting Started
-I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) Since my project on Github contains [platformio.ini](platformio.ini), libraries used should be fetched automatically. Please note: If you use another ESP32-develboard (Lolin32) you might have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
+I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode.) Since my project on Github contains [platformio.ini](platformio.ini), libraries used should be fetched automatically. Please note: if you use another ESP32-develboard (Lolin32 e.g.) you might have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
 
 ## Wiring
-A lot of wiring is needed to get it running. After my first experients I soldered the stuff to avoid wild-west-cabling. Feel free to design your own PCBs.
+A lot of wiring is needed to get it working. After my first experients I soldered the stuff to avoid wild-west-cabling. Feel free to design your own PCBs.
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- |:---------------------:| ------:| ------------------------------------------------------------:|
 | 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
@@ -66,17 +68,19 @@ A lot of wiring is needed to get it running. After my first experients I soldere
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | BC337 (via R5)        | Base   | Don't forget R5!                                             |
 
-Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+Optionally, GPIO 17 can be used to drive an NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
 ## Prerequisites
-* For debugging-purposes serialDebug can be set (before compiling) to ERROR, NOTICE, INFO or DEBUG.
-* Make decision, if MQTT should be enabled (enableMqtt)
-* If yes, set the IP of the MQTT-server and check the MQTT-topics (states and commands)
-* In setup() RFID-cards can be statically linked to an action/file.
-* Compile and upload the sketch
+* for debugging-purposes serialDebug can be set (before compiling) to ERROR, NOTICE, INFO or DEBUG.
+* make decision, if MQTT should be enabled (enableMqtt)
+* if yes, set the IP of the MQTT-server and check the MQTT-topics (states and commands)
+* in setup() RFID-cards can be statically linked to an action/file. Everything is stored in NVS.
+* set NUM_LEDS to the LED-number of your Neopixel-ring.
+* please note: Iy using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
+* compile and upload the sketch
 
 ## Starting Tonuino-ESP32 first time
-After pluggin in it takes a few seconds until neopixel indicates that uC is ready by four (slow) rotating LEDs. If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Place to favourite RFID-tag next to the RFID-reader and the music should start to play.
+After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Place to favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown.
 
 ## Interacting with Tonuino
 ### Playmodes
@@ -102,8 +106,8 @@ There are special RFID-tags available, that don't start music by themself but ca
 * playlist in loop-mode
 * track und playlist loop-mode can be activated in parallel, but unless track-loop isn't deactivated, playlist-loop doesn't come into "play"
 
-### Neopixel
-Indicates different things:
+### Neopixel-ring
+Indicates different things. Number of LEDs via NUM_LEDS
 * IDLE: four LEDs slow rotating
 * ERROR: all LEDs flashing red (1x)
 * OK: all LEDs flashing green (1x)
