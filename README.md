@@ -108,19 +108,20 @@ There are special RFID-tags available, that don't start music by themself but ca
 * track und playlist loop-mode can be activated in parallel, but unless track-loop isn't deactivated, playlist-loop doesn't come into "play"
 
 ### Neopixel-ring
-Indicates different things. Number of LEDs via NUM_LEDS
+Indicates different things. Don't forget setting number of LEDs via #define NUM_LEDS
 * IDLE: four LEDs slow rotating
 * ERROR: all LEDs flashing red (1x)
 * OK: all LEDs flashing green (1x)
 * BUSY: violet; four fast rotating LEDs
 * track-progress: rainbow; number of LEDs relative to progress
-* playlist-progress: blue; appears only in playlist-mode with every new track; number of LEDs relative to progress
-* loudness: green => red-gradient; number of LEDs relative from current to max loudness
+* playlist-progress: blue; appears only shortly in playlist-mode with every new track; number of LEDs relative to progress
+* volume: green => red-gradient; number of LEDs relative from current to max volume
 * switching off: red; circle that grows until long-press-time is reached
-* buttons locked: track-progress-LEDs in red
-* paused: track-progress-LEDs in orange
+* buttons locked: track-progress-LEDs coloured red
+* paused: track-progress-LEDs coloured orange
 
 ### Buttons
+Some buttons have different actions if pressed long or short. Minimum duration for long press in ms is defined by intervalToLongPress.
 * previous (short): previous track
 * previous (long): first track in playlist
 * next (short): next track in playlist
