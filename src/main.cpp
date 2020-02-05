@@ -67,7 +67,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define LED_PIN                         12
 
 // Neopixel-configuration
-#define NUM_LEDS                        16
+#define NUM_LEDS                        24
 #define CHIPSET                         WS2811
 #define COLOR_ORDER                     GRB
 
@@ -554,7 +554,7 @@ uint8_t getRepeatMode(void) {
         return PLAYLIST;
     } else if (!playProperties.repeatPlaylist && playProperties.repeatCurrentTrack) {
         return TRACK;
-    } else if (!playProperties.repeatPlaylist && !playProperties.repeatCurrentTrack) {
+    } else {
         return NO_REPEAT;
     }
 }
@@ -1455,18 +1455,19 @@ void showLed(void *parameter) {
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
                 if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
+                    double c = NUM_LEDS * 0.75;
                     for (uint8_t i=0; i < NUM_LEDS; i++) {
                         FastLED.clear();
                         if (i == 0) {
                             leds[0] = CRGB::White;
                             leds[NUM_LEDS/4] = CRGB::White;
                             leds[NUM_LEDS/2] = CRGB::White;
-                            leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::White;
+                            leds[(int) c] = CRGB::White;
                         } else {
                             leds[i % NUM_LEDS] = CRGB::White;
                             leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
                             leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
-                            leds[(i+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::White;
+                            leds[(i+(int) c) % NUM_LEDS] = CRGB::White;
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
@@ -2111,7 +2112,7 @@ void handleWifiSetup() {
             loggerNl(logBuf, LOGLEVEL_INFO);
 
             if (server.argName(i) == "ssid") {
-                snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%S: %s", (char *) FPSTR(savedSsidInNvs), server.arg(i).c_str());
+                snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(savedSsidInNvs), server.arg(i).c_str());
                 loggerNl(logBuf, LOGLEVEL_NOTICE);
                 prefsSettings.putString("SSID", server.arg(i));
             } else if (server.argName(i) == "pw") {
@@ -2217,15 +2218,17 @@ void setup() {
     playProperties.playlistFinished = true;
 
     // Examples for serialized RFID-actions that are stored in NVS
+    // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
+    // Don't forget to comment this section out for regular usage as it probably overwrites saved states in mode audiobook
     prefsRfid.putString("215123125075", "#/mp3/Kinderlieder#0#6#0");
     prefsRfid.putString("009236075184", "#/Aura - Avoure.mp3#0#3#0");
     prefsRfid.putString("073022077184", "#/kurz#0#7#0");
     prefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
-    prefsRfid.putString("244105171042", "#0#0#111#0");
-    prefsRfid.putString("075081176028", "#0#0#106#0");
-    prefsRfid.putString("212216120042", "#0#0#105#0");
-    prefsRfid.putString("020059140043", "#0#0#111#0");
-    prefsRfid.putString("228064156042", "#0#0#110#0");
+    prefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
+    prefsRfid.putString("075081176028", "#0#0#106#0"); // modification-card (sleep at end of playlist)
+    prefsRfid.putString("212216120042", "#0#0#105#0"); // modification-card (sleep at end of track)
+    prefsRfid.putString("020059140043", "#0#0#111#0"); // modification-card (repeat current track)
+    prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("018030087052", "#http://shouthost.com.19.streams.bassdrive.com:8200#0#8#0");
     prefsRfid.putString("182146124043", "#http://ibizaglobalradio.streaming-pro.com:8024#0#8#0");
     prefsRfid.putString("018162219052", "#http://stream2.friskyradio.com:8000/frisky_mp3_hi#0#8#0");
@@ -2287,7 +2290,7 @@ void setup() {
     uint8_t nvsNLedBrightness = prefsSettings.getUChar("nLedBrightness", 0);
     if (nvsNLedBrightness) {
         nightLedBrightness = nvsNLedBrightness;
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%S: %d", (char *) FPSTR(loadedInitialBrightnessForNmFromNvs), nvsNLedBrightness);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(loadedInitialBrightnessForNmFromNvs), nvsNLedBrightness);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUChar("nLedBrightness", nightLedBrightness);
