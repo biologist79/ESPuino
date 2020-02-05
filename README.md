@@ -132,14 +132,14 @@ Some buttons have different actions if pressed long or short. Minimum duration f
 * rotary encoder (press short): switch on (only when off)
 
 ### Music-play
-* music starts playing after valid RFID-tag was applies
-* if playing a folder should be played that contains many mp3s, the playlist generation can take a few seconds
+* music starts playing after valid RFID-tag was applied
+* if a folder should be played that contains many mp3s, the playlist generation can take a few seconds
 * while playlist is generated Neopixel indicates BUSY-mode
 * after last track was played, Neopixel indicates IDLE-mode
-* in audiobook-mode, last play-position is remembered
+* in audiobook-mode, last play-position is remembered (position in current file and number of track, respectively)
 
 ### Audiobook-mode
-This mode is different, as the last playposition is saved. Playposition is saved when...
+This mode is different from the other ones because the last playposition is saved. Playposition is saved when...
 * next track starts
 * first/previous track requested by button
 * pause was pressed
@@ -149,13 +149,13 @@ This mode is different, as the last playposition is saved. Playposition is saved
 Todo; currently under development. Will make it possible to assign actions/files/folders to RFID-tags and configure some things.
 
 ### FTP
-In order to avoid disassembling the Tonuino all the time, it's possible to transfer music onto the sd-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel. Better stop playback then doing a FTP-transfer.
+In order to avoid disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the sd-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel. Better stop playback then doing a FTP-transfer. Default-user and password are set via ftpUser and ftpPassword.
 
 ### Energy saving
-As already described in the modify-section, there are different sleepmodes available. Additionaly, uC will be put into deepsleep after 10 minutes (maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons.
+As already described in the modify-section, there are different sleepmodes available. Additionaly uC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter to the initial value.
 
 ### MQTT
-Everything, that can be controlled via RFID-tags and buttons can also be done via MQTT. All manual interactions (buttons, RFID-tags) are also sent to MQTT, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to encapsulate MQTT into a nice GUI, that's accessible via APP + web. ToDo: Publish sample-configuration for openHAB.
+Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT. All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to encapsulate MQTT into a nice GUI, that's accessible via APP + web. ToDo: Publish sample-configurations for openHAB.
 
 ### Supported file/stream-types
 Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), as this is the lib I integrated for music-decoding.
