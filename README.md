@@ -123,10 +123,10 @@ Indicates different things. Don't forget setting number of LEDs via #define NUM_
 
 ### Buttons
 Some buttons have different actions if pressed long or short. Minimum duration for long press in ms is defined by intervalToLongPress.
-* previous (short): previous track
-* previous (long): first track in playlist
-* next (short): next track in playlist
-* next (long): last track in playlist
+* previous (short): previous track / beginning of the first track if pressed while first track is playing
+* previous (long): first track of playlist
+* next (short): next track of playlist
+* next (long): last track of playlist
 * pause/play (short/long): pause/play
 * rotary encoder (turning): vol +/-
 * rotary encoder (press long): switch off (only when on)

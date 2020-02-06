@@ -202,6 +202,7 @@ unsigned long const stillOnlineInterval = 60;       // Interval 'I'm still alive
 bool showLedError = false;
 bool showLedOk = false;
 bool showPlaylistProgress = false;
+bool showRewind = false;
 
 // MQTT-helper
 PubSubClient MQTTclient(wifiClient);
@@ -1019,6 +1020,7 @@ void playAudio(void *parameter) {
                     playProperties.currentTrackNumber++;
                 } else {
                     loggerNl((char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
+                    showRewind = true;
                 }
             }
 
@@ -1113,6 +1115,7 @@ void playAudio(void *parameter) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                         }
                             audio.stopSong();
+                            showRewind = true;
                             audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
                             loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
@@ -1417,10 +1420,23 @@ void showLed(void *parameter) {
             }
         }
 
+        if (showRewind) {
+            showRewind = false;
+            for (uint8_t i=NUM_LEDS-1; i>0; i--) {
+                leds[i] = CRGB::Black;
+                FastLED.show();
+                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                    break;
+                } else {
+                    vTaskDelay(portTICK_RATE_MS*30);
+                }
+            }
+        }
+
         if (showPlaylistProgress) {
             showPlaylistProgress = false;
             if (playProperties.numberOfTracks > 1 && playProperties.currentTrackNumber < playProperties.numberOfTracks) {
-                uint8_t numLedsToLight = map(playProperties.currentTrackNumber, 0, playProperties.numberOfTracks, 0, NUM_LEDS);
+                uint8_t numLedsToLight = map(playProperties.currentTrackNumber, 0, playProperties.numberOfTracks-1, 0, NUM_LEDS);
                 FastLED.clear();
                 for (uint8_t i=0; i < numLedsToLight; i++) {
                     leds[i] = CRGB::Blue;
@@ -1436,7 +1452,7 @@ void showLed(void *parameter) {
                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
-                        vTaskDelay(portTICK_RATE_MS*20);
+                        vTaskDelay(portTICK_RATE_MS*15);
                     }
                 }
 
@@ -1455,19 +1471,18 @@ void showLed(void *parameter) {
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
                 if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
-                    double c = NUM_LEDS * 0.75;
                     for (uint8_t i=0; i < NUM_LEDS; i++) {
                         FastLED.clear();
                         if (i == 0) {
                             leds[0] = CRGB::White;
                             leds[NUM_LEDS/4] = CRGB::White;
                             leds[NUM_LEDS/2] = CRGB::White;
-                            leds[(int) c] = CRGB::White;
+                            leds[NUM_LEDS/4*3] = CRGB::White;
                         } else {
                             leds[i % NUM_LEDS] = CRGB::White;
                             leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
                             leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
-                            leds[(i+(int) c) % NUM_LEDS] = CRGB::White;
+                            leds[(i+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::White;
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
@@ -1489,12 +1504,12 @@ void showLed(void *parameter) {
                         leds[0] = CRGB::BlueViolet;
                         leds[NUM_LEDS/4] = CRGB::BlueViolet;
                         leds[NUM_LEDS/2] = CRGB::BlueViolet;
-                        leds[NUM_LEDS*3 / NUM_LEDS*4] = CRGB::BlueViolet;
+                        leds[NUM_LEDS/4*3] = CRGB::BlueViolet;
                     } else {
                         leds[i % NUM_LEDS] = CRGB::BlueViolet;
                         leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
                         leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(i+NUM_LEDS*3 / NUM_LEDS*4) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(i+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::BlueViolet;
                     }
                     FastLED.show();
                     if (playProperties.playMode != BUSY) {
@@ -1523,7 +1538,7 @@ void showLed(void *parameter) {
                         if (playProperties.currentRelPos != lastPos || redrawProgress) {
                             redrawProgress = false;
                             lastPos = playProperties.currentRelPos;
-                            uint8_t numLedsToLight = map(playProperties.currentRelPos, 0, 94, 0, NUM_LEDS);
+                            uint8_t numLedsToLight = map(playProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
                             FastLED.clear();
                             for(uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
