@@ -148,7 +148,6 @@ TaskHandle_t LED;
 WebServer server(80);
 
 // LED-brightness-configuration
-const uint8_t maxLedBrightness = 255;                    // Maximum brightness that is used for LEDs (PWM-dimmed)
 uint8_t initialLedBrightness = 16;
 uint8_t ledBrightness = initialLedBrightness;
 uint8_t nightLedBrightness = 2;
@@ -225,10 +224,6 @@ int32_t lastEncoderValue;
 int32_t currentEncoderValue;
 int32_t lastVolume = -1;                                // Don't change -1 as initial-value!
 uint8_t currentVolume = initVolume;
-bool lastStateButtonRotary;
-bool currentStateButtonRotary;
-bool isPressedButtonRotary = false;
-unsigned long lastPressedTimestampButtonRotary;
 
 // Sleep-configuration
 uint16_t maxInactivityTime = 10;                        // Time in minutes, after uC is put to deep sleep because of inactivity
@@ -236,7 +231,6 @@ unsigned long sleepTimer = 30;                          // Sleep timer in minute
 
 // Sleep-helper
 unsigned long lastTimeActiveTimestamp = 0;              // Timestamp of last user-interaction
-bool gotoSleepDueToButton = false;
 unsigned long sleepTimerStartTimestamp = 0;             // Flag if sleep-timer is active
 bool gotoSleep = false;                                 // Flag for turning uC immediately into deepsleep
 
@@ -350,6 +344,53 @@ void printDirectory(File dir, int numTabs) {
   }
 }
 
+
+int countChars(const char* string, char ch)
+{
+    int count = 0;
+    int length = strlen(string);
+
+    for (uint8_t i = 0; i < length; i++) {
+        if (string[i] == ch) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+
+void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdContent, uint8_t depth) {
+    while (true) {
+        File entry = dir.openNextFile();
+        if (!entry) {
+            dir.rewindDirectory();
+            break;
+        }
+
+        if (countChars(entry.name(), '/') > depth+1) {
+            continue;
+        }
+
+        Serial.println(entry.name());
+
+        if ((strlen(sdContent) + strlen(entry.name()) + 2) >= allocCount * allocSize) {
+            sdContent = (char*) realloc(sdContent, ++allocCount * allocSize);
+            Serial.printf("Free heap: %u", ESP.getFreeHeap());
+            Serial.printf("realloc! -%d-\n", allocCount);
+            if (sdContent == NULL) {
+                return;
+            }
+        }
+        strcat(sdContent, "#");
+        strcat(sdContent, entry.name());
+
+        if (entry.isDirectory()) {
+            printSdContent(entry, allocSize, allocCount, sdContent, depth);
+        }
+        entry.close();
+    }
+}
 
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -862,8 +903,8 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     }
 
     // Directory-mode
-    uint32_t allocCount = 1;
-    uint32_t allocSize = 512;
+    uint16_t allocCount = 1;
+    uint16_t allocSize = 512;
     char *serializedPlaylist = (char*) calloc(allocSize, sizeof(char));
 
     while (true) {
@@ -1325,6 +1366,7 @@ void rfidScanner(void *parameter) {
 }
 
 
+// This task handles everything for Neopixel-visualisation
 void showLed(void *parameter) {
     static uint8_t hlastVolume = currentVolume;
     static uint8_t lastPos = playProperties.currentRelPos;
@@ -1703,14 +1745,15 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
     playProperties.playMode = _playMode;
     playProperties.numberOfTracks = strtoul(*(musicFiles-1), NULL, 10);
+    // Setting default-values
+    playProperties.repeatCurrentTrack = false;
+    playProperties.repeatPlaylist = false;
+    playProperties.sleepAfterCurrentTrack = false;
+    playProperties.sleepAfterPlaylist = false;
+    playProperties.saveLastPlayPosition = false;
 
     switch(playProperties.playMode) {
         case SINGLE_TRACK: {
-            playProperties.repeatCurrentTrack = false;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
             publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
@@ -1720,10 +1763,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case SINGLE_TRACK_LOOP: {
             playProperties.repeatCurrentTrack = true;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
             publishMqtt((char *) FPSTR(topicRepeatModeState), TRACK, false);
@@ -1732,10 +1771,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case AUDIOBOOK: {   // Tracks need to be alph. sorted!
-            playProperties.repeatCurrentTrack = false;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
             playProperties.saveLastPlayPosition = true;
             loggerNl((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -1746,10 +1781,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case AUDIOBOOK_LOOP: {  // Tracks need to be alph. sorted!
-            playProperties.repeatCurrentTrack = false;
             playProperties.repeatPlaylist = true;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
             playProperties.saveLastPlayPosition = true;
             loggerNl((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -1760,11 +1792,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_SORTED: {
-            playProperties.repeatCurrentTrack = false;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
             loggerNl(logBuf, LOGLEVEL_NOTICE);
             sortPlaylist((const char**) musicFiles, strtoul(*(musicFiles-1), NULL, 10));
@@ -1775,11 +1802,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_RANDOM: {
-            playProperties.repeatCurrentTrack = false;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
             randomizePlaylist(musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -1789,11 +1811,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_SORTED_LOOP: {
-            playProperties.repeatCurrentTrack = false;
             playProperties.repeatPlaylist = true;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
             sortPlaylist((const char**) musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -1803,11 +1821,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_RANDOM_LOOP: {
-            playProperties.repeatCurrentTrack = false;
             playProperties.repeatPlaylist = true;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
             randomizePlaylist(musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -1817,11 +1831,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case WEBSTREAM: {   // This is always just one "track"
-            playProperties.repeatCurrentTrack = false;
-            playProperties.repeatPlaylist = false;
-            playProperties.sleepAfterCurrentTrack = false;
-            playProperties.sleepAfterPlaylist = false;
-            playProperties.saveLastPlayPosition = false;
             loggerNl((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
             if (wifiManager() == WL_CONNECTED) {
                 xQueueSend(trackQueue, &(musicFiles), 0);
@@ -2404,6 +2413,7 @@ void setup() {
     timerAlarmWrite(timer, 1000, true);         // 1000 Hz
     timerAlarmEnable(timer);
 
+    // Create tasks
     xTaskCreatePinnedToCore(
         rfidScanner, /* Function to implement the task */
         "rfidhandling", /* Name of the task */
@@ -2436,7 +2446,7 @@ void setup() {
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
 
-  // Activate internal pullups for all buttons
+    // Activate internal pullups for all buttons
     pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
@@ -2488,8 +2498,15 @@ void setup() {
 
     wServer.begin();
     bootComplete = true;
-    /*File root = SD.open("/");
-    printDirectory(root, 0);*/
+
+    /*char *sdC = (char *) calloc(16384, sizeof(char));
+    printSdContent(SD.open("/", FILE_READ), 16384, 1, sdC, 2);
+    printSdContent(SD.open("/", FILE_READ), 16384, 1, sdC, 2);
+    Serial.println(sdC);
+    Serial.println(strlen(sdC));
+    Serial.println(ESP.getFreeHeap());
+    free (sdC);
+    Serial.println(ESP.getFreeHeap());*/
 }
 
 

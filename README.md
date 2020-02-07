@@ -60,9 +60,9 @@ A lot of wiring is necessary to get Tonuino working. After my first experients I
 | GND           | Rotary encoder        | GND    |                                                              |
 | 4             | Button (next)         |        |                                                              |
 | GND           | Button (next)         |        |                                                              |
-| 35            | Button (previous)     |        |                                                              |
+| 33            | Button (previous)     |        |                                                              |
 | GND           | Button (previous)     |        |                                                              |
-| 32            | Button (pause/play)   |        |                                                              |
+| 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
 | 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | Neopixel              | GND    |                                                              |
