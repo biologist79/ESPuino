@@ -66,8 +66,8 @@ A lot of wiring is necessary to get Tonuino working. After my first experients I
 | GND           | Button (pause/play)   |        |                                                              |
 | 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | Neopixel              | GND    |                                                              |
-| 12            | Neopixel              | DI     |                                                              |
-| 17            | BC337 (via R5)        | Base   | Don't forget R5!                                             |
+| 12            | Neopixel              | DI     | Probably it's necessary to use a logic-converter 3.3 => 5V   |
+| 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
 Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
@@ -120,6 +120,7 @@ Indicates different things. Don't forget setting number of LEDs via #define NUM_
 * switching off: red; circle that grows until long-press-time is reached
 * buttons locked: track-progress-LEDs coloured red
 * paused: track-progress-LEDs coloured orange
+* rewind: if single-track-loop activated a LED-rewind is performed when restarting the given track
 
 ### Buttons
 Some buttons have different actions if pressed long or short. Minimum duration for long press in ms is defined by intervalToLongPress.
