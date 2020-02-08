@@ -111,72 +111,89 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define PLAYLIST                        2
 #define TRACK_N_PLAYLIST                3
 
-typedef struct {
-    uint8_t playMode;                   // playMode
-    char **playlist;                    // playlist
-    bool repeatCurrentTrack;            // If current track should be looped
-    bool repeatPlaylist;                // If whole playlist should be looped
-    uint16_t currentTrackNumber;        // Current tracknumber
-    uint16_t numberOfTracks;            // Number of tracks in playlist
-    unsigned long startAtFilePos;       // Offset to start play (in bytes)
-    uint8_t currentRelPos;              // Current relative playPosition (in %)
-    bool sleepAfterCurrentTrack;        // If uC should go to sleep after current track
-    bool sleepAfterPlaylist;            // If uC should go to sleep after whole playlist
-    bool saveLastPlayPosition;          // If playposition/current track should be saved (for AUDIOBOOK)
-    char playRfidTag[13];               // ID of RFID-tag that started playlist
-    bool pausePlay;                     // If pause is active
-    bool trackFinished;                 // If current track is finished
-    bool playlistFinished;              // If whole playlist is finished
+typedef struct { // Bit field
+    uint8_t playMode:                   4;      // playMode
+    char **playlist;                            // playlist
+    bool repeatCurrentTrack:            1;      // If current track should be looped
+    bool repeatPlaylist:                1;      // If whole playlist should be looped
+    uint16_t currentTrackNumber:        9;      // Current tracknumber
+    uint16_t numberOfTracks:            9;      // Number of tracks in playlist
+    unsigned long startAtFilePos;               // Offset to start play (in bytes)
+    uint8_t currentRelPos:              7;      // Current relative playPosition (in %)
+    bool sleepAfterCurrentTrack:        1;      // If uC should go to sleep after current track
+    bool sleepAfterPlaylist:            1;      // If uC should go to sleep after whole playlist
+    bool saveLastPlayPosition:          1;      // If playposition/current track should be saved (for AUDIOBOOK)
+    char playRfidTag[13];                       // ID of RFID-tag that started playlist
+    bool pausePlay:                     1;      // If pause is active
+    bool trackFinished:                 1;      // If current track is finished
+    bool playlistFinished:              1;      // If whole playlist is finished
 } playProps;
 playProps playProperties;
 
-// Zeugs
-const char* PARAM_MESSAGE = "message";
 
-void notFound(AsyncWebServerRequest *request) {
-    request->send(404, "text/plain", "Not found");
-}
-AsyncWebServer wServer(81);
+typedef struct {
+    // Neopixel
+    uint8_t initialLedBrightness = 16;                      // Initial brightness of Neopixel
+    uint8_t ledBrightness = initialLedBrightness;
+    uint8_t nightLedBrightness = 2;                         // Brightness of Neopixel in nightmode
+    // MQTT
+    bool enableMqtt = true;
+    uint8_t mqttFailCount = 3;                              // Number of times mqtt-reconnect is allowed to fail. If >= mqttFailCount to further reconnects take place
+    uint8_t const stillOnlineInterval = 60;                 // Interval 'I'm still alive' is sent via MQTT (in seconds)
+    // RFID
+    uint8_t const cardIdSize = 4;                           // RFID
+    // Volume
+    uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted
+    uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
+    uint8_t initVolume = 3;                                 // 0...21
+    // Sleep
+    uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
+    uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
+    // Button-configuration
+    uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
+    uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
+} genConfig;
+genConfig generalConfig;
 
-// Audio/mp3
-SPIClass spiSD(HSPI);
-TaskHandle_t mp3Play;
-TaskHandle_t rfid;
-TaskHandle_t LED;
-
-// Webserver
-WebServer server(80);
-
-// LED-brightness-configuration
-uint8_t initialLedBrightness = 16;
-uint8_t ledBrightness = initialLedBrightness;
-uint8_t nightLedBrightness = 2;
-
-// FTP
-FtpServer ftpSrv;
-
-// WiFi-configuration
-// Info: SSID / password are stored in NVS
-WiFiClient wifiClient;
-IPAddress myIP;
-
-// WiFi-helper
-unsigned long wifiCheckLastTimestamp = 0;
+typedef struct {
+    // WiFi
+    unsigned long wifiCheckLastTimestamp = 0;
+    // Neopixel
+    bool showLedError:                              1;
+    bool showLedOk:                                 1;
+    bool showPlaylistProgress:                      1;
+    bool showRewind:                                1;
+    // MQTT
+    unsigned long lastOnlineTimestamp = 0;
+    // RFID
+    unsigned long lastRfidCheckTimestamp = 0;
+    char *currentRfidTagId = NULL;
+    // Sleep
+    unsigned long lastTimeActiveTimestamp = 0;              // Timestamp of last user-interaction
+    unsigned long sleepTimerStartTimestamp = 0;             // Flag if sleep-timer is active
+    bool gotoSleep:                                 1;      // Flag for turning uC immediately into deepsleep
+    bool lockControls:                              1;      // Flag if buttons and rotary encoder is locked
+    bool bootComplete:                              1;
+    // Rotary encoder-helper
+    int32_t lastEncoderValue;
+    int32_t currentEncoderValue;
+    int32_t lastVolume = -1;                                // Don't change -1 as initial-value!
+    uint8_t currentVolume = generalConfig.initVolume;
+} help;
+help helper;
 
 // AP-WiFi
 static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-point's SSID
-IPAddress apIP(192, 168, 4, 1);                     // Access-point's static IP
-IPAddress apNetmask(255, 255, 255, 0);              // Access-point's netmask
+IPAddress apIP(192, 168, 4, 1);                             // Access-point's static IP
+IPAddress apNetmask(255, 255, 255, 0);                      // Access-point's netmask
 
 // FTP
-char ftpUser[10] = "esp32";                         // FTP-user
-char ftpPassword[15] = "esp32";                     // FTP-password
+char ftpUser[10] = "esp32";                                 // FTP-user
+char ftpPassword[15] = "esp32";                             // FTP-password
 
 // MQTT-configuration
-#define DEVICE_HOSTNAME "ESP32-Tonuino"             // Name that that is used for MQTT
-bool enableMqtt = true;
-uint8_t mqttFailCount = 3;                          // Number of times mqtt-reconnect is allowed to fail. If >= mqttFailCount to further reconnects take place
-char mqtt_server[16] = "192.168.2.43";              // IP-address of MQTT-server
+#define DEVICE_HOSTNAME "ESP32-Tonuino"                     // Name that that is used for MQTT
+char mqtt_server[16] = "192.168.2.43";                      // IP-address of MQTT-server
 static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
 static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
 static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
@@ -195,56 +212,44 @@ static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/Tonuino/RepeatMode";
 static const char topicRepeatModeState[] PROGMEM = "State/Tonuino/RepeatMode";
 static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino/LedBrightness";
 static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
-unsigned long const stillOnlineInterval = 60;       // Interval 'I'm still alive' is sent via MQTT (in seconds)
 
-// Neopixel-helper
-bool showLedError = false;
-bool showLedOk = false;
-bool showPlaylistProgress = false;
-bool showRewind = false;
+char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings
+
+// Zeugs
+const char* PARAM_MESSAGE = "message";
+
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
+}
+AsyncWebServer wServer(81);
+
+// Audio/mp3
+SPIClass spiSD(HSPI);
+TaskHandle_t mp3Play;
+TaskHandle_t rfid;
+TaskHandle_t LED;
+
+// Webserver
+WebServer server(80);
+
+// FTP
+FtpServer ftpSrv;
+
+// WiFi-configuration
+// Info: SSID / password are stored in NVS
+WiFiClient wifiClient;
+IPAddress myIP;
 
 // MQTT-helper
 PubSubClient MQTTclient(wifiClient);
-unsigned long lastOnlineTimestamp = 0;
-
-// RFID-helper
-unsigned long lastRfidCheckTimestamp = 0;
-uint8_t const cardIdSize = 4;
-
-// Loudness-configuration
-uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted
-uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
-uint8_t initVolume = 3;                                 // 0...21
 
 // Rotary encoder-configuration
 ESP32Encoder encoder;
 
-// Rotary encoder-helper
-int32_t lastEncoderValue;
-int32_t currentEncoderValue;
-int32_t lastVolume = -1;                                // Don't change -1 as initial-value!
-uint8_t currentVolume = initVolume;
-
-// Sleep-configuration
-uint16_t maxInactivityTime = 10;                        // Time in minutes, after uC is put to deep sleep because of inactivity
-unsigned long sleepTimer = 30;                          // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
-
-// Sleep-helper
-unsigned long lastTimeActiveTimestamp = 0;              // Timestamp of last user-interaction
-unsigned long sleepTimerStartTimestamp = 0;             // Flag if sleep-timer is active
-bool gotoSleep = false;                                 // Flag for turning uC immediately into deepsleep
-
-// Music-player-helper
-char *currentRfidTagId = NULL;
-
-// Button-configuration
-uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
-uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
-
-// HW-Timer / Control-button-helper
+// HW-Timer
 hw_timer_t *timer = NULL;
 volatile SemaphoreHandle_t timerSemaphore;
-bool lockControls;                                          // FLag if buttons and rotary encoder is locked
+ // Button-helper
 typedef struct {
     bool lastState;
     bool currentState;
@@ -259,9 +264,6 @@ Preferences prefsRfid;
 Preferences prefsSettings;
 static const char prefsRfidNamespace[] PROGMEM = "rfidTags";        // Namespace used to save IDs of rfid-tags
 static const char prefsSettingsNamespace[] PROGMEM = "settings";    // Namespace used for generic settings
-
-char stringDelimiter[] = "#";                                       // Character used to encapsulate data in linear NVS-strings
-bool bootComplete = false;
 
 QueueHandle_t volumeQueue;
 QueueHandle_t trackQueue;
@@ -399,7 +401,7 @@ void IRAM_ATTR onTimer() {
 // If timer-semaphore is set, read buttons (unless controls are locked)
 void buttonHandler() {
     if (xSemaphoreTake(timerSemaphore, 0) == pdTRUE) {
-        if (lockControls) {
+        if (helper.lockControls) {
             return;
         }
         unsigned long currentTimestamp = millis();
@@ -410,7 +412,7 @@ void buttonHandler() {
 
         // Iterate over all buttons in struct-array
         for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
-            if (buttons[i].currentState != buttons[i].lastState && currentTimestamp - buttons[i].lastPressedTimestamp > buttonDebounceInterval) {
+            if (buttons[i].currentState != buttons[i].lastState && currentTimestamp - buttons[i].lastPressedTimestamp > generalConfig.buttonDebounceInterval) {
                 if (!buttons[i].currentState) {
                     buttons[i].isPressed = true;
                     buttons[i].lastPressedTimestamp = currentTimestamp;
@@ -427,14 +429,14 @@ void buttonHandler() {
 
 // Do corresponding actions for all buttons
 void doButtonActions(void) {
-    if (lockControls) {
+    if (helper.lockControls) {
         return; // Avoid button-handling if buttons are locked
     }
 
     for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
         if (buttons[i].isPressed) {
             if (buttons[i].lastReleasedTimestamp > buttons[i].lastPressedTimestamp) {
-                if (buttons[i].lastReleasedTimestamp - buttons[i].lastPressedTimestamp >= intervalToLongPress) {
+                if (buttons[i].lastReleasedTimestamp - buttons[i].lastPressedTimestamp >= generalConfig.intervalToLongPress) {
                     switch (i)      // Long-press-actions
                     {
                     case 0:
@@ -453,7 +455,7 @@ void doButtonActions(void) {
                         break;
 
                     case 3:
-                        gotoSleep = true;
+                        helper.gotoSleep = true;
                         break;
                     }
                 } else {
@@ -517,8 +519,8 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 
 /* Cyclic posting via MQTT that ESP is still alive  */
 void postHeartbeatViaMqtt(void) {
-    if (millis() - lastOnlineTimestamp >= stillOnlineInterval*1000) {
-        lastOnlineTimestamp = millis();
+    if (millis() - helper.lastOnlineTimestamp >= generalConfig.stillOnlineInterval*1000) {
+        helper.lastOnlineTimestamp = millis();
         if (publishMqtt((char *) FPSTR(topicState), "Online", false)) {
             loggerNl((char *) FPSTR(stillOnlineMqtt), LOGLEVEL_DEBUG);
         }
@@ -532,7 +534,7 @@ void postHeartbeatViaMqtt(void) {
 bool reconnect() {
   uint8_t maxRetries = 10;
 
-  while (!MQTTclient.connected() && mqttFailCount < maxRetries) {
+  while (!MQTTclient.connected() && generalConfig.mqttFailCount < maxRetries) {
     snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s %s", (char *) FPSTR(tryConnectMqttS), mqtt_server);
     loggerNl(logBuf, LOGLEVEL_NOTICE);
 
@@ -567,11 +569,11 @@ bool reconnect() {
         // Publish some stuff
         publishMqtt((char *) FPSTR(topicState), "Online", false);
         publishMqtt((char *) FPSTR(topicTrackState), "---", false);
-        publishMqtt((char *) FPSTR(topicLoudnessState), currentVolume, false);
-        publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimerStartTimestamp, false);
+        publishMqtt((char *) FPSTR(topicLoudnessState), helper.currentVolume, false);
+        publishMqtt((char *) FPSTR(topicSleepTimerState), helper.sleepTimerStartTimestamp, false);
         publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
         publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
-        publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+        publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
         publishMqtt((char *) FPSTR(topicRepeatModeState), 0, false);
 
         char currentIPString[16];
@@ -580,9 +582,9 @@ bool reconnect() {
 
         return MQTTclient.connected();
     } else {
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), MQTTclient.state(), mqttFailCount+1, maxRetries);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), MQTTclient.state(), generalConfig.mqttFailCount+1, maxRetries);
         loggerNl(logBuf, LOGLEVEL_ERROR);
-        mqttFailCount++;
+        generalConfig.mqttFailCount++;
         delay(500);
     }
   }
@@ -613,7 +615,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     // Go to sleep?
     if (strcmp_P(topic, topicSleepCmnd) == 0) {
         if ((strcmp(receivedString, "OFF") == 0) || (strcmp(receivedString, "0") == 0)) {
-            gotoSleep = true;
+            helper.gotoSleep = true;
         }
     }
 
@@ -635,32 +637,32 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
         if (strcmp(receivedString, "EOP") == 0) {
             playProperties.sleepAfterPlaylist = true;
             loggerNl((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
-            showLedOk = true;
+            helper.showLedOk = true;
             return;
         } else if (strcmp(receivedString, "EOT") == 0) {
             playProperties.sleepAfterCurrentTrack = true;
             loggerNl((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
-            showLedOk = true;
+            helper.showLedOk = true;
             return;
         } else if (strcmp(receivedString, "0") == 0) {
-            if (sleepTimerStartTimestamp) {
-                sleepTimerStartTimestamp = 0;
+            if (helper.sleepTimerStartTimestamp) {
+                helper.sleepTimerStartTimestamp = 0;
                 loggerNl((char *) FPSTR(sleepTimerStop), LOGLEVEL_NOTICE);
-                showLedOk = true;
+                helper.showLedOk = true;
                 publishMqtt((char *) FPSTR(topicSleepState), 0, false);
                 return;
             } else {
                 loggerNl((char *) FPSTR(sleepTimerAlreadyStopped), LOGLEVEL_INFO);
-                showLedError = true;
+                helper.showLedError = true;
                 return;
             }
         }
-        sleepTimer = strtoul(receivedString, NULL, 10);
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %lu Minute(n)", (char *) FPSTR(sleepTimerSetTo), sleepTimer);
+        generalConfig.sleepTimer = strtoul(receivedString, NULL, 10);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %lu Minute(n)", (char *) FPSTR(sleepTimerSetTo), generalConfig.sleepTimer);
         loggerNl(logBuf, LOGLEVEL_NOTICE);
-        showLedOk = true;
+        helper.showLedOk = true;
 
-        sleepTimerStartTimestamp = millis();    // Activate timer
+        helper.sleepTimerStartTimestamp = millis();    // Activate timer
         playProperties.sleepAfterPlaylist = false;
         playProperties.sleepAfterCurrentTrack = false;
     }
@@ -673,14 +675,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     // Check if controls should be locked
     else if (strcmp_P(topic, topicLockControlsCmnd) == 0) {
         if (strcmp(receivedString, "OFF") == 0) {
-            lockControls = false;
+            helper.lockControls = false;
             loggerNl((char *) FPSTR(allowButtons), LOGLEVEL_NOTICE);
-            showLedOk = true;
+            helper.showLedOk = true;
 
         } else if (strcmp(receivedString, "ON") == 0) {
-            lockControls = true;
+            helper.lockControls = true;
             loggerNl((char *) FPSTR(lockButtons), LOGLEVEL_NOTICE);
-            showLedOk = true;
+            helper.showLedOk = true;
         }
     }
 
@@ -694,7 +696,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                 snprintf(rBuf, 2, "%u", getRepeatMode());
 				publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                 loggerNl((char *) FPSTR(noPlaylistNotAllowedMqtt), LOGLEVEL_ERROR);
-                showLedError = true;
+                helper.showLedError = true;
             } else {
                 switch (repeatMode) {
                     case NO_REPEAT:
@@ -703,7 +705,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                         loggerNl((char *) FPSTR(modeRepeatNone), LOGLEVEL_INFO);
-                        showLedOk = true;
+                        helper.showLedOk = true;
                         break;
 
                     case TRACK:
@@ -712,7 +714,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                         loggerNl((char *) FPSTR(modeRepeatTrack), LOGLEVEL_INFO);
-                        showLedOk = true;
+                        helper.showLedOk = true;
                         break;
 
                     case PLAYLIST:
@@ -721,7 +723,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                         loggerNl((char *) FPSTR(modeRepeatPlaylist), LOGLEVEL_INFO);
-                        showLedOk = true;
+                        helper.showLedOk = true;
                         break;
 
                     case TRACK_N_PLAYLIST:
@@ -730,11 +732,11 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                         loggerNl((char *) FPSTR(modeRepeatTracknPlaylist), LOGLEVEL_INFO);
-                        showLedOk = true;
+                        helper.showLedOk = true;
                         break;
 
                     default:
-                        showLedError = true;
+                        helper.showLedError = true;
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
                         break;
@@ -745,14 +747,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
 
     // Check if LEDs should be dimmed
     else if (strcmp_P(topic, topicLedBrightnessCmnd) == 0) {
-        ledBrightness = strtoul(receivedString, NULL, 10);
+        generalConfig.ledBrightness = strtoul(receivedString, NULL, 10);
     }
 
     // Requested something that isn't specified?
     else {
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(noValidTopic), topic);
         loggerNl(logBuf, LOGLEVEL_ERROR);
-        showLedError = true;
+        helper.showLedError = true;
     }
 
     free(receivedString);
@@ -888,7 +890,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
         files = (char **) malloc(sizeof(char *) * 2);        // +1 because [0] is used for number of elements; [1] -> [n] is used for payload
         if (files == NULL) {
             loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
-            showLedError = true;
+            helper.showLedError = true;
             return NULL;
         }
         loggerNl((char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
@@ -926,7 +928,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
                     loggerNl((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
                     if (serializedPlaylist == NULL) {
                         loggerNl((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
-                        showLedError = true;
+                        helper.showLedError = true;
                         return files;
                     }
                 }
@@ -948,7 +950,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     files = (char **) malloc(sizeof(char *) * cnt + 1);
     if (files == NULL) {
         loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
-        showLedError = true;
+        helper.showLedError = true;
         free(serializedPlaylist);
         return NULL;
     }
@@ -967,7 +969,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     files[0] = (char *) malloc(sizeof(char) * 5);
     if (files[0] == NULL) {
         loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
-        showLedError = true;
+        helper.showLedError = true;
         return NULL;
     }
     sprintf(files[0], "%u", cnt);
@@ -1009,7 +1011,7 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
 void playAudio(void *parameter) {
     static Audio audio;
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-    audio.setVolume(initVolume);
+    audio.setVolume(generalConfig.initVolume);
 
     uint8_t currentVolume;
     static BaseType_t trackQStatus;
@@ -1040,7 +1042,7 @@ void playAudio(void *parameter) {
 
                 // If we're in audiobook-mode and apply a modification-card, we don't
                 // want to save lastPlayPosition for the mod-card but for the card that holds the playlist
-                strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
+                strncpy(playProperties.playRfidTag, helper.currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
             }
             if (playProperties.trackFinished) {
                 playProperties.trackFinished = false;
@@ -1055,20 +1057,20 @@ void playAudio(void *parameter) {
                     }
                 }
                 if (playProperties.sleepAfterCurrentTrack) {                        // Go to sleep if "sleep after track" was requested
-                    gotoSleep = true;
+                    helper.gotoSleep = true;
                 }
                 if (!playProperties.repeatCurrentTrack) {   // If endless-loop requested, track-number will not be incremented
                     playProperties.currentTrackNumber++;
                 } else {
                     loggerNl((char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
-                    showRewind = true;
+                    helper.showRewind = true;
                 }
             }
 
             if (playProperties.playlistFinished && trackCommand != 0) {
                 loggerNl((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
                 trackCommand = 0;
-                showLedError = true;
+                helper.showLedError = true;
                 continue;
             }
             /* Check if track-control was called
@@ -1117,7 +1119,7 @@ void playAudio(void *parameter) {
                     } else {
                         loggerNl((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
                         trackCommand = 0;
-                        showLedError = true;
+                        helper.showLedError = true;
                         continue;
                     }
                     trackCommand = 0;
@@ -1148,7 +1150,7 @@ void playAudio(void *parameter) {
                     } else {
                         if (playProperties.playMode == WEBSTREAM) {
                             loggerNl((char *) FPSTR(trackChangeWebstream), LOGLEVEL_INFO);
-                            showLedError = true;
+                            helper.showLedError = true;
                             trackCommand = 0;
                             continue;
                         }
@@ -1156,7 +1158,7 @@ void playAudio(void *parameter) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                         }
                             audio.stopSong();
-                            showRewind = true;
+                            helper.showRewind = true;
                             audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
                             loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
@@ -1182,7 +1184,7 @@ void playAudio(void *parameter) {
                         }
                     } else {
                         loggerNl((char *) FPSTR(firstTrackAlreadyActive), LOGLEVEL_NOTICE);
-                        showLedError = true;
+                        helper.showLedError = true;
                         trackCommand = 0;
                         continue;
                     }
@@ -1206,7 +1208,7 @@ void playAudio(void *parameter) {
                         }
                     } else {
                         loggerNl((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
-                        showLedError = true;
+                        helper.showLedError = true;
                         trackCommand = 0;
                         continue;
                     }
@@ -1219,7 +1221,7 @@ void playAudio(void *parameter) {
                 default:
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndDoesNotExist), LOGLEVEL_NOTICE);
-                    showLedError = true;
+                    helper.showLedError = true;
                     continue;
             }
 
@@ -1237,14 +1239,14 @@ void playAudio(void *parameter) {
                     playProperties.currentTrackNumber = 0;
                     playProperties.numberOfTracks = 0;
                     if (playProperties.sleepAfterPlaylist) {
-                        gotoSleep = true;
+                        helper.gotoSleep = true;
                     }
                     continue;
                 } else {    // Check if sleep after current track/playlist was requested
                     if (playProperties.sleepAfterPlaylist || playProperties.sleepAfterCurrentTrack) {
                         playProperties.playlistFinished = true;
                         playProperties.playMode = NO_PLAYLIST;
-                        gotoSleep = true;
+                        helper.gotoSleep = true;
                         continue;
                     }   // Repeat playlist; set current track number back to 0
                     loggerNl((char *) FPSTR(repeatPlaylistDueToPlaymode), LOGLEVEL_NOTICE);
@@ -1267,7 +1269,7 @@ void playAudio(void *parameter) {
                     continue;
                 } else {
                     audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
-                    showPlaylistProgress = true;
+                    helper.showPlaylistProgress = true;
                     if (playProperties.startAtFilePos > 0) {
                         audio.setFilePos(playProperties.startAtFilePos);
                         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s %u", (char *) FPSTR(trackStartatPos), audio.getFilePos());
@@ -1297,7 +1299,7 @@ void playAudio(void *parameter) {
         if (playProperties.playlistFinished || playProperties.pausePlay) {
             vTaskDelay(portTICK_PERIOD_MS*10);                   // Waste some time if playlist is not active
         } else {
-            lastTimeActiveTimestamp = millis();                  // Refresh if playlist is active so uC will not fall asleep due to reaching inactivity-time
+            helper.lastTimeActiveTimestamp = millis();                  // Refresh if playlist is active so uC will not fall asleep due to reaching inactivity-time
         }
 
         esp_task_wdt_reset();                                    // Don't forget to feed the dog!
@@ -1313,14 +1315,14 @@ void rfidScanner(void *parameter) {
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
     loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    byte cardId[cardIdSize];
+    byte cardId[generalConfig.cardIdSize];
     char *cardIdString;
 
     for (;;) {
         esp_task_wdt_reset();
         vTaskDelay(10);
-        if ((millis() - lastRfidCheckTimestamp) >= 300) {
-            lastRfidCheckTimestamp = millis();
+        if ((millis() - helper.lastRfidCheckTimestamp) >= 300) {
+            helper.lastRfidCheckTimestamp = millis();
             // Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
 
             if (!mfrc522.PICC_IsNewCardPresent()) {
@@ -1336,23 +1338,23 @@ void rfidScanner(void *parameter) {
             mfrc522.PICC_HaltA();
             mfrc522.PCD_StopCrypto1();
 
-            cardIdString = (char *) malloc(cardIdSize*3 +1);
+            cardIdString = (char *) malloc(generalConfig.cardIdSize*3 +1);
             if (cardIdString == NULL) {
                 logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
-                showLedError = true;
+                helper.showLedError = true;
                 continue;
             }
 
             uint8_t n = 0;
             logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
-            for (uint8_t i=0; i<cardIdSize; i++) {
+            for (uint8_t i=0; i<generalConfig.cardIdSize; i++) {
                 cardId[i] = mfrc522.uid.uidByte[i];
 
                 snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%02x", cardId[i]);
                 logger(logBuf, LOGLEVEL_NOTICE);
 
                 n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
-                if (i<(cardIdSize-1)) {
+                if (i<(generalConfig.cardIdSize-1)) {
                     logger("-", LOGLEVEL_NOTICE);
                 } else {
                     logger("\n", LOGLEVEL_NOTICE);
@@ -1368,7 +1370,7 @@ void rfidScanner(void *parameter) {
 
 // This task handles everything for Neopixel-visualisation
 void showLed(void *parameter) {
-    static uint8_t hlastVolume = currentVolume;
+    static uint8_t hlastVolume = helper.currentVolume;
     static uint8_t lastPos = playProperties.currentRelPos;
     static bool lastPlayState = false;
     static bool lastLockState = false;
@@ -1380,23 +1382,23 @@ void showLed(void *parameter) {
     static uint8_t webstreamColor = 0;
     static unsigned long lastSwitchTimestamp = 0;
     static bool redrawProgress = false;
-    static uint8_t lastLedBrightness = ledBrightness;
+    static uint8_t lastLedBrightness = generalConfig.ledBrightness;
 
     static CRGB leds[NUM_LEDS];
     FastLED.addLeds<CHIPSET , LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalSMD5050 );
-    FastLED.setBrightness(ledBrightness);
+    FastLED.setBrightness(generalConfig.ledBrightness);
 
     for (;;) {
-        if (!bootComplete) {
+        if (!helper.bootComplete) {
             FastLED.clear();
             FastLED.show();
             vTaskDelay(portTICK_RATE_MS*10);
             esp_task_wdt_reset();
             continue;
         }
-        if (lastLedBrightness != ledBrightness) {
-            FastLED.setBrightness(ledBrightness);
-            lastLedBrightness = ledBrightness;
+        if (lastLedBrightness != generalConfig.ledBrightness) {
+            FastLED.setBrightness(generalConfig.ledBrightness);
+            lastLedBrightness = generalConfig.ledBrightness;
         }
 
         if (!buttons[3].currentState) {
@@ -1411,12 +1413,12 @@ void showLed(void *parameter) {
                     break;
                 }
                 FastLED.show();
-                vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
+                vTaskDelay(generalConfig.intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
             }
         }
 
-        if (showLedError) {             // If error occured (e.g. RFID-modification not accepted)
-            showLedError = false;
+        if (helper.showLedError) {             // If error occured (e.g. RFID-modification not accepted)
+            helper.showLedError = false;
             notificationShown = true;
             FastLED.clear();
 
@@ -1427,8 +1429,8 @@ void showLed(void *parameter) {
             vTaskDelay(portTICK_RATE_MS * 200);
         }
 
-        if (showLedOk) {             // If action was accepted
-            showLedOk = false;
+        if (helper.showLedOk) {             // If action was accepted
+            helper.showLedOk = false;
             notificationShown = true;
             FastLED.clear();
 
@@ -1439,9 +1441,9 @@ void showLed(void *parameter) {
             vTaskDelay(portTICK_RATE_MS * 400);
         }
 
-        if (hlastVolume != currentVolume) {         // If volume has been changed
-            uint8_t numLedsToLight = map(currentVolume, 0, maxVolume, 0, NUM_LEDS);
-            hlastVolume = currentVolume;
+        if (hlastVolume != helper.currentVolume) {         // If volume has been changed
+            uint8_t numLedsToLight = map(helper.currentVolume, 0, generalConfig.maxVolume, 0, NUM_LEDS);
+            hlastVolume = helper.currentVolume;
             volumeChangeShown = true;
             FastLED.clear();
 
@@ -1451,8 +1453,8 @@ void showLed(void *parameter) {
             FastLED.show();
 
             for (uint8_t i=0; i<=50; i++) {
-                if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[3].currentState) {
-                    if (hlastVolume != currentVolume) {
+                if (hlastVolume != helper.currentVolume || helper.showLedError || helper.showLedOk || !buttons[3].currentState) {
+                    if (hlastVolume != helper.currentVolume) {
                         volumeChangeShown = false;
                     }
                     break;
@@ -1462,12 +1464,12 @@ void showLed(void *parameter) {
             }
         }
 
-        if (showRewind) {
-            showRewind = false;
+        if (helper.showRewind) {
+            helper.showRewind = false;
             for (uint8_t i=NUM_LEDS-1; i>0; i--) {
                 leds[i] = CRGB::Black;
                 FastLED.show();
-                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                if (hlastVolume != helper.currentVolume || lastLedBrightness != generalConfig.ledBrightness || helper.showLedError || helper.showLedOk || !buttons[3].currentState) {
                     break;
                 } else {
                     vTaskDelay(portTICK_RATE_MS*30);
@@ -1475,15 +1477,15 @@ void showLed(void *parameter) {
             }
         }
 
-        if (showPlaylistProgress) {
-            showPlaylistProgress = false;
+        if (helper.showPlaylistProgress) {
+            helper.showPlaylistProgress = false;
             if (playProperties.numberOfTracks > 1 && playProperties.currentTrackNumber < playProperties.numberOfTracks) {
                 uint8_t numLedsToLight = map(playProperties.currentTrackNumber, 0, playProperties.numberOfTracks-1, 0, NUM_LEDS);
                 FastLED.clear();
                 for (uint8_t i=0; i < numLedsToLight; i++) {
                     leds[i] = CRGB::Blue;
                     FastLED.show();
-                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                    if (hlastVolume != helper.currentVolume || lastLedBrightness != generalConfig.ledBrightness || helper.showLedError || helper.showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*30);
@@ -1491,7 +1493,7 @@ void showLed(void *parameter) {
                 }
 
                 for (uint8_t i=0; i<=100; i++) {
-                   if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                   if (hlastVolume != helper.currentVolume || lastLedBrightness != generalConfig.ledBrightness || helper.showLedError || helper.showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*15);
@@ -1501,7 +1503,7 @@ void showLed(void *parameter) {
                 for (uint8_t i=numLedsToLight; i>0; i--) {
                     leds[i-1] = CRGB::Black;
                     FastLED.show();
-                    if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                    if (hlastVolume != helper.currentVolume || lastLedBrightness != generalConfig.ledBrightness || helper.showLedError || helper.showLedOk || !buttons[3].currentState) {
                         break;
                     } else {
                         vTaskDelay(portTICK_RATE_MS*30);
@@ -1512,7 +1514,7 @@ void showLed(void *parameter) {
 
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
-                if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
+                if (hlastVolume == helper.currentVolume && lastLedBrightness == generalConfig.ledBrightness) {
                     for (uint8_t i=0; i < NUM_LEDS; i++) {
                         FastLED.clear();
                         if (i == 0) {
@@ -1528,7 +1530,7 @@ void showLed(void *parameter) {
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
-                            if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
+                            if (hlastVolume != helper.currentVolume || lastLedBrightness != generalConfig.ledBrightness || helper.showLedError || helper.showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
                                 break;
                             } else {
                                 vTaskDelay(portTICK_RATE_MS * 10);
@@ -1563,9 +1565,9 @@ void showLed(void *parameter) {
 
             default:                            // If playlist is active (doesn't matter which type)
                 if (!playProperties.playlistFinished) {
-                    if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[3].currentState) {
+                    if (playProperties.pausePlay != lastPlayState || helper.lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[3].currentState) {
                         lastPlayState = playProperties.pausePlay;
-                        lastLockState = lockControls;
+                        lastLockState = helper.lockControls;
                         notificationShown = false;
                         volumeChangeShown = false;
                         if (ledBusyShown) {
@@ -1583,7 +1585,7 @@ void showLed(void *parameter) {
                             uint8_t numLedsToLight = map(playProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
                             FastLED.clear();
                             for(uint8_t led = 0; led < numLedsToLight; led++) {
-                                if (lockControls) {
+                                if (helper.lockControls) {
                                     leds[led] = CRGB::Red;
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
                                     leds[led].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
@@ -1602,7 +1604,7 @@ void showLed(void *parameter) {
                             } else {
                                 ledPosWebstream = 0;
                             }
-                            if (lockControls) {
+                            if (helper.lockControls) {
                                 leds[ledPosWebstream] = CRGB::Red;
                                 leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Red;
                             } else if (!playProperties.pausePlay) {
@@ -1626,13 +1628,13 @@ void showLed(void *parameter) {
 // Sets deep-sleep-flag if necessary
 void sleepHandler(void) {
     unsigned long m = millis();
-    if (m >= lastTimeActiveTimestamp && (m - lastTimeActiveTimestamp >= maxInactivityTime * 1000 * 60)) {
+    if (m >= helper.lastTimeActiveTimestamp && (m - helper.lastTimeActiveTimestamp >= generalConfig.maxInactivityTime * 1000 * 60)) {
         loggerNl((char *) FPSTR(goToSleepDueToIdle), LOGLEVEL_INFO);
-        gotoSleep = true;
-    } else if (sleepTimerStartTimestamp > 0) {
-        if (m - sleepTimerStartTimestamp >= sleepTimer * 1000 * 60) {
+        helper.gotoSleep = true;
+    } else if (helper.sleepTimerStartTimestamp > 0) {
+        if (m - helper.sleepTimerStartTimestamp >= generalConfig.sleepTimer * 1000 * 60) {
             loggerNl((char *) FPSTR(goToSleepDueToTimer), LOGLEVEL_INFO);
-            gotoSleep = true;
+            helper.gotoSleep = true;
         }
     }
 }
@@ -1640,7 +1642,7 @@ void sleepHandler(void) {
 
 // Puts uC to deep-sleep if flag is set
 void deepSleepManager(void) {
-    if (gotoSleep) {
+    if (helper.gotoSleep) {
         loggerNl((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
         Serial.flush();
         publishMqtt((char *) FPSTR(topicState), "Offline", false);
@@ -1660,10 +1662,10 @@ void deepSleepManager(void) {
 // Puts new volume to volume-queue
 void volumeToQueueSender(const int32_t _newVolume) {
     uint32_t _volume;
-    if (_newVolume <= minVolume) {
-        _volume = minVolume;
-    } else if (_newVolume > maxVolume) {
-        _volume = maxVolume;
+    if (_newVolume <= generalConfig.minVolume) {
+        _volume = generalConfig.minVolume;
+    } else if (_newVolume > generalConfig.maxVolume) {
+        _volume = generalConfig.maxVolume;
     } else {
         _volume = _newVolume;
     }
@@ -1679,32 +1681,32 @@ void trackControlToQueueSender(const uint8_t trackCommand) {
 
 // Handles volume directed by rotary encoder
 void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
-    if (lockControls) {
+    if (helper.lockControls) {
         encoder.clearCount();
-        encoder.setCount(currentVolume*2);
+        encoder.setCount(helper.currentVolume*2);
         return;
     }
 
-    currentEncoderValue = encoder.getCount();
+    helper.currentEncoderValue = encoder.getCount();
     // Only if initial run or value has changed. And only after "full step" of rotary encoder
-    if (((lastEncoderValue != currentEncoderValue) || lastVolume == -1) && (currentEncoderValue % 2 == 0)) {
-        lastTimeActiveTimestamp = millis();        // Set inactive back if rotary encoder was used
-        if (_maxVolume * 2 < currentEncoderValue) {
+    if (((helper.lastEncoderValue != helper.currentEncoderValue) || helper.lastVolume == -1) && (helper.currentEncoderValue % 2 == 0)) {
+        helper.lastTimeActiveTimestamp = millis();        // Set inactive back if rotary encoder was used
+        if (_maxVolume * 2 < helper.currentEncoderValue) {
             encoder.clearCount();
             encoder.setCount(_maxVolume * 2);
             loggerNl((char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
-            currentEncoderValue = encoder.getCount();
-        } else if (currentEncoderValue < _minVolume) {
+            helper.currentEncoderValue = encoder.getCount();
+        } else if (helper.currentEncoderValue < _minVolume) {
             encoder.clearCount();
             encoder.setCount(_minVolume);
             loggerNl((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
-            currentEncoderValue = encoder.getCount();
+            helper.currentEncoderValue = encoder.getCount();
         }
-        lastEncoderValue = currentEncoderValue;
-        currentVolume = lastEncoderValue / 2;
-        if (currentVolume != lastVolume) {
-            lastVolume = currentVolume;
-            volumeToQueueSender(currentVolume);
+        helper.lastEncoderValue = helper.currentEncoderValue;
+        helper.currentVolume = helper.lastEncoderValue / 2;
+        if (helper.currentVolume != helper.lastVolume) {
+            helper.lastVolume = helper.currentVolume;
+            volumeToQueueSender(helper.currentVolume);
         }
     }
 }
@@ -1728,16 +1730,16 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
     } else {
         musicFiles = returnPlaylistFromWebstream(filename);
     }
-    publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+    publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
 
     if (musicFiles == NULL) {
         loggerNl((char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
-        showLedError = true;
+        helper.showLedError = true;
         playProperties.playMode = NO_PLAYLIST;
         return;
     } else if (!strcmp(*(musicFiles-1), "0")) {
         loggerNl((char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
-        showLedError = true;
+        helper.showLedError = true;
         playProperties.playMode = NO_PLAYLIST;
         free (filename);
         return;
@@ -1844,7 +1846,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         default:
             loggerNl((char *) FPSTR(modeDoesNotExist), LOGLEVEL_ERROR);
-            showLedError = true;
+            helper.showLedError = true;
     }
     free (filename);
 }
@@ -1855,142 +1857,142 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 void doRfidCardModifications(const uint32_t mod) {
     switch (mod) {
         case LOCK_BUTTONS_MOD:      // Locks/unlocks all buttons
-            lockControls = !lockControls;
-            if (lockControls) {
+            helper.lockControls = !helper.lockControls;
+            if (helper.lockControls) {
                 loggerNl((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
-                showLedOk = true;
+                helper.showLedOk = true;
             } else {
                 loggerNl((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
-                showLedOk = true;
+                helper.showLedOk = true;
             }
             break;
 
         case SLEEP_TIMER_MOD_15:    // Puts/undo uC to sleep after 15 minutes
-            if (sleepTimer == 15) {
-                sleepTimerStartTimestamp = 0;
-                ledBrightness = initialLedBrightness;
+            if (generalConfig.sleepTimer == 15) {
+                helper.sleepTimerStartTimestamp = 0;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
 
             } else {
-                sleepTimer = 15;
-                sleepTimerStartTimestamp = millis();
-                ledBrightness = nightLedBrightness;
+                generalConfig.sleepTimer = 15;
+                helper.sleepTimerStartTimestamp = millis();
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-                publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), generalConfig.sleepTimer, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.nightLedBrightness, false);
             }
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
-            showLedOk = true;
+            helper.showLedOk = true;
             break;
 
         case SLEEP_TIMER_MOD_30:    // Puts/undo uC to sleep after 30 minutes
-            if (sleepTimer == 30) {
-                sleepTimerStartTimestamp = 0;
-                ledBrightness = initialLedBrightness;
+            if (generalConfig.sleepTimer == 30) {
+                helper.sleepTimerStartTimestamp = 0;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
 
             } else {
-                sleepTimer = 30;
-                sleepTimerStartTimestamp = millis();
-                ledBrightness = nightLedBrightness;
+                generalConfig.sleepTimer = 30;
+                helper.sleepTimerStartTimestamp = millis();
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-                publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), generalConfig.sleepTimer, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.nightLedBrightness, false);
             }
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
-            showLedOk = true;
+            helper.showLedOk = true;
             break;
 
         case SLEEP_TIMER_MOD_60:    // Puts/undo uC to sleep after 60 minutes
-            if (sleepTimer == 60) {
-                sleepTimerStartTimestamp = 0;
-                ledBrightness = initialLedBrightness;
+            if (generalConfig.sleepTimer == 60) {
+                helper.sleepTimerStartTimestamp = 0;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
 
             } else {
-                sleepTimer = 60;
-                sleepTimerStartTimestamp = millis();
-                ledBrightness = nightLedBrightness;
+                generalConfig.sleepTimer = 60;
+                helper.sleepTimerStartTimestamp = millis();
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-                publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), generalConfig.sleepTimer, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.nightLedBrightness, false);
             }
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
-            showLedOk = true;
+            helper.showLedOk = true;
             break;
 
         case SLEEP_TIMER_MOD_120:    // Puts/undo uC to sleep after 2 hrs
-            if (sleepTimer == 120) {
-                sleepTimerStartTimestamp = 0;
-                ledBrightness = initialLedBrightness;
+            if (generalConfig.sleepTimer == 120) {
+                helper.sleepTimerStartTimestamp = 0;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
 
             } else {
-                sleepTimer = 120;
-                sleepTimerStartTimestamp = millis();
-                ledBrightness = nightLedBrightness;
+                generalConfig.sleepTimer = 120;
+                helper.sleepTimerStartTimestamp = millis();
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-                publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
-                publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), generalConfig.sleepTimer, false);
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.nightLedBrightness, false);
             }
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
-            showLedOk = true;
+            helper.showLedOk = true;
             break;
 
         case SLEEP_AFTER_END_OF_TRACK:  // Puts uC to sleep after end of current track
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
-                showLedError = true;
+                helper.showLedError = true;
                 return;
             }
             if (playProperties.sleepAfterCurrentTrack) {
                 loggerNl((char *) FPSTR(modificatorSleepAtEOTd), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
-                ledBrightness = initialLedBrightness;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
             } else {
                 loggerNl((char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
-                ledBrightness = nightLedBrightness;
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
             }
             playProperties.sleepAfterCurrentTrack = !playProperties.sleepAfterCurrentTrack;
             playProperties.sleepAfterPlaylist = false;
-            sleepTimerStartTimestamp = 0;
+            helper.sleepTimerStartTimestamp = 0;
 
-            publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
-            showLedOk = true;
+            publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
+            helper.showLedOk = true;
             break;
 
         case SLEEP_AFTER_END_OF_PLAYLIST:   // Puts uC to sleep after end of whole playlist (can take a while :->)
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
-                showLedError = true;
+                helper.showLedError = true;
                 return;
             }
             if (playProperties.sleepAfterCurrentTrack) {
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
-                ledBrightness = initialLedBrightness;
+                generalConfig.ledBrightness = generalConfig.initialLedBrightness;
                 loggerNl((char *) FPSTR(modificatorSleepAtEOPd), LOGLEVEL_NOTICE);
             } else {
-                ledBrightness = nightLedBrightness;
+                generalConfig.ledBrightness = generalConfig.nightLedBrightness;
                 loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 loggerNl((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
@@ -1998,15 +2000,15 @@ void doRfidCardModifications(const uint32_t mod) {
 
             playProperties.sleepAfterCurrentTrack = false;
             playProperties.sleepAfterPlaylist = !playProperties.sleepAfterPlaylist;
-            sleepTimerStartTimestamp = 0;
-            publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
-            showLedOk = true;
+            helper.sleepTimerStartTimestamp = 0;
+            publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
+            helper.showLedOk = true;
             break;
 
         case REPEAT_PLAYLIST:
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
-                showLedError = true;
+                helper.showLedError = true;
             } else {
                 if (playProperties.repeatPlaylist) {
                     loggerNl((char *) FPSTR(modificatorPlaylistLoopDeactive), LOGLEVEL_NOTICE);
@@ -2017,14 +2019,14 @@ void doRfidCardModifications(const uint32_t mod) {
                 char rBuf[2];
                 snprintf(rBuf, 2, "%u", getRepeatMode());
                 publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                showLedOk = true;
+                helper.showLedOk = true;
             }
             break;
 
         case REPEAT_TRACK:      // Introduces looping for track-mode
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
-                showLedError = true;
+                helper.showLedError = true;
             } else {
                 if (playProperties.repeatCurrentTrack) {
                     loggerNl((char *) FPSTR(modificatorTrackDeactive), LOGLEVEL_NOTICE);
@@ -2035,21 +2037,21 @@ void doRfidCardModifications(const uint32_t mod) {
                 char rBuf[2];
                 snprintf(rBuf, 2, "%u", getRepeatMode());
                 publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                showLedOk = true;
+                helper.showLedOk = true;
             }
             break;
 
         case DIMM_LEDS_NIGHTMODE:
-            publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+            publishMqtt((char *) FPSTR(topicLedBrightnessState), generalConfig.ledBrightness, false);
             loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-            ledBrightness = nightLedBrightness;
-            showLedOk = true;
+            generalConfig.ledBrightness = generalConfig.nightLedBrightness;
+            helper.showLedOk = true;
             break;
 
         default:
             snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(logBuf, LOGLEVEL_ERROR);
-            showLedError = true;
+            helper.showLedError = true;
     }
 }
 
@@ -2065,15 +2067,15 @@ void rfidPreferenceLookupHandler (void) {
 
     rfidStatus = xQueueReceive(rfidCardQueue, &rfidTagId, 0);
     if (rfidStatus == pdPASS) {
-        lastTimeActiveTimestamp = millis();
+        helper.lastTimeActiveTimestamp = millis();
         snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(rfidTagReceived), rfidTagId);
-        currentRfidTagId = strdup(rfidTagId);
+        helper.currentRfidTagId = strdup(rfidTagId);
         loggerNl(logBuf, LOGLEVEL_INFO);
 
         String s = prefsRfid.getString(rfidTagId, "-1");                 // Try to lookup rfidId in NVS
         if (!s.compareTo("-1")) {
             loggerNl((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
-            showLedError = true;
+            helper.showLedError = true;
             return;
         }
 
@@ -2096,7 +2098,7 @@ void rfidPreferenceLookupHandler (void) {
 
         if (i != 5) {
             loggerNl((char *) FPSTR(errorOccuredNvs), LOGLEVEL_ERROR);
-            showLedError = true;
+            helper.showLedError = true;
         } else {
         // Only pass file to queue if strtok revealed 3 items
             if (_playMode >= 100) {
@@ -2177,7 +2179,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
 
 
 wl_status_t wifiManager(void) {
-    if (wifiCheckLastTimestamp == 0) {
+    if (helper.wifiCheckLastTimestamp == 0) {
         // Get credentials from NVS
         String strSSID = prefsSettings.getString("SSID", "-1");
         if (!strSSID.compareTo("-1")) {
@@ -2198,7 +2200,7 @@ wl_status_t wifiManager(void) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
-            wifiCheckLastTimestamp = millis();
+            helper.wifiCheckLastTimestamp = millis();
             if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
                 WiFi.begin(_ssid, _pwd);        // ESP32-workaround
             }
@@ -2219,6 +2221,16 @@ wl_status_t wifiManager(void) {
 
 
 void setup() {
+    // Helpers - don't change!
+    helper.bootComplete = 0;
+    helper.showLedOk = 0;
+    helper.showLedError = 0;
+    helper.showPlaylistProgress = 0;
+    helper.showRewind = 0;
+    helper.gotoSleep = 0;
+    helper.lockControls = 0;
+    helper.bootComplete = 0;
+
     Serial.begin(115200);
     srand(esp_random());
     pinMode(POWER, OUTPUT);
@@ -2264,6 +2276,8 @@ void setup() {
     prefsRfid.putString("242216118051", "#/mp3/Hoerspiele/Weihnachten mit Astrid Lindgren#0#3#0");
     prefsRfid.putString("176008145050", "#/mp3/Hoerspiele/Janosch/Oh wie schoen ist Panama#0#3#0");
     prefsRfid.putString("036073235043", "#/mp3/Hoerspiele/Paw Patrol/Rettet Weihnachten#0#3#0");
+    prefsRfid.putString("020073020043", "#/mp3/Hoerspiele/Yakari/Sammlung1#0#3#0");
+    prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");
 
 
     // Init uSD-SPI
@@ -2282,7 +2296,7 @@ void setup() {
         loggerNl((char *) FPSTR(unableToCreateVolQ), LOGLEVEL_ERROR);
     }
 
-    rfidCardQueue = xQueueCreate(1, (cardIdSize + 1) * sizeof(char));
+    rfidCardQueue = xQueueCreate(1, (generalConfig.cardIdSize + 1) * sizeof(char));
     if (rfidCardQueue == NULL) {
         loggerNl((char *) FPSTR(unableToCreateRfidQ), LOGLEVEL_ERROR);
     }
@@ -2302,22 +2316,22 @@ void setup() {
     // Get initial LED-brightness from NVS
     uint8_t nvsILedBrightness = prefsSettings.getUChar("iLedBrightness", 0);
     if (nvsILedBrightness) {
-        initialLedBrightness = nvsILedBrightness;
+        generalConfig.initialLedBrightness = nvsILedBrightness;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(initialBrightnessfromNvs), nvsILedBrightness);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUChar("iLedBrightness", initialLedBrightness);
+        prefsSettings.putUChar("iLedBrightness", generalConfig.initialLedBrightness);
         loggerNl((char *) FPSTR(wroteInitialBrightnessToNvs), LOGLEVEL_ERROR);
     }
 
     // Get night LED-brightness from NVS
     uint8_t nvsNLedBrightness = prefsSettings.getUChar("nLedBrightness", 0);
     if (nvsNLedBrightness) {
-        nightLedBrightness = nvsNLedBrightness;
+        generalConfig.nightLedBrightness = nvsNLedBrightness;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(loadedInitialBrightnessForNmFromNvs), nvsNLedBrightness);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUChar("nLedBrightness", nightLedBrightness);
+        prefsSettings.putUChar("nLedBrightness", generalConfig.nightLedBrightness);
         loggerNl((char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);
     }
 
@@ -2346,33 +2360,33 @@ void setup() {
     // Get maximum inactivity-time from NVS
     uint32_t nvsMInactivityTime = prefsSettings.getUInt("mInactiviyT", 0);
     if (nvsMInactivityTime) {
-        maxInactivityTime = nvsMInactivityTime;
+        generalConfig.maxInactivityTime = nvsMInactivityTime;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMaxInactivityFromNvs), nvsMInactivityTime);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUInt("mInactiviyT", maxInactivityTime);
+        prefsSettings.putUInt("mInactiviyT", generalConfig.maxInactivityTime);
         loggerNl((char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
     }
 
     // Get initial volume from NVS
     uint32_t nvsInitialVolume = prefsSettings.getUInt("initVolume", 0);
     if (nvsInitialVolume) {
-        initVolume = nvsInitialVolume;
+        generalConfig.initVolume = nvsInitialVolume;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedInitialLoudnessFromNvs), nvsInitialVolume);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUInt("initVolume", initVolume);
+        prefsSettings.putUInt("initVolume", generalConfig.initVolume);
         loggerNl((char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
     }
 
     // Get maximum volume from NVS
     uint32_t nvsMaxVolume = prefsSettings.getUInt("maxVolume", 0);
     if (nvsMaxVolume) {
-        maxVolume = nvsMaxVolume;
+        generalConfig.maxVolume = nvsMaxVolume;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMaxLoudnessFromNvs), nvsMaxVolume);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUInt("maxVolume", maxVolume);
+        prefsSettings.putUInt("maxVolume", generalConfig.maxVolume);
         loggerNl((char *) FPSTR(wroteMaxLoudnessToNvs), LOGLEVEL_ERROR);
     }
 
@@ -2384,12 +2398,12 @@ void setup() {
             loggerNl((char *) FPSTR(wroteMqttFlagToNvs), LOGLEVEL_ERROR);
             break;
         case 1:
-            prefsSettings.putUChar("enableMQTT", enableMqtt);
+            prefsSettings.putUChar("enableMQTT", generalConfig.enableMqtt);
             snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMqttActiveFromNvs), nvsEnableMqtt);
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
         case 0:
-            enableMqtt = nvsEnableMqtt;
+            generalConfig.enableMqtt = nvsEnableMqtt;
             snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMqttDeactiveFromNvs), nvsEnableMqtt);
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
@@ -2455,18 +2469,18 @@ void setup() {
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
     encoder.clearCount();
-    encoder.setCount(initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
+    encoder.setCount(generalConfig.initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
 
 
     // Only enable MQTT if requested
-    if (enableMqtt) {
+    if (generalConfig.enableMqtt) {
         MQTTclient.setServer(mqtt_server, 1883);
         MQTTclient.setCallback(callback);
     }
 
     wifiManager();
 
-    lastTimeActiveTimestamp = millis();     // initial set after boot
+    helper.lastTimeActiveTimestamp = millis();     // initial set after boot
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(200, "text/plain", "Hello, world");
@@ -2480,7 +2494,7 @@ void setup() {
         } else {
             message = "No message sent";
         }
-        request->send(200, "text/plain", "Hello, GET: " + String(playProperties.playMode) + String(currentRfidTagId));
+        request->send(200, "text/plain", "Hello, GET: " + String(playProperties.playMode) + String(helper.currentRfidTagId));
     });
 
     // Send a POST request to <IP>/post with a form field message set to <message>
@@ -2497,7 +2511,7 @@ void setup() {
     wServer.onNotFound(notFound);
 
     wServer.begin();
-    bootComplete = true;
+    helper.bootComplete = true;
 
     /*char *sdC = (char *) calloc(16384, sizeof(char));
     printSdContent(SD.open("/", FILE_READ), 16384, 1, sdC, 2);
@@ -2511,14 +2525,14 @@ void setup() {
 
 
 void loop() {
-    volumeHandler(minVolume, maxVolume);
+    volumeHandler(generalConfig.minVolume, generalConfig.maxVolume);
     buttonHandler();
     doButtonActions();
     sleepHandler();
     deepSleepManager();
     rfidPreferenceLookupHandler();
     if (wifiManager() == WL_CONNECTED) {
-        if (enableMqtt) {
+        if (generalConfig.enableMqtt) {
             reconnect();
             MQTTclient.loop();
             postHeartbeatViaMqtt();
@@ -2526,7 +2540,7 @@ void loop() {
         ftpSrv.handleFTP();
     }
     if (ftpSrv.isConnected()) {
-        lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
+        helper.lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
     }
     server.handleClient();
 }
