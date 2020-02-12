@@ -20,9 +20,9 @@
     #include <PubSubClient.h>
 #endif
 #include <WebServer.h>
-//#ifdef NEOPIXEL_ENABLE
+#ifdef NEOPIXEL_ENABLE
     #include <FastLED.h>
-//#endif
+#endif
 #include "logmessages.h"
 #include <ESPAsyncWebServer.h>
 #include "website.h"
@@ -80,11 +80,11 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define LED_PIN                         12
 
 // Neopixel-configuration
-//#ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                        24          // Configure number of LEDs here
-    #define CHIPSET                         WS2811
-    #define COLOR_ORDER                     GRB
-//#endif
+#ifdef NEOPIXEL_ENABLE
+    #define NUM_LEDS                    24          // Configure number of LEDs here
+    #define CHIPSET                     WS2811
+    #define COLOR_ORDER                 GRB
+#endif
 
 // Track-Control
 #define STOP                            1           // Stop play
@@ -686,7 +686,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
             }
         }
         sleepTimer = strtoul(receivedString, NULL, 10);
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %lu Minute(n)", (char *) FPSTR(sleepTimerSetTo), sleepTimer);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), sleepTimer);
         loggerNl(logBuf, LOGLEVEL_NOTICE);
         #ifdef NEOPIXEL_ENABLE
             showLedOk = true;
@@ -1051,28 +1051,31 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 }
 
 
-/* Wraps putString for writing settings into NVS for RFID-cards */
+/* Wraps putString for writing settings into NVS for RFID-cards.
+   Returns number of characters written. */
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
     char prefBuf[275];
     char trackBuf[255];
     snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
 
-    // If it's a directory we want to play/save we just need basename(path).
+    // If it's a directory we just want to play/save basename(path)
     if (_numberOfTracks > 1) {
         const char s = '/';
         char *last = strrchr(_track, s);
         char *first = strchr(_track, s);
         unsigned long substr = last-first+1;
-        snprintf(trackBuf, substr, _track);     // save substring basename(_track)
+        if (substr <= sizeof(trackBuf) / sizeof(trackBuf[0])) {
+            snprintf(trackBuf, substr, _track);     // save substring basename(_track)
+        } else {
+            return 0;   // Filename too long!
+        }
     }
 
-    //snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "#%s#%u#%d#%u", trackBuf, _playPosition, _playMode, _trackLastPlayed);
     snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
     snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     logger(logBuf, LOGLEVEL_INFO);
     loggerNl(prefBuf, LOGLEVEL_INFO);
-    String str = String (prefBuf);
-    return prefsRfid.putString(_rfidCardId, prefBuf);
+    return prefsRfid.putString(_rfidCardId, prefBuf);   // Return number of characters written
 }
 
 
@@ -1130,7 +1133,7 @@ void playAudio(void *parameter) {
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber+1, playProperties.numberOfTracks);
                     }
                 }
-                if (playProperties.sleepAfterCurrentTrack) {                        // Go to sleep if "sleep after track" was requested
+                if (playProperties.sleepAfterCurrentTrack) {  // Go to sleep if "sleep after track" was requested
                     gotoSleep = true;
                 }
                 if (!playProperties.repeatCurrentTrack) {   // If endless-loop requested, track-number will not be incremented
@@ -1499,7 +1502,7 @@ void showLed(void *parameter) {
         if (!bootComplete) {
             FastLED.clear();
             FastLED.show();
-            vTaskDelay(portTICK_RATE_MS*10);
+            vTaskDelay(portTICK_RATE_MS*100);
             esp_task_wdt_reset();
             continue;
         }
