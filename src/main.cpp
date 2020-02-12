@@ -206,6 +206,7 @@ uint8_t currentVolume = initVolume;
 static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-point's SSID
 IPAddress apIP(192, 168, 4, 1);                         // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0);                  // Access-point's netmask
+bool accessPointStarted = false;
 
 // FTP
 char ftpUser[10] = "esp32";                             // FTP-user
@@ -1980,12 +1981,17 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
                 #endif
             } else {
                 loggerNl((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
+                #ifdef NEOPIXEL_ENABLE
+                    showLedError = true;
+                #endif
+                playProperties.playMode = NO_PLAYLIST;
             }
             break;
         }
 
         default:
             loggerNl((char *) FPSTR(modeDoesNotExist), LOGLEVEL_ERROR);
+            playProperties.playMode = NO_PLAYLIST;
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
@@ -2412,9 +2418,10 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     server.begin();
 
     loggerNl((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
-    while (true) {
+    accessPointStarted = true;
+    /*while (true) {
         server.handleClient();                      // Wird endlos ausgeführt damit das WLAN Setup erfolgen kann
-    }
+    }*/
 }
 
 
@@ -2717,35 +2724,36 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/plain", "Hello, world");
-    });
+    if (wifiManager() == WL_CONNECTED) {
+        wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send(200, "text/plain", "Hello, world");
+        });
 
-    // Send a GET request to <IP>/get?message=<message>
-    wServer.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        String message;
-        if (request->hasParam(PARAM_MESSAGE)) {
-            message = request->getParam(PARAM_MESSAGE)->value();
-        } else {
-            message = "No message sent";
-        }
-        request->send(200, "text/plain", "Hello, GET: " + String(playProperties.playMode) + String(currentRfidTagId));
-    });
+        // Send a GET request to <IP>/get?message=<message>
+        wServer.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+            String message;
+            if (request->hasParam(PARAM_MESSAGE)) {
+                message = request->getParam(PARAM_MESSAGE)->value();
+            } else {
+                message = "No message sent";
+            }
+            request->send(200, "text/plain", "Hello, GET: " + String(playProperties.playMode) + String(currentRfidTagId));
+        });
 
-    // Send a POST request to <IP>/post with a form field message set to <message>
-    wServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request){
-        String message;
-        if (request->hasParam(PARAM_MESSAGE, true)) {
-            message = request->getParam(PARAM_MESSAGE, true)->value();
-        } else {
-            message = "No message sent";
-        }
-        request->send(200, "text/plain", "Hello, POST: " + message);
-    });
+        // Send a POST request to <IP>/post with a form field message set to <message>
+        wServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request){
+            String message;
+            if (request->hasParam(PARAM_MESSAGE, true)) {
+                message = request->getParam(PARAM_MESSAGE, true)->value();
+            } else {
+                message = "No message sent";
+            }
+            request->send(200, "text/plain", "Hello, POST: " + message);
+        });
 
-    wServer.onNotFound(notFound);
-
-    wServer.begin();
+        wServer.onNotFound(notFound);
+        wServer.begin();
+    }
     bootComplete = true;
 
     /*char *sdC = (char *) calloc(16384, sizeof(char));
@@ -2783,7 +2791,9 @@ void loop() {
             lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
         }
     #endif
-    server.handleClient();
+    if (wifiManager() == WL_CONNECTED || accessPointStarted) {
+        server.handleClient();
+    }
 }
 
 
