@@ -82,7 +82,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
     #define NUM_LEDS                    24          // Configure number of LEDs here
-    #define CHIPSET                     WS2811
+    #define CHIPSET                     WS2812B
     #define COLOR_ORDER                 GRB
 #endif
 
