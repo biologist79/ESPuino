@@ -79,7 +79,7 @@ Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls 
 * make decision, if MQTT should be enabled (enableMqtt)
 * if yes, set the IP of the MQTT-server accordingly and check the MQTT-topics (states and commands)
 * in setup() RFID-cards can be statically linked to an action/file. Everything is stored in uC's NVS.
-* if Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring.
+* if Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * please note: by using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
 * compile and upload the sketch
 

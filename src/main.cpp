@@ -24,8 +24,11 @@
     #include <FastLED.h>
 #endif
 #include "logmessages.h"
+#include "websiteMgmt.h"
+#include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "website.h"
+#include <ArduinoJson.h>
 
 
 
@@ -162,7 +165,7 @@ uint8_t const cardIdSize = 4;                           // RFID
 // Volume
 uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted
 uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
-uint8_t initVolume = 3;                                 // 0...21
+uint8_t initVolume = 3;                                 // 0...21 (If not found in NVS, this one will be taken)
 // Sleep
 uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
 uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
@@ -213,7 +216,7 @@ char ftpUser[10] = "esp32";                             // FTP-user
 char ftpPassword[15] = "esp32";                         // FTP-password
 
 // MQTT-configuration
-char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-server
+char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-server (if not found in NVS this one will be taken)
 #ifdef MQTT_ENABLE
     #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
@@ -245,6 +248,8 @@ void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
 AsyncWebServer wServer(81);
+AsyncWebSocket ws("/ws");
+AsyncEventSource events("/events");
 
 // Audio/mp3
 SPIClass spiSD(HSPI);
@@ -330,6 +335,7 @@ void sortPlaylist(const char** arr, int n);
 bool startsWith(const char *str, const char *pre);
 void trackControlToQueueSender(const uint8_t trackCommand);
 void rfidPreferenceLookupHandler (void);
+void sendWebsocketData(uint32_t client, uint8_t code);
 void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
 void volumeToQueueSender(const int32_t _newVolume);
@@ -2312,6 +2318,7 @@ void rfidPreferenceLookupHandler (void) {
         lastTimeActiveTimestamp = millis();
         snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(rfidTagReceived), rfidTagId);
         currentRfidTagId = strdup(rfidTagId);
+        sendWebsocketData(0, 10);       // Push new rfidTagId to all websocket-clients
         loggerNl(logBuf, LOGLEVEL_INFO);
 
         String s = prefsRfid.getString(rfidTagId, "-1");                 // Try to lookup rfidId in NVS
@@ -2443,12 +2450,13 @@ wl_status_t wifiManager(void) {
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount=0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 4) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 6) {
             delay(500);
             Serial.print(F("."));
+            Serial.print(WiFi.status());
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
+            if (tryCount >= 2 && WiFi.status() == WL_CONNECT_FAILED) {
                 WiFi.begin(_ssid, _pwd);        // ESP32-workaround
             }
         }
@@ -2466,6 +2474,236 @@ wl_status_t wifiManager(void) {
     }
 
     return WiFi.status();
+}
+
+
+// Used for substitution of some variables/templates of html-file
+String templateProcessor(const String& templ) {
+    if(templ == "FTP_USER") {
+        return prefsSettings.getString("ftpuser", "-1");
+    } else if (templ == "FTP_PWD") {
+        return prefsSettings.getString("ftppassword", "-1");
+    } else if (templ == "INIT_LED_BRIGHTBESS") {
+        return String(prefsSettings.getUChar("iLedBrightness", 0));
+    } else if (templ == "NIGHT_LED_BRIGHTBESS") {
+        return String(prefsSettings.getUChar("nLedBrightness", 0));
+    } else if (templ == "MAX_INACTIVITY") {
+        return String(prefsSettings.getUInt("mInactiviyT", 0));
+    } else if (templ == "INIT_VOLUME") {
+        return String(prefsSettings.getUInt("initVolume", 0));
+    } else if (templ == "MAX_VOLUME") {
+        return String(prefsSettings.getUInt("maxVolume", 0));
+    } else if (templ == "MQTT_SERVER") {
+        return prefsSettings.getString("mqttServer", "-1");
+    } else if (templ == "MQTT_ENABLE") {
+        if (enableMqtt) {
+            return String("checked=\"checked\"");
+        } else {
+            return String();
+        }
+    } else if (templ == "IPv4") {
+        myIP = WiFi.localIP();
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+        return String(logBuf);
+    } else if (templ == "RFID_TAG_ID") {
+        return String(currentRfidTagId);
+    }
+
+    return String();
+}
+
+
+// Takes inputs from webgui, parses JSON and saves values in NVS
+// If operation was successful (NVS-write is verified) true is returned
+bool processJsonRequest(char *_serialJson) {
+    StaticJsonDocument<1000> doc;
+    DeserializationError error = deserializeJson(doc, _serialJson);
+    JsonObject object = doc.as<JsonObject>();
+
+    if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.c_str());
+        return false;
+    }
+
+    if (doc.containsKey("general")) {
+        uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
+        uint8_t mVol = doc["general"]["mVol"].as<uint8_t>();
+        uint8_t iBright = doc["general"]["iBright"].as<uint8_t>();
+        uint8_t nBright = doc["general"]["nBright"].as<uint8_t>();
+        uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
+
+        prefsSettings.putUInt("initVolume", iVol);
+        prefsSettings.putUInt("maxVolume", mVol);
+        prefsSettings.putUChar("iLedBrightness", iBright);
+        prefsSettings.putUChar("nLedBrightness", nBright);
+        prefsSettings.putUInt("mInactiviyT", iTime);
+
+        // Check if settings were written successfully
+        if (prefsSettings.getUInt("initVolume", 0) != iVol ||
+            prefsSettings.getUInt("maxVolume", 0) != mVol ||
+            prefsSettings.getUChar("iLedBrightness", 0) != iBright ||
+            prefsSettings.getUChar("nLedBrightness", 0) != nBright ||
+            prefsSettings.getUInt("mInactiviyT", 0) != iTime) {
+            Serial.println("net gut!");
+            return false;
+        }
+
+    } else if (doc.containsKey("ftp")) {
+        const char *_ftpUser = doc["ftp"]["ftpUser"];
+        const char *_ftpPwd = doc["ftp"]["ftpPwd"];
+
+        prefsSettings.putString("ftpuser", (String) _ftpUser);
+        prefsSettings.putString("ftppassword", (String) _ftpPwd);
+
+        if(!(String(_ftpUser).equals(prefsSettings.getString("ftpuser", "-1")) ||
+           String(_ftpPwd).equals(prefsSettings.getString("ftppassword", "-1")))) {
+            Serial.println("net gut2!");
+            return false;
+        }
+
+    } else if (doc.containsKey("mqtt")) {
+        uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
+        const char *_mqttServer = object["mqtt"]["mqttServer"];
+        prefsSettings.putUChar("enableMQTT", _mqttEnable);
+        prefsSettings.putString("mqttServer", (String) _mqttServer);
+
+        if ((prefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
+            (!String(_mqttServer).equals(prefsSettings.getString("mqttServer", "-1")))) {
+            return false;
+        }
+
+    } else if (doc.containsKey("rfidMod")) {
+        const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
+        uint8_t _modId = object["rfidMod"]["modId"];
+        char rfidString[12];
+        snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
+        prefsRfid.putString(_rfidIdModId, rfidString);
+
+        String s = prefsRfid.getString(_rfidIdModId, "-1");
+        if (s.compareTo(rfidString)) {
+            return false;
+        }
+
+    } else if (doc.containsKey("rfidAssign")) {
+        const char *_rfidIdModId = object["rfidAssign"]["rfidIdMusic"];
+        const char *_fileOrUrl = object["rfidAssign"]["fileOrUrl"];
+        uint8_t _playMode = object["rfidAssign"]["playMode"];
+        char rfidString[275];
+        snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrl, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
+        prefsRfid.putString(_rfidIdModId, rfidString);
+
+        String s = prefsRfid.getString(_rfidIdModId, "-1");
+        if (s.compareTo(rfidString)) {
+            return false;
+        }
+
+    } else if (doc.containsKey("wifiConfig")) {
+        const char *_ssid = object["wifiConfig"]["ssid"];
+        const char *_pwd = object["wifiConfig"]["pwd"];
+
+        prefsSettings.putString("SSID", _ssid);
+        prefsSettings.putString("Password", _pwd);
+
+        String sSsid = prefsSettings.getString("SSID", "-1");
+        String sPwd = prefsSettings.getString("Password", "-1");
+
+        if (sSsid.compareTo(_ssid) || sPwd.compareTo(_pwd)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+// Sends JSON-answers via websocket
+void sendWebsocketData(uint32_t client, uint8_t code) {
+    const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 20;
+    StaticJsonDocument<CAPACITY> doc;
+    JsonObject object = doc.to<JsonObject>();
+
+    if (code == 1) {
+        object["status"] = "ok";
+    } else if (code == 2) {
+        object["status"] = "error";
+    } else if (code == 10) {
+        object["rfidId"] = currentRfidTagId;
+    }
+    char jBuf[50];
+    serializeJson(doc, jBuf, sizeof(jBuf) / sizeof(jBuf[0]));
+
+    if (client == 0) {
+        ws.printfAll(jBuf);
+    } else {
+        ws.printf(client, jBuf);
+    }
+}
+
+
+// Processes websocket-requests
+void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+    if (type == WS_EVT_CONNECT){
+        //client connected
+        Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+        client->printf("Hello Client %u :)", client->id());
+        client->ping();
+    } else if (type == WS_EVT_DISCONNECT) {
+        //client disconnected
+        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+    } else if (type == WS_EVT_ERROR) {
+        //error was received from the other end
+        Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+    } else if (type == WS_EVT_PONG) {
+        //pong message was received (in response to a ping request maybe)
+        Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+    } else if (type == WS_EVT_DATA) {
+        //data packet
+        AwsFrameInfo * info = (AwsFrameInfo*)arg;
+        if (info->final && info->index == 0 && info->len == len) {
+        //the whole message is in a single frame and we got all of it's data
+            Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+            uint8_t returnCode;
+
+            if (processJsonRequest((char*)data)) {
+                returnCode = 1;
+            } else {
+                returnCode = 0;
+            }
+            sendWebsocketData(client->id(), 1);
+            //ws.printf(client->id(), doc);
+
+            if (info->opcode == WS_TEXT) {
+                data[len] = 0;
+                Serial.printf("%s\n", (char*)data);
+            } else {
+                for(size_t i=0; i < info->len; i++){
+                    Serial.printf("%02x ", data[i]);
+                }
+                Serial.printf("\n");
+            }
+
+            if (info->opcode == WS_TEXT) {
+                //client->text("I got your text message");
+            } else {
+                //client->binary("I got your binary message");
+            }
+        } else {
+            if (info->message_opcode == WS_TEXT) {
+                data[len] = 0;
+            }
+
+            if ((info->index + len) == info->len) {
+                if (info->final) {
+                    if (info->message_opcode == WS_TEXT) {
+                        //client->text("I got your text message");
+                    } else {
+                        //client->binary("I got your binary message");
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -2556,6 +2794,7 @@ void setup() {
     uint8_t nvsILedBrightness = prefsSettings.getUChar("iLedBrightness", 0);
     if (nvsILedBrightness) {
             initialLedBrightness = nvsILedBrightness;
+            ledBrightness = nvsILedBrightness;
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(initialBrightnessfromNvs), nvsILedBrightness);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
@@ -2633,11 +2872,12 @@ void setup() {
     uint8_t nvsEnableMqtt = prefsSettings.getUChar("enableMQTT", 99);
     switch (nvsEnableMqtt) {
         case 99:
-            prefsSettings.putUChar("enableMQTT", 0);
+            prefsSettings.putUChar("enableMQTT", enableMqtt);
             loggerNl((char *) FPSTR(wroteMqttFlagToNvs), LOGLEVEL_ERROR);
             break;
         case 1:
-            prefsSettings.putUChar("enableMQTT", enableMqtt);
+            //prefsSettings.putUChar("enableMQTT", enableMqtt);
+            enableMqtt = nvsEnableMqtt;
             snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMqttActiveFromNvs), nvsEnableMqtt);
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
@@ -2725,8 +2965,12 @@ void setup() {
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
     if (wifiManager() == WL_CONNECTED) {
+        // Websocket
+        ws.onEvent(onWebsocketEvent);
+        wServer.addHandler(&ws);
+
         wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send(200, "text/plain", "Hello, world");
+            request->send_P(200, "text/html", mgtWebsite, templateProcessor);
         });
 
         // Send a GET request to <IP>/get?message=<message>
