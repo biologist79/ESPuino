@@ -38,6 +38,9 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           <li class=\"nav-item\">\
             <a class=\"nav-link\" href=\"#generalConfig\">Allgemein</a>\
           </li>\
+          <li class=\"nav-item\">\
+            <a class=\"nav-link\" href=\"/restart\" style=\"color: orange\">Neustart Tonuino</a>\
+          </li>\
         </ul>\
       </div>\
     </nav>\

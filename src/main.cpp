@@ -2511,13 +2511,12 @@ wl_status_t wifiManager(void) {
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount=0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 6) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 4) {
             delay(500);
             Serial.print(F("."));
-            Serial.print(WiFi.status());
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount >= 2 && WiFi.status() == WL_CONNECT_FAILED) {
+            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
                 WiFi.begin(_ssid, _pwd);        // ESP32-workaround
             }
         }
@@ -2538,7 +2537,7 @@ wl_status_t wifiManager(void) {
 }
 
 
-// Used for substitution of some variables/templates of html-file
+// Used for substitution of some variables/templates of html-files
 String templateProcessor(const String& templ) {
     if(templ == "FTP_USER") {
         return prefsSettings.getString("ftpuser", "-1");
@@ -2736,7 +2735,6 @@ void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, Aw
                 returnCode = 0;
             }
             sendWebsocketData(client->id(), 1);
-            //ws.printf(client->id(), doc);
 
             if (info->opcode == WS_TEXT) {
                 data[len] = 0;
@@ -2746,26 +2744,6 @@ void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, Aw
                     Serial.printf("%02x ", data[i]);
                 }
                 Serial.printf("\n");
-            }
-
-            if (info->opcode == WS_TEXT) {
-                //client->text("I got your text message");
-            } else {
-                //client->binary("I got your binary message");
-            }
-        } else {
-            if (info->message_opcode == WS_TEXT) {
-                data[len] = 0;
-            }
-
-            if ((info->index + len) == info->len) {
-                if (info->final) {
-                    if (info->message_opcode == WS_TEXT) {
-                        //client->text("I got your text message");
-                    } else {
-                        //client->binary("I got your binary message");
-                    }
-                }
             }
         }
     }
@@ -2797,30 +2775,13 @@ void setup() {
 
     // Examples for serialized RFID-actions that are stored in NVS
     // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
-    // Don't forget to comment this section out for regular usage as it probably overwrites saved states in mode audiobook
+    // Please note: There's no need to do this manually (unless you want to)
     /*prefsRfid.putString("215123125075", "#/mp3/Kinderlieder#0#6#0");
-    prefsRfid.putString("009236075184", "#/Aura - Avoure.mp3#0#3#0");
-    prefsRfid.putString("073022077184", "#/kurz#0#7#0");
     prefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
     prefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
-    prefsRfid.putString("075081176028", "#0#0#106#0"); // modification-card (sleep at end of playlist)
-    prefsRfid.putString("212216120042", "#0#0#105#0"); // modification-card (sleep at end of track)
-    prefsRfid.putString("020059140043", "#0#0#111#0"); // modification-card (repeat current track)
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("018030087052", "#http://shouthost.com.19.streams.bassdrive.com:8200#0#8#0");
-    prefsRfid.putString("182146124043", "#http://ibizaglobalradio.streaming-pro.com:8024#0#8#0");
-    prefsRfid.putString("018162219052", "#http://stream2.friskyradio.com:8000/frisky_mp3_hi#0#8#0");
-    prefsRfid.putString("160243107050", "#/mp3/Hoerspiele/Sonstige/Dingi und der Containerdieb.mp3#0#3#0");
-    prefsRfid.putString("244189084042", "#/mp3/Hoerspiele/Yakari/Yakari und die Pferdediebe#0#3#0");
-    prefsRfid.putString("244042007042", "#/mp3/Hoerspiele/Yakari/Der Gesang des Raben#0#3#0");
-    prefsRfid.putString("176063100050", "#/mp3/Hoerspiele/Yakari/Best of Lagerfeuergeschichten#0#3#0");
-    prefsRfid.putString("004134024043", "#/mp3/Hoerspiele/Yakari/Schneeball in Gefahr#0#3#0");
-    prefsRfid.putString("242216118051", "#/mp3/Hoerspiele/Weihnachten mit Astrid Lindgren#0#3#0");
-    prefsRfid.putString("176008145050", "#/mp3/Hoerspiele/Janosch/Oh wie schoen ist Panama#0#3#0");
-    prefsRfid.putString("036073235043", "#/mp3/Hoerspiele/Paw Patrol/Rettet Weihnachten#0#3#0");
-    prefsRfid.putString("020073020043", "#/mp3/Hoerspiele/Yakari/Sammlung1#0#3#0");
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
-
 
     // Init uSD-SPI
     pinMode(SPISD_CS, OUTPUT);
@@ -3037,6 +2998,12 @@ void setup() {
             request->send_P(200, "text/html", mgtWebsite, templateProcessor);
         });
 
+        wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
+            request->send(200, "text/html", "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>");
+            Serial.flush();
+            ESP.restart();
+        });
+
         wServer.onNotFound(notFound);
         wServer.begin();
     }
@@ -3077,9 +3044,6 @@ void loop() {
             lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
         }
     #endif
-    if (wifiManager() == WL_CONNECTED || accessPointStarted) {
-        //server.handleClient();
-    }
 }
 
 

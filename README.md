@@ -80,6 +80,7 @@ Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls 
 * in setup() RFID-cards can be statically linked to an action/file. Everything is stored in uC's NVS.
 * if Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * please note: by using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
+* If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
 * compile and upload the sketch
 
 ## Starting Tonuino-ESP32 first time
