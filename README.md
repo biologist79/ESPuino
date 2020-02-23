@@ -96,19 +96,19 @@ After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at 
 * Initial volume, maximum volume, brightness of Neopixel and inactivity-time
 
 Webgui #1:
-![Webgui1](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg){:height="50%" width="50%"}
+![Webgui1](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg)
 
 Webgui #2:
-![Webgui2](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI2.jpg){:height="50%" width="50%"}
+![Webgui2](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI2.jpg)
 
 Webgui #3:
-![Webgui3](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI3.jpg){:height="50%" width="50%"}
+![Webgui3](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI3.jpg)
 
 Webgui: websocket broken:
-![Websocket broken](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI_connection_broken.jpg){:height="50%" width="50%"}
+![Websocket broken](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI_connection_broken.jpg)
 
 Webgui: action ok:
-![Action ok](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt_GUI_action_ok.jpg){:height="50%" width="50%"}
+![Action ok](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt_GUI_action_ok.jpg)
 
 Please note: as you apply a RFID-tag to the RFID-reader, the corresponding ID is pushed to the GUI (and flashes a few times; so you can't miss it). So there's no need to enter such IDs manually (unless you want to).
 
