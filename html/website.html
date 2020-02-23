@@ -4,10 +4,10 @@
     <title>ESPuino-Konfiguration</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://ts-cs.de/css/bootstrap.min.css">
-    <script src="https://ts-cs.de/js/jquery.min.js"></script>
-    <script src="https://ts-cs.de/js/popper.min.js"></script>
-    <script src="https://ts-cs.de/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/css/bootstrap.min.css">
+    <script src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/js/jquery.min.js"></script>
+    <script src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/js/popper.min.js"></script>
+    <script src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/js/bootstrap.min.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
@@ -15,7 +15,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <a class="navbar-brand">
-        <img src="./tonuino_logo.png" width="30" height="30" class="d-inline-block align-top" alt="" />
+        <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/html/tonuino_logo.png" width="30" height="30" class="d-inline-block align-top" alt="" />
         Tonuino
       </a>
       <div class="collapse navbar-collapse" id="collapsibleNavbar">
@@ -103,6 +103,7 @@
                     <option value="104">Schlafen nach 2 Stunden</option>
                     <option value="105">Schlafen nach Ende des Titels</option>
                     <option value="106">Schlafen nach Ende der Playlist</option>
+                    <option value="107">Schlafen nach fünf Titeln</option>
                     <option value="110">Wiederhole Playlist (endlos)</option>
                     <option value="111">Wiederhole Titel (endlos)</option>
                     <option value="112">Dimme LEDs (Nachtmodus)</option>
@@ -195,7 +196,20 @@
             }, false);
           });
 
-          let socket = new WebSocket("ws://%IPv4%:81/ws");
+          let socket = new WebSocket("ws://%IPv4%/ws");
+
+          socket.onclose = function(e) {
+            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+            setTimeout(function() {
+              connect();
+            }, 5000);
+          };
+
+          socket.onerror = function(err) {
+            console.error('Socket encountered error: ', err.message, 'Closing socket');
+            ws.close();
+          };
+
           socket.onmessage = function(event) {
             console.log(event.data);
             var socketMsg = JSON.parse(event.data);

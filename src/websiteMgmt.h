@@ -15,7 +15,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <span class=\"navbar-toggler-icon\"></span>\
       </button>\
       <a class=\"navbar-brand\">\
-        <img src=\"./tonuino_logo.png\" width=\"30\" height=\"30\" class=\"d-inline-block align-top\" alt=\"\" />\
+        <img src=\"https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/html/tonuino_logo.png\" width=\"30\" height=\"30\" class=\"d-inline-block align-top\" alt=\"\" />\
         Tonuino\
       </a>\
       <div class=\"collapse navbar-collapse\" id=\"collapsibleNavbar\">\
@@ -103,6 +103,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                     <option value=\"104\">Schlafen nach 2 Stunden</option>\
                     <option value=\"105\">Schlafen nach Ende des Titels</option>\
                     <option value=\"106\">Schlafen nach Ende der Playlist</option>\
+                    <option value=\"107\">Schlafen nach fünf Titeln</option>\
                     <option value=\"110\">Wiederhole Playlist (endlos)</option>\
                     <option value=\"111\">Wiederhole Titel (endlos)</option>\
                     <option value=\"112\">Dimme LEDs (Nachtmodus)</option>\
@@ -195,7 +196,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             }, false);\
           });\
 \
-          let socket = new WebSocket(\"ws://%IPv4%:81/ws\");\
+          let socket = new WebSocket(\"ws://%IPv4%/ws\");\
           socket.onmessage = function(event) {\
             console.log(event.data);\
             var socketMsg = JSON.parse(event.data);\

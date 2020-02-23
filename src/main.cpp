@@ -25,9 +25,9 @@
 #endif
 #include "logmessages.h"
 #include "websiteMgmt.h"
+#include "websiteBasic.h"
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include "website.h"
 #include <ArduinoJson.h>
 
 
@@ -119,6 +119,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define SLEEP_TIMER_MOD_120             104         // Puts uC into deepsleep after 120 minutes + LED-DIMM
 #define SLEEP_AFTER_END_OF_TRACK        105         // Puts uC into deepsleep after track is finished + LED-DIMM
 #define SLEEP_AFTER_END_OF_PLAYLIST     106         // Puts uC into deepsleep after playlist is finished + LED-DIMM
+#define SLEEP_AFTER_5_TRACKS            107         // Puts uC into deepsleep after five tracks
 #define REPEAT_PLAYLIST                 110         // Changes active playmode to endless-loop (for a playlist)
 #define REPEAT_TRACK                    111         // Changes active playmode to endless-loop (for a single track)
 #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
@@ -145,6 +146,7 @@ typedef struct { // Bit field
     bool pausePlay:                     1;      // If pause is active
     bool trackFinished:                 1;      // If current track is finished
     bool playlistFinished:              1;      // If whole playlist is finished
+    uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
 } playProps;
 playProps playProperties;
 
@@ -247,7 +249,7 @@ const char* PARAM_MESSAGE = "message";
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
-AsyncWebServer wServer(81);
+AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
@@ -258,9 +260,6 @@ TaskHandle_t rfid;
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
 #endif
-
-// Webserver
-WebServer server(80);
 
 // FTP
 #ifdef FTP_ENABLE
@@ -308,7 +307,9 @@ QueueHandle_t rfidCardQueue;
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
 static int arrSortHelper(const void* a, const void* b);
-void callback(const char *topic, const byte *payload, uint32_t length);
+#ifdef MQTT_ENABLE
+    void callback(const char *topic, const byte *payload, uint32_t length);
+#endif
 void buttonHandler();
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
@@ -317,22 +318,28 @@ bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
-void handleWifiSetup();
 void loggerNl(const char *str, const uint8_t logLevel);
 void logger(const char *str, const uint8_t logLevel);
 #ifdef MQTT_ENABLE
     bool publishMqtt(const char *topic, const char *payload, bool retained);
 #endif
-void postHeartbeatViaMqtt(void);
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+#ifdef MQTT_ENABLE
+    void postHeartbeatViaMqtt(void);
+#endif
+bool processJsonRequest(char *_serialJson);
 void randomizePlaylist (char *str[], const uint32_t count);
-bool reconnect();
+#ifdef MQTT_ENABLE
+    bool reconnect();
+#endif
 char ** returnPlaylistFromWebstream(const char *_webUrl);
 char ** returnPlaylistFromSD(File _fileOrDirectory);
 void rfidScanner(void *parameter);
 void sleepHandler(void) ;
 void sortPlaylist(const char** arr, int n);
 bool startsWith(const char *str, const char *pre);
+String templateProcessor(const String& templ);
 void trackControlToQueueSender(const uint8_t trackCommand);
 void rfidPreferenceLookupHandler (void);
 void sendWebsocketData(uint32_t client, uint8_t code);
@@ -671,6 +678,17 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
         } else if (strcmp(receivedString, "EOT") == 0) {
             playProperties.sleepAfterCurrentTrack = true;
             loggerNl((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
+            #ifdef NEOPIXEL_ENABLE
+                showLedOk = true;
+            #endif
+            return;
+        }  else if (strcmp(receivedString, "EO5T") == 0) {
+            if ((playProperties.numberOfTracks - 1) >= (playProperties.currentTrackNumber + 5)) {
+                playProperties.playUntilTrackNumber = playProperties.currentTrackNumber + 5;
+            } else {
+                playProperties.sleepAfterPlaylist = true;
+            }
+            loggerNl((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -1329,6 +1347,16 @@ void playAudio(void *parameter) {
                     continue;
             }
 
+            if (playProperties.playUntilTrackNumber == playProperties.currentTrackNumber && playProperties.playUntilTrackNumber > 0) {
+                if (playProperties.saveLastPlayPosition) {
+                    nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, 0, playProperties.numberOfTracks);
+                }
+                playProperties.playlistFinished = true;
+                playProperties.playMode = NO_PLAYLIST;
+                gotoSleep = true;
+                continue;
+            }
+
             if (playProperties.currentTrackNumber >= playProperties.numberOfTracks) {         // Check if last element of playlist is already reached
                 loggerNl((char *) FPSTR(endOfPlaylistReached), LOGLEVEL_NOTICE);
                 if (!playProperties.repeatPlaylist) {
@@ -1882,6 +1910,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
     playProperties.sleepAfterCurrentTrack = false;
     playProperties.sleepAfterPlaylist = false;
     playProperties.saveLastPlayPosition = false;
+    playProperties.playUntilTrackNumber = 0;
 
     switch(playProperties.playMode) {
         case SINGLE_TRACK: {
@@ -2036,8 +2065,8 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
+                    loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
                 #endif
@@ -2047,9 +2076,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
                 loggerNl((char *) FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2058,6 +2087,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
+            playProperties.playUntilTrackNumber = 0;
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -2068,8 +2098,8 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
+                    loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
                 #endif
@@ -2079,9 +2109,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
                 loggerNl((char *) FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2090,6 +2120,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
+            playProperties.playUntilTrackNumber = 0;
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -2111,9 +2142,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
                 loggerNl((char *) FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2122,6 +2153,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
+            playProperties.playUntilTrackNumber = 0;
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -2143,9 +2175,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
                 loggerNl((char *) FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2154,6 +2186,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
             playProperties.sleepAfterCurrentTrack = false;      // deactivate/overwrite if already active
             playProperties.sleepAfterPlaylist = false;          // deactivate/overwrite if already active
+            playProperties.playUntilTrackNumber = 0;
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -2182,12 +2215,13 @@ void doRfidCardModifications(const uint32_t mod) {
                 #endif
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
             }
             playProperties.sleepAfterCurrentTrack = !playProperties.sleepAfterCurrentTrack;
             playProperties.sleepAfterPlaylist = false;
             sleepTimerStartTimestamp = 0;
+            playProperties.playUntilTrackNumber = 0;
 
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
@@ -2216,8 +2250,8 @@ void doRfidCardModifications(const uint32_t mod) {
             } else {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
+                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 loggerNl((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
@@ -2227,6 +2261,57 @@ void doRfidCardModifications(const uint32_t mod) {
             playProperties.sleepAfterCurrentTrack = false;
             playProperties.sleepAfterPlaylist = !playProperties.sleepAfterPlaylist;
             sleepTimerStartTimestamp = 0;
+            playProperties.playUntilTrackNumber = 0;
+            #ifdef MQTT_ENABLE
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
+            #endif
+            #ifdef NEOPIXEL_ENABLE
+                showLedOk = true;
+            #endif
+            break;
+
+        case SLEEP_AFTER_5_TRACKS:
+            if (playProperties.playMode == NO_PLAYLIST) {
+                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                #ifdef NEOPIXEL_ENABLE
+                    showLedError = true;
+                #endif
+                return;
+            }
+
+            playProperties.sleepAfterCurrentTrack = false;
+            playProperties.sleepAfterPlaylist = false;
+            sleepTimerStartTimestamp = 0;
+
+            if (playProperties.playUntilTrackNumber > 0) {
+                playProperties.playUntilTrackNumber = 0;
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
+                #endif
+                #ifdef NEOPIXEL_ENABLE
+                    ledBrightness = initialLedBrightness;
+                #endif
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
+                #endif
+            } else {
+                if (playProperties.currentTrackNumber + 5 > playProperties.numberOfTracks) {        // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
+                    playProperties.sleepAfterPlaylist = true;
+                    #ifdef MQTT_ENABLE
+                        publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
+                    #endif
+                } else {
+                    playProperties.playUntilTrackNumber = playProperties.currentTrackNumber + 5;
+                    #ifdef MQTT_ENABLE
+                        publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
+                    #endif
+                }
+                #ifdef NEOPIXEL_ENABLE
+                    ledBrightness = nightLedBrightness;
+                #endif
+                loggerNl((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
+            }
+
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
             #endif
@@ -2364,46 +2449,6 @@ void rfidPreferenceLookupHandler (void) {
 }
 
 
-void handleWifiSetup() {
-    String setupPage = "<!DOCTYPE html>";
-    setupPage += "<html>";
-    setupPage += "<head>";
-    setupPage += "<title>WLAN-Einrichtung</title>";
-    setupPage += "<h1>Initiale WLAN-Einrichtung</h1>";
-    setupPage += "<form action='/'>";
-    setupPage += "    SSID: <input type='text' name='ssid'><br>";
-    setupPage += "<br>";
-    setupPage += "    Passwort: <input type='text' name='pw'><br>";
-    setupPage += "<br>";
-    setupPage += "   <input type='submit' value='Absenden'>";
-    setupPage += " </form>";
-    setupPage += "<br><br>";
-    setupPage += "<form action='/restart'>";
-    setupPage += "   <input type='submit' value='Neustart'>";
-    setupPage += " </form>";
-    setupPage += "</head>";
-    setupPage += "</html>";
-
-    server.send ( 200, "text/html", setupPage);
-    if (server.args() > 0) { // Arguments were received
-        for (uint8_t i=0; i < server.args(); i++) {
-            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s=%s", (char *) FPSTR(statementsReceivedByServer),  server.argName(i).c_str(), server.arg(i).c_str());
-            loggerNl(logBuf, LOGLEVEL_INFO);
-
-            if (server.argName(i) == "ssid") {
-                snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(savedSsidInNvs), server.arg(i).c_str());
-                loggerNl(logBuf, LOGLEVEL_NOTICE);
-                prefsSettings.putString("SSID", server.arg(i));
-            } else if (server.argName(i) == "pw") {
-                snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(savedWifiPwdInNvs), server.arg(i).c_str());
-                loggerNl(logBuf, LOGLEVEL_NOTICE);
-                prefsSettings.putString("Password", server.arg(i));
-            }
-        }
-    }
-}
-
-
 // Initialize Soft Access Point with ESP32
 // ESP32 establishes its own WiFi network, one can choose the SSID
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
@@ -2416,19 +2461,29 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "IP-Adresse: %d.%d.%d.%d", apIP[0],apIP[1], apIP[2], apIP[3]);
     loggerNl(logBuf, LOGLEVEL_NOTICE);
 
-    server.on("/", handleWifiSetup);                // Show setup-page
-    server.on("/restart", []() {                    // Show restart-page
-        server.send(200, "text/plain", "ESP-Reset wird durchgeführt...");
+    wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+            request->send_P(200, "text/html", basicWebsite);
+        });
+
+    wServer.on("/init", HTTP_POST, [] (AsyncWebServerRequest *request) {
+        if (request->hasParam("ssid", true) && request->hasParam("pwd", true)) {
+            Serial.println(request->getParam("ssid", true)->value());
+            Serial.println(request->getParam("pwd", true)->value());
+            prefsSettings.putString("SSID", request->getParam("ssid", true)->value());
+            prefsSettings.putString("Password", request->getParam("pwd", true)->value());
+        }
+        request->send_P(200, "text/html", basicWebsite);
+    });
+
+    wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        request->send(200, "text/html", "ESP wird neu gestartet...");
+        Serial.flush();
         ESP.restart();
     });
 
-    server.begin();
-
+    wServer.begin();
     loggerNl((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
     accessPointStarted = true;
-    /*while (true) {
-        server.handleClient();                      // Wird endlos ausgeführt damit das WLAN Setup erfolgen kann
-    }*/
 }
 
 
@@ -3036,7 +3091,7 @@ void loop() {
         }
     #endif
     if (wifiManager() == WL_CONNECTED || accessPointStarted) {
-        server.handleClient();
+        //server.handleClient();
     }
 }
 

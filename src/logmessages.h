@@ -4,6 +4,7 @@ static const char mqttOk[] PROGMEM = "MQTT-Session aufgebaut.";
 static const char sleepTimerEOP[] PROGMEM = "Sleep-Timer: Nach dem letzten Track der Playlist.";
 static const char sleepTimerEOT[] PROGMEM = "Sleep-Timer: Nach dem Ende des laufenden Tracks.";
 static const char sleepTimerStop[] PROGMEM = "Sleep-Timer wurde deaktiviert.";
+static const char sleepTimerEO5[] PROGMEM = "Sleep Timer: Nach Ende des Titels oder, wenn früher, Ende der Playlist";
 static const char sleepTimerAlreadyStopped[] PROGMEM = "Sleep-Timer ist bereits deaktiviert.";
 static const char sleepTimerSetTo[] PROGMEM = "Sleep-Timer gesetzt auf";
 static const char allowButtons[] PROGMEM = "Alle Tasten werden freigegeben.";
