@@ -96,7 +96,6 @@ After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at 
 * Initial volume, maximum volume, brightness of Neopixel and inactivity-time
 
 Webgui #1:
-![Webgui1](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg)
 <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg" width="300">
 
 Webgui #2:
