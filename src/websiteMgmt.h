@@ -4,10 +4,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
     <title>ESPuino-Konfiguration</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-    <link rel=\"stylesheet\" href=\"https://ts-cs.de/css/bootstrap.min.css\">\
-    <script src=\"https://ts-cs.de/js/jquery.min.js\"></script>\
-    <script src=\"https://ts-cs.de/js/popper.min.js\"></script>\
-    <script src=\"https://ts-cs.de/js/bootstrap.min.js\"></script>\
+    <link rel=\"stylesheet\" href=\"https://ts-cs.de/tonuino/css/bootstrap.min.css\">\
+    <script src=\"https://ts-cs.de/tonuino/js/jquery.min.js\"></script>\
+    <script src=\"https://ts-cs.de/tonuino/js/popper.min.js\"></script>\
+    <script src=\"https://ts-cs.de/tonuino/js/bootstrap.min.js\"></script>\
   </head>\
   <body>\
     <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
@@ -197,6 +197,19 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           });\
 \
           let socket = new WebSocket(\"ws://%IPv4%/ws\");\
+\
+          socket.onclose = function(e) {\
+            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
+            setTimeout(function() {\
+              connect();\
+            }, 5000);\
+          };\
+\
+          socket.onerror = function(err) {\
+            console.error('Socket encountered error: ', err.message, 'Closing socket');\
+            ws.close();\
+          };\
+\
           socket.onmessage = function(event) {\
             console.log(event.data);\
             var socketMsg = JSON.parse(event.data);\

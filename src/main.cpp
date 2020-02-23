@@ -3028,28 +3028,6 @@ void setup() {
             request->send_P(200, "text/html", mgtWebsite, templateProcessor);
         });
 
-        // Send a GET request to <IP>/get?message=<message>
-        wServer.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-            String message;
-            if (request->hasParam(PARAM_MESSAGE)) {
-                message = request->getParam(PARAM_MESSAGE)->value();
-            } else {
-                message = "No message sent";
-            }
-            request->send(200, "text/plain", "Hello, GET: " + String(playProperties.playMode) + String(currentRfidTagId));
-        });
-
-        // Send a POST request to <IP>/post with a form field message set to <message>
-        wServer.on("/post", HTTP_POST, [](AsyncWebServerRequest *request){
-            String message;
-            if (request->hasParam(PARAM_MESSAGE, true)) {
-                message = request->getParam(PARAM_MESSAGE, true)->value();
-            } else {
-                message = "No message sent";
-            }
-            request->send(200, "text/plain", "Hello, POST: " + message);
-        });
-
         wServer.onNotFound(notFound);
         wServer.begin();
     }
