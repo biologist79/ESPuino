@@ -94,6 +94,8 @@ After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at 
 * FTP
 * Initial volume, maximum volume, brightness of Neopixel and inactivity-time
 
+Please note: as you apply a RFID-tag to the RFID-reader, the corresponding ID is pushed to the GUI (and flashes a few times; so you can't miss it). So there's no need to enter such IDs manually (unless you want to).
+
 ## Interacting with Tonuino
 ### Playmodes
 It's not just simply playing music; different playmodes are supported:
