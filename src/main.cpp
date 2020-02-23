@@ -668,6 +668,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     }
     // Modify sleep-timer?
     else if (strcmp_P(topic, topicSleepTimerCmnd) == 0) {
+        if (playProperties.playMode == NO_PLAYLIST) {       // Don't allow sleep-modications if no playlist is active
+            loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_INFO);
+            publishMqtt((char *) FPSTR(topicSleepState), 0, false);
+            #ifdef NEOPIXEL_ENABLE
+                showLedError = true;
+            #endif
+            return;
+        }
         if (strcmp(receivedString, "EOP") == 0) {
             playProperties.sleepAfterPlaylist = true;
             loggerNl((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
@@ -2291,9 +2299,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
                 #endif
-                #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
-                #endif
+                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
             } else {
                 if (playProperties.currentTrackNumber + 5 > playProperties.numberOfTracks) {        // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
                     playProperties.sleepAfterPlaylist = true;
@@ -2666,6 +2672,8 @@ bool processJsonRequest(char *_serialJson) {
         if (sSsid.compareTo(_ssid) || sPwd.compareTo(_pwd)) {
             return false;
         }
+    } else if (doc.containsKey("ping")) {
+        sendWebsocketData(0, 20);
     }
 
     return true;
@@ -2684,6 +2692,8 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["status"] = "error";
     } else if (code == 10) {
         object["rfidId"] = currentRfidTagId;
+    } else if (code == 20) {
+        object["pong"] = "pong";
     }
     char jBuf[50];
     serializeJson(doc, jBuf, sizeof(jBuf) / sizeof(jBuf[0]));
@@ -2701,7 +2711,7 @@ void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, Aw
     if (type == WS_EVT_CONNECT){
         //client connected
         Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
-        client->printf("Hello Client %u :)", client->id());
+        //client->printf("Hello Client %u :)", client->id());
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
@@ -3006,7 +3016,6 @@ void setup() {
     encoder.clearCount();
     encoder.setCount(initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
 
-
     // Only enable MQTT if requested
     #ifdef MQTT_ENABLE
         if (enableMqtt) {
@@ -3020,7 +3029,7 @@ void setup() {
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
     if (wifiManager() == WL_CONNECTED) {
-        // Websocket
+        // Websocket for Mgmt-Interface
         ws.onEvent(onWebsocketEvent);
         wServer.addHandler(&ws);
 

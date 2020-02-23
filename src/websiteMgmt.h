@@ -87,7 +87,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
     </div>\
     <div class=\"container my-5\" id=\"rfidModTags\">\
         <h2>RFID-Modifkationen</h2>\
-        <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\" novalidate>\
+        <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\">\
             <div class=\"form-group col-md-6\">\
                 <label for=\"rfidIdMod\">RFID-Chip-Nummer</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMod\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMod\" required>\
@@ -116,7 +116,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
     </div>\
     <div class=\"container my-5\" id=\"mqttConfig\">\
         <h2>MQTT-Konfiguration</h2>\
-        <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\" onsubmit=\"mqttSettings('mqttConfig'); return false\" novalidate>\
+        <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\" onsubmit=\"mqttSettings('mqttConfig'); return false\">\
             <div class=\"form-check col-md-6\">\
                 <input class=\"form-check-input\" type=\"checkbox\" value=\"1\" id=\"mqttEnable\" name=\"mqttEnable\" %MQTT_ENABLE%>\
                 <label class=\"form-check-label\" for=\"mqttEnable\">\
@@ -178,25 +178,28 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           var errorBox = '<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">Es ist ein Fehler aufgetreten!<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button></div>';\
           var okBox = '<div class=\"alert alert-success alert-dismissible fade show\" role=\"alert\">Aktion erfolgreich ausgeführt.<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button></div>';\
 \
-          (function() {\
-            'use strict';\
-            window.addEventListener('load', function() {\
-              /* Fetch all the forms we want to apply custom Bootstrap validation styles to*/\
-              var forms = document.getElementsByClassName('needs-validation');\
-              /* Loop over them and prevent submission*/\
-              var validation = Array.prototype.filter.call(forms, function(form) {\
-                form.addEventListener('submit', function(event) {\
-                  if (form.checkValidity() === false) {\
-                    event.preventDefault();\
-                    event.stopPropagation();\
-                  }\
-                  form.classList.add('was-validated');\
-                }, false);\
-              });\
-            }, false);\
-          });\
+          var socket = new WebSocket(\"ws://%IPv4%/ws\");\
 \
-          let socket = new WebSocket(\"ws://%IPv4%/ws\");\
+          function ping() {\
+            var myObj = {\
+              \"ping\": {\
+                ping: 'ping'\
+              }\
+            };\
+            var myJSON = JSON.stringify(myObj);\
+            socket.send(myJSON);\
+            tm = setTimeout(function () {\
+              alert(\"Die Verbindung zum Tonuino ist unterbrochen!\\nBitte Seite neu laden.\");\
+              }, 5000);\
+          }\
+\
+          function pong() {\
+            clearTimeout(tm);\
+          }\
+\
+          socket.onopen = function () {\
+            setInterval(ping, 15000);\
+          };\
 \
           socket.onclose = function(e) {\
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
@@ -207,7 +210,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
 \
           socket.onerror = function(err) {\
             console.error('Socket encountered error: ', err.message, 'Closing socket');\
-            ws.close();\
+            socket.close();\
           };\
 \
           socket.onmessage = function(event) {\
@@ -224,6 +227,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 $(\"#\" + lastIdclicked).find('.messages').html(okBox);\
               } else {\
                 $(\"#\" + lastIdclicked).find('.messages').html(errorBox);\
+              }\
+            } if (socketMsg.pong != null) {\
+              if (socketMsg.pong == 'pong') {\
+                pong();\
               }\
             }\
           };\
