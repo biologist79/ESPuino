@@ -3,7 +3,6 @@
 ## Disclaimer
 This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different**. So there might be features, that are supported by my fork whereas others are missing or implemented different. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
-**Please note: This project is still under development. So it's not yet fully feature-complete (e.g. webinterface is missing).**
 
 ## What's different (basically)?
 The original project makes use of microcontrollers (uC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which offers a uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with a uC using the API provided.
@@ -85,7 +84,15 @@ Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls 
 
 ## Starting Tonuino-ESP32 first time
 After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to got: place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist/directory contains the longer this step takes.
-In setup() there's a section that hardcodes RFID-card-IDs to actions. Just apply a new card to the reader and have a look at it's ID in serial console. This ID has to be used to link it to a file/folder and playmode. In future this won't be necessary any more as this step can be performed more comfortable using a webinterface. However, it's explained in setup() how to build those NVS-strings.
+
+## After Tonuino-ESP32 is connected to your WiFi
+After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at the IP assigned by the router. Using this GUI, you can configure:
+* WiFi
+* Binding between RFID-tag, file/directory/URL and playMode
+* Binding between RFID-tag and a modification-type
+* MQTT
+* FTP
+* Initial volume, maximum volume, brightness of Neopixel and inactivity-time
 
 ## Interacting with Tonuino
 ### Playmodes
@@ -106,6 +113,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * sleep after 5/30/60/120 minutes
 * sleep after end of current track
 * sleep after end of playlist
+* sleep after five tracks
 * dimm neopixel
 * current track in loop-mode (is "stronger" than playlist-loop but doesn't overwrite it!)
 * playlist in loop-mode
