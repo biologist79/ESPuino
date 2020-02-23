@@ -63,7 +63,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <h2>RFID-Zuweisungen</h2>\
         <form action=\"#rfidMusicTags\" method=\"POST\" onsubmit=\"rfidAssign('rfidMusicTags'); return false\">\
             <div class=\"form-group col-md-6\">\
-                <label for=\"rfidIdMusic\">RFID-Chip-Nummer</label>\
+                <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                 <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (URL nur für Webradio)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" name=\"fileOrUrl\" required>\
@@ -89,7 +89,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <h2>RFID-Modifkationen</h2>\
         <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\">\
             <div class=\"form-group col-md-6\">\
-                <label for=\"rfidIdMod\">RFID-Chip-Nummer</label>\
+                <label for=\"rfidIdMod\">RFID-Chip-Nummer (12-stellig)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMod\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMod\" required>\
                 <div class=\"invalid-feedback\">\
                   Bitte eine 12-stellige Zahl eingeben.\
