@@ -95,6 +95,12 @@ After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at 
 * FTP
 * Initial volume, maximum volume, brightness of Neopixel and inactivity-time
 
+![Webgui1](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg)
+![Webgui2](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI2.jpg)
+![Webgui3](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI3.jpg)
+![Websocket broken](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI_connection_broken.jpg)
+![Action ok](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt_GUI_action_ok.jpg)
+
 Please note: as you apply a RFID-tag to the RFID-reader, the corresponding ID is pushed to the GUI (and flashes a few times; so you can't miss it). So there's no need to enter such IDs manually (unless you want to).
 
 ## Interacting with Tonuino
