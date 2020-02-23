@@ -97,6 +97,7 @@ After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at 
 
 Webgui #1:
 ![Webgui1](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg)
+<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg" width="200">
 
 Webgui #2:
 ![Webgui2](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI2.jpg)
