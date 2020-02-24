@@ -29,6 +29,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <nvsDump.h>
 
 
 
@@ -149,6 +150,11 @@ typedef struct { // Bit field
     uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
 } playProps;
 playProps playProperties;
+
+typedef struct {
+    char *nvsKey;
+    char *nvsEntry;
+} nvs_t;
 
 // Configuration of initial values (for the first start) goes here....
 // There's no need to change them here as they can be configured via webinterface
@@ -311,13 +317,15 @@ static int arrSortHelper(const void* a, const void* b);
     void callback(const char *topic, const byte *payload, uint32_t length);
 #endif
 void buttonHandler();
+void deepSleepManager(void);
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
-void deepSleepManager(void);
+bool dumpNvsToSd(char *_namespace, char *_destFile);
 bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
+bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
 void logger(const char *str, const uint8_t logLevel);
 #ifdef MQTT_ENABLE
@@ -1039,7 +1047,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     char *token;
     token = strtok(serializedPlaylist, stringDelimiter);
     uint32_t pos = 1;
-    while( token != NULL ) {
+    while (token != NULL) {
         files[pos++] = strdup(token);
         token = strtok(NULL, stringDelimiter);
     }
@@ -2620,19 +2628,23 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
+        dumpNvsToSd("rfidTags", "/backup.txt");
 
     } else if (doc.containsKey("rfidAssign")) {
-        const char *_rfidIdModId = object["rfidAssign"]["rfidIdMusic"];
+        const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
         const char *_fileOrUrl = object["rfidAssign"]["fileOrUrl"];
         uint8_t _playMode = object["rfidAssign"]["playMode"];
         char rfidString[275];
         snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrl, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
-        prefsRfid.putString(_rfidIdModId, rfidString);
+        prefsRfid.putString(_rfidIdAssinId, rfidString);
+        Serial.println(_rfidIdAssinId);
+        Serial.println(rfidString);
 
-        String s = prefsRfid.getString(_rfidIdModId, "-1");
+        String s = prefsRfid.getString(_rfidIdAssinId, "-1");
         if (s.compareTo(rfidString)) {
             return false;
         }
+        dumpNvsToSd("rfidTags", "/backup.txt");
 
     } else if (doc.containsKey("wifiConfig")) {
         const char *_ssid = object["wifiConfig"]["ssid"];
@@ -2723,6 +2735,90 @@ void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, Aw
             }
         }
     }
+}
+
+
+bool isNumber(const char *str) {
+  byte i = 0;
+
+  while (*(str + i) != '\0') {
+    if (!isdigit(*(str + i++))) {
+      return false;
+    }
+  }
+
+  if (i>0) {
+      return true;
+  } else {
+      return false;
+  }
+
+}
+
+
+// Dumps all RFID-entries from NVS into a file on SD-card
+bool dumpNvsToSd(char *_namespace, char *_destFile) {
+    esp_partition_iterator_t pi;                // Iterator for find
+    const esp_partition_t* nvs;                 // Pointer to partition struct
+    esp_err_t result = ESP_OK;
+    const char* partname = "nvs";
+    uint8_t pagenr = 0;                         // Page number in NVS
+    uint8_t i;                                  // Index in Entry 0..125
+    uint8_t bm;                                 // Bitmap for an entry
+    uint32_t offset = 0;                        // Offset in nvs partition
+    uint8_t namespace_ID;                       // Namespace ID found
+
+    pi = esp_partition_find ( ESP_PARTITION_TYPE_DATA,          // Get partition iterator for
+                                ESP_PARTITION_SUBTYPE_ANY,      // this partition
+                                partname ) ;
+    if (pi) {
+        nvs = esp_partition_get(pi);                            // Get partition struct
+        esp_partition_iterator_release(pi);                     // Release the iterator
+        dbgprint ( "Partition %s found, %d bytes",
+                partname,
+                nvs->size ) ;
+    } else {
+        Serial.printf("Partition %s not found!", partname) ;
+        return NULL;
+    }
+    namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
+
+    File backupFile = SD.open(_destFile, FILE_WRITE);
+    if (!backupFile) {
+        return false;
+    }
+    while (offset < nvs->size) {
+        result = esp_partition_read (nvs, offset,                // Read 1 page in nvs partition
+                                    &buf,
+                                    sizeof(nvs_page));
+        if (result != ESP_OK) {
+            Serial.println(F("Error reading NVS!"));
+            return false;
+        }
+
+        i = 0;
+
+        while (i < 126) {
+            bm = (buf.Bitmap[i/4] >> ((i % 4) * 2 )) & 0x03;  // Get bitmap for this entry
+            if (bm == 2) {
+                if ((namespace_ID == 0xFF) ||                      // Show all if ID = 0xFF
+                    (buf.Entry[i].Ns == namespace_ID)) {           // otherwise just my namespace
+                    if (isNumber(buf.Entry[i].Key)) {
+                        String s = prefsRfid.getString((const char *)buf.Entry[i].Key);
+                        backupFile.printf("%s^%s\n", buf.Entry[i].Key, s.c_str());
+                    }
+                }
+                i += buf.Entry[i].Span;                              // Next entry
+            } else {
+                i++;
+            }
+        }
+        offset += sizeof(nvs_page);                              // Prepare to read next page in nvs
+        pagenr++;
+    }
+
+    backupFile.close();
+    return true;
 }
 
 
