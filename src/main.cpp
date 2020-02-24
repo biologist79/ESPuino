@@ -84,8 +84,8 @@ char logBuf[160];                                   // Buffer for all log-messag
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    24          // Configure number of LEDs here
-    #define CHIPSET                     WS2812B
+    #define NUM_LEDS                    24          // number of LEDs
+    #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
 #endif
 
@@ -150,7 +150,8 @@ typedef struct { // Bit field
 } playProps;
 playProps playProperties;
 
-// Configuration goes here....
+// Configuration of initial values (for the first start) goes here....
+// There's no need to change them here as they can be configured via webinterface
 // Neopixel
 uint8_t initialLedBrightness = 16;                      // Initial brightness of Neopixel
 uint8_t ledBrightness = initialLedBrightness;
@@ -171,7 +172,12 @@ uint8_t initVolume = 3;                                 // 0...21 (If not found 
 // Sleep
 uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
 uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
-// Button-configuration
+// FTP
+char ftpUser[10] = "esp32";                             // FTP-user
+char ftpPassword[15] = "esp32";                         // FTP-password
+
+
+// Button-configuration (change according your needs)
 uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
 uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
 
@@ -213,9 +219,6 @@ IPAddress apIP(192, 168, 4, 1);                         // Access-point's static
 IPAddress apNetmask(255, 255, 255, 0);                  // Access-point's netmask
 bool accessPointStarted = false;
 
-// FTP
-char ftpUser[10] = "esp32";                             // FTP-user
-char ftpPassword[15] = "esp32";                         // FTP-password
 
 // MQTT-configuration
 char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-server (if not found in NVS this one will be taken)
@@ -241,10 +244,7 @@ char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-se
     static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
 #endif
 
-char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings
-
-// Zeugs
-const char* PARAM_MESSAGE = "message";
+char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
 
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
@@ -363,33 +363,6 @@ void logger(const char *str, const uint8_t logLevel) {
   }
 }
 
-void printDirectory(File dir, int numTabs) {
-  while (true) {
-
-    char fileNameBuf[255];
-    File entry =  dir.openNextFile();
-    if (! entry) {
-      // no more files
-      break;
-    }
-    for (uint8_t i = 0; i < numTabs; i++) {
-      Serial.print('\t');
-    }
-    Serial.print(entry.name());
-    if (entry.isDirectory()) {
-      Serial.println("/");
-      printDirectory(entry, numTabs + 1);
-    } else {
-        strncpy(fileNameBuf, (char *) entry.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-        if (fileValid(fileNameBuf)) {
-            Serial.print("\t\t");
-            Serial.println(entry.size(), DEC);
-        }
-    }
-    entry.close();
-  }
-}
-
 
 int countChars(const char* string, char ch) {
     int count = 0;
@@ -405,6 +378,7 @@ int countChars(const char* string, char ch) {
 }
 
 
+// Used to print content of sd-card (currently not used, maybe later :-))
 void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdContent, uint8_t depth) {
     while (true) {
         File entry = dir.openNextFile();
@@ -440,6 +414,7 @@ void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdCo
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
 }
+
 
 // If timer-semaphore is set, read buttons (unless controls are locked)
 void buttonHandler() {
@@ -562,6 +537,7 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
     return publishMqtt(topic, buf, retained);
 }
 
+
 /* Cyclic posting via MQTT that ESP is still alive  */
 void postHeartbeatViaMqtt(void) {
     if (millis() - lastOnlineTimestamp >= stillOnlineInterval*1000) {
@@ -637,8 +613,7 @@ bool reconnect() {
 }
 
 
-/* Is called if there's a new MQTT-message
-*/
+// Is called if there's a new MQTT-message for us
 void callback(const char *topic, const byte *payload, uint32_t length) {
     char *receivedString = strndup((char*)payload, length);
     char *mqttTopic = strdup(topic);
@@ -844,6 +819,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
 #endif
 
 
+// Returns current repeat-mode (mix of repeat current track and current playlist)
 uint8_t getRepeatMode(void) {
     if (playProperties.repeatPlaylist && playProperties.repeatCurrentTrack) {
         return TRACK_N_PLAYLIST;
@@ -917,10 +893,12 @@ void randomizePlaylist (char *str[], const uint32_t count) {
 }
 
 
+// Helper to sort playlist alphabetically
 static int arrSortHelper(const void* a, const void* b) {
     return strcmp(*(const char**)a, *(const char**)b);
 }
 
+// Sort playlist alphabetically
 void sortPlaylist(const char** arr, int n) {
     qsort(arr, n, sizeof(const char*), arrSortHelper);
 }
@@ -940,7 +918,7 @@ bool fileValid(const char *_fileItem) {
 }
 
 
-// Puts webstream into playlist; same like returnPlaylistFromSD() but always only one file
+// Adds webstream to playlist; same like returnPlaylistFromSD() but always only one entry
 char ** returnPlaylistFromWebstream(const char *_webUrl) {
     char *webUrl = strdup(_webUrl);
     static char **url;
@@ -1108,14 +1086,11 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     logger(logBuf, LOGLEVEL_INFO);
     loggerNl(prefBuf, LOGLEVEL_INFO);
-    return prefsRfid.putString(_rfidCardId, prefBuf);   // Return number of characters written
+    return prefsRfid.putString(_rfidCardId, prefBuf);
 }
 
 
-/* Function to play music as distinct task
-   As this task has to run pretty fast in order to avoid ugly sound-quality,
-   it makes sense to give it a distinct core on the ESP32 (xTaskCreatePinnedToCore)
-*/
+// Function to play music as task
 void playAudio(void *parameter) {
     static Audio audio;
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
@@ -1458,6 +1433,7 @@ void playAudio(void *parameter) {
 }
 
 
+// Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
     SPI.begin();
@@ -1780,7 +1756,7 @@ void showLed(void *parameter) {
 #endif
 
 
-// Sets deep-sleep-flag if necessary
+// Sets deep-sleep-flag if max. inactivity-time is reached
 void sleepHandler(void) {
     unsigned long m = millis();
     if (m >= lastTimeActiveTimestamp && (m - lastTimeActiveTimestamp >= maxInactivityTime * 1000 * 60)) {
@@ -1817,7 +1793,7 @@ void deepSleepManager(void) {
 }
 
 
-// Puts new volume to volume-queue
+// Adds new volume-entry to volume-queue
 void volumeToQueueSender(const int32_t _newVolume) {
     uint32_t _volume;
     if (_newVolume <= minVolume) {
@@ -1831,7 +1807,7 @@ void volumeToQueueSender(const int32_t _newVolume) {
 }
 
 
-// Puts new control-command to control-queue
+// Adds new control-command to control-queue
 void trackControlToQueueSender(const uint8_t trackCommand) {
     xQueueSend(trackControlQueue, &trackCommand, 0);
 }
@@ -1912,7 +1888,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
     playProperties.playMode = _playMode;
     playProperties.numberOfTracks = strtoul(*(musicFiles-1), NULL, 10);
-    // Setting default-values
+    // Set some default-values
     playProperties.repeatCurrentTrack = false;
     playProperties.repeatPlaylist = false;
     playProperties.sleepAfterCurrentTrack = false;
@@ -2455,8 +2431,7 @@ void rfidPreferenceLookupHandler (void) {
 }
 
 
-// Initialize Soft Access Point with ESP32
-// ESP32 establishes its own WiFi network, one can choose the SSID
+// Initialize soft access-point
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(ip, ip, netmask);
@@ -2493,6 +2468,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
 }
 
 
+// Provides management for WiFi
 wl_status_t wifiManager(void) {
     if (wifiCheckLastTimestamp == 0) {
         // Get credentials from NVS
@@ -2517,7 +2493,7 @@ wl_status_t wifiManager(void) {
             tryCount++;
             wifiCheckLastTimestamp = millis();
             if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
-                WiFi.begin(_ssid, _pwd);        // ESP32-workaround
+                WiFi.begin(_ssid, _pwd);        // ESP32-workaround (otherwise WiFi-connection sometimes fails)
             }
         }
 
@@ -2537,7 +2513,7 @@ wl_status_t wifiManager(void) {
 }
 
 
-// Used for substitution of some variables/templates of html-files
+// Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
 String templateProcessor(const String& templ) {
     if(templ == "FTP_USER") {
         return prefsSettings.getString("ftpuser", "-1");
@@ -2780,7 +2756,6 @@ void setup() {
     prefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
     prefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
-    prefsRfid.putString("018030087052", "#http://shouthost.com.19.streams.bassdrive.com:8200#0#8#0");
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
 
     // Init uSD-SPI
