@@ -15,6 +15,7 @@ static const char noPlaymodeChangeIfIdle[] PROGMEM = "Playmode kann nicht verän
 static const char noValidTopic[] PROGMEM = "Kein gültiges Topic";
 static const char freePtr[] PROGMEM = "Ptr-Freigabe";
 static const char freeMemory[] PROGMEM = "Freier Speicher";
+static const char writeEntryToNvs[] PROGMEM = "Schreibe Eintrag in NVS";
 static const char freeMemoryAfterFree[] PROGMEM = "Freier Speicher nach Aufräumen";
 static const char releaseMemoryOfOldPlaylist[] PROGMEM = "Gebe Speicher der alten Playlist frei.";
 static const char dirOrFileDoesNotExist[] PROGMEM = "Datei oder Verzeichnis existiert nicht!";

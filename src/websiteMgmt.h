@@ -39,6 +39,9 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <a class=\"nav-link\" href=\"#generalConfig\">Allgemein</a>\
           </li>\
           <li class=\"nav-item\">\
+            <a class=\"nav-link\" href=\"#importNvs\">NVS-Importer</a>\
+          </li>\
+          <li class=\"nav-item\">\
             <a class=\"nav-link\" href=\"/restart\" style=\"color: orange\">Neustart Tonuino</a>\
           </li>\
         </ul>\
@@ -68,8 +71,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
-                <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (URL nur für Webradio)</label>\
-                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" name=\"fileOrUrl\" required>\
+                <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>\
+                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"[^\^#]\" name=\"fileOrUrl\" required>\
                 <label for=\"playMode\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
                     <option value=\"1\">Einzelner Titel</option>\
@@ -180,10 +183,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <h2>NVS-Importer</h2>\
         <form action=\"/upload\" enctype=\"multipart/form-data\" method=\"POST\">\
           <div class=\"form-group\">\
-            <label for=\"nvsUpload\">NVS-Importer</label>\
+            <label for=\"nvsUpload\">Hier kann eine Backup-Datei importiert werden.</label>\
             <input type=\"file\" class=\"form-control-file\" id=\"nvsUpload\" name=\"nvsUpload\" accept=\".txt\">\
-            <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
           </div>\
+            <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
         </form>\
         <div class=\"messages col-md-6 my-2\"></div>\
       </div>\
@@ -193,6 +196,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           var okBox = '<div class=\"alert alert-success alert-dismissible fade show\" role=\"alert\">Aktion erfolgreich ausgeführt.<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button></div>';\
 \
           var socket = new WebSocket(\"ws://%IPv4%/ws\");\
+\
+          function connect() {\
+            socket = new WebSocket(\"ws://%IPv4%/ws\");\
+          }\
 \
           function ping() {\
             var myObj = {\

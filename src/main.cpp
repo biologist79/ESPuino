@@ -188,7 +188,7 @@ uint8_t buttonDebounceInterval = 50;                    // Interval in ms to sof
 uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
 
 // Where to store the backup-file
-static const char backupFile[] PROGMEM = "/backup.txt";
+static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
 
 // Don't change anything here unless you know what you're doing
 // HELPER //
@@ -255,12 +255,17 @@ char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-se
 char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
 char stringOuterDelimiter[] = "^";                          // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
+
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
+
+static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+
 
 // Audio/mp3
 SPIClass spiSD(HSPI);
@@ -1188,12 +1193,12 @@ void playAudio(void *parameter) {
                     audio.pauseResume();
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
-                    playProperties.pausePlay = !playProperties.pausePlay;
-                    if (playProperties.saveLastPlayPosition) {
+                    if (playProperties.saveLastPlayPosition && playProperties.pausePlay) {
                         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "Titel wurde bei Position %u pausiert.", audio.getFilePos());
                         loggerNl(logBuf, LOGLEVEL_INFO);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), audio.getFilePos(), playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                     }
+                    playProperties.pausePlay = !playProperties.pausePlay;
                     continue;
 
                 case NEXTTRACK:
@@ -1731,11 +1736,15 @@ void showLed(void *parameter) {
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
                                     leds[led].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
                                 } else if (playProperties.pausePlay) {
-                                    leds[led] = CRGB::Orange;
+                                    leds[led % NUM_LEDS] = CRGB::Orange;
+                                    leds[(led+NUM_LEDS/4) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(led+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(led+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::Orange;
+                                    break;
                                 }
                             }
                         }
-                    } else { // ... but to things a little bit different for Webstream as there's no progress available
+                    } else { // ... but do things a little bit different for Webstream as there's no progress available
                         if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || redrawProgress) {
                             redrawProgress = false;
                             lastSwitchTimestamp = millis();
@@ -2827,20 +2836,8 @@ bool dumpNvsToSd(char *_namespace, char *_destFile) {
 }
 
 
-// Handles uploaded files. Still in progress...
+// Handles uploaded backup-file and writes valid entries into NVS
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-    /*if(!index){
-        Serial.printf("UploadStart: %s\n", filename.c_str());
-    }
-    for(size_t i=0; i<len; i++) {
-        if (data[i] != '\n') {
-            Serial.write(data[i]);
-        }
-    }
-    if(final){
-        Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
-    }*/
-
     char ebuf[290];
     uint16_t j=0;
     char *token;
@@ -2850,7 +2847,6 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     for(size_t i=0; i<len; i++) {
         if (data[i] != '\n') {
             ebuf[j++] = data[i];
-            //Serial.write(data[i]);
         } else {
             ebuf[j] = '\0';
             j=0;
@@ -2860,22 +2856,18 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
                     count++;
                     memcpy(nvsEntry[0].nvsKey, token, strlen(token));
                     nvsEntry[0].nvsKey[strlen(token)] = '\0';
-                    Serial.printf("Col 1: %s\n", token);
                 } else if (count == 1) {
                     count = 0;
                     memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
                     nvsEntry[0].nvsEntry[strlen(token)] = '\0';
-                    Serial.printf("Col 2: %s\n", token);
                 }
-                //Serial.printf("%s\n", token);
-                delay(50);
                 token = strtok(NULL, stringOuterDelimiter);
             }
-            //Serial.printf("%s => %s\n", nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
-            delay(30);
-            /*if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
-                Serial.println("ok");
-            }*/
+            if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
+                snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s => %s", (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+                loggerNl(logBuf, LOGLEVEL_NOTICE);
+                prefsRfid.putString(nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+            }
         }
     }
 }
@@ -3132,11 +3124,11 @@ void setup() {
         });
 
         wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
-            request->send(200);
+            request->send_P(200, "text/html", backupRecoveryWebsite);
         }, handleUpload);
 
         wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
-            request->send(200, "text/html", "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>");
+            request->send_P(200, "text/html", restartWebsite);
             Serial.flush();
             ESP.restart();
         });
