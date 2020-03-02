@@ -72,7 +72,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                 <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>\
-                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"[^\^#]\" name=\"fileOrUrl\" required>\
+                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\^#]+$\" name=\"fileOrUrl\" required>\
                 <label for=\"playMode\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
                     <option value=\"1\">Einzelner Titel</option>\
