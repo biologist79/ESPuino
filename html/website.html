@@ -176,6 +176,17 @@
         </form>
         <div class="messages col-md-6 my-2"></div>
       </div>
+      <div class="container my-5" id="importNvs">
+        <h2>NVS-Importer (noch nicht funktional!)</h2>
+        <form action="/upload" enctype="multipart/form-data" method="POST">
+          <div class="form-group">
+            <label for="nvsUpload">NVS-Importer</label>
+            <input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
+            <button type="submit" class="btn btn-primary">Absenden</button>
+          </div>
+        </form>
+        <div class="messages col-md-6 my-2"></div>
+      </div>
         <script>
           var lastIdclicked = '';
           var errorBox = '<div class="alert alert-danger alert-dismissible fade show" role="alert">Es ist ein Fehler aufgetreten!<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';

@@ -63,16 +63,16 @@ uint8_t FindNsID (const esp_partition_t* nvs, const char* ns) {
 
 
   while (offset < nvs->size) {
-    result = esp_partition_read ( nvs, offset,                // Read 1 page in nvs partition
-                                  &buf,
-                                  sizeof(nvs_page) );
+    result = esp_partition_read (nvs, offset,                // Read 1 page in nvs partition
+                                 &buf,
+                                 sizeof(nvs_page));
     if (result != ESP_OK) {
       dbgprint ("Error reading NVS!");
       break;
     }
     i=0;
     while (i < 126) {
-      bm = (buf.Bitmap[i/4] >> ((i % 4) * 2)) & 0x03 ;  // Get bitmap for this entry
+      bm = (buf.Bitmap[i/4] >> ((i % 4) * 2)) & 0x03;         // Get bitmap for this entry
       if ((bm == 2) &&
            (buf.Entry[i].Ns == 0) &&
            (strcmp (ns, buf.Entry[i].Key) == 0)) {
@@ -81,7 +81,7 @@ uint8_t FindNsID (const esp_partition_t* nvs, const char* ns) {
         break;
       } else {
         if (bm == 2) {
-          i += buf.Entry[i].Span ;                            // Next entry
+          i += buf.Entry[i].Span;                             // Next entry
         } else {
           i++;
         }

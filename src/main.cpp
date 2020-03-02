@@ -152,8 +152,8 @@ typedef struct { // Bit field
 playProps playProperties;
 
 typedef struct {
-    char *nvsKey;
-    char *nvsEntry;
+    char nvsKey[13];
+    char nvsEntry[275];
 } nvs_t;
 
 // Configuration of initial values (for the first start) goes here....
@@ -187,6 +187,8 @@ char ftpPassword[15] = "esp32";                         // FTP-password
 uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
 uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
 
+// Where to store the backup-file
+static const char backupFile[] PROGMEM = "/backup.txt";
 
 // Don't change anything here unless you know what you're doing
 // HELPER //
@@ -251,6 +253,7 @@ char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-se
 #endif
 
 char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
+char stringOuterDelimiter[] = "^";                          // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
@@ -387,7 +390,7 @@ int countChars(const char* string, char ch) {
 
 
 // Used to print content of sd-card (currently not used, maybe later :-))
-void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdContent, uint8_t depth) {
+/*void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdContent, uint8_t depth) {
     while (true) {
         File entry = dir.openNextFile();
         if (!entry) {
@@ -417,7 +420,7 @@ void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdCo
         }
         entry.close();
     }
-}
+}*/
 
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -1145,12 +1148,13 @@ void playAudio(void *parameter) {
                 }
                 if (playProperties.saveLastPlayPosition) {     // Don't save for AUDIOBOOK_LOOP because not necessary
                     if (playProperties.currentTrackNumber + 1 < playProperties.numberOfTracks) {
-                        // Only save if there's another track, otherwise it will be saved at end of playlist
+                        // Only save if there's another track, otherwise it will be saved at end of playlist anyway
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber+1, playProperties.numberOfTracks);
                     }
                 }
                 if (playProperties.sleepAfterCurrentTrack) {  // Go to sleep if "sleep after track" was requested
                     gotoSleep = true;
+                    break;
                 }
                 if (!playProperties.repeatCurrentTrack) {   // If endless-loop requested, track-number will not be incremented
                     playProperties.currentTrackNumber++;
@@ -1795,6 +1799,7 @@ void deepSleepManager(void) {
         #endif
         SPI.end();
         spiSD.end();
+        digitalWrite(POWER, LOW);
         delay(200);
         esp_deep_sleep_start();
     }
@@ -2628,7 +2633,7 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        dumpNvsToSd("rfidTags", "/backup.txt");
+        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
 
     } else if (doc.containsKey("rfidAssign")) {
         const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
@@ -2644,7 +2649,7 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        dumpNvsToSd("rfidTags", "/backup.txt");
+        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));                     // Store backup-file every time when a new rfid-tag is programmed
 
     } else if (doc.containsKey("wifiConfig")) {
         const char *_ssid = object["wifiConfig"]["ssid"];
@@ -2694,7 +2699,7 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
 
 
 // Processes websocket-requests
-void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
     if (type == WS_EVT_CONNECT){
         //client connected
         Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
@@ -2805,7 +2810,7 @@ bool dumpNvsToSd(char *_namespace, char *_destFile) {
                     (buf.Entry[i].Ns == namespace_ID)) {           // otherwise just my namespace
                     if (isNumber(buf.Entry[i].Key)) {
                         String s = prefsRfid.getString((const char *)buf.Entry[i].Key);
-                        backupFile.printf("%s^%s\n", buf.Entry[i].Key, s.c_str());
+                        backupFile.printf("%s%s%s%s\n", stringOuterDelimiter, buf.Entry[i].Key, stringOuterDelimiter, s.c_str());
                     }
                 }
                 i += buf.Entry[i].Span;                              // Next entry
@@ -2819,6 +2824,60 @@ bool dumpNvsToSd(char *_namespace, char *_destFile) {
 
     backupFile.close();
     return true;
+}
+
+
+// Handles uploaded files. Still in progress...
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    /*if(!index){
+        Serial.printf("UploadStart: %s\n", filename.c_str());
+    }
+    for(size_t i=0; i<len; i++) {
+        if (data[i] != '\n') {
+            Serial.write(data[i]);
+        }
+    }
+    if(final){
+        Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
+    }*/
+
+    char ebuf[290];
+    uint16_t j=0;
+    char *token;
+    uint8_t count=0;
+    nvs_t nvsEntry[1];
+
+    for(size_t i=0; i<len; i++) {
+        if (data[i] != '\n') {
+            ebuf[j++] = data[i];
+            //Serial.write(data[i]);
+        } else {
+            ebuf[j] = '\0';
+            j=0;
+            token = strtok(ebuf, stringOuterDelimiter);
+            while (token != NULL) {
+                if (!count) {
+                    count++;
+                    memcpy(nvsEntry[0].nvsKey, token, strlen(token));
+                    nvsEntry[0].nvsKey[strlen(token)] = '\0';
+                    Serial.printf("Col 1: %s\n", token);
+                } else if (count == 1) {
+                    count = 0;
+                    memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
+                    nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+                    Serial.printf("Col 2: %s\n", token);
+                }
+                //Serial.printf("%s\n", token);
+                delay(50);
+                token = strtok(NULL, stringOuterDelimiter);
+            }
+            //Serial.printf("%s => %s\n", nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+            delay(30);
+            /*if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
+                Serial.println("ok");
+            }*/
+        }
+    }
 }
 
 
@@ -3061,13 +3120,20 @@ void setup() {
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
     if (wifiManager() == WL_CONNECTED) {
-        // Websocket for Mgmt-Interface
+        // attach AsyncWebSocket for Mgmt-Interface
         ws.onEvent(onWebsocketEvent);
         wServer.addHandler(&ws);
 
-        wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        // attach AsyncEventSource
+        wServer.addHandler(&events);
+
+        wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
             request->send_P(200, "text/html", mgtWebsite, templateProcessor);
         });
+
+        wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
+            request->send(200);
+        }, handleUpload);
 
         wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
             request->send(200, "text/html", "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>");
