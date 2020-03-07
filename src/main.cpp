@@ -1193,7 +1193,7 @@ void playAudio(void *parameter) {
                     audio.pauseResume();
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
-                    if (playProperties.saveLastPlayPosition && playProperties.pausePlay) {
+                    if (playProperties.saveLastPlayPosition && !playProperties.pausePlay) {
                         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "Titel wurde bei Position %u pausiert.", audio.getFilePos());
                         loggerNl(logBuf, LOGLEVEL_INFO);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), audio.getFilePos(), playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
