@@ -1806,8 +1806,8 @@ void deepSleepManager(void) {
             FastLED.clear();
             FastLED.show();
         #endif
-        SPI.end();
-        spiSD.end();
+        /*SPI.end();
+        spiSD.end();*/
         digitalWrite(POWER, LOW);
         delay(200);
         esp_deep_sleep_start();
