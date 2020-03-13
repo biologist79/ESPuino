@@ -82,8 +82,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                     <option value=\"5\">Alle Titel eines Verzeichnis (sortiert)</option>\
                     <option value=\"6\">Alle Titel eines Verzeichnis (zufällig)</option>\
                     <option value=\"7\">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>\
-                    <option value=\"8\">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>\
-                    <option value=\"9\">Webradio</option>\
+                    <option value=\"9\">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>\
+                    <option value=\"8\">Webradio</option>\
                 </select>\
             </div>\
           <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
