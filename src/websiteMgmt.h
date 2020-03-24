@@ -72,7 +72,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                 <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>\
-                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\^#]+$\" name=\"fileOrUrl\" required>\
+                <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
                 <label for=\"playMode\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
                     <option value=\"1\">Einzelner Titel</option>\
@@ -131,7 +131,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             </div>\
             <div class=\"form-group my-2 col-md-6\">\
                 <label for=\"mqttServer\">MQTT-Server (IP-Adresse)</label>\
-                <input type=\"text\" class=\"form-control\" id=\"mqttServer\" pattern=\"^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$\" minlength=\"7\" maxlength=\"15\" placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
+                <input type=\"text\" class=\"form-control\" id=\"mqttServer\" pattern=\"^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$\" minlength=\"7\" maxlength=\"15\" placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
                 <div class=\"invalid-feedback\">\
                   Bitte eine gültige IPv4-Adresse eingeben, z.B. 192.168.2.89.\
                 </div>\

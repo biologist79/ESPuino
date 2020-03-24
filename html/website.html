@@ -131,7 +131,7 @@
             </div>
             <div class="form-group my-2 col-md-6">
                 <label for="mqttServer">MQTT-Server (IP-Adresse)</label>
-                <input type="text" class="form-control" id="mqttServer" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$" minlength="7" maxlength="15" placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
+                <input type="text" class="form-control" id="mqttServer" pattern="^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$" minlength="7" maxlength="15" placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
                 <div class="invalid-feedback">
                   Bitte eine gültige IPv4-Adresse eingeben, z.B. 192.168.2.89.
                 </div>
