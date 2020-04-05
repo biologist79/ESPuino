@@ -45,7 +45,7 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 17            | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 22            | RFID-reader           | RST    |                                                              |
-| 21            | RFID-reader           | CS     |                                                              |
+| 21            | RFID-reader           | CS/SDA |                                                              |
 | 23            | RFID-reader           | MOSI   |                                                              |
 | 19            | RFID-reader           | MISO   |                                                              |
 | 18            | RFID-reader           | SCK    |                                                              |
@@ -54,8 +54,8 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
-| 34            | Rotary encoder        | CLR    |                                                              |
-| 35            | Rotary encoder        | DT     |                                                              |
+| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RT |
+| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RT |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |

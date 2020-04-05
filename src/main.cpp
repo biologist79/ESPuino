@@ -1,5 +1,5 @@
 // Define modules to compile:
-#define MQTT_ENABLE
+//#define MQTT_ENABLE
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE
 
@@ -1882,7 +1882,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         publishMqtt((char *) FPSTR(topicLedBrightnessState), 0, false);
         publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
     #endif
-    if (_playMode != 8) {
+    if (_playMode != WEBSTREAM) {
         musicFiles = returnPlaylistFromSD(SD.open(filename));
     } else {
         musicFiles = returnPlaylistFromWebstream(filename);
