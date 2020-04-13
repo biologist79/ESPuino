@@ -1,0 +1,21 @@
+// Gruppen
+Group Daheim
+
+// OG
+Group Obergeschoss	                "Obergeschoss"		                            <firstfloor>        (Daheim)
+Group ZimmerTim		                "Kinderzimmer Tim"	                            <boy_2>			    (Obergeschoss)
+
+// Zimmer Kind
+Switch Tonuino_Sleep															            { channel="mqtt:topic:MQTT:tonuino:tonuino_sleep_mqtt", autoupdate="true" }
+String Tonuino_Track															            { channel="mqtt:topic:MQTT:tonuino:tonuino_track_mqtt", autoupdate="true" }
+Number Tonuino_Loudness			    "Lautstärke [%d]"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_loudness_mqtt", autoupdate="true" }
+String Tonuino_SleepTimer															        { channel="mqtt:topic:MQTT:tonuino:tonuino_sleeptimer_mqtt", autoupdate="true" }
+String Tonuino_Status															            { channel="mqtt:topic:MQTT:tonuino:tonuino_status_mqtt", autoupdate="true", expire="2m, command=Offline" }
+String Tonuino_CurrentTrack			"Aktueller Track"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_current_track_mqtt", autoupdate="true" }
+String Tonuino_TrackControl			"Track-Control"											{ channel="mqtt:topic:MQTT:tonuino:tonuino_track_control_mqtt", autoupdate="false" }
+String Tonuino_IPv4				    "IPv4-Adresse"											{ channel="mqtt:topic:MQTT:tonuino:tonuino_ipv4_mqtt", autoupdate="true" }
+Switch Tonuino_LockControls			"Bedienung sperren"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_lock_controls_mqtt", autoupdate="true" }
+Number Tonuino_Playmode			    "Aktueller Playmode [MAP(playmodes.map):%d]"			{ channel="mqtt:topic:MQTT:tonuino:tonuino_playmode_mqtt", autoupdate="true" }
+Number Tonuino_LedBrightness		"Helligkeit LEDs"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_led_brightness_mqtt", autoupdate="true" }
+DateTime Tonuino_LastUpdate			"Letztes Update [%1$ta %1$tR]" 		            <time>
+Number Tonuino_Repeatmode			"Wiederholung"  										{ channel="mqtt:topic:MQTT:tonuino:tonuino_led_repeatmode_mqtt", autoupdate="true" }

@@ -1,0 +1,18 @@
+Bridge mqtt:broker:MQTT [ host="<mqttServerIP>", secure=false, username="<username>", password="<password>", clientID="openHAB2", retain=false ] {
+
+	Thing topic tonuino "Tonuino" {
+	Channels:
+		Type switch: tonuino_sleep_mqtt					"Ausschalten"						[ stateTopic="State/Tonuino/Sleep", commandTopic="Cmnd/Tonuino/Sleep", on="ON", off="OFF" ]
+		Type string: tonuino_track_mqtt					"Track"							    [ stateTopic="State/Tonuino/Track", commandTopic="Cmnd/Tonuino/Track" ]
+		Type number: tonuino_loudness_mqtt				"Lautstaerke"						[ stateTopic="State/Tonuino/Loudness", commandTopic="Cmnd/Tonuino/Loudness" ]
+		Type string: tonuino_sleeptimer_mqtt			"Sleep-Timer"						[ stateTopic="State/Tonuino/SleepTimer", commandTopic="Cmnd/Tonuino/SleepTimer" ]
+		Type string: tonuino_status_mqtt				"Status"						    [ stateTopic="State/Tonuino/State" ]
+		Type string: tonuino_current_track_mqtt			"Aktueller Track"					[ stateTopic="State/Tonuino/Track" ]
+		Type string: tonuino_track_control_mqtt			"Track-Control"						[ stateTopic="State/Tonuino/TrackControl", commandTopic="Cmnd/Tonuino/TrackControl" ]
+		Type string: tonuino_ipv4_mqtt					"IPv4-Adresse"						[ stateTopic="State/Tonuino/IPv4" ]
+		Type switch: tonuino_lock_controls_mqtt			"Bedienung sperren"					[ stateTopic="State/Tonuino/LockControls", commandTopic="Cmnd/Tonuino/LockControls", on="ON", off="OFF" ]
+		Type number: tonuino_playmode_mqtt				"Aktueller Playmode"				[ stateTopic="State/Tonuino/Playmode", commandTopic="Cmnd/Tonuino/Playmode" ]
+		Type number: tonuino_led_brightness_mqtt		"Aktuelle LED-Helligkeit"			[ stateTopic="State/Tonuino/LedBrightness", commandTopic="Cmnd/Tonuino/LedBrightness" ]
+		Type number: tonuino_led_repeatmode_mqtt		"Aktueller Wiederholungsmodus"		[ stateTopic="State/Tonuino/RepeatMode", commandTopic="Cmnd/Tonuino/RepeatMode" ]
+	}
+}

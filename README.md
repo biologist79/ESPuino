@@ -177,7 +177,11 @@ This mode is different from the other ones because the last playposition is save
 * playlist is over (playposition is set back to the first track and file-position 0)
 
 ### Webinterface-configuration
-Todo; currently under development. Will make it possible to assign actions/files/folders to RFID-tags and configure some things.
+After having Tonuino running on your ESP32 in your local WiFi, the webinterface-configuration is accessable. Using this GUI you can configure:
+* Link between RFID-tag and corresponding action
+* MQTT-configuration (broker's IP)
+* FTP-configuration (username and password)
+* General-configuration (volume, neopixel-brightness, sleep after inactivity)
 
 ### FTP (optional)
 In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel. Better stop playback then doing a FTP-transfer. Default-user and password are set via `ftpUser` and `ftpPassword`.
