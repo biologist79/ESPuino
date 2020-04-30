@@ -313,12 +313,19 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             socket.send(myJSON);\
           }\
 \
+          function removeTrSlash(str) {\
+            if(str.substr(-1) === '/') {\
+              return str.substr(0, str.length - 1);\
+            }\
+              return str;\
+          }\
+\
           function rfidAssign(clickedId) {\
             lastIdclicked = clickedId;\
             var myObj = {\
               \"rfidAssign\": {\
                 rfidIdMusic: document.getElementById('rfidIdMusic').value,\
-                fileOrUrl: document.getElementById('fileOrUrl').value,\
+                fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),\
                 playMode: document.getElementById('playMode').value\
               }\
             };\
