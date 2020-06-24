@@ -138,9 +138,9 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * track und playlist loop-mode can both be activated at the same time, but unless track-loop isn't deactivated, playlist-loop won't be effective
 
 ### Neopixel-ring (optional)
-Indicates different things. Don't forget setting number of LEDs via #define NUM_LEDS
+Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
 * While booting: 1/2 LEDs rotating orange
-* Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is not available)
+* Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available)
 * IDLE: four LEDs slow rotating
 * ERROR: all LEDs flashing red (1x)
 * OK: all LEDs flashing green (1x)
@@ -201,4 +201,4 @@ Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), a
 As all assignments between RFID-IDs and actions (playmode, file to play...) is saved in ESP's NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes into play. So every time you change or add a new assignment between a RFID-tag and an action via GUI, a backup-file is saved on the uSD-card. The file's name can be changed via `backupFile`. Again using the GUI you can use the upload-form to import such a file. To be honest: Sometimes I had some issues with Firefox doing this whereas Safari turned out to do it right. Don't know why :-(.
 
 ## Smarthome (optional)
-As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT.
+As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For [further informations refer](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).

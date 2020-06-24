@@ -1,7 +1,7 @@
 // Define modules to compile:
 //#define MQTT_ENABLE
 #define FTP_ENABLE
-#define NEOPIXEL_ENABLE
+#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
 
 #include <ESP32Encoder.h>
 #include "Arduino.h"
@@ -3187,9 +3187,6 @@ void loop() {
                 MQTTclient.loop();
                 postHeartbeatViaMqtt();
             }
-        #endif
-        #ifdef OTA_ENABLE
-            ArduinoOTA.handle();
         #endif
         #ifdef FTP_ENABLE
             ftpSrv.handleFTP();
