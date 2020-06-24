@@ -85,7 +85,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    24          // number of LEDs
+    #define NUM_LEDS                    16          // number of LEDs
     #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
 #endif
@@ -1523,6 +1523,7 @@ void showLed(void *parameter) {
     static bool ledBusyShown = false;
     static bool notificationShown = false;
     static bool volumeChangeShown = false;
+    static bool showEvenError = false;
     static uint8_t ledPosWebstream = 0;
     static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
     static uint8_t webstreamColor = 0;
@@ -1535,13 +1536,34 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
-        if (!bootComplete) {
+        if (!bootComplete) {                    // Rotates red unless boot isn't complete
             FastLED.clear();
+            for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                if (showEvenError) {
+                    if (led % 2 == 0) {
+                        if (millis() <= 10000) {
+                            leds[led] = CRGB::Orange;
+                        } else {
+                            leds[led] = CRGB::Red;
+                        }
+                    }
+                } else {
+                    if (millis() >= 10000) {    // Flashes red after 10s (will remain forever if SD cannot be mounted)
+                       leds[led] = CRGB::Red;
+                    } else {
+                        if (led % 2 == 1) {
+                            leds[led] = CRGB::Orange;
+                        }
+                    }
+                }
+            }
             FastLED.show();
-            vTaskDelay(portTICK_RATE_MS*100);
+            showEvenError = !showEvenError;
+            vTaskDelay(portTICK_RATE_MS*500);
             esp_task_wdt_reset();
             continue;
         }
+
         if (lastLedBrightness != ledBrightness) {
             FastLED.setBrightness(ledBrightness);
             lastLedBrightness = ledBrightness;
@@ -1549,7 +1571,7 @@ void showLed(void *parameter) {
 
         if (!buttons[3].currentState) {
             FastLED.clear();
-            for(uint8_t led = 0; led < NUM_LEDS; led++) {
+            for (uint8_t led = 0; led < NUM_LEDS; led++) {
                 leds[led] = CRGB::Red;
                 if (buttons[3].currentState) {
                     FastLED.clear();
@@ -1568,7 +1590,7 @@ void showLed(void *parameter) {
             notificationShown = true;
             FastLED.clear();
 
-            for(uint8_t led = 0; led < NUM_LEDS; led++) {
+            for (uint8_t led = 0; led < NUM_LEDS; led++) {
                 leds[led] = CRGB::Red;
             }
             FastLED.show();
@@ -1580,7 +1602,7 @@ void showLed(void *parameter) {
             notificationShown = true;
             FastLED.clear();
 
-            for(uint8_t led = 0; led < NUM_LEDS; led++) {
+            for (uint8_t led = 0; led < NUM_LEDS; led++) {
                 leds[led] = CRGB::Green;
             }
             FastLED.show();
@@ -1593,7 +1615,7 @@ void showLed(void *parameter) {
             volumeChangeShown = true;
             FastLED.clear();
 
-            for(int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
+            for (int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
                 leds[led].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
             }
             FastLED.show();
@@ -1730,7 +1752,7 @@ void showLed(void *parameter) {
                             lastPos = playProperties.currentRelPos;
                             uint8_t numLedsToLight = map(playProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
                             FastLED.clear();
-                            for(uint8_t led = 0; led < numLedsToLight; led++) {
+                            for (uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
                                     leds[led] = CRGB::Red;
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
@@ -2537,7 +2559,7 @@ wl_status_t wifiManager(void) {
 
 // Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
 String templateProcessor(const String& templ) {
-    if(templ == "FTP_USER") {
+    if (templ == "FTP_USER") {
         return prefsSettings.getString("ftpuser", "-1");
     } else if (templ == "FTP_PWD") {
         return prefsSettings.getString("ftppassword", "-1");
@@ -2614,7 +2636,7 @@ bool processJsonRequest(char *_serialJson) {
         prefsSettings.putString("ftpuser", (String) _ftpUser);
         prefsSettings.putString("ftppassword", (String) _ftpPwd);
 
-        if(!(String(_ftpUser).equals(prefsSettings.getString("ftpuser", "-1")) ||
+        if (!(String(_ftpUser).equals(prefsSettings.getString("ftpuser", "-1")) ||
            String(_ftpPwd).equals(prefsSettings.getString("ftppassword", "-1")))) {
             Serial.println("net gut2!");
             return false;
@@ -2742,7 +2764,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
                 data[len] = 0;
                 Serial.printf("%s\n", (char*)data);
             } else {
-                for(size_t i=0; i < info->len; i++){
+                for (size_t i=0; i < info->len; i++){
                     Serial.printf("%02x ", data[i]);
                 }
                 Serial.printf("\n");
@@ -2844,7 +2866,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     uint8_t count=0;
     nvs_t nvsEntry[1];
 
-    for(size_t i=0; i<len; i++) {
+    for (size_t i=0; i<len; i++) {
         if (data[i] != '\n') {
             ebuf[j++] = data[i];
         } else {
@@ -2904,6 +2926,18 @@ void setup() {
     prefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
+
+#ifdef NEOPIXEL_ENABLE
+    xTaskCreatePinnedToCore(
+        showLed, /* Function to implement the task */
+        "LED", /* Name of the task */
+        2000,  /* Stack size in words */
+        NULL,  /* Task input parameter */
+        1 | portPRIVILEGE_BIT,  /* Priority of the task */
+        &LED,  /* Task handle. */
+        0 /* Core where the task should run */
+    );
+#endif
 
     // Init uSD-SPI
     pinMode(SPISD_CS, OUTPUT);
@@ -3074,17 +3108,7 @@ void setup() {
         &mp3Play,  /* Task handle. */
         1 /* Core where the task should run */
     );
-#ifdef NEOPIXEL_ENABLE
-    xTaskCreatePinnedToCore(
-        showLed, /* Function to implement the task */
-        "LED", /* Name of the task */
-        2000,  /* Stack size in words */
-        NULL,  /* Task input parameter */
-        1 | portPRIVILEGE_BIT,  /* Priority of the task */
-        &LED,  /* Task handle. */
-        0 /* Core where the task should run */
-    );
-#endif
+
 
     esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
 
@@ -3163,6 +3187,9 @@ void loop() {
                 MQTTclient.loop();
                 postHeartbeatViaMqtt();
             }
+        #endif
+        #ifdef OTA_ENABLE
+            ArduinoOTA.handle();
         #endif
         #ifdef FTP_ENABLE
             ftpSrv.handleFTP();

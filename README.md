@@ -139,6 +139,8 @@ There are special RFID-tags, that don't start music by themself but can modify t
 
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget setting number of LEDs via #define NUM_LEDS
+* While booting: 1/2 LEDs rotating orange
+* Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is not available)
 * IDLE: four LEDs slow rotating
 * ERROR: all LEDs flashing red (1x)
 * OK: all LEDs flashing green (1x)
