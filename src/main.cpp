@@ -1,7 +1,8 @@
 // Define modules to compile:
-//#define MQTT_ENABLE
+#define MQTT_ENABLE
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
+//#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed counter-clockwise. This can be configured here.
 
 #include <ESP32Encoder.h>
 #include "Arduino.h"
@@ -85,7 +86,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    16          // number of LEDs
+    #define NUM_LEDS                    24          // number of LEDs
     #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
 #endif
@@ -1515,6 +1516,18 @@ void rfidScanner(void *parameter) {
 
 // This task handles everything for Neopixel-visualisation
 #ifdef NEOPIXEL_ENABLE
+
+
+// Switches Neopixel-addressing from clockwise to counter clockwise (and vice versa)
+uint8_t ledAddress(uint8_t number) {
+    #ifdef NEOPIXEL_REVERSE_ROTATION
+        return NUM_LEDS-1-number;
+    #else
+        return number;
+    #endif
+}
+
+
 void showLed(void *parameter) {
     static uint8_t hlastVolume = currentVolume;
     static uint8_t lastPos = playProperties.currentRelPos;
@@ -1536,23 +1549,23 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
-        if (!bootComplete) {                    // Rotates red unless boot isn't complete
+        if (!bootComplete) {                    // Rotates orange unless boot isn't complete
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
                 if (showEvenError) {
-                    if (led % 2 == 0) {
+                    if (ledAddress(led) % 2 == 0) {
                         if (millis() <= 10000) {
-                            leds[led] = CRGB::Orange;
+                            leds[ledAddress(led)] = CRGB::Orange;
                         } else {
-                            leds[led] = CRGB::Red;
+                            leds[ledAddress(led)] = CRGB::Red;
                         }
                     }
                 } else {
                     if (millis() >= 10000) {    // Flashes red after 10s (will remain forever if SD cannot be mounted)
-                       leds[led] = CRGB::Red;
+                       leds[ledAddress(led)] = CRGB::Red;
                     } else {
-                        if (led % 2 == 1) {
-                            leds[led] = CRGB::Orange;
+                        if (ledAddress(led) % 2 == 1) {
+                            leds[ledAddress(led)] = CRGB::Orange;
                         }
                     }
                 }
@@ -1572,7 +1585,7 @@ void showLed(void *parameter) {
         if (!buttons[3].currentState) {
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                leds[led] = CRGB::Red;
+                leds[ledAddress(led)] = CRGB::Red;
                 if (buttons[3].currentState) {
                     FastLED.clear();
                     FastLED.show();
@@ -1591,7 +1604,7 @@ void showLed(void *parameter) {
             FastLED.clear();
 
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                leds[led] = CRGB::Red;
+                leds[ledAddress(led)] = CRGB::Red;
             }
             FastLED.show();
             vTaskDelay(portTICK_RATE_MS * 200);
@@ -1603,7 +1616,7 @@ void showLed(void *parameter) {
             FastLED.clear();
 
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                leds[led] = CRGB::Green;
+                leds[ledAddress(led)] = CRGB::Green;
             }
             FastLED.show();
             vTaskDelay(portTICK_RATE_MS * 400);
@@ -1616,7 +1629,7 @@ void showLed(void *parameter) {
             FastLED.clear();
 
             for (int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
-                leds[led].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+                leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
             }
             FastLED.show();
 
@@ -1635,7 +1648,7 @@ void showLed(void *parameter) {
         if (showRewind) {
             showRewind = false;
             for (uint8_t i=NUM_LEDS-1; i>0; i--) {
-                leds[i] = CRGB::Black;
+                leds[ledAddress(i)] = CRGB::Black;
                 FastLED.show();
                 if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                     break;
@@ -1651,7 +1664,7 @@ void showLed(void *parameter) {
                 uint8_t numLedsToLight = map(playProperties.currentTrackNumber, 0, playProperties.numberOfTracks-1, 0, NUM_LEDS);
                 FastLED.clear();
                 for (uint8_t i=0; i < numLedsToLight; i++) {
-                    leds[i] = CRGB::Blue;
+                    leds[ledAddress(i)] = CRGB::Blue;
                     FastLED.show();
                     if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
@@ -1669,7 +1682,7 @@ void showLed(void *parameter) {
                 }
 
                 for (uint8_t i=numLedsToLight; i>0; i--) {
-                    leds[i-1] = CRGB::Black;
+                    leds[ledAddress(i)-1] = CRGB::Black;
                     FastLED.show();
                     if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                         break;
@@ -1683,18 +1696,18 @@ void showLed(void *parameter) {
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
                 if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
-                    for (uint8_t i=0; i < NUM_LEDS; i++) {
+                    for (uint8_t i=0; i<NUM_LEDS; i++) {
                         FastLED.clear();
-                        if (i == 0) {
+                        if (ledAddress(i) == 0) {
                             leds[0] = CRGB::White;
                             leds[NUM_LEDS/4] = CRGB::White;
                             leds[NUM_LEDS/2] = CRGB::White;
                             leds[NUM_LEDS/4*3] = CRGB::White;
                         } else {
-                            leds[i % NUM_LEDS] = CRGB::White;
-                            leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
-                            leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
-                            leds[(i+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::White;
+                            leds[ledAddress(i) % NUM_LEDS] = CRGB::White;
+                            leds[(ledAddress(i)+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
+                            leds[(ledAddress(i)+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
+                            leds[(ledAddress(i)+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::White;
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
@@ -1712,16 +1725,16 @@ void showLed(void *parameter) {
                 ledBusyShown = true;
                 for (uint8_t i=0; i < NUM_LEDS; i++) {
                     FastLED.clear();
-                    if (i == 0) {
+                    if (ledAddress(i) == 0) {
                         leds[0] = CRGB::BlueViolet;
                         leds[NUM_LEDS/4] = CRGB::BlueViolet;
                         leds[NUM_LEDS/2] = CRGB::BlueViolet;
                         leds[NUM_LEDS/4*3] = CRGB::BlueViolet;
                     } else {
-                        leds[i % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(i+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(i+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(i+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[ledAddress(i) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(ledAddress(i)+NUM_LEDS/4) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(ledAddress(i)+NUM_LEDS/2) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[(ledAddress(i)+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::BlueViolet;
                     }
                     FastLED.show();
                     if (playProperties.playMode != BUSY) {
@@ -1754,14 +1767,14 @@ void showLed(void *parameter) {
                             FastLED.clear();
                             for (uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
-                                    leds[led] = CRGB::Red;
+                                    leds[ledAddress(led)] = CRGB::Red;
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
-                                    leds[led].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
+                                    leds[ledAddress(led)].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
                                 } else if (playProperties.pausePlay) {
-                                    leds[led % NUM_LEDS] = CRGB::Orange;
-                                    leds[(led+NUM_LEDS/4) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(led+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(led+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::Orange;
+                                    leds[ledAddress(led) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(ledAddress(led)+NUM_LEDS/4) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(ledAddress(led)+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(ledAddress(led)+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::Orange;
                                     break;
                                 }
                             }
@@ -1777,14 +1790,14 @@ void showLed(void *parameter) {
                                 ledPosWebstream = 0;
                             }
                             if (lockControls) {
-                                leds[ledPosWebstream] = CRGB::Red;
-                                leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Red;
+                                leds[ledAddress(ledPosWebstream)] = CRGB::Red;
+                                leds[(ledAddress(ledPosWebstream)+NUM_LEDS/2) % NUM_LEDS] = CRGB::Red;
                             } else if (!playProperties.pausePlay) {
-                                leds[ledPosWebstream].setHue(webstreamColor);
-                                leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS].setHue(webstreamColor++);
+                                leds[ledAddress(ledPosWebstream)].setHue(webstreamColor);
+                                leds[(ledAddress(ledPosWebstream)+NUM_LEDS/2) % NUM_LEDS].setHue(webstreamColor++);
                             } else if (playProperties.pausePlay) {
-                                leds[ledPosWebstream] = CRGB::Orange;
-                                leds[(ledPosWebstream+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
+                                leds[ledAddress(ledPosWebstream)] = CRGB::Orange;
+                                leds[(ledAddress(ledPosWebstream)+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
                             }
                         }
                     }

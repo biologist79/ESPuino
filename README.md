@@ -1,5 +1,8 @@
 # Tonuino based on ESP32 with I2S-DAC-support
 
+## NEWS
+Currently I'm working on a new Tonuino that is completely based on 3.3V. As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. So stay tuned...
+
 ## Disclaimer
 This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by me**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
@@ -153,6 +156,9 @@ Indicates different things. Don't forget configuration of number of LEDs via #de
 * paused: track-progress-LEDs coloured orange
 * rewind: if single-track-loop is activated a LED-rewind is performed when restarting the given track
 
+Please note: some Neopixels use a reversed addressing which leads to the 'problem', that all effects are shown
+counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.
+
 ### Buttons
 Some buttons have different actions if pressed long or short. Minimum duration for long press in ms is defined by `intervalToLongPress`.
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
@@ -201,4 +207,4 @@ Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), a
 As all assignments between RFID-IDs and actions (playmode, file to play...) is saved in ESP's NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes into play. So every time you change or add a new assignment between a RFID-tag and an action via GUI, a backup-file is saved on the uSD-card. The file's name can be changed via `backupFile`. Again using the GUI you can use the upload-form to import such a file. To be honest: Sometimes I had some issues with Firefox doing this whereas Safari turned out to do it right. Don't know why :-(.
 
 ## Smarthome (optional)
-As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For [further informations refer](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
+As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations refer the [subfolder](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
