@@ -2,7 +2,7 @@
 #define MQTT_ENABLE
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
-//#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed counter-clockwise. This can be configured here.
+#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 
 #include <ESP32Encoder.h>
 #include "Arduino.h"
@@ -1769,7 +1769,7 @@ void showLed(void *parameter) {
                                 if (lockControls) {
                                     leds[ledAddress(led)] = CRGB::Red;
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
-                                    leds[ledAddress(led)].setHue((uint8_t) (((double) 255 / NUM_LEDS) * led));
+                                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
                                 } else if (playProperties.pausePlay) {
                                     leds[ledAddress(led) % NUM_LEDS] = CRGB::Orange;
                                     leds[(ledAddress(led)+NUM_LEDS/4) % NUM_LEDS] = CRGB::Orange;
