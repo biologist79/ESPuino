@@ -1,5 +1,5 @@
 // Define modules to compile:
-#define MQTT_ENABLE
+//#define MQTT_ENABLE
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
@@ -51,10 +51,10 @@ const uint8_t serialDebug = LOGLEVEL_INFO;          // Current loglevel for seri
 char logBuf[160];                                   // Buffer for all log-messages
 
 // GPIOs (uSD card-reader)
-#define SPISD_CS                        15
-#define SPISD_MOSI                      13
-#define SPISD_MISO                      16          // 12 doesn't work with Lolin32-devBoard: uC doesn't start if put HIGH at start
-#define SPISD_SCK                       14
+#define SPISD_CS                        4
+#define SPISD_MOSI                      23
+#define SPISD_MISO                      19          // 12 doesn't work with Lolin32-devBoard: uC doesn't start if put HIGH at start
+#define SPISD_SCK                       18
 
 // GPIOs (RFID-readercurrentRfidTagId)
 #define RST_PIN                         22
@@ -69,7 +69,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define I2S_LRC                         26
 
 // GPIO used to trigger transistor-circuit / RFID-reader
-#define POWER                           17
+#define POWER                           34
 
 // GPIOs (Rotary encoder)
 #define DREHENCODER_CLK                 34
@@ -78,7 +78,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 
 // GPIOs (Control-buttons)
 #define PAUSEPLAY_BUTTON                5
-#define NEXT_BUTTON                     4
+#define NEXT_BUTTON                     36
 #define PREVIOUS_BUTTON                 33
 
 // GPIOs (LEDs)
@@ -1454,7 +1454,7 @@ void playAudio(void *parameter) {
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
-    SPI.begin();
+    //SPI.begin();
     mfrc522.PCD_Init();
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
@@ -2955,9 +2955,15 @@ void setup() {
     // Init uSD-SPI
     pinMode(SPISD_CS, OUTPUT);
     digitalWrite(SPISD_CS, HIGH);
-    spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
-    spiSD.setFrequency(1000000);
-    while (!SD.begin(SPISD_CS, spiSD)) {
+
+    // Init RFID-SPI
+    pinMode(RFID_CS, OUTPUT);
+    digitalWrite(RFID_CS, HIGH);
+
+    SPI.begin();
+
+    // Init SD Card
+    while (!SD.begin(SPISD_CS)) {
         loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
         delay(500);
     }
