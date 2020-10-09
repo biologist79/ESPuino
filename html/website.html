@@ -135,6 +135,10 @@
                 <div class="invalid-feedback">
                   Bitte eine gültige IPv4-Adresse eingeben, z.B. 192.168.2.89.
                 </div>
+                <label for="mqttUser">MQTT-Benutzername (optional):</label>
+                <input type="text" class="form-control" id="mqttUser" maxlength="15" placeholder="Benutzername" name="mqttUser" value="%MQTT_USER%">
+                <label for="mqttPwd">Passwort (optional):</label>
+                <input type="password" class="form-control" id="mqttPwd" maxlength="15" placeholder="Passwort" name="mqttPwd" value="%MQTT_PWD%">
             </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
           <button type="submit" class="btn btn-primary">Absenden</button>
@@ -294,7 +298,9 @@
             var myObj = {
               "mqtt": {
                 mqttEnable: val,
-                mqttServer: document.getElementById('mqttServer').value
+                mqttServer: document.getElementById('mqttServer').value,
+                mqttUser: document.getElementById('mqttUser').value,
+                mqttPwd: document.getElementById('mqttPwd').value
               }
             };
             var myJSON = JSON.stringify(myObj);

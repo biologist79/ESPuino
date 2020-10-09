@@ -171,6 +171,7 @@ bool enableMqtt = true;
     uint8_t const stillOnlineInterval = 60;                 // Interval 'I'm still alive' is sent via MQTT (in seconds)
 #endif
 // RFID
+#define RFID_SCAN_INTERVAL 300                         //in ms
 uint8_t const cardIdSize = 4;                           // RFID
 // Volume
 uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted
@@ -231,6 +232,8 @@ bool accessPointStarted = false;
 
 // MQTT-configuration
 char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-server (if not found in NVS this one will be taken)
+char mqttUser[15] = "mqtt-user";                        // MQTT-user
+char mqttPassword[15] = "mqtt-password";                // MQTT-password
 #ifdef MQTT_ENABLE
     #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
@@ -571,13 +574,25 @@ void postHeartbeatViaMqtt(void) {
 */
 bool reconnect() {
   uint8_t maxRetries = 10;
+  uint8_t connect = false;
 
   while (!MQTTclient.connected() && mqttFailCount < maxRetries) {
     snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s %s", (char *) FPSTR(tryConnectMqttS), mqtt_server);
     loggerNl(logBuf, LOGLEVEL_NOTICE);
 
-    // Try to connect to MQTT-server
-    if (MQTTclient.connect(DEVICE_HOSTNAME)) {
+    // Try to connect to MQTT-server. If username AND password are set, they'll be used
+    if (strlen(mqttUser) < 1 || strlen(mqttPassword) < 1) {
+        loggerNl((char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
+        if (MQTTclient.connect(DEVICE_HOSTNAME)) {
+            connect = true;
+        }
+    } else {
+        loggerNl((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
+        if (MQTTclient.connect(DEVICE_HOSTNAME, mqttUser, mqttPassword)) {
+            connect = true;
+        }
+    }
+    if (connect) {
         loggerNl((char *) FPSTR(mqttOk), LOGLEVEL_NOTICE);
 
         // Deepsleep-subscription
@@ -1465,7 +1480,7 @@ void rfidScanner(void *parameter) {
     for (;;) {
         esp_task_wdt_reset();
         vTaskDelay(10);
-        if ((millis() - lastRfidCheckTimestamp) >= 300) {
+        if ((millis() - lastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
             lastRfidCheckTimestamp = millis();
             // Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
 
@@ -2594,6 +2609,10 @@ String templateProcessor(const String& templ) {
         } else {
             return String();
         }
+    } else if (templ == "MQTT_USER") {
+        return prefsSettings.getString("mqttUser", "-1");
+    } else if (templ == "MQTT_PWD") {
+        return prefsSettings.getString("mqttPassword", "-1");
     } else if (templ == "IPv4") {
         myIP = WiFi.localIP();
         snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -2660,6 +2679,15 @@ bool processJsonRequest(char *_serialJson) {
         const char *_mqttServer = object["mqtt"]["mqttServer"];
         prefsSettings.putUChar("enableMQTT", _mqttEnable);
         prefsSettings.putString("mqttServer", (String) _mqttServer);
+        const char *_mqttUser = doc["mqtt"]["mqttUser"];
+        const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
+
+        prefsSettings.putUChar("enableMQTT", _mqttEnable);
+        prefsSettings.putUChar("enableMQTT", _mqttEnable);
+        prefsSettings.putString("mqttServer", (String) _mqttServer);
+        prefsSettings.putString("mqttServer", (String) _mqttServer);
+        prefsSettings.putString("mqttUser", (String) _mqttUser);
+        prefsSettings.putString("mqttPassword", (String) _mqttPwd);
 
         if ((prefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
             (!String(_mqttServer).equals(prefsSettings.getString("mqttServer", "-1")))) {
@@ -3082,6 +3110,7 @@ void setup() {
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
     }
+
     // Get MQTT-server from NVS
     String nvsMqttServer = prefsSettings.getString("mqttServer", "-1");
     if (!nvsMqttServer.compareTo("-1")) {
@@ -3093,6 +3122,27 @@ void setup() {
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
+    // Get MQTT-user from NVS
+    String nvsMqttUser = prefsSettings.getString("mqttUser", "-1");
+    if (!nvsMqttUser.compareTo("-1")) {
+        prefsSettings.putString("mqttUser", (String) mqttUser);
+        loggerNl((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
+    } else {
+        strncpy(mqttUser, nvsMqttUser.c_str(), sizeof(mqttUser)/sizeof(mqttUser[0]));
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttUserFromNvs), nvsMqttUser.c_str());
+        loggerNl(logBuf, LOGLEVEL_INFO);
+    }
+
+    // Get MQTT-password from NVS
+    String nvsMqttPassword = prefsSettings.getString("mqttPassword", "-1");
+    if (!nvsMqttPassword.compareTo("-1")) {
+        prefsSettings.putString("mqttPassword", (String) mqttPassword);
+        loggerNl((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
+    } else {
+        strncpy(mqttPassword, nvsMqttPassword.c_str(), sizeof(mqttPassword)/sizeof(mqttPassword[0]));
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttPwdFromNvs), nvsMqttPassword.c_str());
+        loggerNl(logBuf, LOGLEVEL_INFO);
+    }
 
     // Create 1000Hz-HW-Timer (currently only used for buttons)
     timerSemaphore = xSemaphoreCreateBinary();
