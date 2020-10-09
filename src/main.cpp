@@ -232,8 +232,8 @@ bool accessPointStarted = false;
 
 // MQTT-configuration
 char mqtt_server[16] = "192.168.2.43";                  // IP-address of MQTT-server (if not found in NVS this one will be taken)
-char mqttUser[15] = "mqtt-user";                        // MQTT-user
-char mqttPassword[15] = "mqtt-password";                // MQTT-password
+char mqttUser[16] = "mqtt-user";                        // MQTT-user
+char mqttPassword[16] = "mqtt-password";                // MQTT-password
 #ifdef MQTT_ENABLE
     #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
