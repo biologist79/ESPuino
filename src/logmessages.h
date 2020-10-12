@@ -133,4 +133,6 @@ static const char mqttWithPwd[] PROGMEM = "Verbinde zu MQTT-Server mit User und 
 static const char mqttWithoutPwd[] PROGMEM = "Verbinde zu MQTT-Server ohne User und Passwort";
 static const char ssidNotFoundInNvs[] PROGMEM = "SSID wurde im NVS nicht gefunden.";
 static const char wifiPwdNotFoundInNvs[] PROGMEM = "WLAN-Passwort wurde im NVS nicht gefunden.";
+static const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Statische WLAN-IP-Konfiguration wurde im NVS nicht gefunden.";
+static const char wifiHostnameNotSet[] PROGMEM = "Keine Hostname-Konfiguration im NVS gefunden.";
 static const char mqttConnFailed[] PROGMEM = "Verbindung fehlgeschlagen, versuche erneut in Kürze erneut";

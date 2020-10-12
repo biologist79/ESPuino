@@ -87,7 +87,8 @@ Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls 
 * compile and upload the sketch
 
 ## Starting Tonuino-ESP32 first time
-After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials, save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to got: place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist/directory contains the longer this step takes.
+After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials + the hostname (Tonuio's name) and save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to got: place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist/directory contains the longer this step takes. <br >
+Please note: hostname can be used to call webgui or FTP-server. I tested it with a Fritzbox 7490 and worked fine. Make sure you don't use a name that already exists in you local network (LAN).
 
 ## After Tonuino-ESP32 is connected to your WiFi
 After connecting the Tonuino to your WiFi, the 'regular' Webgui is available at the IP assigned by the router. Using this GUI, you can configure:
@@ -186,6 +187,7 @@ This mode is different from the other ones because the last playposition is save
 
 ### Webinterface-configuration
 After having Tonuino running on your ESP32 in your local WiFi, the webinterface-configuration is accessable. Using this GUI you can configure:
+* Wifi-configuration (Wifi-SSID, Wifi-password, Tonuino's name (for nameserver))
 * Link between RFID-tag and corresponding action
 * MQTT-configuration (broker's IP)
 * FTP-configuration (username and password)

@@ -2519,11 +2519,13 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
         });
 
     wServer.on("/init", HTTP_POST, [] (AsyncWebServerRequest *request) {
-        if (request->hasParam("ssid", true) && request->hasParam("pwd", true)) {
+        if (request->hasParam("ssid", true) && request->hasParam("pwd", true) && request->hasParam("hostname", true)) {
             Serial.println(request->getParam("ssid", true)->value());
             Serial.println(request->getParam("pwd", true)->value());
+            Serial.println(request->getParam("hostname", true)->value());
             prefsSettings.putString("SSID", request->getParam("ssid", true)->value());
             prefsSettings.putString("Password", request->getParam("pwd", true)->value());
+            prefsSettings.putString("Hostname", request->getParam("hostname", true)->value());
         }
         request->send_P(200, "text/html", basicWebsite);
     });
@@ -2555,6 +2557,38 @@ wl_status_t wifiManager(void) {
         const char *_ssid = strSSID.c_str();
         const char *_pwd = strPassword.c_str();
 
+        /*
+        // Get (optional) static-IP-configration from NVS
+        String strStaticIp = prefsSettings.getString("staticIP", "-1");
+        String strStaticIpGw = prefsSettings.getString("staticIPGw", "-1");
+        String strStaticIpNetmask = prefsSettings.getString("staticIPNetmask", "-1");
+        if (!strStaticIp.compareTo("-1") || !strStaticIpGw.compareTo("-1") || !strStaticIpNetmask.compareTo("-1")) {
+            loggerNl((char *) FPSTR(wifiStaticIpConfigNotFoundInNvs), LOGLEVEL_INFO);
+        } else {
+            IPAddress staticWifiIp;
+            IPAddress staticWifiIpGw;
+            IPAddress staticWifiIpNetmask;
+
+            if (strStaticIp.length() >= 7 && strStaticIpGw.length() >= 7 && strStaticIpNetmask.length() >= 7) {
+                staticWifiIp.fromString(strStaticIp.c_str());
+                staticWifiIpGw.fromString(strStaticIpGw.c_str());
+                staticWifiIpNetmask.fromString(strStaticIpNetmask.c_str());
+                WiFi.config(staticWifiIp, staticWifiIpGw, staticWifiIpNetmask);
+            } else {
+                Serial.println("IP-config nicht gueltig!");
+            }
+        }*/
+
+        // Get (optional) hostname-configration from NVS
+        String hostname = prefsSettings.getString("Hostname", "-1");
+        Serial.println(hostname.c_str());
+        if (hostname.compareTo("-1")) {
+            WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+            WiFi.setHostname(hostname.c_str());
+            Serial.println(hostname.c_str());
+        } else {
+            loggerNl((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
+        }
         // ...and create a connection with it. If not successful, an access-point will is opened
         WiFi.begin(_ssid, _pwd);
 
@@ -2619,6 +2653,14 @@ String templateProcessor(const String& templ) {
         return String(logBuf);
     } else if (templ == "RFID_TAG_ID") {
         return String(currentRfidTagId);
+    /*} else if (templ == "STATIC_IP") {
+        return prefsSettings.getString("staticIP", "-1");
+    } else if (templ == "STATIC_IP_GW") {
+        return prefsSettings.getString("staticIPGw", "-1");
+    } else if (templ == "STATIC_IP_NETMASK") {
+        return prefsSettings.getString("staticIPNetmask", "-1");*/
+    } else if (templ == "HOSTNAME") {
+        return prefsSettings.getString("Hostname", "-1");
     }
 
     return String();
@@ -2694,6 +2736,15 @@ bool processJsonRequest(char *_serialJson) {
             return false;
         }
 
+    /*} else if (doc.containsKey("staticIP")) {
+        const char *_staticIp = object["ip"]["staticIP"];
+        const char *_staticIpGW = doc["ip"]["staticIPGW"];
+        const char *_staticIpNM = doc["ip"]["staticIPNM"];
+
+        prefsSettings.putString("staticIP", (String) _staticIp);
+        prefsSettings.putString("staticIPGw", (String) _staticIpGW);
+        prefsSettings.putString("staticIPNetmask", (String) _staticIpNM);*/
+
     } else if (doc.containsKey("rfidMod")) {
         const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
         uint8_t _modId = object["rfidMod"]["modId"];
@@ -2726,12 +2777,15 @@ bool processJsonRequest(char *_serialJson) {
     } else if (doc.containsKey("wifiConfig")) {
         const char *_ssid = object["wifiConfig"]["ssid"];
         const char *_pwd = object["wifiConfig"]["pwd"];
+        const char *_hostname = object["wifiConfig"]["hostname"];
 
         prefsSettings.putString("SSID", _ssid);
         prefsSettings.putString("Password", _pwd);
+        prefsSettings.putString("Hostname", (String) _hostname);
 
         String sSsid = prefsSettings.getString("SSID", "-1");
         String sPwd = prefsSettings.getString("Password", "-1");
+        String sHostname = prefsSettings.getString("Hostname", "-1");
 
         if (sSsid.compareTo(_ssid) || sPwd.compareTo(_pwd)) {
             return false;

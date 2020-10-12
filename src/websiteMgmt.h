@@ -59,6 +59,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           </div>\
           <label for=\"pwd\">Passwort:</label>\
           <input type=\"password\" class=\"form-control\" id=\"pwd\" placeholder=\"Passwort\" name=\"pwd\" required>\
+          <label for=\"hostname\">Tonuino-Name (Hostname):</label>\
+          <input type=\"text\" class=\"form-control\" id=\"hostname\" placeholder=\"tonuino\" name=\"hostname\" value=\"%HOSTNAME%\" pattern=\"^[^-\\.]{2,32}\" required>\
         </div>\
         <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
         <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
@@ -344,7 +346,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             var myObj = {\
               \"wifiConfig\": {\
                 ssid: document.getElementById('ssid').value,\
-                pwd: document.getElementById('pwd').value\
+                pwd: document.getElementById('pwd').value,\
+                hostname: document.getElementById('hostname').value\
               }\
             };\
             var myJSON = JSON.stringify(myObj);\
