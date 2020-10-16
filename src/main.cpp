@@ -3,6 +3,7 @@
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
+#define LANGUAGE 1                  // 1 = deutsch; 2 = english
 
 #include <ESP32Encoder.h>
 #include "Arduino.h"
@@ -24,9 +25,18 @@
 #ifdef NEOPIXEL_ENABLE
     #include <FastLED.h>
 #endif
-#include "logmessages.h"
-#include "websiteMgmt.h"
-#include "websiteBasic.h"
+
+#if LANGUAGE == 1
+    #include "logmessages.h"
+    #include "websiteMgmt.h"
+    #include "websiteBasic.h"
+#endif
+#if LANGUAGE == 2
+    #include "logmessages_EN.h"
+    #include "websiteMgmt_EN.h"
+    #include "websiteBasic_EN.h"
+#endif
+
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
@@ -2581,15 +2591,15 @@ wl_status_t wifiManager(void) {
 
         // Get (optional) hostname-configration from NVS
         String hostname = prefsSettings.getString("Hostname", "-1");
-        Serial.println(hostname.c_str());
         if (hostname.compareTo("-1")) {
             WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
-            Serial.println(hostname.c_str());
+            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
+            loggerNl(logBuf, LOGLEVEL_INFO);
         } else {
             loggerNl((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
         }
-        // ...and create a connection with it. If not successful, an access-point will is opened
+        // ...and create a connection with it. If not successful, an access-point is opened
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount=0;
@@ -3083,7 +3093,7 @@ void setup() {
     uint8_t nvsNLedBrightness = prefsSettings.getUChar("nLedBrightness", 0);
     if (nvsNLedBrightness) {
         nightLedBrightness = nvsNLedBrightness;
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(loadedInitialBrightnessForNmFromNvs), nvsNLedBrightness);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %d", (char *) FPSTR(restoredInitialBrightnessForNmFromNvs), nvsNLedBrightness);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUChar("nLedBrightness", nightLedBrightness);
@@ -3097,7 +3107,7 @@ void setup() {
         loggerNl((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(ftpUser, nvsFtpUser.c_str(), sizeof(ftpUser)/sizeof(ftpUser[0]));
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedFtpUserFromNvs), nvsFtpUser.c_str());
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredFtpUserFromNvs), nvsFtpUser.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
@@ -3108,7 +3118,7 @@ void setup() {
         loggerNl((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(ftpPassword, nvsFtpPassword.c_str(), sizeof(ftpPassword)/sizeof(ftpPassword[0]));
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedFtpPwdFromNvs), nvsFtpPassword.c_str());
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredFtpPwdFromNvs), nvsFtpPassword.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
@@ -3116,7 +3126,7 @@ void setup() {
     uint32_t nvsMInactivityTime = prefsSettings.getUInt("mInactiviyT", 0);
     if (nvsMInactivityTime) {
         maxInactivityTime = nvsMInactivityTime;
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMaxInactivityFromNvs), nvsMInactivityTime);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(restoredMaxInactivityFromNvs), nvsMInactivityTime);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("mInactiviyT", maxInactivityTime);
@@ -3127,7 +3137,7 @@ void setup() {
     uint32_t nvsInitialVolume = prefsSettings.getUInt("initVolume", 0);
     if (nvsInitialVolume) {
         initVolume = nvsInitialVolume;
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedInitialLoudnessFromNvs), nvsInitialVolume);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(restoredInitialLoudnessFromNvs), nvsInitialVolume);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("initVolume", initVolume);
@@ -3138,7 +3148,7 @@ void setup() {
     uint32_t nvsMaxVolume = prefsSettings.getUInt("maxVolume", 0);
     if (nvsMaxVolume) {
         maxVolume = nvsMaxVolume;
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMaxLoudnessFromNvs), nvsMaxVolume);
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(restoredMaxLoudnessFromNvs), nvsMaxVolume);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("maxVolume", maxVolume);
@@ -3155,12 +3165,12 @@ void setup() {
         case 1:
             //prefsSettings.putUChar("enableMQTT", enableMqtt);
             enableMqtt = nvsEnableMqtt;
-            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMqttActiveFromNvs), nvsEnableMqtt);
+            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(restoredMqttActiveFromNvs), nvsEnableMqtt);
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
         case 0:
             enableMqtt = nvsEnableMqtt;
-            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(loadedMqttDeactiveFromNvs), nvsEnableMqtt);
+            snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
             loggerNl(logBuf, LOGLEVEL_INFO);
             break;
     }
@@ -3172,7 +3182,7 @@ void setup() {
         loggerNl((char*) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqtt_server, nvsMqttServer.c_str(), sizeof(mqtt_server)/sizeof(mqtt_server[0]));
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttServerFromNvs), nvsMqttServer.c_str());
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
@@ -3183,7 +3193,7 @@ void setup() {
         loggerNl((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqttUser, nvsMqttUser.c_str(), sizeof(mqttUser)/sizeof(mqttUser[0]));
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttUserFromNvs), nvsMqttUser.c_str());
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
@@ -3194,7 +3204,7 @@ void setup() {
         loggerNl((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqttPassword, nvsMqttPassword.c_str(), sizeof(mqttPassword)/sizeof(mqttPassword[0]));
-        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(loadedMqttPwdFromNvs), nvsMqttPassword.c_str());
+        snprintf(logBuf, sizeof(logBuf) / sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
