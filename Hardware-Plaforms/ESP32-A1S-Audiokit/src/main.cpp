@@ -27,12 +27,12 @@
     #include <FastLED.h>
 #endif
 
-#if LANGUAGE == 1
+#if (LANGUAGE == 1)
     #include "logmessages.h"
     #include "websiteMgmt.h"
     #include "websiteBasic.h"
 #endif
-#if LANGUAGE == 2
+#if (LANGUAGE == 2)
     #include "logmessages_EN.h"
     #include "websiteMgmt_EN.h"
     #include "websiteBasic_EN.h"
