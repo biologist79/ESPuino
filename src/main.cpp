@@ -1,10 +1,12 @@
 // Define modules to compile:
 #define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE
+#define FTP_ENABLE                  // Enables FTP-server
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two
+
+//#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 #include <ESP32Encoder.h>
@@ -1494,8 +1496,6 @@ void playAudio(void *parameter) {
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
-    //pinMode(RFID_CS, OUTPUT);
-    //digitalWrite(RFID_CS, HIGH);
     #ifndef SINGLE_SPI_ENABLE
         SPI.begin();
     #endif
@@ -3081,7 +3081,9 @@ void setup() {
     #endif
             loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
             delay(500);
-            break;
+            #ifdef SD_NOT_MANDATORY_ENABLE
+                break;
+            #endif
         }
 
     #ifdef BLUETOOTH_ENABLE
