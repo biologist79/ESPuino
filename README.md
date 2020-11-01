@@ -34,7 +34,7 @@ I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) alo
 In the upper section of main.cpp you can specify the modules that should be compiled into the code.
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
-## Wiring
+## Wiring (2 SPI-instances)
 A lot of wiring is necessary to get ESP32-Tonuino working. After my first experients I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)!
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
@@ -74,6 +74,42 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
 Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+
+## Wiring (1 SPI-instance)
+In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins.
+
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
+| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
+| 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | SD-reader             | GND    |                                                              |
+| 15            | SD-reader             | CS     | Don't share with RFID!                                       |
+| 17            | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| GND           | RFID-reader           | GND    |                                                              |
+| 22            | RFID-reader           | RST    |                                                              |
+| 21            | RFID-reader           | CS/SDA | Don't share with SD!                                         |
+| 23            | RFID+SD-reader        | MOSI   |                                                              |
+| 19            | RFID+SD-reader        | MISO   |                                                              |
+| 18            | RFID+SD-reader        | SCK    |                                                              |
+| 5 V           | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | MAX98357              | GND    |                                                              |
+| 25            | MAX98357              | DIN    |                                                              |
+| 27            | MAX98357              | BCLK   |                                                              |
+| 26            | MAX98357              | LRC    |                                                              |
+| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RT |
+| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RT |
+| 32            | Rotary encoder        | BUTTON |                                                              |
+| 3.3 V         | Rotary encoder        | +      |                                                              |
+| GND           | Rotary encoder        | GND    |                                                              |
+| 4             | Button (next)         |        |                                                              |
+| GND           | Button (next)         |        |                                                              |
+| 33            | Button (previous)     |        |                                                              |
+| GND           | Button (previous)     |        |                                                              |
+| 5             | Button (pause/play)   |        |                                                              |
+| GND           | Button (pause/play)   |        |                                                              |
+| 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | Neopixel              | GND    |                                                              |
+| 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
+| 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
 ## Prerequisites
 * choose if optional modules (MQTT, FTP, Neopixel) should be compiled/enabled
