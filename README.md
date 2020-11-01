@@ -4,13 +4,13 @@
 Currently I'm working on a new Tonuino that is completely based on 3.3V. As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. So stay tuned...
 
 ## Disclaimer
-This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by me**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
+This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
 
 ## What's different (basically)?
 The original project makes use of microcontrollers (uC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which offers a uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with a uC using the API provided.
 
-The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT and webradio. However, my primary focus was to port the project to a modular base. Said this mp3-decoding is done in software with a dedicated uSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts). Hopefully, not only in theory, other DACs can be used as well.
+The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT and webradio. However, my primary focus was to port the project to a modular base. Said this mp3-decoding is done in software with a dedicated uSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts). Hopefully, not only in theory, other DACs that support I2S can be used as well.
 
 ## Basic concept/handling
 The basic idea of Tonuino (and my fork, respectively) is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files instead of being fully cloud-dependend. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
@@ -35,7 +35,7 @@ In the upper section of main.cpp you can specify the modules that should be comp
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
 ## Wiring (2 SPI-instances)
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experients I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)!
+A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)!
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
@@ -57,8 +57,8 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
-| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RT |
-| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RT |
+| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RE |
+| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |
@@ -73,9 +73,11 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
-Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k. <br />
+Also tested this successfully for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 4,7k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. <br />
+Advice: When powering a SD-card-reader solely with 3.3V, make sure to use one WITHOUT a voltage regulator. Or at least one with a pin dedicated for 3.3V (bypassing voltage regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-).
 
-## Wiring (1 SPI-instance)
+## Wiring (1 SPI-instance) [EXPERIMENTAL!]
 In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins.
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
@@ -95,8 +97,8 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
-| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RT |
-| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RT |
+| 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RE |
+| 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |
@@ -111,6 +113,10 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
+## Wiring (custom) / different pinout
+When using a develboard with for example SD-card-reader already integrated, the pinouts described above my not fit your needs. Additionaly some boards may use one or some of the GPIOs I used for internal purposes and are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
+Keep in mind the RFID-lib I used is intended for default-SPI-pins only (SCK, MISO, MOSI). [Here](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. Please note I used a slightly modified [RFID-lib](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit/lib/MFRC522) there.
+
 ## Prerequisites
 * choose if optional modules (MQTT, FTP, Neopixel) should be compiled/enabled
 * for debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG.
@@ -121,6 +127,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 * please note: by using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
 * If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
 * compile and upload the sketch
+* Please keep in mind that working SD is mandatory. Unless `SD_NOT_MANDATORY_ENABLE` is not set, Tonuino will never fully start up if SD is not working. Only use `SD_NOT_MANDATORY_ENABLE` for debugging as for normal operational mode, not having SD working doesn't make sense!
 
 ## Starting Tonuino-ESP32 first time
 After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials + the hostname (Tonuio's name) and save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to got: place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist/directory contains the longer this step takes. <br >
