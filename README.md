@@ -73,7 +73,7 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
 
-Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
+Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k
 
 ## Prerequisites
 * choose if optional modules (MQTT, FTP, Neopixel) should be compiled/enabled
@@ -195,6 +195,9 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 
 ### FTP (optional)
 In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel. Better stop playback then doing a FTP-transfer. Default-user and password are set via `ftpUser` and `ftpPassword`.
+
+### Files (IMPORTANT!)
+Make sure to not use filenames that contain German 'Umlaute'. I've been told this is also true for mp3's ID3-tags.
 
 ### Energy saving
 As already described in the modify-section, there are different sleepmodes available. Additionaly uC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter to the initial value.
