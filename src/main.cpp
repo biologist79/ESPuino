@@ -1,10 +1,11 @@
 // Define modules to compile:
 #define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE                  // Enables FTP-server
-#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
+//#define FTP_ENABLE                  // Enables FTP-server
+//#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
-//#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two
+#define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit
+#define MFRC522_BUS 2           // If MFRC522 should be connected to I2C-Port(2) or SPI(1)
 
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
@@ -19,6 +20,9 @@
     #include "BluetoothA2DPSink.h"
 #endif
 #include "Audio.h"
+#if (HAL == 2)
+    #include "AC101.h"
+#endif
 #include "SPI.h"
 #include "SD.h"
 #include "FS.h"
@@ -68,15 +72,14 @@ const uint8_t serialDebug = LOGLEVEL_INFO;          // Current loglevel for seri
 uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
 
+#if (HAL == 1)
 // GPIOs (uSD card-reader)
 #define SPISD_CS                        15
-#ifndef SINGLE_SPI_ENABLE
-    #define SPISD_MOSI                  13
-    #define SPISD_MISO                  16          // 12 doesn't work with some devel-boards
-    #define SPISD_SCK                   14
-#endif
+#define SPISD_MOSI                  13
+#define SPISD_MISO                  16          // 12 doesn't work with some devel-boards
+#define SPISD_SCK                   14
 
-// GPIOs (RFID-readercurrentRfidTagId)
+// GPIOs (RFID-readercurrentRfidTagId)  
 #define RST_PIN                         22
 #define RFID_CS                         21
 #define RFID_MOSI                       23
@@ -87,10 +90,6 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define I2S_DOUT                        25
 #define I2S_BCLK                        27
 #define I2S_LRC                         26
-
-#ifdef BLUETOOTH_ENABLE
-    BluetoothA2DPSink a2dp_sink;
-#endif
 
 // GPIO used to trigger transistor-circuit / RFID-reader
 #define POWER                           17
@@ -107,6 +106,75 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 
 // GPIOs (LEDs)
 #define LED_PIN                         12
+
+// END HAL 1
+#elif (HAL == 2)
+
+// GPIOs (uSD card-reader)
+#define SPISD_CS                        13          // internal
+#define SPISD_MOSI                      15          // JT_MTDO
+#define SPISD_MISO                       2
+#define SPISD_SCK                       14          // JT_MTMS
+
+#if (MFRC522_BUS == 1)
+// GPIOs (RFID-readercurrentRfidTagId)
+#define MFRC522_RST_PIN                 35          // 14-pin-header
+#define MFRC522_CS_PIN                  12          // JT_MTDI
+extern SPIClass SPI_MFRC;
+MFRC522 mfrc522(MFRC522_CS_PIN, MFRC522_RST_PIN);
+
+#elif (MFRC522_BUS == 2)
+// second I2C GPIOs
+#define ext_IIC_CLK                         23          // internal
+#define ext_IIC_DATA                        22          // internal
+
+TwoWire i2cBus = TwoWire(0);
+MFRC522_BUS_DEVICE mfrcDevice = MFRC522_I2C(2 , 0x28, i2cBus);
+MFRC522 mfrc522 = MFRC522_(mfrcDevice);
+
+// END MFRC522_BUS
+#endif
+
+// DAC (internal)
+#define I2S_DSIN                        25          // internal
+#define I2S_BCLK                        27          // internal
+#define I2S_LRC                         26          // internal
+#define I2S_MCLK                         0          // internal
+#define I2S_DOUT                        35          // internal
+
+// I2C GPIOs
+#define IIC_CLK                         32          // internal
+#define IIC_DATA                        33          // internal
+
+// GPIO used to trigger transistor-circuit / RFID-reader
+#define POWER                           19
+
+// Amp enable
+#define GPIO_PA_EN                      21          // internal
+
+// Headphone?
+#define HEADPHONE_PLUGGED_IN            39          // internal
+
+// GPIOs (Rotary encoder)
+#define DREHENCODER_CLK                 5
+#define DREHENCODER_DT                  18
+#define DREHENCODER_BUTTON              4           // Solder to pin8 of SD
+
+// GPIOs (Control-buttons)                          // Currently deactivated; please read README.md
+#define PAUSEPLAY_BUTTON                36
+/*#define NEXT_BUTTON                     4
+#define PREVIOUS_BUTTON                 33*/
+
+
+// GPIOs (LEDs)
+#define LED_PIN                         23
+
+// END HAL 2
+#endif
+
+#ifdef BLUETOOTH_ENABLE
+    BluetoothA2DPSink a2dp_sink;
+#endif
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
@@ -3285,8 +3353,10 @@ void setup() {
     // Activate internal pullups for all buttons
     pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
+    #if (HAL == 1)
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
     pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
+    #endif
 
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
