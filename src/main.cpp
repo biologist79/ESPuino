@@ -4,7 +4,7 @@
 //#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
-#define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit
+// #define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO
 #define MFRC522_BUS 2           // If MFRC522 should be connected to I2C-Port(2) or SPI(1)
 
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
@@ -27,7 +27,6 @@
 #include "SD.h"
 #include "FS.h"
 #include "esp_task_wdt.h"
-#include <MFRC522.h>
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
     #include <PubSubClient.h>
@@ -73,6 +72,8 @@ uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
 
 #if (HAL == 1)
+#include <MFRC522.h>
+
 // GPIOs (uSD card-reader)
 #define SPISD_CS                        15
 #define SPISD_MOSI                  13
@@ -118,20 +119,21 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 
 #if (MFRC522_BUS == 1)
 // GPIOs (RFID-readercurrentRfidTagId)
+#include <MFRC522.h>                                // Custom Lib needed
 #define MFRC522_RST_PIN                 35          // 14-pin-header
 #define MFRC522_CS_PIN                  12          // JT_MTDI
 extern SPIClass SPI_MFRC;
-MFRC522 mfrc522(MFRC522_CS_PIN, MFRC522_RST_PIN);
+MFRC522_SPI mfrcDevice = MFRC522_SPI(MFRC522_CS_PIN, MFRC522_RST_PIN);
 
 #elif (MFRC522_BUS == 2)
+#include <MFRC522_I2C.h>
+#define MFRC522_RST_PIN                 99          // unused - just for definition
 // second I2C GPIOs
-#define ext_IIC_CLK                         23          // internal
-#define ext_IIC_DATA                        22          // internal
+#define ext_IIC_CLK                         23          // 14-pin-header
+#define ext_IIC_DATA                        22          // 14-pin-header
 
-TwoWire i2cBus = TwoWire(0);
-MFRC522_BUS_DEVICE mfrcDevice = MFRC522_I2C(2 , 0x28, i2cBus);
-MFRC522 mfrc522 = MFRC522_(mfrcDevice);
-
+TwoWire i2cBus = TwoWire(1);
+MFRC522 mfrc522(MFRC522_RST_PIN , 0x28, i2cBus);
 // END MFRC522_BUS
 #endif
 
@@ -536,8 +538,10 @@ void buttonHandler() {
             return;
         }
         unsigned long currentTimestamp = millis();
+    #if (HAL == 1)
         buttons[0].currentState = digitalRead(NEXT_BUTTON);
         buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
+    #endif
         buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
         buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
 
@@ -1563,10 +1567,14 @@ void playAudio(void *parameter) {
 
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-    static MFRC522 mfrc522(RFID_CS, RST_PIN);
+#if (HAL == 1)
+//    static MFRC522 mfrc522(RFID_CS, RST_PIN);
     #ifndef SINGLE_SPI_ENABLE
         SPI.begin();
     #endif
+#elif (HAL == 2)
+    i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+#endif
     mfrc522.PCD_Init();
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
