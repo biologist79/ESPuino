@@ -219,7 +219,7 @@ Some buttons have different actions if pressed long or short. Minimum duration f
 * if a folder should be played that contains many mp3s, the playlist generation can take a few seconds. Please note that a file's name including path cannot exceed 255 characters.
 * while playlist is generated Neopixel indicates BUSY-mode
 * after last track was played, Neopixel indicates IDLE-mode
-* in audiobook-mode, last play-position is remembered (position in actual file and number of track, respectively)
+* in audiobook-mode, last play-position is remembered (position in actual file and number of track, respectively) when a new track begins of if pause-button was hit
 
 ### Audiobook-mode
 This mode is different from the other ones because the last playposition is saved. Playposition is saved when...
@@ -237,7 +237,7 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * General-configuration (volume, neopixel-brightness, sleep after inactivity)
 
 ### FTP (optional)
-In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast transfer, it's only around 145 kB/s and decreases dramatically, if music is played in parallel. Better stop playback then doing a FTP-transfer. Default-user and password are set via `ftpUser` and `ftpPassword`.
+In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast data-transfer. Initially it was around 145 kB/s but after modifying ftp-server-lib (changing from 4 kB static-buffer to 16 kB heap-buffer) I saw rates up to 360 kB/s. Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback then doing a FTP-transfer. Default-user and password are set via `ftpUser` and `ftpPassword` but can be changed later via GUI.
 
 ### Files (IMPORTANT!)
 Make sure to not use filenames that contain German 'Umlaute'. I've been told this is also true for mp3's ID3-tags.
@@ -256,3 +256,32 @@ As all assignments between RFID-IDs and actions (playmode, file to play...) is s
 
 ## Smarthome (optional)
 As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations refer the [subfolder](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
+
+## MQTT-topics and their ranges
+Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to Tonuino, you have to use a cmnd-topic whereas Tonuino pushes its states back via state-topics. So guess to want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, Tonuino sends a conformation of this command using `topicLoudnessState`.
+
+
+| topic-variable          | range           | meaning
+------------------------------------------------------------------------------------------------------------------------------
+| topicSleepCmnd          | 0 or OFF        | Power off Tonuino immediately                                                  |
+| topicSleepState         | ON or OFF       | Sends Tonuino's current/last state                                             |
+| topicTrackCmnd          | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
+| topicTrackState         | 12 digits       | Sends number of last RFID-tag applied                                          |
+| topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last |
+| topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                |
+| topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                               |
+| topicSleepTimerCmnd     | EOP             | Power off after end to playlist                                                |
+|                         | EOT             | Power off after end of track                                                   |
+|                         | EO5T            | Power off after end of five tracks                                             |
+|                         | 1 -> 2^32       | Duration in minutes to power off                                               |
+|                         | 0               | Deactivate timer (if active)                                                   |
+| topicSleepTimerState    | various         | Sends active timer (`EOP`, `EOT`, `EO5T`, `0`, ...)                            |
+| topicState              | Online, Offline | `Online` when powering on, `Offline` when powering off                         |
+| topicCurrentIPv4IP      | IPv4-string     | Sends Tonuino's IP-address (e.g. `192.168.2.78`)                               |
+| topicLockControlsCmnd   | ON, OFF         | Set if controls (buttons, rotary encoder) should be locked                     |
+| topicLockControlsState  | ON, OFF         | Sends if controls (buttons, rotary encoder) are locked                         |
+| topicPlaymodeState      | 0 - 10          | Sends current playmode (single track, audiobook...; see playmodes)             |
+| topicRepeatModeCmnd     | 0 - 3           | Set repeat-mode: `0`=no; `1`=track; `2`=playlist; `3`=both                     |
+| topicRepeatModeState    | 0 - 3           | Sends repeat-mode                                                              |
+| topicLedBrightnessCmnd  | 0 - 255         | Set brightness of Neopixel                                                     |
+| topicLedBrightnessState | 0 - 255         | Sends brightness of Neopixel                                                   |
