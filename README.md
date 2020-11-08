@@ -261,8 +261,8 @@ As already described, MQTT is supported. In order to use it it's necessary to ru
 Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to Tonuino, you have to use a cmnd-topic whereas Tonuino pushes its states back via state-topics. So guess to want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, Tonuino sends a conformation of this command using `topicLoudnessState`.
 
 
-| topic-variable          | range           | meaning
-------------------------------------------------------------------------------------------------------------------------------
+| topic-variable          | range           | meaning                                                                        |
+| ----------------------- | --------------- | ------------------------------------------------------------------------------ |
 | topicSleepCmnd          | 0 or OFF        | Power off Tonuino immediately                                                  |
 | topicSleepState         | ON or OFF       | Sends Tonuino's current/last state                                             |
 | topicTrackCmnd          | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
