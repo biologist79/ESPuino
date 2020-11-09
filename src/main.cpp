@@ -6,7 +6,7 @@
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two
 
-//#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
+//#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it )
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 #include <ESP32Encoder.h>
@@ -151,10 +151,10 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
 
 // Repeat-Modes
-#define NO_REPEAT                       0
-#define TRACK                           1
-#define PLAYLIST                        2
-#define TRACK_N_PLAYLIST                3
+#define NO_REPEAT                       0           // No repeat
+#define TRACK                           1           // Repeat current track (infinite loop)
+#define PLAYLIST                        2           // Repeat whole playlist (infinite loop)
+#define TRACK_N_PLAYLIST                3           // Repeat both (infinite loop)
 
 typedef struct { // Bit field
     uint8_t playMode:                   4;      // playMode
@@ -199,15 +199,17 @@ bool enableMqtt = true;
 #define RFID_SCAN_INTERVAL 300                          // in ms
 uint8_t const cardIdSize = 4;                           // RFID
 // Volume
-uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted
+uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted (default; can be changed later via GUI)
 uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
-uint8_t initVolume = 3;                                 // 0...21 (If not found in NVS, this one will be taken)
+uint8_t initVolume = 3;                                 // 0...21 (If not found in NVS, this one will be taken) (default; can be changed later via GUI)
 // Sleep
 uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
 uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
 // FTP
-char *ftpUser = strndup((char*) "esp32", 10);           // FTP-user
-char *ftpPassword = strndup((char*) "esp32", 15);       // FTP-password
+uint8_t ftpUserLength = 10;                             // Length will be published n-1 as maxlength to GUI
+uint8_t ftpPasswordLength = 15;                         // Length will be published n-1 as maxlength to GUI
+char *ftpUser = strndup((char*) "esp32", ftpUserLength);                // FTP-user (default; can be changed later via GUI)
+char *ftpPassword = strndup((char*) "esp32", ftpPasswordLength);        // FTP-password (default; can be changed later via GUI)
 
 // Button-configuration (change according your needs)
 uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
@@ -255,9 +257,15 @@ bool accessPointStarted = false;
 
 
 // MQTT-configuration
-char *mqtt_server = strndup((char*) "192.168.2.43", 16);    // IP-address of MQTT-server (if not found in NVS this one will be taken)
-char *mqttUser = strndup((char*) "mqtt-user", 16);          // MQTT-user
-char *mqttPassword = strndup((char*) "mqtt-password", 16);  // MQTT-password*/
+// Please note: all lengths will be published n-1 as maxlength to GUI
+uint8_t mqttServerLength = 32;
+uint8_t mqttUserLength = 16;
+uint8_t mqttPasswordLength = 16;
+
+// Please note: all of them are defaults that can be changed later via GUI
+char *mqtt_server = strndup((char*) "192.168.2.43", mqttServerLength);      // IP-address of MQTT-server (if not found in NVS this one will be taken)
+char *mqttUser = strndup((char*) "mqtt-user", mqttUserLength);              // MQTT-user
+char *mqttPassword = strndup((char*) "mqtt-password", mqttPasswordLength);  // MQTT-password*/
 
 #ifdef MQTT_ENABLE
     #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
@@ -1540,7 +1548,7 @@ void rfidScanner(void *parameter) {
             for (uint8_t i=0; i<cardIdSize; i++) {
                 cardId[i] = mfrc522.uid.uidByte[i];
 
-                snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%02x", cardId[i]);
+                snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
                 logger(logBuf, LOGLEVEL_NOTICE);
 
                 n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
@@ -2045,7 +2053,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_SORTED: {
-            snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
+            snprintf(logBuf, serialLoglength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
             loggerNl(logBuf, LOGLEVEL_NOTICE);
             sortPlaylist((const char**) musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             #ifdef MQTT_ENABLE
@@ -2484,12 +2492,13 @@ void rfidPreferenceLookupHandler (void) {
     rfidStatus = xQueueReceive(rfidCardQueue, &rfidTagId, 0);
     if (rfidStatus == pdPASS) {
         lastTimeActiveTimestamp = millis();
-        snprintf(logBuf, sizeof(logBuf)/sizeof(logBuf[0]), "%s: %s", (char *) FPSTR(rfidTagReceived), rfidTagId);
+        free(currentRfidTagId);
         currentRfidTagId = strdup(rfidTagId);
+        snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(rfidTagReceived), currentRfidTagId);
         sendWebsocketData(0, 10);       // Push new rfidTagId to all websocket-clients
         loggerNl(logBuf, LOGLEVEL_INFO);
 
-        String s = prefsRfid.getString(rfidTagId, "-1");                 // Try to lookup rfidId in NVS
+        String s = prefsRfid.getString(currentRfidTagId, "-1");                 // Try to lookup rfidId in NVS
         if (!s.compareTo("-1")) {
             loggerNl((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
@@ -2654,9 +2663,13 @@ String templateProcessor(const String& templ) {
         return prefsSettings.getString("ftpuser", "-1");
     } else if (templ == "FTP_PWD") {
         return prefsSettings.getString("ftppassword", "-1");
-    } else if (templ == "INIT_LED_BRIGHTBESS") {
+    } else if (templ == "FTP_USER_LENGTH") {
+        return String(ftpUserLength-1);
+    } else if (templ == "FTP_PWD_LENGTH") {
+        return String(ftpPasswordLength-1);
+    } else if (templ == "INIT_LED_BRIGHTNESS") {
         return String(prefsSettings.getUChar("iLedBrightness", 0));
-    } else if (templ == "NIGHT_LED_BRIGHTBESS") {
+    } else if (templ == "NIGHT_LED_BRIGHTNESS") {
         return String(prefsSettings.getUChar("nLedBrightness", 0));
     } else if (templ == "MAX_INACTIVITY") {
         return String(prefsSettings.getUInt("mInactiviyT", 0));
@@ -2676,6 +2689,12 @@ String templateProcessor(const String& templ) {
         return prefsSettings.getString("mqttUser", "-1");
     } else if (templ == "MQTT_PWD") {
         return prefsSettings.getString("mqttPassword", "-1");
+    } else if (templ == "MQTT_USER_LENGTH") {
+        return String(mqttUserLength-1);
+    } else if (templ == "MQTT_PWD_LENGTH") {
+        return String(mqttPasswordLength-1);
+    } else if (templ == "MQTT_SERVER_LENGTH") {
+        return String(mqttServerLength-1);
     } else if (templ == "IPv4") {
         myIP = WiFi.localIP();
         snprintf(logBuf, serialLoglength, "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -3149,7 +3168,7 @@ void setup() {
         prefsSettings.putString("ftpuser", (String) ftpUser);
         loggerNl((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(ftpUser, nvsFtpUser.c_str(), sizeof(ftpUser)/sizeof(ftpUser[0]));
+        strncpy(ftpUser, nvsFtpUser.c_str(), ftpUserLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredFtpUserFromNvs), nvsFtpUser.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -3160,7 +3179,7 @@ void setup() {
         prefsSettings.putString("ftppassword", (String) ftpPassword);
         loggerNl((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(ftpPassword, nvsFtpPassword.c_str(), sizeof(ftpPassword)/sizeof(ftpPassword[0]));
+        strncpy(ftpPassword, nvsFtpPassword.c_str(), ftpPasswordLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredFtpPwdFromNvs), nvsFtpPassword.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -3224,7 +3243,7 @@ void setup() {
         prefsSettings.putString("mqttServer", (String) mqtt_server);
         loggerNl((char*) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(mqtt_server, nvsMqttServer.c_str(), sizeof(mqtt_server)/sizeof(mqtt_server[0]));
+        strncpy(mqtt_server, nvsMqttServer.c_str(), mqttServerLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -3235,7 +3254,7 @@ void setup() {
         prefsSettings.putString("mqttUser", (String) mqttUser);
         loggerNl((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(mqttUser, nvsMqttUser.c_str(), sizeof(mqttUser)/sizeof(mqttUser[0]));
+        strncpy(mqttUser, nvsMqttUser.c_str(), mqttUserLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
@@ -3246,7 +3265,7 @@ void setup() {
         prefsSettings.putString("mqttPassword", (String) mqttPassword);
         loggerNl((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(mqttPassword, nvsMqttPassword.c_str(), sizeof(mqttPassword)/sizeof(mqttPassword[0]));
+        strncpy(mqttPassword, nvsMqttPassword.c_str(), mqttPasswordLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
