@@ -4,6 +4,7 @@
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
+//#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two
 
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it )
@@ -77,7 +78,7 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #endif
 
 // GPIOs (RFID-readercurrentRfidTagId)
-#define RST_PIN                         22
+#define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
 #define RFID_CS                         21
 #define RFID_MOSI                       23
 #define RFID_MISO                       19
@@ -87,6 +88,14 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define I2S_DOUT                        25
 #define I2S_BCLK                        27
 #define I2S_LRC                         26
+
+// GPIO to detect if headphone was plugged in (set to GND)
+#ifdef HEADPHONE_ADJUST_ENABLE
+    #define HP_DETECT                   22          // Detects if there's a plug in the headphone jack or not
+    bool headphoneLastDetectionState;
+    uint32_t headphoneLastDetectionTimestamp = 0;
+    uint16_t headphoneLastDetectionDebounce = 1000;     // Debounce-interval in ms when plugging in headphone
+#endif
 
 #ifdef BLUETOOTH_ENABLE
     BluetoothA2DPSink a2dp_sink;
@@ -199,9 +208,13 @@ bool enableMqtt = true;
 #define RFID_SCAN_INTERVAL 300                          // in ms
 uint8_t const cardIdSize = 4;                           // RFID
 // Volume
-uint8_t maxVolume = 21;                                 // Maximum volume that can be adjusted (default; can be changed later via GUI)
+uint8_t maxVolume = 21;                                 // Current maximum volume that can be adjusted
+uint8_t maxVolumeSpeaker = 21;                          // Maximum volume that can be adjusted in speaker-mode (default; can be changed later via GUI)
 uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
 uint8_t initVolume = 3;                                 // 0...21 (If not found in NVS, this one will be taken) (default; can be changed later via GUI)
+#ifdef HEADPHONE_ADJUST_ENABLE
+    uint8_t maxVolumeHeadphone = 11;                    // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
+#endif
 // Sleep
 uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
 uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
@@ -370,6 +383,7 @@ bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
+void headphoneVolumeManager(void);
 bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
 void logger(const char *str, const uint8_t logLevel);
@@ -396,6 +410,7 @@ String templateProcessor(const String& templ);
 void trackControlToQueueSender(const uint8_t trackCommand);
 void rfidPreferenceLookupHandler (void);
 void sendWebsocketData(uint32_t client, uint8_t code);
+void setupVolume(void);
 void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
 void volumeToQueueSender(const int32_t _newVolume);
@@ -2675,8 +2690,10 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("mInactiviyT", 0));
     } else if (templ == "INIT_VOLUME") {
         return String(prefsSettings.getUInt("initVolume", 0));
-    } else if (templ == "MAX_VOLUME") {
-        return String(prefsSettings.getUInt("maxVolume", 0));
+    } else if (templ == "MAX_VOLUME_SPEAKER") {
+        return String(prefsSettings.getUInt("maxVolumeSp", 0));
+    } else if (templ == "MAX_VOLUME_HEADPHONE") {
+        return String(prefsSettings.getUInt("maxVolumeHp", 0));
     } else if (templ == "MQTT_SERVER") {
         return prefsSettings.getString("mqttServer", "-1");
     } else if (templ == "MQTT_ENABLE") {
@@ -2730,20 +2747,23 @@ bool processJsonRequest(char *_serialJson) {
 
     if (doc.containsKey("general")) {
         uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
-        uint8_t mVol = doc["general"]["mVol"].as<uint8_t>();
+        uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
+        uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
         uint8_t iBright = doc["general"]["iBright"].as<uint8_t>();
         uint8_t nBright = doc["general"]["nBright"].as<uint8_t>();
         uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
 
         prefsSettings.putUInt("initVolume", iVol);
-        prefsSettings.putUInt("maxVolume", mVol);
+        prefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
+        prefsSettings.putUInt("maxVolumeHp", mVolHeadphone);
         prefsSettings.putUChar("iLedBrightness", iBright);
         prefsSettings.putUChar("nLedBrightness", nBright);
         prefsSettings.putUInt("mInactiviyT", iTime);
 
         // Check if settings were written successfully
         if (prefsSettings.getUInt("initVolume", 0) != iVol ||
-            prefsSettings.getUInt("maxVolume", 0) != mVol ||
+            prefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
+            prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone |
             prefsSettings.getUChar("iLedBrightness", 0) != iBright ||
             prefsSettings.getUChar("nLedBrightness", 0) != nBright ||
             prefsSettings.getUInt("mInactiviyT", 0) != iTime) {
@@ -2913,6 +2933,46 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         }
     }
 }
+
+// Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
+void setupVolume(void) {
+
+    #ifndef HEADPHONE_ADJUST_ENABLE
+        maxVolume = maxVolumeSpeaker;
+        return;
+    #else
+        if (digitalRead(HP_DETECT)) {
+            maxVolume = maxVolumeSpeaker;               // 1 if headphone is not connected
+        } else {
+            maxVolume = maxVolumeHeadphone;             // 0 if headphone is connected (put to GND)
+        }
+        snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(maxVolumeSet), maxVolume);
+        loggerNl(logBuf, LOGLEVEL_INFO);
+        return;
+    #endif
+}
+
+
+#ifdef HEADPHONE_ADJUST_ENABLE
+    void headphoneVolumeManager(void) {
+        bool currentHeadPhoneDetectionState = digitalRead(HP_DETECT);
+
+        if (headphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - headphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
+            if (currentHeadPhoneDetectionState) {
+                maxVolume = maxVolumeSpeaker;
+            } else {
+                maxVolume = maxVolumeHeadphone;
+                if (currentVolume > maxVolume) {
+                    volumeToQueueSender(maxVolume);         // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+                }
+            }
+            headphoneLastDetectionState = currentHeadPhoneDetectionState;
+            headphoneLastDetectionTimestamp = millis();
+            snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(maxVolumeSet), maxVolume);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        }
+    }
+#endif
 
 
 bool isNumber(const char *str) {
@@ -3105,6 +3165,11 @@ void setup() {
             #endif
         }
 
+    #ifdef HEADPHONE_ADJUST_ENABLE
+        pinMode(HP_DETECT, INPUT);
+        headphoneLastDetectionState = digitalRead(HP_DETECT);
+    #endif
+
     #ifdef BLUETOOTH_ENABLE
         i2s_pin_config_t pin_config = {
             .bck_io_num = I2S_BCLK,
@@ -3206,16 +3271,33 @@ void setup() {
         loggerNl((char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
     }
 
-    // Get maximum volume from NVS
-    uint32_t nvsMaxVolume = prefsSettings.getUInt("maxVolume", 0);
-    if (nvsMaxVolume) {
-        maxVolume = nvsMaxVolume;
-        snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxLoudnessFromNvs), nvsMaxVolume);
+    // Get maximum volume for speaker from NVS
+    uint32_t nvsMaxVolumeSpeaker = prefsSettings.getUInt("maxVolumeSp", 0);
+    if (nvsMaxVolumeSpeaker) {
+        maxVolumeSpeaker = nvsMaxVolumeSpeaker;
+        maxVolume = maxVolumeSpeaker;
+        snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForSpeakerFromNvs), nvsMaxVolumeSpeaker);
         loggerNl(logBuf, LOGLEVEL_INFO);
     } else {
-        prefsSettings.putUInt("maxVolume", maxVolume);
-        loggerNl((char *) FPSTR(wroteMaxLoudnessToNvs), LOGLEVEL_ERROR);
+        prefsSettings.putUInt("maxVolumeSp", nvsMaxVolumeSpeaker);
+        loggerNl((char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
     }
+
+    #ifdef HEADPHONE_ADJUST_ENABLE
+        // Get maximum volume for headphone from NVS
+        uint32_t nvsMaxVolumeHeadphone = prefsSettings.getUInt("maxVolumeHp", 0);
+        if (nvsMaxVolumeHeadphone) {
+            maxVolumeHeadphone = nvsMaxVolumeHeadphone;
+            snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForHeadphoneFromNvs), nvsMaxVolumeHeadphone);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {
+            prefsSettings.putUInt("maxVolumeHp", nvsMaxVolumeHeadphone);
+            loggerNl((char *) FPSTR(wroteMaxLoudnessForHeadphoneToNvs), LOGLEVEL_ERROR);
+        }
+    #endif
+
+    // Adjust volume depending on headphone is connected and volume-adjustment is enabled
+    setupVolume();
 
     // Get MQTT-enable from NVS
     uint8_t nvsEnableMqtt = prefsSettings.getUChar("enableMQTT", 99);
@@ -3364,6 +3446,9 @@ void setup() {
 
 
 void loop() {
+    #ifdef HEADPHONE_ADJUST_ENABLE
+        headphoneVolumeManager();
+    #endif
     volumeHandler(minVolume, maxVolume);
     buttonHandler();
     doButtonActions();

@@ -164,8 +164,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initialVolume\">Lautstärke nach dem Einschalten</label>\
                 <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\" value=\"%INIT_VOLUME%\" required>\
-                <label for=\"maxVolume\">Maximale Lautstärke</label>\
-                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolume\" name=\"maxVolume\" value=\"%MAX_VOLUME%\" required>\
+                <label for=\"maxVolumeSpeaker\">Maximale Lautstärke (Lautsprecher)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\" value=\"%MAX_VOLUME_SPEAKER%\" required>\
+                <label for=\"maxVolumeHeadphone\">Maximale Lautstärke (Kopfhörer)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\" value=\"%MAX_VOLUME_HEADPHONE%\" required>\
             </div>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initBrightness\">Neopixel-Helligkeit nach dem Einschalten</label>\
@@ -264,7 +266,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             var myObj = {\
               \"general\": {\
                 iVol: document.getElementById('initialVolume').value,\
-                mVol: document.getElementById('maxVolume').value,\
+                mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,\
+                mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,\
                 iBright: document.getElementById('initBrightness').value,\
                 nBright: document.getElementById('nightBrightness').value,\
                 iTime: document.getElementById('inactivityTime').value\

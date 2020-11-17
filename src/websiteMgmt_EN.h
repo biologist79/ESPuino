@@ -97,10 +97,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <h2>RFID-modifications</h2>\
         <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\">\
             <div class=\"form-group col-md-6\">\
-                <label for=\"rfidIdMod\">RFID-chip-ID (12-digits)</label>\
+                <label for=\"rfidIdMod\">RFID-chip-ID (12 digits)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMod\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMod\" required>\
                 <div class=\"invalid-feedback\">\
-                  Please enter a 12-digits-number.\
+                  Please enter a number with 12 digits.\
                 </div>\
                 <label for=\"modId\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"modId\" name=\"modId\">\
@@ -164,8 +164,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initialVolume\">Volume after start</label>\
                 <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\" value=\"%INIT_VOLUME%\" required>\
-                <label for=\"maxVolume\">Maximum volume</label>\
-                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolume\" name=\"maxVolume\" value=\"%MAX_VOLUME%\" required>\
+                <label for=\"maxVolumeSpeaker\">Maximum volume (speaker)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\" value=\"%MAX_VOLUME_SPEAKER%\" required>\
+                <label for=\"maxVolumeHeadphone\">Maximum volume (headphone)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\" value=\"%MAX_VOLUME_HEADPHONE%\" required>\
             </div>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initBrightness\">Neopixel-brightness after start</label>\
@@ -264,7 +266,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             var myObj = {\
               \"general\": {\
                 iVol: document.getElementById('initialVolume').value,\
-                mVol: document.getElementById('maxVolume').value,\
+                mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,\
+                mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,\
                 iBright: document.getElementById('initBrightness').value,\
                 nBright: document.getElementById('nightBrightness').value,\
                 iTime: document.getElementById('inactivityTime').value\
