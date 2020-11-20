@@ -17,7 +17,7 @@ The basic idea of Tonuino (and my fork, respectively) is to provide a way, to us
 
 ## Hardware-setup
 The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). If unsure have a look at eBay or Aliexpress for "Lolin 32".
-* [Adafruit's MAX98357A](https://www.ebay.de/itm/MAX98357-Amplifier-Breakout-Interface-I2S-Class-D-Module-For-ESP32-Raspberry-Pi/174319322988)
+* [MAX98357A (like Adafruit's)](https://www.ebay.de/itm/MAX98357-Amplifier-Breakout-Interface-I2S-Class-D-Module-For-ESP32-Raspberry-Pi/174319322988)
 * [uSD-card-reader 3.3V + 5V](https://www.amazon.de/AZDelivery-Reader-Speicher-Memory-Arduino/dp/B077MB17JB)
 * [uSD-card-reader 3.3V only](https://www.ebay.de/itm/Micro-SD-Karten-SD-Card-Modul-SPI-fur-Breadboard-Arduino-Raspberry-Pi/183106778276)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
@@ -36,7 +36,7 @@ In the upper section of main.cpp you can specify the modules that should be comp
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
 ## Wiring (2 SPI-instances)
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs but just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is set to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa.
+A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs but just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is set to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution.
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
@@ -57,7 +57,7 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
-| ---           | MAX98357              | SD     | If pulled down to GND amp will turn off                      |
+| ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
 | 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RE |
 | 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
@@ -65,7 +65,7 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | GND           | Rotary encoder        | GND    |                                                              |
 | 4             | Button (next)         |        |                                                              |
 | GND           | Button (next)         |        |                                                              |
-| 33            | Button (previous)     |        |                                                              |
+| 2             | Button (previous)     |        |                                                              |
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
@@ -73,12 +73,15 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 | GND           | Neopixel              | GND    |                                                              |
 | 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
+| 33            | Voltage-divider / BAT |        | Optional: Voltage-divider to monitor battery-voltage         |
+
 
 Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k. <br />
 Also tested this successfully for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 4,7k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. <br />
 Advice: When powering a SD-card-reader solely with 3.3V, make sure to use one WITHOUT a voltage regulator. Or at least one with a pin dedicated for 3.3V (bypassing voltage regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-).
 
 ## Wiring (1 SPI-instance) [EXPERIMENTAL!]
+Basically the same as using 2 SPI-instances but...
 In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins.
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
@@ -97,7 +100,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
-| ---           | MAX98357              | SD     | If pulled down to GND amp will turn off                      |
+| ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
 | 34            | Rotary encoder        | CLR    | Invert CLR with DT if you want to change the direction of RE |
 | 35            | Rotary encoder        | DT     | Invert CLR with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
@@ -105,7 +108,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | GND           | Rotary encoder        | GND    |                                                              |
 | 4             | Button (next)         |        |                                                              |
 | GND           | Button (next)         |        |                                                              |
-| 33            | Button (previous)     |        |                                                              |
+| 2             | Button (previous)     |        |                                                              |
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
@@ -113,6 +116,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | GND           | Neopixel              | GND    |                                                              |
 | 12            | Neopixel              | DI     | Might be necessary to use a logic-converter 3.3 => 5V        |
 | 17            | (e.g.) BC337 (via R5) | Base   | Don't forget R5!                                             |
+| 33            | Voltage-divider / BAT |        | Optional: Voltage-divider to monitor battery-voltage         |
 
 ## Wiring (custom) / different pinout
 When using a develboard with for example SD-card-reader already integrated, the pinouts described above my not fit your needs; feel free to change them according your needs. Additionaly some boards may use one or some of the GPIOs I used for their internal purposes and that reason for are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
@@ -128,10 +132,12 @@ Keep in mind the RFID-lib I used is intended for default-SPI-pins only (SCK, MIS
 * please note: by using audiobook-mode any playlist-savings will be overwritten with every start unless the RFID-cards in setup() are commented out. Main way to link RFID to an action will be a webservice (still under development)
 * If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
 * compile and upload the sketch
-* Please keep in mind that working SD is mandatory. Unless `SD_NOT_MANDATORY_ENABLE` is not set, Tonuino will never fully start up if SD is not working. Only use `SD_NOT_MANDATORY_ENABLE` for debugging as for normal operational mode, not having SD working doesn't make sense!
+* Please keep in mind that working SD is mandatory. Unless `SD_NOT_MANDATORY_ENABLE` is not set, Tonuino will never fully start up if SD is not working. Only use `SD_NOT_MANDATORY_ENABLE` for debugging as for normal operational mode, not having SD working doesn't make sense.
+* If you want to monitor the battery-voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Make sure to use a voltage-divider as voltage of a LiPo is way too high. For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat--130k--X--390k--GND). X is the measure-point where to connect the GPIO to.
+* If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically.
 
 ## Starting Tonuino-ESP32 first time
-After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials + the hostname (Tonuio's name) and save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to got: place your favourite RFID-tag next to the RFID-reader and the music should start to play. While the playlist is generated, fast-rotating LEDs are shown. The more tracks a playlist/directory contains the longer this step takes. <br >
+After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available. Enter WiFI-credentials + the hostname (Tonuio's name) and save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to go: start learning RFID-tags via GUI. To reach the GUI enter the IP stated in the serial console or use the hostname. For example if you're using a Fritzbox as router and entered tonuino as hostname, in your webbrowser tonuino.fritz.box should work. After running the rfid-learning, place your RFID-tag next to the RFID-reader and the music (or whatever else you defined) should start to play. While the playlist is generated, fast-rotating LEDs are shown to indicate, that Tonuino is busy. The more tracks a playlist/directory contains the longer this step takes. <br >
 Please note: hostname can be used to call webgui or FTP-server. I tested it with a Fritzbox 7490 and worked fine. Make sure you don't use a name that already exists in you local network (LAN).
 
 ## After Tonuino-ESP32 is connected to your WiFi

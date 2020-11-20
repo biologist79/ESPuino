@@ -140,3 +140,6 @@ static const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Unable to find st
 static const char wifiHostnameNotSet[] PROGMEM = "Unable to find hostname-configuration to NVS.";
 static const char mqttConnFailed[] PROGMEM = "Unable to establish mqtt-connection, trying again...";
 static const char restoredHostnameFromNvs[] PROGMEM = "Restored hostname from NVS";
+static const char currentVoltageMsg[] PROGMEM = "Current battery-voltage";
+static const char voltageTooLow[] PROGMEM = "Low battery-voltage";
+static const char sdBootFailedDeepsleep[] PROGMEM = "Failed to boot due to SD. Will go to deepsleep...";

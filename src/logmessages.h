@@ -140,3 +140,6 @@ static const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Statische WLAN-IP
 static const char wifiHostnameNotSet[] PROGMEM = "Keine Hostname-Konfiguration im NVS gefunden.";
 static const char mqttConnFailed[] PROGMEM = "Verbindung fehlgeschlagen, versuche erneut in Kürze erneut";
 static const char restoredHostnameFromNvs[] PROGMEM = "Hostname aus NVS geladen";
+static const char currentVoltageMsg[] PROGMEM = "Aktuelle Batteriespannung";
+static const char voltageTooLow[] PROGMEM = "Batteriespannung niedrig";
+static const char sdBootFailedDeepsleep[] PROGMEM = "Bootgang wegen SD fehlgeschlagen. Gehe in Deepsleep...";
