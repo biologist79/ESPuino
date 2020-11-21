@@ -97,10 +97,10 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <h2>RFID-modifications</h2>\
         <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\">\
             <div class=\"form-group col-md-6\">\
-                <label for=\"rfidIdMod\">RFID-chip-ID (12-digits)</label>\
+                <label for=\"rfidIdMod\">RFID-chip-ID (12 digits)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMod\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMod\" required>\
                 <div class=\"invalid-feedback\">\
-                  Please enter a 12-digits-number.\
+                  Please enter a number with 12 digits.\
                 </div>\
                 <label for=\"modId\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"modId\" name=\"modId\">\
@@ -132,15 +132,12 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 </label>\
             </div>\
             <div class=\"form-group my-2 col-md-6\">\
-                <label for=\"mqttServer\">MQTT-server (IP-address)</label>\
-                <input type=\"text\" class=\"form-control\" id=\"mqttServer\" pattern=\"^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$\" minlength=\"7\" maxlength=\"15\" placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
-                <div class=\"invalid-feedback\">\
-                  Please enter a valid IPv4-address, e.g. 192.168.2.89.\
-                </div>\
+                <label for=\"mqttServer\">MQTT-server</label>\
+                <input type=\"text\" class=\"form-control\" id=\"mqttServer\" minlength=\"7\" maxlength=\"%MQTT_SERVER_LENGTH%\" placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
                 <label for=\"mqttUser\">MQTT-username (optional):</label>\
-                <input type=\"text\" class=\"form-control\" id=\"mqttUser\" maxlength=\"15\" placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
+                <input type=\"text\" class=\"form-control\" id=\"mqttUser\" maxlength=\"%MQTT_USER_LENGTH%\" placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
                 <label for=\"mqttPwd\">Password (optional):</label>\
-                <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"15\" placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
+                <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\" placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
             </div>\
           <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
           <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
@@ -152,9 +149,9 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         <form action=\"#ftpConfig\" method=\"POST\" onsubmit=\"ftpSettings('ftpConfig'); return false\">\
           <div class=\"form-group col-md-6\">\
             <label for=\"ftpUser\">FTP-username:</label>\
-            <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"32\" placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
+            <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\" placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
             <label for=\"pwd\">password:</label>\
-            <input type=\"password\" class=\"form-control\" id=\"ftpPwd\" maxlength=\"32\" placeholder=\"Passwort\" name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
+            <input type=\"password\" class=\"form-control\" id=\"ftpPwd\" maxlength=\"%FTP_PWD_LENGTH%\" placeholder=\"Passwort\" name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
           </div>\
           <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
           <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
@@ -167,14 +164,16 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initialVolume\">Volume after start</label>\
                 <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\" value=\"%INIT_VOLUME%\" required>\
-                <label for=\"maxVolume\">Maximum volume</label>\
-                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolume\" name=\"maxVolume\" value=\"%MAX_VOLUME%\" required>\
+                <label for=\"maxVolumeSpeaker\">Maximum volume (speaker)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\" value=\"%MAX_VOLUME_SPEAKER%\" required>\
+                <label for=\"maxVolumeHeadphone\">Maximum volume (headphone)</label>\
+                <input type=\"number\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\" value=\"%MAX_VOLUME_HEADPHONE%\" required>\
             </div>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"initBrightness\">Neopixel-brightness after start</label>\
-                <input type=\"number\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\" value=\"%INIT_LED_BRIGHTBESS%\" required>\
+                <input type=\"number\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\" value=\"%INIT_LED_BRIGHTNESS%\" required>\
                 <label for=\"nightBrightness\">Neopixel-brightness in nightmode</label>\
-                <input type=\"number\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\" value=\"%NIGHT_LED_BRIGHTBESS%\" required>\
+                <input type=\"number\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\" value=\"%NIGHT_LED_BRIGHTNESS%\" required>\
             </div>\
             <div class=\"form-group col-md-6\">\
                 <label for=\"inactivityTime\">Deepsleep after inactivity (minutes)</label>\
@@ -250,15 +249,15 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
               $(\"#rfidIdMod\").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);\
 \
             } if (socketMsg.status != null) {\
-              if (socketMsg.status == 'ok') {\
-                $(\"#\" + lastIdclicked).find('.messages').html(okBox);\
-              } else {\
-                $(\"#\" + lastIdclicked).find('.messages').html(errorBox);\
-              }\
+                if (socketMsg.status == 'ok') {\
+                  $(\"#\" + lastIdclicked).find('.messages').html(okBox);\
+                } else {\
+                  $(\"#\" + lastIdclicked).find('.messages').html(errorBox);\
+                }\
             } if (socketMsg.pong != null) {\
-              if (socketMsg.pong == 'pong') {\
-                pong();\
-              }\
+                if (socketMsg.pong == 'pong') {\
+                  pong();\
+                }\
             }\
           };\
 \
@@ -267,7 +266,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             var myObj = {\
               \"general\": {\
                 iVol: document.getElementById('initialVolume').value,\
-                mVol: document.getElementById('maxVolume').value,\
+                mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,\
+                mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,\
                 iBright: document.getElementById('initBrightness').value,\
                 nBright: document.getElementById('nightBrightness').value,\
                 iTime: document.getElementById('inactivityTime').value\
