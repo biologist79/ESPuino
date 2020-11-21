@@ -2,11 +2,11 @@
 #define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 //#define FTP_ENABLE                  // Enables FTP-server
 //#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
-#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
+//#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
 // #define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO
 #define MFRC522_BUS 2           // If MFRC522 should be connected to I2C-Port(2) or SPI(1)
-
+#define DISPLAY_I2C             // If external Display via I2C connected - tested with SH1106_128X64_NONAME
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
@@ -22,6 +22,9 @@
 #include "Audio.h"
 #if (HAL == 2)
     #include "AC101.h"
+#endif
+#ifdef DISPLAY_I2C
+    #include <U8g2lib.h>
 #endif
 #include "SPI.h"
 #include "SD.h"
@@ -40,8 +43,7 @@
     #include "logmessages.h"
     #include "websiteMgmt.h"
     #include "websiteBasic.h"
-#endif
-#if (LANGUAGE == 2)
+#elif (LANGUAGE == 2)
     #include "logmessages_EN.h"
     #include "websiteMgmt_EN.h"
     #include "websiteBasic_EN.h"
@@ -117,6 +119,9 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define SPISD_MISO                       2
 #define SPISD_SCK                       14          // JT_MTMS
 
+// GPIO used to trigger transistor-circuit / RFID-reader
+#define POWER                           19
+
 #if (MFRC522_BUS == 1)
 // GPIOs (RFID-readercurrentRfidTagId)
 #include <MFRC522.h>                                // Custom Lib needed
@@ -126,15 +131,17 @@ extern SPIClass SPI_MFRC;
 MFRC522_SPI mfrcDevice = MFRC522_SPI(MFRC522_CS_PIN, MFRC522_RST_PIN);
 
 #elif (MFRC522_BUS == 2)
+#include <Wire.h>
 #include <MFRC522_I2C.h>
-#define MFRC522_RST_PIN                 99          // unused - just for definition
+#define MFRC522_RST_PIN                 POWER          // needed for i2c-comm
 // second I2C GPIOs
 #define ext_IIC_CLK                         23          // 14-pin-header
-#define ext_IIC_DATA                        22          // 14-pin-header
+#define ext_IIC_DATA                        18          // 14-pin-header
+#endif
 
-TwoWire i2cBus = TwoWire(1);
-MFRC522 mfrc522(MFRC522_RST_PIN , 0x28, i2cBus);
-// END MFRC522_BUS
+#ifdef DISPLAY_I2C
+// OLED Display - https://github.com/olikraus/u8g2/wiki/u8g2setupcpp#sh1106-128x64_noname-1
+U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ ext_IIC_CLK, /* data=*/ ext_IIC_DATA);
 #endif
 
 // DAC (internal)
@@ -147,9 +154,6 @@ MFRC522 mfrc522(MFRC522_RST_PIN , 0x28, i2cBus);
 // I2C GPIOs
 #define IIC_CLK                         32          // internal
 #define IIC_DATA                        33          // internal
-
-// GPIO used to trigger transistor-circuit / RFID-reader
-#define POWER                           19
 
 // Amp enable
 #define GPIO_PA_EN                      21          // internal
@@ -1567,14 +1571,7 @@ void playAudio(void *parameter) {
 
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-#if (HAL == 1)
-//    static MFRC522 mfrc522(RFID_CS, RST_PIN);
-    #ifndef SINGLE_SPI_ENABLE
-        SPI.begin();
-    #endif
-#elif (HAL == 2)
-    i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-#endif
+    
     mfrc522.PCD_Init();
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
@@ -3097,7 +3094,7 @@ void setup() {
     Serial.begin(115200);
     srand(esp_random());
     pinMode(POWER, OUTPUT);
-    digitalWrite(POWER, HIGH);
+//    digitalWrite(POWER, HIGH);
     prefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     prefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
 
@@ -3124,6 +3121,25 @@ void setup() {
     prefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
+
+#if (MFRC522_BUS == 1)
+    #ifndef SINGLE_SPI_ENABLE
+        SPI.begin();
+    #endif
+#elif (MFRC522_BUS == 2)
+TwoWire i2cBus = TwoWire(1);
+i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+MFRC522 mfrcdevice(MFRC522_RST_PIN , 0x28, i2cBus);
+// END MFRC522_BUS
+i2cBus.beginTransmission(40);
+if (i2cBus.endTransmission() == 0) {
+    String s;
+      s+="I2C device found at 0x";
+      s+=String(40,HEX);
+      s+="\n";
+    Serial.println(s);
+    }
+#endif
 
 #ifdef NEOPIXEL_ENABLE
     xTaskCreatePinnedToCore(
@@ -3408,6 +3424,19 @@ void setup() {
         wServer.onNotFound(notFound);
         wServer.begin();
     }
+
+    #ifdef DISPLAY_I2C
+        u8g2.begin();
+        u8g2.firstPage();
+        do {
+            u8g2.setFont(u8g2_font_ncenB08_tr);
+            u8g2.drawStr(0,15,"Tonuino gestartet");
+            u8g2.drawStr(15,30,"Papas Projekt");
+        } while ( u8g2.nextPage() );
+    #endif
+
+
+
     bootComplete = true;
 
     /*char *sdC = (char *) calloc(16384, sizeof(char));
@@ -3416,9 +3445,9 @@ void setup() {
     Serial.println(sdC);
     Serial.println(strlen(sdC));
     Serial.println(ESP.getFreeHeap());
-    free (sdC);*/
+    free (sdC);
     Serial.print(F("Free heap: "));
-    Serial.println(ESP.getFreeHeap());
+    Serial.println(ESP.getFreeHeap()); */
 }
 
 
@@ -3446,6 +3475,7 @@ void loop() {
             lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
         }
     #endif
+
 }
 
 
