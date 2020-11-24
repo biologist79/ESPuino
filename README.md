@@ -200,7 +200,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * current track in loop-mode (is "stronger" than playlist-loop but doesn't overwrite it!)
 * playlist in loop-mode
 * track und playlist loop-mode can both be activated at the same time, but unless track-loop isn't deactivated, playlist-loop won't be effective
-* Toggle WiFi (enable/disable; effektive after reboot)
+* Toggle WiFi (enable/disable; effective after reboot)
 
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS

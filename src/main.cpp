@@ -550,7 +550,6 @@ void doButtonActions(void) {
             wifiStatusToggledTimestamp = millis();
             buttons[0].isPressed = false;
             buttons[1].isPressed = false;
-            Serial.println(wifiManager());
             if (writeWifiStatusToNVS(!getWifiEnableStatusFromNVS())) {
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;       // Tell user action was accepted
