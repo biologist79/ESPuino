@@ -261,6 +261,8 @@ static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every
 unsigned long wifiCheckLastTimestamp = 0;
 bool wifiEnabled;                                       // Current status if wifi is enabled
 uint32_t wifiStatusToggledTimestamp = 0;
+bool webserverStarted = false;
+bool wifiNeedsRestart = false;
 // Neopixel
 #ifdef NEOPIXEL_ENABLE
     bool showLedError = false;
@@ -412,6 +414,7 @@ bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
 bool getWifiEnableStatusFromNVS(void);
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 void headphoneVolumeManager(void);
 bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
@@ -1297,6 +1300,8 @@ void playAudio(void *parameter) {
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndStop), LOGLEVEL_INFO);
                     playProperties.pausePlay = true;
+                    playProperties.playlistFinished = true;
+                    playProperties.playMode = NO_PLAYLIST;
                     continue;
 
                 case PAUSEPLAY:
@@ -2715,12 +2720,18 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
         if (prefsSettings.putUInt("enableWifi", 0)) {  // disable
             loggerNl((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
+            trackControlToQueueSender(STOP);
+            delay(300);
+            WiFi.mode(WIFI_OFF);
+            wifiEnabled = false;
             return true;
         }
 
     } else {
         if (prefsSettings.putUInt("enableWifi", 1)) {  // enable
             loggerNl((char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
+            wifiNeedsRestart = true;
+            wifiEnabled = true;
             return true;
         }
     }
@@ -2734,7 +2745,7 @@ wl_status_t wifiManager(void) {
         return WiFi.status();
     }
 
-    if (wifiCheckLastTimestamp == 0) {
+    if (!wifiCheckLastTimestamp || wifiNeedsRestart) {
         // Get credentials from NVS
         String strSSID = prefsSettings.getString("SSID", "-1");
         if (!strSSID.compareTo("-1")) {
@@ -2781,6 +2792,7 @@ wl_status_t wifiManager(void) {
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
+        wifiNeedsRestart = false;
     }
 
     return WiFi.status();
@@ -3090,6 +3102,36 @@ bool isNumber(const char *str) {
       return false;
   }
 
+}
+
+
+void webserverStart(void) {
+    if (wifiManager() == WL_CONNECTED && !webserverStarted) {
+    // attach AsyncWebSocket for Mgmt-Interface
+    ws.onEvent(onWebsocketEvent);
+    wServer.addHandler(&ws);
+
+    // attach AsyncEventSource
+    wServer.addHandler(&events);
+
+    wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send_P(200, "text/html", mgtWebsite, templateProcessor);
+    });
+
+    wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
+            request->send_P(200, "text/html", backupRecoveryWebsite);
+    }, handleUpload);
+
+    wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        request->send_P(200, "text/html", restartWebsite);
+        Serial.flush();
+        ESP.restart();
+    });
+
+    wServer.onNotFound(notFound);
+    wServer.begin();
+    webserverStarted = true;
+    }
 }
 
 
@@ -3515,7 +3557,7 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    if (wifiManager() == WL_CONNECTED) {
+    /*if (wifiManager() == WL_CONNECTED) {
         // attach AsyncWebSocket for Mgmt-Interface
         ws.onEvent(onWebsocketEvent);
         wServer.addHandler(&ws);
@@ -3539,7 +3581,7 @@ void setup() {
 
         wServer.onNotFound(notFound);
         wServer.begin();
-    }
+    }*/
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
@@ -3548,6 +3590,7 @@ void setup() {
 
 
 void loop() {
+    webserverStart();
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
     #endif

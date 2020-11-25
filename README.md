@@ -143,7 +143,7 @@ Please note: hostname can be used to call webgui or FTP-server. I tested it with
 WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled. There are two ways to do that:
 * Use a special modification-card that can be configured via webgui
 * Press previous + next-button in parallel shortly
-This toggles the current WiFi-status which means: if it's currently enabled, it will be disabled and vice versa. Please note: change is *not effective until the next reboot* but will remain until you change it again. Having Wifi enabled is indicated in idle-mode (no playlist active) with four white slow rotating LEDs whereas disabled WiFi is represented by those ones colored blue.
+This toggles the current WiFi-status which means: if it's currently enabled, it will be disabled and vice versa. Please note: This status will remain until you change it again. Having Wifi enabled is indicated in idle-mode (no playlist active) with four white slow rotating LEDs whereas disabled WiFi is represented by those ones colored blue.
 ## After Tonuino-ESP32 is connected to your WiFi
 After getting Tonuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router. Using this GUI, you can configure:
 * WiFi
@@ -200,7 +200,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * current track in loop-mode (is "stronger" than playlist-loop but doesn't overwrite it!)
 * playlist in loop-mode
 * track und playlist loop-mode can both be activated at the same time, but unless track-loop isn't deactivated, playlist-loop won't be effective
-* Toggle WiFi (enable/disable; effective after reboot)
+* Toggle WiFi (enable/disable)
 
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
