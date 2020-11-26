@@ -59,6 +59,8 @@
           </div>
           <label for="pwd">Passwort:</label>
           <input type="password" class="form-control" id="pwd" placeholder="Passwort" name="pwd" required>
+          <label for="hostname">Tonuino-Name (Hostname):</label>
+          <input type="text" class="form-control" id="hostname" placeholder="tonuino" name="hostname" value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
         </div>
         <button type="reset" class="btn btn-secondary">Reset</button>
         <button type="submit" class="btn btn-primary">Absenden</button>
@@ -113,6 +115,7 @@
                     <option value="110">Wiederhole Playlist (endlos)</option>
                     <option value="111">Wiederhole Titel (endlos)</option>
                     <option value="112">Dimme LEDs (Nachtmodus)</option>
+                    <option value="130">Aktiviere/deaktive WLAN</option>
                 </select>
           </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
@@ -130,11 +133,12 @@
                 </label>
             </div>
             <div class="form-group my-2 col-md-6">
-                <label for="mqttServer">MQTT-Server (IP-Adresse)</label>
-                <input type="text" class="form-control" id="mqttServer" pattern="^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$" minlength="7" maxlength="15" placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
-                <div class="invalid-feedback">
-                  Bitte eine gültige IPv4-Adresse eingeben, z.B. 192.168.2.89.
-                </div>
+                <label for="mqttServer">MQTT-Server</label>
+                <input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="%MQTT_SERVER_LENGTH%" placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
+                <label for="mqttUser">MQTT-Benutzername (optional):</label>
+                <input type="text" class="form-control" id="mqttUser" maxlength="%MQTT_USER_LENGTH%" placeholder="Benutzername" name="mqttUser" value="%MQTT_USER%">
+                <label for="mqttPwd">Passwort (optional):</label>
+                <input type="password" class="form-control" id="mqttPwd" maxlength="%MQTT_PWD_LENGTH%" placeholder="Passwort" name="mqttPwd" value="%MQTT_PWD%">
             </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
           <button type="submit" class="btn btn-primary">Absenden</button>
@@ -146,9 +150,9 @@
         <form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
           <div class="form-group col-md-6">
             <label for="ftpUser">FTP-Benutzername:</label>
-            <input type="text" class="form-control" id="ftpUser" maxlength="32" placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
+            <input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%" placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
             <label for="pwd">Passwort:</label>
-            <input type="password" class="form-control" id="ftpPwd" maxlength="32" placeholder="Passwort" name="ftpPwd" value="%FTP_PWD%" required>
+            <input type="password" class="form-control" id="ftpPwd" maxlength="%FTP_PWD_LENGTH%" placeholder="Passwort" name="ftpPwd" value="%FTP_PWD%" required>
           </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
           <button type="submit" class="btn btn-primary">Absenden</button>
@@ -161,14 +165,16 @@
             <div class="form-group col-md-6">
                 <label for="initialVolume">Lautstärke nach dem Einschalten</label>
                 <input type="number" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" value="%INIT_VOLUME%" required>
-                <label for="maxVolume">Maximale Lautstärke</label>
-                <input type="number" min="1" max="21" class="form-control" id="maxVolume" name="maxVolume" value="%MAX_VOLUME%" required>
+                <label for="maxVolumeSpeaker">Maximale Lautstärke (Lautsprecher)</label>
+                <input type="number" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" value="%MAX_VOLUME_SPEAKER%" required>
+                <label for="maxVolumeHeadphone">Maximale Lautstärke (Kopfhörer)</label>
+                <input type="number" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" value="%MAX_VOLUME_HEADPHONE%" required>
             </div>
             <div class="form-group col-md-6">
                 <label for="initBrightness">Neopixel-Helligkeit nach dem Einschalten</label>
-                <input type="number" min="0" max="255" class="form-control" id="initBrightness" name="initBrightness" value="%INIT_LED_BRIGHTBESS%" required>
+                <input type="number" min="0" max="255" class="form-control" id="initBrightness" name="initBrightness" value="%INIT_LED_BRIGHTNESS%" required>
                 <label for="nightBrightness">Neopixel-Helligkeit im Nachtmodus</label>
-                <input type="number" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" value="%NIGHT_LED_BRIGHTBESS%" required>
+                <input type="number" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" value="%NIGHT_LED_BRIGHTNESS%" required>
             </div>
             <div class="form-group col-md-6">
                 <label for="inactivityTime">Deep-Sleep nach Inaktivität (Minuten)</label>
@@ -244,15 +250,15 @@
               $("#rfidIdMod").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
 
             } if (socketMsg.status != null) {
-              if (socketMsg.status == 'ok') {
-                $("#" + lastIdclicked).find('.messages').html(okBox);
-              } else {
-                $("#" + lastIdclicked).find('.messages').html(errorBox);
-              }
+                if (socketMsg.status == 'ok') {
+                  $("#" + lastIdclicked).find('.messages').html(okBox);
+                } else {
+                  $("#" + lastIdclicked).find('.messages').html(errorBox);
+                }
             } if (socketMsg.pong != null) {
-              if (socketMsg.pong == 'pong') {
-                pong();
-              }
+                if (socketMsg.pong == 'pong') {
+                  pong();
+                }
             }
           };
 
@@ -261,7 +267,8 @@
             var myObj = {
               "general": {
                 iVol: document.getElementById('initialVolume').value,
-                mVol: document.getElementById('maxVolume').value,
+                mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,
+                mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,
                 iBright: document.getElementById('initBrightness').value,
                 nBright: document.getElementById('nightBrightness').value,
                 iTime: document.getElementById('inactivityTime').value
@@ -294,7 +301,9 @@
             var myObj = {
               "mqtt": {
                 mqttEnable: val,
-                mqttServer: document.getElementById('mqttServer').value
+                mqttServer: document.getElementById('mqttServer').value,
+                mqttUser: document.getElementById('mqttUser').value,
+                mqttPwd: document.getElementById('mqttPwd').value
               }
             };
             var myJSON = JSON.stringify(myObj);
@@ -338,7 +347,8 @@
             var myObj = {
               "wifiConfig": {
                 ssid: document.getElementById('ssid').value,
-                pwd: document.getElementById('pwd').value
+                pwd: document.getElementById('pwd').value,
+                hostname: document.getElementById('hostname').value
               }
             };
             var myJSON = JSON.stringify(myObj);
