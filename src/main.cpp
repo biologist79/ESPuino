@@ -1,5 +1,5 @@
 // Define modules to compile:
-#define MQTT_ENABLE
+//#define MQTT_ENABLE
 #define FTP_ENABLE
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
@@ -72,8 +72,8 @@ char logBuf[160];                                   // Buffer for all log-messag
 #define POWER                           17
 
 // GPIOs (Rotary encoder)
-#define DREHENCODER_CLK                 34
-#define DREHENCODER_DT                  35
+#define DREHENCODER_CLK                 35
+#define DREHENCODER_DT                  34
 #define DREHENCODER_BUTTON              32
 
 // GPIOs (Control-buttons)
@@ -86,7 +86,7 @@ char logBuf[160];                                   // Buffer for all log-messag
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    24          // number of LEDs
+    #define NUM_LEDS                    9          // number of LEDs
     #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
 #endif
