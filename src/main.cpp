@@ -2720,7 +2720,9 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
         if (prefsSettings.putUInt("enableWifi", 0)) {  // disable
             loggerNl((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
-            trackControlToQueueSender(STOP);
+            if (playProperties.playMode == WEBSTREAM) {
+                trackControlToQueueSender(STOP);
+            }
             delay(300);
             WiFi.mode(WIFI_OFF);
             wifiEnabled = false;
