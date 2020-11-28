@@ -7,8 +7,10 @@
 #define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
+#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+//#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
-//#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it). Will overwrite SHUTDOWN_IF_SD_BOOT_FAILS!
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
@@ -121,12 +123,16 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 // GPIOs (LEDs)
 #define LED_PIN                         12          // Pin where Neopixel is connected to
 
+// (optional) Default-voltages for battery-monitoring
+float warningLowVoltage = 3.4;                      // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
+uint8_t voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
+float voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
+float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
+
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            33          // Pin to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro
     uint16_t r1 = 391;                              // First resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
     uint8_t r2 = 128;                               // Second resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
-    float warningLowVoltage = 3.22;                  // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel
-    uint8_t voltageCheckInterval = 5;               // How of battery-voltage is measured (in minutes)
 
     // Internal values
     float refVoltage = 3.3;                         // Operation-voltage of ESP32; don't change!
@@ -142,6 +148,10 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
     #define NUM_LEDS                    24          // number of LEDs
     #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
+#endif
+
+#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+    bool recoverLastRfid = true;
 #endif
 
 // Track-Control
@@ -269,6 +279,7 @@ bool wifiNeedsRestart = false;
     bool showLedOk = false;
     bool showPlaylistProgress = false;
     bool showRewind = false;
+    bool showLedVoltage = false;
 #endif
 // MQTT
 #ifdef MQTT_ENABLE
@@ -419,6 +430,7 @@ void headphoneVolumeManager(void);
 bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
 void logger(const char *str, const uint8_t logLevel);
+float measureBatteryVoltage(void);
 #ifdef MQTT_ENABLE
     bool publishMqtt(const char *topic, const char *payload, bool retained);
 #endif
@@ -484,13 +496,37 @@ void IRAM_ATTR onTimer() {
 }
 
 
+#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+    void storeLastRfidPlayed(char *_rfid) {
+        prefsSettings.putString("lastRfid", (String) _rfid);
+    }
+
+    void recoverLastRfidPlayed(void) {
+        if (recoverLastRfid) {
+            recoverLastRfid = false;
+            String lastRfidPlayed = prefsSettings.getString("lastRfid", "-1");
+            if (!lastRfidPlayed.compareTo("-1")) {
+                loggerNl((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
+            } else {
+                char *lastRfid = strdup(lastRfidPlayed.c_str());
+                xQueueSend(rfidCardQueue, &lastRfid, 0);
+                snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
+                loggerNl(logBuf, LOGLEVEL_INFO);
+            }
+        }
+    }
+#endif
+
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
 #ifdef MEASURE_BATTERY_VOLTAGE
+    float measureBatteryVoltage(void) {
+        float factor = 1 / ((float) r1/(r1+r2));
+        return ((float) analogRead(VOLTAGE_READ_PIN) / maxAnalogValue) * refVoltage * factor;
+    }
+
     void batteryVoltageTester(void) {
         if ((millis() - lastVoltageCheckTimestamp >= voltageCheckInterval*60000) || (!lastVoltageCheckTimestamp && millis()>=10000)) {
-            float factor = 1 / ((float) r1/(r1+r2));
-            float voltage = ((float) analogRead(VOLTAGE_READ_PIN) / maxAnalogValue) * refVoltage * factor;
-
+            float voltage = measureBatteryVoltage();
             #ifdef NEOPIXEL_ENABLE
                 if (voltage <= warningLowVoltage) {
                     snprintf(logBuf, serialLoglength, "%s: (%.2f V)", (char *) FPSTR(voltageTooLow), voltage);
@@ -610,8 +646,18 @@ void doButtonActions(void) {
                         break;
 
                     case 3:
-                        //gotoSleep = true;
-                        break;
+                        buttons[i].isPressed = false;
+                        #ifdef MEASURE_BATTERY_VOLTAGE
+                            float voltage = measureBatteryVoltage();
+                            snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
+                            loggerNl(logBuf, LOGLEVEL_INFO);
+                            showLedVoltage = true;
+                            #ifdef MQTT_ENABLE
+                                char vstr[6];
+                                snprintf(vstr, 6, "%.2f", voltage);
+                                publishMqtt((char *) FPSTR(topicBatteryVoltage), vstr, false);
+                            #endif
+                        #endif
                     }
                 }
             }
@@ -759,7 +805,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     else if (strcmp_P(topic, topicTrackCmnd) == 0) {
         char *_rfidId = strdup(receivedString);
         xQueueSend(rfidCardQueue, &_rfidId, 0);
-        free(_rfidId);
+        //free(_rfidId);
     }
     // Loudness to change?
     else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
@@ -1702,7 +1748,6 @@ void showLed(void *parameter) {
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
                 leds[ledAddress(led)] = CRGB::Red;
                 if (buttons[3].currentState) {
-                    FastLED.clear();
                     FastLED.show();
                     delay(5);
                     deepSleepManager();
@@ -1758,6 +1803,40 @@ void showLed(void *parameter) {
                     vTaskDelay(portTICK_RATE_MS * 200);
                 }
             }
+
+            if (showLedVoltage) {
+                showLedVoltage = false;
+                float currentVoltage = measureBatteryVoltage();
+                float vDiffIndicatorRange = voltageIndicatorHigh-voltageIndicatorLow;
+                float vDiffCurrent = currentVoltage-voltageIndicatorLow;
+
+                if (vDiffCurrent < 0) {     // If voltage is too low or no battery is connected
+                    showLedError = true;
+                    break;
+                } else {
+                    uint8_t numLedsToLight = ((float) vDiffCurrent/vDiffIndicatorRange) * NUM_LEDS;
+                    FastLED.clear();
+                    for (uint8_t led = 0; led < numLedsToLight; led++) {
+                        if (((float) numLedsToLight / NUM_LEDS) >= 0.6) {
+                            leds[ledAddress(led)] = CRGB::Green;
+                        } else if (((float) numLedsToLight / NUM_LEDS) <= 0.6 && ((float) numLedsToLight / NUM_LEDS) >= 0.3) {
+                            leds[ledAddress(led)] = CRGB::Orange;
+                        } else {
+                            leds[ledAddress(led)] = CRGB::Red;
+                        }
+                    FastLED.show();
+                    vTaskDelay(portTICK_RATE_MS*20);
+                    }
+
+                    for (uint8_t i=0; i<=100; i++) {
+                        if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[3].currentState) {
+                            break;
+                        }
+
+                        vTaskDelay(portTICK_RATE_MS*20);
+                    }
+                }
+            }
         #endif
 
         if (hlastVolume != currentVolume) {         // If volume has been changed
@@ -1805,7 +1884,7 @@ void showLed(void *parameter) {
                     leds[ledAddress(i)] = CRGB::Blue;
                     FastLED.show();
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
                     #else
                         if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                     #endif
@@ -1817,7 +1896,7 @@ void showLed(void *parameter) {
 
                 for (uint8_t i=0; i<=100; i++) {
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
                     #else
                         if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                     #endif
@@ -1831,7 +1910,7 @@ void showLed(void *parameter) {
                     leds[ledAddress(i)-1] = CRGB::Black;
                     FastLED.show();
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
                     #else
                         if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
                     #endif
@@ -1862,7 +1941,7 @@ void showLed(void *parameter) {
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
                             #ifdef MEASURE_BATTERY_VOLTAGE
-                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
+                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
                             #else
                                 if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
                             #endif
@@ -1901,7 +1980,7 @@ void showLed(void *parameter) {
             default:                            // If playlist is active (doesn't matter which type)
                 if (!playProperties.playlistFinished) {
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || showVoltageWarning || !buttons[3].currentState) {
+                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
                     #else
                         if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[3].currentState) {
                     #endif
@@ -2111,6 +2190,10 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
     playProperties.sleepAfterPlaylist = false;
     playProperties.saveLastPlayPosition = false;
     playProperties.playUntilTrackNumber = 0;
+
+    #ifdef PLAY_LAST_RFID_AFTER_REBOOT
+        storeLastRfidPlayed(currentRfidTagId);
+    #endif
 
     switch(playProperties.playMode) {
         case SINGLE_TRACK: {
@@ -2823,6 +2906,14 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("maxVolumeSp", 0));
     } else if (templ == "MAX_VOLUME_HEADPHONE") {
         return String(prefsSettings.getUInt("maxVolumeHp", 0));
+    } else if (templ == "WARNING_LOW_VOLTAGE") {
+        return String(prefsSettings.getFloat("wLowVoltage", warningLowVoltage));
+    } else if (templ == "VOLTAGE_INDICATOR_LOW") {
+        return String(prefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
+    } else if (templ == "VOLTAGE_INDICATOR_HIGH") {
+        return String(prefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
+    } else if (templ == "VOLTAGE_CHECK_INTERVAL") {
+        return String(prefsSettings.getUInt("vCheckIntv", voltageCheckInterval));
     } else if (templ == "MQTT_SERVER") {
         return prefsSettings.getString("mqttServer", "-1");
     } else if (templ == "MQTT_ENABLE") {
@@ -2875,6 +2966,10 @@ bool processJsonRequest(char *_serialJson) {
         uint8_t iBright = doc["general"]["iBright"].as<uint8_t>();
         uint8_t nBright = doc["general"]["nBright"].as<uint8_t>();
         uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
+        float vWarning = doc["general"]["vWarning"].as<float>();
+        float vIndLow = doc["general"]["vIndLow"].as<float>();
+        float vIndHi = doc["general"]["vIndHi"].as<float>();
+        uint8_t vInt = doc["general"]["vInt"].as<uint8_t>();
 
         prefsSettings.putUInt("initVolume", iVol);
         prefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
@@ -2882,6 +2977,10 @@ bool processJsonRequest(char *_serialJson) {
         prefsSettings.putUChar("iLedBrightness", iBright);
         prefsSettings.putUChar("nLedBrightness", nBright);
         prefsSettings.putUInt("mInactiviyT", iTime);
+        prefsSettings.putFloat("wLowVoltage", vWarning);
+        prefsSettings.putFloat("vIndicatorLow", vIndLow);
+        prefsSettings.putFloat("vIndicatorHigh", vIndHi);
+        prefsSettings.putUInt("vCheckIntv", vInt);
 
         // Check if settings were written successfully
         if (prefsSettings.getUInt("initVolume", 0) != iVol ||
@@ -2889,7 +2988,11 @@ bool processJsonRequest(char *_serialJson) {
             prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone |
             prefsSettings.getUChar("iLedBrightness", 0) != iBright ||
             prefsSettings.getUChar("nLedBrightness", 0) != nBright ||
-            prefsSettings.getUInt("mInactiviyT", 0) != iTime) {
+            prefsSettings.getUInt("mInactiviyT", 0) != iTime ||
+            prefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
+            prefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
+            prefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
+            prefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
             return false;
         }
 
@@ -3504,6 +3607,45 @@ void setup() {
         loggerNl(logBuf, LOGLEVEL_INFO);
     }
 
+    #ifdef MEASURE_BATTERY_VOLTAGE
+        // Get voltages from NVS for Neopixel
+        float vLowIndicator = prefsSettings.getFloat("vIndicatorLow", 999.99);
+        if (vLowIndicator <= 999) {
+            voltageIndicatorLow = vLowIndicator;
+            snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorLowFromNVS), vLowIndicator);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {    // preseed if not set
+            prefsSettings.putFloat("vIndicatorLow", voltageIndicatorLow);
+        }
+
+        float vHighIndicator = prefsSettings.getFloat("vIndicatorHigh", 999.99);
+        if (vHighIndicator <= 999) {
+            voltageIndicatorHigh = vHighIndicator;
+            snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorHighFromNVS), vHighIndicator);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {
+            prefsSettings.putFloat("vIndicatorHigh", voltageIndicatorHigh);
+        }
+
+        float vLowWarning = prefsSettings.getFloat("wLowVoltage", 999.99);
+        if (vLowWarning <= 999) {
+            warningLowVoltage = vLowWarning;
+            snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(warningLowVoltageFromNVS), vLowWarning);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {
+            prefsSettings.putFloat("wLowVoltage", warningLowVoltage);
+        }
+
+        uint32_t vInterval = prefsSettings.getUInt("vCheckIntv", 17777);
+        if (vInterval != 17777) {
+            voltageCheckInterval = vInterval;
+            snprintf(logBuf, serialLoglength, "%s: %u Minuten", (char *) FPSTR(voltageCheckIntervalFromNVS), vInterval);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {
+            prefsSettings.putUInt("vCheckIntv", voltageCheckInterval);
+        }
+    #endif
+
     // Create 1000Hz-HW-Timer (currently only used for buttons)
     timerSemaphore = xSemaphoreCreateBinary();
     timer = timerBegin(0, 240, true);           // Prescaler: CPU-clock in MHz
@@ -3559,31 +3701,6 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    /*if (wifiManager() == WL_CONNECTED) {
-        // attach AsyncWebSocket for Mgmt-Interface
-        ws.onEvent(onWebsocketEvent);
-        wServer.addHandler(&ws);
-
-        // attach AsyncEventSource
-        wServer.addHandler(&events);
-
-        wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-            request->send_P(200, "text/html", mgtWebsite, templateProcessor);
-        });
-
-        wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
-            request->send_P(200, "text/html", backupRecoveryWebsite);
-        }, handleUpload);
-
-        wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
-            request->send_P(200, "text/html", restartWebsite);
-            Serial.flush();
-            ESP.restart();
-        });
-
-        wServer.onNotFound(notFound);
-        wServer.begin();
-    }*/
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
@@ -3621,6 +3738,9 @@ void loop() {
         if (ftpSrv.isConnected()) {
             lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
         }
+    #endif
+    #ifdef PLAY_LAST_RFID_AFTER_REBOOT
+        recoverLastRfidPlayed();
     #endif
 }
 

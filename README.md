@@ -129,9 +129,10 @@ Keep in mind the RFID-lib I used is intended for default-SPI-pins only (SCK, MIS
 * if Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
 * Please keep in mind that working SD is mandatory. Unless `SD_NOT_MANDATORY_ENABLE` is not set, Tonuino will never fully start up if SD is not working. Only use `SD_NOT_MANDATORY_ENABLE` for debugging as for normal operational mode, not having SD working doesn't make sense.
-* If you want to monitor the battery-voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat--130k--X--390k--GND). X is the measure-point where to connect the GPIO to.
+* If you want to monitor the battery-voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat--130k--X--390k--GND). X is the measure-point where to connect the GPIO to. Please note: via GUI upper and lower voltage for visualisation of battery-voltage (Neopixel) is available. Additional GUI-configurable values are interval (in minutes) for checking battery voltage and the cut off-voltage below whose a warning is shown via Neopixel.
 * If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal and connect it to GPIO22.
 * Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your Tonuino in battery-mode without having a restart-button exposed to the outside of the Tonuino's enclosure. Because otherwise there's no way to restart your Tonuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
+* Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell Tonuino to remember the last RFID-tag played after reboot. So rebooting Tonuino will end up in autoplay.
 * compile and upload the sketch
 
 ## Starting Tonuino-ESP32 first time
@@ -216,7 +217,8 @@ Indicates different things. Don't forget configuration of number of LEDs via #de
 * buttons locked: track-progress-LEDs coloured red
 * paused: track-progress-LEDs coloured orange
 * rewind: if single-track-loop is activated a LED-rewind is performed when restarting the given track
-* (Optional) Undervoltage: flashes three times red if battery-voltage is too low
+* (Optional) Undervoltage: flashes three times red if battery-voltage is too low. This voltage-level can be configured via GUI.
+* (Optional) Short press of rotary encoder's button provides battery-voltage visualisation via Neopixel. Upper und lower voltage can be adjusted via GUI.
 
 Please note: some Neopixels use a reversed addressing which leads to the 'problem', that all effects are shown
 counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.

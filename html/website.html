@@ -180,6 +180,22 @@
                 <label for="inactivityTime">Deep-Sleep nach Inaktivität (Minuten)</label>
                 <input type="number" min="1" max="1440" class="form-control" id="inactivityTime" name="inactivityTime" value="%MAX_INACTIVITY%" required>
             </div>
+            <div class="form-group col-md-6">
+              <label for="warningLowVoltage">(Optional) Spannungsgrenze (Batterie), ab der Warnung auf Neopixel angezeigt wird (z.B. 3.4)</label>
+              <input type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage" value="%WARNING_LOW_VOLTAGE%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageIndicatorLow">(Optional) Unterer Akkuspannungslevel (Batterie) für Neopixel-Anzeige (z.B. 3.1)</label>
+              <input type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow" value="%VOLTAGE_INDICATOR_LOW%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageIndicatorHigh">(Optional) Oberer Akkuspannungslevel (Batterie) für Neopixel-Anzeige (z.B. 4.2)</label>
+              <input type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh" value="%VOLTAGE_INDICATOR_HIGH%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageCheckInterval">(Optional) Häufigkeit der Spannungsmessung (Batterie) in Minuten</label>
+              <input type="number" min="1" max="180" class="form-control" id="voltageCheckInterval" name="voltageCheckInterval" value="%VOLTAGE_CHECK_INTERVAL%" required>
+            </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
           <button type="submit" class="btn btn-primary">Absenden</button>
         </form>
@@ -271,7 +287,11 @@
                 mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,
                 iBright: document.getElementById('initBrightness').value,
                 nBright: document.getElementById('nightBrightness').value,
-                iTime: document.getElementById('inactivityTime').value
+                iTime: document.getElementById('inactivityTime').value,
+                vWarning: document.getElementById('warningLowVoltage').value,
+                vIndLow: document.getElementById('voltageIndicatorLow').value,
+                vIndHi: document.getElementById('voltageIndicatorHigh').value,
+                vInt: document.getElementById('voltageCheckInterval').value
               }
             };
             var myJSON = JSON.stringify(myObj);
