@@ -1,22 +1,18 @@
 // Define modules to compile:
-#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
+//#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 //#define FTP_ENABLE                  // Enables FTP-server
 //#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 //#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
-<<<<<<< HEAD
-// #define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO
+// #define HAL 2                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO
 #define MFRC522_BUS 2           // If MFRC522 should be connected to I2C-Port(2) or SPI(1)
-#define DISPLAY_I2C             // If external Display via I2C connected - tested with SH1106_128X64_NONAME
-//#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it)
-=======
-#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
-//#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
-#define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
+//#define DISPLAY_I2C             // If external Display via I2C connected - tested with SH1106_128X64_NONAME
+// #define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
+// #define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
+// #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 
 //#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it). Will overwrite SHUTDOWN_IF_SD_BOOT_FAILS!
->>>>>>> upstream/master
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 #include <ESP32Encoder.h>
@@ -87,9 +83,11 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 
 // GPIOs (uSD card-reader)
 #define SPISD_CS                        15
-#define SPISD_MOSI                  13
-#define SPISD_MISO                  16          // 12 doesn't work with some devel-boards
-#define SPISD_SCK                   14
+#ifndef SINGLE_SPI_ENABLE
+    #define SPISD_MOSI                  13
+    #define SPISD_MISO                  16          // 12 doesn't work with some devel-boards
+    #define SPISD_SCK                   14
+#endif
 
 // GPIOs (RFID-readercurrentRfidTagId)
 #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
@@ -102,20 +100,6 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define I2S_DOUT                        25
 #define I2S_BCLK                        27
 #define I2S_LRC                         26
-
-// GPIO to detect if headphone was plugged in (pulled to GND)
-#ifdef HEADPHONE_ADJUST_ENABLE
-    #define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
-    uint16_t headphoneLastDetectionDebounce = 1000;     // Debounce-interval in ms when plugging in headphone
-
-    // Internal values
-    bool headphoneLastDetectionState;
-    uint32_t headphoneLastDetectionTimestamp = 0;
-#endif
-
-#ifdef BLUETOOTH_ENABLE
-    BluetoothA2DPSink a2dp_sink;
-#endif
 
 // GPIO used to trigger transistor-circuit / RFID-reader
 #define POWER                           17
@@ -172,15 +156,10 @@ MFRC522_SPI mfrcDevice = MFRC522_SPI(MFRC522_CS_PIN, MFRC522_RST_PIN);
 #elif (MFRC522_BUS == 2)
 #include <Wire.h>
 #include <MFRC522_I2C.h>
-#define MFRC522_RST_PIN                 POWER          // needed for i2c-comm
+#define MFRC522_RST_PIN                 12          // needed for i2c-comm
 // second I2C GPIOs
 #define ext_IIC_CLK                         23          // 14-pin-header
 #define ext_IIC_DATA                        18          // 14-pin-header
-#endif
-
-#ifdef DISPLAY_I2C
-// OLED Display - https://github.com/olikraus/u8g2/wiki/u8g2setupcpp#sh1106-128x64_noname-1
-U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ ext_IIC_CLK, /* data=*/ ext_IIC_DATA);
 #endif
 
 // DAC (internal)
@@ -197,9 +176,6 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* c
 // Amp enable
 #define GPIO_PA_EN                      21          // internal
 
-// Headphone?
-#define HEADPHONE_PLUGGED_IN            39          // internal
-
 // GPIOs (Rotary encoder)
 #define DREHENCODER_CLK                 5
 #define DREHENCODER_DT                  18
@@ -207,14 +183,26 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* c
 
 // GPIOs (Control-buttons)                          // Currently deactivated; please read README.md
 #define PAUSEPLAY_BUTTON                36
-/*#define NEXT_BUTTON                     4
-#define PREVIOUS_BUTTON                 33*/
-
+#define NEXT_BUTTON                     199
+#define PREVIOUS_BUTTON                 198
 
 // GPIOs (LEDs)
 #define LED_PIN                         23
 
 // END HAL 2
+#endif
+
+// GPIO to detect if headphone was plugged in (pulled to GND)
+#ifdef HEADPHONE_ADJUST_ENABLE
+    // HAL 2
+    #define HEADPHONE_PLUGGED_IN            39          // internal
+    // HAL 1
+    #define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
+    uint16_t headphoneLastDetectionDebounce = 1000;     // Debounce-interval in ms when plugging in headphone
+
+    // Internal values
+    bool headphoneLastDetectionState;
+    uint32_t headphoneLastDetectionTimestamp = 0;
 #endif
 
 #ifdef BLUETOOTH_ENABLE
@@ -262,6 +250,7 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* c
 #define REPEAT_PLAYLIST                 110         // Changes active playmode to endless-loop (for a playlist)
 #define REPEAT_TRACK                    111         // Changes active playmode to endless-loop (for a single track)
 #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
+#define TOGGLE_WIFI_STATUS              130         // Toggles WiFi-status; effective after next reboot
 
 // Repeat-Modes
 #define NO_REPEAT                       0           // No repeat
@@ -287,7 +276,6 @@ typedef struct { // Bit field
     bool playlistFinished:              1;      // If whole playlist is finished
     uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
 } playProps;
-//playProps *playProperties = (playProps*) malloc(sizeof(playProps));
 playProps playProperties;
 
 typedef struct {
@@ -343,6 +331,10 @@ static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every
 // HELPER //
 // WiFi
 unsigned long wifiCheckLastTimestamp = 0;
+bool wifiEnabled;                                       // Current status if wifi is enabled
+uint32_t wifiStatusToggledTimestamp = 0;
+bool webserverStarted = false;
+bool wifiNeedsRestart = false;
 // Neopixel
 #ifdef NEOPIXEL_ENABLE
     bool showLedError = false;
@@ -493,6 +485,8 @@ bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
+bool getWifiEnableStatusFromNVS(void);
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 void headphoneVolumeManager(void);
 bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
@@ -525,7 +519,7 @@ void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, cons
 void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
 void volumeToQueueSender(const int32_t _newVolume);
 wl_status_t wifiManager(void);
-
+bool writeWifiStatusToNVS(bool wifiStatus);
 
 /* Wrapper-Funktion for Serial-logging (with newline) */
 void loggerNl(const char *str, const uint8_t logLevel) {
@@ -555,40 +549,6 @@ int countChars(const char* string, char ch) {
     return count;
 }
 
-
-// Used to print content of sd-card (currently not used, maybe later :-))
-/*void printSdContent(File dir, uint16_t allocSize, uint8_t allocCount, char *sdContent, uint8_t depth) {
-    while (true) {
-        File entry = dir.openNextFile();
-        if (!entry) {
-            dir.rewindDirectory();
-            break;
-        }
-
-        if (countChars(entry.name(), '/') > depth+1) {
-            continue;
-        }
-
-        Serial.println(entry.name());
-
-        if ((strlen(sdContent) + strlen(entry.name()) + 2) >= allocCount * allocSize) {
-            sdContent = (char*) realloc(sdContent, ++allocCount * allocSize);
-            Serial.printf("Free heap: %u", ESP.getFreeHeap());
-            Serial.printf("realloc! -%d-\n", allocCount);
-            if (sdContent == NULL) {
-                return;
-            }
-        }
-        strcat(sdContent, stringDelimiter);
-        strcat(sdContent, entry.name());
-
-        if (entry.isDirectory()) {
-            printSdContent(entry, allocSize, allocCount, sdContent, depth);
-        }
-        entry.close();
-    }
-}*/
-
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
 }
@@ -616,7 +576,6 @@ void IRAM_ATTR onTimer() {
             #endif
             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
             loggerNl(logBuf, LOGLEVEL_INFO);
-            //Serial.printf("Spannung: %f\n", voltage);
             lastVoltageCheckTimestamp = millis();
         }
     }
@@ -630,10 +589,8 @@ void buttonHandler() {
             return;
         }
         unsigned long currentTimestamp = millis();
-    #if (HAL == 1)
         buttons[0].currentState = digitalRead(NEXT_BUTTON);
         buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
-    #endif
         buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
         buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
 
@@ -658,6 +615,25 @@ void buttonHandler() {
 void doButtonActions(void) {
     if (lockControls) {
         return; // Avoid button-handling if buttons are locked
+    }
+
+    // WiFi-toggle
+    if (buttons[0].isPressed && buttons[1].isPressed) {
+        if (!wifiStatusToggledTimestamp || (millis() - wifiStatusToggledTimestamp >= 2000)) {
+            wifiStatusToggledTimestamp = millis();
+            buttons[0].isPressed = false;
+            buttons[1].isPressed = false;
+            if (writeWifiStatusToNVS(!getWifiEnableStatusFromNVS())) {
+                #ifdef NEOPIXEL_ENABLE
+                    showLedOk = true;       // Tell user action was accepted
+                #endif
+            } else {
+                #ifdef NEOPIXEL_ENABLE
+                    showLedError = true;    // Tell user action failed
+                #endif
+            }
+        }
+        return;
     }
 
     for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
@@ -1314,8 +1290,24 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
 // Function to play music as task
 void playAudio(void *parameter) {
     static Audio audio;
+#if (HAL == 2)    
+    static AC101 ac;
+
+    static bool currentHeadphoneState = digitalRead(HEADPHONE_PLUGGED_IN);
+    static bool lastHeadphoneState = currentHeadphoneState;
+    static uint32_t lastHeadphoneStateTimestamp = 0;
+
+    while (!ac.begin(IIC_DATA, IIC_CLK)) {
+        Serial.printf("Failed!\n");
+        delay(1000);
+    }
+    pinMode(GPIO_PA_EN, OUTPUT);
+    digitalWrite(GPIO_PA_EN, HIGH);
+#endif
+
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(initVolume);
+
 
     uint8_t currentVolume;
     static BaseType_t trackQStatus;
@@ -1394,6 +1386,8 @@ void playAudio(void *parameter) {
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndStop), LOGLEVEL_INFO);
                     playProperties.pausePlay = true;
+                    playProperties.playlistFinished = true;
+                    playProperties.playMode = NO_PLAYLIST;
                     continue;
 
                 case PAUSEPLAY:
@@ -1659,8 +1653,15 @@ void playAudio(void *parameter) {
 
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-    
+#if (MFRC522_BUS == 1)
+    static MFRC522 mfrc522(RFID_CS, RST_PIN);
+#elif (MFRC522_BUS == 2)
+    TwoWire i2cBus = TwoWire(1);
+    i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+    static MFRC522 mfrc522(MFRC522_RST_PIN , 0x28, i2cBus);
+#endif
     mfrc522.PCD_Init();
+    delay(50);
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
     loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
@@ -1712,12 +1713,11 @@ void rfidScanner(void *parameter) {
                 }
             }
             xQueueSend(rfidCardQueue, &cardIdString, 0);
-            free(cardIdString);
+//            free(cardIdString);
         }
     }
     vTaskDelete(NULL);
 }
-
 
 // This task handles everything for Neopixel-visualisation
 #ifdef NEOPIXEL_ENABLE
@@ -1938,16 +1938,16 @@ void showLed(void *parameter) {
                 if (hlastVolume == currentVolume && lastLedBrightness == ledBrightness) {
                     for (uint8_t i=0; i<NUM_LEDS; i++) {
                         FastLED.clear();
-                        if (ledAddress(i) == 0) {
-                            leds[0] = CRGB::White;
-                            leds[NUM_LEDS/4] = CRGB::White;
-                            leds[NUM_LEDS/2] = CRGB::White;
-                            leds[NUM_LEDS/4*3] = CRGB::White;
+                        if (ledAddress(i) == 0) {       // White if Wifi is enabled and blue if not
+                            leds[0] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[NUM_LEDS/4] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[NUM_LEDS/2] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[NUM_LEDS/4*3] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
                         } else {
-                            leds[ledAddress(i) % NUM_LEDS] = CRGB::White;
-                            leds[(ledAddress(i)+NUM_LEDS/4) % NUM_LEDS] = CRGB::White;
-                            leds[(ledAddress(i)+NUM_LEDS/2) % NUM_LEDS] = CRGB::White;
-                            leds[(ledAddress(i)+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::White;
+                            leds[ledAddress(i) % NUM_LEDS] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[(ledAddress(i)+NUM_LEDS/4) % NUM_LEDS] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[(ledAddress(i)+NUM_LEDS/2) % NUM_LEDS] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
+                            leds[(ledAddress(i)+NUM_LEDS/4*3) % NUM_LEDS] = (wifiManager() == WL_CONNECTED) ? CRGB::White : CRGB::Blue;
                         }
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
@@ -2018,13 +2018,14 @@ void showLed(void *parameter) {
                                     leds[ledAddress(led)] = CRGB::Red;
                                 } else if (!playProperties.pausePlay) { // Hue-rainbow
                                     leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
-                                } else if (playProperties.pausePlay) {
-                                    leds[ledAddress(led) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(ledAddress(led)+NUM_LEDS/4) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(ledAddress(led)+NUM_LEDS/2) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(ledAddress(led)+NUM_LEDS/4*3) % NUM_LEDS] = CRGB::Orange;
-                                    break;
                                 }
+                            }
+                            if (playProperties.pausePlay) {
+                                leds[ledAddress(0)] = CRGB::Orange;
+                                    leds[(ledAddress(NUM_LEDS/4)) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(ledAddress(NUM_LEDS/2)) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(ledAddress(NUM_LEDS/4*3)) % NUM_LEDS] = CRGB::Orange;
+                                    break;
                             }
                         }
                     } else { // ... but do things a little bit different for Webstream as there's no progress available
@@ -2666,6 +2667,19 @@ void doRfidCardModifications(const uint32_t mod) {
             #endif
             break;
 
+        case TOGGLE_WIFI_STATUS:
+            if (writeWifiStatusToNVS(!getWifiEnableStatusFromNVS())) {
+                #ifdef NEOPIXEL_ENABLE
+                    showLedOk = true;
+                #endif
+            } else {
+                 #ifdef NEOPIXEL_ENABLE
+                    showLedError = true;
+                #endif
+            }
+
+            break;
+
         default:
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(logBuf, LOGLEVEL_ERROR);
@@ -2690,6 +2704,7 @@ void rfidPreferenceLookupHandler (void) {
         lastTimeActiveTimestamp = millis();
         free(currentRfidTagId);
         currentRfidTagId = strdup(rfidTagId);
+        free(rfidTagId);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(rfidTagReceived), currentRfidTagId);
         sendWebsocketData(0, 10);       // Push new rfidTagId to all websocket-clients
         loggerNl(logBuf, LOGLEVEL_INFO);
@@ -2775,10 +2790,53 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     accessPointStarted = true;
 }
 
+// Reads stored WiFi-status from NVS
+bool getWifiEnableStatusFromNVS(void) {
+    uint32_t wifiStatus = prefsSettings.getUInt("enableWifi", 99);
+
+    // if not set so far, preseed with 1 (enable)
+    if (wifiStatus == 99) {
+        prefsSettings.putUInt("enableWifi", 1);
+        wifiStatus = 1;
+    }
+
+    return wifiStatus;
+}
+
+
+// Writes to NVS whether WiFi should be activated (not effective until next reboot!)
+bool writeWifiStatusToNVS(bool wifiStatus) {
+    if (!wifiStatus) {
+        if (prefsSettings.putUInt("enableWifi", 0)) {  // disable
+            loggerNl((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
+            if (playProperties.playMode == WEBSTREAM) {
+                trackControlToQueueSender(STOP);
+            }
+            delay(300);
+            WiFi.mode(WIFI_OFF);
+            wifiEnabled = false;
+            return true;
+        }
+
+    } else {
+        if (prefsSettings.putUInt("enableWifi", 1)) {  // enable
+            loggerNl((char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
+            wifiNeedsRestart = true;
+            wifiEnabled = true;
+            return true;
+        }
+    }
+}
+
 
 // Provides management for WiFi
 wl_status_t wifiManager(void) {
-    if (wifiCheckLastTimestamp == 0) {
+    // If wifi whould not be activated, return instantly
+    if (!wifiEnabled) {
+        return WiFi.status();
+    }
+
+    if (!wifiCheckLastTimestamp || wifiNeedsRestart) {
         // Get credentials from NVS
         String strSSID = prefsSettings.getString("SSID", "-1");
         if (!strSSID.compareTo("-1")) {
@@ -2790,28 +2848,6 @@ wl_status_t wifiManager(void) {
         }
         const char *_ssid = strSSID.c_str();
         const char *_pwd = strPassword.c_str();
-
-        /*
-        // Get (optional) static-IP-configration from NVS
-        String strStaticIp = prefsSettings.getString("staticIP", "-1");
-        String strStaticIpGw = prefsSettings.getString("staticIPGw", "-1");
-        String strStaticIpNetmask = prefsSettings.getString("staticIPNetmask", "-1");
-        if (!strStaticIp.compareTo("-1") || !strStaticIpGw.compareTo("-1") || !strStaticIpNetmask.compareTo("-1")) {
-            loggerNl((char *) FPSTR(wifiStaticIpConfigNotFoundInNvs), LOGLEVEL_INFO);
-        } else {
-            IPAddress staticWifiIp;
-            IPAddress staticWifiIpGw;
-            IPAddress staticWifiIpNetmask;
-
-            if (strStaticIp.length() >= 7 && strStaticIpGw.length() >= 7 && strStaticIpNetmask.length() >= 7) {
-                staticWifiIp.fromString(strStaticIp.c_str());
-                staticWifiIpGw.fromString(strStaticIpGw.c_str());
-                staticWifiIpNetmask.fromString(strStaticIpNetmask.c_str());
-                WiFi.config(staticWifiIp, staticWifiIpGw, staticWifiIpNetmask);
-            } else {
-                Serial.println("IP-config nicht gueltig!");
-            }
-        }*/
 
         // Get (optional) hostname-configration from NVS
         String hostname = prefsSettings.getString("Hostname", "-1");
@@ -2847,6 +2883,7 @@ wl_status_t wifiManager(void) {
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
+        wifiNeedsRestart = false;
     }
 
     return WiFi.status();
@@ -2899,12 +2936,6 @@ String templateProcessor(const String& templ) {
         return String(logBuf);
     } else if (templ == "RFID_TAG_ID") {
         return String(currentRfidTagId);
-    /*} else if (templ == "STATIC_IP") {
-        return prefsSettings.getString("staticIP", "-1");
-    } else if (templ == "STATIC_IP_GW") {
-        return prefsSettings.getString("staticIPGw", "-1");
-    } else if (templ == "STATIC_IP_NETMASK") {
-        return prefsSettings.getString("staticIPNetmask", "-1");*/
     } else if (templ == "HOSTNAME") {
         return prefsSettings.getString("Hostname", "-1");
     }
@@ -2944,7 +2975,7 @@ bool processJsonRequest(char *_serialJson) {
         // Check if settings were written successfully
         if (prefsSettings.getUInt("initVolume", 0) != iVol ||
             prefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-            prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone |
+            prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
             prefsSettings.getUChar("iLedBrightness", 0) != iBright ||
             prefsSettings.getUChar("nLedBrightness", 0) != nBright ||
             prefsSettings.getUInt("mInactiviyT", 0) != iTime) {
@@ -2982,15 +3013,6 @@ bool processJsonRequest(char *_serialJson) {
             (!String(_mqttServer).equals(prefsSettings.getString("mqttServer", "-1")))) {
             return false;
         }
-
-    /*} else if (doc.containsKey("staticIP")) {
-        const char *_staticIp = object["ip"]["staticIP"];
-        const char *_staticIpGW = doc["ip"]["staticIPGW"];
-        const char *_staticIpNM = doc["ip"]["staticIPNM"];
-
-        prefsSettings.putString("staticIP", (String) _staticIp);
-        prefsSettings.putString("staticIPGw", (String) _staticIpGW);
-        prefsSettings.putString("staticIPNetmask", (String) _staticIpNM);*/
 
     } else if (doc.containsKey("rfidMod")) {
         const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
@@ -3080,7 +3102,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
-        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+        Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
     } else if (type == WS_EVT_ERROR) {
         //error was received from the other end
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -3100,6 +3122,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
             } else {
                 returnCode = 0;
             }
+
             sendWebsocketData(client->id(), 1);
 
             if (info->opcode == WS_TEXT) {
@@ -3173,6 +3196,34 @@ bool isNumber(const char *str) {
 
 }
 
+void webserverStart(void) {
+    if (wifiManager() == WL_CONNECTED && !webserverStarted) {
+    // attach AsyncWebSocket for Mgmt-Interface
+    ws.onEvent(onWebsocketEvent);
+    wServer.addHandler(&ws);
+
+    // attach AsyncEventSource
+    wServer.addHandler(&events);
+
+    wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send_P(200, "text/html", mgtWebsite, templateProcessor);
+    });
+
+    wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
+            request->send_P(200, "text/html", backupRecoveryWebsite);
+    }, handleUpload);
+
+    wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        request->send_P(200, "text/html", restartWebsite);
+        Serial.flush();
+        ESP.restart();
+    });
+
+    wServer.onNotFound(notFound);
+    wServer.begin();
+    webserverStarted = true;
+    }
+}
 
 // Dumps all RFID-entries from NVS into a file on SD-card
 bool dumpNvsToSd(char *_namespace, char *_destFile) {
@@ -3282,7 +3333,7 @@ void setup() {
     esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
     srand(esp_random());
     pinMode(POWER, OUTPUT);
-//    digitalWrite(POWER, HIGH);
+    digitalWrite(POWER, HIGH);
     prefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     prefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
 
@@ -3310,25 +3361,6 @@ void setup() {
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
 
-#if (MFRC522_BUS == 1)
-    #ifndef SINGLE_SPI_ENABLE
-        SPI.begin();
-    #endif
-#elif (MFRC522_BUS == 2)
-TwoWire i2cBus = TwoWire(1);
-i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-MFRC522 mfrcdevice(MFRC522_RST_PIN , 0x28, i2cBus);
-// END MFRC522_BUS
-i2cBus.beginTransmission(40);
-if (i2cBus.endTransmission() == 0) {
-    String s;
-      s+="I2C device found at 0x";
-      s+=String(40,HEX);
-      s+="\n";
-    Serial.println(s);
-    }
-#endif
-
 #ifdef NEOPIXEL_ENABLE
     xTaskCreatePinnedToCore(
         showLed, /* Function to implement the task */
@@ -3339,6 +3371,12 @@ if (i2cBus.endTransmission() == 0) {
         &LED,  /* Task handle. */
         0 /* Core where the task should run */
     );
+#endif
+
+#if (MFRC522_BUS == 1)
+    #ifndef SINGLE_SPI_ENABLE
+        SPI.begin();
+    #endif
 #endif
 
     // Init uSD-SPI
@@ -3387,6 +3425,20 @@ if (i2cBus.endTransmission() == 0) {
         };
         a2dp_sink.set_pin_config(pin_config);
         a2dp_sink.start("Tonuino");
+    #endif
+
+    #ifdef DISPLAY_I2C
+        // OLED Display - https://github.com/olikraus/u8g2/wiki/u8g2setupcpp#sh1106-128x64_noname-1
+        U8G2_SH1106_128X64_NONAME_1_2ND_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+        u8g2.begin();
+        u8g2.firstPage();
+        do {
+            u8g2.setFont(u8g2_font_ncenB08_tr);
+            u8g2.drawStr(0,8,"Tonuino gestartet");
+            u8g2.drawStr(0,16,"Papas Projekt");
+            u8g2.drawStr(0,24,"Dritte Statuszeile passt");
+            u8g2.drawStr(0,16,"und noch eine vierte Zeile");
+        } while ( u8g2.nextPage() );
     #endif
 
     // Create queues
@@ -3594,10 +3646,8 @@ if (i2cBus.endTransmission() == 0) {
     // Activate internal pullups for all buttons
     pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
-    #if (HAL == 1)
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
     pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
-    #endif
 
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
@@ -3612,11 +3662,12 @@ if (i2cBus.endTransmission() == 0) {
         }
     #endif
 
+    wifiEnabled = getWifiEnableStatusFromNVS();
     wifiManager();
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    if (wifiManager() == WL_CONNECTED) {
+    /*if (wifiManager() == WL_CONNECTED) {
         // attach AsyncWebSocket for Mgmt-Interface
         ws.onEvent(onWebsocketEvent);
         wServer.addHandler(&ws);
@@ -3640,35 +3691,17 @@ if (i2cBus.endTransmission() == 0) {
 
         wServer.onNotFound(notFound);
         wServer.begin();
-    }
-
-    #ifdef DISPLAY_I2C
-        u8g2.begin();
-        u8g2.firstPage();
-        do {
-            u8g2.setFont(u8g2_font_ncenB08_tr);
-            u8g2.drawStr(0,15,"Tonuino gestartet");
-            u8g2.drawStr(15,30,"Papas Projekt");
-        } while ( u8g2.nextPage() );
-    #endif
-
-
+    }*/
 
     bootComplete = true;
 
-    /*char *sdC = (char *) calloc(16384, sizeof(char));
-    printSdContent(SD.open("/", FILE_READ), 16384, 1, sdC, 2);
-    printSdContent(SD.open("/", FILE_READ), 16384, 1, sdC, 2);
-    Serial.println(sdC);
-    Serial.println(strlen(sdC));
-    Serial.println(ESP.getFreeHeap());
-    free (sdC);
     Serial.print(F("Free heap: "));
-    Serial.println(ESP.getFreeHeap()); */
+    Serial.println(ESP.getFreeHeap());
 }
 
 
 void loop() {
+    webserverStart();
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
     #endif
@@ -3698,7 +3731,6 @@ void loop() {
             lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
         }
     #endif
-
 }
 
 
