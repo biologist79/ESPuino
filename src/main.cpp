@@ -2343,8 +2343,8 @@ void doRfidCardModifications(const uint32_t mod) {
             }
             break;
 
-        case SLEEP_TIMER_MOD_15:    // Puts/undo uC to sleep after 15 minutes
-            if (sleepTimer == 15) {
+        case SLEEP_TIMER_MOD_15:    // Enables/disables sleep after 15 minutes
+            if (sleepTimerStartTimestamp && sleepTimer == 15) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
@@ -2376,8 +2376,8 @@ void doRfidCardModifications(const uint32_t mod) {
             #endif
             break;
 
-        case SLEEP_TIMER_MOD_30:    // Puts/undo uC to sleep after 30 minutes
-            if (sleepTimer == 30) {
+        case SLEEP_TIMER_MOD_30:    // Enables/disables sleep after 30 minutes
+            if (sleepTimerStartTimestamp && sleepTimer == 30) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
@@ -2409,8 +2409,8 @@ void doRfidCardModifications(const uint32_t mod) {
             #endif
             break;
 
-        case SLEEP_TIMER_MOD_60:    // Puts/undo uC to sleep after 60 minutes
-            if (sleepTimer == 60) {
+        case SLEEP_TIMER_MOD_60:    // Enables/disables sleep after 60 minutes
+            if (sleepTimerStartTimestamp && sleepTimer == 60) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
@@ -2442,8 +2442,8 @@ void doRfidCardModifications(const uint32_t mod) {
             #endif
             break;
 
-        case SLEEP_TIMER_MOD_120:    // Puts/undo uC to sleep after 2 hrs
-            if (sleepTimer == 120) {
+        case SLEEP_TIMER_MOD_120:    // Enables/disables sleep after 2 hrs
+            if (sleepTimerStartTimestamp && sleepTimer == 120) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
