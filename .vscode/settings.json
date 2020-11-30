@@ -1,3 +1,6 @@
 {
-    "python.pythonPath": "/Users/torsten/.platformio/penv/bin/python"
+    "files.associations": {
+        "functional": "cpp"
+    },
+    "python.pythonPath": "asd"
 }
