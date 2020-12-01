@@ -112,7 +112,7 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 
 // GPIOs (Rotary encoder)
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT
-#define DREHENCODER_DT                  35          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT
+#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
 #define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
 
 // GPIOs (Control-buttons)
@@ -188,7 +188,7 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 #define REPEAT_PLAYLIST                 110         // Changes active playmode to endless-loop (for a playlist)
 #define REPEAT_TRACK                    111         // Changes active playmode to endless-loop (for a single track)
 #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
-#define TOGGLE_WIFI_STATUS              130         // Toggles WiFi-status; effective after next reboot
+#define TOGGLE_WIFI_STATUS              130         // Toggles WiFi-status
 
 // Repeat-Modes
 #define NO_REPEAT                       0           // No repeat
@@ -263,7 +263,9 @@ uint8_t buttonDebounceInterval = 50;                    // Interval in ms to sof
 uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
 
 // Where to store the backup-file
-static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
+#ifndef SD_NOT_MANDATORY_ENABLE
+    static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
+#endif
 
 // Don't change anything here unless you know what you're doing
 // HELPER //
@@ -419,7 +421,9 @@ void buttonHandler();
 void deepSleepManager(void);
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
-bool dumpNvsToSd(char *_namespace, char *_destFile);
+#ifndef SD_NOT_MANDATORY_ENABLE
+    bool dumpNvsToSd(char *_namespace, char *_destFile);
+#endif
 bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
@@ -497,10 +501,12 @@ void IRAM_ATTR onTimer() {
 
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
+    // Store last RFID-tag to NVS
     void storeLastRfidPlayed(char *_rfid) {
         prefsSettings.putString("lastRfid", (String) _rfid);
     }
 
+    // Get last RFID-tag applied from NVS
     void recoverLastRfidPlayed(void) {
         if (recoverLastRfid) {
             recoverLastRfid = false;
@@ -2321,6 +2327,14 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 // Modification-cards can change some settings (e.g. introducing track-looping or sleep after track/playlist).
 // This function handles them.
 void doRfidCardModifications(const uint32_t mod) {
+    #ifdef PLAY_LAST_RFID_AFTER_REBOOT
+	    if (recoverLastRfid) {
+            recoverLastRfid = false;
+            // We don't want to remember modification-cards
+            return;
+        }
+	#endif
+
     switch (mod) {
         case LOCK_BUTTONS_MOD:      // Locks/unlocks all buttons
             lockControls = !lockControls;
@@ -2798,7 +2812,7 @@ bool getWifiEnableStatusFromNVS(void) {
 }
 
 
-// Writes to NVS whether WiFi should be activated (not effective until next reboot!)
+// Writes to NVS whether WiFi should be activated
 bool writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
         if (prefsSettings.putUInt("enableWifi", 0)) {  // disable
@@ -3039,7 +3053,9 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
+        #ifndef SD_NOT_MANDATORY_ENABLE
+            dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
+        #endif
 
     } else if (doc.containsKey("rfidAssign")) {
         const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
@@ -3055,7 +3071,9 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));                     // Store backup-file every time when a new rfid-tag is programmed
+        #ifndef SD_NOT_MANDATORY_ENABLE
+            dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));                     // Store backup-file every time when a new rfid-tag is programmed
+        #endif
 
     } else if (doc.containsKey("wifiConfig")) {
         const char *_ssid = object["wifiConfig"]["ssid"];
@@ -3241,69 +3259,71 @@ void webserverStart(void) {
 
 
 // Dumps all RFID-entries from NVS into a file on SD-card
-bool dumpNvsToSd(char *_namespace, char *_destFile) {
-    esp_partition_iterator_t pi;                // Iterator for find
-    const esp_partition_t* nvs;                 // Pointer to partition struct
-    esp_err_t result = ESP_OK;
-    const char* partname = "nvs";
-    uint8_t pagenr = 0;                         // Page number in NVS
-    uint8_t i;                                  // Index in Entry 0..125
-    uint8_t bm;                                 // Bitmap for an entry
-    uint32_t offset = 0;                        // Offset in nvs partition
-    uint8_t namespace_ID;                       // Namespace ID found
+#ifndef SD_NOT_MANDATORY_ENABLE
+    bool dumpNvsToSd(char *_namespace, char *_destFile) {
+        esp_partition_iterator_t pi;                // Iterator for find
+        const esp_partition_t* nvs;                 // Pointer to partition struct
+        esp_err_t result = ESP_OK;
+        const char* partname = "nvs";
+        uint8_t pagenr = 0;                         // Page number in NVS
+        uint8_t i;                                  // Index in Entry 0..125
+        uint8_t bm;                                 // Bitmap for an entry
+        uint32_t offset = 0;                        // Offset in nvs partition
+        uint8_t namespace_ID;                       // Namespace ID found
 
-    pi = esp_partition_find ( ESP_PARTITION_TYPE_DATA,          // Get partition iterator for
-                                ESP_PARTITION_SUBTYPE_ANY,      // this partition
-                                partname ) ;
-    if (pi) {
-        nvs = esp_partition_get(pi);                            // Get partition struct
-        esp_partition_iterator_release(pi);                     // Release the iterator
-        dbgprint ( "Partition %s found, %d bytes",
-                partname,
-                nvs->size ) ;
-    } else {
-        Serial.printf("Partition %s not found!", partname) ;
-        return NULL;
-    }
-    namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
+        pi = esp_partition_find ( ESP_PARTITION_TYPE_DATA,          // Get partition iterator for
+                                    ESP_PARTITION_SUBTYPE_ANY,      // this partition
+                                    partname ) ;
+        if (pi) {
+            nvs = esp_partition_get(pi);                            // Get partition struct
+            esp_partition_iterator_release(pi);                     // Release the iterator
+            dbgprint ( "Partition %s found, %d bytes",
+                    partname,
+                    nvs->size ) ;
+        } else {
+            Serial.printf("Partition %s not found!", partname) ;
+            return NULL;
+        }
+        namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
 
-    File backupFile = SD.open(_destFile, FILE_WRITE);
-    if (!backupFile) {
-        return false;
-    }
-    while (offset < nvs->size) {
-        result = esp_partition_read (nvs, offset,                // Read 1 page in nvs partition
-                                    &buf,
-                                    sizeof(nvs_page));
-        if (result != ESP_OK) {
-            Serial.println(F("Error reading NVS!"));
+        File backupFile = SD.open(_destFile, FILE_WRITE);
+        if (!backupFile) {
             return false;
         }
-
-        i = 0;
-
-        while (i < 126) {
-            bm = (buf.Bitmap[i/4] >> ((i % 4) * 2 )) & 0x03;  // Get bitmap for this entry
-            if (bm == 2) {
-                if ((namespace_ID == 0xFF) ||                      // Show all if ID = 0xFF
-                    (buf.Entry[i].Ns == namespace_ID)) {           // otherwise just my namespace
-                    if (isNumber(buf.Entry[i].Key)) {
-                        String s = prefsRfid.getString((const char *)buf.Entry[i].Key);
-                        backupFile.printf("%s%s%s%s\n", stringOuterDelimiter, buf.Entry[i].Key, stringOuterDelimiter, s.c_str());
-                    }
-                }
-                i += buf.Entry[i].Span;                              // Next entry
-            } else {
-                i++;
+        while (offset < nvs->size) {
+            result = esp_partition_read (nvs, offset,                // Read 1 page in nvs partition
+                                        &buf,
+                                        sizeof(nvs_page));
+            if (result != ESP_OK) {
+                Serial.println(F("Error reading NVS!"));
+                return false;
             }
-        }
-        offset += sizeof(nvs_page);                              // Prepare to read next page in nvs
-        pagenr++;
-    }
 
-    backupFile.close();
-    return true;
-}
+            i = 0;
+
+            while (i < 126) {
+                bm = (buf.Bitmap[i/4] >> ((i % 4) * 2 )) & 0x03;  // Get bitmap for this entry
+                if (bm == 2) {
+                    if ((namespace_ID == 0xFF) ||                      // Show all if ID = 0xFF
+                        (buf.Entry[i].Ns == namespace_ID)) {           // otherwise just my namespace
+                        if (isNumber(buf.Entry[i].Key)) {
+                            String s = prefsRfid.getString((const char *)buf.Entry[i].Key);
+                            backupFile.printf("%s%s%s%s\n", stringOuterDelimiter, buf.Entry[i].Key, stringOuterDelimiter, s.c_str());
+                        }
+                    }
+                    i += buf.Entry[i].Span;                              // Next entry
+                } else {
+                    i++;
+                }
+            }
+            offset += sizeof(nvs_page);                              // Prepare to read next page in nvs
+            pagenr++;
+        }
+
+        backupFile.close();
+        return true;
+    }
+#endif
 
 
 // Handles uploaded backup-file and writes valid entries into NVS
