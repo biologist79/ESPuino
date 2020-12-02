@@ -26,7 +26,7 @@
 #include "SD.h"
 #include "FS.h"
 #include "esp_task_wdt.h"
-#include <ESPmDNS.h>
+//#include <ESPmDNS.h>
 #include <MFRC522.h>
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
@@ -95,6 +95,8 @@ char * DIRECTORY_INDEX_FILE = "/files.json";
 #define I2S_BCLK                        27
 #define I2S_LRC                         26
 
+#define INVERT_VOLUME_LED               1
+
 // GPIO to detect if headphone was plugged in (pulled to GND)
 #ifdef HEADPHONE_ADJUST_ENABLE
     #define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
@@ -120,7 +122,7 @@ char * DIRECTORY_INDEX_FILE = "/files.json";
 // GPIOs (Control-buttons)
 #define PAUSEPLAY_BUTTON                5
 #define NEXT_BUTTON                     4
-#define PREVIOUS_BUTTON                 2           // Please note: as of 19.11.2020 changed from 33 to 2
+#define PREVIOUS_BUTTON                 33           // Please note: as of 19.11.2020 changed from 33 to 2
 
 // GPIOs (LEDs)
 #define LED_PIN                         12          // Pin where Neopixel is connected to
@@ -1908,10 +1910,19 @@ void showLed(void *parameter) {
             volumeChangeShown = true;
             FastLED.clear();
 
-            for (int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
-                leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+            //intertiert für Lunas box
+            // quick and dirty fix for a hardware mistake...
+            if (INVERT_VOLUME_LED){
+                for (int led = numLedsToLight; led > 0; led--) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
+                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+                }
+            } else {
+            
+                // normal für Lottas box
+                for (int led = 0; led < numLedsToLight; led++) {     // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
+                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+                }
             }
-
             FastLED.show();
 
             for (uint8_t i=0; i<=50; i++) {
@@ -2907,10 +2918,11 @@ wl_status_t wifiManager(void) {
         String hostname = prefsSettings.getString("Hostname", "-1");
 
         /*set mdns hostname make it available as <hostname>.local*/
+        /*
         if (MDNS.begin(hostname.c_str())) {
             // Add service to MDNS-SD
              MDNS.addService("http", "tcp", 80);
-        }
+        }*/
 
 
         if (hostname.compareTo("-1")) {
