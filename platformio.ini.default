@@ -1,0 +1,37 @@
+;PlatformIO Project Configuration File
+;
+;   Build options: build flags, source filter
+;   Upload options: custom upload port, speed and extra flags
+;   Library options: dependencies, extra library storages
+;   Advanced options: extra scripting
+;
+; Please visit documentation for the other options and examples
+; https://docs.platformio.org/page/projectconf.html
+
+;[env:nodemcu-32s]
+[env:lolin32]
+platform = espressif32
+;board = nodemcu-32s
+board = lolin32
+framework = arduino
+monitor_speed = 115200
+board_build.partitions = no_ota.csv
+;board_build.partitions = min_spiffs.csv
+
+
+lib_deps =
+ https://github.com/schreibfaul1/ESP32-audioI2S.git
+ https://github.com/madhephaestus/ESP32Encoder.git
+ https://github.com/knolleary/pubsubclient.git
+ https://github.com/biologist79/ESP32FTPServer
+ https://github.com/FastLED/FastLED.git
+ https://github.com/biologist79/rfid.git
+ ESP Async WebServer
+ https://github.com/me-no-dev/AsyncTCP
+ https://github.com/bblanchon/ArduinoJson.git
+; https://github.com/Yveaux/AC101.git
+; https://github.com/pschatzmann/ESP32-A2DP.git
+
+; Don't forget to run this script if you changed the html-files provided in any way
+;extra_scripts =
+; pre:processHtml.py

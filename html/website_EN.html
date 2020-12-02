@@ -5,11 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://ts-cs.de/tonuino/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
     <script src="https://ts-cs.de/tonuino/js/jquery.min.js"></script>
     <script src="https://ts-cs.de/tonuino/js/popper.min.js"></script>
     <script src="https://ts-cs.de/tonuino/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
@@ -182,6 +180,22 @@
                 <label for="inactivityTime">Deepsleep after inactivity (minutes)</label>
                 <input type="number" min="1" max="1440" class="form-control" id="inactivityTime" name="inactivityTime" value="%MAX_INACTIVITY%" required>
             </div>
+            <div class="form-group col-md-6">
+              <label for="warningLowVoltage">(Optional) Neopixel-warning will indicated below this battery-voltage (e.g. 3.4)</label>
+              <input type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage" value="%WARNING_LOW_VOLTAGE%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageIndicatorLow">(Optional) Lower voltage (battery) for Neopixel-visualisation (z.B. 3.1)</label>
+              <input type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow" value="%VOLTAGE_INDICATOR_LOW%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageIndicatorHigh">(Optional) Upper voltage (battery) for Neopixel-visualisation (z.B. 4.2)</label>
+              <input type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh" value="%VOLTAGE_INDICATOR_HIGH%" pattern="^\d{1,2}(\.\d{1,3})?" required>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="voltageCheckInterval">(Optional) Interval of battery-measurement (minutes)</label>
+              <input type="number" min="1" max="180" class="form-control" id="voltageCheckInterval" name="voltageCheckInterval" value="%VOLTAGE_CHECK_INTERVAL%" required>
+            </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -273,7 +287,11 @@
                 mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,
                 iBright: document.getElementById('initBrightness').value,
                 nBright: document.getElementById('nightBrightness').value,
-                iTime: document.getElementById('inactivityTime').value
+                iTime: document.getElementById('inactivityTime').value,
+                vWarning: document.getElementById('warningLowVoltage').value,
+                vIndLow: document.getElementById('voltageIndicatorLow').value,
+                vIndHi: document.getElementById('voltageIndicatorHigh').value,
+                vInt: document.getElementById('voltageCheckInterval').value
               }
             };
             var myJSON = JSON.stringify(myObj);
