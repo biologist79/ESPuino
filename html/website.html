@@ -5,9 +5,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://ts-cs.de/tonuino/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
     <script src="https://ts-cs.de/tonuino/js/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
     <script src="https://ts-cs.de/tonuino/js/popper.min.js"></script>
     <script src="https://ts-cs.de/tonuino/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style type="text/css">
+          .filetree {
+              border: 1px solid black;
+              margin: 0em 0em 1em 0em;
+              height: 200px;
+              overflow-y: scroll;
+          }
+          .fa-sync:hover{
+              color: #666666;
+          }
+    </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
@@ -75,17 +92,23 @@
                 <input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
                 <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
                 <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" pattern="^[^\^#]+$" name="fileOrUrl" required>
+                <div id="filebrowser">
+                    <div class="filetree demo" id="filetree"></div>
+                    <div style="width:100%; margin-botton:1em; text-align: right; font-size: 0.8em;">
+                        <span id="refreshAction" data-toggle="tooltip" data-placement="top" title="Datei Liste aktualisieren."><i class="fas fa-sync fa-1x"></i></span>
+                    </div>
+                </div>
                 <label for="playMode">Abspielmodus</label>
                 <select class="form-control" id="playMode" name="playMode">
-                    <option value="1">Einzelner Titel</option>
-                    <option value="2">Einzelner Titel (Endlosschleife)</option>
-                    <option value="3">Hörbuch</option>
-                    <option value="4">Hörbuch (Endlosschleife)</option>
-                    <option value="5">Alle Titel eines Verzeichnis (sortiert)</option>
-                    <option value="6">Alle Titel eines Verzeichnis (zufällig)</option>
-                    <option value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
-                    <option value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
-                    <option value="8">Webradio</option>
+                    <option class="option-file" value="1">Einzelner Titel</option>
+                    <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
+                    <option class="option-folder" value="3">Hörbuch</option>
+                    <option class="option-folder" value="4">Hörbuch (Endlosschleife)</option>
+                    <option class="option-folder" value="5">Alle Titel eines Verzeichnis (sortiert)</option>
+                    <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
+                    <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
+                    <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
+                    <option class="option-stream" value="8">Webradio</option>
                 </select>
             </div>
           <button type="reset" class="btn btn-secondary">Reset</button>
@@ -212,15 +235,178 @@
         </form>
         <div class="messages col-md-6 my-2"></div>
       </div>
-        <script>
-          var lastIdclicked = '';
-          var errorBox = '<div class="alert alert-danger alert-dismissible fade show" role="alert">Es ist ein Fehler aufgetreten!<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
-          var okBox = '<div class="alert alert-success alert-dismissible fade show" role="alert">Aktion erfolgreich ausgeführt.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+      <script type="text/javascript">
 
-          var socket = new WebSocket("ws://%IPv4%/ws");
+
+          var DEBUG = true;
+          var lastIdclicked = '';
+
+          var host = $(location).attr('hostname');
+
+          if(DEBUG){
+              host = "192.168.178.112";
+          }
+
+          toastr.options = {
+              "closeButton": false,
+              "debug": false,
+              "newestOnTop": false,
+              "progressBar": false,
+              "positionClass": "toast-top-right",
+              "preventDuplicates": false,
+              "onclick": null,
+              "showDuration": "300",
+              "hideDuration": "1000",
+              "timeOut": "5000",
+              "extendedTimeOut": "1000",
+              "showEasing": "swing",
+              "hideEasing": "linear",
+              "showMethod": "fadeIn",
+              "hideMethod": "fadeOut"
+          };
+
+          function postRendering(event, data){
+              Object.keys(data.instance._model.data).forEach(function(key,index) {
+
+                  var cur = data.instance.get_node(data.instance._model.data[key]);
+                  var lastFolder = cur['id'].split('/').filter(function(el) {
+                      return el.trim().length > 0;
+                  }).pop();
+                  if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(lastFolder)){
+                      data.instance.set_type(data.instance._model.data[key], 'audio');
+                  } else {
+                      if (data.instance._model.data[key]['type'] == "file"){
+                          data.instance.disable_node(data.instance._model.data[key]);
+                      }
+                  }
+                  data.instance.rename_node(data.instance._model.data[key], lastFolder);
+              });
+          }
+
+          function renderFileTree(){
+
+              var filesURI = $(location).attr('protocol') + host + "/files";
+              if(DEBUG) {
+                  filesURI = "http://"+ host +"/files";
+              }
+              $('#filetree').jstree({
+                  'core' : {
+                      'check_callback': true,
+                      'data' : {
+                         url: filesURI,
+                         data: function(data) {
+                             if(data['state']['failed'] || !data['state']['loaded']){
+
+                                 toastr.warning("Verzeichnise konnten nicht geladen werden.")
+                             }
+                             console.log(data['state']);
+                         }
+                      }
+                  },
+                  'types' : {
+                      'folder' : {
+                          'icon' : "fa fa-folder"
+                      },
+                      'file' : {
+                          'icon': "fa fa-file"
+                      },
+                      'audio' : {
+                          'icon' : "fa fa-file-audio"
+                      },
+                      'default' : {
+                          'icon' : "fa fa-folder"
+                      }
+                  },
+                  'plugins' : [ "themes", "types" ]
+              }).bind('loaded.jstree', function (event, data) {
+                  postRendering(event, data);
+              }).bind('refresh.jstree',function (event, data) {
+                  postRendering(event, data);
+              });
+          }
+
+          $('#filetree').on('select_node.jstree', function (e, data) {
+              $('input[name=fileOrUrl]').val(data.node.id);
+
+              if(data.node.type == "folder"){
+                  console.log(data.node.type)
+                  $('.option-folder').show();
+                  $('.option-file').hide();
+                  // preselect first folder action in list
+                  $('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
+              }
+
+              if (data.node.type == "audio"){
+                  $('.option-file').show();
+                  $('.option-folder').hide();
+                  $('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
+              }
+          });
+
+          $('#refreshAction').on("click", function() {
+              refreshFileList();
+              $("#refreshAction i").addClass("fa-spin");
+          });
+
+          $('#playMode').on("change", function () {
+              if (this.value == 8){
+                  $('#filebrowser').slideUp();
+              }  else {
+                  $('#filebrowser').slideDown();
+              }
+          });
+
+          var socket = undefined;
 
           function connect() {
-            socket = new WebSocket("ws://%IPv4%/ws");
+             socket = new WebSocket("ws://" + host + "/ws");
+
+              socket.onopen = function () {
+                  setInterval(ping, 15000);
+
+              };
+
+              socket.onclose = function(e) {
+                  console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                  //toastr.error('Die Websocket Verbindung wurde unterbrochen.');
+                  setTimeout(function() {
+                      connect();
+                  }, 5000);
+              };
+
+              socket.onerror = function(err) {
+                  console.error('Socket encountered error: ', err.message, 'Closing socket');
+                  toastr.error('Es gab einen Fehler bei der Websocket Verbindung');
+                  socket.close();
+              };
+
+              socket.onmessage = function(event) {
+                  console.log(event.data);
+                  var socketMsg = JSON.parse(event.data);
+                  if (socketMsg.rfidId != null) {
+                      document.getElementById('rfidIdMod').value = socketMsg.rfidId;
+                      document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
+                      toastr.info("RFID Tag mit "+ socketMsg.rfidId + " erkannt." );
+
+                      $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
+                      $("#rfidIdMod").effect("highlight", {color:"#abf5af"}, 3000);
+
+                  } if (socketMsg.status != null) {
+                      if (socketMsg.status == 'ok') {
+                          toastr.success("Aktion erfolgreich ausgeführt." );
+                      } else {
+                          toastr.error("Es ist ein Fehler aufgetreten." );
+                      }
+                  } if (socketMsg.pong != null) {
+                      if (socketMsg.pong == 'pong') {
+                          pong();
+                      }
+                  } if ("refreshFileList" in socketMsg){
+                      toastr.info("Die Datei Liste wurde neu erzeugt!");
+                      $("#refreshAction i").removeClass("fa-spin");
+                      $('#filetree').jstree(true).refresh();
+                  }
+              };
           }
 
           function ping() {
@@ -232,50 +418,21 @@
             var myJSON = JSON.stringify(myObj);
             socket.send(myJSON);
             tm = setTimeout(function () {
-              alert("Die Verbindung zum Tonuino ist unterbrochen!\\nBitte Seite neu laden.");
-              }, 5000);
+                toastr.warning('Die Verbindung zum Tonuino ist unterbrochen! Bitte Seite neu laden.');
+            }, 5000);
           }
 
           function pong() {
             clearTimeout(tm);
           }
 
-          socket.onopen = function () {
-            setInterval(ping, 15000);
-          };
-
-          socket.onclose = function(e) {
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-            setTimeout(function() {
-              connect();
-            }, 5000);
-          };
-
-          socket.onerror = function(err) {
-            console.error('Socket encountered error: ', err.message, 'Closing socket');
-            socket.close();
-          };
-
-          socket.onmessage = function(event) {
-            console.log(event.data);
-            var socketMsg = JSON.parse(event.data);
-            if (socketMsg.rfidId != null) {
-              document.getElementById('rfidIdMod').value = socketMsg.rfidId;
-              document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-              $("#rfidIdMusic").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
-              $("#rfidIdMod").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
-
-            } if (socketMsg.status != null) {
-                if (socketMsg.status == 'ok') {
-                  $("#" + lastIdclicked).find('.messages').html(okBox);
-                } else {
-                  $("#" + lastIdclicked).find('.messages').html(errorBox);
-                }
-            } if (socketMsg.pong != null) {
-                if (socketMsg.pong == 'pong') {
-                  pong();
-                }
-            }
+          function refreshFileList(clickedId){
+              lastIdclicked = clickedId;
+              var myObj = {
+                  "refreshFileList": true
+              };
+              var myJSON = JSON.stringify(myObj);
+              socket.send(myJSON);
           };
 
           function genSettings(clickedId) {
@@ -374,6 +531,15 @@
             var myJSON = JSON.stringify(myObj);
             socket.send(myJSON);
           }
+
+          $(document).ready(function(){
+              connect();
+              renderFileTree();
+
+              $(function () {
+                  $('[data-toggle="tooltip"]').tooltip();
+              });
+          });
         </script>
   </body>
 </html>

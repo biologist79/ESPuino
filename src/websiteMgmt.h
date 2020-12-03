@@ -5,9 +5,26 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
     <link rel=\"stylesheet\" href=\"https://ts-cs.de/tonuino/css/bootstrap.min.css\">\
+    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css\" />\
+    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css\"/>\
+    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css\" />\
     <script src=\"https://ts-cs.de/tonuino/js/jquery.min.js\"></script>\
+    <script src=\"https://code.jquery.com/ui/1.12.0/jquery-ui.min.js\"></script>\
     <script src=\"https://ts-cs.de/tonuino/js/popper.min.js\"></script>\
     <script src=\"https://ts-cs.de/tonuino/js/bootstrap.min.js\"></script>\
+    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js\"></script>\
+    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js\"></script>\
+    <style type=\"text/css\">\
+          .filetree {\
+              border: 1px solid black;\
+              margin: 0em 0em 1em 0em;\
+              height: 200px;\
+              overflow-y: scroll;\
+          }\
+          .fa-sync:hover{\
+              color: #666666;\
+          }\
+    </style>\
   </head>\
   <body>\
     <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
@@ -75,6 +92,12 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\" placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                 <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>\
                 <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
+                <div id=\"filebrowser\">\
+                    <div class=\"filetree demo\" id=\"filetree\"></div>\
+                    <div style=\"width:100%; margin-botton:1em; text-align: right; font-size: 0.8em;\">\
+                        <span id=\"refreshAction\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Datei Liste aktualisieren.\"><i class=\"fas fa-sync fa-1x\"></i></span>\
+                    </div>\
+                </div>\
                 <label for=\"playMode\">Abspielmodus</label>\
                 <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
                     <option value=\"1\">Einzelner Titel</option>\
@@ -212,10 +235,99 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         </form>\
         <div class=\"messages col-md-6 my-2\"></div>\
       </div>\
-        <script>\
+      <script type=\"text/javascript\">\
           var lastIdclicked = '';\
-          var errorBox = '<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">Es ist ein Fehler aufgetreten!<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button></div>';\
-          var okBox = '<div class=\"alert alert-success alert-dismissible fade show\" role=\"alert\">Aktion erfolgreich ausgeführt.<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button></div>';\
+\
+          $(function () {\
+              $('[data-toggle=\"tooltip\"]').tooltip();\
+          });\
+\
+          toastr.options = {\
+              \"closeButton\": false,\
+              \"debug\": false,\
+              \"newestOnTop\": false,\
+              \"progressBar\": false,\
+              \"positionClass\": \"toast-top-right\",\
+              \"preventDuplicates\": false,\
+              \"onclick\": null,\
+              \"showDuration\": \"300\",\
+              \"hideDuration\": \"1000\",\
+              \"timeOut\": \"5000\",\
+              \"extendedTimeOut\": \"1000\",\
+              \"showEasing\": \"swing\",\
+              \"hideEasing\": \"linear\",\
+              \"showMethod\": \"fadeIn\",\
+              \"hideMethod\": \"fadeOut\"\
+          };\
+\
+          function postRendering(event, data){\
+              Object.keys(data.instance._model.data).forEach(function(key,index) {\
+\
+                  var cur = data.instance.get_node(data.instance._model.data[key]);\
+                  var lastFolder = cur['id'].split('/').filter(function(el) {\
+                      return el.trim().length > 0;\
+                  }).pop();\
+                  if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(lastFolder)){\
+                      data.instance.set_type(data.instance._model.data[key], 'audio');\
+                  } else {\
+                      if (data.instance._model.data[key]['type'] == \"file\"){\
+                          data.instance.disable_node(data.instance._model.data[key]);\
+                      }\
+                  }\
+                  data.instance.rename_node(data.instance._model.data[key], lastFolder);\
+              });\
+          }\
+\
+          function renderFileTree(){\
+              $('#filetree').jstree({\
+                  'core' : {\
+                      'check_callback': true,\
+                      'data' : {\
+                         url: \"/files\",\
+                         data : function (node) {\
+                             console.log(node);\
+                         }\
+                      }\
+                  },\
+                  'types' : {\
+                      'folder' : {\
+                          'icon' : \"fa fa-folder\"\
+                      },\
+                      'file' : {\
+                          'icon': \"fa fa-file\"\
+                      },\
+                      'audio' : {\
+                          'icon' : \"fa fa-file-audio\"\
+                      },\
+                      'default' : {\
+                          'icon' : \"fa fa-folder\"\
+                      }\
+                  },\
+                  'plugins' : [ \"themes\", \"types\" ]\
+              }).bind('loaded.jstree', function (event, data) {\
+                  postRendering(event, data);\
+              }).bind('refresh.jstree',function (event, data) {\
+                  postRendering(event, data);\
+              });\
+          }\
+          renderFileTree();\
+\
+          $('#filetree').on('select_node.jstree', function (e, data) {\
+              $('input[name=fileOrUrl]').val(data.node.id);\
+          });\
+\
+          $('#refreshAction').on(\"click\", function() {\
+              refreshFileList();\
+              $(\"#refreshAction i\").addClass(\"fa-spin\");\
+          });\
+\
+          $('#playMode').on(\"change\", function () {\
+              if (this.value == 8){\
+                  $('#filebrowser').slideUp();\
+              }  else {\
+                  $('#filebrowser').slideDown();\
+              }\
+          });\
 \
           var socket = new WebSocket(\"ws://%IPv4%/ws\");\
 \
@@ -232,8 +344,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             var myJSON = JSON.stringify(myObj);\
             socket.send(myJSON);\
             tm = setTimeout(function () {\
-              alert(\"Die Verbindung zum Tonuino ist unterbrochen!\\nBitte Seite neu laden.\");\
-              }, 5000);\
+                toastr.warning('Die Verbindung zum Tonuino ist unterbrochen! Bitte Seite neu laden.');\
+            }, 5000);\
           }\
 \
           function pong() {\
@@ -246,6 +358,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
 \
           socket.onclose = function(e) {\
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
+            //toastr.error('Die Websocket Verbindung wurde unterbrochen.');\
             setTimeout(function() {\
               connect();\
             }, 5000);\
@@ -253,6 +366,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
 \
           socket.onerror = function(err) {\
             console.error('Socket encountered error: ', err.message, 'Closing socket');\
+              toastr.error('Es gab einen Fehler bei der Websocket Verbindung');\
             socket.close();\
           };\
 \
@@ -262,20 +376,35 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             if (socketMsg.rfidId != null) {\
               document.getElementById('rfidIdMod').value = socketMsg.rfidId;\
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;\
-              $(\"#rfidIdMusic\").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);\
-              $(\"#rfidIdMod\").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);\
+              toastr.info(\"RFID Tag mit \"+ socketMsg.rfidId + \" erkannt.\" );\
+\
+              $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
+              $(\"#rfidIdMod\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
 \
             } if (socketMsg.status != null) {\
                 if (socketMsg.status == 'ok') {\
-                  $(\"#\" + lastIdclicked).find('.messages').html(okBox);\
+                    toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
                 } else {\
-                  $(\"#\" + lastIdclicked).find('.messages').html(errorBox);\
+                    toastr.error(\"Es ist ein Fehler aufgetreten.\" );\
                 }\
             } if (socketMsg.pong != null) {\
                 if (socketMsg.pong == 'pong') {\
                   pong();\
                 }\
+            } if (\"refreshFileList\" in socketMsg){\
+              toastr.info(\"Die Datei Liste wurde neu erzeugt!\");\
+              $(\"#refreshAction i\").removeClass(\"fa-spin\");\
+              $('#filetree').jstree(true).refresh();\
             }\
+          };\
+\
+          function refreshFileList(clickedId){\
+              lastIdclicked = clickedId;\
+              var myObj = {\
+                  \"refreshFileList\": true\
+              };\
+              var myJSON = JSON.stringify(myObj);\
+              socket.send(myJSON);\
           };\
 \
           function genSettings(clickedId) {\

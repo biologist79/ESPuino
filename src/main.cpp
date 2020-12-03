@@ -1,13 +1,13 @@
 // Define modules to compile:
-#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
+//#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 #define FTP_ENABLE                  // Enables FTP-server
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
-#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
+//#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+//#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
 
@@ -67,11 +67,15 @@
 #define LOGLEVEL_DEBUG                  4           // almost everything
 
 // Serial-logging-configuration
-const uint8_t serialDebug = LOGLEVEL_INFO;          // Current loglevel for serial console
+const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for serial console
 
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
+
+// File Browser
+uint8_t FS_DEPTH = 3; // max recursion depth of file tree
+const char * DIRECTORY_INDEX_FILE = "/files.json"; //  filename of files.json index file
 
 // GPIOs (uSD card-reader)
 #define SPISD_CS                        15
@@ -522,6 +526,195 @@ void IRAM_ATTR onTimer() {
         }
     }
 #endif
+
+/**
+ * Creates a new file on the SD Card.
+ * @param fs
+ * @param path
+ * @param message
+ */
+void createFile(fs::FS &fs, const char * path, const char * message){
+    snprintf(logBuf, serialLoglength, "Writing file: %s\n", path);
+    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    File file = fs.open(path, FILE_WRITE);
+    if(!file){
+        snprintf(logBuf, serialLoglength, "Failed to open file for writing");
+        loggerNl(logBuf, LOGLEVEL_ERROR);
+        return;
+    }
+    if(file.print(message)){
+        snprintf(logBuf, serialLoglength, "File written");
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+    } else {
+        Serial.println("Write failed");
+        snprintf(logBuf, serialLoglength, "Write failed");
+        loggerNl(logBuf, LOGLEVEL_ERROR);
+    }
+    file.close();
+}
+
+/**
+ * Appends raw input to a file
+ * @param fs
+ * @param path
+ * @param text
+ */
+void appendToFile(fs::FS &fs, const char *path, const char *text){
+    File file = fs.open(path, FILE_APPEND);
+    esp_task_wdt_reset();
+    file.print(text);
+    file.close();
+}
+
+// indicates if the given node is first node of file
+bool isFirstJSONtNode = true;
+
+/**
+ * Helper function for writing file index to json file.
+ * This function appends a new json node for files/directories to
+ * a given  file.
+ * @param fs
+ * @param path
+ * @param filename
+ * @param parent
+ * @param type
+ */
+void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, const char *parent, const char *type ) {
+    // Serial.printf("Appending to file: %s\n", path);
+    snprintf(logBuf, serialLoglength, "Listing directory: %s\n", filename);
+    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    File file = fs.open(path, FILE_APPEND);
+    // i/o is timing critical keep all stuff running
+    esp_task_wdt_reset();
+    if(!file){
+        snprintf(logBuf, serialLoglength, "Failed to open file for appending");
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        return;
+    }
+
+    if (!isFirstJSONtNode){
+        file.print(",");
+    }
+
+    //TODO: write a minified json, without all those whitespaces
+    //      it is just easier to debug when json is in a nice format
+    //      anyway ugly but works and is stable
+    file.print( "  {\n     \"id\" : \"");
+    file.print(filename);
+    file.print("\",\n     \"parent\" : \"");
+    file.print(parent);
+    file.print("\",\n    \"type\": \"");
+    file.print(type);
+    file.print("\",\n   \"text\" : \"");
+    file.print(filename);
+    file.print("\"\n  }");
+    // i/o is timing critical keep all stuff running
+    esp_task_wdt_reset();
+    file.close();
+
+    if(isFirstJSONtNode){
+        isFirstJSONtNode = false;
+    }
+}
+
+/**
+ * Checks if a path  is valid. (e.g. hidden path is not valid)
+ * @param _fileItem
+ * @return
+ */
+bool pathValid(const char *_fileItem) {
+    const char ch = '/';
+    char *subst;
+    subst = strrchr(_fileItem, ch);     // Don't use files that start with .
+    return (!startsWith(subst, (char *) "/."));
+}
+
+/**
+ * SD-Card index parser. Parses the SD Card directories
+ * by a given file path depth recursive and appends the
+ * found files and directories to files.json file.
+ * @param fs
+ * @param dirname
+ * @param parent
+ * @param levels
+ */
+void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels){
+    char fileNameBuf[255];
+    // i/o is timing critical keep all stuff running
+    esp_task_wdt_reset();
+
+    File root = fs.open(dirname);
+
+    if(!root){
+        snprintf(logBuf, serialLoglength, "Failed to open directory");
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        return;
+    }
+
+    if(!root.isDirectory()){
+        snprintf(logBuf, serialLoglength, "Not a directory");
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        return;
+    }
+    File file = root.openNextFile();
+
+    while(file){
+        esp_task_wdt_reset();
+        const char *parent;
+
+        if (strcmp(root.name(), "/") == 0 || root.name() == 0){
+            parent = "#\0";
+        } else {
+            parent = root.name();
+        }
+        if (file.name() == 0 ){
+            continue;
+        }
+
+        strncpy(fileNameBuf, (char *) file.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+
+        // we have a folder
+        if(file.isDirectory()){
+            if (pathValid(fileNameBuf)){
+                appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
+
+                // check for next subfolder
+                if(levels){
+                    parseSDFileList(fs, fileNameBuf, root.name(), levels -1);
+                }
+            }
+            // we have a file
+        } else {
+            if (fileValid(fileNameBuf)){
+                appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "file" );
+            }
+        }
+        file = root.openNextFile();
+        // i/o is timing critical keep all stuff running
+        esp_task_wdt_reset();
+    }
+}
+
+// TODO: maybe this is not save with asyncWebserver
+bool indexingIsRunning = false;
+
+/**
+ *  Public function for creating file index json on SD-Card.
+ *  It notifies the user client via websockets when the indexing
+ *  is done.
+ */
+void createJSONFileList(){
+
+    if(!indexingIsRunning){
+        indexingIsRunning = true;
+        createFile(SD, DIRECTORY_INDEX_FILE, "[\n");
+        parseSDFileList(SD, "/", NULL, FS_DEPTH);
+        appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
+        isFirstJSONtNode  =  true;
+        sendWebsocketData(0, 30);
+        indexingIsRunning = false;
+    }
+}
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
 #ifdef MEASURE_BATTERY_VOLTAGE
@@ -2792,6 +2985,8 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
         ESP.restart();
     });
 
+    // allow cors for local debug
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     wServer.begin();
     loggerNl((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
     accessPointStarted = true;
@@ -3093,6 +3288,9 @@ bool processJsonRequest(char *_serialJson) {
         }
     } else if (doc.containsKey("ping")) {
         sendWebsocketData(0, 20);
+        return false;
+    } else if (doc.containsKey("refreshFileList")) {
+        createJSONFileList();
     }
 
     return true;
@@ -3113,6 +3311,8 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["rfidId"] = currentRfidTagId;
     } else if (code == 20) {
         object["pong"] = "pong";
+    } else if (code == 30){
+        object["refreshFileList"] = "ready";
     }
     char jBuf[50];
     serializeJson(doc, jBuf, sizeof(jBuf) / sizeof(jBuf[0]));
@@ -3147,14 +3347,10 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         if (info->final && info->index == 0 && info->len == len) {
         //the whole message is in a single frame and we got all of it's data
             Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
-            uint8_t returnCode;
 
             if (processJsonRequest((char*)data)) {
-                returnCode = 1;
-            } else {
-                returnCode = 0;
+                sendWebsocketData(client->id(), 1);
             }
-            sendWebsocketData(client->id(), 1);
 
             if (info->opcode == WS_TEXT) {
                 data[len] = 0;
@@ -3251,7 +3447,14 @@ void webserverStart(void) {
         ESP.restart();
     });
 
+    wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(SD, "/files.json", "application/json");
+    });
+
     wServer.onNotFound(notFound);
+
+    // allow cors for local debug
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     wServer.begin();
     webserverStarted = true;
     }
