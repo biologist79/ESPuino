@@ -367,6 +367,7 @@ static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet.
 SPIClass spiSD(HSPI);
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
+TaskHandle_t fileTaskHandle;
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
 #endif
@@ -711,8 +712,8 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
 }
 
 // TODO: maybe this is not save with asyncWebserver
-bool indexingIsRunning = false;
-
+uint8_t runFileIndexing = 0;
+uint8_t fileIndexingDone = 0;
 /**
  *  Public function for creating file index json on SD-Card.
  *  It notifies the user client via websockets when the indexing
@@ -724,7 +725,21 @@ void createJSONFileList(){
     appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
     isFirstJSONtNode  =  true;
     sendWebsocketData(0, 30);
-    indexingIsRunning = false;
+}
+
+void fileHandlingTask(void *arguments){
+
+    while(true) {
+
+        if(runFileIndexing){
+            runFileIndexing = 0;
+            //createJSONFileList();
+            fileIndexingDone = 1;
+        }
+
+        esp_task_wdt_reset();
+        vTaskDelay(portTICK_PERIOD_MS*150);
+    }
 }
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
@@ -3300,6 +3315,8 @@ bool processJsonRequest(char *_serialJson) {
         sendWebsocketData(0, 20);
         return false;
     } else if (doc.containsKey("refreshFileList")) {
+        //createJSONFileList();
+        runFileIndexing = 1;
         createJSONFileList();
     }
 
@@ -3912,6 +3929,18 @@ void setup() {
         1 /* Core where the task should run */
     );
 
+    /**
+     * SD Card File Indexing Task
+     */
+    xTaskCreatePinnedToCore(
+        fileHandlingTask, /* Function to implement the task */
+        "fileHandlingTask", /* Name of the task */
+        2000,  /* Stack size in words */
+        NULL,  /* Task input parameter */
+        3,  /* Priority of the task */
+        &fileTaskHandle,  /* Task handle. */
+        1 /* Core where the task should run */
+    );
 
     //esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
 
@@ -3968,6 +3997,13 @@ void loop() {
     sleepHandler();
     deepSleepManager();
     rfidPreferenceLookupHandler();
+
+    /*
+    if(fileIndexingDone){
+        fileIndexingDone = 0;
+        sendWebsocketData(0,30);
+    }*/
+
     if (wifiManager() == WL_CONNECTED) {
         #ifdef MQTT_ENABLE
             if (enableMqtt) {

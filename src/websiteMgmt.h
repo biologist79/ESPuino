@@ -55,6 +55,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             text-align: right;\
             font-size: 0.8em;\
         }\
+\
         .overlay {\
             z-index: 9;\
             opacity: 0.8;\
@@ -139,7 +140,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 <div id=\"filebrowser\">\
                     <div class=\"filetree demo\" id=\"filetree\"></div>\
                     <div class=\"refreshAction\">\
-                        <span id=\"refreshAction\" style=\"cursor: pointer;\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Datei Liste aktualisieren.\"><i class=\"fas fa-sync fa-1x\"></i> Dateien suchen</span>\
+                        <span id=\"refreshAction\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Datei Liste aktualisieren.\"><i class=\"fas fa-sync fa-1x\"></i> Dateien suchen</span>\
                     </div>\
                 </div>\
                 <div id=\"indexing-progress\" class=\"indexing-progress overlay\">\
@@ -467,7 +468,6 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
           } if (socketMsg.status != null) {\
               if (socketMsg.status == 'ok') {\
                   toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
-                  $('#overlay').style.display = \"none\";\
               } else {\
                   toastr.error(\"Es ist ein Fehler aufgetreten.\" );\
               }\

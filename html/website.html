@@ -55,9 +55,7 @@
             text-align: right;
             font-size: 0.8em;
         }
-        .refreshAction:hover{
-            color: gray;
-        }
+
         .overlay {
             z-index: 9;
             opacity: 0.8;
@@ -142,7 +140,7 @@
                 <div id="filebrowser">
                     <div class="filetree demo" id="filetree"></div>
                     <div class="refreshAction">
-                        <span id="refreshAction" style="cursor: pointer;" data-toggle="tooltip" data-placement="top" title="Datei Liste aktualisieren."><i class="fas fa-sync fa-1x"></i> Dateien suchen</span>
+                        <span id="refreshAction" data-toggle="tooltip" data-placement="top" title="Datei Liste aktualisieren."><i class="fas fa-sync fa-1x"></i> Dateien suchen</span>
                     </div>
                 </div>
                 <div id="indexing-progress" class="indexing-progress overlay">
@@ -309,7 +307,7 @@
     <div class="messages col-md-6 my-2"></div>
 </div>
 <script type="text/javascript">
-    var DEBUG = true;
+    var DEBUG = false;
     var lastIdclicked = '';
     var host = $(location).attr('hostname');
 
@@ -475,7 +473,7 @@
               }
           } if (socketMsg.pong != null) {
               if (socketMsg.pong == 'pong') {
-                 // pong();
+                  pong();
               }
           } if ("refreshFileList" in socketMsg){
               toastr.info("Die Datei Liste wurde neu erzeugt!");
