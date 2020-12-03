@@ -553,6 +553,14 @@ void createFile(fs::FS &fs, const char * path, const char * message){
     file.close();
 }
 
+bool fileExists(fs::FS &fs, const char *file){
+    if (fs.exists(file)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /**
  * Appends raw input to a file
  * @param fs
@@ -610,6 +618,7 @@ void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, c
     file.print("\"\n  }");
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
+    yield();
     file.close();
 
     if(isFirstJSONtNode){
@@ -638,11 +647,16 @@ bool pathValid(const char *_fileItem) {
  * @param parent
  * @param levels
  */
+char fileNameBuf[255];
+bool notifyOverWebsocket = true;
+
+//FIXME: This function blocks the websocket connection
 void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels){
-    char fileNameBuf[255];
+
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
 
+    yield();
     File root = fs.open(dirname);
 
     if(!root){
@@ -672,9 +686,10 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
         }
 
         strncpy(fileNameBuf, (char *) file.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-
         // we have a folder
         if(file.isDirectory()){
+
+            esp_task_wdt_reset();
             if (pathValid(fileNameBuf)){
                 appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
 
@@ -704,16 +719,12 @@ bool indexingIsRunning = false;
  *  is done.
  */
 void createJSONFileList(){
-
-    if(!indexingIsRunning){
-        indexingIsRunning = true;
-        createFile(SD, DIRECTORY_INDEX_FILE, "[\n");
-        parseSDFileList(SD, "/", NULL, FS_DEPTH);
-        appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
-        isFirstJSONtNode  =  true;
-        sendWebsocketData(0, 30);
-        indexingIsRunning = false;
-    }
+    createFile(SD, DIRECTORY_INDEX_FILE, "[\n");
+    parseSDFileList(SD,  "/", NULL, FS_DEPTH);
+    appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
+    isFirstJSONtNode  =  true;
+    sendWebsocketData(0, 30);
+    indexingIsRunning = false;
 }
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
@@ -3002,7 +3013,6 @@ bool getWifiEnableStatusFromNVS(void) {
         prefsSettings.putUInt("enableWifi", 1);
         wifiStatus = 1;
     }
-
     return wifiStatus;
 }
 
@@ -3313,8 +3323,12 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["pong"] = "pong";
     } else if (code == 30){
         object["refreshFileList"] = "ready";
+    }else if (code == 31){
+        object["indexingState"] = fileNameBuf;
+        esp_task_wdt_reset();
     }
-    char jBuf[50];
+
+    char jBuf[255];
     serializeJson(doc, jBuf, sizeof(jBuf) / sizeof(jBuf[0]));
 
     if (client == 0) {
@@ -3322,6 +3336,7 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
     } else {
         ws.printf(client, jBuf);
     }
+    notifyOverWebsocket = true;
 }
 
 
@@ -3924,10 +3939,18 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
+    /**
+     * Create empty Index json file when no file exists.
+     */
+    if(!fileExists(SD,DIRECTORY_INDEX_FILE)){
+        createFile(SD,DIRECTORY_INDEX_FILE,"[]");
+        ESP.restart();
+    }
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
     Serial.println(ESP.getFreeHeap());
+
 }
 
 
@@ -3965,6 +3988,7 @@ void loop() {
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
         recoverLastRfidPlayed();
     #endif
+    ws.cleanupClients();
 }
 
 
