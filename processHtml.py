@@ -1,16 +1,20 @@
 #!/usr/bin/python
+import re
 
 content = ''
 content2 = ''
 contentEN = ''
 content2EN = ''
 
+# TODO: Add a JS Minifier python lib
 with open('html/website.html', 'r') as r:
-    data = r.read().replace('\n', '\\\n')
+    data = r.read()
+    data = data.replace('\n', '\\\n')
     data = data.replace('\"', '\\"')
     data = data.replace('\\d', '\\\d')
     data = data.replace('\\.', '\\\.')
     data = data.replace('\\^', '\\\\^')
+    data = data.replace('%;', '%%;')
     content += data
 
 with open('src/websiteMgmt.h', 'w') as w:

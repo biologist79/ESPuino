@@ -367,7 +367,6 @@ static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet.
 SPIClass spiSD(HSPI);
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
-TaskHandle_t fileTaskHandle;
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
 #endif
@@ -649,12 +648,8 @@ bool pathValid(const char *_fileItem) {
  * @param levels
  */
 char fileNameBuf[255];
-bool notifyOverWebsocket = true;
 
-//FIXME: This function blocks the websocket connection
 void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels){
-
-    // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
 
     yield();
@@ -687,11 +682,13 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
         }
 
         strncpy(fileNameBuf, (char *) file.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+
         // we have a folder
         if(file.isDirectory()){
 
             esp_task_wdt_reset();
             if (pathValid(fileNameBuf)){
+                sendWebsocketData(0, 31);
                 appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
 
                 // check for next subfolder
@@ -699,21 +696,21 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
                     parseSDFileList(fs, fileNameBuf, root.name(), levels -1);
                 }
             }
-            // we have a file
+        // we have a file
         } else {
+
             if (fileValid(fileNameBuf)){
                 appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "file" );
             }
         }
+        vTaskDelay(portTICK_PERIOD_MS*50);
         file = root.openNextFile();
         // i/o is timing critical keep all stuff running
         esp_task_wdt_reset();
     }
+
 }
 
-// TODO: maybe this is not save with asyncWebserver
-uint8_t runFileIndexing = 0;
-uint8_t fileIndexingDone = 0;
 /**
  *  Public function for creating file index json on SD-Card.
  *  It notifies the user client via websockets when the indexing
@@ -724,22 +721,14 @@ void createJSONFileList(){
     parseSDFileList(SD,  "/", NULL, FS_DEPTH);
     appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
     isFirstJSONtNode  =  true;
-    sendWebsocketData(0, 30);
+    sendWebsocketData(0,30);
 }
 
+
 void fileHandlingTask(void *arguments){
-
-    while(true) {
-
-        if(runFileIndexing){
-            runFileIndexing = 0;
-            //createJSONFileList();
-            fileIndexingDone = 1;
-        }
-
-        esp_task_wdt_reset();
-        vTaskDelay(portTICK_PERIOD_MS*150);
-    }
+    createJSONFileList();
+    esp_task_wdt_reset();
+    vTaskDelete( NULL );
 }
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
@@ -3028,6 +3017,7 @@ bool getWifiEnableStatusFromNVS(void) {
         prefsSettings.putUInt("enableWifi", 1);
         wifiStatus = 1;
     }
+
     return wifiStatus;
 }
 
@@ -3315,9 +3305,17 @@ bool processJsonRequest(char *_serialJson) {
         sendWebsocketData(0, 20);
         return false;
     } else if (doc.containsKey("refreshFileList")) {
-        //createJSONFileList();
-        runFileIndexing = 1;
-        createJSONFileList();
+
+        //TODO: we need a semaphore or mutex here to prevent
+        //      a call when the task is still running
+        xTaskCreate(
+                fileHandlingTask,          /* Task function. */
+                "TaskTwo",        /* String with name of task. */
+                10000,            /* Stack size in bytes. */
+                NULL,             /* Parameter passed as input of the task */
+                1,                /* Priority of the task. */
+                NULL);            /* Task handle. */
+
     }
 
     return true;
@@ -3342,7 +3340,6 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["refreshFileList"] = "ready";
     }else if (code == 31){
         object["indexingState"] = fileNameBuf;
-        esp_task_wdt_reset();
     }
 
     char jBuf[255];
@@ -3353,7 +3350,6 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
     } else {
         ws.printf(client, jBuf);
     }
-    notifyOverWebsocket = true;
 }
 
 
@@ -3929,18 +3925,6 @@ void setup() {
         1 /* Core where the task should run */
     );
 
-    /**
-     * SD Card File Indexing Task
-     */
-    xTaskCreatePinnedToCore(
-        fileHandlingTask, /* Function to implement the task */
-        "fileHandlingTask", /* Name of the task */
-        2000,  /* Stack size in words */
-        NULL,  /* Task input parameter */
-        3,  /* Priority of the task */
-        &fileTaskHandle,  /* Task handle. */
-        1 /* Core where the task should run */
-    );
 
     //esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
 
@@ -3979,7 +3963,6 @@ void setup() {
 
     Serial.print(F("Free heap: "));
     Serial.println(ESP.getFreeHeap());
-
 }
 
 
@@ -3997,13 +3980,6 @@ void loop() {
     sleepHandler();
     deepSleepManager();
     rfidPreferenceLookupHandler();
-
-    /*
-    if(fileIndexingDone){
-        fileIndexingDone = 0;
-        sendWebsocketData(0,30);
-    }*/
-
     if (wifiManager() == WL_CONNECTED) {
         #ifdef MQTT_ENABLE
             if (enableMqtt) {
