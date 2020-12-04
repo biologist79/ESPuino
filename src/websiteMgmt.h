@@ -42,8 +42,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         }\
 \
         .indexing-progress {\
-            width: 100%;\
-            height: 100%;\
+            width: 100%%;\
+            height: 100%%;\
             position: absolute;\
             top: 0;\
             left: 0;\
@@ -56,13 +56,18 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             font-size: 0.8em;\
         }\
 \
+        .refreshAction:hover{\
+            cursor: pointer;\
+            color: darkgray;\
+        }\
+\
         .overlay {\
             z-index: 9;\
             opacity: 0.8;\
             background: #1a1919;\
             height: 200px;\
             display: none;\
-            width: 32em;\
+            width: 100%%;\
         }\
     </style>\
 </head>\
@@ -145,7 +150,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 </div>\
                 <div id=\"indexing-progress\" class=\"indexing-progress overlay\">\
                     <div style=\"text-align: center; color:white; margin-top:2em;\">\
-                        <p><i class=\"fas fa-sync fa-spin fa-2x\"></i> <br><br>  Der Prozess kann mehrere Minuten dauern...</p>\
+                        <div><i class=\"fas fa-sync fa-spin fa-2x\"></i> <br><br>  Der Prozess kann mehrere Minuten dauern...</div>\
+                        <div id=\"currentProcessedFile\"></div>\
                     </div>\
                 </div>\
             </div>\
@@ -429,7 +435,18 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         }\
     });\
 \
+    function showFileIndexingState(){\
+        $(\"#indexing-progress\").show();\
+        $(\"#refreshAction\").hide();\
+    }\
+\
+    function hideFileIndexingState(){\
+        $(\"#indexing-progress\").hide();\
+        $(\"#refreshAction\").show();\
+    }\
+\
     var socket = undefined;\
+    var tm;\
 \
     function connect() {\
         socket = new WebSocket(\"ws://\" + host + \"/ws\");\
@@ -440,9 +457,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
 \
         socket.onclose = function (e) {\
             console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
-            toastr.error('Die Websocket Verbindung wurde vom Tonuino unterbrochen.');\
             socket = null;\
-\
             setTimeout(function () {\
                 connect();\
             }, 5000);\
@@ -450,8 +465,6 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
 \
         socket.onerror = function (err) {\
             console.error('Socket encountered error: ', err.message, 'Closing socket');\
-            toastr.error('Es gab einen Fehler bei der Websocket Verbindung');\
-            socket.close();\
         };\
 \
         socket.onmessage = function(event) {\
@@ -465,24 +478,25 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
               $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
               $(\"#rfidIdMod\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
 \
-          } if (socketMsg.status != null) {\
-              if (socketMsg.status == 'ok') {\
+          } if (\"status\" in socketMsg) {\
+              if (socketMsg.status == \"ok\") {\
                   toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
-              } else {\
-                  toastr.error(\"Es ist ein Fehler aufgetreten.\" );\
               }\
-          } if (socketMsg.pong != null) {\
+          } if (\"pong\" in socketMsg) {\
               if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
           } if (\"refreshFileList\" in socketMsg){\
+              hideFileIndexingState();\
               toastr.info(\"Die Datei Liste wurde neu erzeugt!\");\
               $('#filetree').jstree(true).refresh();\
-              $(\"#indexing-progress\").hide();\
-              $(\"#refreshAction\").show();\
+\
           }\
           if (\"indexingState\" in socketMsg){\
-              console.log(socketMsg.indexingState);\
+              if(socketMsg.indexingState != null) {\
+                  $(\"#currentProcessedFile\").text(socketMsg.indexingState);\
+                  console.log(socketMsg.indexingState);\
+              }\
           }\
       };\
     }\
@@ -512,8 +526,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         var myJSON = JSON.stringify(myObj);\
         $(\"#refreshAction\").hide();\
         socket.send(myJSON);\
-        $(\"#indexing-progress\").show();\
-        $(\"#refreshAction\").hide();\
+        showFileIndexingState();\
     };\
 \
     function genSettings(clickedId) {\
