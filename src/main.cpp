@@ -1,13 +1,13 @@
 // Define modules to compile:
-//#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
+#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 #define FTP_ENABLE                  // Enables FTP-server
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
-//#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
+#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 //#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-//#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
 
@@ -135,8 +135,8 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            33          // Pin to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro
-    uint16_t r1 = 391;                              // First resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
-    uint8_t r2 = 128;                               // Second resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
+    uint16_t r1 = 389;                              // First resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
+    uint8_t r2 = 129;                               // Second resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
 
     // Internal values
     float refVoltage = 3.3;                         // Operation-voltage of ESP32; don't change!
@@ -533,7 +533,7 @@ void IRAM_ATTR onTimer() {
  * @param path
  * @param message
  */
-void createFile(fs::FS &fs, const char * path, const char * message){
+void createFile(fs::FS &fs, const char * path, const char * message) {
     snprintf(logBuf, serialLoglength, "Writing file: %s\n", path);
     loggerNl(logBuf, LOGLEVEL_DEBUG);
     File file = fs.open(path, FILE_WRITE);
@@ -553,12 +553,9 @@ void createFile(fs::FS &fs, const char * path, const char * message){
     file.close();
 }
 
-bool fileExists(fs::FS &fs, const char *file){
-    if (fs.exists(file)) {
-        return true;
-    } else {
-        return false;
-    }
+
+bool fileExists(fs::FS &fs, const char *file) {
+    return fs.exists(file);
 }
 
 /**
@@ -567,7 +564,9 @@ bool fileExists(fs::FS &fs, const char *file){
  * @param path
  * @param text
  */
-void appendToFile(fs::FS &fs, const char *path, const char *text){
+
+
+void appendToFile(fs::FS &fs, const char *path, const char *text) {
     File file = fs.open(path, FILE_APPEND);
     esp_task_wdt_reset();
     file.print(text);
@@ -594,34 +593,34 @@ void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, c
     File file = fs.open(path, FILE_APPEND);
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
-    if(!file){
+    if (!file) {
         snprintf(logBuf, serialLoglength, "Failed to open file for appending");
         loggerNl(logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
-    if (!isFirstJSONtNode){
+    if (!isFirstJSONtNode) {
         file.print(",");
     }
 
     //TODO: write a minified json, without all those whitespaces
     //      it is just easier to debug when json is in a nice format
     //      anyway ugly but works and is stable
-    file.print( "  {\n     \"id\" : \"");
+    file.print(F(( "  {\n     \"id\" : \"")));
     file.print(filename);
-    file.print("\",\n     \"parent\" : \"");
+    file.print(F("\",\n     \"parent\" : \""));
     file.print(parent);
-    file.print("\",\n    \"type\": \"");
+    file.print(F("\",\n    \"type\": \""));
     file.print(type);
-    file.print("\",\n   \"text\" : \"");
+    file.print(F("\",\n   \"text\" : \""));
     file.print(filename);
-    file.print("\"\n  }");
+    file.print(F("\"\n  }"));
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
     yield();
     file.close();
 
-    if(isFirstJSONtNode){
+    if (isFirstJSONtNode) {
         isFirstJSONtNode = false;
     }
 }
@@ -649,7 +648,7 @@ bool pathValid(const char *_fileItem) {
  */
 char fileNameBuf[255];
 
-void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels){
+void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels) {
     esp_task_wdt_reset();
 
     yield();
@@ -716,7 +715,7 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
  *  It notifies the user client via websockets when the indexing
  *  is done.
  */
-void createJSONFileList(){
+void createJSONFileList() {
     createFile(SD, DIRECTORY_INDEX_FILE, "[\n");
     parseSDFileList(SD,  "/", NULL, FS_DEPTH);
     appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
@@ -725,7 +724,7 @@ void createJSONFileList(){
 }
 
 
-void fileHandlingTask(void *arguments){
+void fileHandlingTask(void *arguments) {
     createJSONFileList();
     esp_task_wdt_reset();
     vTaskDelete( NULL );
