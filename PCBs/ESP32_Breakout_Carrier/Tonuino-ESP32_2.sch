@@ -1,0 +1,585 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ESP32-DEVKITC-32U:ESP32-DEVKITC-32U U1
+U 1 1 5F79096D
+P 8100 2650
+F 0 "U1" H 8100 3817 50  0000 C CNN
+F 1 "ESP32-DEVKITC-32U" H 8100 3726 50  0000 C CNN
+F 2 "ESP32-DEVKITC-32U:MODULE_ESP32-DEVKITC-32U" H 8100 2650 50  0001 L BNN
+F 3 "Manufacturer Recommendations" H 8100 2650 50  0001 L BNN
+F 4 "ESPRESSIF" H 8100 2650 50  0001 L BNN "Field4"
+F 5 "N/A" H 8100 2650 50  0001 L BNN "Field5"
+	1    8100 2650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x05_Male J4
+U 1 1 5F7BD0A2
+P 2550 6550
+F 0 "J4" H 2658 6931 50  0000 C CNN
+F 1 "Rotary Encode" H 2658 6840 50  0000 C CNN
+F 2 "mod_s:PinHeader_1x05_P2.54mm_Vertical" H 2550 6550 50  0001 C CNN
+F 3 "" H 2550 6550 50  0001 C CNN
+	1    2550 6550
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x06_Male J1
+U 1 1 5F7ED32A
+P 6250 4700
+F 0 "J1" V 6312 4944 50  0000 L CNN
+F 1 "SD-Card Reader" V 6403 4944 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x06_P2.54mm_Vertical" H 6250 4700 50  0001 C CNN
+F 3 "" H 6250 4700 50  0001 C CNN
+	1    6250 4700
+	0    1    1    0   
+$EndComp
+Text Notes 4200 4300 0    197  ~ 0
+Breakout Boards\n
+Text Notes 850  4300 0    197  ~ 0
+Inputs Interfaces
+Text Notes 850  1400 0    197  ~ 0
+Switched 5V (Deep Sleep)\n
+Text Notes 7500 1250 0    197  ~ 0
+ESP-32\n
+$Comp
+L Connector:Conn_01x07_Male J3
+U 1 1 5F81C714
+P 4650 6450
+F 0 "J3" V 4485 6428 50  0000 C CNN
+F 1 "Adafruit MAX98357" V 4576 6428 50  0000 C CNN
+F 2 "mod_s:PinHeader_1x07_P2.54mm_Vertical" H 4650 6450 50  0001 C CNN
+F 3 "" H 4650 6450 50  0001 C CNN
+	1    4650 6450
+	0    1    1    0   
+$EndComp
+Text GLabel 9050 2750 2    50   Input ~ 0
+GPIO-17
+Wire Wire Line
+	4950 6850 4950 6650
+Text GLabel 6350 5050 3    50   Input ~ 0
+SWITCHED_VCC
+Wire Wire Line
+	6350 5050 6350 4900
+$Comp
+L power:GND #PWR0103
+U 1 1 5F829524
+P 6600 5100
+F 0 "#PWR0103" H 6600 4850 50  0001 C CNN
+F 1 "GND" H 6605 4927 50  0000 C CNN
+F 2 "" H 6600 5100 50  0001 C CNN
+F 3 "" H 6600 5100 50  0001 C CNN
+	1    6600 5100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6600 5100 6450 5100
+Wire Wire Line
+	6450 5100 6450 4900
+Text GLabel 7050 1750 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	7300 1750 7050 1750
+Wire Wire Line
+	8900 2750 9050 2750
+Text GLabel 5050 5250 3    50   Input ~ 0
+GPIO-17
+$Comp
+L power:GND #PWR0104
+U 1 1 5F82B98B
+P 4850 5250
+F 0 "#PWR0104" H 4850 5000 50  0001 C CNN
+F 1 "GND" H 4855 5077 50  0000 C CNN
+F 2 "" H 4850 5250 50  0001 C CNN
+F 3 "" H 4850 5250 50  0001 C CNN
+	1    4850 5250
+	1    0    0    -1  
+$EndComp
+Text GLabel 6250 5050 3    50   Input ~ 0
+SD-CARD_MISO
+Text GLabel 6150 5050 3    50   Input ~ 0
+SD-CARD_MOSI
+Wire Wire Line
+	6250 5050 6250 4900
+Wire Wire Line
+	6150 5050 6150 4900
+Text GLabel 6050 5050 3    50   Input ~ 0
+SD-CARD_SCK
+Text GLabel 5950 5050 3    50   Input ~ 0
+SD-CARD_CS
+Wire Wire Line
+	6050 5050 6050 4900
+Wire Wire Line
+	5950 5050 5950 4900
+Text GLabel 4950 5250 3    50   Input ~ 0
+RFID_RST
+Text GLabel 4350 5250 3    50   Input ~ 0
+RFID_SDA
+Text GLabel 4450 5250 3    50   Input ~ 0
+RFID_SCK
+Text GLabel 4550 5250 3    50   Input ~ 0
+RFID_MOSI
+Text GLabel 4650 5250 3    50   Input ~ 0
+RFID_MISO
+Wire Wire Line
+	4850 6750 4850 6650
+Text GLabel 4550 6850 3    50   Input ~ 0
+MAX98357_DIN
+Wire Wire Line
+	4550 6850 4550 6650
+Text GLabel 4450 6850 3    50   Input ~ 0
+MAX98357_BLCK
+Wire Wire Line
+	4450 6850 4450 6650
+Text GLabel 4350 6850 3    50   Input ~ 0
+MAX98357_LRC
+Wire Wire Line
+	4350 6850 4350 6650
+Text GLabel 2550 6900 3    50   Input ~ 0
+ROTARY_CLR
+Text GLabel 2450 6900 3    50   Input ~ 0
+ROTARY_DT
+Text GLabel 2350 6900 3    50   Input ~ 0
+ROTARY_BUTTON
+Text GLabel 2650 6900 3    50   Input ~ 0
+3.3V
+Wire Wire Line
+	2750 6900 2750 6750
+Wire Wire Line
+	2650 6900 2650 6750
+Wire Wire Line
+	2450 6900 2450 6750
+Text GLabel 2500 5100 3    50   Input ~ 0
+BUTTON_PLAY_PAUSE_PIN
+Text GLabel 2100 5100 3    50   Input ~ 0
+BUTTON_NEXT_PIN
+Text GLabel 1600 5100 3    50   Input ~ 0
+BUTTON_PREVIOUS_PIN
+$Comp
+L power:GND #PWR0106
+U 1 1 5F842383
+P 1700 5100
+F 0 "#PWR0106" H 1700 4850 50  0001 C CNN
+F 1 "GND" H 1705 4927 50  0000 C CNN
+F 2 "" H 1700 5100 50  0001 C CNN
+F 3 "" H 1700 5100 50  0001 C CNN
+	1    1700 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0107
+U 1 1 5F8429CB
+P 2200 5100
+F 0 "#PWR0107" H 2200 4850 50  0001 C CNN
+F 1 "GND" H 2205 4927 50  0000 C CNN
+F 2 "" H 2200 5100 50  0001 C CNN
+F 3 "" H 2200 5100 50  0001 C CNN
+	1    2200 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0108
+U 1 1 5F843BDD
+P 2600 5100
+F 0 "#PWR0108" H 2600 4850 50  0001 C CNN
+F 1 "GND" H 2605 4927 50  0000 C CNN
+F 2 "" H 2600 5100 50  0001 C CNN
+F 3 "" H 2600 5100 50  0001 C CNN
+	1    2600 5100
+	1    0    0    -1  
+$EndComp
+Text GLabel 5750 6900 3    50   Input ~ 0
+NEOPIXEL_DI
+Wire Wire Line
+	5650 6900 5650 6750
+Wire Wire Line
+	5750 6900 5750 6750
+Wire Wire Line
+	5850 6900 5850 6750
+Text GLabel 9050 1950 2    50   Input ~ 0
+RFID_RST
+Wire Wire Line
+	8900 1950 9050 1950
+Text GLabel 9050 2250 2    50   Input ~ 0
+RFID_SDA
+Wire Wire Line
+	8900 2250 9050 2250
+Text GLabel 9050 1850 2    50   Input ~ 0
+RFID_MOSI
+Wire Wire Line
+	8900 1850 9050 1850
+Text GLabel 9050 2450 2    50   Input ~ 0
+RFID_MISO
+Wire Wire Line
+	9050 2450 8900 2450
+Text GLabel 9050 2550 2    50   Input ~ 0
+RFID_SCK
+Wire Wire Line
+	8900 2550 9050 2550
+$Comp
+L power:GND #PWR0110
+U 1 1 5F85DB8C
+P 9050 1750
+F 0 "#PWR0110" H 9050 1500 50  0001 C CNN
+F 1 "GND" V 9050 1600 50  0000 R CNN
+F 2 "" H 9050 1750 50  0001 C CNN
+F 3 "" H 9050 1750 50  0001 C CNN
+	1    9050 1750
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	8900 2350 9050 2350
+Wire Wire Line
+	9050 1750 8900 1750
+Text GLabel 7050 2550 0    50   Input ~ 0
+MAX98357_DIN
+Text GLabel 7050 2750 0    50   Input ~ 0
+MAX98357_BLCK
+Text GLabel 7050 2650 0    50   Input ~ 0
+MAX98357_LRC
+Wire Wire Line
+	7050 2550 7300 2550
+Wire Wire Line
+	7050 2650 7300 2650
+Wire Wire Line
+	7050 2750 7300 2750
+Text GLabel 9050 3250 2    50   Input ~ 0
+SD-CARD_CS
+Text GLabel 7050 2850 0    50   Input ~ 0
+SD-CARD_SCK
+Text GLabel 7050 3150 0    50   Input ~ 0
+SD-CARD_MOSI
+Text GLabel 9050 2850 2    50   Input ~ 0
+SD-CARD_MISO
+Wire Wire Line
+	9050 2850 8900 2850
+Wire Wire Line
+	9050 3250 8900 3250
+Wire Wire Line
+	7300 3150 7050 3150
+Wire Wire Line
+	7050 2850 7300 2850
+Text GLabel 7050 2450 0    50   Input ~ 0
+BUTTON_PREVIOUS_PIN
+Text GLabel 9050 2950 2    50   Input ~ 0
+BUTTON_NEXT_PIN
+Text GLabel 9050 2650 2    50   Input ~ 0
+BUTTON_PLAY_PAUSE_PIN
+Wire Wire Line
+	8900 2650 9050 2650
+Wire Wire Line
+	8900 2950 9050 2950
+Wire Wire Line
+	7300 2450 7050 2450
+Text GLabel 7050 2150 0    50   Input ~ 0
+ROTARY_CLR
+Text GLabel 7050 2250 0    50   Input ~ 0
+ROTARY_DT
+Text GLabel 7050 2350 0    50   Input ~ 0
+ROTARY_BUTTON
+Wire Wire Line
+	7050 2350 7300 2350
+Wire Wire Line
+	7050 2250 7300 2250
+Wire Wire Line
+	7050 2150 7300 2150
+Text GLabel 7050 2950 0    50   Input ~ 0
+NEOPIXEL_DI
+Wire Wire Line
+	7050 2950 7300 2950
+$Comp
+L power:VCC #PWR0112
+U 1 1 5F87B792
+P 7000 3550
+F 0 "#PWR0112" H 7000 3400 50  0001 C CNN
+F 1 "VCC" H 7015 3723 50  0000 C CNN
+F 2 "" H 7000 3550 50  0001 C CNN
+F 3 "" H 7000 3550 50  0001 C CNN
+	1    7000 3550
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	7300 3550 7000 3550
+Text GLabel 5650 6900 3    50   Input ~ 0
+SWITCHED_VCC
+$Comp
+L power:VCC #PWR0114
+U 1 1 5F8848E9
+P 8750 4900
+F 0 "#PWR0114" H 8750 4750 50  0001 C CNN
+F 1 "VCC" H 8765 5073 50  0000 C CNN
+F 2 "" H 8750 4900 50  0001 C CNN
+F 3 "" H 8750 4900 50  0001 C CNN
+	1    8750 4900
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0115
+U 1 1 5F885DD6
+P 8850 4900
+F 0 "#PWR0115" H 8850 4650 50  0001 C CNN
+F 1 "GND" H 8855 4727 50  0000 C CNN
+F 2 "" H 8850 4900 50  0001 C CNN
+F 3 "" H 8850 4900 50  0001 C CNN
+	1    8850 4900
+	1    0    0    -1  
+$EndComp
+Text Notes 7750 4300 0    197  ~ 0
+Power Supply\n
+Wire Wire Line
+	2550 6900 2550 6750
+Wire Wire Line
+	2350 6900 2350 6750
+$Comp
+L power:GND #PWR0105
+U 1 1 5F872A11
+P 9050 2350
+F 0 "#PWR0105" H 9050 2100 50  0001 C CNN
+F 1 "GND" V 9055 2222 50  0000 R CNN
+F 2 "" H 9050 2350 50  0001 C CNN
+F 3 "" H 9050 2350 50  0001 C CNN
+	1    9050 2350
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0109
+U 1 1 5F8787E6
+P 2750 6900
+F 0 "#PWR0109" H 2750 6650 50  0001 C CNN
+F 1 "GND" V 2750 6750 50  0000 R CNN
+F 2 "" H 2750 6900 50  0001 C CNN
+F 3 "" H 2750 6900 50  0001 C CNN
+	1    2750 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0111
+U 1 1 5F878CF4
+P 7300 3050
+F 0 "#PWR0111" H 7300 2800 50  0001 C CNN
+F 1 "GND" V 7300 2900 50  0000 R CNN
+F 2 "" H 7300 3050 50  0001 C CNN
+F 3 "" H 7300 3050 50  0001 C CNN
+	1    7300 3050
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR0117
+U 1 1 5F885952
+P 4850 6750
+F 0 "#PWR0117" H 4850 6500 50  0001 C CNN
+F 1 "GND" V 4850 6600 50  0000 R CNN
+F 2 "" H 4850 6750 50  0001 C CNN
+F 3 "" H 4850 6750 50  0001 C CNN
+	1    4850 6750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0118
+U 1 1 5F8874D1
+P 5850 6900
+F 0 "#PWR0118" H 5850 6650 50  0001 C CNN
+F 1 "GND" V 5850 6750 50  0000 R CNN
+F 2 "" H 5850 6900 50  0001 C CNN
+F 3 "" H 5850 6900 50  0001 C CNN
+	1    5850 6900
+	1    0    0    -1  
+$EndComp
+Text GLabel 4950 6850 3    50   Input ~ 0
+SWITCHED_VCC
+$Comp
+L Connector:Conn_01x02_Male J5
+U 1 1 5F9085EF
+P 1700 4900
+F 0 "J5" V 1762 4944 50  0000 L CNN
+F 1 "Next" V 1853 4944 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x02_P2.54mm_Vertical" H 1700 4900 50  0001 C CNN
+F 3 "" H 1700 4900 50  0001 C CNN
+	1    1700 4900
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x02_Male J6
+U 1 1 5F90EAED
+P 2200 4900
+F 0 "J6" V 2262 4944 50  0000 L CNN
+F 1 "Prev" V 2353 4944 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x02_P2.54mm_Vertical" H 2200 4900 50  0001 C CNN
+F 3 "" H 2200 4900 50  0001 C CNN
+	1    2200 4900
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x02_Male J7
+U 1 1 5F90F726
+P 2600 4900
+F 0 "J7" V 2662 4944 50  0000 L CNN
+F 1 "Pause" V 2753 4944 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x02_P2.54mm_Vertical" H 2600 4900 50  0001 C CNN
+F 3 "" H 2600 4900 50  0001 C CNN
+	1    2600 4900
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x08_Male J2
+U 1 1 5F92011C
+P 4750 5050
+F 0 "J2" V 4585 4978 50  0000 C CNN
+F 1 "RFID-RC522" V 4676 4978 50  0000 C CNN
+F 2 "mod_s:PinHeader_1x08_P2.54mm_Vertical" H 4750 5050 50  0001 C CNN
+F 3 "" H 4750 5050 50  0001 C CNN
+	1    4750 5050
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x03_Male J8
+U 1 1 5F936A23
+P 5750 6550
+F 0 "J8" V 5812 6694 50  0000 L CNN
+F 1 "WS2812" V 5903 6694 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x03_P2.54mm_Vertical" H 5750 6550 50  0001 C CNN
+F 3 "" H 5750 6550 50  0001 C CNN
+	1    5750 6550
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector:Conn_01x02_Male J9
+U 1 1 5F945F11
+P 8850 4700
+F 0 "J9" V 8912 4744 50  0000 L CNN
+F 1 "Power" V 9003 4744 50  0000 L CNN
+F 2 "mod_s:PinHeader_1x02_P2.54mm_Vertical" H 8850 4700 50  0001 C CNN
+F 3 "" H 8850 4700 50  0001 C CNN
+	1    8850 4700
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1600 2850 1850 2850
+Text GLabel 1600 2850 0    50   Input ~ 0
+GPIO-17
+Wire Wire Line
+	2300 2400 2300 2550
+$Comp
+L power:GND #PWR0102
+U 1 1 5F7B65C3
+P 2300 2400
+F 0 "#PWR0102" H 2300 2150 50  0001 C CNN
+F 1 "GND" H 2305 2227 50  0000 C CNN
+F 2 "" H 2300 2400 50  0001 C CNN
+F 3 "" H 2300 2400 50  0001 C CNN
+	1    2300 2400
+	-1   0    0    1   
+$EndComp
+Connection ~ 2300 2850
+Wire Wire Line
+	2300 2850 2150 2850
+Wire Wire Line
+	2450 2850 2300 2850
+$Comp
+L Device:R R5
+U 1 1 5F7995ED
+P 2000 2850
+F 0 "R5" H 2070 2896 50  0000 L CNN
+F 1 "4,7k" H 2070 2805 50  0000 L CNN
+F 2 "adafruit:0207_9" V 1930 2850 50  0001 C CNN
+F 3 "" H 2000 2850 50  0001 C CNN
+	1    2000 2850
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R4
+U 1 1 5F798E7D
+P 2300 2700
+F 0 "R4" H 2370 2746 50  0000 L CNN
+F 1 "10k" H 2370 2655 50  0000 L CNN
+F 2 "adafruit:0207_9" V 2230 2700 50  0001 C CNN
+F 3 "" H 2300 2700 50  0001 C CNN
+	1    2300 2700
+	-1   0    0    1   
+$EndComp
+$Comp
+L Transistor_BJT:BC337 Q1
+U 1 1 5F78DA7C
+P 2650 2850
+F 0 "Q1" H 2841 2896 50  0000 L CNN
+F 1 "BC337" H 2841 2805 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline_Wide" H 2850 2775 50  0001 L CIN
+F 3 "" H 2650 2850 50  0001 L CNN
+	1    2650 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5F7B5A15
+P 2750 3300
+F 0 "#PWR0101" H 2750 3050 50  0001 C CNN
+F 1 "GND" H 2755 3127 50  0000 C CNN
+F 2 "" H 2750 3300 50  0001 C CNN
+F 3 "" H 2750 3300 50  0001 C CNN
+	1    2750 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2750 3050 2750 3300
+$Comp
+L Transistor_FET:IRF9540N Q2
+U 1 1 5F78F572
+P 2750 2100
+F 0 "Q2" H 2954 2146 50  0000 L CNN
+F 1 "IRF9540N" H 2954 2055 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 2950 2025 50  0001 L CIN
+F 3 "" H 2750 2100 50  0001 L CNN
+	1    2750 2100
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5F79873B
+P 3050 2150
+F 0 "R1" H 3120 2196 50  0000 L CNN
+F 1 "10k" H 3120 2105 50  0000 L CNN
+F 2 "adafruit:0207_9" V 2980 2150 50  0001 C CNN
+F 3 "" H 3050 2150 50  0001 C CNN
+	1    3050 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 2000 2950 2000
+Wire Wire Line
+	2750 2300 3050 2300
+Wire Wire Line
+	3300 2000 3050 2000
+$Comp
+L power:VCC #PWR0113
+U 1 1 5F87F1D8
+P 3300 2000
+F 0 "#PWR0113" H 3300 1850 50  0001 C CNN
+F 1 "VCC" V 3315 2127 50  0000 L CNN
+F 2 "" H 3300 2000 50  0001 C CNN
+F 3 "" H 3300 2000 50  0001 C CNN
+	1    3300 2000
+	0    1    1    0   
+$EndComp
+Text GLabel 2350 2000 0    50   Input ~ 0
+SWITCHED_VCC
+Wire Wire Line
+	2350 2000 2550 2000
+Connection ~ 3050 2000
+Wire Wire Line
+	2750 2300 2750 2650
+Connection ~ 2750 2300
+$EndSCHEMATC
