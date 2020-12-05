@@ -375,7 +375,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                         $('#filetree').on(\"click\", function () {\
                             refreshFileList();\
                         });\
-                        toastr.error(\"Die Verzeichnis Liste konnte nicht geladen werden.\");\
+                        toastr.error(\"Die Verzeichnis-Liste konnte nicht geladen werden.\");\
                     }\
                 },\
 \
@@ -398,7 +398,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         }).bind('loaded.jstree', function (event, data) {\
             postRendering(event, data);\
             if ((data.instance._model.data['#']['children'].length == 0)) {\
-                toastr.info(\"Der SD Karten Index muss erzeugt werden.\");\
+                toastr.info(\"Der SD-Karten-Index muss erzeugt werden.\");\
             }\
         }).bind('refresh.jstree', function (event, data) {\
             postRendering(event, data);\
@@ -435,12 +435,12 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
         }\
     });\
 \
-    function showFileIndexingState(){\
+    function showFileIndexingState() {\
         $(\"#indexing-progress\").show();\
         $(\"#refreshAction\").hide();\
     }\
 \
-    function hideFileIndexingState(){\
+    function hideFileIndexingState() {\
         $(\"#indexing-progress\").hide();\
         $(\"#refreshAction\").show();\
     }\
@@ -486,13 +486,13 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
               if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
-          } if (\"refreshFileList\" in socketMsg){\
+          } if (\"refreshFileList\" in socketMsg) {\
               hideFileIndexingState();\
-              toastr.info(\"Die Datei Liste wurde neu erzeugt!\");\
+              toastr.info(\"Die Dateiliste wurde neu erzeugt!\");\
               $('#filetree').jstree(true).refresh();\
 \
           }\
-          if (\"indexingState\" in socketMsg){\
+          if (\"indexingState\" in socketMsg) {\
               if(socketMsg.indexingState != null) {\
                   $(\"#currentProcessedFile\").text(socketMsg.indexingState);\
                   console.log(socketMsg.indexingState);\
