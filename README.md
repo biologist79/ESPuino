@@ -15,6 +15,7 @@ Currently I'm working on a new Tonuino that is completely based on 3.3V and make
 * 28.11.2020: Battery's voltage can now be visualized by Neopixel by short-press of rotary encoder's burtton.
 * 28.11.2020: Added directive `PLAY_LAST_RFID_AFTER_REBOOT`: Tonuino will recall the last RFID played after reboot.
 * 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
+* 05.12.2020: Moved all user-relevant settings to src/settings.h
 More to come...
 
 ## Disclaimer
@@ -46,7 +47,7 @@ Most of them can be ordered cheaper directly in China. It's just a give an short
 
 ## Getting Started
 I recommend Microsoft's [Visual Studio Code](https://code.visualstudio.com/) or [Atom](https://atom.io/) alongside with [Platformio Plugin](https://platformio.org/install/ide?install=vscode). Since my project on Github contains [platformio.ini](platformio.ini), libraries used should be fetched automatically. Please note: if you use another ESP32-develboard (different to Lolin32) you might have to change "env:" in platformio.ini to the corresponding value. Documentation can be found [here](https://docs.platformio.org/en/latest/projectconf.html). After that it might be necessary to adjust the names of the GPIO-pins in the upper #define-section of my code.
-In the upper section of main.cpp you can specify the modules that should be compiled into the code.
+In src/settings.h you have to specify the modules that should be compiled into the code and all the user-relevant config-parameters as well.
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
 ## Wiring (2 SPI-instances)

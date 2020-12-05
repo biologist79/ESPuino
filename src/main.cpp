@@ -1,19 +1,5 @@
 // Define modules to compile:
-#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE                  // Enables FTP-server
-#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
-#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
-#define LANGUAGE 1                  // 1 = deutsch; 2 = english
-#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
-//#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
-#define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
-//#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
-
-
-//#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it). Will overwrite SHUTDOWN_IF_SD_BOOT_FAILS!
-//#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
-
+#include "settings.h"                       // Contains all user-relevant settings
 #include <ESP32Encoder.h>
 #include "Arduino.h"
 #include <WiFi.h>
@@ -60,49 +46,11 @@
 // https://docs.aws.amazon.com/de_de/freertos-kernel/latest/dg/queue-management.html
 // https://arduino-esp8266.readthedocs.io/en/latest/PROGMEM.html#how-do-i-declare-a-global-flash-string-and-use-it
 
-// Loglevels
-#define LOGLEVEL_ERROR                  1           // only errors
-#define LOGLEVEL_NOTICE                 2           // errors + important messages
-#define LOGLEVEL_INFO                   3           // infos + errors + important messages
-#define LOGLEVEL_DEBUG                  4           // almost everything
-
-// Serial-logging-configuration
-const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for serial console
-
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
 
-// File Browser
-uint8_t FS_DEPTH = 3; // max recursion depth of file tree
-const char * DIRECTORY_INDEX_FILE = "/files.json"; //  filename of files.json index file
-
-// GPIOs (uSD card-reader)
-#define SPISD_CS                        15
-#ifndef SINGLE_SPI_ENABLE
-    #define SPISD_MOSI                  13
-    #define SPISD_MISO                  16          // 12 doesn't work with some devel-boards
-    #define SPISD_SCK                   14
-#endif
-
-// GPIOs (RFID-readercurrentRfidTagId)
-#define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-#define RFID_CS                         21
-#define RFID_MOSI                       23
-#define RFID_MISO                       19
-#define RFID_SCK                        18
-
-// GPIOs (DAC)
-#define I2S_DOUT                        25
-#define I2S_BCLK                        27
-#define I2S_LRC                         26
-
-// GPIO to detect if headphone was plugged in (pulled to GND)
 #ifdef HEADPHONE_ADJUST_ENABLE
-    #define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
-    uint16_t headphoneLastDetectionDebounce = 1000;     // Debounce-interval in ms when plugging in headphone
-
-    // Internal values
     bool headphoneLastDetectionState;
     uint32_t headphoneLastDetectionTimestamp = 0;
 #endif
@@ -111,47 +59,13 @@ const char * DIRECTORY_INDEX_FILE = "/files.json"; //  filename of files.json in
     BluetoothA2DPSink a2dp_sink;
 #endif
 
-// GPIO used to trigger transistor-circuit / RFID-reader
-#define POWER                           17
-
-// GPIOs (Rotary encoder)
-#define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT
-#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-#define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
-
-// GPIOs (Control-buttons)
-#define PAUSEPLAY_BUTTON                5
-#define NEXT_BUTTON                     4
-#define PREVIOUS_BUTTON                 2           // Please note: as of 19.11.2020 changed from 33 to 2
-
-// GPIOs (LEDs)
-#define LED_PIN                         12          // Pin where Neopixel is connected to
-
-// (optional) Default-voltages for battery-monitoring
-float warningLowVoltage = 3.4;                      // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-uint8_t voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
-float voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
-float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
-
 #ifdef MEASURE_BATTERY_VOLTAGE
-    #define VOLTAGE_READ_PIN            33          // Pin to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro
-    uint16_t r1 = 389;                              // First resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
-    uint8_t r2 = 129;                               // Second resistor of voltage-divider (kOhms) (measure exact value with multimeter!)
-
-    // Internal values
     float refVoltage = 3.3;                         // Operation-voltage of ESP32; don't change!
     uint16_t maxAnalogValue = 4095;                 // Highest value given by analogRead(); don't change!
     uint32_t lastVoltageCheckTimestamp = 0;
     #ifdef NEOPIXEL_ENABLE
         bool showVoltageWarning = false;
     #endif
-#endif
-
-// Neopixel-configuration
-#ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    24          // number of LEDs
-    #define CHIPSET                     WS2812B     // type of Neopixel
-    #define COLOR_ORDER                 GRB
 #endif
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
@@ -232,18 +146,13 @@ uint8_t initialLedBrightness = 16;                      // Initial brightness of
 uint8_t ledBrightness = initialLedBrightness;
 uint8_t nightLedBrightness = 2;                         // Brightness of Neopixel in nightmode
 
-// Automatic restart
-#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-    uint32_t deepsleepTimeAfterBootFails = 20;          // Automatic restart takes place if boot was not successful after this period (in seconds)
-#endif
 // MQTT
 bool enableMqtt = true;
 #ifdef MQTT_ENABLE
     uint8_t mqttFailCount = 3;                          // Number of times mqtt-reconnect is allowed to fail. If >= mqttFailCount to further reconnects take place
     uint8_t const stillOnlineInterval = 60;             // Interval 'I'm still alive' is sent via MQTT (in seconds)
 #endif
-// RFID
-#define RFID_SCAN_INTERVAL 300                          // in ms
+
 uint8_t const cardIdSize = 4;                           // RFID
 // Volume
 uint8_t maxVolume = 21;                                 // Current maximum volume that can be adjusted
@@ -254,7 +163,7 @@ uint8_t initVolume = 3;                                 // 0...21 (If not found 
     uint8_t maxVolumeHeadphone = 11;                    // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
 #endif
 // Sleep
-uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity
+uint8_t maxInactivityTime = 10;                         // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
 uint8_t sleepTimer = 30;                                // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
 // FTP
 uint8_t ftpUserLength = 10;                             // Length will be published n-1 as maxlength to GUI
@@ -262,14 +171,6 @@ uint8_t ftpPasswordLength = 15;                         // Length will be publis
 char *ftpUser = strndup((char*) "esp32", ftpUserLength);                // FTP-user (default; can be changed later via GUI)
 char *ftpPassword = strndup((char*) "esp32", ftpPasswordLength);        // FTP-password (default; can be changed later via GUI)
 
-// Button-configuration (change according your needs)
-uint8_t buttonDebounceInterval = 50;                    // Interval in ms to software-debounce buttons
-uint16_t intervalToLongPress = 700;                     // Interval in ms to distinguish between short and long press of previous/next-button
-
-// Where to store the backup-file
-#ifndef SD_NOT_MANDATORY_ENABLE
-    static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
-#endif
 
 // Don't change anything here unless you know what you're doing
 // HELPER //
@@ -308,7 +209,6 @@ uint8_t currentVolume = initVolume;
 ////////////
 
 // AP-WiFi
-static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-point's SSID
 IPAddress apIP(192, 168, 4, 1);                         // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0);                  // Access-point's netmask
 bool accessPointStarted = false;
@@ -325,28 +225,6 @@ char *mqtt_server = strndup((char*) "192.168.2.43", mqttServerLength);      // I
 char *mqttUser = strndup((char*) "mqtt-user", mqttUserLength);              // MQTT-user
 char *mqttPassword = strndup((char*) "mqtt-password", mqttPasswordLength);  // MQTT-password*/
 
-#ifdef MQTT_ENABLE
-    #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
-    static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
-    static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
-    static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
-    static const char topicTrackState[] PROGMEM = "State/Tonuino/Track";
-    static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino/TrackControl";
-    static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino/Loudness";
-    static const char topicLoudnessState[] PROGMEM = "State/Tonuino/Loudness";
-    static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/Tonuino/SleepTimer";
-    static const char topicSleepTimerState[] PROGMEM = "State/Tonuino/SleepTimer";
-    static const char topicState[] PROGMEM = "State/Tonuino/State";
-    static const char topicCurrentIPv4IP[] PROGMEM = "State/Tonuino/IPv4";
-    static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/Tonuino/LockControls";
-    static const char topicLockControlsState[] PROGMEM ="State/Tonuino/LockControls";
-    static const char topicPlaymodeState[] PROGMEM = "State/Tonuino/Playmode";
-    static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/Tonuino/RepeatMode";
-    static const char topicRepeatModeState[] PROGMEM = "State/Tonuino/RepeatMode";
-    static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino/LedBrightness";
-    static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
-    static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino/Voltage";
-#endif
 
 char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
 char stringOuterDelimiter[] = "^";                          // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
