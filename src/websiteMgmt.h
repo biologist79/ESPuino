@@ -145,7 +145,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                 <div id=\"filebrowser\">\
                     <div class=\"filetree demo\" id=\"filetree\"></div>\
                     <div class=\"refreshAction\">\
-                        <span id=\"refreshAction\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Datei Liste aktualisieren.\"><i class=\"fas fa-sync fa-1x\"></i> Dateien suchen</span>\
+                        <span id=\"refreshAction\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Datei Liste aktualisieren.\"><i class=\"fas fa-sync fa-1x\"></i> Dateiliste aktualisieren</span>\
                     </div>\
                 </div>\
                 <div id=\"indexing-progress\" class=\"indexing-progress overlay\">\
@@ -159,8 +159,8 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
             <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
                 <option class=\"option-file\" value=\"1\">Einzelner Titel</option>\
                 <option class=\"option-file\" value=\"2\">Einzelner Titel (Endlosschleife)</option>\
-                <option class=\"option-folder\" value=\"3\">Hörbuch</option>\
-                <option class=\"option-folder\" value=\"4\">Hörbuch (Endlosschleife)</option>\
+                <option class=\"option-file-and-folder\" value=\"3\">Hörbuch</option>\
+                <option class=\"option-file-and-folder\" value=\"4\">Hörbuch (Endlosschleife)</option>\
                 <option class=\"option-folder\" value=\"5\">Alle Titel eines Verzeichnis (sortiert)</option>\
                 <option class=\"option-folder\" value=\"6\">Alle Titel eines Verzeichnis (zufällig)</option>\
                 <option class=\"option-folder\" value=\"7\">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>\
