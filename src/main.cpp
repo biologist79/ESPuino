@@ -1,4 +1,5 @@
-// Define modules to compile:
+// !!! MAKE SURE TO EDIT settings.h !!!
+
 #include "settings.h"                       // Contains all user-relevant settings
 #include <ESP32Encoder.h>
 #include "Arduino.h"
