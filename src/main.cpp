@@ -67,7 +67,7 @@
 #define LOGLEVEL_DEBUG                  4           // almost everything
 
 // Serial-logging-configuration
-const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for serial console
+const uint8_t serialDebug = LOGLEVEL_INFO;          // Current loglevel for serial console
 
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
@@ -115,14 +115,14 @@ const char * DIRECTORY_INDEX_FILE = "/files.json"; //  filename of files.json in
 #define POWER                           17
 
 // GPIOs (Rotary encoder)
-#define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT
-#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+#define DREHENCODER_CLK                 35          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT
+#define DREHENCODER_DT                  34          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
 #define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
 
 // GPIOs (Control-buttons)
 #define PAUSEPLAY_BUTTON                5
 #define NEXT_BUTTON                     4
-#define PREVIOUS_BUTTON                 2           // Please note: as of 19.11.2020 changed from 33 to 2
+#define PREVIOUS_BUTTON                 33           // Please note: as of 19.11.2020 changed from 33 to 2
 
 // GPIOs (LEDs)
 #define LED_PIN                         12          // Pin where Neopixel is connected to
@@ -149,7 +149,7 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 
 // Neopixel-configuration
 #ifdef NEOPIXEL_ENABLE
-    #define NUM_LEDS                    24          // number of LEDs
+    #define NUM_LEDS                    9          // number of LEDs
     #define CHIPSET                     WS2812B     // type of Neopixel
     #define COLOR_ORDER                 GRB
 #endif
