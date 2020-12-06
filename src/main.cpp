@@ -612,7 +612,7 @@ void fileHandlingTask(void *arguments) {
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
 #ifdef MEASURE_BATTERY_VOLTAGE
     float measureBatteryVoltage(void) {
-        float factor = 1 / ((float) r1/(r1+r2));
+        float factor = 1 / ((float) rdiv2/(rdiv2+rdiv1));
         return ((float) analogRead(VOLTAGE_READ_PIN) / maxAnalogValue) * refVoltage * factor;
     }
 

@@ -1,7 +1,7 @@
 # Tonuino based on ESP32 with I2S-DAC-support
 
 ## NEWS
-Currently I'm working on a new Tonuino that is completely based on 3.3V and makes use of an (optional) [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. So stay tuned...
+Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is there. For further informations have a look at the subfolder Hardware-Platforms/Wemos Lolin32. It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
 
 ## History
 [...]
@@ -16,6 +16,7 @@ Currently I'm working on a new Tonuino that is completely based on 3.3V and make
 * 28.11.2020: Added directive `PLAY_LAST_RFID_AFTER_REBOOT`: Tonuino will recall the last RFID played after reboot.
 * 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
 * 05.12.2020: Moved all user-relevant settings to src/settings.h
+* 06.12.2020: Added PCB for Wemos Lolin32
 More to come...
 
 ## Disclaimer
@@ -31,14 +32,14 @@ The core of my implementation is based on the popular [ESP32 by Espressif](https
 The basic idea of Tonuino (and my fork, respectively) is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files instead of being fully cloud-dependend. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
 ## Hardware-setup
-The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). If unsure have a look at eBay or Aliexpress for "Lolin 32".
-* [MAX98357A (like Adafruit's)](https://www.ebay.de/itm/MAX98357-Amplifier-Breakout-Interface-I2S-Class-D-Module-For-ESP32-Raspberry-Pi/174319322988)
+The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.).
+* [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
 * [uSD-card-reader 3.3V + 5V](https://www.amazon.de/AZDelivery-Reader-Speicher-Memory-Arduino/dp/B077MB17JB)
 * [uSD-card-reader 3.3V only](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
 * [RFID-tags](https://www.amazon.de/AZDelivery-Keycard-56MHz-Schlüsselkarte-Karte/dp/B07TVJPTM7)
-* [Neopixel-ring](https://www.ebay.de/itm/LED-Ring-24-x-5050-RGB-LEDs-WS2812-integrierter-Treiber-NeoPixel-kompatibel/282280571841)
-* [Rotary Encoder](https://www.amazon.de/gp/product/B07T3672VK)
+* [Neopixel-ring](https://de.aliexpress.com/item/32673883645.html)
+* [Rotary Encoder](https://de.aliexpress.com/item/33041814942.html)
 * [Buttons](https://de.aliexpress.com/item/32896285438.html)
 * [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
 * uSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
@@ -51,7 +52,9 @@ In src/settings.h you have to specify the modules that should be compiled into t
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
 ## Wiring (2 SPI-instances)
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308) that makes use of GND.
+A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308) that makes use of GND.<br />
+Have a look at my PCB in the subfolder Hardware-Platforms/Wemos Lolin32. Probably this makes things easier.
+
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
@@ -93,7 +96,7 @@ A lot of wiring is necessary to get ESP32-Tonuino working. After my first experi
 
 
 Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k. <br />
-I also tested this successfully for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 1k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. <br />
+This also works for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 1k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. <br />
 Advice: When powering a SD-card-reader solely with 3.3V, make sure to use one WITHOUT a voltage regulator. Or at least one with a pin dedicated for 3.3V (bypassing voltage regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-).
 
 ## Wiring (1 SPI-instance) [EXPERIMENTAL, maybe not working!]
@@ -140,10 +143,11 @@ When using a develboard with for example SD-card-reader already integrated (Loli
 [Here](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. Please note I used a slightly modified [RFID-lib](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit/lib/MFRC522) there.
 
 ## Prerequisites / tipps
+* Open settings.h
 * choose if optional modules (MQTT, FTP, Neopixel) should be compiled/enabled
-* for debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG.
-* if MQTT=yes, set the IP or hostname of the MQTT-server accordingly and check the MQTT-topics (states and commands)
-* if Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
+* For debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG.
+* If MQTT=yes, set the IP or hostname of the MQTT-server accordingly and check the MQTT-topics (states and commands)
+* If Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
 * Please keep in mind that working SD is mandatory. Unless `SD_NOT_MANDATORY_ENABLE` is not set, Tonuino will never fully start up if SD is not working. Only use `SD_NOT_MANDATORY_ENABLE` for debugging as for normal operational mode, not having SD working doesn't make sense. Even if only webradio-mode is intended, SD would be used to backup RFID-tag-learnings (/backup.txt) or JSON-file-index (files.json).
 * If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat(+)--130k--X--390k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to adjust both values to 100k each and change GPIO to 35 as this is already integrated and wired fixed.
@@ -283,7 +287,7 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * General-configuration (volume (speaker + headphone), neopixel-brightness (night-mode + initial), sleep after inactivity)
 
 ### FTP (optional)
-In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast data-transfer. Initially it was around 145 kB/s but after modifying ftp-server-lib (changing from 4 kB static-buffer to 16 kB heap-buffer) I saw rates improving a bit. Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback then doing a FTP-transfer. However, playback sounds normal if a FTP-upload is performed in parallel. Default-user and password are set via `ftpUser` and `ftpPassword` but can be changed later via GUI.
+In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast data-transfer. Initially it was around 145 kB/s but after modifying ftp-server-lib (changing from 4 kB static-buffer to 16 kB heap-buffer) I saw rates improving to around 185 kB/s. Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer. However, playback sounds normal if a FTP-upload is performed in parallel. Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
 
 ### Files / ID3-tags (IMPORTANT!)
 Make sure to not use filenames that contain German 'Umlaute'. I've been told this is also true for mp3's ID3-tags.
