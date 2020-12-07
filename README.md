@@ -1,7 +1,7 @@
 # Tonuino based on ESP32 with I2S-DAC-support
 
 ## NEWS
-Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is there. For further informations have a look at the subfolder Hardware-Platforms/Wemos Lolin32. It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
+Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
 
 ## History
 [...]
@@ -96,7 +96,7 @@ Have a look at my PCB in the subfolder Hardware-Platforms/Wemos Lolin32. Probabl
 
 
 Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls a p-channel MOSFET (IRF9520) to GND in order to switch on/off 5V-current. Transistor-circuit is described [here](https://dl6gl.de/schalten-mit-transistoren.html): Just have a look at Abb. 4. Values of the resistors I used: R1: 10k, R2: omitted(!), R4: 10k, R5: 4,7k. <br />
-This also works for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 1k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. <br />
+This also works for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 1k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations.<br />
 Advice: When powering a SD-card-reader solely with 3.3V, make sure to use one WITHOUT a voltage regulator. Or at least one with a pin dedicated for 3.3V (bypassing voltage regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-).
 
 ## Wiring (1 SPI-instance) [EXPERIMENTAL, maybe not working!]
