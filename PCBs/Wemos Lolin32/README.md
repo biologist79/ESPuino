@@ -15,11 +15,11 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
-* I used 390/130 kOhms-resistors as voltage-divider. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement. They can be configured in `settings.h` as `rdiv1` und `rdiv2`. Hint: for Lolin D32's battery-measurement 100k+100k were used. However, I decided to change the ratio from 50/50% to 25/75% to have a "better" signal. 100/100 might be work as well; didn't test it.
+* I used 390/130 kOhms-resistors as voltage-divider. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement. They can be configured in `settings.h` as `rdiv1` and `rdiv2`. Hint: for Lolin D32's battery-measurement 100k+100k were used. However, I decided to change the ratio from 50/50% to 25/75% to have a "better" signal. 100/100 might be work as well; didn't test it.
 
 ## Things to mention
 * RFID: In order to avoid buying a 6pin-JST-PH-connector I used 2x3pin. This is because I already had ten of them (see link below). Accidently, on my PCB-layout, I switched the direction of one of these two connectors. However, it's just an visual issue.
-* In contrast to Lolin D32, Lolin32 doesn't feature an integrated voltage-divider. That's why on the lower left there's a JST-PH2.0-connector to connect the LiPo-battery. Make sure to connect + to the left und GND to the right. From there you need to solder two short wires (5cm or so) onto the pcb with a JST-PH2.0-connector attached on the other side. This one needs to be plugged into Lolin32. Please note: Lolin's JST-PH2.0-connector needs (+) left side and GND right side. Don't be confused if black/red-colouring of the JST-wires used seems "weird" (black => (+); red => GND).
+* In contrast to Lolin D32, Lolin32 doesn't feature an integrated voltage-divider. That's why on the lower left there's a JST-PH2.0-connector to connect the LiPo-battery. Make sure to connect (+) to the left und GND to the right. From there you need to solder two short wires (5cm or so) onto the pcb with a JST-PH2.0-connector attached on the other side. This one needs to be plugged into Lolin32. Please note: Lolin's JST-PH2.0-connector needs (+) left side and GND right side. Don't be confused if black/red-colouring of the JST-wires used seems "weird" because is reversed (black => (+); red => GND).
 * Better don't solder Lolin32 directly to the PCB. I recommend to make use of female connectors instead (link below).
 
 ## Hardware-setup
@@ -46,6 +46,12 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * 2x 100k resistor
 * 1x 130k resistor (can be replaced by 100k)
 * 1x 390k resistor (can be replaced by 100k)
+* 4x JST-PH2.0-connector (2 Pins)
+* 3x JST-PH2.0-connector (3 Pins)
+* 1x JST-PH2.0-connector (5 Pins)
+* Female connector as socket for Lolin32, uSD-reader and MAX98357a
+* (optional for headphone-PCB) 1x IDC-connecor female (6pin)
+* (optional for headphone-PCB) 1x IDC-connecor male (6pin)
 
 ## Where to order?
 I ordered my PCBs at [jlcpcb](https://jlcpcb.com/). You have to order at least 5 pcs, which is only at 2$ + shipping. It took two weeks to arrive. If you want to have a look at the PCBs first (without having KiCad installed), visit [Gerberlook](https://www.gerblook.org/) and upload `gerber.zip` from the Gerberfiles-folder.
