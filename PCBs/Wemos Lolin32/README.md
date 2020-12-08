@@ -7,7 +7,7 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * Fits Wemos Lolin32 (not Lolin D32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 56 x 93mm
 * JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID and battery (not 2.54mm pitch!)
-* 2.54mm-connectors for MAX98354a and uSD-card-reader
+* 2.54mm-connectors for MAX98357a and uSD-card-reader
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
 * If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
@@ -21,6 +21,7 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * RFID: In order to avoid buying a 6pin-JST-PH-connector I used 2x3pin. This is because I already had ten of them (see link below). Accidently, on my PCB-layout, I switched the direction of one of these two connectors. However, it's just an visual issue.
 * In contrast to Lolin D32, Lolin32 doesn't feature an integrated voltage-divider. That's why on the lower left there's a JST-PH2.0-connector to connect the LiPo-battery. Make sure to connect (+) to the left und GND to the right. From there you need to solder two short wires (5cm or so) onto the pcb with a JST-PH2.0-connector attached on the other side. This one needs to be plugged into Lolin32. Please note: Lolin's JST-PH2.0-connector needs (+) left side and GND right side. Don't be confused if black/red-colouring of the JST-wires used seems "weird" because is reversed (black => (+); red => GND).
 * Better don't solder Lolin32 directly to the PCB. I recommend to make use of female connectors instead (link below).
+* When ordering a LiPo-battery, make sure to use [one](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm) with deep discharge protection! This is really really really important!!!
 
 ## Hardware-setup
 The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.).
@@ -37,6 +38,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [Female connector](https://de.aliexpress.com/item/32724478308.html)
 * [(optional) IDC-connector female 6pin for headphone-pcb](https://de.aliexpress.com/item/33029492417.html)
 * [(optional) IDC-connector male 6pin for headphone-pcb](https://de.aliexpress.com/item/1005001400147026.html)
+* [LiPo-battery (2500 mAh) with connector JST PH 2.0mm](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm)
 
 ## Parts
 * 1x IRF530NPbF (N-channel MOSFET)
