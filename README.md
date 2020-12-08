@@ -17,6 +17,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
 * 05.12.2020: Moved all user-relevant settings to src/settings.h
 * 06.12.2020: Added PCB for Wemos Lolin32
+* 08.12.2020: Reworked MQTT-timeout-Management
 More to come...
 
 ## Disclaimer

@@ -151,6 +151,7 @@ uint8_t nightLedBrightness = 2;                         // Brightness of Neopixe
 bool enableMqtt = true;
 #ifdef MQTT_ENABLE
     uint8_t const stillOnlineInterval = 60;             // Interval 'I'm still alive' is sent via MQTT (in seconds)
+    uint32_t mqttLastRetryTimestamp = 0;
 #endif
 
 uint8_t const cardIdSize = 4;                           // RFID
@@ -807,8 +808,6 @@ void postHeartbeatViaMqtt(void) {
 /* Connects/reconnects to MQTT-Broker unless connection is not already available.
     Manages MQTT-subscriptions.
 */
-uint32_t mqttLastRetryTimestamp = 0;
-
 bool reconnect() {
   uint8_t connect = false;
   uint8_t i = 0;
