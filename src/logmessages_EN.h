@@ -151,3 +151,7 @@ static const char voltageCheckIntervalFromNVS[] PROGMEM = "Restored interval of 
 static const char warningLowVoltageFromNVS[] PROGMEM = "Restored battery-voltage-level for warning via Neopixel from NVS";
 static const char unableToRestoreLastRfidFromNVS[] PROGMEM = "Unable to restore last RFID from NVS";
 static const char restoredLastRfidFromNVS[] PROGMEM = "Restored last RFID from NVS";
+static const char failedOpenFileForWrite[] PROGMEM = "Failed to open file for writing";
+static const char fileWritten[] PROGMEM = "File written";
+static const char writeFailed[] PROGMEM = "Write failed";
+static const char writingFile[] PROGMEM = "Writing file";
