@@ -4,6 +4,9 @@
 #include <ESP32Encoder.h>
 #include "Arduino.h"
 #include <WiFi.h>
+#ifdef MDNS_ENABLE
+#include <ESPmDNS.h>
+#endif
 #ifdef FTP_ENABLE
     #include "ESP32FtpServer.h"
 #endif
@@ -2987,6 +2990,14 @@ wl_status_t wifiManager(void) {
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
+
+        #ifdef MDNS_ENABLE
+        // zero conf, make device available as <hostname>.local
+        if (MDNS.begin(hostname.c_str())) {
+            MDNS.addService("http", "tcp", 80);
+        }
+        #endif
+
         wifiNeedsRestart = false;
     }
 
