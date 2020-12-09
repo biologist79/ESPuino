@@ -1,7 +1,7 @@
 # Tonuino based on ESP32 with I2S-DAC-support
 
 ## NEWS
-Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
+Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
 
 ## History
 [...]
@@ -18,6 +18,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 05.12.2020: Moved all user-relevant settings to src/settings.h
 * 06.12.2020: Added PCB for Wemos Lolin32
 * 08.12.2020: Reworked MQTT-timeout-Management
+* 09.12.2020: mDND-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
 More to come...
 
 ## Disclaimer
@@ -53,7 +54,7 @@ In src/settings.h you have to specify the modules that should be compiled into t
 Please note: if MQTT is enabled it's still possible to deactivate it via webgui.
 
 ## Wiring (2 SPI-instances)
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TMD1308) that makes use of GND.<br />
+A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments I soldered the stuff on a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
 Have a look at my PCB in the subfolder Hardware-Platforms/Wemos Lolin32. Probably this makes things easier.
 
 
@@ -156,10 +157,11 @@ Please note: via GUI upper and lower voltage cut-offs for visualisation of batte
 * If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it to GPIO22.
 * Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your Tonuino in battery-mode without having a restart-button exposed to the outside of Tonuino's enclosure. Because otherwise there's no way to restart your Tonuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
 * Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell Tonuino to remember the last RFID-tag played after next reboot. So rebooting Tonuino will end up in autoplay.
+* If `MDNS_ENABLE` is enabled, your Tonuino is reachable via hostname.local. So if your Tonuino's hostname is 'tonuino', the address is `tonuino.local`.
 * Compile and upload the sketch.
 
 ## Starting Tonuino-ESP32 first time
-After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs; white if Wifi enabled and blue if disabled). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available via webbrowser. Enter WiFI-credentials + the hostname (Tonuio's name), save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to go: start learning RFID-tags via GUI. To reach the GUI enter the IP stated in the serial console or use the hostname. For example if you're using a Fritzbox as router and entered tonuino as hostname in the previous configuration-step, in your webbrowser tonuino.fritz.box should work. After doing rfid-learnings, place your RFID-tag next to the RFID-reader and the music (or whatever else you choosed) should start to play. While the playlist is generated/processed, fast-rotating LEDs are shown to indicate that Tonuino is busy. The more tracks a playlist/directory contains the longer this step will take. <br >
+After plugging in it takes a few seconds until neopixel indicates that Tonuino is ready (by four (slow) rotating LEDs; white if Wifi enabled and blue if disabled). If uC was not able to connect to WiFi, an access-point (named Tonuino) is opened and after connecting this WiFi, a [configuration-Interface](http://192.168.4.1) is available via webbrowser. Enter WiFI-credentials + the hostname (Tonuio's name), save them and restart the uC. Then reconnect to your "regular" WiFi. Now you're ready to go: start learning RFID-tags via GUI. To reach the GUI enter the IP stated in the serial console or use the hostname. For example if you're using a Fritzbox as router and entered tonuino as hostname in the previous configuration-step, in your webbrowser tonuino.fritz.box should work (or tonuino.local if `MDNS_ENABLE` is enabled). After doing rfid-learnings, place your RFID-tag next to the RFID-reader and the music (or whatever else you choosed) should start to play. While the playlist is generated/processed, fast-rotating LEDs are shown to indicate that Tonuino is busy. The more tracks a playlist/directory contains the longer this step will take. <br >
 Please note: hostname can be used to call webgui or FTP-server. I tested it with a Fritzbox 7490 and worked fine. Make sure you don't use a name that already exists in you local network (LAN).
 
 ## WiFi
@@ -239,6 +241,7 @@ Indicates different things. Don't forget configuration of number of LEDs via #de
 * BUSY: violet; four fast rotating LEDs when generating a playlist
 * track-progress: rainbow; number of LEDs relative to play-progress
 * playlist-progress: blue; appears only shortly in playlist-mode with every new track; number of LEDs relative to progress
+* webstream: two slow rotating LEDs that change their colours as the stream proceeds
 * volume: green => red-gradient; number of LEDs relative from current to max volume
 * switching off: red; circle that grows until long-press-time is reached
 * buttons locked: track-progress-LEDs coloured red

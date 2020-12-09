@@ -3106,7 +3106,7 @@ bool processJsonRequest(char *_serialJson) {
         // Check if settings were written successfully
         if (prefsSettings.getUInt("initVolume", 0) != iVol ||
             prefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-            prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone |
+            prefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
             prefsSettings.getUChar("iLedBrightness", 0) != iBright ||
             prefsSettings.getUChar("nLedBrightness", 0) != nBright ||
             prefsSettings.getUInt("mInactiviyT", 0) != iTime ||
