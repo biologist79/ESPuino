@@ -27,7 +27,14 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             width: 60%%;\
             margin-left: 1em;\
             margin-right: 1em;\
+\
         }\
+        .slider-handle{\
+            height: 30px;\
+            width: 30px;\
+            top: -5px;\
+        }\
+     \
         legend.scheduler-border {\
             width:inherit; /* Or auto */\
             padding:0 10px; /* To give a bit of padding on the left and right */\
@@ -288,18 +295,18 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"initialVolume\">Nach dem Einschalten</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\"\
-                           value=\"%INIT_VOLUME%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i></div>\
+                        data-slider-value=\"%INIT_VOLUME%\"  value=\"%INIT_VOLUME%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i></div>\
                         <br>\
                     <label for=\"maxVolumeSpeaker\">Maximal Lautsprecher</label>\
                         <div class=\"text-center\">\
                      <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
-                           value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
+                        data-slider-value=\"%MAX_VOLUME_SPEAKER%\"  value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                         <br>\
                     <label for=\"maxVolumeHeadphone\">Maximal Kopfhörer</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\"\
-                           value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
+                         data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                 </fieldset>\
                 </div>\
@@ -311,13 +318,12 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <div class=\"text-center\">\
                             <i class=\"far fa-sun fa-2x .icon-pos\"></i>\
                         <input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\"\
-                           value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
+                               data-slider-value=\"%INIT_LED_BRIGHTNESS%\"  value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
 \
                     <label for=\"nightBrightness\">Im Nachtmodus</label>\
                         <div class=\"text-center\">\
-                        <i class=\"far fa-sun fa-2x .icon-pos\"></i><input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\"\
-                           value=\"%NIGHT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
+                        <i class=\"far fa-sun fa-2x .icon-pos\"></i><input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\" data-slider-value=\"%NIGHT_LED_BRIGHTNESS%\" value=\"%NIGHT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
                     </fieldset>\
                 </div>\
@@ -328,7 +334,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
                         <label for=\"inactivityTime\">Inaktivität nach (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i> <input type=\"number\" data-provide=\"slider\" data-slider-min=\"0\" data-slider-max=\"30\" min=\"1\" max=\"120\" class=\"form-control\" id=\"inactivityTime\" name=\"inactivityTime\"\
-                           value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
+                         data-slider-value=\"%MAX_INACTIVITY%\"  value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
                     </fieldset>\
                 </div>\
 <br>\
@@ -342,28 +348,28 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input  data-provide=\"slider\"  data-slider-step=\"0.1\" data-slider-min=\"3.0\" data-slider-max=\"5.0\"  min=\"3.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"warningLowVoltage\" name=\"warningLowVoltage\"\
-                           value=\"%WARNING_LOW_VOLTAGE%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
+                        data-slider-value=\"%WARNING_LOW_VOLTAGE%\" value=\"%WARNING_LOW_VOLTAGE%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 <br>\
                     <label for=\"voltageIndicatorLow\">Unterer Akkuspannungslevel\
                         </label>\
                         <div class=\"text-center\">\
-                        <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"3.0\" data-slider-step=\"0.1\"  data-slider-min=\"3.0\" data-slider-max=\"5.0\" max=\"5.0\"type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
-                           value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
+                        <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\"type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
+                          data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
                         <br>\
                         <label for=\"voltageIndicatorHigh\">Oberer Akkuspannungslevel</label>\
 \
                             <div class=\"text-center\">\
-                                <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"3.0\" data-slider-max=\"5.0\" min=\"3.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
-                           value=\"%VOLTAGE_INDICATOR_HIGH%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
+                                <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" min=\"2.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
+                           data-slider-value=\"%VOLTAGE_INDICATOR_HIGH%\"  value=\"%VOLTAGE_INDICATOR_HIGH%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 \
                         <br>\
                     <label for=\"voltageCheckInterval\"> Interval der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
-                            <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"10\" type=\"number\" min=\"1\" max=\"10\" class=\"form-control\" id=\"voltageCheckInterval\"\
-                           name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
+                            <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
+                                   data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
                     </div>\
 \
                     </fieldset>\
@@ -714,6 +720,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         $(function () {\
             $('[data-toggle=\"tooltip\"]').tooltip();\
         });\
+\
     });\
 </script>\
 </body>\
