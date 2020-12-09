@@ -1,4 +1,4 @@
-static const char basicWebsite[] PROGMEM = "<!DOCTYPE html>\
+static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html>\
     <head>\
         <title>Wifi-configuration</title>\

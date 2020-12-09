@@ -1,10 +1,10 @@
-static const char basicWebsite[] PROGMEM = "<!DOCTYPE html>\
+static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html>\
 <head>\
     <title>WLAN-Einrichtung</title>\
     <style>\
         input {\
-            width: 90%;\
+            width: 90%%;\
             height: 44px;\
             border-radius: 4px;\
             margin: 10px auto;\
@@ -34,7 +34,7 @@ static const char basicWebsite[] PROGMEM = "<!DOCTYPE html>\
             background: #3498db;\
             color: #fff;\
             cursor: pointer;\
-            width: 90%;\
+            width: 90%%;\
             height: 44px;\
             border-radius: 4px;\
             margin: 10px auto;\
