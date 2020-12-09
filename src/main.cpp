@@ -25,6 +25,10 @@
     #include <FastLED.h>
 #endif
 
+#ifdef MDNS_ENABLE
+    #include <ESPmDNS.h>
+#endif
+
 #if (LANGUAGE == 1)
     #include "logmessages.h"
     #include "websiteMgmt.h"
@@ -2987,6 +2991,14 @@ wl_status_t wifiManager(void) {
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
+
+        #ifdef MDNS_ENABLE
+        // zero conf, make device available as <hostname>.local
+        if (MDNS.begin(hostname.c_str())) {
+            MDNS.addService("http", "tcp", 80);
+        }
+        #endif
+
         wifiNeedsRestart = false;
     }
 

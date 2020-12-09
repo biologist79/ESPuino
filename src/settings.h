@@ -1,6 +1,7 @@
 #include "Arduino.h"
 
 //########################## MODULES #################################
+//#define MDNS_ENABLE
 #define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 #define FTP_ENABLE                  // Enables FTP-server
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
