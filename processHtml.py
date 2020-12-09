@@ -1,61 +1,74 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
-import re
+###
+# Use this script for creating PROGMEM header files from html files.
+# needs pip install requests
+##
+# html file base names
+import requests
+import argparse
 
-content = ''
-content2 = ''
-contentEN = ''
-content2EN = ''
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
-# TODO: Add a JS Minifier python lib
-with open('html/website.html', 'r') as r:
-    data = r.read()
-    data = data.replace('\n', '\\\n')
-    data = data.replace('\"', '\\"')
-    data = data.replace('\\d', '\\\d')
-    data = data.replace('\\.', '\\\.')
-    data = data.replace('\\^', '\\\\^')
-    data = data.replace('%;', '%%;')
-    content += data
+HTML_FILES = ["management","management_EN", "accesspoint", "accesspoint_EN"]
 
-with open('src/websiteMgmt.h', 'w') as w:
-    w.write("static const char mgtWebsite[] PROGMEM = \"")
-    w.write(content)
-    w.write("\";")
+class htmlHeaderProcessor(object):
 
-with open('html/website_EN.html', 'r') as ren:
-    data = ren.read().replace('\n', '\\\n')
-    data = data.replace('\"', '\\"')
-    data = data.replace('\\d', '\\\d')
-    data = data.replace('\\.', '\\\.')
-    data = data.replace('\\^', '\\\\^')
-    contentEN += data
+    """
+    Returns a minified HTML string, uses html-minifier.com api.
+    """
+    def minifyHTML(self, filename):
+        with open('html/' + filename + '.html', 'r') as r:
+            data = r.read()
+            return requests.post('https://html-minifier.com/raw', data=dict(input=data)).text.encode('utf8')
 
-with open('src/websiteMgmt_EN.h', 'w') as wen:
-    wen.write("static const char mgtWebsite[] PROGMEM = \"")
-    wen.write(contentEN)
-    wen.write("\";")
+    def escape_html(self, data):
+        data = data.replace('\n', '\\\n')
+        data = data.replace('\"', '\\"')
+        data = data.replace('\\d', '\\\d')
+        data = data.replace('\\.', '\\\.')
+        data = data.replace('\\^', '\\\\^')
+        data = data.replace('%;', '%%;')
+        return data
 
-with open('html/websiteBasic.html', 'r') as r2:
-    data = r2.read().replace('\n', '\\\n')
-    data = data.replace('\"', '\\"')
-    content2 += data
+    def html_to_c_header(self, filename):
+        content = ""
+        with open('html/' + filename + '.html', 'r') as r:
+            data = r.read()
+            content += self.escape_html(data)
+        return content
 
-with open('src/websiteBasic.h', 'w') as w2:
-    w2.write("static const char basicWebsite[] PROGMEM = \"")
-    w2.write(content2)
-    w2.write("\";")
 
-with open('html/websiteBasic_EN.html', 'r') as r2en:
-    data = r2en.read().replace('\n', '\\\n')
-    data = data.replace('\"', '\\"')
-    content2EN += data
+    def write_header_file(self, filename, content):
+        with open('src/HTML' + filename + '.h', 'w') as w:
+            varname = filename.split('_')[0]
+            w.write("static const char " + varname + "_HTML[] PROGMEM = \"")
+            w.write(content)
+            w.write("\";")
 
-with open('src/websiteBasic_EN.h', 'w') as w2en:
-    w2en.write("static const char basicWebsite[] PROGMEM = \"")
-    w2en.write(content2EN)
-    w2en.write("\";")
+    def main(self):
+        parser = argparse.ArgumentParser(description='Create c code PROGMEM header files from HTML files.')
+        parser.add_argument("--minify", type=str2bool, nargs='?',
+                            const=True, default=False,
+                            help="Minify HTML Code")
+        args = parser.parse_args()
 
-r.close()
-w.close()
-r2.close()
-w2.close()
+        for file in HTML_FILES:
+            if args.minify:
+
+                self.header_file_content = self.minifyHTML(file)
+                self.header_file_content = self.escape_html(self.header_file_content)
+            else:
+                self.header_file_content = self.html_to_c_header(file)
+            self.write_header_file(file, self.header_file_content)
+
+if __name__ == '__main__':
+    htmlHeaderProcessor().main()

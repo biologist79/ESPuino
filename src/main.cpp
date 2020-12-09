@@ -28,22 +28,25 @@
     #include <FastLED.h>
 #endif
 
+#ifdef MDNS_ENABLE
+    #include <ESPmDNS.h>
+#endif
+
 #if (LANGUAGE == 1)
     #include "logmessages.h"
-    #include "websiteMgmt.h"
-    #include "websiteBasic.h"
+    #include "HTMLmanagement.h"
+    #include "HTMLaccesspoint.h"
 #endif
 #if (LANGUAGE == 2)
     #include "logmessages_EN.h"
-    #include "websiteMgmt_EN.h"
-    #include "websiteBasic_EN.h"
+    #include "HTMLmanagement_EN.h"
+    #include "HTMLaccesspoint_EN.h"
 #endif
 
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <nvsDump.h>
-
 
 
 // Info-docs:
@@ -2868,7 +2871,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     loggerNl(logBuf, LOGLEVEL_NOTICE);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-            request->send_P(200, "text/html", basicWebsite);
+            request->send_P(200, "text/html", accesspoint_HTML);
         });
 
     wServer.on("/init", HTTP_POST, [] (AsyncWebServerRequest *request) {
@@ -2880,7 +2883,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
             prefsSettings.putString("Password", request->getParam("pwd", true)->value());
             prefsSettings.putString("Hostname", request->getParam("hostname", true)->value());
         }
-        request->send_P(200, "text/html", basicWebsite);
+        request->send_P(200, "text/html", accesspoint_HTML);
     });
 
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
@@ -3359,7 +3362,7 @@ void webserverStart(void) {
     wServer.addHandler(&events);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send_P(200, "text/html", mgtWebsite, templateProcessor);
+        request->send_P(200, "text/html", management_HTML, templateProcessor);
     });
 
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
