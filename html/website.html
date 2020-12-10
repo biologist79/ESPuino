@@ -116,17 +116,6 @@
     <h2>WLAN-Konfiguration</h2>
     <form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
         <div class="form-group col-md-6">
-<<<<<<< HEAD
-          <label for="ssid">WLAN-Name (SSID):</label>
-          <input type="text" class="form-control" id="ssid" placeholder="SSID" name="ssid" required>
-          <div class="invalid-feedback">
-            Bitte SSID des WLANs eintragen.
-          </div>
-          <label for="pwd">Passwort:</label>
-          <input type="password" class="form-control" id="pwd" placeholder="Passwort" name="pwd" required>
-          <label for="hostname">Tonuino-Name (Hostname):</label>
-          <input type="text" class="form-control" id="hostname" placeholder="tonuino" name="hostname" value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
-=======
             <label for="ssid">WLAN-Name (SSID):</label>
             <input type="text" class="form-control" id="ssid" placeholder="SSID" name="ssid" required>
             <div class="invalid-feedback">
@@ -137,7 +126,19 @@
             <label for="hostname">Tonuino-Name (Hostname):</label>
             <input type="text" class="form-control" id="hostname" placeholder="tonuino" name="hostname"
                    value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
->>>>>>> upstream/master
+            <input class="form-check-input" type="checkbox" value="0" id="staticIp_Enable" name="staticIp_Enable" %STATICIP_ENABLE%>
+            <label class="form-check-label" for="staticIp_Enable">
+                Statische IP aktivieren
+            </label>
+            <label for="staticIp_Ip">Statische IP</label>
+            <input type="text" class="form-control" id="staticIp_Ip" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
+                   placeholder="z.B. 192.168.2.2" name="staticIp_Ip" value="%STATICIP_IP%">
+            <label for="staticIp_Gateway">Gateway</label>
+            <input type="text" class="form-control" id="staticIp_Gateway" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
+                   placeholder="z.B. 192.168.2.1" name="staticIp_Gateway" value="%STATICIP_GATEWAY%">
+            <label for="staticIp_Dns">DNS</label>
+            <input type="text" class="form-control" id="staticIp_Dns" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
+                   placeholder="z.B. 8.8.8.8" name="staticIp_Dns" value="%STATICIP_DNS%">
         </div>
         <button type="reset" class="btn btn-secondary">Reset</button>
         <button type="submit" class="btn btn-primary">Absenden</button>
@@ -160,52 +161,12 @@
                         <span id="refreshAction" data-toggle="tooltip" data-placement="top" title="Datei Liste aktualisieren."><i class="fas fa-sync fa-1x"></i> Dateiliste aktualisieren</span>
                     </div>
                 </div>
-<<<<<<< HEAD
-                <label for="modId">Abspielmodus</label>
-                <select class="form-control" id="modId" name="modId">
-                    <option value="100">Tastensperre</option>
-                    <option value="101">Schlafen nach 15 Minuten</option>
-                    <option value="102">Schlafen nach 30 Minuten</option>
-                    <option value="103">Schlafen nach 1 Stunde</option>
-                    <option value="104">Schlafen nach 2 Stunden</option>
-                    <option value="105">Schlafen nach Ende des Titels</option>
-                    <option value="106">Schlafen nach Ende der Playlist</option>
-                    <option value="107">Schlafen nach fünf Titeln</option>
-                    <option value="110">Wiederhole Playlist (endlos)</option>
-                    <option value="111">Wiederhole Titel (endlos)</option>
-                    <option value="112">Dimme LEDs (Nachtmodus)</option>
-                    <option value="130">Aktiviere/deaktive WLAN</option>
-                </select>
-          </div>
-          <button type="reset" class="btn btn-secondary">Reset</button>
-          <button type="submit" class="btn btn-primary">Absenden</button>
-        </form>
-        <div class="messages col-md-6 my-2"></div>
-    </div>
-    <div class="container my-5" id="mqttConfig">
-        <h2>MQTT-Konfiguration</h2>
-        <form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
-            <div class="form-check col-md-6">
-                <input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable" %MQTT_ENABLE%>
-                <label class="form-check-label" for="mqttEnable">
-                  MQTT aktivieren
-                </label>
-            </div>
-            <div class="form-group my-2 col-md-6">
-                <label for="mqttServer">MQTT-Server</label>
-                <input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="%MQTT_SERVER_LENGTH%" placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
-                <label for="mqttUser">MQTT-Benutzername (optional):</label>
-                <input type="text" class="form-control" id="mqttUser" maxlength="%MQTT_USER_LENGTH%" placeholder="Benutzername" name="mqttUser" value="%MQTT_USER%">
-                <label for="mqttPwd">Passwort (optional):</label>
-                <input type="password" class="form-control" id="mqttPwd" maxlength="%MQTT_PWD_LENGTH%" placeholder="Passwort" name="mqttPwd" value="%MQTT_PWD%">
-=======
                 <div id="indexing-progress" class="indexing-progress overlay">
                     <div style="text-align: center; color:white; margin-top:2em;">
                         <div><i class="fas fa-sync fa-spin fa-2x"></i> <br><br>  Der Prozess kann mehrere Minuten dauern...</div>
                         <div id="currentProcessedFile"></div>
                     </div>
                 </div>
->>>>>>> upstream/master
             </div>
             <label for="playMode">Abspielmodus</label>
             <select class="form-control" id="playMode" name="playMode">
@@ -287,47 +248,6 @@
     <form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
         <div class="form-group col-md-6">
             <label for="ftpUser">FTP-Benutzername:</label>
-<<<<<<< HEAD
-            <input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%" placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
-            <label for="pwd">Passwort:</label>
-            <input type="password" class="form-control" id="ftpPwd" maxlength="%FTP_PWD_LENGTH%" placeholder="Passwort" name="ftpPwd" value="%FTP_PWD%" required>
-          </div>
-          <button type="reset" class="btn btn-secondary">Reset</button>
-          <button type="submit" class="btn btn-primary">Absenden</button>
-        </form>
-        <div class="messages col-md-6 my-2"></div>
-    </div>
-    <div class="container my-5" id="generalConfig">
-        <h2>Allgemeine Konfiguration</h2>
-        <form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-            <div class="form-group col-md-6">
-                <label for="initialVolume">Lautstärke nach dem Einschalten</label>
-                <input type="number" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" value="%INIT_VOLUME%" required>
-                <label for="maxVolumeSpeaker">Maximale Lautstärke (Lautsprecher)</label>
-                <input type="number" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" value="%MAX_VOLUME_SPEAKER%" required>
-                <label for="maxVolumeHeadphone">Maximale Lautstärke (Kopfhörer)</label>
-                <input type="number" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" value="%MAX_VOLUME_HEADPHONE%" required>
-            </div>
-            <div class="form-group col-md-6">
-                <label for="initBrightness">Neopixel-Helligkeit nach dem Einschalten</label>
-                <input type="number" min="0" max="255" class="form-control" id="initBrightness" name="initBrightness" value="%INIT_LED_BRIGHTNESS%" required>
-                <label for="nightBrightness">Neopixel-Helligkeit im Nachtmodus</label>
-                <input type="number" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" value="%NIGHT_LED_BRIGHTNESS%" required>
-            </div>
-            <div class="form-group col-md-6">
-                <label for="inactivityTime">Deep-Sleep nach Inaktivität (Minuten)</label>
-                <input type="number" min="1" max="1440" class="form-control" id="inactivityTime" name="inactivityTime" value="%MAX_INACTIVITY%" required>
-            </div>
-          <button type="reset" class="btn btn-secondary">Reset</button>
-          <button type="submit" class="btn btn-primary">Absenden</button>
-        </form>
-        <div class="messages col-md-6 my-2"></div>
-      </div>
-      <div class="container my-5" id="importNvs">
-        <h2>NVS-Importer</h2>
-        <form action="/upload" enctype="multipart/form-data" method="POST">
-          <div class="form-group">
-=======
             <input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%"
                    placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
             <label for="pwd">Passwort:</label>
@@ -398,7 +318,6 @@
     <h2>NVS-Importer</h2>
     <form action="/upload" enctype="multipart/form-data" method="POST">
         <div class="form-group">
->>>>>>> upstream/master
             <label for="nvsUpload">Hier kann eine Backup-Datei importiert werden.</label>
             <input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
         </div>
@@ -567,21 +486,6 @@
           if (socketMsg.rfidId != null) {
               document.getElementById('rfidIdMod').value = socketMsg.rfidId;
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-<<<<<<< HEAD
-              $("#rfidIdMusic").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
-              $("#rfidIdMod").fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
-
-            } if (socketMsg.status != null) {
-                if (socketMsg.status == 'ok') {
-                  $("#" + lastIdclicked).find('.messages').html(okBox);
-                } else {
-                  $("#" + lastIdclicked).find('.messages').html(errorBox);
-                }
-            } if (socketMsg.pong != null) {
-                if (socketMsg.pong == 'pong') {
-                  pong();
-                }
-=======
               toastr.info("RFID Tag mit "+ socketMsg.rfidId + " erkannt." );
 
               $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
@@ -614,7 +518,6 @@
         var myObj = {
             "ping": {
                 ping: 'ping'
->>>>>>> upstream/master
             }
         };
         var myJSON = JSON.stringify(myObj);
@@ -685,19 +588,11 @@
                 mqttServer: document.getElementById('mqttServer').value,
                 mqttUser: document.getElementById('mqttUser').value,
                 mqttPwd: document.getElementById('mqttPwd').value
-<<<<<<< HEAD
-              }
-            };
-            var myJSON = JSON.stringify(myObj);
-            socket.send(myJSON);
-          }
-=======
             }
         };
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
     }
->>>>>>> upstream/master
 
     function rfidMods(clickedId) {
         lastIdclicked = clickedId;
@@ -733,20 +628,21 @@
 
     function wifiConfig(clickedId) {
         lastIdclicked = clickedId;
+        var val;
+        if (document.getElementById('staticIp_Enable').checked) {
+            val = document.getElementById('staticIp_Enable').value;
+        } else {
+            val = 0;
+        }
         var myObj = {
             "wifiConfig": {
                 ssid: document.getElementById('ssid').value,
                 pwd: document.getElementById('pwd').value,
-                hostname: document.getElementById('hostname').value
-<<<<<<< HEAD
-              }
-            };
-            var myJSON = JSON.stringify(myObj);
-            socket.send(myJSON);
-          }
-        </script>
-  </body>
-=======
+                hostname: document.getElementById('hostname').value,
+				staticIp_Enable: val,
+                staticIp_Ip: document.getElementById('staticIp_Ip').value,
+                staticIp_Gateway: document.getElementById('staticIp_Gateway').value,
+                staticIp_Dns: document.getElementById('staticIp_Dns').value
             }
         };
         var myJSON = JSON.stringify(myObj);
@@ -763,5 +659,4 @@
     });
 </script>
 </body>
->>>>>>> upstream/master
 </html>
