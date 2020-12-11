@@ -1,4 +1,4 @@
-static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
+static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
   <head>\
     <title>ESPuino-configuration</title>\

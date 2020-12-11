@@ -19,8 +19,11 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 06.12.2020: Added PCB for Wemos Lolin32
 * 08.12.2020: Reworked MQTT-timeout-Management
 * 09.12.2020: mDND-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
+* 11.12.2020: Revised GUI-design + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
 More to come...
 
+## Known bugs
+* Currently, when re-learning a RFID-tag, Tonuino restarts. Almost certainly it's a memory-issue. Still have to point out.
 ## Disclaimer
 This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
@@ -194,7 +197,10 @@ Webgui #5:
 <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI5.jpg" width="300">
 
 Webgui #6:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI5.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI6.jpg" width="300">
+
+Webgui #7:
+<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI7.jpg" width="300">
 
 Webgui: websocket broken:
 <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI_connection_broken.jpg" width="300">

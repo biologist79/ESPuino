@@ -155,3 +155,7 @@ static const char failedOpenFileForWrite[] PROGMEM = "Öffnen der Datei für den
 static const char fileWritten[] PROGMEM = "Schreibe Datei";
 static const char writeFailed[] PROGMEM = "Schreibvorgang fehlgeschlagen";
 static const char writingFile[] PROGMEM = "Schreibe Datei";
+static const char failedToOpenFileForAppending[] PROGMEM = "Öffnen der Datei zum Schreiben der JSON-Datei fehlgeschlagen";
+static const char listingDirectory[] PROGMEM = "Verzeichnisinhalt anzeigen";
+static const char failedToOpenDirectory[] PROGMEM = "Öffnen des Verzeichnisses fehlgeschlagen";
+static const char notADirectory[] PROGMEM = "Kein Verzeichnis";
