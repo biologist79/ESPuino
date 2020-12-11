@@ -13,7 +13,6 @@
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
 //#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
-//#define SD_NOT_MANDATORY_ENABLE   // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it). Will overwrite SHUTDOWN_IF_SD_BOOT_FAILS!
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 
@@ -97,9 +96,7 @@ uint16_t intervalToLongPress = 700;                 // Interval in ms to disting
 static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-point's SSID
 
 // Where to store the backup-file for NVS-records
-#ifndef SD_NOT_MANDATORY_ENABLE
-    static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
-#endif
+static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
 
 // (webgui) File Browser
 uint8_t FS_DEPTH = 5;                               // Max. recursion-depth of file tree
@@ -152,5 +149,7 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
     static const char topicRepeatModeState[] PROGMEM = "State/Tonuino/RepeatMode";
     static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino/LedBrightness";
     static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
-    static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino/Voltage";
+    #ifdef MEASURE_BATTERY_VOLTAGE
+        static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino/Voltage";
+    #endif
 #endif

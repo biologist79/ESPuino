@@ -155,3 +155,7 @@ static const char failedOpenFileForWrite[] PROGMEM = "Failed to open file for wr
 static const char fileWritten[] PROGMEM = "File written";
 static const char writeFailed[] PROGMEM = "Write failed";
 static const char writingFile[] PROGMEM = "Writing file";
+static const char failedToOpenFileForAppending[] PROGMEM = "Failed to open file for appending";
+static const char listingDirectory[] PROGMEM = "Listing directory";
+static const char failedToOpenDirectory[] PROGMEM = "Failed to open directory";
+static const char notADirectory[] PROGMEM = "Not a directory";

@@ -310,9 +310,7 @@ void buttonHandler();
 void deepSleepManager(void);
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
-#ifndef SD_NOT_MANDATORY_ENABLE
-    bool dumpNvsToSd(char *_namespace, char *_destFile);
-#endif
+bool dumpNvsToSd(char *_namespace, char *_destFile);
 bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
 void freeMultiCharArray(char **arr, const uint32_t cnt);
@@ -476,13 +474,13 @@ bool isFirstJSONtNode = true;
  */
 void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, const char *parent, const char *type ) {
     // Serial.printf("Appending to file: %s\n", path);
-    snprintf(logBuf, serialLoglength, "Listing directory: %s\n", filename);
+    snprintf(logBuf, serialLoglength, "%s: %s\n", (char *) FPSTR(listingDirectory), filename);
     loggerNl(logBuf, LOGLEVEL_DEBUG);
     File file = fs.open(path, FILE_APPEND);
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
     if (!file) {
-        snprintf(logBuf, serialLoglength, "Failed to open file for appending");
+        snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenFileForAppending));
         loggerNl(logBuf, LOGLEVEL_DEBUG);
         return;
     }
@@ -534,7 +532,8 @@ bool pathValid(const char *_fileItem) {
  * @param parent
  * @param levels
  */
-char fileNameBuf[255];
+//char fileNameBuf[255];
+char *fileNameBuf = (char *) calloc(255, sizeof(char));         // In heap to save static memory
 
 void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels) {
     esp_task_wdt_reset();
@@ -543,13 +542,13 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
     File root = fs.open(dirname);
 
     if (!root) {
-        snprintf(logBuf, serialLoglength, "Failed to open directory");
+        snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenDirectory));
         loggerNl(logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
     if (!root.isDirectory()) {
-        snprintf(logBuf, serialLoglength, "Not a directory");
+        snprintf(logBuf, serialLoglength, (char *) FPSTR(notADirectory));
         loggerNl(logBuf, LOGLEVEL_DEBUG);
         return;
     }
@@ -568,7 +567,7 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
             continue;
         }
 
-        strncpy(fileNameBuf, (char *) file.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+        strncpy(fileNameBuf, (char *) file.name(), 255);
 
         // we have a folder
         if(file.isDirectory()) {
@@ -3163,9 +3162,7 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        #ifndef SD_NOT_MANDATORY_ENABLE
-            dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
-        #endif
+        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
 
     } else if (doc.containsKey("rfidAssign")) {
         const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
@@ -3181,9 +3178,7 @@ bool processJsonRequest(char *_serialJson) {
         if (s.compareTo(rfidString)) {
             return false;
         }
-        #ifndef SD_NOT_MANDATORY_ENABLE
-            dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));                     // Store backup-file every time when a new rfid-tag is programmed
-        #endif
+        dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));                     // Store backup-file every time when a new rfid-tag is programmed
 
     } else if (doc.containsKey("wifiConfig")) {
         const char *_ssid = object["wifiConfig"]["ssid"];
@@ -3221,7 +3216,7 @@ bool processJsonRequest(char *_serialJson) {
     return true;
 }
 
-
+char *jBuf = (char *) calloc(255, sizeof(char));        // In heap to save static memory
 // Sends JSON-answers via websocket
 void sendWebsocketData(uint32_t client, uint8_t code) {
     const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 20;
@@ -3242,8 +3237,9 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["indexingState"] = fileNameBuf;
     }
 
-    char jBuf[255];
-    serializeJson(doc, jBuf, sizeof(jBuf) / sizeof(jBuf[0]));
+    //char jBuf[255];
+
+    serializeJson(doc, jBuf, 255);
 
     if (client == 0) {
         ws.printfAll(jBuf);
@@ -3376,7 +3372,7 @@ void webserverStart(void) {
     });
 
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(SD, "/files.json", "application/json");
+        request->send(SD, DIRECTORY_INDEX_FILE, "application/json");
     });
 
     wServer.onNotFound(notFound);
@@ -3390,7 +3386,6 @@ void webserverStart(void) {
 
 
 // Dumps all RFID-entries from NVS into a file on SD-card
-#ifndef SD_NOT_MANDATORY_ENABLE
     bool dumpNvsToSd(char *_namespace, char *_destFile) {
         esp_partition_iterator_t pi;                // Iterator for find
         const esp_partition_t* nvs;                 // Pointer to partition struct
@@ -3454,7 +3449,6 @@ void webserverStart(void) {
         backupFile.close();
         return true;
     }
-#endif
 
 
 // Handles uploaded backup-file and writes valid entries into NVS
@@ -3559,9 +3553,6 @@ void setup() {
     #endif
             loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
             delay(500);
-            #ifdef SD_NOT_MANDATORY_ENABLE
-                break;
-            #endif
             #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
                 if (millis() >= deepsleepTimeAfterBootFails*1000) {
                     loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
