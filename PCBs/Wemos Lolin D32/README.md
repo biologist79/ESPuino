@@ -20,7 +20,6 @@ This PCB is not yet tested!
 * Chane `VOLTAGE_READ_PIN` to 35.
 
 ## Things to mention
-* RFID: In order to avoid buying a 6pin-JST-PH-connector I used 2x3pin. This is because I already had ten of them (see link below). Accidently, on my PCB-layout, I switched the direction of one of these two connectors. However, it's just an visual issue.
 * Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors instead (link below).
 * When ordering a LiPo-battery, make sure to use [one](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm) with deep discharge protection! This is really really really important!!!
 
