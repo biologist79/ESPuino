@@ -1,7 +1,7 @@
 #include "Arduino.h"
 
 //########################## MODULES #################################
-#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
+//#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
 #define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
 #define FTP_ENABLE                  // Enables FTP-server
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
@@ -130,26 +130,26 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 #ifdef MQTT_ENABLE
     uint16_t mqttRetryInterval = 15;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
     uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 15 / mqttMaxRetriesPerInterval 1 => once every 15s
-    #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
-    static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
-    static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
-    static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
-    static const char topicTrackState[] PROGMEM = "State/Tonuino/Track";
-    static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino/TrackControl";
-    static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino/Loudness";
-    static const char topicLoudnessState[] PROGMEM = "State/Tonuino/Loudness";
-    static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/Tonuino/SleepTimer";
-    static const char topicSleepTimerState[] PROGMEM = "State/Tonuino/SleepTimer";
-    static const char topicState[] PROGMEM = "State/Tonuino/State";
-    static const char topicCurrentIPv4IP[] PROGMEM = "State/Tonuino/IPv4";
-    static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/Tonuino/LockControls";
-    static const char topicLockControlsState[] PROGMEM ="State/Tonuino/LockControls";
-    static const char topicPlaymodeState[] PROGMEM = "State/Tonuino/Playmode";
-    static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/Tonuino/RepeatMode";
-    static const char topicRepeatModeState[] PROGMEM = "State/Tonuino/RepeatMode";
-    static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino/LedBrightness";
-    static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
+    #define DEVICE_HOSTNAME "ESP32-Tonuino-Leonie"                 // Name that that is used for MQTT
+    static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/Sleep";
+    static const char topicSleepState[] PROGMEM = "State/Tonuino-Leonie/Sleep";
+    static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/Track";
+    static const char topicTrackState[] PROGMEM = "State/Tonuino-Leonie/Track";
+    static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/TrackControl";
+    static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/Loudness";
+    static const char topicLoudnessState[] PROGMEM = "State/Tonuino-Leonie/Loudness";
+    static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/SleepTimer";
+    static const char topicSleepTimerState[] PROGMEM = "State/Tonuino-Leonie/SleepTimer";
+    static const char topicState[] PROGMEM = "State/Tonuino-Leonie/State";
+    static const char topicCurrentIPv4IP[] PROGMEM = "State/Tonuino-Leonie/IPv4";
+    static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/Tonuino-Leonie/LockControls";
+    static const char topicLockControlsState[] PROGMEM ="State/Tonuino-Leonie/LockControls";
+    static const char topicPlaymodeState[] PROGMEM = "State/Tonuino-Leonie/Playmode";
+    static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/RepeatMode";
+    static const char topicRepeatModeState[] PROGMEM = "State/Tonuino-Leonie/RepeatMode";
+    static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino-Leonie/LedBrightness";
+    static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino-Leonie/LedBrightness";
     #ifdef MEASURE_BATTERY_VOLTAGE
-        static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino/Voltage";
+        static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino-Leonie/Voltage";
     #endif
 #endif
