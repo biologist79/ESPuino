@@ -19,8 +19,11 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 06.12.2020: Added PCB for Wemos Lolin32
 * 08.12.2020: Reworked MQTT-timeout-Management
 * 09.12.2020: mDND-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
+* 11.12.2020: Revised GUI-design + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
 More to come...
 
+## Known bugs
+* Currently, when re-learning a RFID-tag, Tonuino restarts. Almost certainly it's a memory-issue. Still have to point out.
 ## Disclaimer
 This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
