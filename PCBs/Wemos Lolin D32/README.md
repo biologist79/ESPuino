@@ -6,18 +6,18 @@ This PCB is not yet tested!
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 55 x 81mm
-* JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID, battery and reset (not 2.54mm pitch!)
+* JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID and reset (not 2.54mm pitch!)
 * 2.54mm-connectors for MAX98357a and uSD-card-reader
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
 * If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
-* If `HEADPHONE_ADJUST_ENABLE` is enabled and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
+* If `HEADPHONE_ADJUST_ENABLE` is set and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
 * Reset-button
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
-* Make sure to change values of voltage divider's restors. They can be configured in `settings.h` as `rdiv1` and `rdiv2` and need to be set to 100+/100k.
-* Chane `VOLTAGE_READ_PIN` to 35.
+* Make sure to change values of voltage divider's restors. They can be configured in `settings.h` as `rdiv1` and `rdiv2` and need to be set to 100k/100k.
+* Change `VOLTAGE_READ_PIN` to 35.
 
 ## Things to mention
 * Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors instead (link below).
@@ -46,7 +46,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin D32 development-board](htt
 * 1x 1k resistor
 * 1x 10k resistor
 * 2x 100k resistor
-* 5x JST-PH2.0-connector (2 Pins)
+* 4x JST-PH2.0-connector (2 Pins)
 * 3x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)
 * Female connector as socket for Lolin32, uSD-reader and MAX98357a
