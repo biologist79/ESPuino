@@ -1,7 +1,8 @@
 # Tonuino-PCB based on Wemos' Lolin D32
 
 ## Attention
-This PCB is not yet tested!
+* In rev1 I made a mistake that leads to a short circuit. Hopefully nobody ordered it :-( Current revision is 1.1
+* This PCB is not yet tested!
 
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
