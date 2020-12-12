@@ -56,7 +56,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * Female connector as socket for Lolin32, uSD-reader and MAX98357a
 * (optional for headphone-PCB) 1x IDC-connecor female (6pin)
 * (optional for headphone-PCB) 1x IDC-connecor male (6pin)
-* rev2: (optional) 10 uF capacitor (used to smooth battery management)
+* rev2: (optional) 1x 10 uF capacitor (2.0mm-pitch)
 
 ## Where to order?
 I ordered my PCBs at [jlcpcb](https://jlcpcb.com/). You have to order at least 5 pcs, which is only at 2$ + shipping. It took two weeks to arrive. If you want to have a look at the PCBs first (without having KiCad installed), visit [Gerberlook](https://www.gerblook.org/) and upload `gerber.zip` from the Gerberfiles-folder.

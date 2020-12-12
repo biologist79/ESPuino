@@ -751,7 +751,9 @@ void doButtonActions(void) {
                             float voltage = measureBatteryVoltage();
                             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
                             loggerNl(logBuf, LOGLEVEL_INFO);
-                            showLedVoltage = true;
+                            #ifdef NEOPIXEL_ENABLE
+                                showLedVoltage = true;
+                            #endif
                             #ifdef MQTT_ENABLE
                                 char vstr[6];
                                 snprintf(vstr, 6, "%.2f", voltage);
@@ -2148,6 +2150,7 @@ void showLed(void *parameter) {
                     vTaskDelay(portTICK_RATE_MS * 5);
                 }
         }
+        vTaskDelay(portTICK_RATE_MS * 10);
         esp_task_wdt_reset();
     }
     vTaskDelete(NULL);
@@ -3816,8 +3819,6 @@ void setup() {
         1 /* Core where the task should run */
     );
 
-
-    //esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
 
     // Activate internal pullups for all buttons
     pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
