@@ -1881,9 +1881,9 @@ void rfidScanner(void *parameter) {
             nfc15693.reset();
             nfc15693.setupRF();
             // check for ICODE-SLIX2 password protected tag
-            // put your privacy password here, e.g.: 
+            // put your privacy password here, e.g.:
             // https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
-            uint8_t password[] = {0x01, 0x02, 0x03, 0x04}; 
+            uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
             ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
             if (ISO15693_EC_OK == myrc) {
                 Serial.println("disable PrivacyMode successful");
@@ -1916,7 +1916,7 @@ void rfidScanner(void *parameter) {
                 }
                 xQueueSend(rfidCardQueue, &cardIdString, 0);
             }
-        }    
+        }
     }
     vTaskDelete(NULL);
 }
@@ -3108,7 +3108,7 @@ wl_status_t wifiManager(void) {
         // Get (optional) hostname-configration from NVS
         String hostname = prefsSettings.getString("Hostname", "-1");
         if (hostname.compareTo("-1")) {
-            WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+            //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
             snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
             loggerNl(logBuf, LOGLEVEL_INFO);
@@ -3713,7 +3713,7 @@ void setup() {
         while (!SD_MMC.begin("/sdcard", true)) {
         #else
         while (!SD.begin(SPISD_CS, spiSD)) {
-        #endif    
+        #endif
     #else
         while (!SD.begin(SPISD_CS)) {
     #endif
