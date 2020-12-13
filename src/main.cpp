@@ -2964,7 +2964,7 @@ wl_status_t wifiManager(void) {
         // Get (optional) hostname-configration from NVS
         String hostname = prefsSettings.getString("Hostname", "-1");
         if (hostname.compareTo("-1")) {
-            WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+            //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
             snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
             loggerNl(logBuf, LOGLEVEL_INFO);
