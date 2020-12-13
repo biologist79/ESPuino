@@ -20,6 +20,8 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 08.12.2020: Reworked MQTT-timeout-Management
 * 09.12.2020: mDND-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
 * 11.12.2020: Revised GUI-design + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
+* 13.12.2020: Add SD-MMC 1 Bit mode: This mode needs one PIN less and has almost double speed than SPI mode
+* 13.12.2020: Add support for the PN5180 reader. The PN5180 has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2 tags aka Tonies
 More to come...
 
 ## Known bugs
@@ -48,7 +50,8 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [Buttons](https://de.aliexpress.com/item/32896285438.html)
 * [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
 * uSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
-
+* uSD in SD-MMC (1 Bit) mode: Several devkits with onboard SD slot have support for this mode, e.g.: (https://de.aliexpress.com/item/4001229463219.html)
+* optional replace the RFID-reader with a the better one: PN5180 comes with better RFID range, less power consumption and support for ISO-15693 / iCode SLIX2 tags (https://www.bing.com/shop?q=pn5180&FORM=SHOPTB)
 Most of them can be ordered cheaper directly in China. It's just a give an short impression of the hardware; feel free to order where ever you want to. These are not affiliate-links.
 
 ## Getting Started
@@ -104,6 +107,18 @@ Optionally, GPIO 17 can be used to drive a NPN-transistor (BC337-40) that pulls 
 This also works for a 3.3V-setup with IRF530NPBF (N-channel MOSFET) and NDP6020P (P-channel MOSFET). Resistor-values: R1: 100k, R2: omitted(!), R4: 100k, R5: 1k. A 3.3V-setup is helpful if you want to battery-power your Tonuino and 5V is not available in battery-mode. For example this is the case when using Wemos Lolin32 with only having LiPo connected. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations.<br />
 Advice: When powering a SD-card-reader solely with 3.3V, make sure to use one WITHOUT a voltage regulator. Or at least one with a pin dedicated for 3.3V (bypassing voltage regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-).
 
+## Wiring (SD card in 1 Bit SD-MMC mode) different to above
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
+| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
+| --            | SD-reader             | CS     | no CS required                                               |
+| 15            | SD-reader             | MOSI   |                                                              |
+| 2             | SD-reader             | MISO   | 10K hardware pullup may be required                          |
+| 14            | SD-reader             | SCK    |                                                              |
+
+SD-MMC mode requires these fixed PIN's. SD-MMC mode is almost twice as fast than SPI mode.
+You find a good comparasion of different SD card modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/)
+Advice: Double check that above PIN's not used in otherway (PREVIOUS_BUTTON is mounted to SD MISO in default settings.h)
+
 ## Wiring (1 SPI-instance) [EXPERIMENTAL, maybe not working!]
 Basically the same as using 2 SPI-instances but...
 In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins.
@@ -143,6 +158,23 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | 33            | Voltage-divider / BAT |        | Optional: Voltage-divider to monitor battery-voltage         |
 | 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
 
+
+## Wiring (PN5180 instead of MFRC522) different to above
+PN5180 reader needs two more PIN's, RESET and BUSY. Double check PIN conflicts!
+
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
+| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
+| 17            | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| GND           | PN5180 RFID-reader    | GND    |                                                              |
+| 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                        |
+| 23            | PN5180 RFID-reader    | MOSI   | Same as MFRC522                                              |
+| 19            | PN5180 RFID-reader    | MISO   | Same as MFRC522                                              |
+| 18            | PN5180 RFID-reader    | SCK    | Same as MFRC522                                              |
+| 16            | PN5180 RFID-reader    | BUSY   | be aware of SD MISO if running in SPI mode                   |
+| 22            | PN5180 RFID-reader    | RST    | be aware of Headphone jack PIN                               |
+
+
+
 ## Wiring (custom) / different pinout
 When using a develboard with for example SD-card-reader already integrated (Lolin D32 Pro), the pinouts described above my not fit; feel free to change them according your needs. Additionaly some boards may use one or some of the GPIOs I used for their internal purposes and that reason for are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
 [Here](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. Please note I used a slightly modified [RFID-lib](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit/lib/MFRC522) there.
@@ -161,6 +193,7 @@ Please note: via GUI upper and lower voltage cut-offs for visualisation of batte
 * Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your Tonuino in battery-mode without having a restart-button exposed to the outside of Tonuino's enclosure. Because otherwise there's no way to restart your Tonuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
 * Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell Tonuino to remember the last RFID-tag played after next reboot. So rebooting Tonuino will end up in autoplay.
 * If `MDNS_ENABLE` is enabled, your Tonuino is reachable via hostname.local. So if your Tonuino's hostname is 'tonuino', the address is `tonuino.local`.
+* If you want to use the SD card in SD-MMC mode (double upload speed for FTP) use `SD_MMC_1BIT_MODE` and double check these PIN's are not used by other periperal
 * Compile and upload the sketch.
 
 ## Starting Tonuino-ESP32 first time
