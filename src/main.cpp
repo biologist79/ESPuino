@@ -3531,7 +3531,7 @@ void setup() {
         NULL,  /* Task input parameter */
         1 | portPRIVILEGE_BIT,  /* Priority of the task */
         &LED,  /* Task handle. */
-        0 /* Core where the task should run */
+        1 /* Core where the task should run */
     );
 #endif
 
