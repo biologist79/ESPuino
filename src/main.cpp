@@ -1837,8 +1837,9 @@ void rfidScanner(void *parameter) {
     // activate RF field
     delay(4);
     loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    byte cardId[cardIdSize];
+    byte cardId[cardIdSize], lastCardId[cardIdSize];
     char *cardIdString;
+    uint8_t lastUID[10];
 
     for (;;) {
         esp_task_wdt_reset();
@@ -1859,11 +1860,15 @@ void rfidScanner(void *parameter) {
                     #endif
                     continue;
                 }
+                for (uint8_t i=0; i<cardIdSize; i++) 
+                    cardId[i] = uid[i];
+                // check for different card id
+                if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
+                    continue;
+                memcpy(lastCardId, cardId, sizeof(cardId));
                 uint8_t n = 0;
                 logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
                 for (uint8_t i=0; i<cardIdSize; i++) {
-                    cardId[i] = uid[i];
-
                     snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
                     logger(logBuf, LOGLEVEL_NOTICE);
 
@@ -1899,11 +1904,16 @@ void rfidScanner(void *parameter) {
                     #endif
                     continue;
                 }
-                uint8_t n = 0;
-                logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
-                for (uint8_t i=0; i<cardIdSize; i++) {
+                for (uint8_t i=0; i<cardIdSize; i++) 
                     cardId[i] = uid[i];
+                // check for different card id
+                if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
+                    continue;
+                memcpy(lastCardId, cardId, sizeof(cardId));
 
+                uint8_t n = 0;
+                logger((char *) FPSTR(rfid15693TagDetected), LOGLEVEL_NOTICE);
+                for (uint8_t i=0; i<cardIdSize; i++) {
                     snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
                     logger(logBuf, LOGLEVEL_NOTICE);
 
@@ -3728,7 +3738,16 @@ void setup() {
 
         }
 
-    // show SD card type
+   // welcome message 
+   loggerNL("");
+   loggerNL("_____         _____ _____ _____ _____     ");
+   Serial.println("|_   _|___ ___|  |  |     |   | |     |   ");
+   Serial.println("  | | | . |   |  |  |-   -| | | |  |  |   ");
+   Serial.println("  |_| |___|_|_|_____|_____|_|___|_____|   ");
+   Serial.println("  ESP-32 version");
+   Serial.println("");
+
+   // show SD card type
     #ifdef SD_MMC_1BIT_MODE
       Serial.println("SD card mounted in SD_MMC 1 Bit mode");
       uint8_t cardType = SD_MMC.cardType();
@@ -3736,6 +3755,7 @@ void setup() {
       Serial.println("SD card mounted in SPI mode");
       uint8_t cardType = SD.cardType();
     #endif
+    Serial.print("SD card type: ");
     if(cardType == CARD_MMC){
         Serial.println("MMC");
     } else if(cardType == CARD_SD){

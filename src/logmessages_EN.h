@@ -47,6 +47,7 @@ static const char endOfPlaylistReached[] PROGMEM = "Reached end of playlist.";
 static const char trackStartatPos[] PROGMEM = "Starting track at position";
 static const char rfidScannerReady[] PROGMEM = "RFID-tags can now be applied...";
 static const char rfidTagDetected[] PROGMEM = "RFID-tag detected: ";
+static const char rfid15693TagDetected[] PROGMEM = "RFID-Karte (ISO-15693) erkannt: ";
 static const char rfidTagReceived[] PROGMEM = "RFID-tag received";
 static const char rfidTagUnknownInNvs[] PROGMEM = "RFID-tag is unkown to NVS.";
 static const char goToSleepDueToIdle[] PROGMEM = "Going to deepsleep due to inactivity-timer...";
