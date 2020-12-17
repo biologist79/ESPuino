@@ -1817,6 +1817,12 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
+        #ifdef FTP_ENABLE
+            if (ftpSrv.isConnected()) { // Workaround: after moving Neopixel's task to 2nd cpu-core, FTP-transfer-rate decreased. By disabling Neopixel-animation, this can be rescued a bit
+                vTaskDelay(portTICK_RATE_MS*100);
+                continue;
+            }
+        #endif
         if (!bootComplete) {                    // Rotates orange unless boot isn't complete
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
