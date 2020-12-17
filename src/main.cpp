@@ -1891,7 +1891,7 @@ void rfidScanner(void *parameter) {
             uint8_t password[] = {0x01, 0x02, 0x03, 0x04}; 
             ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
             if (ISO15693_EC_OK == myrc) {
-                Serial.println("disable PrivacyMode successful");
+                Serial.println(F("disable PrivacyMode successful"));
             }
             // try to read ISO15693 inventory
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
@@ -2336,11 +2336,21 @@ void deepSleepManager(void) {
         #ifdef NEOPIXEL_ENABLE
             FastLED.clear();
             FastLED.show();
+            // put LED into input mode to save power
+            pinMode(LED_PIN, INPUT);
+        #endif        
+         // turn off SD card (go to idle state to save power)
+        #ifdef SD_MMC_1BIT_MODE
+            SD_MMC.end();
+            pinMode(2, INPUT);
+        #else
+            /*SPI.end();
+            spiSD.end();*/
         #endif
-        /*SPI.end();
-        spiSD.end();*/
+        // turn off power pin
         digitalWrite(POWER, LOW);
         delay(200);
+        // start deep sleep
         esp_deep_sleep_start();
     }
 }
@@ -3739,23 +3749,23 @@ void setup() {
         }
 
    // welcome message 
-   loggerNL("");
-   loggerNL("_____         _____ _____ _____ _____     ");
-   Serial.println("|_   _|___ ___|  |  |     |   | |     |   ");
-   Serial.println("  | | | . |   |  |  |-   -| | | |  |  |   ");
-   Serial.println("  |_| |___|_|_|_____|_____|_|___|_____|   ");
-   Serial.println("  ESP-32 version");
+   Serial.println("");
+   Serial.println(F(" _____         _____ _____ _____ _____    "));
+   Serial.println(F("|_   _|___ ___|  |  |     |   | |     |   "));
+   Serial.println(F("  | | | . |   |  |  |-   -| | | |  |  |   "));
+   Serial.println(F("  |_| |___|_|_|_____|_____|_|___|_____|   "));
+   Serial.println(F("  ESP-32 version"));
    Serial.println("");
 
    // show SD card type
     #ifdef SD_MMC_1BIT_MODE
-      Serial.println("SD card mounted in SD_MMC 1 Bit mode");
+      Serial.println(F("SD card mounted in SD_MMC 1 Bit mode"));
       uint8_t cardType = SD_MMC.cardType();
     #else
-      Serial.println("SD card mounted in SPI mode");
+      Serial.println(F("SD card mounted in SPI mode"));
       uint8_t cardType = SD.cardType();
     #endif
-    Serial.print("SD card type: ");
+    Serial.print(F("SD card type: "));
     if(cardType == CARD_MMC){
         Serial.println("MMC");
     } else if(cardType == CARD_SD){
