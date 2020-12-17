@@ -298,6 +298,7 @@ QueueHandle_t trackQueue;
 QueueHandle_t trackControlQueue;
 QueueHandle_t rfidCardQueue;
 
+bool pauseNeopixel = false;             // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
@@ -1345,6 +1346,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 /* Wraps putString for writing settings into NVS for RFID-cards.
    Returns number of characters written. */
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
+    pauseNeopixel = true;   // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
     char prefBuf[275];
     char trackBuf[255];
     snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
@@ -1366,6 +1368,7 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     snprintf(logBuf, serialLoglength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     logger(logBuf, LOGLEVEL_INFO);
     loggerNl(prefBuf, LOGLEVEL_INFO);
+    pauseNeopixel = false;
     return prefsRfid.putString(_rfidCardId, prefBuf);
 }
 
@@ -1817,12 +1820,16 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
-        #ifdef FTP_ENABLE
+        if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
+           vTaskDelay(portTICK_RATE_MS*100);
+            continue;
+        }
+        /*#ifdef FTP_ENABLE
             if (ftpSrv.isConnected()) { // Workaround: after moving Neopixel's task to 2nd cpu-core, FTP-transfer-rate decreased. By disabling Neopixel-animation, this can be rescued a bit
                 vTaskDelay(portTICK_RATE_MS*100);
                 continue;
             }
-        #endif
+        #endif*/
         if (!bootComplete) {                    // Rotates orange unless boot isn't complete
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
@@ -3396,6 +3403,7 @@ void webserverStart(void) {
 
 // Dumps all RFID-entries from NVS into a file on SD-card
     bool dumpNvsToSd(char *_namespace, char *_destFile) {
+        pauseNeopixel = true;
         esp_partition_iterator_t pi;                // Iterator for find
         const esp_partition_t* nvs;                 // Pointer to partition struct
         esp_err_t result = ESP_OK;
@@ -3456,12 +3464,14 @@ void webserverStart(void) {
         }
 
         backupFile.close();
+        pauseNeopixel = false;
         return true;
     }
 
 
 // Handles uploaded backup-file and writes valid entries into NVS
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    pauseNeopixel = true;
     char ebuf[290];
     uint16_t j=0;
     char *token;
@@ -3494,6 +3504,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
             }
         }
     }
+    pauseNeopixel = false;
 }
 
 
@@ -3538,7 +3549,8 @@ void setup() {
         NULL,  /* Task input parameter */
         1 | portPRIVILEGE_BIT,  /* Priority of the task */
         &LED,  /* Task handle. */
-        1 /* Core where the task should run */
+//        1 /* Core where the task should run */
+        0 /* Core where the task should run */
     );
 #endif
 
