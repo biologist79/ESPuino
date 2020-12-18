@@ -15,10 +15,21 @@
 #endif
 #include "Audio.h"
 #include "SPI.h"
-#include "SD.h"
 #include "FS.h"
+#ifdef SD_MMC_1BIT_MODE
+    #include "SD_MMC.h"
+#else
+    #include "SD.h"
+#endif
 #include "esp_task_wdt.h"
-#include <MFRC522.h>
+#ifdef RFID_READER_TYPE_MFRC522
+    #include <MFRC522.h>
+#endif
+#ifdef RFID_READER_TYPE_PN5180
+    #include <PN5180.h>
+    #include <PN5180ISO14443.h>
+    #include <PN5180ISO15693.h>
+#endif
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
     #include <PubSubClient.h>
@@ -249,7 +260,9 @@ static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet.
 
 
 // Audio/mp3
+#ifndef SD_MMC_1BIT_MODE
 SPIClass spiSD(HSPI);
+#endif
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
 #ifdef NEOPIXEL_ENABLE
@@ -576,8 +589,11 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
             esp_task_wdt_reset();
             if (pathValid(fileNameBuf)) {
                 sendWebsocketData(0, 31);
-                appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
-
+                #ifdef SD_MMC_1BIT_MODE
+                    appendNodeToJSONFile(SD_MMC, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
+                #else
+                    appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
+                #endif
                 // check for next subfolder
                 if(levels){
                     parseSDFileList(fs, fileNameBuf, root.name(), levels -1);
@@ -587,7 +603,7 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
         } else {
 
             if (fileValid(fileNameBuf)) {
-                appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "file" );
+                appendNodeToJSONFile(fs, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "file" );
             }
         }
         vTaskDelay(portTICK_PERIOD_MS*50);
@@ -604,9 +620,15 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
  *  is done.
  */
 void createJSONFileList() {
-    createFile(SD, DIRECTORY_INDEX_FILE, "[");
-    parseSDFileList(SD,  "/", NULL, FS_DEPTH);
-    appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
+    #ifdef SD_MMC_1BIT_MODE
+        createFile(SD_MMC, DIRECTORY_INDEX_FILE, "[");
+        parseSDFileList(SD_MMC,  "/", NULL, FS_DEPTH);
+        appendToFile(SD_MMC, DIRECTORY_INDEX_FILE, "]");
+    #else
+        createFile(SD, DIRECTORY_INDEX_FILE, "[");
+        parseSDFileList(SD,  "/", NULL, FS_DEPTH);
+        appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
+    #endif
     isFirstJSONtNode  =  true;
     sendWebsocketData(0,30);
 }
@@ -1546,7 +1568,11 @@ void playAudio(void *parameter) {
                             #ifdef NEOPIXEL_ENABLE
                                 showRewind = true;
                             #endif
-                            audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
+                            #ifdef SD_MMC_1BIT_MODE
+                                audio.connecttoFS(SD_MMC, *(playProperties.playlist + playProperties.currentTrackNumber));
+                            #else
+                                audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
+                            #endif
                             loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
                             continue;
@@ -1669,13 +1695,21 @@ void playAudio(void *parameter) {
                 playProperties.playlistFinished = false;
             } else {
                 // Files from SD
-                if (!SD.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
+                    #ifdef SD_MMC_1BIT_MODE
+                    if (!SD_MMC.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
+                    #else
+                    if (!SD.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
+                    #endif
                     snprintf(logBuf, serialLoglength, "Datei/Ordner '%s' existiert nicht", *(playProperties.playlist + playProperties.currentTrackNumber));
                     loggerNl(logBuf, LOGLEVEL_ERROR);
                     playProperties.trackFinished = true;
                     continue;
                 } else {
-                    audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
+                    #ifdef SD_MMC_1BIT_MODE
+                        audio.connecttoFS(SD_MMC, *(playProperties.playlist + playProperties.currentTrackNumber));
+                    #else
+                        audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
+                    #endif
                     #ifdef NEOPIXEL_ENABLE
                         showPlaylistProgress = true;
                     #endif
@@ -1721,6 +1755,7 @@ void playAudio(void *parameter) {
 }
 
 
+#ifdef RFID_READER_TYPE_MFRC522
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
@@ -1783,7 +1818,122 @@ void rfidScanner(void *parameter) {
     }
     vTaskDelete(NULL);
 }
+#endif
 
+
+
+#ifdef RFID_READER_TYPE_PN5180
+// Instructs RFID-scanner to scan for new RFID-tags using PN5180
+void rfidScanner(void *parameter) {
+    static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
+    static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
+    nfc14443.begin();
+    nfc14443.reset();
+    // show PN5180 reader version
+    uint8_t firmwareVersion[2];
+    nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
+    Serial.print(F("Firmware version="));
+    Serial.print(firmwareVersion[1]);
+    Serial.print(".");
+    Serial.println(firmwareVersion[0]);
+
+    // activate RF field
+    delay(4);
+    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    byte cardId[cardIdSize], lastCardId[cardIdSize];
+    char *cardIdString;
+    uint8_t lastUID[10];
+
+    for (;;) {
+        esp_task_wdt_reset();
+        vTaskDelay(10);
+        if ((millis() - lastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+            // Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
+            lastRfidCheckTimestamp = millis();
+            // 1. check for an ISO-14443 card
+            nfc14443.reset();
+            nfc14443.setupRF();
+            uint8_t uid[10];
+            if (nfc14443.isCardPresent() && nfc14443.readCardSerial(uid)) {
+                cardIdString = (char *) malloc(cardIdSize*3 +1);
+                if (cardIdString == NULL) {
+                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                    continue;
+                }
+                for (uint8_t i=0; i<cardIdSize; i++) 
+                    cardId[i] = uid[i];
+                // check for different card id
+                if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
+                    continue;
+                memcpy(lastCardId, cardId, sizeof(cardId));
+                uint8_t n = 0;
+                logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+                for (uint8_t i=0; i<cardIdSize; i++) {
+                    snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
+                    logger(logBuf, LOGLEVEL_NOTICE);
+
+                    n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
+                    if (i<(cardIdSize-1)) {
+                        logger("-", LOGLEVEL_NOTICE);
+                    } else {
+                        logger("\n", LOGLEVEL_NOTICE);
+                    }
+                }
+                xQueueSend(rfidCardQueue, &cardIdString, 0);
+                continue;
+            }
+            // 2. check for an ISO-15693 card
+            nfc15693.reset();
+            nfc15693.setupRF();
+            // check for ICODE-SLIX2 password protected tag
+            // put your privacy password here, e.g.:
+            // https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
+            uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
+            ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
+            if (ISO15693_EC_OK == myrc) {
+                Serial.println("disable PrivacyMode successful");
+            }
+            // try to read ISO15693 inventory
+            ISO15693ErrorCode rc = nfc15693.getInventory(uid);
+            if (rc == ISO15693_EC_OK) {
+                cardIdString = (char *) malloc(cardIdSize*3 +1);
+                if (cardIdString == NULL) {
+                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                    continue;
+                }
+                for (uint8_t i=0; i<cardIdSize; i++) 
+                    cardId[i] = uid[i];
+                // check for different card id
+                if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
+                    continue;
+                memcpy(lastCardId, cardId, sizeof(cardId));
+
+                uint8_t n = 0;
+                logger((char *) FPSTR(rfid15693TagDetected), LOGLEVEL_NOTICE);
+                for (uint8_t i=0; i<cardIdSize; i++) {
+                    snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
+                    logger(logBuf, LOGLEVEL_NOTICE);
+
+                    n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
+                    if (i<(cardIdSize-1)) {
+                        logger("-", LOGLEVEL_NOTICE);
+                    } else {
+                        logger("\n", LOGLEVEL_NOTICE);
+                    }
+                }
+                xQueueSend(rfidCardQueue, &cardIdString, 0);
+            }
+        }
+    }
+    vTaskDelete(NULL);
+}
+#endif
 
 // This task handles everything for Neopixel-visualisation
 #ifdef NEOPIXEL_ENABLE
@@ -2277,7 +2427,11 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
     #endif
     if (_playMode != WEBSTREAM) {
+        #ifdef SD_MMC_1BIT_MODE
+        musicFiles = returnPlaylistFromSD(SD_MMC.open(filename));
+        #else
         musicFiles = returnPlaylistFromSD(SD.open(filename));
+        #endif
     } else {
         musicFiles = returnPlaylistFromWebstream(filename);
     }
@@ -3003,7 +3157,11 @@ wl_status_t wifiManager(void) {
             snprintf(logBuf, serialLoglength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             loggerNl(logBuf, LOGLEVEL_NOTICE);
             #ifdef FTP_ENABLE
-                ftpSrv.begin(ftpUser, ftpPassword);
+                #ifdef SD_MMC_1BIT_MODE
+                    ftpSrv.begin(SD_MMC, ftpUser, ftpPassword);
+                #else
+                    ftpSrv.begin(ftpUser, ftpPassword);
+                #endif
             #endif
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
@@ -3274,7 +3432,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
-        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint(client->id()));
     } else if (type == WS_EVT_ERROR) {
         //error was received from the other end
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -3388,7 +3546,11 @@ void webserverStart(void) {
     });
 
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
+        #ifdef SD_MMC_1BIT_MODE
+        request->send(SD_MMC, DIRECTORY_INDEX_FILE, "application/json");
+        #else
         request->send(SD, DIRECTORY_INDEX_FILE, "application/json");
+        #endif
     });
 
     wServer.onNotFound(notFound);
@@ -3428,8 +3590,11 @@ void webserverStart(void) {
             return NULL;
         }
         namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
-
-        File backupFile = SD.open(_destFile, FILE_WRITE);
+        #ifdef SD_MMC_1BIT_MODE
+            File backupFile = SD_MMC.open(_destFile, FILE_WRITE);
+        #else
+            File backupFile = SD.open(_destFile, FILE_WRITE);
+        #endif
         if (!backupFile) {
             return false;
         }
@@ -3554,13 +3719,17 @@ void setup() {
     );
 #endif
 
-    // Init uSD-SPI
-    pinMode(SPISD_CS, OUTPUT);
-    digitalWrite(SPISD_CS, HIGH);
 
     #ifndef SINGLE_SPI_ENABLE
+       #ifdef SD_MMC_1BIT_MODE
+        pinMode(2, INPUT_PULLUP);
+      #else
+        // Init uSD-SPI
+        pinMode(SPISD_CS, OUTPUT);
+        digitalWrite(SPISD_CS, HIGH);
         spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
         spiSD.setFrequency(1000000);
+      #endif
     #else
         //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
         SPI.begin();
@@ -3568,7 +3737,11 @@ void setup() {
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
+       #ifdef SD_MMC_1BIT_MODE
+        while (!SD_MMC.begin("/sdcard", true)) {
+        #else
         while (!SD.begin(SPISD_CS, spiSD)) {
+        #endif
     #else
         while (!SD.begin(SPISD_CS)) {
     #endif
@@ -3582,6 +3755,34 @@ void setup() {
             #endif
 
         }
+
+   // welcome message 
+   loggerNL("");
+   loggerNL("_____         _____ _____ _____ _____     ");
+   Serial.println("|_   _|___ ___|  |  |     |   | |     |   ");
+   Serial.println("  | | | . |   |  |  |-   -| | | |  |  |   ");
+   Serial.println("  |_| |___|_|_|_____|_____|_|___|_____|   ");
+   Serial.println("  ESP-32 version");
+   Serial.println("");
+
+   // show SD card type
+    #ifdef SD_MMC_1BIT_MODE
+      Serial.println("SD card mounted in SD_MMC 1 Bit mode");
+      uint8_t cardType = SD_MMC.cardType();
+    #else
+      Serial.println("SD card mounted in SPI mode");
+      uint8_t cardType = SD.cardType();
+    #endif
+    Serial.print("SD card type: ");
+    if(cardType == CARD_MMC){
+        Serial.println("MMC");
+    } else if(cardType == CARD_SD){
+        Serial.println("SDSC");
+    } else if(cardType == CARD_SDHC){
+        Serial.println("SDHC");
+    } else {
+        Serial.println("UNKNOWN");
+    }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
         pinMode(HP_DETECT, INPUT);
@@ -3865,10 +4066,17 @@ void setup() {
     /**
      * Create empty Index json file when no file exists.
      */
-    if(!fileExists(SD,DIRECTORY_INDEX_FILE)){
-        createFile(SD,DIRECTORY_INDEX_FILE,"[]");
-        ESP.restart();
-    }
+    #ifdef SD_MMC_1BIT_MODE
+        if(!fileExists(SD_MMC,DIRECTORY_INDEX_FILE)){
+            createFile(SD_MMC,DIRECTORY_INDEX_FILE,"[]");
+            ESP.restart();
+        }
+    #else
+        if(!fileExists(SD,DIRECTORY_INDEX_FILE)){
+            createFile(SD,DIRECTORY_INDEX_FILE,"[]");
+            ESP.restart();
+        }
+    #endif
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
