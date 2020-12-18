@@ -5,7 +5,7 @@
 #include "Arduino.h"
 #include <WiFi.h>
 #ifdef MDNS_ENABLE
-#include <ESPmDNS.h>
+    #include <ESPmDNS.h>
 #endif
 #ifdef FTP_ENABLE
     #include "ESP32FtpServer.h"
@@ -37,10 +37,6 @@
 #include <WebServer.h>
 #ifdef NEOPIXEL_ENABLE
     #include <FastLED.h>
-#endif
-
-#ifdef MDNS_ENABLE
-    #include <ESPmDNS.h>
 #endif
 
 #if (LANGUAGE == 1)
@@ -205,6 +201,7 @@ bool wifiNeedsRestart = false;
     bool showPlaylistProgress = false;
     bool showRewind = false;
     bool showLedVoltage = false;
+    bool pauseNeopixel = false;             // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 #endif
 // MQTT
 #ifdef MQTT_ENABLE
@@ -254,9 +251,6 @@ void notFound(AsyncWebServerRequest *request) {
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
-
-static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
-static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 
 
 // Audio/mp3
@@ -311,7 +305,6 @@ QueueHandle_t trackQueue;
 QueueHandle_t trackControlQueue;
 QueueHandle_t rfidCardQueue;
 
-bool pauseNeopixel = false;             // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
@@ -476,16 +469,8 @@ void appendToFile(fs::FS &fs, const char *path, const char *text) {
 // indicates if the given node is first node of file
 bool isFirstJSONtNode = true;
 
-/**
- * Helper function for writing file index to json file.
- * This function appends a new json node for files/directories to
- * a given  file.
- * @param fs
- * @param path
- * @param filename
- * @param parent
- * @param type
- */
+// Helper-function for writing file-index to json-file.
+// This function appends a new json-node for files/directories to a given file
 void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, const char *parent, const char *type ) {
     // Serial.printf("Appending to file: %s\n", path);
     snprintf(logBuf, serialLoglength, "%s: %s\n", (char *) FPSTR(listingDirectory), filename);
@@ -525,11 +510,7 @@ void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, c
     }
 }
 
-/**
- * Checks if a path  is valid. (e.g. hidden path is not valid)
- * @param _fileItem
- * @return
- */
+// Checks if a path  is valid. (e.g. hidden path is not valid)
 bool pathValid(const char *_fileItem) {
     const char ch = '/';
     char *subst;
@@ -537,16 +518,8 @@ bool pathValid(const char *_fileItem) {
     return (!startsWith(subst, (char *) "/."));
 }
 
-/**
- * SD-Card index parser. Parses the SD Card directories
- * by a given file path depth recursive and appends the
- * found files and directories to files.json file.
- * @param fs
- * @param dirname
- * @param parent
- * @param levels
- */
-//char fileNameBuf[255];
+// SD-Card index-parser. Parses the SD-card directories by a given filepath-depth recursively and appends the
+// found files and directories to files.json-file.
 char *fileNameBuf = (char *) calloc(255, sizeof(char));         // In heap to save static memory
 
 void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels) {
@@ -614,11 +587,8 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
 
 }
 
-/**
- *  Public function for creating file index json on SD-Card.
- *  It notifies the user client via websockets when the indexing
- *  is done.
- */
+// Public function for creating file-index json on SD-card. It notifies the user-client
+// via websockets when the indexing is done.
 void createJSONFileList() {
     #ifdef SD_MMC_1BIT_MODE
         createFile(SD_MMC, DIRECTORY_INDEX_FILE, "[");
@@ -1368,7 +1338,9 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 /* Wraps putString for writing settings into NVS for RFID-cards.
    Returns number of characters written. */
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
-    pauseNeopixel = true;   // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+    #ifdef NEOPIXEL_ENABLE
+        pauseNeopixel = true;   // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+    #endif
     char prefBuf[275];
     char trackBuf[255];
     snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
@@ -1390,7 +1362,9 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     snprintf(logBuf, serialLoglength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     logger(logBuf, LOGLEVEL_INFO);
     loggerNl(prefBuf, LOGLEVEL_INFO);
-    pauseNeopixel = false;
+    #ifdef NEOPIXEL_ENABLE
+        pauseNeopixel = false;
+    #endif
     return prefsRfid.putString(_rfidCardId, prefBuf);
 }
 
@@ -1863,7 +1837,7 @@ void rfidScanner(void *parameter) {
                     #endif
                     continue;
                 }
-                for (uint8_t i=0; i<cardIdSize; i++) 
+                for (uint8_t i=0; i<cardIdSize; i++)
                     cardId[i] = uid[i];
                 // check for different card id
                 if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
@@ -1907,7 +1881,7 @@ void rfidScanner(void *parameter) {
                     #endif
                     continue;
                 }
-                for (uint8_t i=0; i<cardIdSize; i++) 
+                for (uint8_t i=0; i<cardIdSize; i++)
                     cardId[i] = uid[i];
                 // check for different card id
                 if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
@@ -1970,10 +1944,12 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
-        if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
-            vTaskDelay(portTICK_RATE_MS*10);
-            continue;
-        }
+        #ifdef NEOPIXEL_ENABLE
+            if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
+                vTaskDelay(portTICK_RATE_MS*10);
+                continue;
+            }
+        #endif
         /*#ifdef FTP_ENABLE
             if (ftpSrv.isConnected()) { // Workaround: after moving Neopixel's task to 2nd cpu-core, FTP-transfer-rate decreased. By disabling Neopixel-animation, this can be rescued a bit
                 vTaskDelay(portTICK_RATE_MS*100);
@@ -3565,7 +3541,9 @@ void webserverStart(void) {
 
 // Dumps all RFID-entries from NVS into a file on SD-card
     bool dumpNvsToSd(char *_namespace, char *_destFile) {
-        pauseNeopixel = true;
+        #ifdef NEOPIXEL_ENABLE
+            pauseNeopixel = true;   // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+        #endif
         esp_partition_iterator_t pi;                // Iterator for find
         const esp_partition_t* nvs;                 // Pointer to partition struct
         esp_err_t result = ESP_OK;
@@ -3629,14 +3607,19 @@ void webserverStart(void) {
         }
 
         backupFile.close();
-        pauseNeopixel = false;
+        #ifdef NEOPIXEL_ENABLE
+            pauseNeopixel = false;
+        #endif
+
         return true;
     }
 
 
 // Handles uploaded backup-file and writes valid entries into NVS
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-    pauseNeopixel = true;
+    #ifdef NEOPIXEL_ENABLE
+        pauseNeopixel = true;   // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+    #endif
     char ebuf[290];
     uint16_t j=0;
     char *token;
@@ -3669,7 +3652,9 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
             }
         }
     }
-    pauseNeopixel = false;
+    #ifdef NEOPIXEL_ENABLE
+        pauseNeopixel = false;
+    #endif
 }
 
 
@@ -3756,32 +3741,32 @@ void setup() {
 
         }
 
-   // welcome message 
-   loggerNL("");
-   loggerNL("_____         _____ _____ _____ _____     ");
-   Serial.println("|_   _|___ ___|  |  |     |   | |     |   ");
-   Serial.println("  | | | . |   |  |  |-   -| | | |  |  |   ");
-   Serial.println("  |_| |___|_|_|_____|_____|_|___|_____|   ");
-   Serial.println("  ESP-32 version");
-   Serial.println("");
+   // welcome message
+   Serial.println(F(""));
+   Serial.println(F("_____         _____ _____ _____ _____     "));
+   Serial.println(F("|_   _|___ ___|  |  |     |   | |     |   "));
+   Serial.println(F("  | | | . |   |  |  |-   -| | | |  |  |   "));
+   Serial.println(F("  |_| |___|_|_|_____|_____|_|___|_____|   "));
+   Serial.println(F("  ESP-32 version"));
+   Serial.println(F(""));
 
    // show SD card type
     #ifdef SD_MMC_1BIT_MODE
-      Serial.println("SD card mounted in SD_MMC 1 Bit mode");
+      loggerNl((char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
       uint8_t cardType = SD_MMC.cardType();
     #else
-      Serial.println("SD card mounted in SPI mode");
+      loggerNl((char *) FPSTR(sdMountedSpiMode), LOGLEVEL_NOTICE);
       uint8_t cardType = SD.cardType();
     #endif
-    Serial.print("SD card type: ");
-    if(cardType == CARD_MMC){
-        Serial.println("MMC");
+    Serial.print(F("SD card type: "));
+    if (cardType == CARD_MMC) {
+        Serial.println(F("MMC"));
     } else if(cardType == CARD_SD){
-        Serial.println("SDSC");
+        Serial.println(F("SDSC"));
     } else if(cardType == CARD_SDHC){
-        Serial.println("SDHC");
+        Serial.println(F("SDHC"));
     } else {
-        Serial.println("UNKNOWN");
+        Serial.println(F("UNKNOWN"));
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE

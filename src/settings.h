@@ -12,19 +12,21 @@
 #define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
+//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 //################## select SD card mode #############################
-//#define SD_MMC_1BIT_MODE            // run SD card in SD-MMC 1Bit mode 
-//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
+//#define SD_MMC_1BIT_MODE          // run SD card in SD-MMC 1Bit mode => if not enabled, SPI is used as default
 
 //################## select RFID reader ##############################
-#define RFID_READER_TYPE_MFRC522        // use MFRC522
-//#define RFID_READER_TYPE_PN5180         
+// => make sure to enable only ONE reader at once!
+#define RFID_READER_TYPE_MFRC522    // use MFRC522 (this is so to say the default as this reader is used by most users)
+//#define RFID_READER_TYPE_PN5180   // use PN5180 (better reader but needs more pins!)
 
 
 //################## GPIO-configuration ##############################
 #ifdef SD_MMC_1BIT_MODE
+    // Nothing to be configured here as GPIO-pins of SD_MMC are *fixed*
     // uSD-card-reader (via SD-MMC 1Bit)
     //
     // SD_MMC uses fixed pins
@@ -32,7 +34,7 @@
     //  SCKK    14
     //  MISO    2   // hardware pullup may required
 #else
-    // uSD-card-reader (via SPI)
+    // uSD-card-reader (if SPI is used; these GPIOs can be changed)
     #define SPISD_CS                        15          // GPIO for chip select (SD)
     #ifndef SINGLE_SPI_ENABLE
         #define SPISD_MOSI                  13          // GPIO for master out slave in (SD) => not necessary for single-SPI
@@ -51,7 +53,7 @@
 #ifdef RFID_READER_TYPE_PN5180
     #define RFID_BUSY                   16          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
-#endif 
+#endif
 // I2S (DAC)
 #define I2S_DOUT                        25          // Digital out (I2S)
 #define I2S_BCLK                        27          // BCLK (I2S)

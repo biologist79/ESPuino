@@ -20,12 +20,13 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 08.12.2020: Reworked MQTT-timeout-Management
 * 09.12.2020: mDNS-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
 * 11.12.2020: Revised GUI-design (thanks @mariolukas for contribution!) + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
-* 18.12.2020: Added SD-MMC 1 Bit mode: This mode needs one PIN less and has almost double speed than SPI mode (thanks @tueddy for contribution!)
-* 18.12.2020: Added support for the PN5180 reader. The PN5180 has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2 tags aka Tonies (thanks @tueddy for contribution!)
+* 18.12.2020: Added SD-MMC 1 Bit-mode (`SD_MMC_1BIT_MODE`). This mode needs one GPIO less and provides almost doubled speed (compared to SPI) for FTP-transfers (thanks @tueddy for contribution!)
+* 18.12.2020: Added support for RFID-reader PN5180 (`RFID_READER_TYPE_PN5180`). PN5180 has better RFID-range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (thanks @tueddy for contribution!)
 <br />More to come...
 
 ## Known bugs
-* Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM.
+* Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
+* English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
 ## Disclaimer
 This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
@@ -41,7 +42,7 @@ The basic idea of Tonuino is to provide a way, to use the Arduino-platform for a
 ## Hardware-setup
 The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.).
 * [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
-* [uSD-card-reader 3.3V only](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
+* [uSD-card-reader; 3.3V only; supports SPI + SD-MMC](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
 * [RFID-tags](https://www.amazon.de/AZDelivery-Keycard-56MHz-Schlüsselkarte-Karte/dp/B07TVJPTM7)
 * [Neopixel-ring](https://de.aliexpress.com/item/32673883645.html)
@@ -55,19 +56,20 @@ Most of them can be ordered cheaper directly in China. It's just a give an short
 
 
 ## Getting Started
-* Arduino-IDE can be used but you need to satisfy dependencies for all the libraries listed in `platformio.ini` yourself.
-* Instead I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of plugins.
+* Arduino-IDE can be used but you need to satisfy dependencies for all the libraries listed in `platformio.ini` manually.
+* Instead I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
 * Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html).
 * Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/Tonuino-ESP32-I2S.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste.
+* (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
-* There's a file called `platformio.ini`, that contains the configuration of the develboard (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably, you need to change that configuration. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
+* There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
 * Depending on your operating system (Windows, Mac OS, Linux), you probably need to change `upload_port`and `monitor_port` as well.
 * Edit `src/settings.h` according your needs. Especially GPIO-configuration is really important.
 * Connect your develboard via USB, click the alien-head to the left and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware.
 * Now have a look at the serial-output at the bottom of Visual Studio Code's windows.
 * If everything ran fine, at the first run, Tonuino should open an access-point with the name "Tonuino". Connect to this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart Tonuino.
 * Now Tonuino tries to join your WiFi. If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call Tonuino's GUI via this IP. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local. So if you configured `tonuino` as hostname, you can use `tonuino.local` for webgui and FTP.
-* Via FTP you can upload data (don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 300 kB/s if SD is in MMC-mode (this feature will be released soon)
+* Via FTP you can upload data (don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 300 kB/s if SD is in MMC-mode.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions.
 
 ## Prerequisites / tipps
@@ -84,28 +86,48 @@ Please note: via GUI upper and lower voltage cut-offs for visualisation of batte
 * Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell Tonuino to remember the last RFID-tag played after next reboot. So rebooting Tonuino will end up in autoplay.
 * If `MDNS_ENABLE` is enabled, your Tonuino is reachable via hostname.local. So if your Tonuino's hostname is 'tonuino', the address is `tonuino.local`.
 
+## SD-card: SPI or SD-MMC (1 bit)-mode?
+Having SD working is mandatory. So there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
+Advantages SD-MMC (1 bit) over SPI:
+* Needs only three GPIOs (instead of four)
+* It is almost twice as fast in FTP-transfer
+So why using SPI if SD-MMC is better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depends on the ESP-develboard) be a problem because GPIO2 is pulled HIGH in SD-MMC-mode. And if that's the case, you'll probably not able to flash the firmware as the ESP32 doesn't enter flash-mode. Tested it with Lolin32 and had to remove SD's wire to GPIO2 until flash-mode was entered. As soon as flash-mode was entered, it's safe to re-connect it. So be advised: SD-MMC is nice and fast, but if you want to update the firmware and ESP32 is deeply burried in Tonuino's enclosure, this can be problem.
+
+## RFID: RC522 or PN5180?
+RC522 is so to say the Tonuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies'. Disadvantages: is a bit more expensive and needs more GPIOs (6 instead of 4). Refer PN5180's wire-section below for further informations.
+
+## 3.3 or 5V?
+* MAX98357a: provides more power at 5 V but also runs at 3.3 V
+* Neopixel: specification says it needs 5 V but also runs at 3.3 V
+* RC522: needs 3.3 V (don't power with 5 V!)
+* SD: needs 3.3 V but if voltage-regulator is onboard, it can be connected to 5 V as well
+* Rotary encoder: 3.3 V (don't power with 5 V! Encoder doens't care if connected to 3.3 or 5 V, but GPIOs of ESP32 do!)
+So why choosing 3.3 V over 5 V?
+* It's not necessary to mix up 3.3 and 5 V. Natively ESP32 operates at 3.3 V.
+* If you plan to use battery-mode with a LiPo, there's no 5 V available (unless USB is connected).
+That's why my design's focus is 3.3 V. If you want to use 5 V - do so. The Mosfet-circuit for saving power in deepsleep (see [Lolin32-schematics](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino%20V2-Schematics.pdf) as reference) works as well for 5 V.
 ## Wiring (general)
 Depending on the develboard you're using and the needs you have, there are different options available.
 A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments on a breadboard I soldered all the stuff onto a board in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
 Have a look at my PCB in the subfolder Hardware-Platforms/Wemos Lolin32. Probably this makes things easier for you.
 
-## Wiring (2 SPI-instances)
+## Wiring (2 SPI-instances: RC522 + SD)
 Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32).<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     |                                                              |
 | 13            | SD-reader             | MOSI   |                                                              |
 | 16            | SD-reader             | MISO   |                                                              |
 | 14            | SD-reader             | SCK    |                                                              |
-| 17            | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA |                                                              |
 | 23            | RFID-reader           | MOSI   |                                                              |
 | 19            | RFID-reader           | MISO   |                                                              |
 | 18            | RFID-reader           | SCK    |                                                              |
-| 5 V           | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | MAX98357              | GND    |                                                              |
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
@@ -122,7 +144,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 V         | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | Neopixel              | GND    |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
@@ -133,7 +155,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 Optionally, GPIO 17 can be used to drive a Mosfet-circuit in order to switch off peripherals (SD, Neopixel, RFID and MAX98357a) if ESP32 is in deepsleep. lease refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations. If you need further informations on transistor-circuits visit this [website](https://dl6gl.de/schalten-mit-transistoren.html). <br />
 In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968) that can be run solely with 3.3V (doesn't have a voltage-regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-). And by the way: when LiPo-battery is connected, there's no 5V. That's why I designed my [Lolin32-PCB](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32) with 3.3V only.
 
-## Wiring (SD card in 1 Bit SD-MMC mode) different to above
+## Wiring (SD-card in 1 Bit SD-MMC mode) different to above
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | --            | SD-reader             | CS     | no CS required                                               |
@@ -141,26 +163,25 @@ In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-S
 | 2             | SD-reader             | MISO   | 10K hardware pullup may be required                          |
 | 14            | SD-reader             | SCK    |                                                              |
 
-SD-MMC mode requires these fixed PIN's. SD-MMC mode is almost twice as fast than SPI mode.
-You find a good comparasion of different SD card modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/)
-Advice: Double check that above PIN's not used in otherway (PREVIOUS_BUTTON is mounted to SD MISO in default settings.h)
+Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).
+Advice: Double check that above PINs are not used elsewhere (e.g. GPIO2 is used as PREVIOUS_BUTTON as per default in settings.h).
 
-## Wiring (1 SPI-instance) [EXPERIMENTAL, maybe not working!]
+## Wiring (1 SPI-instance: RC522 + SD) [EXPERIMENTAL, maybe not working!]
 Basically the same as using 2 SPI-instances but...
 In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins. Have to admit I had some problems to get this running. Seems to be connected properly, but nothing happens when an RFID-tag is applied. Maybe anybody else wants to point out :-)
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 5 V           | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     | Don't share with RFID!                                       |
-| 17            | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA | Don't share with SD!                                         |
 | 23            | RFID+SD-reader        | MOSI   |                                                              |
 | 19            | RFID+SD-reader        | MISO   |                                                              |
 | 18            | RFID+SD-reader        | SCK    |                                                              |
-| 5 V           | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | MAX98357              | GND    |                                                              |
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
@@ -177,7 +198,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 5 V           | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
 | GND           | Neopixel              | GND    |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
@@ -186,11 +207,12 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 
 
 ## Wiring (PN5180 instead of MFRC522) different to above
-PN5180 reader needs two more PIN's, RESET and BUSY. Double check PIN conflicts!
+PN5180 reader needs two more PIN's, RESET and BUSY. Double check PIN conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522`!
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 17            | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V        |
 | GND           | PN5180 RFID-reader    | GND    |                                                              |
 | 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                        |
 | 23            | PN5180 RFID-reader    | MOSI   | Same as MFRC522                                              |
