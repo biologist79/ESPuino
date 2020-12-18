@@ -6,7 +6,7 @@
 
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
-* Outer diameter: 55 x 81mm
+* Outer diameter: 53 x 81mm
 * JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID and reset (not 2.54mm pitch!)
 * 2.54mm-connectors for MAX98357a and uSD-card-reader
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active

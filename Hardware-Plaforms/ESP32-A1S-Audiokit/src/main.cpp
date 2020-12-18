@@ -1521,8 +1521,6 @@ void rfidScanner(void *parameter) {
     //static MFRC522 mfrc522(MFRC522_CS_PIN, MFRC522_RST_PIN);
     //static MFRC522 mfrc522(RFID_CS, RST_PIN);
     //SPI.begin();
-    pinMode(MFRC522_CS_PIN, OUTPUT);
-    digitalWrite(MFRC522_CS_PIN, HIGH);
     mfrc522.PCD_Init();
     mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
     delay(4);
@@ -3054,6 +3052,11 @@ void setup() {
     prefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     prefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
 
+    pinMode(SD_CS, OUTPUT);
+    digitalWrite(SD_CS, HIGH);
+    pinMode(MFRC522_CS_PIN, OUTPUT);
+    digitalWrite(MFRC522_CS_PIN, HIGH);
+
     SPI_MFRC.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     SPI_MFRC.setFrequency(1000000);
 
@@ -3094,8 +3097,6 @@ void setup() {
 #endif
 
     // Init uSD-SPI
-    pinMode(SD_CS, OUTPUT);
-    digitalWrite(SD_CS, HIGH);
     /*SPI_MFRC.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     SPI_MFRC.setFrequency(1000000);*/
     while (!SD.begin(SD_CS, SPI_MFRC)) {
