@@ -2163,7 +2163,7 @@ void showLed(void *parameter) {
                     vTaskDelay(portTICK_RATE_MS * 5);
                 }
         }
-        vTaskDelay(portTICK_RATE_MS * 10);
+        //vTaskDelay(portTICK_RATE_MS * 10);
         esp_task_wdt_reset();
     }
     vTaskDelete(NULL);
