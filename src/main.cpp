@@ -1821,7 +1821,7 @@ void showLed(void *parameter) {
 
     for (;;) {
         if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
-           vTaskDelay(portTICK_RATE_MS*100);
+            vTaskDelay(portTICK_RATE_MS*10);
             continue;
         }
         /*#ifdef FTP_ENABLE
