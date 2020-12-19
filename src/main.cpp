@@ -256,6 +256,9 @@ AsyncEventSource events("/events");
 // Audio/mp3
 #ifndef SD_MMC_1BIT_MODE
 SPIClass spiSD(HSPI);
+fs::FS FSystem = (fs::FS)SD;
+#else
+fs::FS FSystem = (fs::FS)SD_MMC;
 #endif
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
@@ -562,11 +565,7 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
             esp_task_wdt_reset();
             if (pathValid(fileNameBuf)) {
                 sendWebsocketData(0, 31);
-                #ifdef SD_MMC_1BIT_MODE
-                    appendNodeToJSONFile(SD_MMC, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
-                #else
-                    appendNodeToJSONFile(SD, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
-                #endif
+                appendNodeToJSONFile(FSystem, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
                 // check for next subfolder
                 if(levels){
                     parseSDFileList(fs, fileNameBuf, root.name(), levels -1);
@@ -590,15 +589,9 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
 // Public function for creating file-index json on SD-card. It notifies the user-client
 // via websockets when the indexing is done.
 void createJSONFileList() {
-    #ifdef SD_MMC_1BIT_MODE
-        createFile(SD_MMC, DIRECTORY_INDEX_FILE, "[");
-        parseSDFileList(SD_MMC,  "/", NULL, FS_DEPTH);
-        appendToFile(SD_MMC, DIRECTORY_INDEX_FILE, "]");
-    #else
-        createFile(SD, DIRECTORY_INDEX_FILE, "[");
-        parseSDFileList(SD,  "/", NULL, FS_DEPTH);
-        appendToFile(SD, DIRECTORY_INDEX_FILE, "]");
-    #endif
+    createFile(FSystem, DIRECTORY_INDEX_FILE, "[");
+    parseSDFileList(FSystem,  "/", NULL, FS_DEPTH);
+    appendToFile(FSystem, DIRECTORY_INDEX_FILE, "]");
     isFirstJSONtNode  =  true;
     sendWebsocketData(0,30);
 }
@@ -1542,11 +1535,7 @@ void playAudio(void *parameter) {
                             #ifdef NEOPIXEL_ENABLE
                                 showRewind = true;
                             #endif
-                            #ifdef SD_MMC_1BIT_MODE
-                                audio.connecttoFS(SD_MMC, *(playProperties.playlist + playProperties.currentTrackNumber));
-                            #else
-                                audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
-                            #endif
+                            audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
                             loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
                             continue;
@@ -1669,21 +1658,13 @@ void playAudio(void *parameter) {
                 playProperties.playlistFinished = false;
             } else {
                 // Files from SD
-                    #ifdef SD_MMC_1BIT_MODE
-                    if (!SD_MMC.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
-                    #else
-                    if (!SD.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
-                    #endif
+                if (!FSystem.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
                     snprintf(logBuf, serialLoglength, "Datei/Ordner '%s' existiert nicht", *(playProperties.playlist + playProperties.currentTrackNumber));
                     loggerNl(logBuf, LOGLEVEL_ERROR);
                     playProperties.trackFinished = true;
                     continue;
                 } else {
-                    #ifdef SD_MMC_1BIT_MODE
-                        audio.connecttoFS(SD_MMC, *(playProperties.playlist + playProperties.currentTrackNumber));
-                    #else
-                        audio.connecttoSD(*(playProperties.playlist + playProperties.currentTrackNumber));
-                    #endif
+                    audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
                     #ifdef NEOPIXEL_ENABLE
                         showPlaylistProgress = true;
                     #endif
@@ -2403,11 +2384,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
     #endif
     if (_playMode != WEBSTREAM) {
-        #ifdef SD_MMC_1BIT_MODE
-        musicFiles = returnPlaylistFromSD(SD_MMC.open(filename));
-        #else
-        musicFiles = returnPlaylistFromSD(SD.open(filename));
-        #endif
+        musicFiles = returnPlaylistFromSD(FSystem.open(filename));
     } else {
         musicFiles = returnPlaylistFromWebstream(filename);
     }
@@ -3133,11 +3110,7 @@ wl_status_t wifiManager(void) {
             snprintf(logBuf, serialLoglength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             loggerNl(logBuf, LOGLEVEL_NOTICE);
             #ifdef FTP_ENABLE
-                #ifdef SD_MMC_1BIT_MODE
-                    ftpSrv.begin(SD_MMC, ftpUser, ftpPassword);
-                #else
-                    ftpSrv.begin(ftpUser, ftpPassword);
-                #endif
+                ftpSrv.begin(FSystem, ftpUser, ftpPassword);
             #endif
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
@@ -3522,11 +3495,7 @@ void webserverStart(void) {
     });
 
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
-        #ifdef SD_MMC_1BIT_MODE
-        request->send(SD_MMC, DIRECTORY_INDEX_FILE, "application/json");
-        #else
-        request->send(SD, DIRECTORY_INDEX_FILE, "application/json");
-        #endif
+        request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
     });
 
     wServer.onNotFound(notFound);
@@ -3568,11 +3537,7 @@ void webserverStart(void) {
             return NULL;
         }
         namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
-        #ifdef SD_MMC_1BIT_MODE
-            File backupFile = SD_MMC.open(_destFile, FILE_WRITE);
-        #else
-            File backupFile = SD.open(_destFile, FILE_WRITE);
-        #endif
+        File backupFile = FSystem.open(_destFile, FILE_WRITE);
         if (!backupFile) {
             return false;
         }
@@ -4051,17 +4016,10 @@ void setup() {
     /**
      * Create empty Index json file when no file exists.
      */
-    #ifdef SD_MMC_1BIT_MODE
-        if(!fileExists(SD_MMC,DIRECTORY_INDEX_FILE)){
-            createFile(SD_MMC,DIRECTORY_INDEX_FILE,"[]");
-            ESP.restart();
-        }
-    #else
-        if(!fileExists(SD,DIRECTORY_INDEX_FILE)){
-            createFile(SD,DIRECTORY_INDEX_FILE,"[]");
-            ESP.restart();
-        }
-    #endif
+    if(!fileExists(FSystem,DIRECTORY_INDEX_FILE)){
+        createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
+        ESP.restart();
+    }
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
