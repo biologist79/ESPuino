@@ -47,6 +47,7 @@ static const char endOfPlaylistReached[] PROGMEM = "Ende der Playlist erreicht."
 static const char trackStartatPos[] PROGMEM = "Titel wird abgespielt ab Position";
 static const char rfidScannerReady[] PROGMEM = "RFID-Tags koennen jetzt gescannt werden...";
 static const char rfidTagDetected[] PROGMEM = "RFID-Karte erkannt: ";
+static const char rfid15693TagDetected[] PROGMEM = "RFID-Karte (ISO-15693) erkannt: ";
 static const char rfidTagReceived[] PROGMEM = "RFID-Karte empfangen";
 static const char rfidTagUnknownInNvs[] PROGMEM = "RFID-Karte ist im NVS nicht hinterlegt.";
 static const char goToSleepDueToIdle[] PROGMEM = "Gehe in Deep Sleep wegen Inaktivität...";
@@ -159,3 +160,7 @@ static const char failedToOpenFileForAppending[] PROGMEM = "Öffnen der Datei zu
 static const char listingDirectory[] PROGMEM = "Verzeichnisinhalt anzeigen";
 static const char failedToOpenDirectory[] PROGMEM = "Öffnen des Verzeichnisses fehlgeschlagen";
 static const char notADirectory[] PROGMEM = "Kein Verzeichnis";
+static const char sdMountedMmc1BitMode[] PROGMEM = "Versuche SD-Karte wird im SD_MMC-Modus (1 Bit) zu mounten...";
+static const char sdMountedSpiMode[] PROGMEM = "Versuche SD-Karte wird im SPI-Modus zu mounten...";
+static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
