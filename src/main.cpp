@@ -269,6 +269,8 @@ TaskHandle_t rfid;
 // FTP
 #ifdef FTP_ENABLE
     FtpServer ftpSrv;
+    bool ftpEnableLastStatus = false;
+    bool ftpEnableCurrentStatus = false;
 #endif
 
 // Info: SSID / password are stored in NVS
@@ -420,29 +422,20 @@ void IRAM_ATTR onTimer() {
     }
 #endif
 
-/**
- * Creates a new file on the SD Card.
- * @param fs
- * @param path
- * @param message
- */
+// Creates a new file on the SD-card.
 void createFile(fs::FS &fs, const char * path, const char * message) {
-    //snprintf(logBuf, serialLoglength, "Writing file: %s\n", path);
     snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), path);
     loggerNl(logBuf, LOGLEVEL_DEBUG);
     File file = fs.open(path, FILE_WRITE);
     if (!file) {
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(failedOpenFileForWrite));
-        //snprintf(logBuf, serialLoglength, "Failed to open file for writing");
         loggerNl(logBuf, LOGLEVEL_ERROR);
         return;
     }
     if (file.print(message)) {
-        //snprintf(logBuf, serialLoglength, "File written");
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(fileWritten));
         loggerNl(logBuf, LOGLEVEL_DEBUG);
     } else {
-        //snprintf(logBuf, serialLoglength, "Write failed");
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(writeFailed));
         loggerNl(logBuf, LOGLEVEL_ERROR);
     }
@@ -454,14 +447,7 @@ bool fileExists(fs::FS &fs, const char *file) {
     return fs.exists(file);
 }
 
-/**
- * Appends raw input to a file
- * @param fs
- * @param path
- * @param text
- */
-
-
+// Appends raw input to a file
 void appendToFile(fs::FS &fs, const char *path, const char *text) {
     File file = fs.open(path, FILE_APPEND);
     esp_task_wdt_reset();
@@ -513,7 +499,7 @@ void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, c
     }
 }
 
-// Checks if a path  is valid. (e.g. hidden path is not valid)
+// Checks if a path is valid. (e.g. hidden path is not valid)
 bool pathValid(const char *_fileItem) {
     const char ch = '/';
     char *subst;
@@ -687,6 +673,19 @@ void doButtonActions(void) {
         }
         return;
     }
+
+    // FTP-enable
+    #ifdef FTP_ENABLE
+        if (!ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+           if (buttons[0].isPressed && buttons[2].isPressed) {
+                ftpEnableLastStatus = true;
+                #ifdef NEOPIXEL_ENABLE
+                    showLedOk = true;
+                #endif
+           }
+        }
+        return;
+    #endif
 
     for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
         if (buttons[i].isPressed) {
@@ -884,7 +883,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     char *receivedString = strndup((char*)payload, length);
     char *mqttTopic = strdup(topic);
 
-    snprintf(logBuf, serialLoglength, "MQTT-Nachricht empfangen: [Topic: %s] [Kommando: %s]", mqttTopic, receivedString);
+    snprintf(logBuf, serialLoglength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
     loggerNl(logBuf, LOGLEVEL_INFO);
 
     // Go to sleep?
@@ -1324,7 +1323,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(numberOfValidFiles), cnt);
     loggerNl(logBuf, LOGLEVEL_NOTICE);
 
-    return ++files;         // return ptr+1 (starting at 1st payload-item)
+    return ++files;         // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
 }
 
 
@@ -1352,7 +1351,11 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     }
 
     snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-    snprintf(logBuf, serialLoglength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+    #if (LANGUAGE == 1)
+        snprintf(logBuf, serialLoglength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+    #else
+        snprintf(logBuf, serialLoglength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+    #endif
     logger(logBuf, LOGLEVEL_INFO);
     loggerNl(prefBuf, LOGLEVEL_INFO);
     #ifdef NEOPIXEL_ENABLE
@@ -1394,7 +1397,11 @@ void playAudio(void *parameter) {
                     playProperties.pausePlay = !playProperties.pausePlay;
                 }
                 audio.stopSong();
-                snprintf(logBuf, serialLoglength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
+                #if (LANGUAGE == 1)
+                    snprintf(logBuf, serialLoglength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
+                #else
+                    snprintf(logBuf, serialLoglength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
+                #endif
                 loggerNl(logBuf, LOGLEVEL_NOTICE);
                 Serial.print(F("Free heap: "));
                 Serial.println(ESP.getFreeHeap());
@@ -1454,7 +1461,7 @@ void playAudio(void *parameter) {
                     trackCommand = 0;
                     loggerNl((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
                     if (playProperties.saveLastPlayPosition && !playProperties.pausePlay) {
-                        snprintf(logBuf, serialLoglength, "Titel wurde bei Position %u pausiert.", audio.getFilePos());
+                        snprintf(logBuf, serialLoglength, "%s: %u", FPSTR(trackPausedAtPos), audio.getFilePos());
                         loggerNl(logBuf, LOGLEVEL_INFO);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), audio.getFilePos(), playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                     }
@@ -1625,7 +1632,11 @@ void playAudio(void *parameter) {
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + 0), 0, playProperties.playMode, 0, playProperties.numberOfTracks);
                     }
                     #ifdef MQTT_ENABLE
-                        publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
+                        #if (LANGUAGE == 1)
+                            publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
+                        #else
+                            publishMqtt((char *) FPSTR(topicTrackState), "<End>", false);
+                        #endif
                     #endif
                     playProperties.playlistFinished = true;
                     playProperties.playMode = NO_PLAYLIST;
@@ -1659,7 +1670,7 @@ void playAudio(void *parameter) {
             } else {
                 // Files from SD
                 if (!FSystem.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
-                    snprintf(logBuf, serialLoglength, "Datei/Ordner '%s' existiert nicht", *(playProperties.playlist + playProperties.currentTrackNumber));
+                    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(dirOrFileDoesNotExist), *(playProperties.playlist + playProperties.currentTrackNumber));
                     loggerNl(logBuf, LOGLEVEL_ERROR);
                     playProperties.trackFinished = true;
                     continue;
@@ -1678,7 +1689,11 @@ void playAudio(void *parameter) {
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
                     #endif
-                    snprintf(logBuf, serialLoglength, "'%s' wird abgespielt (%d von %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
+                    #if (LANGUAGE == 1)
+                        snprintf(logBuf, serialLoglength, "'%s' wird abgespielt (%d von %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
+                    #else
+                        snprintf(logBuf, serialLoglength, "'%s' is being played (%d of %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
+                    #endif
                     loggerNl(logBuf, LOGLEVEL_NOTICE);
                     playProperties.playlistFinished = false;
                 }
@@ -1931,12 +1946,6 @@ void showLed(void *parameter) {
                 continue;
             }
         #endif
-        /*#ifdef FTP_ENABLE
-            if (ftpSrv.isConnected()) { // Workaround: after moving Neopixel's task to 2nd cpu-core, FTP-transfer-rate decreased. By disabling Neopixel-animation, this can be rescued a bit
-                vTaskDelay(portTICK_RATE_MS*100);
-                continue;
-            }
-        #endif*/
         if (!bootComplete) {                    // Rotates orange unless boot isn't complete
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
@@ -3009,7 +3018,11 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     });
 
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        request->send(200, "text/html", "ESP wird neu gestartet...");
+        #if (LANGUAGE == 1)
+            request->send(200, "text/html", "ESP wird neu gestartet...");
+        #else
+            request->send(200, "text/html", "ESP is being restarted...");
+        #endif
         Serial.flush();
         ESP.restart();
     });
@@ -3061,6 +3074,16 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
 }
 
 
+#ifdef FTP_ENABLE
+    void ftpManager(void) {
+        if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+            ftpEnableCurrentStatus = true;
+            ftpSrv.begin(FSystem, ftpUser, ftpPassword);
+            Serial.println("FTP aktiviert");
+        }
+    }
+#endif
+
 // Provides management for WiFi
 wl_status_t wifiManager(void) {
     // If wifi whould not be activated, return instantly
@@ -3107,11 +3130,12 @@ wl_status_t wifiManager(void) {
 
         if (WiFi.status() == WL_CONNECTED) {
             myIP = WiFi.localIP();
-            snprintf(logBuf, serialLoglength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-            loggerNl(logBuf, LOGLEVEL_NOTICE);
-            #ifdef FTP_ENABLE
-                ftpSrv.begin(FSystem, ftpUser, ftpPassword);
+            #if (LANGUAGE == 1)
+                snprintf(logBuf, serialLoglength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+            #else
+                snprintf(logBuf, serialLoglength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             #endif
+            loggerNl(logBuf, LOGLEVEL_NOTICE);
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
@@ -3200,7 +3224,11 @@ bool processJsonRequest(char *_serialJson) {
     JsonObject object = doc.as<JsonObject>();
 
     if (error) {
-        Serial.print(F("deserializeJson() failed: "));
+        #if (LANGUAGE == 1)
+            Serial.print(F("deserializeJson() fehlgeschlagen: "));
+        #else
+            Serial.print(F("deserializeJson() failed: "));
+        #endif
         Serial.println(error.c_str());
         return false;
     }
@@ -3664,7 +3692,6 @@ void setup() {
         NULL,  /* Task input parameter */
         1 | portPRIVILEGE_BIT,  /* Priority of the task */
         &LED,  /* Task handle. */
-//        1 /* Core where the task should run */
         0 /* Core where the task should run */
     );
 #endif
@@ -3687,10 +3714,10 @@ void setup() {
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
-       #ifdef SD_MMC_1BIT_MODE
-        while (!SD_MMC.begin("/sdcard", true)) {
+        #ifdef SD_MMC_1BIT_MODE
+            while (!SD_MMC.begin("/sdcard", true)) {
         #else
-        while (!SD.begin(SPISD_CS, spiSD)) {
+            while (!SD.begin(SPISD_CS, spiSD)) {
         #endif
     #else
         while (!SD.begin(SPISD_CS)) {
@@ -3712,7 +3739,7 @@ void setup() {
    Serial.println(F("|_   _|___ ___|  |  |     |   | |     |   "));
    Serial.println(F("  | | | . |   |  |  |-   -| | | |  |  |   "));
    Serial.println(F("  |_| |___|_|_|_____|_____|_|___|_____|   "));
-   Serial.println(F("  ESP-32 version"));
+   Serial.println(F("  ESP32-version"));
    Serial.println(F(""));
 
    // show SD card type
@@ -4029,6 +4056,7 @@ void setup() {
 
 void loop() {
     webserverStart();
+    ftpManager();
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
     #endif
@@ -4050,12 +4078,16 @@ void loop() {
             }
         #endif
         #ifdef FTP_ENABLE
-            ftpSrv.handleFTP();
+            if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
+                ftpSrv.handleFTP();
+            }
         #endif
     }
     #ifdef FTP_ENABLE
-        if (ftpSrv.isConnected()) {
-            lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
+        if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
+            if (ftpSrv.isConnected()) {
+                lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
+            }
         }
     #endif
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT

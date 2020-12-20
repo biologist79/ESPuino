@@ -11,7 +11,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 01.11.2020: Added directive `SD_NOT_MANDATORY_ENABLE`: for debugging puposes SD can be bypassed at boot.
 * 17.11.2020: Introduced a distinct volume for headphone for optional headphone-PCB.
 * 20.11.2020: Added directive `MEASURE_BATTERY_VOLTAGE`: monitoring battery's voltage is now supported.
-* 25.11.2020: WiFi can npw be activated/deactivated instantly by pressing two buttons.
+* 25.11.2020: WiFi can now be enabled/disabled instantly by pressing two buttons.
 * 28.11.2020: Battery's voltage can now be visualized by Neopixel by short-press of rotary encoder's burtton.
 * 28.11.2020: Added directive `PLAY_LAST_RFID_AFTER_REBOOT`: Tonuino will recall the last RFID played after reboot.
 * 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
@@ -22,6 +22,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 11.12.2020: Revised GUI-design (thanks @mariolukas for contribution!) + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
 * 18.12.2020: Added SD-MMC 1 Bit-mode (`SD_MMC_1BIT_MODE`). This mode needs one GPIO less and provides almost doubled speed (compared to SPI) for FTP-transfers (thanks @tueddy for contribution!)
 * 18.12.2020: Added support for RFID-reader PN5180 (`RFID_READER_TYPE_PN5180`). PN5180 has better RFID-range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (thanks @tueddy for contribution!)
+* 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 
 ## Known bugs
@@ -355,7 +356,13 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * General-configuration (volume (speaker + headphone), neopixel-brightness (night-mode + initial), sleep after inactivity)
 
 ### FTP (optional)
-In order to avoid exposing uSD-card or disassembling the Tonuino all the time for adding new music, it's possible to transfer music onto the uSD-card using FTP. Please make sure to set the max. number of parallel connections to ONE in your FTP-client. My recommendation is [Filezilla](https://filezilla-project.org/). But don't expect fast data-transfer. Initially it was around 145 kB/s but after modifying ftp-server-lib (changing from 4 kB static-buffer to 16 kB heap-buffer) I saw rates improving to around 185 kB/s. Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer. However, playback sounds normal if a FTP-upload is performed in parallel. Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
+* In order to avoid exposing uSD-card or disassembling Tonuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
+* Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
+* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful.
+* Make sure to set the max. number of parallel connections to ONE in your FTP-client.
+* Software: my recommendation is [Filezilla](https://filezilla-project.org/).
+* Don't expect a super fast data-transfer; it's around 180 kB/s (SPI-mode) and >=300 kB/s (MMC-mode).
+* Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer.
 
 ### Files / ID3-tags (IMPORTANT!)
 Make sure to not use filenames that contain German 'Umlaute'. I've been told this is also true for mp3's ID3-tags. Also better remove coverarts from the files.

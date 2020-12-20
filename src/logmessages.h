@@ -18,7 +18,7 @@ static const char freeMemory[] PROGMEM = "Freier Speicher";
 static const char writeEntryToNvs[] PROGMEM = "Schreibe Eintrag in NVS";
 static const char freeMemoryAfterFree[] PROGMEM = "Freier Speicher nach Aufräumen";
 static const char releaseMemoryOfOldPlaylist[] PROGMEM = "Gebe Speicher der alten Playlist frei.";
-static const char dirOrFileDoesNotExist[] PROGMEM = "Datei oder Verzeichnis existiert nicht!";
+static const char dirOrFileDoesNotExist[] PROGMEM = "Datei oder Verzeichnis existiert nicht ";
 static const char unableToAllocateMemForPlaylist[] PROGMEM = "Speicher für Playlist konnte nicht allokiert werden!";
 static const char unableToAllocateMem[] PROGMEM = "Speicher konnte nicht allokiert werden!";
 static const char fileModeDetected[] PROGMEM = "Dateimodus erkannt.";
@@ -164,3 +164,5 @@ static const char sdMountedMmc1BitMode[] PROGMEM = "Versuche SD-Karte wird im SD
 static const char sdMountedSpiMode[] PROGMEM = "Versuche SD-Karte wird im SPI-Modus zu mounten...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>Der Tonuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
+static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";

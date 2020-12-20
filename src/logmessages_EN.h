@@ -18,7 +18,7 @@ static const char freeMemory[] PROGMEM = "Free memory";
 static const char writeEntryToNvs[] PROGMEM = "Storing data to NVS";
 static const char freeMemoryAfterFree[] PROGMEM = "Free memory after cleaning";
 static const char releaseMemoryOfOldPlaylist[] PROGMEM = "Releasing memory of old playlist.";
-static const char dirOrFileDoesNotExist[] PROGMEM = "File of directory does not exist!";
+static const char dirOrFileDoesNotExist[] PROGMEM = "File of directory does not exist";
 static const char unableToAllocateMemForPlaylist[] PROGMEM = "Unable to allocate memory for playlist!";
 static const char unableToAllocateMem[] PROGMEM = "Unable to allocate memory!";
 static const char fileModeDetected[] PROGMEM = "File-mode detected.";
@@ -164,3 +164,5 @@ static const char sdMountedMmc1Bit[] PROGMEM = "SD-card in SD_MMC 1 Bit-mode con
 static const char sdMountedSpiMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>Tonuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
+static const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
+static const char trackPausedAtPos[] PROGMEM = "Track paused at position";
