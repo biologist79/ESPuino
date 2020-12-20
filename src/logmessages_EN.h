@@ -166,3 +166,6 @@ static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being app
 static const char restartWebsite[] PROGMEM = "<p>Tonuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
 static const char trackPausedAtPos[] PROGMEM = "Track paused at position";
+static const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation";
+static const char freeHeapWithFtp[] PROGMEM = "Free heap after FTP-allocation";
+static const char freeHeapAfterSetup[] PROGMEM = "Free heap after setup";

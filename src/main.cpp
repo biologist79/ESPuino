@@ -268,7 +268,7 @@ TaskHandle_t rfid;
 
 // FTP
 #ifdef FTP_ENABLE
-    FtpServer ftpSrv;
+    FtpServer *ftpSrv;      // Heap-alloction takes place later (when needed)
     bool ftpEnableLastStatus = false;
     bool ftpEnableCurrentStatus = false;
 #endif
@@ -3076,11 +3076,17 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
 }
 
 
+// Creates FTP-instance only when requested
 #ifdef FTP_ENABLE
     void ftpManager(void) {
         if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+            snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapWithoutFtp), ESP.getFreeHeap());
+            loggerNl(logBuf, LOGLEVEL_DEBUG);
             ftpEnableCurrentStatus = true;
-            ftpSrv.begin(FSystem, ftpUser, ftpPassword);
+            ftpSrv = new FtpServer();
+            ftpSrv->begin(FSystem, ftpUser, ftpPassword);
+            snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapWithFtp), ESP.getFreeHeap());
+            loggerNl(logBuf, LOGLEVEL_DEBUG);
             #if (LANGUAGE == 1)
                 Serial.println(F("FTP-Server gestartet"));
             #else
@@ -3089,6 +3095,7 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
         }
     }
 #endif
+
 
 // Provides management for WiFi
 wl_status_t wifiManager(void) {
@@ -4046,17 +4053,15 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    /**
-     * Create empty Index json file when no file exists.
-     */
-    if(!fileExists(FSystem,DIRECTORY_INDEX_FILE)){
+    // Create empty index json-file when no file exists.
+    if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
         createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
         ESP.restart();
     }
     bootComplete = true;
 
-    Serial.print(F("Free heap: "));
-    Serial.println(ESP.getFreeHeap());
+    snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
+    loggerNl(logBuf, LOGLEVEL_DEBUG);
 }
 
 
@@ -4085,13 +4090,13 @@ void loop() {
         #endif
         #ifdef FTP_ENABLE
             if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
-                ftpSrv.handleFTP();
+                ftpSrv->handleFTP();
             }
         #endif
     }
     #ifdef FTP_ENABLE
         if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
-            if (ftpSrv.isConnected()) {
+            if (ftpSrv->isConnected()) {
                 lastTimeActiveTimestamp = millis();     // Re-adjust timer while client is connected to avoid ESP falling asleep
             }
         }
