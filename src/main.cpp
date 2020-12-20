@@ -677,14 +677,16 @@ void doButtonActions(void) {
     // FTP-enable
     #ifdef FTP_ENABLE
         if (!ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-           if (buttons[0].isPressed && buttons[2].isPressed) {
+            if (buttons[0].isPressed && buttons[2].isPressed) {
+                buttons[0].isPressed = false;
+                buttons[2].isPressed = false;
                 ftpEnableLastStatus = true;
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
                 #endif
+            return;
            }
         }
-        return;
     #endif
 
     for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
@@ -3079,7 +3081,11 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
         if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
             ftpEnableCurrentStatus = true;
             ftpSrv.begin(FSystem, ftpUser, ftpPassword);
-            Serial.println("FTP aktiviert");
+            #if (LANGUAGE == 1)
+                Serial.println(F("FTP-Server gestartet"));
+            #else
+                Serial.println(F("FTP-server started"));
+            #endif
         }
     }
 #endif
