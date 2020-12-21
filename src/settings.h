@@ -3,7 +3,7 @@
 //########################## MODULES #################################
 #define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
 //#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE                  // Enables FTP-server
+#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
@@ -15,7 +15,8 @@
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 //################## select SD card mode #############################
-#define SD_MMC_1BIT_MODE          // run SD card in SD-MMC 1Bit mode => if not enabled, SPI is used as default
+#define SD_MMC_1BIT_MODE            // run SD card in SD-MMC 1Bit mode
+//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
 
 //################## select RFID reader ##############################
 #define RFID_READER_TYPE_MFRC522        // use MFRC522
@@ -135,7 +136,7 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 
 // (optinal) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
 #ifdef MEASURE_BATTERY_VOLTAGE
-    uint8_t rdiv1 = 120;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
+    uint8_t rdiv1 = 116;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
     uint16_t rdiv2 = 100;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
 #endif
 

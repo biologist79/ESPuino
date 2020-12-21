@@ -1558,6 +1558,9 @@ void playAudio(void *parameter) {
                             audioReturnCode = audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
                             // consider track as finished, when audio lib call was not successful
                             if(!audioReturnCode) {
+                                #ifdef NEOPIXEL_ENABLE
+                                    showLedError = true;
+                                #endif
                                 playProperties.trackFinished = true;
                                 continue;
                             }
@@ -1696,6 +1699,9 @@ void playAudio(void *parameter) {
                     audioReturnCode = audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
                     if(!audioReturnCode) {
+                        #ifdef NEOPIXEL_ENABLE
+                            showLedError = true;
+                        #endif
                         playProperties.trackFinished = true;
                         continue;
                     }
