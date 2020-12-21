@@ -1,88 +1,30 @@
 #include "Arduino.h"
 
 //########################## MODULES #################################
-#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
-#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
-#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
+//#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
+//#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
+//#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
+//#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
 //#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+//#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 //################## select SD card mode #############################
 //#define SD_MMC_1BIT_MODE            // run SD card in SD-MMC 1Bit mode
-//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!)
+//#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!) (Works on ESP32-A1S with RFID via I2C)
 
 //################## select RFID reader ##############################
-#define RFID_READER_TYPE_MFRC522        // use MFRC522
+//#define RFID_READER_TYPE_MFRC522_SPI        // use MFRC522 via SPI
+#define RFID_READER_TYPE_MFRC522_I2C        // use MFRC522 via I2C
 //#define RFID_READER_TYPE_PN5180
 
-
-//################## GPIO-configuration ##############################
-#ifdef SD_MMC_1BIT_MODE
-    // uSD-card-reader (via SD-MMC 1Bit)
-    //
-    // SD_MMC uses fixed pins
-    //  MOSI    15
-    //  SCKK    14
-    //  MISO    2   // hardware pullup may required
-#else
-    // uSD-card-reader (via SPI)
-    #define SPISD_CS                        15          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  13          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                  16          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
-    #endif
-#endif
-
-// RFID (via SPI)
-#define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-#define RFID_CS                         21          // GPIO for chip select (RFID)
-#define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
-#define RFID_MISO                       19          // GPIO for master in slave out (RFID)
-#define RFID_SCK                        18          // GPIO for clock-signal (RFID)
-
-#ifdef RFID_READER_TYPE_PN5180
-    #define RFID_BUSY                   16          // PN5180 BUSY PIN
-    #define RFID_RST                    22          // PN5180 RESET PIN
-#endif
-// I2S (DAC)
-#define I2S_DOUT                        25          // Digital out (I2S)
-#define I2S_BCLK                        27          // BCLK (I2S)
-#define I2S_LRC                         26          // LRC (I2S)
-
-// Rotary encoder
-#define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-#define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
-
-// Control-buttons
-#define PAUSEPLAY_BUTTON                5           // GPIO to detect pause/play
-#define NEXT_BUTTON                     4           // GPIO to detect next
-#define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
-
-// (optional) Power-control
-#define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
-
-// (optional) Neopixel
-#define LED_PIN                         12          // GPIO for Neopixel-signaling
-
-// (optinal) Headphone-detection
-#ifdef HEADPHONE_ADJUST_ENABLE
-    #define HP_DETECT                   22          // GPIO that detects, if there's a plug in the headphone jack or not
-#endif
-
-// (optional) Monitoring of battery-voltage via ADC
-#ifdef MEASURE_BATTERY_VOLTAGE
-    #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
-#endif
-
+//################## select Hardware Platform ##############################
+// #define HAL 2                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO BuildProcess
 
 
 //#################### Various settings ##############################
@@ -121,6 +63,7 @@ static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every
 uint8_t FS_DEPTH = 5;                               // Max. recursion-depth of file tree
 const char *DIRECTORY_INDEX_FILE = "/files.json";   // Filename of files.json index file
 
+//#################### Settings for optional Modules##############################
 // (optinal) Neopixel
 #ifdef NEOPIXEL_ENABLE
     #define NUM_LEDS                    24          // number of LEDs

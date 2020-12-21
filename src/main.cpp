@@ -1,6 +1,14 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 
 #include "settings.h"                       // Contains all user-relevant settings
+
+// !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
+#if (HAL == 1)
+#include "settings-lolin32.h"                       // Contains all user-relevant settings
+#elif (HAL == 2)
+#include "settings-espa1s.h"                       // Contains all user-relevant settings
+#endif
+
 #include <ESP32Encoder.h>
 #include "Arduino.h"
 #include <WiFi.h>
@@ -22,8 +30,12 @@
     #include "SD.h"
 #endif
 #include "esp_task_wdt.h"
-#ifdef RFID_READER_TYPE_MFRC522
-    #include <MFRC522.h>
+#ifdef RFID_READER_TYPE_MFRC522_SPI
+        #include <MFRC522.h>
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
+        #include "Wire.h"
+        #include <MFRC522_I2C.h>
 #endif
 #ifdef RFID_READER_TYPE_PN5180
     #include <PN5180.h>
@@ -260,10 +272,25 @@ fs::FS FSystem = (fs::FS)SD;
 #else
 fs::FS FSystem = (fs::FS)SD_MMC;
 #endif
+
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
+
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
+#endif
+
+#if (HAL == 2)
+#include "AC101.h"
+    static TwoWire i2cBusOne = TwoWire(0);
+    static AC101 ac(i2cBusOne);
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_SPI
+    static MFRC522 mfrc522(RFID_CS, RST_PIN);
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
+    static TwoWire i2cBusTwo = TwoWire(1);
+    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
 #endif
 
 // FTP
@@ -364,7 +391,6 @@ void volumeToQueueSender(const int32_t _newVolume);
 wl_status_t wifiManager(void);
 bool writeWifiStatusToNVS(bool wifiStatus);
 
-
 /* Wrapper-Funktion for Serial-logging (with newline) */
 void loggerNl(const char *str, const uint8_t logLevel) {
   if (serialDebug >= logLevel) {
@@ -392,7 +418,6 @@ int countChars(const char* string, char ch) {
 
     return count;
 }
-
 
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -1380,6 +1405,7 @@ void playAudio(void *parameter) {
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(initVolume);
 
+
     uint8_t currentVolume;
     static BaseType_t trackQStatus;
     static uint8_t trackCommand = 0;
@@ -1754,17 +1780,9 @@ void playAudio(void *parameter) {
 }
 
 
-#ifdef RFID_READER_TYPE_MFRC522
+#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-    static MFRC522 mfrc522(RFID_CS, RST_PIN);
-    #ifndef SINGLE_SPI_ENABLE
-        SPI.begin();
-    #endif
-    mfrc522.PCD_Init();
-    mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
-    delay(4);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize];
     char *cardIdString;
 
@@ -1813,6 +1831,7 @@ void rfidScanner(void *parameter) {
                 }
             }
             xQueueSend(rfidCardQueue, &cardIdString, 0);
+//            free(cardIdString);
         }
     }
     vTaskDelete(NULL);
@@ -3066,7 +3085,6 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     accessPointStarted = true;
 }
 
-
 // Reads stored WiFi-status from NVS
 bool getWifiEnableStatusFromNVS(void) {
     uint32_t wifiStatus = prefsSettings.getUInt("enableWifi", 99);
@@ -3103,6 +3121,7 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
             return true;
         }
     }
+    return true;
 }
 
 
@@ -3452,7 +3471,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
-        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint(client->id()));
+        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint8_t(client->id()));
     } else if (type == WS_EVT_ERROR) {
         //error was received from the other end
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -3541,7 +3560,6 @@ bool isNumber(const char *str) {
 
 }
 
-
 void webserverStart(void) {
     if (wifiManager() == WL_CONNECTED && !webserverStarted) {
     // attach AsyncWebSocket for Mgmt-Interface
@@ -3577,7 +3595,6 @@ void webserverStart(void) {
     webserverStarted = true;
     }
 }
-
 
 // Dumps all RFID-entries from NVS into a file on SD-card
     bool dumpNvsToSd(char *_namespace, char *_destFile) {
@@ -3739,9 +3756,25 @@ void setup() {
     );
 #endif
 
+#if (HAL == 2)
+    i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
+
+    while (not ac.begin()) {
+        Serial.printf("AC101 Failed!\n");
+        delay(1000);
+    }
+    Serial.printf("AC101 via I2C - OK!\n");
+
+    pinMode(22, OUTPUT);
+    digitalWrite(22, HIGH);
+
+    pinMode(GPIO_PA_EN, OUTPUT);
+    digitalWrite(GPIO_PA_EN, HIGH);
+    Serial.printf("Built-In Amplifier enabled\n");
+#endif
 
     #ifndef SINGLE_SPI_ENABLE
-       #ifdef SD_MMC_1BIT_MODE
+      #ifdef SD_MMC_1BIT_MODE
         pinMode(2, INPUT_PULLUP);
       #else
         // Init uSD-SPI
@@ -3751,9 +3784,11 @@ void setup() {
         spiSD.setFrequency(1000000);
       #endif
     #else
-        //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
-        SPI.begin();
-        SPI.setFrequency(1000000);
+        #ifdef RFID_READER_TYPE_MFRC522_SPI
+            //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
+            SPI.begin();
+            SPI.setFrequency(1000000);
+        #endif
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
@@ -3775,6 +3810,14 @@ void setup() {
             #endif
 
         }
+
+    #ifdef RFID_READER_TYPE_MFRC522_I2C
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+    #endif
+
+    mfrc522.PCD_Init();
+    delay(50);
+    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
    // welcome message
    Serial.println(F(""));
@@ -3818,6 +3861,20 @@ void setup() {
         };
         a2dp_sink.set_pin_config(pin_config);
         a2dp_sink.start("Tonuino");
+    #endif
+
+    #ifdef DISPLAY_I2C
+        // OLED Display - https://github.com/olikraus/u8g2/wiki/u8g2setupcpp#sh1106-128x64_noname-1
+        U8G2_SH1106_128X64_NONAME_1_2ND_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+        u8g2.begin();
+        u8g2.firstPage();
+        do {
+            u8g2.setFont(u8g2_font_ncenB08_tr);
+            u8g2.drawStr(0,8,"Tonuino gestartet");
+            u8g2.drawStr(0,16,"Papas Projekt");
+            u8g2.drawStr(0,24,"Dritte Statuszeile passt");
+            u8g2.drawStr(0,16,"und noch eine vierte Zeile");
+        } while ( u8g2.nextPage() );
     #endif
 
     // Create queues
@@ -4064,7 +4121,7 @@ void setup() {
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
     pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
-
+    
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
     encoder.clearCount();
@@ -4097,7 +4154,9 @@ void setup() {
 
 void loop() {
     webserverStart();
-    ftpManager();
+    #ifdef FTP_ENABLE
+        ftpManager();
+    #endif
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
     #endif
