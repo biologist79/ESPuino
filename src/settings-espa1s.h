@@ -1,24 +1,13 @@
 #include "Arduino.h"
 
 //################## GPIO-configuration ##############################
-#ifdef SD_MMC_1BIT_MODE
-    #define SPISD_CS                        15          // GPIO for chip select (SD)
-    // uSD-card-reader (via SD-MMC 1Bit)
-    //
-    // SD_MMC uses fixed pins
-    //  MOSI    15
-    //  SCKK    14
-    //  MISO    2   // hardware pullup may required
-#else
-    // uSD-card-reader (via SPI)
-    #define SPISD_CS                        15          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  13          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                  16          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
-    #endif
+// uSD-card-reader (via SPI)
+#define SPISD_CS                        13          // GPIO for chip select (SD)
+#ifndef SINGLE_SPI_ENABLE
+    #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
+    #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+    #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
 #endif
-
 
 #define MFRC522_RST_PIN                 12          // needed for i2c-comm  MTDI on JTAG
 #define MFRC522_ADDR                    0x28        // default Address of MFRC522

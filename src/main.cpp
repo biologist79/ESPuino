@@ -3441,7 +3441,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
-        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint(client->id()));
+        Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), uint8_t(client->id()));
     } else if (type == WS_EVT_ERROR) {
         //error was received from the other end
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -3743,8 +3743,8 @@ void setup() {
     Serial.printf("Built-In Amplifier enabled\n");
 #endif
 
-    #if not defined SINGLE_SPI_ENABLE
-       #ifdef SD_MMC_1BIT_MODE
+    #ifndef SINGLE_SPI_ENABLE
+      #ifdef SD_MMC_1BIT_MODE
         pinMode(2, INPUT_PULLUP);
       #else
         // Init uSD-SPI
@@ -3759,14 +3759,7 @@ void setup() {
             SPI.begin();
             SPI.setFrequency(1000000);
         #endif
-        #ifdef RFID_READER_TYPE_MFRC522_I2C
-            i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-        #endif
     #endif
-
-    mfrc522.PCD_Init();
-    delay(50);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
     #ifndef SINGLE_SPI_ENABLE
         #ifdef SD_MMC_1BIT_MODE
@@ -3787,6 +3780,14 @@ void setup() {
             #endif
 
         }
+
+    #ifdef RFID_READER_TYPE_MFRC522_I2C
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+    #endif
+
+    mfrc522.PCD_Init();
+    delay(50);
+    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
    // welcome message
    Serial.println(F(""));
