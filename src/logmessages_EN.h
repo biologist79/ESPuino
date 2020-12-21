@@ -143,3 +143,5 @@ static const char restoredHostnameFromNvs[] PROGMEM = "Restored hostname from NV
 static const char currentVoltageMsg[] PROGMEM = "Current battery-voltage";
 static const char voltageTooLow[] PROGMEM = "Low battery-voltage";
 static const char sdBootFailedDeepsleep[] PROGMEM = "Failed to boot due to SD. Will go to deepsleep...";
+static const char wifiEnabledAfterRestart[] PROGMEM = "WiFi will be enabled.";
+static const char wifiDisabledAfterRestart[] PROGMEM = "WiFi will be disabled .";

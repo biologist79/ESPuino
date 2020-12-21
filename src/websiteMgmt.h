@@ -115,6 +115,7 @@ static const char mgtWebsite[] PROGMEM = "<!DOCTYPE html>\
                     <option value=\"110\">Wiederhole Playlist (endlos)</option>\
                     <option value=\"111\">Wiederhole Titel (endlos)</option>\
                     <option value=\"112\">Dimme LEDs (Nachtmodus)</option>\
+                    <option value=\"130\">Aktiviere/deaktive WLAN</option>\
                 </select>\
           </div>\
           <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
