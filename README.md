@@ -391,7 +391,7 @@ Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-
 | topicSleepCmnd          | 0 or OFF        | Power off Tonuino immediately                                                  |
 | topicSleepState         | ON or OFF       | Sends Tonuino's current/last state                                             |
 | topicTrackCmnd          | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
-| topicTrackState         | 12 digits       | Sends current track number, total number of tracks and full path of current    |
+| topicTrackState         | String          | Sends current track number, total number of tracks and full path of current    |
 |                         |                 | track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3"
 | topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last |
 | topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                |
