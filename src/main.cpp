@@ -835,8 +835,8 @@ bool reconnect() {
         // Deepsleep-subscription
         MQTTclient.subscribe((char *) FPSTR(topicSleepCmnd));
 
-        // Trackname-subscription
-        MQTTclient.subscribe((char *) FPSTR(topicTrackCmnd));
+        // RFID-Tag-ID-subscription
+        MQTTclient.subscribe((char *) FPSTR(topicRfidCmnd));
 
         // Loudness-subscription
         MQTTclient.subscribe((char *) FPSTR(topicLoudnessCmnd));
@@ -896,7 +896,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     }
 
     // New track to play? Take RFID-ID as input
-    else if (strcmp_P(topic, topicTrackCmnd) == 0) {
+    else if (strcmp_P(topic, topicRfidCmnd) == 0) {
         char *_rfidId = strdup(receivedString);
         xQueueSend(rfidCardQueue, &_rfidId, 0);
         //free(_rfidId);
@@ -2985,6 +2985,9 @@ void rfidPreferenceLookupHandler (void) {
             if (_playMode >= 100) {
                 doRfidCardModifications(_playMode);
             } else {
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicRfidState), currentRfidTagId, false);
+                #endif
                 trackQueueDispatcher(_file, _lastPlayPos, _playMode, _trackLastPlayed);
             }
         }
@@ -4130,10 +4133,6 @@ void audio_showstation(const char *info) {
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
     #endif
-}
-void audio_showstreaminfo(const char *info) {
-    snprintf(logBuf, serialLoglength, "streaminfo  : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
 }
 void audio_showstreamtitle(const char *info) {
     snprintf(logBuf, serialLoglength, "streamtitle : %s", info);
