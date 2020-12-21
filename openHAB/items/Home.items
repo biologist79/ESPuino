@@ -7,7 +7,7 @@ Group ZimmerTim		                "Kinderzimmer Tim"	                            
 
 // Zimmer Kind
 Switch Tonuino_Sleep															            { channel="mqtt:topic:MQTT:tonuino:tonuino_sleep_mqtt", autoupdate="true" }
-String Tonuino_Track															            { channel="mqtt:topic:MQTT:tonuino:tonuino_track_mqtt", autoupdate="true" }
+String Tonuino_Rfid															                { channel="mqtt:topic:MQTT:tonuino:rfid", autoupdate="true" }
 Number Tonuino_Loudness			    "Lautstärke [%d]"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_loudness_mqtt", autoupdate="true" }
 String Tonuino_SleepTimer															        { channel="mqtt:topic:MQTT:tonuino:tonuino_sleeptimer_mqtt", autoupdate="true" }
 String Tonuino_Status															            { channel="mqtt:topic:MQTT:tonuino:tonuino_status_mqtt", autoupdate="true", expire="2m, command=Offline" }

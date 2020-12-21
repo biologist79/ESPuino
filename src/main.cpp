@@ -615,10 +615,17 @@ void fileHandlingTask(void *arguments) {
 }
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
+// The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
 #ifdef MEASURE_BATTERY_VOLTAGE
     float measureBatteryVoltage(void) {
         float factor = 1 / ((float) rdiv2/(rdiv2+rdiv1));
-        return ((float) analogRead(VOLTAGE_READ_PIN) / maxAnalogValue) * refVoltage * factor;
+        float averagedAnalogValue = 0;
+        int i;
+        for(i=0; i<=19; i++){
+            averagedAnalogValue += (float)analogRead(VOLTAGE_READ_PIN);
+        }
+        averagedAnalogValue /= 20.0;
+        return (averagedAnalogValue / maxAnalogValue) * refVoltage * factor;
     }
 
     void batteryVoltageTester(void) {
@@ -860,8 +867,8 @@ bool reconnect() {
         // Deepsleep-subscription
         MQTTclient.subscribe((char *) FPSTR(topicSleepCmnd));
 
-        // Trackname-subscription
-        MQTTclient.subscribe((char *) FPSTR(topicTrackCmnd));
+        // RFID-Tag-ID-subscription
+        MQTTclient.subscribe((char *) FPSTR(topicRfidCmnd));
 
         // Loudness-subscription
         MQTTclient.subscribe((char *) FPSTR(topicLoudnessCmnd));
@@ -921,7 +928,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     }
 
     // New track to play? Take RFID-ID as input
-    else if (strcmp_P(topic, topicTrackCmnd) == 0) {
+    else if (strcmp_P(topic, topicRfidCmnd) == 0) {
         char *_rfidId = strdup(receivedString);
         xQueueSend(rfidCardQueue, &_rfidId, 0);
         //free(_rfidId);
@@ -1402,6 +1409,7 @@ void playAudio(void *parameter) {
     uint8_t currentVolume;
     static BaseType_t trackQStatus;
     static uint8_t trackCommand = 0;
+    bool audioReturnCode;
 
     for (;;) {
         if (xQueueReceive(volumeQueue, &currentVolume, 0) == pdPASS ) {
@@ -1544,7 +1552,10 @@ void playAudio(void *parameter) {
                         #endif
                     }
                     if (playProperties.currentTrackNumber > 0) {
-                        playProperties.currentTrackNumber--;
+                        // play previous track when current track time is small, else play current track again
+                        if(audio.getAudioCurrentTime() < 2) {
+                            playProperties.currentTrackNumber--;
+                        }
                         if (playProperties.saveLastPlayPosition) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                             loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
@@ -1570,7 +1581,15 @@ void playAudio(void *parameter) {
                             #ifdef NEOPIXEL_ENABLE
                                 showRewind = true;
                             #endif
-                            audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
+                            audioReturnCode = audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
+                            // consider track as finished, when audio lib call was not successful
+                            if (!audioReturnCode) {
+                                #ifdef NEOPIXEL_ENABLE
+                                    showLedError = true;
+                                #endif
+                                playProperties.trackFinished = true;
+                                continue;
+                            }
                             loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
                             continue;
@@ -1703,7 +1722,15 @@ void playAudio(void *parameter) {
                     playProperties.trackFinished = true;
                     continue;
                 } else {
-                    audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
+                    audioReturnCode = audio.connecttoFS(FSystem, *(playProperties.playlist + playProperties.currentTrackNumber));
+                    // consider track as finished, when audio lib call was not successful
+                    if(!audioReturnCode) {
+                        #ifdef NEOPIXEL_ENABLE
+                            showLedError = true;
+                        #endif
+                        playProperties.trackFinished = true;
+                        continue;
+                    }
                     #ifdef NEOPIXEL_ENABLE
                         showPlaylistProgress = true;
                     #endif
@@ -3004,6 +3031,9 @@ void rfidPreferenceLookupHandler (void) {
             if (_playMode >= 100) {
                 doRfidCardModifications(_playMode);
             } else {
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicRfidState), currentRfidTagId, false);
+                #endif
                 trackQueueDispatcher(_file, _lastPlayPos, _playMode, _trackLastPlayed);
             }
         }
@@ -4189,10 +4219,6 @@ void audio_showstation(const char *info) {
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
     #endif
-}
-void audio_showstreaminfo(const char *info) {
-    snprintf(logBuf, serialLoglength, "streaminfo  : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
 }
 void audio_showstreamtitle(const char *info) {
     snprintf(logBuf, serialLoglength, "streamtitle : %s", info);

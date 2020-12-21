@@ -6,7 +6,7 @@ sitemap Home label="Home" {
 					Text item=Tonuino_Status label="Status" valuecolor=[Tonuino_Status==Online="green", ==Offline="red"] icon="network"
 					Switch item=Tonuino_Sleep label="Ausschalten" icon="wallswitch" mappings=[OFF="AUS"] visibility=[Tonuino_Status=="Online"]
 					Switch item=Tonuino_LockControls label="Sperren" icon="wallswitch" mappings=[OFF="AUS", ON="AN"] visibility=[Tonuino_Status=="Online"]
-					Selection item=Tonuino_Track label="Titelauswahl" icon="text" visibility=[Tonuino_Status=="Online"] mappings=[
+					Selection item=Tonuino_Rfid label="Titelauswahl" icon="text" visibility=[Tonuino_Status=="Online"] mappings=[
 															"244189084042"="Yakari und die Pferdediebe",
 															"244042007042"="Yakari - Der Gesang des Raben",
 															"004134024043"="Yakari - Schneeball in Gefahr",
@@ -29,6 +29,7 @@ sitemap Home label="Home" {
 					Setpoint item=Tonuino_LedBrightness icon="lightbulb" label="LED-Helligkeit" visibility=[Tonuino_Status=="Online"] maxValue=64 step=2
 					Text item=Tonuino_IPv4 label="IP-Adresse" icon="network" visibility=[Tonuino_Status=="Online"]
 					Text item=Tonuino_CurrentTrack label="Aktuell:" icon="mediacontrol" visibility=[Tonuino_Status=="Online"]
+					Text item=Tonuino_Voltage label="Akkuspannung:" icon="batterylevel" visibility=[Tonuino_Status=="Online"]
 				}
 			}
 		}

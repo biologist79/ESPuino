@@ -3,7 +3,7 @@ Bridge mqtt:broker:MQTT [ host="<mqttServerIP>", secure=false, username="<userna
 	Thing topic tonuino "Tonuino" {
 	Channels:
 		Type switch: tonuino_sleep_mqtt					"Ausschalten"						[ stateTopic="State/Tonuino/Sleep", commandTopic="Cmnd/Tonuino/Sleep", on="ON", off="OFF" ]
-		Type string: tonuino_track_mqtt					"Track"							    [ stateTopic="State/Tonuino/Track", commandTopic="Cmnd/Tonuino/Track" ]
+		Type string: tonuino_rfid_mqtt					"Track"							    [ stateTopic="State/Tonuino/Rfid", commandTopic="Cmnd/Tonuino/Rfid" ]
 		Type number: tonuino_loudness_mqtt				"Lautstaerke"						[ stateTopic="State/Tonuino/Loudness", commandTopic="Cmnd/Tonuino/Loudness" ]
 		Type string: tonuino_sleeptimer_mqtt			"Sleep-Timer"						[ stateTopic="State/Tonuino/SleepTimer", commandTopic="Cmnd/Tonuino/SleepTimer" ]
 		Type string: tonuino_status_mqtt				"Status"						    [ stateTopic="State/Tonuino/State" ]

@@ -95,7 +95,8 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
     #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
     static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
-    static const char topicTrackCmnd[] PROGMEM = "Cmnd/Tonuino/Track";
+    static const char topicRfidCmnd[] PROGMEM = "Cmnd/Tonuino/Rfid";
+    static const char topicRfidState[] PROGMEM = "State/Tonuino/Rfid";
     static const char topicTrackState[] PROGMEM = "State/Tonuino/Track";
     static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino/TrackControl";
     static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino/Loudness";
