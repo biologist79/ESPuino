@@ -7,9 +7,9 @@
 // #define HAL 2                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO
 #define MFRC522_BUS 2           // If MFRC522 should be connected to I2C-Port(2) or SPI(1)
 //#define DISPLAY_I2C             // If external Display via I2C connected - tested with SH1106_128X64_NONAME
-// #define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
-// #define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
-// #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
+#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
+//#define SINGLE_SPI_ENABLE           // If only one SPI-instance should be used instead of two (not yet working!)
+//#define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 
 //#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define SD_NOT_MANDATORY_ENABLE     // Only for debugging-purposes: Tonuino will also start without mounted SD-card anyway (will only try once to mount it). Will overwrite SHUTDOWN_IF_SD_BOOT_FAILS!
@@ -25,9 +25,6 @@
     #include "BluetoothA2DPSink.h"
 #endif
 #include "Audio.h"
-#if (HAL == 2)
-    #include "AC101.h"
-#endif
 #ifdef DISPLAY_I2C
     #include <U8g2lib.h>
 #endif
@@ -133,6 +130,9 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
     #endif
 #endif
 
+// HeadPhoneDetect
+#define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
+
 // END HAL 1
 #elif (HAL == 2)
 
@@ -145,36 +145,43 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 // GPIO used to trigger transistor-circuit / RFID-reader
 #define POWER                           19
 
+#include "AC101.h"
+static TwoWire i2cBusOne = TwoWire(0);
+static AC101 ac(i2cBusOne);
+
 #if (MFRC522_BUS == 1)
 // GPIOs (RFID-readercurrentRfidTagId)
 #include <MFRC522.h>                                // Custom Lib needed
 #define MFRC522_RST_PIN                 35          // 14-pin-header
 #define MFRC522_CS_PIN                  12          // JT_MTDI
 extern SPIClass SPI_MFRC;
-MFRC522_SPI mfrcDevice = MFRC522_SPI(MFRC522_CS_PIN, MFRC522_RST_PIN);
-
+MFRC522 mfrc522(RFID_CS, RST_PIN);
 #elif (MFRC522_BUS == 2)
 #include <Wire.h>
 #include <MFRC522_I2C.h>
-#define MFRC522_RST_PIN                 12          // needed for i2c-comm
+#define MFRC522_RST_PIN                 12          // needed for i2c-comm  MTDI on JTAG
+#define MFRC522_ADDR                    0x28        // default Address of MFRC522
 // second I2C GPIOs
-#define ext_IIC_CLK                         23          // 14-pin-header
-#define ext_IIC_DATA                        18          // 14-pin-header
+#define ext_IIC_CLK                     23          // 14-pin-header
+#define ext_IIC_DATA                    18          // 14-pin-header
+static TwoWire i2cBusTwo = TwoWire(1);
+static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
 #endif
 
 // DAC (internal)
-#define I2S_DSIN                        25          // internal
+// #define I2S_DSIN                        25          // internal - not used
+// #define I2S_MCLK                         0          // internal - not used
 #define I2S_BCLK                        27          // internal
 #define I2S_LRC                         26          // internal
-#define I2S_MCLK                         0          // internal
-#define I2S_DOUT                        35          // internal
+#define I2S_DOUT                        25          // internal
 
 // I2C GPIOs
 #define IIC_CLK                         32          // internal
 #define IIC_DATA                        33          // internal
 
 // Amp enable
-#define GPIO_PA_EN                      21          // internal
+#define GPIO_PA_EN                  GPIO_NUM_21          // internal
+#define GPIO_SEL_PA_EN              GPIO_SEL_21
 
 // GPIOs (Rotary encoder)
 #define DREHENCODER_CLK                 5
@@ -189,15 +196,14 @@ MFRC522_SPI mfrcDevice = MFRC522_SPI(MFRC522_CS_PIN, MFRC522_RST_PIN);
 // GPIOs (LEDs)
 #define LED_PIN                         23
 
+// HeadPhoneDetect
+#define HP_DETECT                   39              // Detects if there's a plug in the headphone jack or not
+
 // END HAL 2
 #endif
 
 // GPIO to detect if headphone was plugged in (pulled to GND)
 #ifdef HEADPHONE_ADJUST_ENABLE
-    // HAL 2
-    #define HEADPHONE_PLUGGED_IN            39          // internal
-    // HAL 1
-    #define HP_DETECT                   22              // Detects if there's a plug in the headphone jack or not
     uint16_t headphoneLastDetectionDebounce = 1000;     // Debounce-interval in ms when plugging in headphone
 
     // Internal values
@@ -1290,21 +1296,6 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
 // Function to play music as task
 void playAudio(void *parameter) {
     static Audio audio;
-#if (HAL == 2)    
-    static AC101 ac;
-
-    static bool currentHeadphoneState = digitalRead(HEADPHONE_PLUGGED_IN);
-    static bool lastHeadphoneState = currentHeadphoneState;
-    static uint32_t lastHeadphoneStateTimestamp = 0;
-
-    while (!ac.begin(IIC_DATA, IIC_CLK)) {
-        Serial.printf("Failed!\n");
-        delay(1000);
-    }
-    pinMode(GPIO_PA_EN, OUTPUT);
-    digitalWrite(GPIO_PA_EN, HIGH);
-#endif
-
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(initVolume);
 
@@ -1653,18 +1644,6 @@ void playAudio(void *parameter) {
 
 // Instructs RFID-scanner to scan for new RFID-tags
 void rfidScanner(void *parameter) {
-#if (MFRC522_BUS == 1)
-    static MFRC522 mfrc522(RFID_CS, RST_PIN);
-#elif (MFRC522_BUS == 2)
-    TwoWire i2cBus = TwoWire(1);
-    i2cBus.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-    static MFRC522 mfrc522(MFRC522_RST_PIN , 0x28, i2cBus);
-#endif
-    mfrc522.PCD_Init();
-    delay(50);
-    mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
-    delay(4);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize];
     char *cardIdString;
 
@@ -2803,7 +2782,6 @@ bool getWifiEnableStatusFromNVS(void) {
     return wifiStatus;
 }
 
-
 // Writes to NVS whether WiFi should be activated (not effective until next reboot!)
 bool writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
@@ -2826,6 +2804,7 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
             return true;
         }
     }
+    return true;
 }
 
 
@@ -3373,11 +3352,35 @@ void setup() {
     );
 #endif
 
+#if (HAL == 2)
+    i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
+
+    while (not ac.begin()) {
+        Serial.printf("AC101 Failed!\n");
+        delay(1000);
+    }
+    Serial.printf("AC101 via I2C - OK!\n");
+
+    pinMode(22, OUTPUT);
+    digitalWrite(22, HIGH);
+
+    pinMode(GPIO_PA_EN, OUTPUT);
+    digitalWrite(GPIO_PA_EN, HIGH);
+    Serial.printf("Built-In Amplifier enabled\n");
+#endif
+
 #if (MFRC522_BUS == 1)
     #ifndef SINGLE_SPI_ENABLE
         SPI.begin();
     #endif
+#elif (MFRC522_BUS == 2)
+    i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
 #endif
+
+    mfrc522.PCD_Init();
+    delay(50);
+    mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader detail
+    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
     // Init uSD-SPI
     pinMode(SPISD_CS, OUTPUT);
@@ -3648,7 +3651,7 @@ void setup() {
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
     pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
-
+    
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
     encoder.clearCount();
@@ -3692,7 +3695,6 @@ void setup() {
         wServer.onNotFound(notFound);
         wServer.begin();
     }*/
-
     bootComplete = true;
 
     Serial.print(F("Free heap: "));
