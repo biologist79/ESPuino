@@ -1,30 +1,43 @@
 #include "Arduino.h"
 
+//######################### INFOS ####################################
+// This is the general configfile for Tonuino-configuration.
+
+//################## HARDWARE-PLATFORM ###############################
+/* Make sure to also edit the configfile, that is specific for your platform.
+   If in doubts (your develboard is not listed) use HAL 1
+   1: Wemos Lolin32         => settings-lolin32.h
+   2: ESP32-A1S Audiokit    => settings-espa1s.h
+   3: Wemos Lolin D32       => settings-lolin_D32.h
+   more to come...
+*/
+ #define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit, 3 = Lolin D32
+
+
 //########################## MODULES #################################
-//#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
-//#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-//#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
-//#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
+#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
+#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
+#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
+#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
 //#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-//#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
+#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
 
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
+
 
 //################## select SD card mode #############################
 //#define SD_MMC_1BIT_MODE            // run SD card in SD-MMC 1Bit mode
 //#define SINGLE_SPI_ENABLE         // If only one SPI-instance should be used instead of two (not yet working!) (Works on ESP32-A1S with RFID via I2C)
 
-//################## select RFID reader ##############################
-//#define RFID_READER_TYPE_MFRC522_SPI        // use MFRC522 via SPI
-#define RFID_READER_TYPE_MFRC522_I2C        // use MFRC522 via I2C
-//#define RFID_READER_TYPE_PN5180
 
-//################## select Hardware Platform ##############################
-// #define HAL 2                // HAL 1 = LoLin32, 2 = AI AudioKit   - no need to define when using platformIO BuildProcess
+//################## select RFID reader ##############################
+#define RFID_READER_TYPE_MFRC522_SPI        // use MFRC522 via SPI
+//#define RFID_READER_TYPE_MFRC522_I2C        // use MFRC522 via I2C
+//#define RFID_READER_TYPE_PN5180
 
 
 //#################### Various settings ##############################
@@ -63,6 +76,7 @@ static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every
 uint8_t FS_DEPTH = 5;                               // Max. recursion-depth of file tree
 const char *DIRECTORY_INDEX_FILE = "/files.json";   // Filename of files.json index file
 
+
 //#################### Settings for optional Modules##############################
 // (optinal) Neopixel
 #ifdef NEOPIXEL_ENABLE
@@ -76,12 +90,6 @@ float warningLowVoltage = 3.4;                      // If battery-voltage is >= 
 uint8_t voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
 float voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
 float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
-
-// (optinal) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
-#ifdef MEASURE_BATTERY_VOLTAGE
-    uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
-    uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
-#endif
 
 // (optinal) Headphone-detection (leave unchanged if in doubts...)
 #ifdef HEADPHONE_ADJUST_ENABLE

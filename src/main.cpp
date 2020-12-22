@@ -1,12 +1,14 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 
-#include "settings.h"                       // Contains all user-relevant settings
+#include "settings.h"                                   // Contains all user-relevant settings (general)
 
 // !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
 #if (HAL == 1)
-#include "settings-lolin32.h"                       // Contains all user-relevant settings
+    #include "settings-lolin32.h"                       // Contains all user-relevant settings for Wemos Lolin32
 #elif (HAL == 2)
-#include "settings-espa1s.h"                       // Contains all user-relevant settings
+    #include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
+#elif (HAL == 3)
+    #include "settings-lolin_D32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
 #endif
 
 #include <ESP32Encoder.h>
@@ -3760,17 +3762,17 @@ void setup() {
     i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
     while (not ac.begin()) {
-        Serial.printf("AC101 Failed!\n");
+        Serial.println(F("AC101 Failed!"));
         delay(1000);
     }
-    Serial.printf("AC101 via I2C - OK!\n");
+    Serial.println(F("AC101 via I2C - OK!"));
 
     pinMode(22, OUTPUT);
     digitalWrite(22, HIGH);
 
     pinMode(GPIO_PA_EN, OUTPUT);
     digitalWrite(GPIO_PA_EN, HIGH);
-    Serial.printf("Built-In Amplifier enabled\n");
+    Serial.println(F("Built-in amplifier enabled\n"));
 #endif
 
     #ifndef SINGLE_SPI_ENABLE
@@ -4121,7 +4123,7 @@ void setup() {
     pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     pinMode(NEXT_BUTTON, INPUT_PULLUP);
     pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
-    
+
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
     encoder.clearCount();

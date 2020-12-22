@@ -1,12 +1,13 @@
 #include "Arduino.h"
 
 //######################### INFOS ####################################
-/* This is a develboard-specific config-file for *Wemos Lolin32*. Specific doesn't mean it's only working with this board.
-   Lolin32 is the predecessor of Lolin D32.
-   PCB: https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32
-   Infos: https://arduino-projekte.info/wemos-lolin32/
-   Status: tested (by biologist79)
+/* This is a develboard-specific config-file for *Wemos Lolin D32*. Specific doesn't mean it's only working with this board.
+   Lolin D32 is the successor of Lolin32 and the "little brother" of Wemos Lolin D32 pro.
+   PCB: https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin%20D32
+   Infos: https://www.wemos.cc/en/latest/d32/d32.html
+   Status: untested
 */
+
 
 //################## GPIO-configuration ##############################
 #ifdef SD_MMC_1BIT_MODE
@@ -65,11 +66,11 @@
 
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
-    #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
+    #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
 #endif
 
-// (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
+// (optional) For measuring battery-voltage. No need to change here, it's built in
 #ifdef MEASURE_BATTERY_VOLTAGE
-    uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
-    uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
+    uint8_t rdiv1 = 100;
+    uint16_t rdiv2 = 100;
 #endif

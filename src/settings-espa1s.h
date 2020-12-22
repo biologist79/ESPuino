@@ -1,5 +1,15 @@
 #include "Arduino.h"
 
+//######################### INFOS ####################################
+/* This is a develboard-specific config-file for *AI Tinker ESP32-A1S-AudioKit*. It's highly customized and almost certainly
+   not suitable for a different develboards.
+   Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed
+   PCB: Not necessary.
+   Infos: https://github.com/Ai-Thinker-Open/ESP32-A1S-AudioKit
+   Status: tested by kkloesner
+*/
+
+
 //################## GPIO-configuration ##############################
 // uSD-card-reader (via SPI)
 #define SPISD_CS                        13          // GPIO for chip select (SD)
@@ -53,3 +63,8 @@
     #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
 #endif
 
+// (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
+#ifdef MEASURE_BATTERY_VOLTAGE
+    uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
+    uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
+#endif
