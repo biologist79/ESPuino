@@ -1862,7 +1862,6 @@ void rfidScanner(void *parameter) {
     loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize], lastCardId[cardIdSize];
     char *cardIdString;
-    uint8_t lastUID[10];
 
     for (;;) {
         esp_task_wdt_reset();
@@ -1914,7 +1913,7 @@ void rfidScanner(void *parameter) {
             uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
             ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
             if (ISO15693_EC_OK == myrc) {
-                Serial.println("disable PrivacyMode successful");
+                Serial.println(F("disabling privacy-mode successful"));
             }
             // try to read ISO15693 inventory
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
@@ -3775,51 +3774,52 @@ void setup() {
     Serial.println(F("Built-in amplifier enabled\n"));
 #endif
 
-    #ifndef SINGLE_SPI_ENABLE
-      #ifdef SD_MMC_1BIT_MODE
-        pinMode(2, INPUT_PULLUP);
-      #else
-        // Init uSD-SPI
-        pinMode(SPISD_CS, OUTPUT);
-        digitalWrite(SPISD_CS, HIGH);
-        spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
-        spiSD.setFrequency(1000000);
-      #endif
-    #else
-        #ifdef RFID_READER_TYPE_MFRC522_SPI
-            //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
-            SPI.begin();
-            SPI.setFrequency(1000000);
-        #endif
+    #ifdef RFID_READER_TYPE_MFRC522_SPI
+        //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
+        SPI.begin();
+        SPI.setFrequency(1000000);
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
         #ifdef SD_MMC_1BIT_MODE
+            pinMode(2, INPUT_PULLUP);
             while (!SD_MMC.begin("/sdcard", true)) {
         #else
+            pinMode(SPISD_CS, OUTPUT);
+            digitalWrite(SPISD_CS, HIGH);
+            spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
+            spiSD.setFrequency(1000000);
             while (!SD.begin(SPISD_CS, spiSD)) {
         #endif
     #else
-        while (!SD.begin(SPISD_CS)) {
+        #ifdef SD_MMC_1BIT_MODE
+            pinMode(2, INPUT_PULLUP);
+            while (!SD_MMC.begin("/sdcard", true)) {
+        #else
+            while (!SD.begin(SPISD_CS)) {
+        #endif
     #endif
-            loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
-            delay(500);
-            #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-                if (millis() >= deepsleepTimeAfterBootFails*1000) {
-                    loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
-                    esp_deep_sleep_start();
-                }
-            #endif
-
-        }
+                loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
+                delay(500);
+                #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
+                    if (millis() >= deepsleepTimeAfterBootFails*1000) {
+                        loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
+                        esp_deep_sleep_start();
+                    }
+                #endif
+            }
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+        delay(50);
+        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
-    mfrc522.PCD_Init();
-    delay(50);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #ifdef RFID_READER_TYPE_MFRC522_SPI
+        mfrc522.PCD_Init();
+        delay(50);
+        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #endif
 
    // welcome message
    Serial.println(F(""));
