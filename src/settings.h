@@ -99,9 +99,9 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 
 // (optional) Topics for MQTT
 #ifdef MQTT_ENABLE
-    uint16_t mqttRetryInterval = 15;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
-    uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 15 / mqttMaxRetriesPerInterval 1 => once every 15s
-    #define DEVICE_HOSTNAME "ESP32-Tonuino"                 // Name that that is used for MQTT
+    uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
+    uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
+    #define DEVICE_HOSTNAME "ESP32-Tonuino"         // Name that is used for MQTT
     static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
     static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
     static const char topicRfidCmnd[] PROGMEM = "Cmnd/Tonuino/Rfid";
