@@ -5,7 +5,10 @@
    Lolin32 is the predecessor of Lolin D32.
    PCB: https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32
    Infos: https://arduino-projekte.info/wemos-lolin32/
-   Status: tested (by biologist79)
+   Caveats: None
+   Status:
+    tested with 2x SPI, RC522, SD (by biologist79)
+    tested with 1x SPI, PN5180, MMC (by biologist79)
 */
 
 //################## GPIO-configuration ##############################
@@ -18,11 +21,11 @@
     //  MISO    2   // hardware pullup may required
 #else
     // uSD-card-reader (via SPI)
-    #define SPISD_CS                        15          // GPIO for chip select (SD)
+    #define SPISD_CS                    15          // GPIO for chip select (SD)
     #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  13          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                  16          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #define SPISD_MOSI              13          // GPIO for master out slave in (SD) => not necessary for single-SPI
+        #define SPISD_MISO              16          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+        #define SPISD_SCK               14          // GPIO for clock-signal (SD) => not necessary for single-SPI
     #endif
 #endif
 

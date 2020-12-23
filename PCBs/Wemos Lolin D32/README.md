@@ -17,8 +17,7 @@
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
-* Make sure to change values of voltage divider's restors. They can be configured in `settings.h` as `rdiv1` and `rdiv2` and need to be set to 100k/100k.
-* Change `VOLTAGE_READ_PIN` to 35.
+* Make sure to edit `settings.h` according your needs.
 
 ## Things to mention
 * Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors instead (link below).

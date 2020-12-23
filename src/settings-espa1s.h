@@ -6,7 +6,7 @@
    Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed
    PCB: Not necessary.
    Infos: https://github.com/Ai-Thinker-Open/ESP32-A1S-AudioKit
-   Status: tested by kkloesner
+   Status: untested
 */
 
 

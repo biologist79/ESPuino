@@ -24,6 +24,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 18.12.2020: Added support for RFID-reader PN5180 (`RFID_READER_TYPE_PN5180`). PN5180 has better RFID-range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (thanks @tueddy for contribution!)
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
+* 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
 
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
@@ -41,7 +42,7 @@ The core of my implementation is based on the popular [ESP32 by Espressif](https
 The basic idea of Tonuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
 ## Hardware-setup
-The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.).
+The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). But probably it's besser to use it's successor: [Wemos Lolin D32](https://de.aliexpress.com/item/32808551116.html).
 * [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
 * [uSD-card-reader; 3.3V only; supports SPI + SD-MMC](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
@@ -52,8 +53,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
 * uSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
 * uSD in SD-MMC (1 Bit) mode: Several devkits with onboard SD slot have support for this mode, e.g.: (https://de.aliexpress.com/item/4001229463219.html)
-* optional replace the RFID-reader with a the better one: PN5180 comes with better RFID range, less power consumption and support for ISO-15693 / iCode SLIX2 tags (https://www.bing.com/shop?q=pn5180&FORM=SHOPTB)
-Most of them can be ordered cheaper directly in China. It's just a give an short impression of the hardware; feel free to order where ever you want to. These are not affiliate-links.
+* optional replace the RFID-reader with a the better one: PN5180 comes with better RFID-range, less power-consumption and support for ISO-15693 / iCode SLIX2 tags (https://www.bing.com/shop?q=pn5180&FORM=SHOPTB)
 
 
 ## Getting Started
@@ -65,11 +65,12 @@ Most of them can be ordered cheaper directly in China. It's just a give an short
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
 * There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
 * Depending on your operating system (Windows, Mac OS, Linux), you probably need to change `upload_port`and `monitor_port` as well.
-* Edit `src/settings.h` according your needs. Especially GPIO-configuration is really important.
+* Edit `src/settings.h` according your needs. Especially don't forget to set `HAL` depending on your develboard.
+* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32.h` for Lolin D32). If you're running a board that is not listed there: start with `settings-lolin32.h`. Specific means: it was successfully tested. Said this I want to outline in many cases it can used with other boards (with no or just a few tweaks).
 * Connect your develboard via USB, click the alien-head to the left and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware.
 * Now have a look at the serial-output at the bottom of Visual Studio Code's windows.
-* If everything ran fine, at the first run, Tonuino should open an access-point with the name "Tonuino". Connect to this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart Tonuino.
-* Now Tonuino tries to join your WiFi. If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call Tonuino's GUI via this IP. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local. So if you configured `tonuino` as hostname, you can use `tonuino.local` for webgui and FTP.
+* If everything ran fine, at the first run, Tonuino should open an access-point with the name "Tonuino". Join this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart Tonuino.
+* Now Tonuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call Tonuino's GUI via this IP. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local. So if you configured `tonuino` as hostname, you can use `tonuino.local` for webgui and FTP.
 * Via FTP you can upload data (don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 300 kB/s if SD is in MMC-mode.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions.
 
@@ -78,9 +79,11 @@ Most of them can be ordered cheaper directly in China. It's just a give an short
 * choose if optional modules (e.g. MQTT, FTP, Neopixel) should be compiled/enabled
 * For debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG.
 * If MQTT=yes, set the IP or hostname of the MQTT-server accordingly and check the MQTT-topics (states and commands)
+* Advice: don't enable MQTT if there's no broker around because network-timeouts can really be a PITA.
 * If Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * If you're using Arduino-IDE please make sure to change ESP32's partition-layout to `No OTA (2MB APP/2MB Spiffs)` as otherwise the sketch won't fit into the flash-memory.
-* If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat(+)--130k--X--390k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to adjust both values to 100k each and change GPIO to 35 as this is already integrated and wired fixed.
+* Open board-specific config-file
+* If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 390k resistors (VBat(+)--130k--X--390k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to leave both resistor-values unchanged at 100k. Same for GPIO: unchanged at 35.
 Please note: via GUI upper and lower voltage cut-offs for visualisation of battery-voltage (Neopixel) is available. Additional GUI-configurable values are interval (in minutes) for checking battery voltage and the cut off-voltage below whose a warning is shown via Neopixel.
 * If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it to GPIO22.
 * Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your Tonuino in battery-mode without having a restart-button exposed to the outside of Tonuino's enclosure. Because otherwise there's no way to restart your Tonuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).

@@ -6,12 +6,13 @@
 //################## HARDWARE-PLATFORM ###############################
 /* Make sure to also edit the configfile, that is specific for your platform.
    If in doubts (your develboard is not listed) use HAL 1
-   1: Wemos Lolin32         => settings-lolin32.h
-   2: ESP32-A1S Audiokit    => settings-espa1s.h
-   3: Wemos Lolin D32       => settings-lolin_D32.h
+   1: Wemos Lolin32             => settings-lolin32.h
+   2: ESP32-A1S Audiokit        => settings-espa1s.h
+   3: Wemos Lolin D32           => settings-lolin_D32.h
+   4: Wemos Lolin D32 pro       => settings-lolin_D32_pro.h
    more to come...
 */
- #define HAL 1                // HAL 1 = LoLin32, 2 = AI AudioKit, 3 = Lolin D32
+ #define HAL 1                // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro
 
 
 //########################## MODULES #################################

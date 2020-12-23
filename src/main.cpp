@@ -9,6 +9,8 @@
     #include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
 #elif (HAL == 3)
     #include "settings-lolin_D32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
+#elif (HAL == 4)
+    #include "settings-lolin_D32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
 #endif
 
 #include <ESP32Encoder.h>
@@ -3775,8 +3777,11 @@ void setup() {
 #endif
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
-        //SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI);
-        SPI.begin();
+        #if (HAL == 4)
+            SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);     // ToDo: Not sure if this should be the default-case
+        #else
+            SPI.begin();
+        #endif
         SPI.setFrequency(1000000);
     #endif
 
