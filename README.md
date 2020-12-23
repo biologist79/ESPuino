@@ -66,12 +66,13 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
 * Depending on your operating system (Windows, Mac OS, Linux), you probably need to change `upload_port`and `monitor_port` as well.
 * Edit `src/settings.h` according your needs. Especially don't forget to set `HAL` depending on your develboard.
-* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32.h` for Lolin D32). If you're running a board that is not listed there: start with `settings-lolin32.h`. Specific means: it was successfully tested. Said this I want to outline in many cases it can used with other boards (with no or just a few tweaks).
+* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32.h` for Lolin D32). If you're running a board that is not listed there: start with `settings-lolin32.h`. Specific means: it was successfully tested or is at least supposed to be working. Said this I want to outline in many cases `settings-lolin32.h` can be used with other boards as well (with no or just a few tweaks).
 * Connect your develboard via USB, click the alien-head to the left and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware.
 * Now have a look at the serial-output at the bottom of Visual Studio Code's windows.
 * If everything ran fine, at the first run, Tonuino should open an access-point with the name "Tonuino". Join this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart Tonuino.
 * Now Tonuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call Tonuino's GUI via this IP. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local. So if you configured `tonuino` as hostname, you can use `tonuino.local` for webgui and FTP.
 * Via FTP you can upload data (don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 300 kB/s if SD is in MMC-mode.
+* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions.
 
 ## Prerequisites / tipps
@@ -211,7 +212,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 
 
 ## Wiring (PN5180 instead of MFRC522) different to above
-PN5180 reader needs two more PIN's, RESET and BUSY. Double check PIN conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522`!
+PN5180 reader needs two more pins, RESET and BUSY. Double check pin-conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522` if doing so!
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
@@ -359,9 +360,9 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * General-configuration (volume (speaker + headphone), neopixel-brightness (night-mode + initial), sleep after inactivity)
 
 ### FTP (optional)
+* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
 * In order to avoid exposing uSD-card or disassembling Tonuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
 * Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
-* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful.
 * Make sure to set the max. number of parallel connections to ONE in your FTP-client.
 * Software: my recommendation is [Filezilla](https://filezilla-project.org/).
 * Don't expect a super fast data-transfer; it's around 180 kB/s (SPI-mode) and >=300 kB/s (MMC-mode).
