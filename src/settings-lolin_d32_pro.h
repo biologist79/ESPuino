@@ -8,7 +8,7 @@
    Schematics: https://www.wemos.cc/en/latest/_static/files/sch_d32_pro_v2.0.0.pdf
    Caveats: GPIO35 (battery monitoring) + SD can't be changed, it's built in
    Status:
-    tested with 2xSPI & RC522 (by biologist79)
+    tested with 2xSPI: RC522 & SD (by biologist79)
 */
 
 //################## GPIO-configuration ##############################

@@ -4156,6 +4156,7 @@ void setup() {
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     loggerNl(logBuf, LOGLEVEL_DEBUG);
+    Serial.printf("PSRAM: %u bytes\n", ESP.getPsramSize());
 }
 
 

@@ -7,8 +7,8 @@
    Infos: https://arduino-projekte.info/wemos-lolin32/
    Caveats: None
    Status:
-    tested with 2x SPI, RC522, SD (by biologist79)
-    tested with 1x SPI, PN5180, MMC (by biologist79)
+    tested with 2x SPI: RC522 & SD (by biologist79)
+    tested with 1x SPI: PN5180, SD (MMC) (by tueddy)
 */
 
 //################## GPIO-configuration ##############################
