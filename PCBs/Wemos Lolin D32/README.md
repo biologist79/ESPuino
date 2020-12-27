@@ -2,13 +2,13 @@
 
 ## Attention
 * In rev1 I made a mistake that leads to a short circuit. Hopefully nobody ordered it :-( Current revision is 1.1
-* This PCB is not yet tested!
+* This PCB is not yet tested! Please tell me when you've been testing it successfully.
 
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 53 x 81mm
 * JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID and reset (not 2.54mm pitch!)
-* 2.54mm-connectors for MAX98357a and uSD-card-reader
+* 2.54mm-connectors for MAX98357a and uSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
 * If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
@@ -17,10 +17,10 @@
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
-* Make sure to edit `settings.h` according your needs.
+* Make sure to edit `settings.h` (HAL=3) and `settings-lolin_d32.h` according your needs.
 
 ## Things to mention
-* Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors instead (link below).
+* Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors (as socket) instead (link below).
 * When ordering a LiPo-battery, make sure to use [one](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm) with deep discharge protection! This is really really really important!!!
 * Doesn't (currently) support SD-MMC and RFID-reader PN5180
 
@@ -50,7 +50,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin D32 development-board](htt
 * 4x JST-PH2.0-connector (2 Pins)
 * 3x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)
-* Female connector as socket for Lolin32, uSD-reader and MAX98357a
+* Female connector as socket for Lolin32
 * (optional for headphone-PCB) 1x IDC-connecor female (6pin)
 * (optional for headphone-PCB) 1x IDC-connecor male (6pin)
 

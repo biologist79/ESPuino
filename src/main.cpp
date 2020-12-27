@@ -48,6 +48,7 @@
 #endif
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
+    #define MQTT_SOCKET_TIMEOUT 1               // https://github.com/knolleary/pubsubclient/issues/403
     #include <PubSubClient.h>
 #endif
 #include <WebServer.h>
@@ -72,9 +73,6 @@
 #include <nvsDump.h>
 
 
-// Info-docs:
-// https://docs.aws.amazon.com/de_de/freertos-kernel/latest/dg/queue-management.html
-// https://arduino-esp8266.readthedocs.io/en/latest/PROGMEM.html#how-do-i-declare-a-global-flash-string-and-use-it
 
 // Serial-logging buffer
 uint8_t serialLoglength = 200;

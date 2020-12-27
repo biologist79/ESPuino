@@ -7,7 +7,7 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * Fits Wemos Lolin32 (not Lolin D32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 56 x 93mm
 * JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID, reset and battery (not 2.54mm pitch!)
-* 2.54mm-connectors for MAX98357a and uSD-card-reader
+* 2.54mm-connectors for MAX98357a and uSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
 * If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
@@ -17,12 +17,12 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
 * I used 390/130 kOhms-resistors as voltage-divider. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement. They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`. Hint: for Lolin D32's battery-measurement 100k+100k were used. However, I decided to change the ratio from 50/50% to 25/75% to have a "better" signal. 100/100 might be work as well; didn't test it.
-* Make sure to edit `settings.h` according your needs.
+* Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs.
 
 ## Things to mention
 * RFID: In order to avoid buying a 6pin-JST-PH-connector I used 2x3pin instead. This is because I already had ten of them (see link below).
 * In contrast to Lolin D32, Lolin32 doesn't feature an integrated voltage-divider. That's why on the lower left there's a JST-PH2.0-connector to connect the LiPo-battery. Make sure to connect (+) to the left und GND to the right. From there you need to solder two short wires (5cm or so) onto the pcb with a JST-PH2.0-connector attached on the other side. This one needs to be plugged into Lolin32 (see pictures-folder). Please note: Lolin's JST-PH2.0-connector needs (+) left side and GND right side. Don't be confused if black/red-colouring of the JST-wires used seems "weird" because is reversed (black => (+); red => GND).
-* Better don't solder Lolin32 directly to the PCB. I recommend to make use of female connectors instead (link below).
+* Better don't solder Lolin32 directly to the PCB. I recommend to make use of female connectors (as socket) instead (link below).
 * When ordering a LiPo-battery, make sure to use [one](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm) with deep discharge protection! This is really really really important!!!
 * Doesn't (currently) support SD-MMC and RFID-reader PN5180
 
@@ -55,7 +55,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * 5x JST-PH2.0-connector (2 Pins)
 * 3x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)
-* Female connector as socket for Lolin32, uSD-reader and MAX98357a
+* Female connector as socket for Lolin32
 * (optional for headphone-PCB) 1x IDC-connecor female (6pin)
 * (optional for headphone-PCB) 1x IDC-connecor male (6pin)
 * rev2: (optional) 1x 10 uF capacitor (2.0mm-pitch)
