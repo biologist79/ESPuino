@@ -25,7 +25,6 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
-* 28.12.2020: Added display (via i2c)
 
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
