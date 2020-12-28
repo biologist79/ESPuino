@@ -6,19 +6,14 @@
    PCB: None so far
    Infos: https://www.wemos.cc/en/latest/d32/d32_pro.html
    Schematics: https://www.wemos.cc/en/latest/_static/files/sch_d32_pro_v2.0.0.pdf
-   Caveats: GPIO35 (battery monitoring) + SD can't be changed, it's built in
+   Caveats: GPIO35 (battery monitoring) + SD can't be changed, it's built in (and because of the SD-pinout used, it is not compatible with MMC-mode)
    Status:
     tested with 2xSPI: RC522 & SD (by biologist79)
 */
 
 //################## GPIO-configuration ##############################
 #ifdef SD_MMC_1BIT_MODE
-    // uSD-card-reader (via SD-MMC 1Bit)
-    //
-    // SD_MMC uses fixed pins
-    //  MOSI    15
-    //  SCKK    14
-    //  MISO    2   // hardware pullup may required
+    // NOT SUPPORTED BY D32 pro as 15 / 14 / 2 doesn't match D32 pro's SD-pinout
 #else
     // uSD-card-reader (via SPI) => Cannot be changed, it's built in!
     #define SPISD_CS                     4          // GPIO for chip select (SD)

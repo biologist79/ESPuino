@@ -12,7 +12,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 17.11.2020: Introduced a distinct volume for headphone for optional headphone-PCB.
 * 20.11.2020: Added directive `MEASURE_BATTERY_VOLTAGE`: monitoring battery's voltage is now supported.
 * 25.11.2020: WiFi can now be enabled/disabled instantly by pressing two buttons.
-* 28.11.2020: Battery's voltage can now be visualized by Neopixel by short-press of rotary encoder's burtton.
+* 28.11.2020: Battery's voltage can now be visualized by Neopixel by short-press of rotary encoder's button.
 * 28.11.2020: Added directive `PLAY_LAST_RFID_AFTER_REBOOT`: Tonuino will recall the last RFID played after reboot.
 * 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
 * 05.12.2020: Moved all user-relevant settings to src/settings.h
@@ -25,6 +25,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
+* 28.12.2020: Added display (via i2c)
 
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
@@ -42,7 +43,7 @@ The core of my implementation is based on the popular [ESP32 by Espressif](https
 The basic idea of Tonuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
 ## Hardware-setup
-The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). But probably it's besser to use it's successor: [Wemos Lolin D32](https://de.aliexpress.com/item/32808551116.html).
+The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). But probably it's better to use it's successor (which has battery-measurement already included): [Wemos Lolin D32](https://de.aliexpress.com/item/32808551116.html). Or, if you're planning to hear webstreams regularly, [Wemos Lolin D32 pro](https://de.aliexpress.com/item/32883116057.html) might be a good decision. It comes with uSD-slot onboard and because of its ESP32-WROVER-B has PSRAM included. PSRAM is used as webstream-cache and might be used more intensively in future.
 * [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
 * [uSD-card-reader; 3.3V only; supports SPI + SD-MMC](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
@@ -95,8 +96,8 @@ Please note: via GUI upper and lower voltage cut-offs for visualisation of batte
 Having SD working is mandatory. So there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
 Advantages SD-MMC (1 bit) over SPI:
 * Needs only three GPIOs (instead of four)
-* It is almost twice as fast in FTP-transfer
-So why using SPI if SD-MMC is better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depends on the ESP-develboard) be a problem because GPIO2 is pulled HIGH in SD-MMC-mode. And if that's the case, you'll probably not able to flash the firmware as the ESP32 doesn't enter flash-mode. Tested it with Lolin32 and had to remove SD's wire to GPIO2 until flash-mode was entered. As soon as flash-mode was entered, it's safe to re-connect it. So be advised: SD-MMC is nice and fast, but if you want to update the firmware and ESP32 is deeply burried in Tonuino's enclosure, this can be problem.
+* It is almost twice as fast in FTP-transfer<br />
+So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the uSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high, ESP32 doesn't enter flash-mode. As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in Tonuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set, pullup is done in software using `pinMode(2, INPUT_PULLUP);`.
 
 ## RFID: RC522 or PN5180?
 RC522 is so to say the Tonuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies'. Disadvantages: is a bit more expensive and needs more GPIOs (6 instead of 4). Refer PN5180's wire-section below for further informations.
@@ -165,7 +166,7 @@ In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-S
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | --            | SD-reader             | CS     | no CS required                                               |
 | 15            | SD-reader             | MOSI   |                                                              |
-| 2             | SD-reader             | MISO   | 10K hardware pullup may be required                          |
+| 2             | SD-reader             | MISO   | make sure there's no hardware-pullup                         |
 | 14            | SD-reader             | SCK    |                                                              |
 
 Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).

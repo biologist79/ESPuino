@@ -8,9 +8,9 @@
 #elif (HAL == 2)
     #include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
 #elif (HAL == 3)
-    #include "settings-lolin_D32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
+    #include "settings-lolin_d32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
 #elif (HAL == 4)
-    #include "settings-lolin_D32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
+    #include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
 #endif
 
 #include <ESP32Encoder.h>
@@ -38,8 +38,8 @@
         #include <MFRC522.h>
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
-        #include "Wire.h"
-        #include <MFRC522_I2C.h>
+    #include "Wire.h"
+    #include <MFRC522_I2C.h>
 #endif
 #ifdef RFID_READER_TYPE_PN5180
     #include <PN5180.h>
@@ -269,10 +269,10 @@ AsyncEventSource events("/events");
 
 // Audio/mp3
 #ifndef SD_MMC_1BIT_MODE
-SPIClass spiSD(HSPI);
-fs::FS FSystem = (fs::FS)SD;
+    SPIClass spiSD(HSPI);
+    fs::FS FSystem = (fs::FS)SD;
 #else
-fs::FS FSystem = (fs::FS)SD_MMC;
+    fs::FS FSystem = (fs::FS)SD_MMC;
 #endif
 
 TaskHandle_t mp3Play;
@@ -283,7 +283,7 @@ TaskHandle_t rfid;
 #endif
 
 #if (HAL == 2)
-#include "AC101.h"
+    #include "AC101.h"
     static TwoWire i2cBusOne = TwoWire(0);
     static AC101 ac(i2cBusOne);
 #endif
@@ -3868,20 +3868,6 @@ void setup() {
         a2dp_sink.start("Tonuino");
     #endif
 
-    #ifdef DISPLAY_I2C
-        // OLED Display - https://github.com/olikraus/u8g2/wiki/u8g2setupcpp#sh1106-128x64_noname-1
-        U8G2_SH1106_128X64_NONAME_1_2ND_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
-        u8g2.begin();
-        u8g2.firstPage();
-        do {
-            u8g2.setFont(u8g2_font_ncenB08_tr);
-            u8g2.drawStr(0,8,"Tonuino gestartet");
-            u8g2.drawStr(0,16,"Papas Projekt");
-            u8g2.drawStr(0,24,"Dritte Statuszeile passt");
-            u8g2.drawStr(0,16,"und noch eine vierte Zeile");
-        } while ( u8g2.nextPage() );
-    #endif
-
     // Create queues
     volumeQueue = xQueueCreate(1, sizeof(int));
     if (volumeQueue == NULL) {
@@ -4148,7 +4134,7 @@ void setup() {
     // Create empty index json-file when no file exists.
     if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
         createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
-        ESP.restart();
+        esp_deep_sleep_start();
     }
     bootComplete = true;
 

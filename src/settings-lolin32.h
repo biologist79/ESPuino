@@ -8,7 +8,7 @@
    Caveats: None
    Status:
     tested with 2x SPI: RC522 & SD (by biologist79)
-    tested with 1x SPI: PN5180, SD (MMC) (by tueddy)
+    tested with 1x SPI: PN5180, SD (MMC) (by tueddy and biologist79) => don't enable SINGLE_SPI_ENABLE
 */
 
 //################## GPIO-configuration ##############################
@@ -17,8 +17,8 @@
     //
     // SD_MMC uses fixed pins
     //  MOSI    15
-    //  SCKK    14
-    //  MISO    2   // hardware pullup may required
+    //  SCK     14
+    //  MISO    2
 #else
     // uSD-card-reader (via SPI)
     #define SPISD_CS                    15          // GPIO for chip select (SD)
@@ -53,7 +53,7 @@
 // Control-buttons
 #define PAUSEPLAY_BUTTON                5           // GPIO to detect pause/play
 #define NEXT_BUTTON                     4           // GPIO to detect next
-#define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
+#define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
 
 // (optional) Power-control
 #define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep

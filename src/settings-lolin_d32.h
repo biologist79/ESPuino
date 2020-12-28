@@ -17,8 +17,8 @@
     //
     // SD_MMC uses fixed pins
     //  MOSI    15
-    //  SCKK    14
-    //  MISO    2   // hardware pullup may required
+    //  SCK     14
+    //  MISO    2
 #else
     // uSD-card-reader (via SPI)
     #define SPISD_CS                    15          // GPIO for chip select (SD)
