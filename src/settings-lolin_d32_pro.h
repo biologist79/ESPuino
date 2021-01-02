@@ -46,12 +46,12 @@
 #define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
 
 // Control-buttons
-#define PAUSEPLAY_BUTTON                5           // GPIO to detect pause/play
+#define PAUSEPLAY_BUTTON                36          // GPIO to detect pause/play; 36 = 'VP'
 #define NEXT_BUTTON                     33          // GPIO to detect next
 #define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
 
 // (optional) Power-control
-#define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+#define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
 
 // (optional) Neopixel
 #define LED_PIN                         12          // GPIO for Neopixel-signaling
