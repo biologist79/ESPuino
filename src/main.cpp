@@ -2290,8 +2290,9 @@ void showLed(void *parameter) {
                             for (uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
                                     leds[ledAddress(led)] = CRGB::Red;
-                                } else if (!playProperties.pausePlay) { // Hue-rainbow
-                                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
+                                } else if (!playProperties.pausePlay) {
+                                    // leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led)); // green to red
+                                    leds[ledAddress(led)].setHue((uint8_t) ((double) 255 / NUM_LEDS) * led); // Hue-rainbow
                                 }
                             }
                             if (playProperties.pausePlay) {
