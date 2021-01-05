@@ -46,6 +46,29 @@
     #include <PN5180ISO14443.h>
     #include <PN5180ISO15693.h>
 #endif
+#ifdef RFID_READER_TYPE_PN532_SPI
+    #include <SPI.h>
+    #include <PN532_SPI.h>
+    #include "PN532.h"
+    
+    PN532_SPI pn532spi(SPI, 5);
+    PN532 nfc(pn532spi);
+#endif
+#ifdef RFID_READER_TYPE_PN532_I2C
+    #include <Wire.h>
+    #include <PN532_I2C.h>
+    #include <PN532.h>
+
+    PN532_I2C pn532i2c(Wire);
+    PN532 nfc(pn532i2c);	
+#endif
+#ifdef RFID_READER_TYPE_PN532_UART
+    #include <PN532_HSU.h>
+    #include <PN532.h>
+        
+    PN532_HSU pn532hsu(Serial2);
+    PN532 nfc(pn532hsu);
+#endif
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
     #define MQTT_SOCKET_TIMEOUT 1               // https://github.com/knolleary/pubsubclient/issues/403
@@ -1954,6 +1977,65 @@ void rfidScanner(void *parameter) {
 }
 #endif
 
+#if defined RFID_READER_TYPE_PN532_SPI || defined RFID_READER_TYPE_PN532_I2C || defined RFID_READER_TYPE_PN532_UART
+// Instructs RFID-scanner to scan for new RFID-tags
+void rfidScanner(void *parameter) {
+    uint8_t success;
+    uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+    uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+    byte cardId[cardIdSize], lastCardId[cardIdSize];
+    char *cardIdString;
+
+    for (;;) {
+        esp_task_wdt_reset();
+        vTaskDelay(10);
+        if ((millis() - lastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+            lastRfidCheckTimestamp = millis();
+
+            nfc.begin();
+            // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
+            // 'uid' will be populated with the UID, and uidLength will indicate
+            // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+            success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+            
+            if (success) {
+                cardIdString = (char *) malloc(cardIdSize*3 +1);
+                if (cardIdString == NULL) {
+                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                    continue;
+                }
+
+                for (uint8_t i=0; i<cardIdSize; i++)
+                    cardId[i] = uid[i];
+
+                // check for different card id
+                if ( memcmp( (const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0)
+                    continue;
+                memcpy(lastCardId, cardId, sizeof(cardId));
+                uint8_t n = 0;
+                logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+                for (uint8_t i=0; i<cardIdSize; i++) {
+                    snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
+                    logger(logBuf, LOGLEVEL_NOTICE);
+
+                    n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
+                    if (i<(cardIdSize-1)) {
+                        logger("-", LOGLEVEL_NOTICE);
+                    } else {
+                        logger("\n", LOGLEVEL_NOTICE);
+                    }
+                }                
+                xQueueSend(rfidCardQueue, &cardIdString, 0);
+            }
+        }
+    }
+    vTaskDelete(NULL);
+}
+#endif
+
 // This task handles everything for Neopixel-visualisation
 #ifdef NEOPIXEL_ENABLE
 
@@ -3782,6 +3864,20 @@ void setup() {
             SPI.begin();
         #endif
         SPI.setFrequency(1000000);
+    #endif
+
+    #ifdef RFID_READER_TYPE_PN532_SPI
+        nfc.begin();
+
+        uint32_t versiondata = nfc.getFirmwareVersion();
+        if (! versiondata) {
+            Serial.print("Didn't find PN53x board");
+            while (1); // halt
+        }
+        // Got ok data, print it out!
+        Serial.print("Found chip PN5"); Serial.println((versiondata>>24) & 0xFF, HEX); 
+        Serial.print("Firmware ver. "); Serial.print((versiondata>>16) & 0xFF, DEC); 
+        Serial.print('.'); Serial.println((versiondata>>8) & 0xFF, DEC);
     #endif
 
     #ifndef SINGLE_SPI_ENABLE
