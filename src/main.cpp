@@ -358,6 +358,13 @@ void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
 bool getWifiEnableStatusFromNVS(void);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void convertUtf8ToAscii(String utf8String, char *asciiString);
+void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void explorerHandleListRequest(AsyncWebServerRequest *request);
+void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
+void explorerHandleCreateRequest(AsyncWebServerRequest *request);
+void explorerHandleRenameRequest(AsyncWebServerRequest *request);
+void explorerHandleAudioRequest(AsyncWebServerRequest *request);
 void headphoneVolumeManager(void);
 bool isNumber(const char *str);
 void loggerNl(const char *str, const uint8_t logLevel);
@@ -1446,7 +1453,10 @@ void playAudio(void *parameter) {
 
                 // If we're in audiobook-mode and apply a modification-card, we don't
                 // want to save lastPlayPosition for the mod-card but for the card that holds the playlist
-                strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
+                if(currentRfidTagId != NULL){
+                    strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
+                }
+                
             }
             if (playProperties.trackFinished) {
                 playProperties.trackFinished = false;
@@ -3586,13 +3596,13 @@ void webserverStart(void) {
     wServer.addHandler(&events);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send_P(200, "text/html", management_HTML, templateProcessor);
+        request->send(FSystem, "/index.html");
     });
 
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
             request->send_P(200, "text/html", backupRecoveryWebsite);
     }, handleUpload);
-
+    
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", restartWebsite);
         Serial.flush();
@@ -3602,6 +3612,20 @@ void webserverStart(void) {
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
     });
+
+    wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
+
+    wServer.on("/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    }, explorerHandleFileUpload);
+
+    wServer.on("/explorer", HTTP_DELETE, explorerHandleDeleteRequest);
+
+    wServer.on("/explorer", HTTP_PUT, explorerHandleCreateRequest);
+
+    wServer.on("/explorer", HTTP_PATCH, explorerHandleRenameRequest);
+
+    wServer.on("/exploreraudio", HTTP_POST, explorerHandleAudioRequest);
 
     wServer.onNotFound(notFound);
 
@@ -3682,6 +3706,221 @@ void webserverStart(void) {
 
         return true;
     }
+
+// Conversion routine for http UTF-8 strings
+void convertUtf8ToAscii(String utf8String, char *asciiString) {
+    uint16_t i = 0, j=0;
+    bool f_C3_seen = false;
+
+    while(utf8String[i] != 0) {                                     // convert UTF8 to ASCII
+        if(utf8String[i] == 195){                                   // C3
+            i++;
+            f_C3_seen = true;
+            continue;
+        }
+        asciiString[j] = utf8String[i];
+        if(asciiString[j] > 128 && asciiString[j] < 189 && f_C3_seen == true) {
+            asciiString[j] = asciiString[j] + 64;                      // found a related ASCII sign
+            f_C3_seen = false;
+        }
+        i++; j++;
+    }
+    asciiString[j] = 0;
+
+}
+
+// Handles file upload request from the explorer
+// requires a GET parameter path, as directory path to the file
+void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    if (!index) {
+        if (request->hasParam("path")) {
+            AsyncWebParameter *param = request->getParam("path");
+            String utf8FilePath = param->value() + "/" + filename;
+            char asciiFilePath[256];
+            convertUtf8ToAscii(utf8FilePath, asciiFilePath);
+            request->_tempFile = FSystem.open( asciiFilePath, "w");
+        } else {
+            request->_tempFile = FSystem.open("/" + filename, "w");
+        }
+        Serial.println("write file");
+        // open the file on first call and store the file handle in the request object
+    }
+
+    if (len) {
+        // stream the incoming chunk to the opened file
+        request->_tempFile.write(data, len);
+    }
+
+    if (final) {
+        // close the file handle as the upload is now done
+        request->_tempFile.close();
+    }
+}
+
+// Sends a list of the content of a directory as JSON file
+// requires a GET parameter path for the directory
+void explorerHandleListRequest(AsyncWebServerRequest *request) {
+    DynamicJsonDocument jsonBuffer(8192);
+    //StaticJsonDocument<4096> jsonBuffer;
+    String serializedJsonString;
+    AsyncWebParameter *param;
+    char asciiFilePath[256];
+    JsonArray obj = jsonBuffer.createNestedArray();
+    File root;
+    if(request->hasParam("path")){
+        param = request->getParam("path");
+        convertUtf8ToAscii(param->value(), asciiFilePath);
+        root = FSystem.open(asciiFilePath);
+    } else {
+        root = FSystem.open("/");
+    }
+
+    if (!root) {
+        snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenDirectory));
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        return;
+    }
+
+    if (!root.isDirectory()) {
+        snprintf(logBuf, serialLoglength, (char *) FPSTR(notADirectory));
+        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        return;
+    }
+
+    File file = root.openNextFile();
+
+    while(file) {
+        JsonObject entry = obj.createNestedObject();
+        std::string path = file.name();
+        std::string fileName = path.substr(path.find_last_of("/") + 1);
+
+        entry["name"] = fileName;
+        entry["dir"].set(file.isDirectory());
+
+        file = root.openNextFile();
+
+    }
+
+    serializeJson(obj, serializedJsonString);
+    request->send(200, "application/json; charset=iso-8859-1", serializedJsonString);
+}
+
+// Handles delete request of a file or directory
+// requires a GET parameter path to the file or directory
+void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
+    File file;
+    bool isDir;
+    AsyncWebParameter *param;
+    char asciiFilePath[256];
+    if(request->hasParam("path")){
+        param = request->getParam("path");
+        convertUtf8ToAscii(param->value(), asciiFilePath);
+        if(FSystem.exists(asciiFilePath)) {
+            file = FSystem.open(asciiFilePath);
+            isDir = file.isDirectory();
+            file.close();
+            if(isDir) {
+                if(FSystem.rmdir(asciiFilePath)) {
+                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
+                    loggerNl(logBuf, LOGLEVEL_INFO);
+                } else {
+                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
+                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                }
+            } else {
+                if(FSystem.remove(asciiFilePath)) {
+                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
+                    loggerNl(logBuf, LOGLEVEL_INFO);
+                } else {
+                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
+                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                }
+            }
+        } else {
+            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exitst", asciiFilePath);
+            loggerNl(logBuf, LOGLEVEL_ERROR);
+        }
+    } else {
+        loggerNl("DELETE: No path variable set", LOGLEVEL_ERROR);
+    }
+    request->send(200);
+}
+
+// Handles create request of a directory
+// requires a GET parameter path to the new directory
+void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
+    AsyncWebParameter *param;
+    char asciiFilePath[256];
+    if(request->hasParam("path")){
+        param = request->getParam("path");
+        convertUtf8ToAscii(param->value(), asciiFilePath);
+        if(FSystem.mkdir(asciiFilePath)) {
+            snprintf(logBuf, serialLoglength, "CREATE:  %s created", asciiFilePath);
+            loggerNl(logBuf, LOGLEVEL_INFO);
+        } else {
+            snprintf(logBuf, serialLoglength, "CREATE:  Cannot create %s", asciiFilePath);
+            loggerNl(logBuf, LOGLEVEL_ERROR);
+        }
+    } else {
+        loggerNl("CREATE: No path variable set", LOGLEVEL_ERROR);
+    }
+    request->send(200);
+}
+
+// Handles rename request of a file or directory
+// requires a GET parameter srcpath to the old file or directory name
+// requires a GET parameter dstpath to the new file or directory name
+void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
+    AsyncWebParameter *srcPath;
+    AsyncWebParameter *dstPath;
+    char srcFullFilePath[256];
+    char dstFullFilePath[256];
+    if(request->hasParam("srcpath") && request->hasParam("dstpath")) {
+        srcPath = request->getParam("srcpath");
+        dstPath = request->getParam("dstpath");
+        convertUtf8ToAscii(srcPath->value(), srcFullFilePath);
+        convertUtf8ToAscii(dstPath->value(), dstFullFilePath);
+        if(FSystem.exists(srcFullFilePath)) {
+            if(FSystem.rename(srcFullFilePath, dstFullFilePath)) {
+                    snprintf(logBuf, serialLoglength, "RENAME:  %s renamed to %s", srcFullFilePath, dstFullFilePath);
+                    loggerNl(logBuf, LOGLEVEL_INFO);
+            } else {
+                    snprintf(logBuf, serialLoglength, "RENAME:  Cannot rename %s", srcFullFilePath);
+                    loggerNl(logBuf, LOGLEVEL_ERROR);
+            }
+        } else {
+            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exitst", srcFullFilePath);
+            loggerNl(logBuf, LOGLEVEL_ERROR);
+        }
+    } else {
+        loggerNl("RENAME: No path variable set", LOGLEVEL_ERROR);
+    }
+
+    request->send(200);
+}
+
+// Handles audio play requests
+// requires a GET parameter path to the audio file or directory
+// requires a GET parameter playmode
+void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
+    AsyncWebParameter *param;
+    String playModeString;
+    uint32_t playMode;
+    char asciiFilePath[256];
+    if(request->hasParam("path") && request->hasParam("playmode")) {
+        param = request->getParam("path");
+        convertUtf8ToAscii(param->value(), asciiFilePath);
+        param = request->getParam("playmode");
+        playModeString = param->value();
+
+        playMode = atoi(playModeString.c_str());
+        trackQueueDispatcher(asciiFilePath,0,playMode,0);
+    } else {
+        loggerNl("AUDIO: No path variable set", LOGLEVEL_ERROR);
+    }
+
+    request->send(200);
+}
 
 
 // Handles uploaded backup-file and writes valid entries into NVS
