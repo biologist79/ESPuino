@@ -1456,7 +1456,7 @@ void playAudio(void *parameter) {
                 if(currentRfidTagId != NULL){
                     strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
                 }
-                
+
             }
             if (playProperties.trackFinished) {
                 playProperties.trackFinished = false;
@@ -3596,13 +3596,13 @@ void webserverStart(void) {
     wServer.addHandler(&events);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(FSystem, "/index.html");
+        request->send(FSystem, "/management.html", String(), false, templateProcessor);
     });
 
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
             request->send_P(200, "text/html", backupRecoveryWebsite);
     }, handleUpload);
-    
+
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", restartWebsite);
         Serial.flush();
@@ -3837,7 +3837,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
                 }
             }
         } else {
-            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exitst", asciiFilePath);
+            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exist", asciiFilePath);
             loggerNl(logBuf, LOGLEVEL_ERROR);
         }
     } else {

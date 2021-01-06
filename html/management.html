@@ -131,14 +131,14 @@
         <div class="container" id="fileExplorer">
             <div class="ui-widget">
                 <div class="filetree demo" id="explorerTree"></div>
-                
+
                 <form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer" accept-charset="iso-8859-1">
                     <input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
                 </form>
                 <div>
                     <progress id="explorerUploadProgress" style="margin-top:10px" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
                 </div>
-                
+
             </div>
         </div>
     </div>
@@ -458,12 +458,12 @@
             data.instance.rename_node(data.instance._model.data[key], lastFolder);
         });
     }
-	
-    // File Explorer functions begin
+
+    /* File Explorer functions begin*/
     var lastSelectedNodePath = "";
-    
+
     $('#explorerTree').on('select_node.jstree', function (e, data) {
-        
+
         $('input[name=fileOrUrl]').val(data.node.data.path);
 
         if (data.node.type == "folder") {
@@ -486,7 +486,7 @@
                 if(!sel.length) { return false; }
                 sel = sel[0];
                 var children = $("#explorerTree").jstree("get_children_dom",sel);
-                // refresh only, when there is no child -> possible not yet updated
+                /* refresh only, when there is no child -> possible not yet updated */
                 if(children.length < 1){
                     refreshNode(sel);
                 }
@@ -497,7 +497,7 @@
 
 
     });
-	
+
 	function doRest(path, callback, obj) {
 		obj.url      = path;
 		obj.dataType = "json";
@@ -510,48 +510,48 @@
 		};
 		obj.error    = function(jqXHR, textStatus, errorThrown) {
 			console.log("AJAX error");
-			//debugger;
+			/*debugger; */
 		};
 		jQuery.ajax(obj);
-	} // doRest
-	
+	} /* doRest */
+
 	function getData(path, callback) {
 		doRest(path, callback, {
 			method   : "GET"
 		});
-	} // getData
-	
+	} /* getData */
+
 	function deleteData(path, callback, _data) {
 		doRest(path, callback, {
 			method   : "DELETE",
 			data: _data
 		});
-	} // deleteData
-	
+	} /* deleteData */
+
 	function patchData(path, callback, _data) {
 		doRest(path, callback, {
 			method   : "PATCH",
 			data: _data
 		});
-	} // patchData
+	} /* patchData */
 
 	function postData(path, callback, _data) {
 		doRest(path, callback, {
 			method   : "POST",
 			data: _data
 		});
-	} // postData
-	
-	
+	} /* postData */
+
+
 	function putData(path, callback, _data) {
 		doRest(path, callback, {
 			method   : "PUT",
 			data: _data
 		});
-	} // putData
-	
-	
-	// File Upload
+	} /* putData */
+
+
+	/* File Upload */
 	$('#explorerUploadForm').submit(function(e){
 		e.preventDefault();
 		console.log("Upload!");
@@ -566,12 +566,12 @@
 		if(selectedNode.data.directory){
 			path = selectedNode.data.path
 		} else {
-			// remap sel to parent folder
+			/* remap sel to parent folder */
 			sel = ref.get_node(ref.get_parent(sel));
 			path = parentNode.data.path;
 			console.log("Parent path: " + path);
 		}
-		
+
 		$.ajax({
 			url: '/explorer?path=' + path,
             type: 'POST',
@@ -604,19 +604,19 @@
 				console.log("Upload success!");
 
 				getData("/explorer?path=" + path, function(data) {
-					// We now have data!
+					/* We now have data! */
 					deleteChildrenNodes(sel);
 					addFileDirectory(sel, data);
 					ref.open_node(sel);
-				   
-					
+
+
 				});
-				
+
 			}
         });
 	});
-	
-	// File Delete
+
+	/* File Delete */
 	function handleDeleteData(nodeId) {
 		var ref = $('#explorerTree').jstree(true);
 		var node = ref.get_node(nodeId);
@@ -652,7 +652,7 @@
 		}
 		return 0;
 	}
-	
+
 	function createChild(nodeId, data) {
 		var ref = $('#explorerTree').jstree(true);
 		var node = ref.get_node(nodeId);
@@ -664,11 +664,11 @@
 				directory: data.dir
 			}
 		}
-		
+
 		return child;
-	
+
 	}
-	
+
 	function deleteChildrenNodes(nodeId) {
 		var ref = $('#explorerTree').jstree(true);
 		var children = $("#explorerTree").jstree("get_children_dom",nodeId);
@@ -676,30 +676,30 @@
 		{
 			ref.delete_node(children[i].id);
 		}
-	
+
 	}
-	
+
 	function refreshNode(nodeId) {
-	
+
 		var ref = $('#explorerTree').jstree(true);
-		
+
 		var node = ref.get_node(nodeId);
 
 		getData("/explorer?path=" + node.data.path, function(data) {
-			// We now have data!
+			/* We now have data! */
 
 			deleteChildrenNodes(nodeId);
 			addFileDirectory(nodeId, data);
 			ref.open_node(nodeId);
-			
+
 		});
-	
-	
+
+
 	}
-	
+
 	function getType(data) {
 		var type = "";
-		
+
 		if(data.dir) {
 			type = "folder";
 		} else if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {
@@ -707,24 +707,24 @@
 		} else {
 			type = "file";
 		}
-	
+
 		return type;
 	}
-	
-	
+
+
 	function addFileDirectory(parent, data) {
 
 		data.sort( fileNameSort );
 		var ref = $('#explorerTree').jstree(true);
-		
+
 		for (var i=0; i<data.length; i++) {
 			console.log("Create Node");
 			ref.create_node(parent, createChild(parent, data[i]));
 		}
-	} // addFileDirectory
-	
+	} /* addFileDirectory */
+
 	function buildFileSystemTree(path) {
-	
+
 		$('#explorerTree').jstree({
 				"core" : {
 						"check_callback" : true,
@@ -777,8 +777,8 @@
 							}
 						}
 						}
-						
-						// Play
+
+						/* Play */
 						items.play = {
 							label: "Abspielen",
 							action: function(x) {
@@ -786,16 +786,16 @@
 								postData("/exploreraudio?path=" + node.data.path + "&playmode=" + playMode);
 							}
 						}
-						
-						// Refresh
+
+						/* Refresh */
 						items.refresh = {
 							label: "Aktualisieren",
 							action: function(x) {
 								refreshNode(nodeId);
 							}
 						}
-						
-						// Delete
+
+						/* Delete */
 						items.delete = {
 							label: "Loeschen",
 							action: function(x) {
@@ -803,8 +803,8 @@
 								refreshNode(ref.get_parent(nodeId));
 							}
 						}
-						
-						// Rename
+
+						/* Rename */
 						items.rename = {
 							label: "Umbenennen",
 							action: function(x) {
@@ -816,22 +816,22 @@
 								});
 							}
 						}
-						
+
 					   return items;
 					}
 				}
 			});
-	
+
 		if (path.length == 0) {
 			return;
 		}
 		getData("/explorer?path=/", function(data) {
-			// We now have data!
+			/* We now have data! */
 			$('#explorerTree').jstree(true).settings.core.data.children = [];
 
 			data.sort( fileNameSort );
-		
-		
+
+
 			for (var i=0; i<data.length; i++) {
 				var newChild = {
 					text: data[i].name,
@@ -846,12 +846,12 @@
 			}
 
 			$("#explorerTree").jstree(true).refresh();
-			
-			
-		});
-	} // buildFileSystemTree
 
-    // File Explorer functions end
+
+		});
+	} /* buildFileSystemTree */
+
+    /* File Explorer functions end */
     function renderFileTree() {
 
         var filesURI = "/files";
