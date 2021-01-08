@@ -50,9 +50,8 @@
     #include <SPI.h>
     #include <PN532_SPI.h>
     #include "PN532.h"
-    
-    PN532_SPI pn532spi(SPI, 5);
-    PN532 nfc(pn532spi);
+    static PN532_SPI pn532spi(SPI, RFID_CS);
+    static PN532 nfc(pn532spi);
 #endif
 #ifdef RFID_READER_TYPE_PN532_I2C
     #include <Wire.h>
@@ -1993,6 +1992,9 @@ void rfidScanner(void *parameter) {
             lastRfidCheckTimestamp = millis();
 
             nfc.begin();
+            // configure board to read RFID tags
+            nfc.SAMConfig();
+
             // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
             // 'uid' will be populated with the UID, and uidLength will indicate
             // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
@@ -3867,6 +3869,8 @@ void setup() {
     #endif
 
     #ifdef RFID_READER_TYPE_PN532_SPI
+        // add delay for MOSFET to provide power
+        delay(10);
         nfc.begin();
 
         uint32_t versiondata = nfc.getFirmwareVersion();
