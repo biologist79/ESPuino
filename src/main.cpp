@@ -228,7 +228,7 @@ char *currentRfidTagId = NULL;
 unsigned long lastTimeActiveTimestamp = 0;              // Timestamp of last user-interaction
 unsigned long sleepTimerStartTimestamp = 0;             // Flag if sleep-timer is active
 bool gotoSleep = false;                                 // Flag for turning uC immediately into deepsleep
-bool sleeping = false;                                  // Flag for turning uC immediately into deepsleep
+bool sleeping = false;                                  // Flag for turning into deepsleep is in progress
 bool lockControls = false;                              // Flag if buttons and rotary encoder is locked
 bool bootComplete = false;
 // Rotary encoder-helper
