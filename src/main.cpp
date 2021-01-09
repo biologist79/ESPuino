@@ -3845,7 +3845,7 @@ void printWakeUpReason(){
 }
 
 // wake up from LPCD, check card is present. This works only for ISO-14443 compatible cards
-void checCardIsPresentLPCD() {
+void checkCardIsPresentLPCD() {
     static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
     nfc14443.begin();
     nfc14443.reset();
@@ -3886,7 +3886,7 @@ void setup() {
         esp_sleep_wakeup_cause_t wakeup_reason;
         wakeup_reason = esp_sleep_get_wakeup_cause();
         if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
-            checCardIsPresentLPCD();
+            checkCardIsPresentLPCD();
         }
     #endif
    srand(esp_random());
