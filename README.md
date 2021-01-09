@@ -220,7 +220,7 @@ You can enable low power card detection with `PN5180_ENABLE_LPCD`. With low powe
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                           |
 | ------------- | --------------------- | ------ | ----------------------------------------------------------------- |
 | 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off       |
-| 5 / 3.3 V     |                       | 3.3V   | For low power card detection mode (LPCD) connect directly to 3.3V |
+| 3.3 V         |                       | 3.3V   | For low power card detection mode (LPCD) connect directly to 3.3V |
 | 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V             |
 | GND           | PN5180 RFID-reader    | GND    |                                                                   |
 | 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                             |
