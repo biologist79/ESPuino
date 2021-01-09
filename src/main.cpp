@@ -228,6 +228,7 @@ char *currentRfidTagId = NULL;
 unsigned long lastTimeActiveTimestamp = 0;              // Timestamp of last user-interaction
 unsigned long sleepTimerStartTimestamp = 0;             // Flag if sleep-timer is active
 bool gotoSleep = false;                                 // Flag for turning uC immediately into deepsleep
+bool sleeping = false;                                  // Flag for turning uC immediately into deepsleep
 bool lockControls = false;                              // Flag if buttons and rotary encoder is locked
 bool bootComplete = false;
 // Rotary encoder-helper
@@ -1865,6 +1866,8 @@ void rfidScanner(void *parameter) {
 
     for (;;) {
         esp_task_wdt_reset();
+        if (sleeping)
+          break;
         vTaskDelay(10);
         if ((millis() - lastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
             // Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
@@ -1950,6 +1953,7 @@ void rfidScanner(void *parameter) {
             }
         }
     }
+    Serial.println("delete RFID scanner task");
     vTaskDelete(NULL);
 }
 #endif
@@ -2290,9 +2294,8 @@ void showLed(void *parameter) {
                             for (uint8_t led = 0; led < numLedsToLight; led++) {
                                 if (lockControls) {
                                     leds[ledAddress(led)] = CRGB::Red;
-                                } else if (!playProperties.pausePlay) {
-                                    // leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led)); // green to red
-                                    leds[ledAddress(led)].setHue((uint8_t) ((double) 255 / NUM_LEDS) * led); // Hue-rainbow
+                                } else if (!playProperties.pausePlay) { // Hue-rainbow
+                                    leds[ledAddress(led)].setHue((uint8_t) (85 - ((double) 95 / NUM_LEDS) * led));
                                 }
                             }
                             if (playProperties.pausePlay) {
@@ -2351,12 +2354,111 @@ void sleepHandler(void) {
     }
 }
 
+#ifdef PN5180_ENABLE_LPCD
+// goto low power card detection mode
+void gotoLPCD() {
+    static PN5180ISO14443 nfc(RFID_CS, RFID_BUSY, RFID_RST);
+    nfc.begin();
+    // show PN5180 reader version
+    uint8_t firmwareVersion[2];
+    nfc.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
+    Serial.print(F("Firmware version="));
+    Serial.print(firmwareVersion[1]);
+    Serial.print(".");
+    Serial.println(firmwareVersion[0]);
+    // check firmware version: PN5180 firmware < 4.0 has several bugs preventing the LPCD mode
+    // you can flash latest firmware with this project: https://github.com/abidxraihan/PN5180_Updater_ESP32
+    if (firmwareVersion[1] < 4) {
+       Serial.println(F("This PN5180 firmware does not work with LPCD!"));
+       return;
+    }
+    Serial.println(F("Prepare PN5180 for LPCD..."));
+    nfc.reset();
+    nfc.clearIRQStatus(0xffffffff);
+    Serial.println("RFID_IRQ: " + digitalRead(RFID_IRQ)); //reads 0 because IRQ pin pin config is set to active high (eeprom@0x1A)  //should read 1 because when interrupt is raised GPIO4 is LOW
+    Serial.println(F("Reading IRQ-Pin..."));
+    uint8_t irqPin[1];
+    nfc.readEEprom(IRQ_PIN_CONFIG, irqPin, sizeof(irqPin));
+    Serial.print(F("irqPin="));
+    Serial.println(irqPin[0]); //should read 1 i.e. pin IRQ is high(bolean 1/3.3v) when active(interrupted)  
+  
+    //=======================================LPCD CONFIG================================================================================
+    Serial.println(F("----------------------------------"));
+    Serial.println(F("start LPCD..."));
+
+    uint8_t data[255];
+    uint8_t response[256];
+    //1. Set Fieldon time                                           LPCD_FIELD_ON_TIME (0x36)
+    uint8_t fieldOn = 0xF0;//0x## -> ##(base 10) x 8μs + 62 μs
+    data[0] = fieldOn;
+    nfc.writeEEprom(0x36, data, 1);
+    nfc.readEEprom(0x36, response, 1);
+    fieldOn = response[0];
+    Serial.print(F("LPCD-fieldOn time: "));
+    Serial.println(fieldOn, HEX);
+
+    //2. Set threshold level                                         AGC_LPCD_THRESHOLD @ EEPROM 0x37
+    uint8_t threshold = 0x03;
+    data[0] = threshold;
+    nfc.writeEEprom(0x37, data, 1);
+    nfc.readEEprom(0x37, response, 1);
+    threshold = response[0];
+    Serial.print(F("LPCD-threshold: "));
+    Serial.println(threshold, HEX);
+
+    //4. Select LPCD mode                                            LPCD_REFVAL_GPO_CONTROL (0x38)                                            
+    uint8_t lpcdMode = 0x01; // 1 = LPCD SELF CALIBRATION 
+                             // 0 = LPCD AUTO CALIBRATION (this mode does not work, should look more into it, no reason why it shouldn't work)
+    data[0] = lpcdMode;
+    nfc.writeEEprom(0x38, data, 1);
+    nfc.readEEprom(0x38, response, 1);
+    lpcdMode = response[0];
+    Serial.print(F("lpcdMode: "));
+    Serial.println(lpcdMode, HEX);
+  
+    // LPCD_GPO_TOGGLE_BEFORE_FIELD_ON (0x39)
+    uint8_t beforeFieldOn = 0xF0; 
+    data[0] = beforeFieldOn;
+    nfc.writeEEprom(0x39, data, 1);
+    nfc.readEEprom(0x39, response, 1);
+    beforeFieldOn = response[0];
+    Serial.print(F("beforeFieldOn: "));
+    Serial.println(beforeFieldOn, HEX);
+  
+    // LPCD_GPO_TOGGLE_AFTER_FIELD_ON (0x3A)
+    uint8_t afterFieldOn = 0xF0; 
+    data[0] = afterFieldOn;
+    nfc.writeEEprom(0x3A, data, 1);
+    nfc.readEEprom(0x3A, response, 1);
+    afterFieldOn = response[0];
+    Serial.print(F("afterFieldOn: "));
+    Serial.println(afterFieldOn, HEX);
+    delay(100);
+    nfc.clearIRQStatus(0xffffffff);
+    Serial.print(F("PN5180 IRQ PIN: ")); Serial.println(digitalRead(RFID_IRQ));
+    // turn on LPCD
+    uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
+    if (nfc.switchToLPCD(wakeupCounterInMs)) {
+        Serial.println(F("switch to low power card detection: success"));
+        // configure wakeup pin for deep-sleep wake-up, use ext1
+        esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+        // freeze pin states in deep sleep
+        gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
+        gpio_hold_en(gpio_num_t(RFID_RST)); // RST
+        gpio_deep_sleep_hold_en();
+   } else {
+        Serial.println(F("switchToLPCD failed"));
+    }    
+}
+#endif
 
 // Puts uC to deep-sleep if flag is set
 void deepSleepManager(void) {
     if (gotoSleep) {
+        if (sleeping)
+            return;
+        sleeping = true;
         loggerNl((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
-        Serial.flush();
         #ifdef MQTT_ENABLE
             publishMqtt((char *) FPSTR(topicState), "Offline", false);
             publishMqtt((char *) FPSTR(topicTrackState), "---", false);
@@ -2366,10 +2468,22 @@ void deepSleepManager(void) {
             FastLED.clear();
             FastLED.show();
         #endif
-        /*SPI.end();
-        spiSD.end();*/
+        // SD card goto idle mode
+        #ifdef SD_MMC_1BIT_MODE
+            SD_MMC.end();
+        #else
+            /*SPI.end();
+            spiSD.end();*/
+        #endif
+        Serial.flush();
+        // switch off power
         digitalWrite(POWER, LOW);
         delay(200);
+        #ifdef PN5180_ENABLE_LPCD
+            // prepare and go to low power card detection mode
+            gotoLPCD();
+        #endif
+        Serial.println(F("deep-sleep, good night......."));
         esp_deep_sleep_start();
     }
 }
@@ -3217,8 +3331,6 @@ wl_status_t wifiManager(void) {
     return WiFi.status();
 }
 
-const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i> MQTT</a>";
-const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> FTP</a>";
 
 // Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
 String templateProcessor(const String& templ) {
@@ -3230,12 +3342,6 @@ String templateProcessor(const String& templ) {
         return String(ftpUserLength-1);
     } else if (templ == "FTP_PWD_LENGTH") {
         return String(ftpPasswordLength-1);
-    } else if (templ == "SHOW_FTP_TAB") {         // Only show FTP-tab if FTP-support was compiled
-        #ifdef FTP_ENABLE
-            return (String) FPSTR(ftpTab);
-        #else
-            return String();
-        #endif
     } else if (templ == "INIT_LED_BRIGHTNESS") {
         return String(prefsSettings.getUChar("iLedBrightness", 0));
     } else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -3258,12 +3364,6 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("vCheckIntv", voltageCheckInterval));
     } else if (templ == "MQTT_SERVER") {
         return prefsSettings.getString("mqttServer", "-1");
-    } else if (templ == "SHOW_MQTT_TAB") {        // Only show MQTT-tab if MQTT-support was compiled
-        #ifdef MQTT_ENABLE
-            return (String) FPSTR(mqttTab);
-        #else
-            return String();
-        #endif
     } else if (templ == "MQTT_ENABLE") {
         if (enableMqtt) {
             return String("checked=\"checked\"");
@@ -3726,11 +3826,70 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     #endif
 }
 
+#ifdef PN5180_ENABLE_LPCD
+// print the wake-up reason
+void printWakeUpReason(){
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch(wakeup_reason)
+  {
+    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println(F("Wakeup caused by push button")); break;
+    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println(F("Wakeup caused by low power card detection")); break;
+    case ESP_SLEEP_WAKEUP_TIMER : Serial.println(F("Wakeup caused by timer")); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println(F("Wakeup caused by touchpad")); break;
+    case ESP_SLEEP_WAKEUP_ULP : Serial.println(F("Wakeup caused by ULP program")); break;
+    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason); break;
+ }
+}
+
+// wake up from LPCD, check card is present. This works only for ISO-14443 compatible cards
+void checCardIsPresentLPCD() {
+    static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
+    nfc14443.begin();
+    nfc14443.reset();
+    nfc14443.setupRF();
+    if (!nfc14443.isCardPresent()) {
+        nfc14443.clearIRQStatus(0xffffffff);
+        Serial.print(F("PN5180 IRQ PIN: ")); Serial.println(digitalRead(RFID_IRQ));
+        // turn on LPCD
+        uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
+        if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
+            Serial.println(F("switch to low power card detection: success"));
+            // configure wakeup pin for deep-sleep wake-up, use ext1
+            esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+            // freeze pin states in deep sleep
+            gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
+            gpio_hold_en(gpio_num_t(RFID_RST)); // RST
+            gpio_deep_sleep_hold_en();
+            Serial.println(F("Wakeup caused by low power card detection. RF-field change but no ISO-14443 card on reader"));  
+            Serial.println(F("go to deep-sleep again, sleep well in your Bettgestell......."));
+            esp_deep_sleep_start();
+       } else {
+            Serial.println(F("switchToLPCD failed"));
+        }    
+    }
+}
+#endif
 
 void setup() {
     Serial.begin(115200);
     esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
-    srand(esp_random());
+    #ifdef PN5180_ENABLE_LPCD
+        // disable pin hold from deep sleep (LPCD) 
+        gpio_deep_sleep_hold_dis();
+        gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
+        gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+        pinMode(RFID_IRQ, INPUT);
+        // check wakeup reason is a card detection
+        esp_sleep_wakeup_cause_t wakeup_reason;
+        wakeup_reason = esp_sleep_get_wakeup_cause();
+        if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
+            checCardIsPresentLPCD();
+        }
+    #endif
+   srand(esp_random());
     pinMode(POWER, OUTPUT);
     digitalWrite(POWER, HIGH);
     prefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
@@ -3847,8 +4006,15 @@ void setup() {
    Serial.println(F("  |_| |___|_|_|_____|_____|_|___|_____|   "));
    Serial.println(F("  ESP32-version"));
    Serial.println(F(""));
-
-   // show SD card type
+   // print wake-up reason
+   printWakeUpReason();
+   #ifdef PN5180_ENABLE_LPCD
+     // disable pin hold from deep sleep 
+     gpio_deep_sleep_hold_dis();
+     gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
+     gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+   #endif
+  // show SD card type
     #ifdef SD_MMC_1BIT_MODE
       loggerNl((char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
       uint8_t cardType = SD_MMC.cardType();
