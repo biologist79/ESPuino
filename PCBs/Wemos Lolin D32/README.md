@@ -16,8 +16,51 @@
 * Reset-button
 
 ## Prerequisites
-* If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is not active.
+* If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
 * Make sure to edit `settings.h` (HAL=3) and `settings-lolin_d32.h` according your needs.
+* Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
+* Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
+
+## PCB-Wiring (2 SPI-instances: RC522 + SD)
+Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. Please refer [Schematics](Pictures/Schematics.pdf) for reference.<br />
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
+| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
+| MFET 3.3V     | SD-reader             | 3.3V   |                                                              |
+| GND           | SD-reader             | GND    |                                                              |
+| 15            | SD-reader             | CS     |                                                              |
+| 13            | SD-reader             | MOSI   |                                                              |
+| 16            | SD-reader             | MISO   |                                                              |
+| 14            | SD-reader             | SCK    |                                                              |
+| MFET 3.3V     | RFID-reader           | 3.3V   |                                                              |
+| GND           | RFID-reader           | GND    |                                                              |
+| 21            | RFID-reader           | CS/SDA |                                                              |
+| 23            | RFID-reader           | MOSI   |                                                              |
+| 19            | RFID-reader           | MISO   |                                                              |
+| 18            | RFID-reader           | SCK    |                                                              |
+| MFET 3.3V     | MAX98357              | VIN    |                                                              |
+| GND           | MAX98357              | GND    |                                                              |
+| 25            | MAX98357              | DIN    |                                                              |
+| 27            | MAX98357              | BCLK   |                                                              |
+| 26            | MAX98357              | LRC    |                                                              |
+| ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
+| ---           | MAX98357              | GAIN   | Pullup with 100k to 3.3V to reduce gain                      |
+| 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
+| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
+| 32            | Rotary encoder        | BUTTON |                                                              |
+| 3.3 V         | Rotary encoder        | +      |                                                              |
+| GND           | Rotary encoder        | GND    |                                                              |
+| 4             | Button (next)         |        |                                                              |
+| GND           | Button (next)         |        |                                                              |
+| 2             | Button (previous)     |        |                                                              |
+| GND           | Button (previous)     |        |                                                              |
+| 5             | Button (pause/play)   |        |                                                              |
+| GND           | Button (pause/play)   |        |                                                              |
+| MFET 3.3V     | Neopixel              | V      |                                                              |
+| GND           | Neopixel              | G      |                                                              |
+| 12            | Neopixel              | DI     |                                                              |
+| 17            | N-channel Mosfet      | Gate   |                                                              |
+| 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
+| 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
 
 ## Things to mention
 * Better don't solder Lolin D32 directly to the PCB. I recommend to make use of female connectors (as socket) instead (link below).
