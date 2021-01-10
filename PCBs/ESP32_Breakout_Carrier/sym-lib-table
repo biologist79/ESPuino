@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Tonuino-ESP32_2-rescue)(type Legacy)(uri ${KIPRJMOD}/Tonuino-ESP32_2-rescue.lib)(options "")(descr ""))
+)
