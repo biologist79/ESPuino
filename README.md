@@ -128,7 +128,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | 13            | SD-reader             | MOSI   |                                                              |
 | 16            | SD-reader             | MISO   |                                                              |
 | 14            | SD-reader             | SCK    |                                                              |
-| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | RFID-reader           | 3.3V   | (Connect directly to GPIO 17 for power-saving when uC is off)  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA |                                                              |
 | 23            | RFID-reader           | MOSI   |                                                              |
@@ -140,8 +140,8 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
 | ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
-| 34            | Rotary encoder        | CLR    | Change CLR with DT if you want to change the direction of RE |
-| 35            | Rotary encoder        | DT     | Change CLR with DT if you want to change the direction of RE |
+| 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
+| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |
@@ -151,8 +151,8 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 3.3 V         | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
-| GND           | Neopixel              | GND    |                                                              |
+| 3.3 V         | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | Neopixel              | G      |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
 | 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
@@ -194,8 +194,8 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | 27            | MAX98357              | BCLK   |                                                              |
 | 26            | MAX98357              | LRC    |                                                              |
 | ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
-| 34            | Rotary encoder        | CLR    | Change CLR with DT if you want to change the direction of RE |
-| 35            | Rotary encoder        | DT     | Change CLR with DT if you want to change the direction of RE |
+| 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
+| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |
@@ -205,8 +205,8 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 5 / 3.3 V     | Neopixel              | 5 V    | Connect to p-channel MOSFET for power-saving when uC is off  |
-| GND           | Neopixel              | GND    |                                                              |
+| 5 / 3.3 V     | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when uC is off  |
+| GND           | Neopixel              | G      |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
 | 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
