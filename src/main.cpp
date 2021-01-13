@@ -3595,24 +3595,29 @@ void webserverStart(void) {
     // attach AsyncEventSource
     wServer.addHandler(&events);
 
+    // Default
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", management_HTML, templateProcessor);
     });
 
+    // NVS-backup-upload
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
             request->send_P(200, "text/html", backupRecoveryWebsite);
     }, handleUpload);
 
+    // ESP-restart
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", restartWebsite);
         Serial.flush();
         ESP.restart();
     });
 
+    // Filebrowser (json-precached)
     wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
     });
 
+    // Fileexplorer (realtime)
     wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
 
     wServer.on("/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -3661,7 +3666,8 @@ void webserverStart(void) {
                     partname,
                     nvs->size ) ;
         } else {
-            Serial.printf("Partition %s not found!", partname) ;
+            snprintf(logBuf, serialLoglength, "Partition %s not found!", partname);
+            loggerNl(logBuf, LOGLEVEL_ERROR);
             return NULL;
         }
         namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
@@ -3674,7 +3680,8 @@ void webserverStart(void) {
                                         &buf,
                                         sizeof(nvs_page));
             if (result != ESP_OK) {
-                Serial.println(F("Error reading NVS!"));
+                snprintf(logBuf, serialLoglength, "Error reading NVS!");
+                loggerNl(logBuf, LOGLEVEL_ERROR);
                 return false;
             }
 
@@ -3742,7 +3749,8 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         } else {
             request->_tempFile = FSystem.open("/" + filename, "w");
         }
-        Serial.println("write file");
+        snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), filename);
+        loggerNl(logBuf, LOGLEVEL_INFO);
         // open the file on first call and store the file handle in the request object
     }
 
@@ -3889,7 +3897,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
                     loggerNl(logBuf, LOGLEVEL_ERROR);
             }
         } else {
-            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exitst", srcFullFilePath);
+            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exist", srcFullFilePath);
             loggerNl(logBuf, LOGLEVEL_ERROR);
         }
     } else {

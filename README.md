@@ -25,7 +25,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
-
+* 13.01.2020: Added fileexlorer to webgui. Now files and directories can be renamed, uploaded and deleted via webgui.
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
@@ -60,7 +60,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 ## Getting Started
 * Arduino-IDE can be used but you need to satisfy dependencies for all the libraries listed in `platformio.ini` manually.
 * Instead I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
-* Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html).
+* Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html). Step-by-step-manual is available [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
 * Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/Tonuino-ESP32-I2S.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here}(https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
@@ -367,6 +367,7 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * In order to avoid exposing uSD-card or disassembling Tonuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
 * Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
 * Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to ISO8859-1.
+* Secured FTP is not available. So make sure to disable SSL/TLS.
 * Software: my recommendation is [Filezilla](https://filezilla-project.org/) as it's free and available for multiple platforms.
 * Don't expect a super fast data-transfer; it's around 185 kB/s (SPI-mode) and 310 kB/s (MMC-mode).
 * Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer.
