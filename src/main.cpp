@@ -3596,7 +3596,7 @@ void webserverStart(void) {
     wServer.addHandler(&events);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(FSystem, "/management.html", String(), false, templateProcessor);
+        request->send_P(200, "text/html", management_HTML, templateProcessor);
     });
 
     wServer.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){

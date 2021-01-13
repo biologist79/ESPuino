@@ -663,7 +663,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 				path: node.data.path + \"/\" + data.name,\
 				directory: data.dir\
 			}\
-		}\
+		};\
 \
 		return child;\
 \
@@ -765,17 +765,17 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						if (node.data.directory) {\
 							items.createDir = {\
-							label: \"Neuer Ordner\",\
-							action: function(x) {\
-								var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
-								if(childNode) {\
-									ref.edit(childNode, null, function(childNode, status){\
-										putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
-										refreshNode(nodeId);\
-									});\
+								label: \"Neuer Ordner\",\
+								action: function(x) {\
+									var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
+									if(childNode) {\
+										ref.edit(childNode, null, function(childNode, status){\
+											putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
+											refreshNode(nodeId);\
+										});\
+									}\
 								}\
-							}\
-						}\
+							};\
 						}\
 \
 						/* Play */\
@@ -785,7 +785,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 								var playMode = node.data.directory?\"5\":\"1\";\
 								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
 							}\
-						}\
+						};\
 \
 						/* Refresh */\
 						items.refresh = {\
@@ -793,7 +793,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 							action: function(x) {\
 								refreshNode(nodeId);\
 							}\
-						}\
+						};\
 \
 						/* Delete */\
 						items.delete = {\
@@ -802,7 +802,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 								handleDeleteData(nodeId);\
 								refreshNode(ref.get_parent(nodeId));\
 							}\
-						}\
+						};\
 \
 						/* Rename */\
 						items.rename = {\
@@ -815,7 +815,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 									refreshNode(ref.get_parent(nodeId));\
 								});\
 							}\
-						}\
+						};\
 \
 					   return items;\
 					}\
@@ -841,7 +841,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 						directory: data[i].dir\
 					},\
 					children: []\
-				}\
+				};\
 				$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);\
 			}\
 \
