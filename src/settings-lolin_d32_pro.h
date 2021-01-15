@@ -12,6 +12,10 @@
 */
 
 //################## GPIO-configuration ##############################
+// Please note: GPIOs 34, 35, 36, 39 are input-only and don't have pullup-resistors.
+// So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
+// Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
+// GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 #ifdef SD_MMC_1BIT_MODE
     // NOT SUPPORTED BY D32 pro as 15 / 14 / 2 doesn't match D32 pro's SD-pinout
 #else
@@ -32,7 +36,7 @@
 #define RFID_SCK                        14          // GPIO for clock-signal (RFID)
 
 #ifdef RFID_READER_TYPE_PN5180
-    #define RFID_BUSY                   16          // PN5180 BUSY PIN
+    #define RFID_BUSY                   33          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
 #endif
 // I2S (DAC)
@@ -43,11 +47,11 @@
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
 #define DREHENCODER_DT                  39          // 39 = 'VN'
-#define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
+#define DREHENCODER_BUTTON              36          // Button is used to switch Tonuino on and off; 36 = 'VP'
 
 // Control-buttons
-#define PAUSEPLAY_BUTTON                36          // GPIO to detect pause/play; 36 = 'VP'
-#define NEXT_BUTTON                     33          // GPIO to detect next
+#define PAUSEPLAY_BUTTON                32          // GPIO to detect pause/play
+#define NEXT_BUTTON                     0           // GPIO to detect next
 #define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
 
 // (optional) Power-control
@@ -64,6 +68,8 @@
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Cannot be changed, it's built in
+    float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+    float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
 #endif
 
 // (optional) For measuring battery-voltage a voltage-divider is already onboard. Connect a LiPo and use it!

@@ -91,8 +91,9 @@ The heart of my project is an ESP32 on a [Wemos Lolin D32 development-board](htt
 * 1x 10k resistor
 * 2x 100k resistor
 * 4x JST-PH2.0-connector (2 Pins)
-* 3x JST-PH2.0-connector (3 Pins)
+* 1x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)
+* 1x JST-PH2.0-connector (6 Pins)
 * Female connector as socket for Lolin32
 * (optional for headphone-PCB) 1x IDC-connecor female (6pin)
 * (optional for headphone-PCB) 1x IDC-connecor male (6pin)

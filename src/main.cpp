@@ -88,7 +88,6 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #endif
 
 #ifdef MEASURE_BATTERY_VOLTAGE
-    float refVoltage = 3.3;                         // Operation-voltage of ESP32; don't change!
     uint16_t maxAnalogValue = 4095;                 // Highest value given by analogRead(); don't change!
     uint32_t lastVoltageCheckTimestamp = 0;
     #ifdef NEOPIXEL_ENABLE
@@ -629,12 +628,12 @@ void fileHandlingTask(void *arguments) {
     float measureBatteryVoltage(void) {
         float factor = 1 / ((float) rdiv2/(rdiv2+rdiv1));
         float averagedAnalogValue = 0;
-        int i;
-        for(i=0; i<=19; i++){
+        uint8_t i;
+        for (i=0; i<=19; i++) {
             averagedAnalogValue += (float)analogRead(VOLTAGE_READ_PIN);
         }
         averagedAnalogValue /= 20.0;
-        return (averagedAnalogValue / maxAnalogValue) * refVoltage * factor;
+        return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
     }
 
     void batteryVoltageTester(void) {

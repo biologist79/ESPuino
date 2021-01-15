@@ -15,3 +15,17 @@ After your MQTT-broker is set up have look at mqttConnections.things in order to
 
 ## Important
 In openHAB it's your choice to make use of configuration via Paper UI or textfiles. Sounds basically good but in fact it's not, because mixing up both can be really crappy and painstaking to debug. Make sure to only use one way.
+
+## How does it look like?
+Depends on you like it :-) Here's some screenshots of my sitemap-presentation as described in my GitHub-repository.
+Webgui #1:
+<img src="./pictures/openhab_overview.jpg" width="300">
+
+Webgui #2:
+<img src="./pictures/openhab_trackSelection.jpg" width="300">
+
+Webgui #3:
+<img src="./pictures/openhab_sleepTimer.jpg" width="300">
+
+Webgui #4:
+<img src="./pictures/openhab_sleeping.jpg width="300">

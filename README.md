@@ -1,7 +1,7 @@
 # Tonuino based on ESP32 with I2S-DAC-support
 
 ## NEWS
-Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). As uC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
+Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). As µC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
 
 ## History
 [...]
@@ -25,16 +25,16 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
-* 13.01.2020: Added fileexlorer to webgui. Now files and directories can be renamed, uploaded and deleted via webgui.
+* 13.01.2020: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
 ## Known bugs
-* Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory.
+* Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
 ## Disclaimer
-This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
+This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself + contributors**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
 
 
 ## What's different (basically)?
-The original project makes use of microcontrollers (uC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which offers a uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with a uC using the API provided.
+The original project makes use of microcontrollers (µC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which offers an uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with a µC using the API provided.
 
 The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. However, my primary focus was to port the project to a modular base. Said this mp3-decoding is done in software with a dedicated uSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). Hopefully, not only in theory, other DACs that support I2S can be used as well.
 
@@ -52,7 +52,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [Rotary Encoder](https://de.aliexpress.com/item/33041814942.html)
 * [Buttons](https://de.aliexpress.com/item/32896285438.html)
 * [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
-* uSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
+* uSD-card: doesn't have to be a super-fast one; µC is limiting the throughput. Tested 32GB without any problems.
 * uSD in SD-MMC (1 Bit) mode: Several devkits with onboard SD slot have support for this mode, e.g.: (https://de.aliexpress.com/item/4001229463219.html)
 * optional replace the RFID-reader with a the better one: PN5180 comes with better RFID-range, less power-consumption and support for ISO-15693 / iCode SLIX2 tags (https://www.bing.com/shop?q=pn5180&FORM=SHOPTB)
 
@@ -115,26 +115,26 @@ That's why my design's focus is 3.3 V. If you want to use 5 V - do so, but be ad
 
 ## Wiring (general)
 Depending on the develboard you're using and the needs you have, there are different options available.
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments on a breadboard I soldered all the stuff onto a PCB in order to avoid wild-west-cabling. Especially for the interconnect between uC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
+A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments on a breadboard I soldered all the stuff onto a PCB in order to avoid wild-west-cabling. Especially for the interconnect between µC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
 Have a look at the PCB-folder. I provided PCBs for a number of develboards. Probably this makes things easier for you.
 
 ## Wiring (2 SPI-instances: RC522 + SD)
 Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32).<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     |                                                              |
 | 13            | SD-reader             | MOSI   |                                                              |
 | 16            | SD-reader             | MISO   |                                                              |
 | 14            | SD-reader             | SCK    |                                                              |
-| 3.3 V         | RFID-reader           | 3.3V   | (Connect directly to GPIO 17 for power-saving when uC is off)  |
+| 3.3 V         | RFID-reader           | 3.3V   | (Connect directly to GPIO 17 for power-saving when µC is off)  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA |                                                              |
 | 23            | RFID-reader           | MOSI   |                                                              |
 | 19            | RFID-reader           | MISO   |                                                              |
 | 18            | RFID-reader           | SCK    |                                                              |
-| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | MAX98357              | GND    |                                                              |
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
@@ -151,7 +151,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 3.3 V         | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 V         | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | Neopixel              | G      |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
@@ -167,7 +167,7 @@ In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-S
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | --            | SD-reader             | CS     | no CS required                                               |
 | 15            | SD-reader             | MOSI   |                                                              |
-| 2             | SD-reader             | MISO   | make sure there's no [hardware-pullup]https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg) for MISO |
+| 2             | SD-reader             | MISO   | make sure there's no [hardware-pullup](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg) for MISO |
 | 14            | SD-reader             | SCK    |                                                              |
 
 Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. Don't(!) enable `SINGLE_SPI_ENABLE`. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).
@@ -179,16 +179,16 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     | Don't share with RFID!                                       |
-| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA | Don't share with SD!                                         |
 | 23            | RFID+SD-reader        | MOSI   |                                                              |
 | 19            | RFID+SD-reader        | MISO   |                                                              |
 | 18            | RFID+SD-reader        | SCK    |                                                              |
-| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | MAX98357              | GND    |                                                              |
 | 25            | MAX98357              | DIN    |                                                              |
 | 27            | MAX98357              | BCLK   |                                                              |
@@ -205,7 +205,7 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 | GND           | Button (previous)     |        |                                                              |
 | 5             | Button (pause/play)   |        |                                                              |
 | GND           | Button (pause/play)   |        |                                                              |
-| 5 / 3.3 V     | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when uC is off  |
+| 5 / 3.3 V     | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | Neopixel              | G      |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
@@ -218,7 +218,7 @@ PN5180 reader needs two more pins, RESET and BUSY. Double check pin-conflicts! `
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when uC is off  |
+| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off  |
 | 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V        |
 | GND           | PN5180 RFID-reader    | GND    |                                                              |
 | 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                        |
@@ -373,7 +373,7 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer.
 
 ### Energy saving
-As already described in the modify-section, there are different sleepmodes available. Additionaly uC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
+As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
 
 ### MQTT (optional)
 Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT (excepting toggling WiFi-status as this doesn't make sense). All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to "encapsulate" MQTT into a nice GUI, that's accessible via APP + web. I [described](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB) a sample-config for openHAB2. However, meanwhile openHAb3 is available and all the stuff described can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend some time to get familiar with it.
@@ -385,7 +385,7 @@ Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), a
 As all assignments between RFID-IDs and actions (playmode, file to play...) is saved in ESP's NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes into play. So every time you change or add a new assignment between a RFID-tag and an action via GUI, a backup-file is saved on the uSD-card. The file's name can be changed via `backupFile`. So better don't delete it! Using the webgui you can use the upload-form to import such a file. To be honest: Sometimes I had some issues with Firefox doing this whereas Safari turned out to do it right. Don't know why :-(.
 
 ## Smarthome (optional)
-As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations refer the [subfolder](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
+As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations (and pictures) refer the [subfolder](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
 
 ## MQTT-topics and their ranges
 Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to Tonuino, you have to use a cmnd-topic whereas Tonuino pushes its states back via state-topics. So guess you want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, Tonuino sends a conformation of this command using `topicLoudnessState`. To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introducton (covers more than you need for Tonuino).

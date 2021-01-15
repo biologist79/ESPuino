@@ -16,7 +16,9 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
-* I used 390/130 kOhms-resistors as voltage-divider. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement. They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`. Hint: for Lolin D32's battery-measurement 100k+100k were used. However, I decided to change the ratio from 50/50% to 25/75% to have a "better" signal. 100/100 might be work as well; didn't test it.
+* I used 130/130 kOhms-resistors as voltage-divider for `MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`. Initially, I used 390/130k because I thought it's a good idea to have a greater signal to measure. But [as it turned out](https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/) analogRead() with a greater voltage than 3 V is a bad idea because of the flattened curve. So better use a voltage-divider with 50%/50% potential drop.
+* In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
+* `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
 * Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
 * Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
@@ -93,8 +95,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * 1x 1k resistor
 * 1x 10k resistor
 * 2x 100k resistor
-* 1x 130k resistor (can be replaced by 100k)
-* 1x 390k resistor (can be replaced by 100k)
+* 2x 130k resistor (can be replaced by 100k; don't use 390k+130k as printed in the circuit => use 2x130k instead!)
 * 5x JST-PH2.0-connector (2 Pins)
 * 3x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)

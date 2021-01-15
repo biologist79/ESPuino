@@ -12,6 +12,9 @@
 
 
 //################## GPIO-configuration ##############################
+// Please note: GPIOs 34, 35, 36, 39 are input-only and don't have pullup-resistors.
+// So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
+// Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 #ifdef SD_MMC_1BIT_MODE
     // uSD-card-reader (via SD-MMC 1Bit)
     //
@@ -69,6 +72,8 @@
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            35          // Cannot be changed, it's built in
+    float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+    float offsetVoltage = 0.2;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
 #endif
 
 #ifdef MEASURE_BATTERY_VOLTAGE

@@ -12,6 +12,9 @@
 */
 
 //################## GPIO-configuration ##############################
+// Please note: GPIOs 34, 35, 36, 39 are input-only and don't have pullup-resistors.
+// So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
+// Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 #ifdef SD_MMC_1BIT_MODE
     // uSD-card-reader (via SD-MMC 1Bit)
     //
@@ -69,10 +72,12 @@
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
+    float referenceVoltage = 3.35;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+    float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
 #endif
 
 // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
 #ifdef MEASURE_BATTERY_VOLTAGE
     uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
-    uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
+    uint16_t rdiv2 = 129;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
 #endif
