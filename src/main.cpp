@@ -72,6 +72,7 @@
 #include <ArduinoJson.h>
 #include <nvsDump.h>
 
+#include "freertos/ringbuf.h"
 
 
 // Serial-logging buffer
@@ -276,6 +277,7 @@ AsyncEventSource events("/events");
 
 TaskHandle_t mp3Play;
 TaskHandle_t rfid;
+TaskHandle_t fileStorageTaskHandle;
 
 #ifdef NEOPIXEL_ENABLE
     TaskHandle_t LED;
@@ -338,6 +340,8 @@ QueueHandle_t trackQueue;
 QueueHandle_t trackControlQueue;
 QueueHandle_t rfidCardQueue;
 
+RingbufHandle_t explorerFileUploadRingBuffer;
+QueueHandle_t explorerFileUploadStatusQueue;
 
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
@@ -359,6 +363,7 @@ bool getWifiEnableStatusFromNVS(void);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 void convertUtf8ToAscii(String utf8String, char *asciiString);
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void explorerHandleFileStorageTask(void *parameter);
 void explorerHandleListRequest(AsyncWebServerRequest *request);
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
 void explorerHandleCreateRequest(AsyncWebServerRequest *request);
@@ -3738,30 +3743,97 @@ void convertUtf8ToAscii(String utf8String, char *asciiString) {
 // Handles file upload request from the explorer
 // requires a GET parameter path, as directory path to the file
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+
+    // New File
     if (!index) {
+        String utf8FilePath;
+        static char asciiFilePath[256];
         if (request->hasParam("path")) {
             AsyncWebParameter *param = request->getParam("path");
-            String utf8FilePath = param->value() + "/" + filename;
-            char asciiFilePath[256];
-            convertUtf8ToAscii(utf8FilePath, asciiFilePath);
-            request->_tempFile = FSystem.open( asciiFilePath, "w");
+            utf8FilePath = param->value() + "/" + filename;
+
         } else {
-            request->_tempFile = FSystem.open("/" + filename, "w");
+            utf8FilePath = "/" + filename;
         }
-        snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), filename);
-        loggerNl(logBuf, LOGLEVEL_INFO);
-        // open the file on first call and store the file handle in the request object
+        convertUtf8ToAscii(utf8FilePath, asciiFilePath);
+
+        // Create Ringbuffer for upload
+        if(explorerFileUploadRingBuffer == NULL) {
+            explorerFileUploadRingBuffer = xRingbufferCreate(4096, RINGBUF_TYPE_BYTEBUF);
+        }
+
+        // Create Queue for receiving a signal from the store task as synchronisation
+        if(explorerFileUploadStatusQueue == NULL) {
+            explorerFileUploadStatusQueue = xQueueCreate(1, sizeof(uint8_t));
+        }
+
+        // Create Task for handling the storage of the data
+        xTaskCreate(
+            explorerHandleFileStorageTask, /* Function to implement the task */
+            "fileStorageTask", /* Name of the task */
+            4000,  /* Stack size in words */
+            asciiFilePath,  /* Task input parameter */
+            2 | portPRIVILEGE_BIT,  /* Priority of the task */
+            &fileStorageTaskHandle  /* Task handle. */
+        );
+
+        lastTimeActiveTimestamp = millis();
+
     }
 
     if (len) {
-        // stream the incoming chunk to the opened file
-        request->_tempFile.write(data, len);
+        // stream the incoming chunk to the ringbuffer
+        xRingbufferSend(explorerFileUploadRingBuffer, data, len, portTICK_PERIOD_MS * 1000);
     }
 
     if (final) {
-        // close the file handle as the upload is now done
-        request->_tempFile.close();
+        // notify storage task that last data was stored on the ring buffer
+        xTaskNotify(fileStorageTaskHandle, 1u, eNoAction);
+        // watit until the storage task is sending the signal to finish
+        uint8_t signal;
+        xQueueReceive(explorerFileUploadStatusQueue, &signal, portMAX_DELAY);
+
+        // delete task
+        vTaskDelete(fileStorageTaskHandle);
     }
+}
+
+void explorerHandleFileStorageTask(void *parameter) {
+
+    File uploadFile;
+    size_t item_size;
+    uint8_t *item;
+    uint8_t value = 0;
+
+    BaseType_t uploadFileNotification;
+    uint32_t uploadFileNotificationValue;
+
+    uploadFile = FSystem.open((char *)parameter, "w");
+
+    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), parameter);
+    loggerNl(logBuf, LOGLEVEL_INFO);
+
+    for(;;) {
+        esp_task_wdt_reset();
+
+        item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
+        if (item != NULL) {
+            uploadFile.write(item, item_size);
+            vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+        } else {
+            // No data in the buffer, check if all data arrived for the file
+            uploadFileNotification = xTaskNotifyWait(0,0,&uploadFileNotificationValue,0);
+            if(uploadFileNotification == pdPASS) {
+                uploadFile.close();
+                // done exit loop to terminate
+                break;
+            }
+            vTaskDelay(portTICK_PERIOD_MS * 100);
+        }
+    }
+    // send signal to upload function to terminate
+    xQueueSend(explorerFileUploadStatusQueue, &value, 0);
+    vTaskDelete(NULL);
 }
 
 // Sends a list of the content of a directory as JSON file
@@ -3805,6 +3877,8 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
         entry["dir"].set(file.isDirectory());
 
         file = root.openNextFile();
+
+        esp_task_wdt_reset();
 
     }
 
@@ -3851,6 +3925,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
         loggerNl("DELETE: No path variable set", LOGLEVEL_ERROR);
     }
     request->send(200);
+    esp_task_wdt_reset();
 }
 
 // Handles create request of a directory
