@@ -2357,7 +2357,7 @@ void sleepHandler(void) {
 #ifdef PN5180_ENABLE_LPCD
 // goto low power card detection mode
 void gotoLPCD() {
-    static PN5180ISO14443 nfc(RFID_CS, RFID_BUSY, RFID_RST);
+    static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
     nfc.begin();
     // show PN5180 reader version
     uint8_t firmwareVersion[2];
@@ -2369,71 +2369,11 @@ void gotoLPCD() {
     // check firmware version: PN5180 firmware < 4.0 has several bugs preventing the LPCD mode
     // you can flash latest firmware with this project: https://github.com/abidxraihan/PN5180_Updater_ESP32
     if (firmwareVersion[1] < 4) {
-       Serial.println(F("This PN5180 firmware does not work with LPCD!"));
+       Serial.println(F("This PN5180 firmware does not work with LPCD! use firmware >= 4.0"));
        return;
     }
-    Serial.println(F("Prepare PN5180 for LPCD..."));
-    nfc.reset();
-    nfc.clearIRQStatus(0xffffffff);
-    Serial.println("RFID_IRQ: " + digitalRead(RFID_IRQ)); //reads 0 because IRQ pin pin config is set to active high (eeprom@0x1A)  //should read 1 because when interrupt is raised GPIO4 is LOW
-    Serial.println(F("Reading IRQ-Pin..."));
-    uint8_t irqPin[1];
-    nfc.readEEprom(IRQ_PIN_CONFIG, irqPin, sizeof(irqPin));
-    Serial.print(F("irqPin="));
-    Serial.println(irqPin[0]); //should read 1 i.e. pin IRQ is high(bolean 1/3.3v) when active(interrupted)  
-  
-    //=======================================LPCD CONFIG================================================================================
-    Serial.println(F("----------------------------------"));
-    Serial.println(F("start LPCD..."));
-
-    uint8_t data[255];
-    uint8_t response[256];
-    //1. Set Fieldon time                                           LPCD_FIELD_ON_TIME (0x36)
-    uint8_t fieldOn = 0xF0;//0x## -> ##(base 10) x 8μs + 62 μs
-    data[0] = fieldOn;
-    nfc.writeEEprom(0x36, data, 1);
-    nfc.readEEprom(0x36, response, 1);
-    fieldOn = response[0];
-    Serial.print(F("LPCD-fieldOn time: "));
-    Serial.println(fieldOn, HEX);
-
-    //2. Set threshold level                                         AGC_LPCD_THRESHOLD @ EEPROM 0x37
-    uint8_t threshold = 0x03;
-    data[0] = threshold;
-    nfc.writeEEprom(0x37, data, 1);
-    nfc.readEEprom(0x37, response, 1);
-    threshold = response[0];
-    Serial.print(F("LPCD-threshold: "));
-    Serial.println(threshold, HEX);
-
-    //4. Select LPCD mode                                            LPCD_REFVAL_GPO_CONTROL (0x38)                                            
-    uint8_t lpcdMode = 0x01; // 1 = LPCD SELF CALIBRATION 
-                             // 0 = LPCD AUTO CALIBRATION (this mode does not work, should look more into it, no reason why it shouldn't work)
-    data[0] = lpcdMode;
-    nfc.writeEEprom(0x38, data, 1);
-    nfc.readEEprom(0x38, response, 1);
-    lpcdMode = response[0];
-    Serial.print(F("lpcdMode: "));
-    Serial.println(lpcdMode, HEX);
-  
-    // LPCD_GPO_TOGGLE_BEFORE_FIELD_ON (0x39)
-    uint8_t beforeFieldOn = 0xF0; 
-    data[0] = beforeFieldOn;
-    nfc.writeEEprom(0x39, data, 1);
-    nfc.readEEprom(0x39, response, 1);
-    beforeFieldOn = response[0];
-    Serial.print(F("beforeFieldOn: "));
-    Serial.println(beforeFieldOn, HEX);
-  
-    // LPCD_GPO_TOGGLE_AFTER_FIELD_ON (0x3A)
-    uint8_t afterFieldOn = 0xF0; 
-    data[0] = afterFieldOn;
-    nfc.writeEEprom(0x3A, data, 1);
-    nfc.readEEprom(0x3A, response, 1);
-    afterFieldOn = response[0];
-    Serial.print(F("afterFieldOn: "));
-    Serial.println(afterFieldOn, HEX);
-    delay(100);
+    Serial.println(F("prepare low power card detection..."));
+    nfc.prepareLPCD();
     nfc.clearIRQStatus(0xffffffff);
     Serial.print(F("PN5180 IRQ PIN: ")); Serial.println(digitalRead(RFID_IRQ));
     // turn on LPCD
