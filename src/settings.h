@@ -22,6 +22,7 @@
 #define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
 #define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 #define LANGUAGE 1                  // 1 = deutsch; 2 = english
+//#define STATIC_IP_ENABLE            // Enables static IP-configuration (change static ip-section accordingly)
 //#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 #define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 #define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
@@ -50,6 +51,14 @@
 
 // Serial-logging-configuration
 const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for serial console
+
+// Static ip-configuration
+#ifdef STATIC_IP_ENABLE
+    IPAddress local_IP(192, 168, 2, 100);           // Tonuino's IP
+    IPAddress gateway(192, 168, 2, 1);              // IP of the gateway/router
+    IPAddress subnet(255, 255, 255, 0);             // Netmask of your network (/24 => 255.255.255.0)
+    IPAddress primaryDNS(192, 168, 2, 1);           // DNS-server of your network; in private networks it's usually the gatewy's IP
+#endif
 
 // Buttons (better leave unchanged if in doubts :-))
 uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons

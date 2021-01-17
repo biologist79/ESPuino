@@ -26,6 +26,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
 * 13.01.2020: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
+* 17.01.2020: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.

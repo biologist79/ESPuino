@@ -169,3 +169,5 @@ static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";
 static const char freeHeapWithFtp[] PROGMEM = "Freier Heap-Speicher nach FTP-Instanzierung";
 static const char freeHeapAfterSetup[] PROGMEM = "Freier Heap-Speicher nach Setup-Routine";
+static const char tryStaticIpConfig[] PROGMEM = "Statische IP-Konfiguration wird durchgeführt...";
+static const char staticIPConfigFailed[] PROGMEM = "Statische IP-Konfiguration fehlgeschlagen";
