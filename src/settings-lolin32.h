@@ -42,6 +42,8 @@
 #ifdef RFID_READER_TYPE_PN5180
     #define RFID_BUSY                   16          // PN5180 BUSY PIN
     #define RFID_RST                    22          // PN5180 RESET PIN
+    #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)
+	#define BUTTON_PIN_BITMASK          0x8000000000// 2^RFID_IRQ in hex
 #endif
 // I2S (DAC)
 #define I2S_DOUT                        25          // Digital out (I2S)

@@ -171,3 +171,5 @@ static const char freeHeapWithFtp[] PROGMEM = "Free heap after FTP-allocation";
 static const char freeHeapAfterSetup[] PROGMEM = "Free heap after setup";
 static const char tryStaticIpConfig[] PROGMEM = "Performing static IP-configuration...";
 static const char staticIPConfigFailed[] PROGMEM = "Static IP-configuration failed";
+static const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power card-detection. RF-field changed but no ISO-14443 card on reader was found. So I'll return back to sleep now...";
+static const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";

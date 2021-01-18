@@ -27,6 +27,7 @@ Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://gi
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
 * 13.01.2020: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
 * 17.01.2020: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration
+* 18.01.2020: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
@@ -101,7 +102,7 @@ Advantages SD-MMC (1 bit) over SPI:
 So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the uSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a 10k-resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high at boot, ESP32 doesn't enter flash-mode. As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in Tonuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set, pullup is done in software using `pinMode(2, INPUT_PULLUP);`.
 
 ## RFID: RC522 or PN5180?
-RC522 is so to say the Tonuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies). Disadvantages: is a bit more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V make sure to connect PN5180 to +5V AND 3.3V. Sounds weird but it's necessary.
+RC522 is so to say the Tonuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies). You can also wake-up the board with the card. Disadvantages: is a bit more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V make sure to connect PN5180 to +5V AND 3.3V. Sounds weird but it's necessary.
 
 ## 3.3 or 5V?
 * Why 3.3V? Because: if you plan to use battery-mode with a LiPo, there's no 5 V available (unless USB is connected).
@@ -215,19 +216,22 @@ In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make su
 
 
 ## Wiring (PN5180 instead of MFRC522) different to above
-PN5180 reader needs two more pins, RESET and BUSY. Double check pin-conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522` if doing so!
+PN5180-reader needs at least two more GPIOs: RESET and BUSY. Double check pin-conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522` if doing so!
+You can enable low power card-detection with `PN5180_ENABLE_LPCD`, but this needs another GPIO for IRQ. With low power card detection (LPCD) you can wake-up the ESP32 from deep-sleep just by applying a card to the reader. You need a PN5180-firmware >= 4.0. Most china-boards comes with older firmware. The latest firmware can be flashed with this [project](https://github.com/abidxraihan/PN5180_Updater_ESP32).
 
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
-| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off  |
-| 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V        |
-| GND           | PN5180 RFID-reader    | GND    |                                                              |
-| 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                        |
-| 23            | PN5180 RFID-reader    | MOSI   | Same as MFRC522                                              |
-| 19            | PN5180 RFID-reader    | MISO   | Same as MFRC522                                              |
-| 18            | PN5180 RFID-reader    | SCK    | Same as MFRC522                                              |
-| 16            | PN5180 RFID-reader    | BUSY   | be aware of SD MISO if running in SPI mode                   |
-| 22            | PN5180 RFID-reader    | RST    | be aware of Headphone jack PIN                               |
+| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                           |
+| ------------- | --------------------- | ------ | ----------------------------------------------------------------- |
+| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off       |
+| 3.3 V         |                       | 3.3V   | For low power card detection mode (LPCD) connect directly to 3.3V |
+| 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V             |
+| GND           | PN5180 RFID-reader    | GND    |                                                                   |
+| 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                             |
+| 23            | PN5180 RFID-reader    | MOSI   | Same as MFRC522                                                   |
+| 19            | PN5180 RFID-reader    | MISO   | Same as MFRC522                                                   |
+| 18            | PN5180 RFID-reader    | SCK    | Same as MFRC522                                                   |
+| 16            | PN5180 RFID-reader    | BUSY   | be aware of SD MISO if running in SPI mode                        |
+| 22            | PN5180 RFID-reader    | RST    | be aware of Headphone jack PIN                                    |
+| 39            | PN5180 RFID-reader    | IRQ    | optional, used for low power card detection (LPCD)                |
 
 ## Wiring (custom) / different pinout
 When using a develboard with SD-card-reader already integrated (Lolin D32 Pro, several TTGO-boards), the pinouts described above my not fit. Feel free to change them according your needs. Additionaly some boards may use one or some of the GPIOs I used for their internal purposes and that reason for are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start/boot for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
