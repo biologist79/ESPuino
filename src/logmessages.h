@@ -169,3 +169,5 @@ static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";
 static const char freeHeapWithFtp[] PROGMEM = "Freier Heap-Speicher nach FTP-Instanzierung";
 static const char freeHeapAfterSetup[] PROGMEM = "Freier Heap-Speicher nach Setup-Routine";
+static const char wakeUpRfidNoIso14443[] PROGMEM = "ESP32 wurde vom Kartenleser aus dem Deepsleep aufgeweckt. Allerdings wurde keine ISO-14443-Karte gefunden. Gehe zurück in den Deepsleep...";
+static const char lowPowerCardSuccess[] PROGMEM = "Kartenerkennung via 'low power' erfolgreich durchgeführt";
