@@ -3795,6 +3795,8 @@ void convertUtf8ToAscii(String utf8String, char *asciiString) {
 // requires a GET parameter path, as directory path to the file
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 
+    lastTimeActiveTimestamp = millis();
+
     // New File
     if (!index) {
         String utf8FilePath;
@@ -3827,8 +3829,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
             2 | portPRIVILEGE_BIT,  /* Priority of the task */
             &fileStorageTaskHandle  /* Task handle. */
         );
-
-        lastTimeActiveTimestamp = millis();
 
     }
 
