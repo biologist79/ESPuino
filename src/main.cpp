@@ -372,8 +372,8 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 void explorerHandleAudioRequest(AsyncWebServerRequest *request);
 void headphoneVolumeManager(void);
 bool isNumber(const char *str);
-void loggerNl(const char *str, const uint8_t logLevel);
-void logger(const char *str, const uint8_t logLevel);
+void loggerNl(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
+void logger(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
 float measureBatteryVoltage(void);
 #ifdef MQTT_ENABLE
     bool publishMqtt(const char *topic, const char *payload, bool retained);
@@ -405,17 +405,24 @@ void volumeToQueueSender(const int32_t _newVolume);
 wl_status_t wifiManager(void);
 bool writeWifiStatusToNVS(bool wifiStatus);
 
-/* Wrapper-Funktion for Serial-logging (with newline) */
-void loggerNl(const char *str, const uint8_t logLevel) {
-  if (serialDebug >= logLevel) {
-    Serial.println(str);
+
+/* Wrapper-function for serial-logging (with newline)
+    _currentLogLevel: loglevel that's currently active
+    _logBuffer: char* to log
+    _minLogLevel: loglevel configured for this message.
+
+    If (_currentLogLevel <= _minLogLevel) message will be logged
+*/
+void loggerNl(const uint8_t _currentLogLevel, const char *_logBuffer, const uint8_t _minLogLevel) {
+  if (_currentLogLevel >= _minLogLevel) {
+    Serial.println(_logBuffer);
   }
 }
 
-/* Wrapper-Funktion for Serial-Logging (without newline) */
-void logger(const char *str, const uint8_t logLevel) {
-  if (serialDebug >= logLevel) {
-    Serial.print(str);
+/* Wrapper-function for serial-logging (without newline) */
+void logger(const uint8_t _currentLogLevel, const char *_logBuffer, const uint8_t _minLogLevel) {
+  if (_currentLogLevel >= _minLogLevel) {
+    Serial.print(_logBuffer);
   }
 }
 
@@ -450,12 +457,12 @@ void IRAM_ATTR onTimer() {
             recoverLastRfid = false;
             String lastRfidPlayed = prefsSettings.getString("lastRfid", "-1");
             if (!lastRfidPlayed.compareTo("-1")) {
-                loggerNl((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
+                loggerNl(serialDebug,((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
             } else {
                 char *lastRfid = strdup(lastRfidPlayed.c_str());
                 xQueueSend(rfidCardQueue, &lastRfid, 0);
                 snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
-                loggerNl(logBuf, LOGLEVEL_INFO);
+                loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             }
         }
     }
@@ -464,19 +471,19 @@ void IRAM_ATTR onTimer() {
 // Creates a new file on the SD-card.
 void createFile(fs::FS &fs, const char * path, const char * message) {
     snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), path);
-    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
     File file = fs.open(path, FILE_WRITE);
     if (!file) {
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(failedOpenFileForWrite));
-        loggerNl(logBuf, LOGLEVEL_ERROR);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         return;
     }
     if (file.print(message)) {
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(fileWritten));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
     } else {
         snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(writeFailed));
-        loggerNl(logBuf, LOGLEVEL_ERROR);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
     }
     file.close();
 }
@@ -502,13 +509,13 @@ bool isFirstJSONtNode = true;
 void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, const char *parent, const char *type ) {
     // Serial.printf("Appending to file: %s\n", path);
     snprintf(logBuf, serialLoglength, "%s: %s\n", (char *) FPSTR(listingDirectory), filename);
-    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
     File file = fs.open(path, FILE_APPEND);
     // i/o is timing critical keep all stuff running
     esp_task_wdt_reset();
     if (!file) {
         snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenFileForAppending));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
@@ -558,13 +565,13 @@ void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint
 
     if (!root) {
         snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenDirectory));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
     if (!root.isDirectory()) {
         snprintf(logBuf, serialLoglength, (char *) FPSTR(notADirectory));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
         return;
     }
     File file = root.openNextFile();
@@ -628,9 +635,9 @@ void fileHandlingTask(void *arguments) {
     vTaskDelete( NULL );
 }
 
-// Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
-// The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
+
 #ifdef MEASURE_BATTERY_VOLTAGE
+    // The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
     float measureBatteryVoltage(void) {
         float factor = 1 / ((float) rdiv2/(rdiv2+rdiv1));
         float averagedAnalogValue = 0;
@@ -642,13 +649,14 @@ void fileHandlingTask(void *arguments) {
         return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
     }
 
+    // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
     void batteryVoltageTester(void) {
         if ((millis() - lastVoltageCheckTimestamp >= voltageCheckInterval*60000) || (!lastVoltageCheckTimestamp && millis()>=10000)) {
             float voltage = measureBatteryVoltage();
             #ifdef NEOPIXEL_ENABLE
                 if (voltage <= warningLowVoltage) {
                     snprintf(logBuf, serialLoglength, "%s: (%.2f V)", (char *) FPSTR(voltageTooLow), voltage);
-                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                     showVoltageWarning = true;
                 }
             #endif
@@ -659,7 +667,7 @@ void fileHandlingTask(void *arguments) {
                 publishMqtt((char *) FPSTR(topicBatteryVoltage), vstr, false);
             #endif
             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             lastVoltageCheckTimestamp = millis();
         }
     }
@@ -783,7 +791,7 @@ void doButtonActions(void) {
                         #ifdef MEASURE_BATTERY_VOLTAGE
                             float voltage = measureBatteryVoltage();
                             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
-                            loggerNl(logBuf, LOGLEVEL_INFO);
+                            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                             #ifdef NEOPIXEL_ENABLE
                                 showLedVoltage = true;
                             #endif
@@ -834,12 +842,15 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 }
 
 
-/* Cyclic posting via MQTT that ESP is still alive  */
+/* Cyclic posting via MQTT that ESP is still alive. Use case: when Tonuino is switched off, it will post via
+   MQTT it's gonna be offline now. But when unplugging Tonuino e.g. openHAB doesn't know Tonuino is offline.
+   One way to recognize this is to determine, when a topic has been updated for the last time. So by
+   telling openHAB connection is timed out after 2mins for instance, this is the right topic to check for.  */
 void postHeartbeatViaMqtt(void) {
     if (millis() - lastOnlineTimestamp >= stillOnlineInterval*1000) {
         lastOnlineTimestamp = millis();
         if (publishMqtt((char *) FPSTR(topicState), "Online", false)) {
-            loggerNl((char *) FPSTR(stillOnlineMqtt), LOGLEVEL_DEBUG);
+            loggerNl(serialDebug, (char *) FPSTR(stillOnlineMqtt), LOGLEVEL_DEBUG);
         }
     }
 }
@@ -861,22 +872,22 @@ bool reconnect() {
   while (!MQTTclient.connected() && i < mqttMaxRetriesPerInterval) {
     i++;
     snprintf(logBuf, serialLoglength, "%s %s", (char *) FPSTR(tryConnectMqttS), mqtt_server);
-    loggerNl(logBuf, LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
     // Try to connect to MQTT-server. If username AND password are set, they'll be used
     if (strlen(mqttUser) < 1 || strlen(mqttPassword) < 1) {
-        loggerNl((char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, (char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
         if (MQTTclient.connect(DEVICE_HOSTNAME)) {
             connect = true;
         }
     } else {
-        loggerNl((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, (char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
         if (MQTTclient.connect(DEVICE_HOSTNAME, mqttUser, mqttPassword)) {
             connect = true;
         }
     }
     if (connect) {
-        loggerNl((char *) FPSTR(mqttOk), LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, (char *) FPSTR(mqttOk), LOGLEVEL_NOTICE);
 
         // Deepsleep-subscription
         MQTTclient.subscribe((char *) FPSTR(topicSleepCmnd));
@@ -919,7 +930,7 @@ bool reconnect() {
         return MQTTclient.connected();
     } else {
         snprintf(logBuf, serialLoglength, "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), MQTTclient.state(), i, mqttMaxRetriesPerInterval);
-        loggerNl(logBuf, LOGLEVEL_ERROR);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
     }
   }
   return false;
@@ -932,7 +943,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     char *mqttTopic = strdup(topic);
 
     snprintf(logBuf, serialLoglength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 
     // Go to sleep?
     if (strcmp_P(topic, topicSleepCmnd) == 0) {
@@ -957,7 +968,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     // Modify sleep-timer?
     else if (strcmp_P(topic, topicSleepTimerCmnd) == 0) {
         if (playProperties.playMode == NO_PLAYLIST) {       // Don't allow sleep-modications if no playlist is active
-            loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_INFO);
             publishMqtt((char *) FPSTR(topicSleepState), 0, false);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
@@ -966,14 +977,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
         }
         if (strcmp(receivedString, "EOP") == 0) {
             playProperties.sleepAfterPlaylist = true;
-            loggerNl((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
             return;
         } else if (strcmp(receivedString, "EOT") == 0) {
             playProperties.sleepAfterCurrentTrack = true;
-            loggerNl((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -984,7 +995,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
             } else {
                 playProperties.sleepAfterPlaylist = true;
             }
-            loggerNl((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -992,14 +1003,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
         } else if (strcmp(receivedString, "0") == 0) {
             if (sleepTimerStartTimestamp) {
                 sleepTimerStartTimestamp = 0;
-                loggerNl((char *) FPSTR(sleepTimerStop), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(sleepTimerStop), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
                 #endif
                 publishMqtt((char *) FPSTR(topicSleepState), 0, false);
                 return;
             } else {
-                loggerNl((char *) FPSTR(sleepTimerAlreadyStopped), LOGLEVEL_INFO);
+                loggerNl(serialDebug, (char *) FPSTR(sleepTimerAlreadyStopped), LOGLEVEL_INFO);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -1008,7 +1019,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
         }
         sleepTimer = strtoul(receivedString, NULL, 10);
         snprintf(logBuf, serialLoglength, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), sleepTimer);
-        loggerNl(logBuf, LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
         #ifdef NEOPIXEL_ENABLE
             showLedOk = true;
         #endif
@@ -1027,14 +1038,14 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     else if (strcmp_P(topic, topicLockControlsCmnd) == 0) {
         if (strcmp(receivedString, "OFF") == 0) {
             lockControls = false;
-            loggerNl((char *) FPSTR(allowButtons), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(allowButtons), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
 
         } else if (strcmp(receivedString, "ON") == 0) {
             lockControls = true;
-            loggerNl((char *) FPSTR(lockButtons), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(lockButtons), LOGLEVEL_NOTICE);
             #ifdef NEOPIXEL_ENABLE
                 showLedOk = true;
             #endif
@@ -1050,7 +1061,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
             if (playProperties.playMode == NO_PLAYLIST) {
                 snprintf(rBuf, 2, "%u", getRepeatMode());
 				publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                loggerNl((char *) FPSTR(noPlaylistNotAllowedMqtt), LOGLEVEL_ERROR);
+                loggerNl(serialDebug, (char *) FPSTR(noPlaylistNotAllowedMqtt), LOGLEVEL_ERROR);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -1061,7 +1072,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         playProperties.repeatPlaylist = false;
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                        loggerNl((char *) FPSTR(modeRepeatNone), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(modeRepeatNone), LOGLEVEL_INFO);
                         #ifdef NEOPIXEL_ENABLE
                             showLedOk = true;
                         #endif
@@ -1072,7 +1083,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         playProperties.repeatPlaylist = false;
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                        loggerNl((char *) FPSTR(modeRepeatTrack), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(modeRepeatTrack), LOGLEVEL_INFO);
                         #ifdef NEOPIXEL_ENABLE
                             showLedOk = true;
                         #endif
@@ -1083,7 +1094,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         playProperties.repeatPlaylist = true;
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                        loggerNl((char *) FPSTR(modeRepeatPlaylist), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(modeRepeatPlaylist), LOGLEVEL_INFO);
                         #ifdef NEOPIXEL_ENABLE
                             showLedOk = true;
                         #endif
@@ -1094,7 +1105,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
                         playProperties.repeatPlaylist = true;
                         snprintf(rBuf, 2, "%u", getRepeatMode());
 				        publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
-                        loggerNl((char *) FPSTR(modeRepeatTracknPlaylist), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(modeRepeatTracknPlaylist), LOGLEVEL_INFO);
                         #ifdef NEOPIXEL_ENABLE
                             showLedOk = true;
                         #endif
@@ -1120,7 +1131,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     // Requested something that isn't specified?
     else {
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(noValidTopic), topic);
-        loggerNl(logBuf, LOGLEVEL_ERROR);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
             showLedError = true;
         #endif
@@ -1175,8 +1186,8 @@ bool endsWith (const char *str, const char *suf) {
 void freeMultiCharArray(char **arr, const uint32_t cnt) {
     for (uint32_t i=0; i<=cnt; i++) {
         /*snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(freePtr), *(arr+i));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);*/
-    free(*(arr+i));
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);*/
+        free(*(arr+i));
     }
   *arr = NULL;
 }
@@ -1257,18 +1268,18 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     char fileNameBuf[255];
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
-    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
 
     if (files != NULL) {        // If **ptr already exists, de-allocate its memory
-        loggerNl((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, (char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
         --files;
         freeMultiCharArray(files, strtoul(*files, NULL, 10));
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
     }
 
     if (!_fileOrDirectory) {
-        loggerNl((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
         return NULL;
     }
 
@@ -1276,13 +1287,13 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     if (!_fileOrDirectory.isDirectory()) {
         files = (char **) malloc(sizeof(char *) * 2);        // +1 because [0] is used for number of elements; [1] -> [n] is used for payload
         if (files == NULL) {
-            loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
             return NULL;
         }
-        loggerNl((char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
+        loggerNl(serialDebug, (char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
         strncpy(fileNameBuf, (char *) _fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
         if (fileValid(fileNameBuf)) {
             files = (char **) malloc(sizeof(char *) * 2);
@@ -1311,12 +1322,12 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
             // Don't support filenames that start with "." and only allow .mp3
             if (fileValid(fileNameBuf)) {
                 /*snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
-                loggerNl(logBuf, LOGLEVEL_INFO);*/
+                loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);*/
                 if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
                     serializedPlaylist = (char*) realloc(serializedPlaylist, ++allocCount * allocSize);
-                    loggerNl((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
+                    loggerNl(serialDebug, (char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
                     if (serializedPlaylist == NULL) {
-                        loggerNl((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+                        loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
                         #ifdef NEOPIXEL_ENABLE
                             showLedError = true;
                         #endif
@@ -1340,7 +1351,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     // Alloc only necessary number of playlist-pointers
     files = (char **) malloc(sizeof(char *) * cnt + 1);
     if (files == NULL) {
-        loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
             showLedError = true;
         #endif
@@ -1361,7 +1372,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 
     files[0] = (char *) malloc(sizeof(char) * 5);
     if (files[0] == NULL) {
-        loggerNl((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
             showLedError = true;
         #endif
@@ -1369,7 +1380,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     }
     sprintf(files[0], "%u", cnt);
     snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(numberOfValidFiles), cnt);
-    loggerNl(logBuf, LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
     return ++files;         // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
 }
@@ -1404,8 +1415,8 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     #else
         snprintf(logBuf, serialLoglength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     #endif
-    logger(logBuf, LOGLEVEL_INFO);
-    loggerNl(prefBuf, LOGLEVEL_INFO);
+    logger(serialDebug, logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, prefBuf, LOGLEVEL_INFO);
     #ifdef NEOPIXEL_ENABLE
         pauseNeopixel = false;
     #endif
@@ -1428,7 +1439,7 @@ void playAudio(void *parameter) {
     for (;;) {
         if (xQueueReceive(volumeQueue, &currentVolume, 0) == pdPASS ) {
             snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             audio.setVolume(currentVolume);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLoudnessState), currentVolume, false);
@@ -1437,7 +1448,7 @@ void playAudio(void *parameter) {
 
         if (xQueueReceive(trackControlQueue, &trackCommand, 0) == pdPASS) {
             snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(newCntrlReceivedQueue), trackCommand);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         }
 
         trackQStatus = xQueueReceive(trackQueue, &playProperties.playlist, 0);
@@ -1452,7 +1463,7 @@ void playAudio(void *parameter) {
                 #else
                     snprintf(logBuf, serialLoglength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
                 #endif
-                loggerNl(logBuf, LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
                 Serial.print(F("Free heap: "));
                 Serial.println(ESP.getFreeHeap());
 
@@ -1482,7 +1493,7 @@ void playAudio(void *parameter) {
                 if (!playProperties.repeatCurrentTrack) {   // If endless-loop requested, track-number will not be incremented
                     playProperties.currentTrackNumber++;
                 } else {
-                    loggerNl((char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
                     #ifdef NEOPIXEL_ENABLE
                         showRewind = true;
                     #endif
@@ -1490,7 +1501,7 @@ void playAudio(void *parameter) {
             }
 
             if (playProperties.playlistFinished && trackCommand != 0) {
-                loggerNl((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
                 trackCommand = 0;
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
@@ -1503,7 +1514,7 @@ void playAudio(void *parameter) {
                 case STOP:
                     audio.stopSong();
                     trackCommand = 0;
-                    loggerNl((char *) FPSTR(cmndStop), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(cmndStop), LOGLEVEL_INFO);
                     playProperties.pausePlay = true;
                     playProperties.playlistFinished = true;
                     playProperties.playMode = NO_PLAYLIST;
@@ -1512,10 +1523,10 @@ void playAudio(void *parameter) {
                 case PAUSEPLAY:
                     audio.pauseResume();
                     trackCommand = 0;
-                    loggerNl((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(cmndPause), LOGLEVEL_INFO);
                     if (playProperties.saveLastPlayPosition && !playProperties.pausePlay) {
-                        snprintf(logBuf, serialLoglength, "%s: %u", FPSTR(trackPausedAtPos), audio.getFilePos());
-                        loggerNl(logBuf, LOGLEVEL_INFO);
+                        snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(trackPausedAtPos), audio.getFilePos());
+                        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), audio.getFilePos(), playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
                     }
                     playProperties.pausePlay = !playProperties.pausePlay;
@@ -1538,14 +1549,14 @@ void playAudio(void *parameter) {
                         playProperties.currentTrackNumber++;
                         if (playProperties.saveLastPlayPosition) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
-                            loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
-                        loggerNl((char *) FPSTR(cmndNextTrack), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(cmndNextTrack), LOGLEVEL_INFO);
                         if (!playProperties.playlistFinished) {
                             audio.stopSong();
                         }
                     } else {
-                        loggerNl((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
+                        loggerNl(serialDebug, (char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
                         trackCommand = 0;
                         #ifdef NEOPIXEL_ENABLE
                             showLedError = true;
@@ -1575,16 +1586,16 @@ void playAudio(void *parameter) {
                         }
                         if (playProperties.saveLastPlayPosition) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
-                            loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
 
-                        loggerNl((char *) FPSTR(cmndPrevTrack), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(cmndPrevTrack), LOGLEVEL_INFO);
                         if (!playProperties.playlistFinished) {
                             audio.stopSong();
                         }
                     } else {
                         if (playProperties.playMode == WEBSTREAM) {
-                            loggerNl((char *) FPSTR(trackChangeWebstream), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackChangeWebstream), LOGLEVEL_INFO);
                             #ifdef NEOPIXEL_ENABLE
                                 showLedError = true;
                             #endif
@@ -1607,7 +1618,7 @@ void playAudio(void *parameter) {
                                 playProperties.trackFinished = true;
                                 continue;
                             }
-                            loggerNl((char *) FPSTR(trackStart), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackStart), LOGLEVEL_INFO);
                             trackCommand = 0;
                             continue;
                     }
@@ -1623,14 +1634,14 @@ void playAudio(void *parameter) {
                         playProperties.currentTrackNumber = 0;
                         if (playProperties.saveLastPlayPosition) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
-                            loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
-                        loggerNl((char *) FPSTR(cmndFirstTrack), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(cmndFirstTrack), LOGLEVEL_INFO);
                         if (!playProperties.playlistFinished) {
                             audio.stopSong();
                         }
                     } else {
-                        loggerNl((char *) FPSTR(firstTrackAlreadyActive), LOGLEVEL_NOTICE);
+                        loggerNl(serialDebug, (char *) FPSTR(firstTrackAlreadyActive), LOGLEVEL_NOTICE);
                         #ifdef NEOPIXEL_ENABLE
                             showLedError = true;
                         #endif
@@ -1649,14 +1660,14 @@ void playAudio(void *parameter) {
                         playProperties.currentTrackNumber = playProperties.numberOfTracks-1;
                         if (playProperties.saveLastPlayPosition) {
                             nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + playProperties.currentTrackNumber), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
-                            loggerNl((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+                            loggerNl(serialDebug, (char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
                         }
-                        loggerNl((char *) FPSTR(cmndLastTrack), LOGLEVEL_INFO);
+                        loggerNl(serialDebug, (char *) FPSTR(cmndLastTrack), LOGLEVEL_INFO);
                         if (!playProperties.playlistFinished) {
                             audio.stopSong();
                         }
                     } else {
-                        loggerNl((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
+                        loggerNl(serialDebug, (char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
                         #ifdef NEOPIXEL_ENABLE
                             showLedError = true;
                         #endif
@@ -1671,7 +1682,7 @@ void playAudio(void *parameter) {
 
                 default:
                     trackCommand = 0;
-                    loggerNl((char *) FPSTR(cmndDoesNotExist), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(cmndDoesNotExist), LOGLEVEL_NOTICE);
                     #ifdef NEOPIXEL_ENABLE
                         showLedError = true;
                     #endif
@@ -1689,7 +1700,7 @@ void playAudio(void *parameter) {
             }
 
             if (playProperties.currentTrackNumber >= playProperties.numberOfTracks) {         // Check if last element of playlist is already reached
-                loggerNl((char *) FPSTR(endOfPlaylistReached), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(endOfPlaylistReached), LOGLEVEL_NOTICE);
                 if (!playProperties.repeatPlaylist) {
                     if (playProperties.saveLastPlayPosition) {
                         // Set back to first track
@@ -1720,7 +1731,7 @@ void playAudio(void *parameter) {
                         gotoSleep = true;
                         continue;
                     }   // Repeat playlist; set current track number back to 0
-                    loggerNl((char *) FPSTR(repeatPlaylistDueToPlaymode), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(repeatPlaylistDueToPlaymode), LOGLEVEL_NOTICE);
                     playProperties.currentTrackNumber = 0;
                     if (playProperties.saveLastPlayPosition) {
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + 0), 0, playProperties.playMode, playProperties.currentTrackNumber, playProperties.numberOfTracks);
@@ -1735,7 +1746,7 @@ void playAudio(void *parameter) {
                 // Files from SD
                 if (!FSystem.exists(*(playProperties.playlist + playProperties.currentTrackNumber))) {                        // Check first if file/folder exists
                     snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(dirOrFileDoesNotExist), *(playProperties.playlist + playProperties.currentTrackNumber));
-                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                     playProperties.trackFinished = true;
                     continue;
                 } else {
@@ -1754,7 +1765,7 @@ void playAudio(void *parameter) {
                     if (playProperties.startAtFilePos > 0) {
                         audio.setFilePos(playProperties.startAtFilePos);
                         snprintf(logBuf, serialLoglength, "%s %u", (char *) FPSTR(trackStartatPos), audio.getFilePos());
-                        loggerNl(logBuf, LOGLEVEL_NOTICE);
+                        loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
                     }
                     char buf[255];
                     snprintf(buf, sizeof(buf)/sizeof(buf[0]), "(%d/%d) %s", (playProperties.currentTrackNumber+1), playProperties.numberOfTracks, (const char*) *(playProperties.playlist + playProperties.currentTrackNumber));
@@ -1766,7 +1777,7 @@ void playAudio(void *parameter) {
                     #else
                         snprintf(logBuf, serialLoglength, "'%s' is being played (%d of %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
                     #endif
-                    loggerNl(logBuf, LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
                     playProperties.playlistFinished = false;
                 }
             }
@@ -1825,7 +1836,7 @@ void rfidScanner(void *parameter) {
 
             cardIdString = (char *) malloc(cardIdSize*3 +1);
             if (cardIdString == NULL) {
-                logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -1833,18 +1844,18 @@ void rfidScanner(void *parameter) {
             }
 
             uint8_t n = 0;
-            logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+            logger(serialDebug, (char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
             for (uint8_t i=0; i<cardIdSize; i++) {
                 cardId[i] = mfrc522.uid.uidByte[i];
 
                 snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
-                logger(logBuf, LOGLEVEL_NOTICE);
+                logger(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
                 n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
                 if (i<(cardIdSize-1)) {
-                    logger("-", LOGLEVEL_NOTICE);
+                    logger(serialDebug, "-", LOGLEVEL_NOTICE);
                 } else {
-                    logger("\n", LOGLEVEL_NOTICE);
+                    logger(serialDebug, "\n", LOGLEVEL_NOTICE);
                 }
             }
             xQueueSend(rfidCardQueue, &cardIdString, 0);
@@ -1874,7 +1885,7 @@ void rfidScanner(void *parameter) {
 
     // activate RF field
     delay(4);
-    loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     byte cardId[cardIdSize], lastCardId[cardIdSize];
     char *cardIdString;
 
@@ -1893,7 +1904,7 @@ void rfidScanner(void *parameter) {
             if (nfc14443.isCardPresent() && nfc14443.readCardSerial(uid)) {
                 cardIdString = (char *) malloc(cardIdSize*3 +1);
                 if (cardIdString == NULL) {
-                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                     #ifdef NEOPIXEL_ENABLE
                         showLedError = true;
                     #endif
@@ -1906,16 +1917,16 @@ void rfidScanner(void *parameter) {
                     continue;
                 memcpy(lastCardId, cardId, sizeof(cardId));
                 uint8_t n = 0;
-                logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+                logger(serialDebug, (char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
                 for (uint8_t i=0; i<cardIdSize; i++) {
                     snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
-                    logger(logBuf, LOGLEVEL_NOTICE);
+                    logger(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
                     n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
                     if (i<(cardIdSize-1)) {
-                        logger("-", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "-", LOGLEVEL_NOTICE);
                     } else {
-                        logger("\n", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "\n", LOGLEVEL_NOTICE);
                     }
                 }
                 xQueueSend(rfidCardQueue, &cardIdString, 0);
@@ -1937,7 +1948,7 @@ void rfidScanner(void *parameter) {
             if (rc == ISO15693_EC_OK) {
                 cardIdString = (char *) malloc(cardIdSize*3 +1);
                 if (cardIdString == NULL) {
-                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                     #ifdef NEOPIXEL_ENABLE
                         showLedError = true;
                     #endif
@@ -1951,16 +1962,16 @@ void rfidScanner(void *parameter) {
                 memcpy(lastCardId, cardId, sizeof(cardId));
 
                 uint8_t n = 0;
-                logger((char *) FPSTR(rfid15693TagDetected), LOGLEVEL_NOTICE);
+                logger(serialDebug, (char *) FPSTR(rfid15693TagDetected), LOGLEVEL_NOTICE);
                 for (uint8_t i=0; i<cardIdSize; i++) {
                     snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
-                    logger(logBuf, LOGLEVEL_NOTICE);
+                    logger(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
                     n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
                     if (i<(cardIdSize-1)) {
-                        logger("-", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "-", LOGLEVEL_NOTICE);
                     } else {
-                        logger("\n", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "\n", LOGLEVEL_NOTICE);
                     }
                 }
                 xQueueSend(rfidCardQueue, &cardIdString, 0);
@@ -2358,11 +2369,11 @@ void showLed(void *parameter) {
 void sleepHandler(void) {
     unsigned long m = millis();
     if (m >= lastTimeActiveTimestamp && (m - lastTimeActiveTimestamp >= maxInactivityTime * 1000 * 60)) {
-        loggerNl((char *) FPSTR(goToSleepDueToIdle), LOGLEVEL_INFO);
+        loggerNl(serialDebug, (char *) FPSTR(goToSleepDueToIdle), LOGLEVEL_INFO);
         gotoSleep = true;
     } else if (sleepTimerStartTimestamp > 0) {
         if (m - sleepTimerStartTimestamp >= sleepTimer * 1000 * 60) {
-            loggerNl((char *) FPSTR(goToSleepDueToTimer), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(goToSleepDueToTimer), LOGLEVEL_INFO);
             gotoSleep = true;
         }
     }
@@ -2412,7 +2423,7 @@ void deepSleepManager(void) {
         if (sleeping)
             return;
         sleeping = true;
-        loggerNl((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, (char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
         #ifdef MQTT_ENABLE
             publishMqtt((char *) FPSTR(topicState), "Offline", false);
             publishMqtt((char *) FPSTR(topicTrackState), "---", false);
@@ -2478,12 +2489,12 @@ void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
         if (_maxVolume * 2 < currentEncoderValue) {
             encoder.clearCount();
             encoder.setCount(_maxVolume * 2);
-            loggerNl((char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
             currentEncoderValue = encoder.getCount();
         } else if (currentEncoderValue < _minVolume) {
             encoder.clearCount();
             encoder.setCount(_minVolume);
-            loggerNl((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
             currentEncoderValue = encoder.getCount();
         }
         lastEncoderValue = currentEncoderValue;
@@ -2520,14 +2531,14 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
     #endif
 
     if (musicFiles == NULL) {
-        loggerNl((char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
             showLedError = true;
         #endif
         playProperties.playMode = NO_PLAYLIST;
         return;
     } else if (!strcmp(*(musicFiles-1), "0")) {
-        loggerNl((char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
+        loggerNl(serialDebug, (char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
         #ifdef NEOPIXEL_ENABLE
             showLedError = true;
         #endif
@@ -2552,7 +2563,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
     switch(playProperties.playMode) {
         case SINGLE_TRACK: {
-            loggerNl((char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
@@ -2563,7 +2574,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case SINGLE_TRACK_LOOP: {
             playProperties.repeatCurrentTrack = true;
-            loggerNl((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicRepeatModeState), TRACK, false);
@@ -2574,7 +2585,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case AUDIOBOOK: {   // Tracks need to be alph. sorted!
             playProperties.saveLastPlayPosition = true;
-            loggerNl((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
@@ -2587,7 +2598,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         case AUDIOBOOK_LOOP: {  // Tracks need to be alph. sorted!
             playProperties.repeatPlaylist = true;
             playProperties.saveLastPlayPosition = true;
-            loggerNl((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
@@ -2599,7 +2610,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case ALL_TRACKS_OF_DIR_SORTED: {
             snprintf(logBuf, serialLoglength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
-            loggerNl(logBuf, LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
             sortPlaylist((const char**) musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -2610,7 +2621,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case ALL_TRACKS_OF_DIR_RANDOM: {
-            loggerNl((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
             randomizePlaylist(musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -2622,7 +2633,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case ALL_TRACKS_OF_DIR_SORTED_LOOP: {
             playProperties.repeatPlaylist = true;
-            loggerNl((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
             sortPlaylist((const char**) musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -2634,7 +2645,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 
         case ALL_TRACKS_OF_DIR_RANDOM_LOOP: {
             playProperties.repeatPlaylist = true;
-            loggerNl((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
             randomizePlaylist(musicFiles, strtoul(*(musicFiles-1), NULL, 10));
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), playProperties.playMode, false);
@@ -2645,7 +2656,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         case WEBSTREAM: {   // This is always just one "track"
-            loggerNl((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
             if (wifiManager() == WL_CONNECTED) {
                 xQueueSend(trackQueue, &(musicFiles), 0);
                 #ifdef MQTT_ENABLE
@@ -2653,7 +2664,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
                     publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
                 #endif
             } else {
-                loggerNl((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
+                loggerNl(serialDebug, (char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -2663,7 +2674,7 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
         }
 
         default:
-            loggerNl((char *) FPSTR(modeDoesNotExist), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(modeDoesNotExist), LOGLEVEL_ERROR);
             playProperties.playMode = NO_PLAYLIST;
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
@@ -2688,7 +2699,7 @@ void doRfidCardModifications(const uint32_t mod) {
         case LOCK_BUTTONS_MOD:      // Locks/unlocks all buttons
             lockControls = !lockControls;
             if (lockControls) {
-                loggerNl((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
                 #endif
@@ -2696,7 +2707,7 @@ void doRfidCardModifications(const uint32_t mod) {
                     showLedOk = true;
                 #endif
             } else {
-                loggerNl((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 #endif
@@ -2711,7 +2722,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
-                    loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #endif
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
@@ -2722,9 +2733,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2744,7 +2755,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
-                    loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #endif
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
@@ -2755,9 +2766,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2778,7 +2789,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
                 #endif
@@ -2788,9 +2799,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2811,7 +2822,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
                 #endif
@@ -2821,9 +2832,9 @@ void doRfidCardModifications(const uint32_t mod) {
                 sleepTimerStartTimestamp = millis();
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), sleepTimer, false);
                     publishMqtt((char *) FPSTR(topicLedBrightnessState), nightLedBrightness, false);
@@ -2840,14 +2851,14 @@ void doRfidCardModifications(const uint32_t mod) {
 
         case SLEEP_AFTER_END_OF_TRACK:  // Puts uC to sleep after end of current track
             if (playProperties.playMode == NO_PLAYLIST) {
-                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
                 return;
             }
             if (playProperties.sleepAfterCurrentTrack) {
-                loggerNl((char *) FPSTR(modificatorSleepAtEOTd), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepAtEOTd), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
                 #endif
@@ -2855,13 +2866,13 @@ void doRfidCardModifications(const uint32_t mod) {
                     ledBrightness = initialLedBrightness;
                 #endif
             } else {
-                loggerNl((char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
                 #endif
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
             }
             playProperties.sleepAfterCurrentTrack = !playProperties.sleepAfterCurrentTrack;
@@ -2879,7 +2890,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
         case SLEEP_AFTER_END_OF_PLAYLIST:   // Puts uC to sleep after end of whole playlist (can take a while :->)
             if (playProperties.playMode == NO_PLAYLIST) {
-                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -2892,13 +2903,13 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepAtEOPd), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepAtEOPd), LOGLEVEL_NOTICE);
             } else {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
-                    loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+                    loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
                 #endif
@@ -2918,7 +2929,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
         case SLEEP_AFTER_5_TRACKS:
             if (playProperties.playMode == NO_PLAYLIST) {
-                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
@@ -2937,7 +2948,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = initialLedBrightness;
                 #endif
-                loggerNl((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
             } else {
                 if (playProperties.currentTrackNumber + 5 > playProperties.numberOfTracks) {        // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
                     playProperties.sleepAfterPlaylist = true;
@@ -2953,7 +2964,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     ledBrightness = nightLedBrightness;
                 #endif
-                loggerNl((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
             }
 
             #ifdef MQTT_ENABLE
@@ -2966,15 +2977,15 @@ void doRfidCardModifications(const uint32_t mod) {
 
         case REPEAT_PLAYLIST:
             if (playProperties.playMode == NO_PLAYLIST) {
-                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
             } else {
                 if (playProperties.repeatPlaylist) {
-                    loggerNl((char *) FPSTR(modificatorPlaylistLoopDeactive), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorPlaylistLoopDeactive), LOGLEVEL_NOTICE);
                 } else {
-                    loggerNl((char *) FPSTR(modificatorPlaylistLoopActive), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorPlaylistLoopActive), LOGLEVEL_NOTICE);
                 }
                 playProperties.repeatPlaylist = !playProperties.repeatPlaylist;
                 char rBuf[2];
@@ -2990,15 +3001,15 @@ void doRfidCardModifications(const uint32_t mod) {
 
         case REPEAT_TRACK:      // Introduces looping for track-mode
             if (playProperties.playMode == NO_PLAYLIST) {
-                loggerNl((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
             } else {
                 if (playProperties.repeatCurrentTrack) {
-                    loggerNl((char *) FPSTR(modificatorTrackDeactive), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorTrackDeactive), LOGLEVEL_NOTICE);
                 } else {
-                    loggerNl((char *) FPSTR(modificatorTrackActive), LOGLEVEL_NOTICE);
+                    loggerNl(serialDebug, (char *) FPSTR(modificatorTrackActive), LOGLEVEL_NOTICE);
                 }
                 playProperties.repeatCurrentTrack = !playProperties.repeatCurrentTrack;
                 char rBuf[2];
@@ -3016,7 +3027,7 @@ void doRfidCardModifications(const uint32_t mod) {
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
             #endif
-            loggerNl((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
             #ifdef NEOPIXEL_ENABLE
                 ledBrightness = nightLedBrightness;
                 showLedOk = true;
@@ -3038,7 +3049,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
         default:
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
-            loggerNl(logBuf, LOGLEVEL_ERROR);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
@@ -3063,11 +3074,11 @@ void rfidPreferenceLookupHandler (void) {
         free(rfidTagId);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(rfidTagReceived), currentRfidTagId);
         sendWebsocketData(0, 10);       // Push new rfidTagId to all websocket-clients
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 
         String s = prefsRfid.getString(currentRfidTagId, "-1");                 // Try to lookup rfidId in NVS
         if (!s.compareTo("-1")) {
-            loggerNl((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
@@ -3092,7 +3103,7 @@ void rfidPreferenceLookupHandler (void) {
         }
 
         if (i != 5) {
-            loggerNl((char *) FPSTR(errorOccuredNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(errorOccuredNvs), LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
@@ -3118,9 +3129,9 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     WiFi.softAP(SSID);
     delay(500);
 
-    loggerNl((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, (char *) FPSTR(apReady), LOGLEVEL_NOTICE);
     snprintf(logBuf, serialLoglength, "IP-Adresse: %d.%d.%d.%d", apIP[0],apIP[1], apIP[2], apIP[3]);
-    loggerNl(logBuf, LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
             request->send_P(200, "text/html", accesspoint_HTML);
@@ -3151,7 +3162,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     // allow cors for local debug
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     wServer.begin();
-    loggerNl((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, (char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
     accessPointStarted = true;
 }
 
@@ -3173,7 +3184,7 @@ bool getWifiEnableStatusFromNVS(void) {
 bool writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
         if (prefsSettings.putUInt("enableWifi", 0)) {  // disable
-            loggerNl((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
             if (playProperties.playMode == WEBSTREAM) {
                 trackControlToQueueSender(STOP);
             }
@@ -3185,7 +3196,7 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
 
     } else {
         if (prefsSettings.putUInt("enableWifi", 1)) {  // enable
-            loggerNl((char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, (char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
             wifiNeedsRestart = true;
             wifiEnabled = true;
             return true;
@@ -3200,12 +3211,12 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
     void ftpManager(void) {
         if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapWithoutFtp), ESP.getFreeHeap());
-            loggerNl(logBuf, LOGLEVEL_DEBUG);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
             ftpEnableCurrentStatus = true;
             ftpSrv = new FtpServer();
             ftpSrv->begin(FSystem, ftpUser, ftpPassword);
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapWithFtp), ESP.getFreeHeap());
-            loggerNl(logBuf, LOGLEVEL_DEBUG);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
             #if (LANGUAGE == 1)
                 Serial.println(F("FTP-Server gestartet"));
             #else
@@ -3227,11 +3238,11 @@ wl_status_t wifiManager(void) {
         // Get credentials from NVS
         String strSSID = prefsSettings.getString("SSID", "-1");
         if (!strSSID.compareTo("-1")) {
-            loggerNl((char *) FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
         }
         String strPassword = prefsSettings.getString("Password", "-1");
         if (!strPassword.compareTo("-1")) {
-            loggerNl((char *) FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
         }
         const char *_ssid = strSSID.c_str();
         const char *_pwd = strPassword.c_str();
@@ -3242,18 +3253,18 @@ wl_status_t wifiManager(void) {
             //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
             snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
-            loggerNl((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
+            loggerNl(serialDebug, (char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
         }
 
         // Add configration of static IP (if requested)
         #ifdef STATIC_IP_ENABLE
             snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(tryStaticIpConfig));
-            loggerNl(logBuf, LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
             if (!WiFi.config(local_IP, gateway, subnet, primaryDNS)) {
                 snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(staticIPConfigFailed));
-                loggerNl(logBuf, LOGLEVEL_ERROR);
+                loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             }
         #endif
 
@@ -3278,7 +3289,7 @@ wl_status_t wifiManager(void) {
             #else
                 snprintf(logBuf, serialLoglength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             #endif
-            loggerNl(logBuf, LOGLEVEL_NOTICE);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
         } else { // Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
@@ -3596,7 +3607,7 @@ void setupVolume(void) {
             maxVolume = maxVolumeHeadphone;             // 0 if headphone is connected (put to GND)
         }
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(maxVolumeSet), maxVolume);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         return;
     #endif
 }
@@ -3618,7 +3629,7 @@ void setupVolume(void) {
             headphoneLastDetectionState = currentHeadPhoneDetectionState;
             headphoneLastDetectionTimestamp = millis();
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(maxVolumeSet), maxVolume);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         }
     }
 #endif
@@ -3722,7 +3733,7 @@ void webserverStart(void) {
                     nvs->size ) ;
         } else {
             snprintf(logBuf, serialLoglength, "Partition %s not found!", partname);
-            loggerNl(logBuf, LOGLEVEL_ERROR);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             return NULL;
         }
         namespace_ID = FindNsID (nvs, _namespace) ;             // Find ID of our namespace in NVS
@@ -3736,7 +3747,7 @@ void webserverStart(void) {
                                         sizeof(nvs_page));
             if (result != ESP_OK) {
                 snprintf(logBuf, serialLoglength, "Error reading NVS!");
-                loggerNl(logBuf, LOGLEVEL_ERROR);
+                loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                 return false;
             }
 
@@ -3862,7 +3873,7 @@ void explorerHandleFileStorageTask(void *parameter) {
     uploadFile = FSystem.open((char *)parameter, "w");
 
     snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), (char *) parameter);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 
     for(;;) {
         esp_task_wdt_reset();
@@ -3907,13 +3918,13 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
     if (!root) {
         snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenDirectory));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
     if (!root.isDirectory()) {
         snprintf(logBuf, serialLoglength, (char *) FPSTR(notADirectory));
-        loggerNl(logBuf, LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
         return;
     }
 
@@ -3954,26 +3965,26 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
             if(isDir) {
                 if(FSystem.rmdir(asciiFilePath)) {
                     snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
-                    loggerNl(logBuf, LOGLEVEL_INFO);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                 } else {
                     snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
-                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                 }
             } else {
                 if(FSystem.remove(asciiFilePath)) {
                     snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
-                    loggerNl(logBuf, LOGLEVEL_INFO);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                 } else {
                     snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
-                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                 }
             }
         } else {
             snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exist", asciiFilePath);
-            loggerNl(logBuf, LOGLEVEL_ERROR);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
-        loggerNl("DELETE: No path variable set", LOGLEVEL_ERROR);
+        loggerNl(serialDebug, "DELETE: No path variable set", LOGLEVEL_ERROR);
     }
     request->send(200);
     esp_task_wdt_reset();
@@ -3989,13 +4000,13 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
         convertUtf8ToAscii(param->value(), asciiFilePath);
         if(FSystem.mkdir(asciiFilePath)) {
             snprintf(logBuf, serialLoglength, "CREATE:  %s created", asciiFilePath);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
             snprintf(logBuf, serialLoglength, "CREATE:  Cannot create %s", asciiFilePath);
-            loggerNl(logBuf, LOGLEVEL_ERROR);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
-        loggerNl("CREATE: No path variable set", LOGLEVEL_ERROR);
+        loggerNl(serialDebug, "CREATE: No path variable set", LOGLEVEL_ERROR);
     }
     request->send(200);
 }
@@ -4016,17 +4027,17 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
         if(FSystem.exists(srcFullFilePath)) {
             if(FSystem.rename(srcFullFilePath, dstFullFilePath)) {
                     snprintf(logBuf, serialLoglength, "RENAME:  %s renamed to %s", srcFullFilePath, dstFullFilePath);
-                    loggerNl(logBuf, LOGLEVEL_INFO);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             } else {
                     snprintf(logBuf, serialLoglength, "RENAME:  Cannot rename %s", srcFullFilePath);
-                    loggerNl(logBuf, LOGLEVEL_ERROR);
+                    loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             }
         } else {
             snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exist", srcFullFilePath);
-            loggerNl(logBuf, LOGLEVEL_ERROR);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
-        loggerNl("RENAME: No path variable set", LOGLEVEL_ERROR);
+        loggerNl(serialDebug, "RENAME: No path variable set", LOGLEVEL_ERROR);
     }
 
     request->send(200);
@@ -4049,7 +4060,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
         playMode = atoi(playModeString.c_str());
         trackQueueDispatcher(asciiFilePath,0,playMode,0);
     } else {
-        loggerNl("AUDIO: No path variable set", LOGLEVEL_ERROR);
+        loggerNl(serialDebug, "AUDIO: No path variable set", LOGLEVEL_ERROR);
     }
 
     request->send(200);
@@ -4088,7 +4099,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
             }
             if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
                 snprintf(logBuf, serialLoglength, "%s: %s => %s", (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
-                loggerNl(logBuf, LOGLEVEL_NOTICE);
+                loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
                 prefsRfid.putString(nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
             }
         }
@@ -4126,14 +4137,14 @@ void printWakeUpReason() {
             // turn on LPCD
             uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
             if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
-                loggerNl((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
+                loggerNl(serialDebug, (char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
                 // configure wakeup pin for deep-sleep wake-up, use ext1
                 esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
                 // freeze pin states in deep sleep
                 gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
                 gpio_hold_en(gpio_num_t(RFID_RST)); // RST
                 gpio_deep_sleep_hold_en();
-                loggerNl((char *) FPSTR(wakeUpRfidNoIso14443), LOGLEVEL_ERROR);
+                loggerNl(serialDebug, (char *) FPSTR(wakeUpRfidNoIso14443), LOGLEVEL_ERROR);
                 esp_deep_sleep_start();
         } else {
                 Serial.println(F("switchToLPCD failed"));
@@ -4245,11 +4256,11 @@ void setup() {
             while (!SD.begin(SPISD_CS)) {
         #endif
     #endif
-                loggerNl((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
+                loggerNl(serialDebug, (char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
                 delay(500);
                 #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
                     if (millis() >= deepsleepTimeAfterBootFails*1000) {
-                        loggerNl((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
+                        loggerNl(serialDebug, (char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
                         esp_deep_sleep_start();
                     }
                 #endif
@@ -4258,13 +4269,13 @@ void setup() {
     #ifdef RFID_READER_TYPE_MFRC522_I2C
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
         delay(50);
-        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         mfrc522.PCD_Init();
         delay(50);
-        loggerNl((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+        loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
    // welcome message
@@ -4285,10 +4296,10 @@ void setup() {
    #endif
   // show SD card type
     #ifdef SD_MMC_1BIT_MODE
-      loggerNl((char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
+      loggerNl(serialDebug, (char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
       uint8_t cardType = SD_MMC.cardType();
     #else
-      loggerNl((char *) FPSTR(sdMountedSpiMode), LOGLEVEL_NOTICE);
+      loggerNl(serialDebug, (char *) FPSTR(sdMountedSpiMode), LOGLEVEL_NOTICE);
       uint8_t cardType = SD.cardType();
     #endif
     Serial.print(F("SD card type: "));
@@ -4321,23 +4332,23 @@ void setup() {
     // Create queues
     volumeQueue = xQueueCreate(1, sizeof(int));
     if (volumeQueue == NULL) {
-        loggerNl((char *) FPSTR(unableToCreateVolQ), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToCreateVolQ), LOGLEVEL_ERROR);
     }
 
     rfidCardQueue = xQueueCreate(1, (cardIdSize + 1) * sizeof(char));
     if (rfidCardQueue == NULL) {
-        loggerNl((char *) FPSTR(unableToCreateRfidQ), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToCreateRfidQ), LOGLEVEL_ERROR);
     }
 
     trackControlQueue = xQueueCreate(1, sizeof(uint8_t));
     if (trackControlQueue == NULL) {
-        loggerNl((char *) FPSTR(unableToCreateMgmtQ), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToCreateMgmtQ), LOGLEVEL_ERROR);
     }
 
     char **playlistArray;
     trackQueue = xQueueCreate(1, sizeof(playlistArray));
     if (trackQueue == NULL) {
-        loggerNl((char *) FPSTR(unableToCreatePlayQ), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(unableToCreatePlayQ), LOGLEVEL_ERROR);
     }
 
     // Get some stuff from NVS...
@@ -4347,10 +4358,10 @@ void setup() {
             initialLedBrightness = nvsILedBrightness;
             ledBrightness = nvsILedBrightness;
         snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(initialBrightnessfromNvs), nvsILedBrightness);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUChar("iLedBrightness", initialLedBrightness);
-        loggerNl((char *) FPSTR(wroteInitialBrightnessToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteInitialBrightnessToNvs), LOGLEVEL_ERROR);
     }
 
     // Get night LED-brightness from NVS
@@ -4358,32 +4369,32 @@ void setup() {
     if (nvsNLedBrightness) {
         nightLedBrightness = nvsNLedBrightness;
         snprintf(logBuf, serialLoglength, "%s: %d", (char *) FPSTR(restoredInitialBrightnessForNmFromNvs), nvsNLedBrightness);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUChar("nLedBrightness", nightLedBrightness);
-        loggerNl((char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);
     }
 
     // Get FTP-user from NVS
     String nvsFtpUser = prefsSettings.getString("ftpuser", "-1");
     if (!nvsFtpUser.compareTo("-1")) {
         prefsSettings.putString("ftpuser", (String) ftpUser);
-        loggerNl((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(ftpUser, nvsFtpUser.c_str(), ftpUserLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredFtpUserFromNvs), nvsFtpUser.c_str());
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
     // Get FTP-password from NVS
     String nvsFtpPassword = prefsSettings.getString("ftppassword", "-1");
     if (!nvsFtpPassword.compareTo("-1")) {
         prefsSettings.putString("ftppassword", (String) ftpPassword);
-        loggerNl((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(ftpPassword, nvsFtpPassword.c_str(), ftpPasswordLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredFtpPwdFromNvs), nvsFtpPassword.c_str());
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
     // Get maximum inactivity-time from NVS
@@ -4391,10 +4402,10 @@ void setup() {
     if (nvsMInactivityTime) {
         maxInactivityTime = nvsMInactivityTime;
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxInactivityFromNvs), nvsMInactivityTime);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("mInactiviyT", maxInactivityTime);
-        loggerNl((char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
     }
 
     // Get initial volume from NVS
@@ -4402,10 +4413,10 @@ void setup() {
     if (nvsInitialVolume) {
         initVolume = nvsInitialVolume;
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredInitialLoudnessFromNvs), nvsInitialVolume);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("initVolume", initVolume);
-        loggerNl((char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
     }
 
     // Get maximum volume for speaker from NVS
@@ -4414,10 +4425,10 @@ void setup() {
         maxVolumeSpeaker = nvsMaxVolumeSpeaker;
         maxVolume = maxVolumeSpeaker;
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForSpeakerFromNvs), nvsMaxVolumeSpeaker);
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     } else {
         prefsSettings.putUInt("maxVolumeSp", nvsMaxVolumeSpeaker);
-        loggerNl((char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
@@ -4426,10 +4437,10 @@ void setup() {
         if (nvsMaxVolumeHeadphone) {
             maxVolumeHeadphone = nvsMaxVolumeHeadphone;
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForHeadphoneFromNvs), nvsMaxVolumeHeadphone);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
             prefsSettings.putUInt("maxVolumeHp", nvsMaxVolumeHeadphone);
-            loggerNl((char *) FPSTR(wroteMaxLoudnessForHeadphoneToNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(wroteMaxLoudnessForHeadphoneToNvs), LOGLEVEL_ERROR);
         }
     #endif
 
@@ -4441,18 +4452,18 @@ void setup() {
     switch (nvsEnableMqtt) {
         case 99:
             prefsSettings.putUChar("enableMQTT", enableMqtt);
-            loggerNl((char *) FPSTR(wroteMqttFlagToNvs), LOGLEVEL_ERROR);
+            loggerNl(serialDebug, (char *) FPSTR(wroteMqttFlagToNvs), LOGLEVEL_ERROR);
             break;
         case 1:
             //prefsSettings.putUChar("enableMQTT", enableMqtt);
             enableMqtt = nvsEnableMqtt;
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMqttActiveFromNvs), nvsEnableMqtt);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             break;
         case 0:
             enableMqtt = nvsEnableMqtt;
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             break;
     }
 
@@ -4460,33 +4471,33 @@ void setup() {
     String nvsMqttServer = prefsSettings.getString("mqttServer", "-1");
     if (!nvsMqttServer.compareTo("-1")) {
         prefsSettings.putString("mqttServer", (String) mqtt_server);
-        loggerNl((char*) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char*) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqtt_server, nvsMqttServer.c_str(), mqttServerLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
     // Get MQTT-user from NVS
     String nvsMqttUser = prefsSettings.getString("mqttUser", "-1");
     if (!nvsMqttUser.compareTo("-1")) {
         prefsSettings.putString("mqttUser", (String) mqttUser);
-        loggerNl((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqttUser, nvsMqttUser.c_str(), mqttUserLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
     // Get MQTT-password from NVS
     String nvsMqttPassword = prefsSettings.getString("mqttPassword", "-1");
     if (!nvsMqttPassword.compareTo("-1")) {
         prefsSettings.putString("mqttPassword", (String) mqttPassword);
-        loggerNl((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
+        loggerNl(serialDebug, (char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
     } else {
         strncpy(mqttPassword, nvsMqttPassword.c_str(), mqttPasswordLength);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
-        loggerNl(logBuf, LOGLEVEL_INFO);
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
     #ifdef MEASURE_BATTERY_VOLTAGE
@@ -4495,7 +4506,7 @@ void setup() {
         if (vLowIndicator <= 999) {
             voltageIndicatorLow = vLowIndicator;
             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorLowFromNVS), vLowIndicator);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {    // preseed if not set
             prefsSettings.putFloat("vIndicatorLow", voltageIndicatorLow);
         }
@@ -4504,7 +4515,7 @@ void setup() {
         if (vHighIndicator <= 999) {
             voltageIndicatorHigh = vHighIndicator;
             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorHighFromNVS), vHighIndicator);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
             prefsSettings.putFloat("vIndicatorHigh", voltageIndicatorHigh);
         }
@@ -4513,7 +4524,7 @@ void setup() {
         if (vLowWarning <= 999) {
             warningLowVoltage = vLowWarning;
             snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(warningLowVoltageFromNVS), vLowWarning);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
             prefsSettings.putFloat("wLowVoltage", warningLowVoltage);
         }
@@ -4522,7 +4533,7 @@ void setup() {
         if (vInterval != 17777) {
             voltageCheckInterval = vInterval;
             snprintf(logBuf, serialLoglength, "%s: %u Minuten", (char *) FPSTR(voltageCheckIntervalFromNVS), vInterval);
-            loggerNl(logBuf, LOGLEVEL_INFO);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
             prefsSettings.putUInt("vCheckIntv", voltageCheckInterval);
         }
@@ -4589,7 +4600,7 @@ void setup() {
     bootComplete = true;
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
-    loggerNl(logBuf, LOGLEVEL_DEBUG);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
     Serial.printf("PSRAM: %u bytes\n", ESP.getPsramSize());
 }
 
@@ -4642,20 +4653,20 @@ void loop() {
 // Some mp3-lib-stuff (slightly changed from default)
 void audio_info(const char *info) {
     snprintf(logBuf, serialLoglength, "info        : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_id3data(const char *info) {  //id3 metadata
     snprintf(logBuf, serialLoglength, "id3data     : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_eof_mp3(const char *info) {  //end of file
     snprintf(logBuf, serialLoglength, "eof_mp3     : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     playProperties.trackFinished = true;
 }
 void audio_showstation(const char *info) {
     snprintf(logBuf, serialLoglength, "station     : %s", info);
-    loggerNl(logBuf, LOGLEVEL_NOTICE);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
     char buf[255];
     snprintf(buf, sizeof(buf)/sizeof(buf[0]), "Webradio: %s", info);
     #ifdef MQTT_ENABLE
@@ -4664,21 +4675,21 @@ void audio_showstation(const char *info) {
 }
 void audio_showstreamtitle(const char *info) {
     snprintf(logBuf, serialLoglength, "streamtitle : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_bitrate(const char *info) {
     snprintf(logBuf, serialLoglength, "bitrate     : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_commercial(const char *info) {  //duration in sec
     snprintf(logBuf, serialLoglength, "commercial  : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_icyurl(const char *info) {  //homepage
     snprintf(logBuf, serialLoglength, "icyurl      : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
 void audio_lasthost(const char *info) {  //stream URL played
     snprintf(logBuf, serialLoglength, "lasthost    : %s", info);
-    loggerNl(logBuf, LOGLEVEL_INFO);
+    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 }
