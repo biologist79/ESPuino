@@ -52,7 +52,7 @@
 
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-#define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+#define DREHENCODER_DT                  33          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
 #define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
 
 // Control-buttons

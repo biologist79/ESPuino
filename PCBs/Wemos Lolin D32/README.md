@@ -7,7 +7,7 @@
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 53 x 81mm
-* JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID and reset (not 2.54mm pitch!)
+* JST-PH 2.0-connectors for buttons (2 pins), rotary encoder (5 pins), Neopixel (3 pins), RFID (6 pins) and reset (2 pins). Please note: all of them are NOT 2.54mm pitch but 2.0mm!)
 * 2.54mm-connectors for MAX98357a and uSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
@@ -45,7 +45,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
 | ---           | MAX98357              | GAIN   | Pullup with 100k to 3.3V to reduce gain                      |
 | 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
-| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
+| 33            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
 | 32            | Rotary encoder        | BUTTON |                                                              |
 | 3.3 V         | Rotary encoder        | +      |                                                              |
 | GND           | Rotary encoder        | GND    |                                                              |
