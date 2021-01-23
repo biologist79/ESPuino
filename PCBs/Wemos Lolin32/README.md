@@ -7,9 +7,9 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * Fits Wemos Lolin32 (not Lolin D32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 56 x 93mm
 * JST-PH 2.0-connectors for buttons, rotary encoder, Neopixel, RFID, reset and battery (not 2.54mm pitch!)
-* 2.54mm-connectors for MAX98357a and uSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
-* Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb and uSD-card-reader automatically when deepsleep is active
-* All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing uSD-reader. If in doubts use one without voltage-regulator (link below).
+* 2.54mm-connectors for MAX98357a and µSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
+* Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb, RFID-reader and µSD-card-reader automatically when deepsleep is active.
+* All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing µSD-reader. If in doubts use one without voltage-regulator (link below).
 * If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
 * If `HEADPHONE_ADJUST_ENABLE` is enabled and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
 * rev2: Reset-pinheader added. Can be used to connect e.g. a [micro switch](https://www.ebay.de/itm/10x-Mini-Taster-Drucktaster-klein-Mikroschalter-6x6x5mm-Arduino-Raspberry-Pi/333273061003) to it, so you can reset Tonuino even in battery-mode from the outside of the enclosure. Micro switch can be placed somewhat hidden at the enclosure.
@@ -74,14 +74,14 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 ## Hardware-setup
 The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.).
 * [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
-* [uSD-card-reader 3.3V only](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
+* [µSD-card-reader 3.3V only](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968)
 * [RFID-reader](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
 * [RFID-tags](https://www.amazon.de/AZDelivery-Keycard-56MHz-Schlüsselkarte-Karte/dp/B07TVJPTM7)
 * [Neopixel-ring](https://de.aliexpress.com/item/32673883645.html)
 * [Rotary Encoder](https://de.aliexpress.com/item/33041814942.html)
 * [Buttons](https://de.aliexpress.com/item/32896285438.html)
 * [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
-* uSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
+* µSD-card: doesn't have to be a super-fast one; uC is limiting the throughput. Tested 32GB without any problems.
 * [JSP PH-2.0-connectors](https://de.aliexpress.com/item/32968344273.html)
 * [Female connector](https://de.aliexpress.com/item/32724478308.html)
 * [(optional) IDC-connector female 6pin for headphone-pcb](https://de.aliexpress.com/item/33029492417.html)

@@ -7,7 +7,8 @@
    Infos: https://www.wemos.cc/en/latest/d32/d32.html
    Schematics: https://www.wemos.cc/en/latest/_static/files/sch_d32_v1.0.0.pdf
    Caveats: GPIO35 (battery monitoring) can't be changed, it's built in
-   Status: untested
+   Status:
+    tested with 2x SPI: RC522 & SD (by biologist79)
 */
 
 
