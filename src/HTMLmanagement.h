@@ -593,8 +593,6 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 					}\
 \
-                    Sleep(1000);\
-\
 				  }\
 				}, false);\
 \
@@ -620,23 +618,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 	function handleDeleteData(nodeId) {\
 		var ref = $('#explorerTree').jstree(true);\
 		var node = ref.get_node(nodeId);\
-		var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
-		console.log(children.length);\
-		if(node.data.directory) {\
-			if(children.length > 0) {\
-				for(var i=0;i<children.length;i++)\
-				{\
-					console.log(\"call delete function for: \" + children[i].text);\
-					handleDeleteData(children[i].id);\
-				}\
-			}\
-		}\
 		console.log(\"call delete request: \" + node.data.path);\
 		deleteData(\"/explorer?path=\" + node.data.path);\
 	}\
-    function Sleep(milliseconds) {\
-     return new Promise(resolve => setTimeout(resolve, milliseconds));\
-    }\
+\
 	function fileNameSort( a, b ) {\
 		if ( a.dir && !b.dir ) {\
 			return -1\

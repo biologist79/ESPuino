@@ -3901,7 +3901,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
-    DynamicJsonDocument jsonBuffer(8192);
+    DynamicJsonDocument jsonBuffer(16384);
     //StaticJsonDocument<4096> jsonBuffer;
     String serializedJsonString;
     AsyncWebParameter *param;
@@ -3948,11 +3948,30 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     request->send(200, "application/json; charset=iso-8859-1", serializedJsonString);
 }
 
+bool explorerDeleteDirectory(File dir) {
+
+    File file = dir.openNextFile();
+    while(file) {
+
+        if(file.isDirectory()) {
+            explorerDeleteDirectory(file);
+        } else {
+            FSystem.remove(file.name());
+        }
+
+        file = dir.openNextFile();
+
+        esp_task_wdt_reset();
+    }
+
+    return FSystem.rmdir(dir.name());
+
+}
+
 // Handles delete request of a file or directory
 // requires a GET parameter path to the file or directory
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
     File file;
-    bool isDir;
     AsyncWebParameter *param;
     char asciiFilePath[256];
     if(request->hasParam("path")){
@@ -3960,10 +3979,8 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
         convertUtf8ToAscii(param->value(), asciiFilePath);
         if(FSystem.exists(asciiFilePath)) {
             file = FSystem.open(asciiFilePath);
-            isDir = file.isDirectory();
-            file.close();
-            if(isDir) {
-                if(FSystem.rmdir(asciiFilePath)) {
+            if(file.isDirectory()) {
+                if(explorerDeleteDirectory(file)) {
                     snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
                     loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                 } else {
