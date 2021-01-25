@@ -173,3 +173,4 @@ static const char tryStaticIpConfig[] PROGMEM = "Performing static IP-configurat
 static const char staticIPConfigFailed[] PROGMEM = "Static IP-configuration failed";
 static const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power card-detection. RF-field changed but no ISO-14443 card on reader was found. So I'll return back to sleep now...";
 static const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";
+static const char rememberLastVolume[] PROGMEM = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";

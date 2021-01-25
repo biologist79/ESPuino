@@ -173,3 +173,4 @@ static const char tryStaticIpConfig[] PROGMEM = "Statische IP-Konfiguration wird
 static const char staticIPConfigFailed[] PROGMEM = "Statische IP-Konfiguration fehlgeschlagen";
 static const char wakeUpRfidNoIso14443[] PROGMEM = "ESP32 wurde vom Kartenleser aus dem Deepsleep aufgeweckt. Allerdings wurde keine ISO-14443-Karte gefunden. Gehe zurück in den Deepsleep...";
 static const char lowPowerCardSuccess[] PROGMEM = "Kartenerkennung via 'low power' erfolgreich durchgeführt";
+static const char rememberLastVolume[] PROGMEM = "Lautstärke vor dem letzten Shutdown wird wiederhergestellt. Dies überschreibt die Einstellung der initialen Lautstärke aus der GUI.";

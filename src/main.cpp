@@ -2433,6 +2433,9 @@ void deepSleepManager(void) {
             FastLED.clear();
             FastLED.show();
         #endif
+        #ifdef USE_LAST_VOLUME_AFTER_REBOOT
+            prefsSettings.putUInt("previousVolume", currentVolume);
+        #endif
         // SD card goto idle mode
         #ifdef SD_MMC_1BIT_MODE
             SD_MMC.end();
@@ -4408,16 +4411,27 @@ void setup() {
         loggerNl(serialDebug, (char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
     }
 
-    // Get initial volume from NVS
-    uint32_t nvsInitialVolume = prefsSettings.getUInt("initVolume", 0);
-    if (nvsInitialVolume) {
-        initVolume = nvsInitialVolume;
-        snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredInitialLoudnessFromNvs), nvsInitialVolume);
-        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
-    } else {
-        prefsSettings.putUInt("initVolume", initVolume);
-        loggerNl(serialDebug, (char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
-    }
+    #ifndef USE_LAST_VOLUME_AFTER_REBOOT
+        // Get initial volume from NVS
+        uint32_t nvsInitialVolume = prefsSettings.getUInt("initVolume", 0);
+    #else
+        // Get volume used at last shutdown
+        uint32_t nvsInitialVolume = prefsSettings.getUInt("previousVolume", 999);
+        if (nvsInitialVolume == 999) {
+            prefsSettings.putUInt("previousVolume", initVolume);
+            nvsInitialVolume = initVolume;
+        } else {
+            loggerNl(serialDebug, (char *) FPSTR(rememberLastVolume), LOGLEVEL_ERROR);
+        }
+    #endif
+        if (nvsInitialVolume) {
+            initVolume = nvsInitialVolume;
+            snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredInitialLoudnessFromNvs), nvsInitialVolume);
+            loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
+        } else {
+            prefsSettings.putUInt("initVolume", initVolume);
+            loggerNl(serialDebug, (char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
+        }
 
     // Get maximum volume for speaker from NVS
     uint32_t nvsMaxVolumeSpeaker = prefsSettings.getUInt("maxVolumeSp", 0);

@@ -16,17 +16,18 @@
 
 
 //########################## MODULES #################################
-#define MDNS_ENABLE                 // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
-#define MQTT_ENABLE                 // Make sure to configure mqtt-server and (optionally) username+pwd
-#define FTP_ENABLE                  // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
-#define NEOPIXEL_ENABLE             // Don't forget configuration of NUM_LEDS if enabled
-#define NEOPIXEL_REVERSE_ROTATION   // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
-#define LANGUAGE 1                  // 1 = deutsch; 2 = english
-//#define STATIC_IP_ENABLE            // Enables static IP-configuration (change static ip-section accordingly)
-//#define HEADPHONE_ADJUST_ENABLE     // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
-#define SHUTDOWN_IF_SD_BOOT_FAILS   // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
-#define MEASURE_BATTERY_VOLTAGE     // Enables battery-measurement via GPIO (ADC) and voltage-divider
-//#define PLAY_LAST_RFID_AFTER_REBOOT // When restarting Tonuino, the last RFID that was active before, is recalled and played
+#define MDNS_ENABLE                     // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
+#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
+#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
+#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
+//#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
+#define LANGUAGE 1                      // 1 = deutsch; 2 = english
+//#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
+//#define HEADPHONE_ADJUST_ENABLE       // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
+#define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
+#define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
+//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting Tonuino, the last RFID that was active before, is recalled and played
+//#define USE_LAST_VOLUME_AFTER_REBOOT  // Remembers the volume used at last shutdown after reboot
 
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
