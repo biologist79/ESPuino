@@ -467,7 +467,7 @@ void IRAM_ATTR onTimer() {
         }
     }
 #endif
-
+ /**
 // Creates a new file on the SD-card.
 void createFile(fs::FS &fs, const char * path, const char * message) {
     snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), path);
@@ -634,6 +634,7 @@ void fileHandlingTask(void *arguments) {
     esp_task_wdt_reset();
     vTaskDelete( NULL );
 }
+**/
 
 
 #ifdef MEASURE_BATTERY_VOLTAGE
@@ -3504,19 +3505,20 @@ bool processJsonRequest(char *_serialJson) {
     } else if (doc.containsKey("ping")) {
         sendWebsocketData(0, 20);
         return false;
-    } else if (doc.containsKey("refreshFileList")) {
-
-        //TODO: we need a semaphore or mutex here to prevent
-        //      a call when the task is still running
-        xTaskCreate(
-                fileHandlingTask,          /* Task function. */
-                "TaskTwo",        /* String with name of task. */
-                10000,            /* Stack size in bytes. */
-                NULL,             /* Parameter passed as input of the task */
-                1,                /* Priority of the task. */
-                NULL);            /* Task handle. */
-
     }
+    // } else if (doc.containsKey("refreshFileList")) {
+
+    //     //TODO: we need a semaphore or mutex here to prevent
+    //     //      a call when the task is still running
+    //     xTaskCreate(
+    //             fileHandlingTask,          /* Task function. */
+    //             "TaskTwo",        /* String with name of task. */
+    //             10000,            /* Stack size in bytes. */
+    //             NULL,             /* Parameter passed as input of the task */
+    //             1,                /* Priority of the task. */
+    //             NULL);            /* Task handle. */
+
+    // }
 
     return true;
 }
@@ -3536,11 +3538,12 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
         object["rfidId"] = currentRfidTagId;
     } else if (code == 20) {
         object["pong"] = "pong";
-    } else if (code == 30) {
-        object["refreshFileList"] = "ready";
-    } else if (code == 31) {
-        object["indexingState"] = fileNameBuf;
     }
+    // } else if (code == 30) {
+    //     object["refreshFileList"] = "ready";
+    // } else if (code == 31) {
+    //     object["indexingState"] = fileNameBuf;
+    // }
 
     //char jBuf[255];
 
@@ -3679,9 +3682,9 @@ void webserverStart(void) {
     });
 
     // Filebrowser (json-precached)
-    wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
-    });
+    // wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
+    //     request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
+    // });
 
     // Fileexplorer (realtime)
     wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
@@ -4610,10 +4613,10 @@ void setup() {
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
     // Create empty index json-file when no file exists.
-    if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
-        createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
-        esp_deep_sleep_start();
-    }
+    // if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
+    //     createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
+    //     esp_deep_sleep_start();
+    // }
     bootComplete = true;
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());

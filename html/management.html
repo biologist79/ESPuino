@@ -117,7 +117,6 @@
     <nav>
         <div class="container nav nav-tabs" id="nav-tab" role="tablist">
             <a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i> RFID</a>
-            <a class="nav-item nav-link" id="nav-files-tab" data-toggle="tab" href="#nav-files" role="tab" aria-controls="nav-files" aria-selected="false"><i class="fas fa-folder"></i> Dateien</a>
             <a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"> WLAN</span></a>
             %SHOW_MQTT_TAB%
             %SHOW_FTP_TAB%
@@ -127,21 +126,6 @@
     </nav>
 <br>
 <div class="tab-content" id="nav-tabContent">
-    <div class="tab-pane fade" id="nav-files" role="tabpanel" aria-labelledby="nav-files-tab">
-        <div class="container" id="fileExplorer">
-            <div class="ui-widget">
-                <div class="filetree demo" id="explorerTree"></div>
-
-                <form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer" accept-charset="iso-8859-1">
-                    <input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
-                </form>
-                <div>
-                    <progress id="explorerUploadProgress" style="margin-top:10px" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
-                </div>
-
-            </div>
-        </div>
-    </div>
     <div class="tab-pane fade" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
         <div class="container" id="wifiConfig">
             <form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
@@ -166,6 +150,22 @@
         </div>
     </div>
     <div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
+        <div class="container" id="rfidModTags">
+            <fieldset>
+                <legend>Dateien</legend>
+				<div class="filetree-container">
+				<div id="filebrowser">
+					<div class="filetree demo" id="explorerTree"></div>
+				</div>
+				<div>
+					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer" accept-charset="iso-8859-1">
+						<input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
+						<progress id="explorerUploadProgress" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
+					</form>
+					
+				</div>
+            </fieldset>
+        </div>
         <div class="container" id="rfidMusicTags">
             <fieldset>
                 <legend>RFID-Zuweisungen</legend>
@@ -175,21 +175,7 @@
                     <input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
                            placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
                     <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
-                    <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" pattern="^[^\^#]+$" name="fileOrUrl" required>
-                    <div class="filetree-container">
-                        <div id="filebrowser">
-                            <div class="filetree demo" id="filetree"></div>
-                            <div class="refreshAction">
-                                <span id="refreshAction" data-toggle="tooltip" data-placement="top" title="Datei Liste aktualisieren."><i class="fas fa-sync fa-1x"></i> Dateiliste aktualisieren</span>
-                            </div>
-                        </div>
-                        <div id="indexing-progress" class="indexing-progress overlay">
-                            <div style="text-align: center; color:white; margin-top:2em;">
-                                <div><i class="fas fa-sync fa-spin fa-2x"></i> <br><br>  Der Prozess kann mehrere Minuten dauern...</div>
-                                <div id="currentProcessedFile"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" name="fileOrUrl" required>
                     <label for="playMode">Abspielmodus</label>
                     <select class="form-control" id="playMode" name="playMode">
                         <option class="option-file" value="1">Einzelner Titel</option>
@@ -837,93 +823,6 @@
 	} /* buildFileSystemTree */
 
     /* File Explorer functions end */
-    function renderFileTree() {
-
-        var filesURI = "/files";
-        if (DEBUG) {
-            filesURI = "http://" + host + "/files";
-        }
-        $('#filetree').jstree({
-            'core': {
-                'check_callback': true,
-                'data': {
-                    url: filesURI,
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                        $('#j1_loading').hide();
-                        $("#refreshAction").hide();
-                        $('#filetree').html("<div class='clickForRefresh' ><i class='fas fa-sync fa-1x'><span id='#clickForRefresh' > Dateien suchen.</span></div>");
-                        $('#filetree').on("click", function () {
-                            refreshFileList();
-                        });
-                        toastr.error("Die Verzeichnis-Liste konnte nicht geladen werden.");
-                    }
-                },
-
-            },
-            'types': {
-                'folder': {
-                    'icon': "fa fa-folder"
-                },
-                'file': {
-                    'icon': "fa fa-file"
-                },
-                'audio': {
-                    'icon': "fa fa-file-audio"
-                },
-                'default': {
-                    'icon': "fa fa-folder"
-                }
-            },
-            'plugins': ["themes", "types"]
-        }).bind('loaded.jstree', function (event, data) {
-            postRendering(event, data);
-            if ((data.instance._model.data['#']['children'].length == 0)) {
-                toastr.info("Der SD-Karten-Index muss erzeugt werden.");
-            }
-        }).bind('refresh.jstree', function (event, data) {
-            postRendering(event, data);
-        });
-    }
-
-    $('#filetree').on('select_node.jstree', function (e, data) {
-        $('input[name=fileOrUrl]').val(data.node.id);
-
-        if (data.node.type == "folder") {
-            $('.option-folder').show();
-            $('.option-file').hide();
-            $('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
-        }
-
-        if (data.node.type == "audio") {
-            $('.option-file').show();
-            $('.option-folder').hide();
-            $('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
-        }
-    });
-
-    $('#refreshAction').on("click", function () {
-        refreshFileList();
-        $("#indexing-progress").show();
-        $("#refreshAction").hide();
-    });
-
-    $('#playMode').on("change", function () {
-        if (this.value == 8) {
-            $('#filebrowser').slideUp();
-        } else {
-            $('#filebrowser').slideDown();
-        }
-    });
-
-    function showFileIndexingState() {
-        $("#indexing-progress").show();
-        $("#refreshAction").hide();
-    }
-
-    function hideFileIndexingState() {
-        $("#indexing-progress").hide();
-        $("#refreshAction").show();
-    }
 
     var socket = undefined;
     var tm;
@@ -966,17 +865,6 @@
               if (socketMsg.pong == 'pong') {
                   pong();
               }
-          } if ("refreshFileList" in socketMsg) {
-              hideFileIndexingState();
-              toastr.info("Die Dateiliste wurde neu erzeugt!");
-              $('#filetree').jstree(true).refresh();
-
-          }
-          if ("indexingState" in socketMsg) {
-              if(socketMsg.indexingState != null) {
-                  $("#currentProcessedFile").text(socketMsg.indexingState);
-                  console.log(socketMsg.indexingState);
-              }
           }
       };
     }
@@ -997,17 +885,6 @@
     function pong() {
         clearTimeout(tm);
     }
-
-    function refreshFileList(clickedId) {
-        lastIdclicked = clickedId;
-        var myObj = {
-            "refreshFileList": true
-        };
-        var myJSON = JSON.stringify(myObj);
-        $("#refreshAction").hide();
-        socket.send(myJSON);
-        showFileIndexingState();
-    };
 
     function genSettings(clickedId) {
         lastIdclicked = clickedId;
@@ -1108,7 +985,6 @@
 
     $(document).ready(function () {
         connect();
-        renderFileTree();
 		buildFileSystemTree("/");
 
         console.log(parseInt(document.getElementById('warningLowVoltage').value));
