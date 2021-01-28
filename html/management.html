@@ -150,7 +150,7 @@
         </div>
     </div>
     <div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
-        <div class="container" id="rfidModTags">
+        <div class="container" id="filetreeContainer">
             <fieldset>
                 <legend>Dateien</legend>
 				<div class="filetree-container">
@@ -627,11 +627,16 @@
 	function createChild(nodeId, data) {
 		var ref = $('#explorerTree').jstree(true);
 		var node = ref.get_node(nodeId);
+		var parentNodePath = node.data.path;
+		/* In case of root node remove leading '/' to avoid '//' */
+		if(parentNodePath == "/"){
+			parentNodePath = "";
+		}
 		var child = {
 			text: data.name,
 			type: getType(data),
 			data: {
-				path: node.data.path + "/" + data.name,
+				path: parentNodePath + "/" + data.name,
 				directory: data.dir
 			}
 		};

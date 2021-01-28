@@ -467,174 +467,6 @@ void IRAM_ATTR onTimer() {
         }
     }
 #endif
- /**
-// Creates a new file on the SD-card.
-void createFile(fs::FS &fs, const char * path, const char * message) {
-    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), path);
-    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-    File file = fs.open(path, FILE_WRITE);
-    if (!file) {
-        snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(failedOpenFileForWrite));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
-        return;
-    }
-    if (file.print(message)) {
-        snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(fileWritten));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-    } else {
-        snprintf(logBuf, serialLoglength, "%s", (char *) FPSTR(writeFailed));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
-    }
-    file.close();
-}
-
-
-bool fileExists(fs::FS &fs, const char *file) {
-    return fs.exists(file);
-}
-
-// Appends raw input to a file
-void appendToFile(fs::FS &fs, const char *path, const char *text) {
-    File file = fs.open(path, FILE_APPEND);
-    esp_task_wdt_reset();
-    file.print(text);
-    file.close();
-}
-
-// indicates if the given node is first node of file
-bool isFirstJSONtNode = true;
-
-// Helper-function for writing file-index to json-file.
-// This function appends a new json-node for files/directories to a given file
-void appendNodeToJSONFile(fs::FS &fs, const char * path, const char *filename, const char *parent, const char *type ) {
-    // Serial.printf("Appending to file: %s\n", path);
-    snprintf(logBuf, serialLoglength, "%s: %s\n", (char *) FPSTR(listingDirectory), filename);
-    loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-    File file = fs.open(path, FILE_APPEND);
-    // i/o is timing critical keep all stuff running
-    esp_task_wdt_reset();
-    if (!file) {
-        snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenFileForAppending));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-        return;
-    }
-
-    if (!isFirstJSONtNode) {
-        file.print(",");
-    }
-
-    //TODO: write a minified json, without all those whitespaces
-    //      it is just easier to debug when json is in a nice format
-    //      anyway ugly but works and is stable
-    file.print(F("{\"id\":\""));
-    file.print(filename);
-    file.print(F("\",\"parent\":\""));
-    file.print(parent);
-    file.print(F("\",\"type\":\""));
-    file.print(type);
-    file.print(F("\",\"text\":\""));
-    file.print(filename);
-    file.print(F("\"}"));
-    // i/o is timing critical keep all stuff running
-    esp_task_wdt_reset();
-    yield();
-    file.close();
-
-    if (isFirstJSONtNode) {
-        isFirstJSONtNode = false;
-    }
-}
-
-// Checks if a path is valid. (e.g. hidden path is not valid)
-bool pathValid(const char *_fileItem) {
-    const char ch = '/';
-    char *subst;
-    subst = strrchr(_fileItem, ch);     // Don't use files that start with .
-    return (!startsWith(subst, (char *) "/."));
-}
-
-// SD-Card index-parser. Parses the SD-card directories by a given filepath-depth recursively and appends the
-// found files and directories to files.json-file.
-char *fileNameBuf = (char *) calloc(255, sizeof(char));         // In heap to save static memory
-
-void parseSDFileList(fs::FS &fs, const char * dirname, const char * parent, uint8_t levels) {
-    esp_task_wdt_reset();
-
-    yield();
-    File root = fs.open(dirname);
-
-    if (!root) {
-        snprintf(logBuf, serialLoglength, (char *) FPSTR(failedToOpenDirectory));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-        return;
-    }
-
-    if (!root.isDirectory()) {
-        snprintf(logBuf, serialLoglength, (char *) FPSTR(notADirectory));
-        loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-        return;
-    }
-    File file = root.openNextFile();
-
-    while(file) {
-        esp_task_wdt_reset();
-        const char *parent;
-
-        if (strcmp(root.name(), "/") == 0 || root.name() == 0) {
-            parent = "#\0";
-        } else {
-            parent = root.name();
-        }
-        if (file.name() == 0 ) {
-            continue;
-        }
-
-        strncpy(fileNameBuf, (char *) file.name(), 255);
-
-        // we have a folder
-        if(file.isDirectory()) {
-
-            esp_task_wdt_reset();
-            if (pathValid(fileNameBuf)) {
-                sendWebsocketData(0, 31);
-                appendNodeToJSONFile(FSystem, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "folder" );
-                // check for next subfolder
-                if(levels){
-                    parseSDFileList(fs, fileNameBuf, root.name(), levels -1);
-                }
-            }
-        // we have a file
-        } else {
-
-            if (fileValid(fileNameBuf)) {
-                appendNodeToJSONFile(fs, DIRECTORY_INDEX_FILE, fileNameBuf, parent, "file" );
-            }
-        }
-        vTaskDelay(portTICK_PERIOD_MS*50);
-        file = root.openNextFile();
-        // i/o is timing critical keep all stuff running
-        esp_task_wdt_reset();
-    }
-
-}
-
-// Public function for creating file-index json on SD-card. It notifies the user-client
-// via websockets when the indexing is done.
-void createJSONFileList() {
-    createFile(FSystem, DIRECTORY_INDEX_FILE, "[");
-    parseSDFileList(FSystem,  "/", NULL, FS_DEPTH);
-    appendToFile(FSystem, DIRECTORY_INDEX_FILE, "]");
-    isFirstJSONtNode  =  true;
-    sendWebsocketData(0,30);
-}
-
-
-void fileHandlingTask(void *arguments) {
-    createJSONFileList();
-    esp_task_wdt_reset();
-    vTaskDelete( NULL );
-}
-**/
 
 
 #ifdef MEASURE_BATTERY_VOLTAGE
@@ -3506,19 +3338,6 @@ bool processJsonRequest(char *_serialJson) {
         sendWebsocketData(0, 20);
         return false;
     }
-    // } else if (doc.containsKey("refreshFileList")) {
-
-    //     //TODO: we need a semaphore or mutex here to prevent
-    //     //      a call when the task is still running
-    //     xTaskCreate(
-    //             fileHandlingTask,          /* Task function. */
-    //             "TaskTwo",        /* String with name of task. */
-    //             10000,            /* Stack size in bytes. */
-    //             NULL,             /* Parameter passed as input of the task */
-    //             1,                /* Priority of the task. */
-    //             NULL);            /* Task handle. */
-
-    // }
 
     return true;
 }
@@ -3539,13 +3358,6 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
     } else if (code == 20) {
         object["pong"] = "pong";
     }
-    // } else if (code == 30) {
-    //     object["refreshFileList"] = "ready";
-    // } else if (code == 31) {
-    //     object["indexingState"] = fileNameBuf;
-    // }
-
-    //char jBuf[255];
 
     serializeJson(doc, jBuf, 255);
 
@@ -3680,11 +3492,6 @@ void webserverStart(void) {
         Serial.flush();
         ESP.restart();
     });
-
-    // Filebrowser (json-precached)
-    // wServer.on("/files", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //     request->send(FSystem, DIRECTORY_INDEX_FILE, "application/json");
-    // });
 
     // Fileexplorer (realtime)
     wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
@@ -4612,11 +4419,6 @@ void setup() {
 
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
-    // Create empty index json-file when no file exists.
-    // if (!fileExists(FSystem,DIRECTORY_INDEX_FILE)) {
-    //     createFile(FSystem,DIRECTORY_INDEX_FILE,"[]");
-    //     esp_deep_sleep_start();
-    // }
     bootComplete = true;
 
     snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());

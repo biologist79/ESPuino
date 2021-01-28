@@ -83,10 +83,6 @@ static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-po
 // Where to store the backup-file for NVS-records
 static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
 
-// (webgui) File Browser
-//uint8_t FS_DEPTH = 5;                               // Max. recursion-depth of file tree
-//const char *DIRECTORY_INDEX_FILE = "/files.json";   // Filename of files.json index file
-
 
 //#################### Settings for optional Modules##############################
 // (optinal) Neopixel
