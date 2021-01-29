@@ -105,9 +105,9 @@
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
     <div class="col-md-12">
     <a class="float-left navbar-brand">
-        <img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/html/tonuino_logo.png"
+        <img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/html/tonuino_logo.png"
              width="30" height="30" class="d-inline-block align-top" alt=""/>
-        Tonuino
+        ESPuino
     </a>
 
     <a class="reboot float-right nav-link" href="/restart"><i class="fas fa-power-off"></i> Neustart</a>
@@ -137,8 +137,8 @@
                     </div>
                     <label for="pwd">Passwort:</label>
                     <input type="password" class="form-control" id="pwd" placeholder="Passwort" name="pwd" required>
-                    <label for="hostname">Tonuino-Name (Hostname):</label>
-                    <input type="text" class="form-control" id="hostname" placeholder="tonuino" name="hostname"
+                    <label for="hostname">ESPuino-Name (Hostname):</label>
+                    <input type="text" class="form-control" id="hostname" placeholder="espuino" name="hostname"
                            value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
                 </div>
                 <br>
@@ -883,7 +883,7 @@
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
         tm = setTimeout(function () {
-            toastr.warning('Die Verbindung zum Tonuino ist unterbrochen! Bitte Seite neu laden.');
+            toastr.warning('Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.');
         }, 5000);
     }
 

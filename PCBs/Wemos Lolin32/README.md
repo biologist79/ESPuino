@@ -1,4 +1,4 @@
-# Tonuino-PCB based on Wemos' Lolin32
+# ESPuino-PCB based on Wemos' Lolin32
 
 ## Introduction
 After I've been asked many times to provide a PCB, I finally did so :-) It makes use of Wemos' Lolin32 which is the predecessor of Lolin D32. D32's advantage over Lolin32 is especially, that a voltage-divider for measuring battery's voltage is already integrated (fixed-wired to GPIO 35). However, as I wasn't aware of that when buying Lolin32 and because of now, that multiple Lolin32 are here on my desk, my reasonable intention was to use them. So things would have been a bit easier with D32 but in the end it works the same way with Lolin32. As per rev2 of the PCB, I added a 10 uF-capacitor to smoothen the battery-measurement. Ii's optional but be advised values measured are a bit more volatile without capacitor-stabilization.
@@ -10,12 +10,12 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * 2.54mm-connectors for MAX98357a and µSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb, RFID-reader and µSD-card-reader automatically when deepsleep is active.
 * All peripherals are solely driven at 3.3V! Keep this especially in mind when choosing µSD-reader. If in doubts use one without voltage-regulator (link below).
-* If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
-* If `HEADPHONE_ADJUST_ENABLE` is enabled and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
-* rev2: Reset-pinheader added. Can be used to connect e.g. a [micro switch](https://www.ebay.de/itm/10x-Mini-Taster-Drucktaster-klein-Mikroschalter-6x6x5mm-Arduino-Raspberry-Pi/333273061003) to it, so you can reset Tonuino even in battery-mode from the outside of the enclosure. Micro switch can be placed somewhat hidden at the enclosure.
+* If [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
+* If `HEADPHONE_ADJUST_ENABLE` is enabled and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
+* rev2: Reset-pinheader added. Can be used to connect e.g. a [micro switch](https://www.ebay.de/itm/10x-Mini-Taster-Drucktaster-klein-Mikroschalter-6x6x5mm-Arduino-Raspberry-Pi/333273061003) to it, so you can reset ESPuino even in battery-mode from the outside of the enclosure. Micro switch can be placed somewhat hidden at the enclosure.
 
 ## Prerequisites
-* If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
+* If no [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
 * I used 130/130 kOhms-resistors as voltage-divider for `MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`. Initially, I used 390/130k because I thought it's a good idea to have a greater signal to measure. But [as it turned out](https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/) analogRead() with a greater voltage than 3 V is a bad idea because of the flattened curve. So better use a voltage-divider with 50%/50% potential drop.
 * In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
 * `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
@@ -90,7 +90,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [LiPo-battery (2500 mAh) with connector JST PH 2.0mm](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm)
 
 ## Parts
-* 1x IRF530NPbF (N-channel MOSFET)
+* 1x IRL3103 (N-channel MOSFET) (instead of IRF530NPbF as IRL3103 has lower Vgs)
 * 1x NDP6020P (P-channel MOSFET)
 * 1x 1k resistor
 * 1x 10k resistor

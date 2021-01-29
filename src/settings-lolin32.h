@@ -3,7 +3,7 @@
 //######################### INFOS ####################################
 /* This is a develboard-specific config-file for *Wemos Lolin32*. Specific doesn't mean it's only working with this board.
    Lolin32 is the predecessor of Lolin D32.
-   PCB: https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32
+   PCB: https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32
    Infos: https://arduino-projekte.info/wemos-lolin32/
    Caveats: None
    Status:
@@ -53,7 +53,7 @@
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
 #define DREHENCODER_DT                  35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-#define DREHENCODER_BUTTON              32          // Button is used to switch Tonuino on and off
+#define DREHENCODER_BUTTON              32          // Button is used to switch ESPuino on and off
 
 // Control-buttons
 #define PAUSEPLAY_BUTTON                5           // GPIO to detect pause/play

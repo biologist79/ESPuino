@@ -1,7 +1,7 @@
 #include "Arduino.h"
 
 //######################### INFOS ####################################
-// This is the general configfile for Tonuino-configuration.
+// This is the general configfile for ESPuino-configuration.
 
 //################## HARDWARE-PLATFORM ###############################
 /* Make sure to also edit the configfile, that is specific for your platform.
@@ -16,7 +16,7 @@
 
 
 //########################## MODULES #################################
-#define MDNS_ENABLE                     // When enabled, you don't have to handle with Tonuino's IP-address. If hostname is set to "tonuino", you can reach it via tonuino.local
+#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
 #define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
 #define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
 #define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
@@ -26,7 +26,7 @@
 //#define HEADPHONE_ADJUST_ENABLE       // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone)
 #define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 #define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
-//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting Tonuino, the last RFID that was active before, is recalled and played
+//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 //#define USE_LAST_VOLUME_AFTER_REBOOT  // Remembers the volume used at last shutdown after reboot
 
 //#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
@@ -56,7 +56,7 @@ const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for ser
 
 // Static ip-configuration
 #ifdef STATIC_IP_ENABLE
-    IPAddress local_IP(192, 168, 2, 100);           // Tonuino's IP
+    IPAddress local_IP(192, 168, 2, 100);           // ESPuino's IP
     IPAddress gateway(192, 168, 2, 1);              // IP of the gateway/router
     IPAddress subnet(255, 255, 255, 0);             // Netmask of your network (/24 => 255.255.255.0)
     IPAddress primaryDNS(192, 168, 2, 1);           // DNS-server of your network; in private networks it's usually the gatewy's IP
@@ -78,8 +78,8 @@ uint16_t intervalToLongPress = 700;                 // Interval in ms to disting
 // Nothing to be configured here...
 // Default user/password is esp32/esp32 but can be changed via webgui
 
-// Tonuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
-static const char accessPointNetworkSSID[] PROGMEM = "Tonuino";     // Access-point's SSID
+// ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
+static const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
 
 // Where to store the backup-file for NVS-records
 static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
@@ -108,27 +108,27 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 #ifdef MQTT_ENABLE
     uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
     uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
-    #define DEVICE_HOSTNAME "ESP32-Tonuino"         // Name that is used for MQTT
-    static const char topicSleepCmnd[] PROGMEM = "Cmnd/Tonuino/Sleep";
-    static const char topicSleepState[] PROGMEM = "State/Tonuino/Sleep";
-    static const char topicRfidCmnd[] PROGMEM = "Cmnd/Tonuino/Rfid";
-    static const char topicRfidState[] PROGMEM = "State/Tonuino/Rfid";
-    static const char topicTrackState[] PROGMEM = "State/Tonuino/Track";
-    static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/Tonuino/TrackControl";
-    static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/Tonuino/Loudness";
-    static const char topicLoudnessState[] PROGMEM = "State/Tonuino/Loudness";
-    static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/Tonuino/SleepTimer";
-    static const char topicSleepTimerState[] PROGMEM = "State/Tonuino/SleepTimer";
-    static const char topicState[] PROGMEM = "State/Tonuino/State";
-    static const char topicCurrentIPv4IP[] PROGMEM = "State/Tonuino/IPv4";
-    static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/Tonuino/LockControls";
-    static const char topicLockControlsState[] PROGMEM ="State/Tonuino/LockControls";
-    static const char topicPlaymodeState[] PROGMEM = "State/Tonuino/Playmode";
-    static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/Tonuino/RepeatMode";
-    static const char topicRepeatModeState[] PROGMEM = "State/Tonuino/RepeatMode";
-    static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/Tonuino/LedBrightness";
-    static const char topicLedBrightnessState[] PROGMEM = "State/Tonuino/LedBrightness";
+    #define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
+    static const char topicSleepCmnd[] PROGMEM = "Cmnd/ESPuino/Sleep";
+    static const char topicSleepState[] PROGMEM = "State/ESPuino/Sleep";
+    static const char topicRfidCmnd[] PROGMEM = "Cmnd/ESPuino/Rfid";
+    static const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
+    static const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
+    static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
+    static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
+    static const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
+    static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
+    static const char topicSleepTimerState[] PROGMEM = "State/ESPuino/SleepTimer";
+    static const char topicState[] PROGMEM = "State/ESPuino/State";
+    static const char topicCurrentIPv4IP[] PROGMEM = "State/ESPuino/IPv4";
+    static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/ESPuino/LockControls";
+    static const char topicLockControlsState[] PROGMEM ="State/ESPuino/LockControls";
+    static const char topicPlaymodeState[] PROGMEM = "State/ESPuino/Playmode";
+    static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/ESPuino/RepeatMode";
+    static const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
+    static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
+    static const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
     #ifdef MEASURE_BATTERY_VOLTAGE
-        static const char topicBatteryVoltage[] PROGMEM = "State/Tonuino/Voltage";
+        static const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
     #endif
 #endif

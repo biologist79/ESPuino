@@ -1,7 +1,7 @@
-# OpenHAB-integration for Tonuino
+# OpenHAB-integration for ESPuino
 
 ## Disclaimer
-[OpenHAB](https://www.openhab.org/) is a pretty complex software for home automation. I just extracted that parts of my local config, that are necessary for Tonuino. Hopefully I didn't forget anything :-) Said this I want to rule out I didn't test this minimal setup and that this document's aim isn't to provide a fully-featured howto. For further informations please have a look at the project's [documentation](https://www.openhab.org/docs/) or the [community](https://community.openhab.org/).
+[OpenHAB](https://www.openhab.org/) is a pretty complex software for home automation. I just extracted that parts of my local config, that are necessary for ESPuino. Hopefully I didn't forget anything :-) Said this I want to rule out I didn't test this minimal setup and that this document's aim isn't to provide a fully-featured howto. For further informations please have a look at the project's [documentation](https://www.openhab.org/docs/) or the [community](https://community.openhab.org/).
 
 ## What's necessary (hardware)
 * I always recommend Raspberry Pi as it consumes only a few watts.
@@ -14,7 +14,7 @@
 * [Raspberry Pi OS with manual openHAB-installation](https://www.openhab.org/docs/installation/rasppi.html)
 * [openHABian](https://www.openhab.org/docs/installation/openhabian.html). After testing it myself I also recommend to use openHABian as it's much simplier.
 * Make sure to choose openHAB3 as openHAB2 will be discontinued mid-term.
-* After completing the installation, [UI](http://<ip>:8080) should be browsable. In order to get Tonuino running you need at least the MQTT-binding (Add-ons -> Bindings) and the Map-transformation (Add-ons -> transformations). And you need to setup items, rules and sitemap.
+* After completing the installation, [UI](http://<ip>:8080) should be browsable. In order to get ESPuino running you need at least the MQTT-binding (Add-ons -> Bindings) and the Map-transformation (Add-ons -> transformations). And you need to setup items, rules and sitemap.
 * Beside of openHAB you need a MQTT-broker. You can use a public one but if there's already a Raspberry Pi running with openHAB, it probably makes sense to install [Mosquitto](https://mosquitto.org/) as MQTT-broker in parallel.
 
 ## GUI or text?
@@ -26,14 +26,14 @@ After your MQTT-broker is set up have look at mqttConnections.things in order to
 
 ## How does it look like?
 Depends on you like it :-) Here's some screenshots of my sitemap-presentation as described in my GitHub-repository.
-App's screen when Tonuino is running and playing a music-folder:<br />
+App's screen when ESPuino is running and playing a music-folder:<br />
 <img src="./pictures/openhab_overview.jpg" width="300">
 
-RFID-tags can also be 'emulated' via app. It's not really comfortable, as this list isn't synced with the RFIDs known to Tonuino, but at least it's possible (+handy for a few RFIDs):<br />
+RFID-tags can also be 'emulated' via app. It's not really comfortable, as this list isn't synced with the RFIDs known to ESPuino, but at least it's possible (+handy for a few RFIDs):<br />
 <img src="./pictures/openhab_trackSelection.jpg" width="300">
 
 Sleep-timer can be adjusted this way:<br />
 <img src="./pictures/openhab_sleepTimer.jpg" width="300">
 
-When Tonuino is not online (doesn't matter if deepsleep or totally powered off):<br />
+When ESPuino is not online (doesn't matter if deepsleep or totally powered off):<br />
 <img src="./pictures/openhab_sleeping.jpg" width="300">

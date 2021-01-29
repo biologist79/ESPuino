@@ -1,4 +1,4 @@
-# Tonuino-PCB based on Wemos' Lolin D32
+# ESPuino-PCB based on Wemos' Lolin D32
 
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
@@ -7,12 +7,12 @@
 * 2.54mm-connectors for MAX98357a and µSD-card-reader. In contrast to my pictures: better solder them directly onto the PCB without having a female-connector (as socket) in between. In turned out that especially plugging MAX98357a into a female connector can lead to connectivity-issues!
 * Mosfet-circuit that switches off MAX98357a, Neopixel, headphone-pcb, RFID-reader and µSD-card-reader automatically when deepsleep is active
 * All peripherals are solely driven at 3.3V, as 5V isn't available in battery-mode. Keep this especially in mind when choosing µSD-reader. If in doubts use one without voltage-regulator (link below).
-* If [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
-* If `HEADPHONE_ADJUST_ENABLE` is set and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
+* If [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is used, MAX98357a is automatically muted when there's a headphone plugged in and vice versa.
+* If `HEADPHONE_ADJUST_ENABLE` is set and a headphone is plugged in, an alternative maximum volume is activated. I added this feature because [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) makes use of an amp that (probably) "allows" children to damage ears. This maximum volume can be set and re-adjusted via webgui.
 * Reset-button
 
 ## Prerequisites
-* If no [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
+* If no [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `HEADPHONE_ADJUST_ENABLE` is disabled.
 * Make sure to edit `settings.h` (HAL=3) and `settings-lolin_d32.h` according your needs.
 * Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
 * Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
@@ -55,7 +55,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | GND           | Neopixel              | G      |                                                              |
 | 12            | Neopixel              | DI     |                                                              |
 | 17            | N-channel Mosfet      | Gate   |                                                              |
-| 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
+| 35            | Voltage-divider / BAT |        |                                                              |
 | 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
 
 ## Things to mention
@@ -81,7 +81,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin D32 development-board](htt
 * [LiPo-battery (2500 mAh) with connector JST PH 2.0mm](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm)
 
 ## Parts
-* 1x IRF530NPbF (N-channel MOSFET)
+* 1x IRL3103 (N-channel MOSFET) (instead of IRF530NPbF as IRL3103 has lower Vgs)
 * 1x NDP6020P (P-channel MOSFET)
 * 1x 1k resistor
 * 1x 10k resistor

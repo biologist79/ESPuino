@@ -1,48 +1,21 @@
-# Tonuino based on ESP32 with I2S-DAC-support
+# ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
 ## NEWS
-Finally, the long announced Tonuino-PCB for Wemos' Lolin32 is [there](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32). It can (optionally) be used alongside with a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). As µC-develboard a Lolin32 is used and it's (optionally) battery-powered. Peripherals (Neopixel, RFID, headphone-pcb and MAX98357a) are driven at 3.3V solely.
-
-## History
-[...]
-* 11.07.2020: Added support for reversed Neopixel addressing.
-* 09.10.2020: mqttUser / mqttPassword can now be configured via webgui.
-* 16.10.2020: Added English as supported lanuage.
-* 01.11.2020: Added directive `SD_NOT_MANDATORY_ENABLE`: for debugging puposes SD can be bypassed at boot.
-* 17.11.2020: Introduced a distinct volume for headphone for optional headphone-PCB.
-* 20.11.2020: Added directive `MEASURE_BATTERY_VOLTAGE`: monitoring battery's voltage is now supported.
-* 25.11.2020: WiFi can now be enabled/disabled instantly by pressing two buttons.
-* 28.11.2020: Battery's voltage can now be visualized by Neopixel by short-press of rotary encoder's button.
-* 28.11.2020: Added directive `PLAY_LAST_RFID_AFTER_REBOOT`: Tonuino will recall the last RFID played after reboot.
-* 05.12.2020: Added filebrowser to webgui (thanks @mariolukas for contribution!)
-* 05.12.2020: Moved all user-relevant settings to src/settings.h
-* 06.12.2020: Added PCB for Wemos Lolin32
-* 08.12.2020: Reworked MQTT-timeout-Management
-* 09.12.2020: mDNS-feature added. If tonuino's name is "tonuino", you can use `tonuino.local` instead it's of IP-address.
-* 11.12.2020: Revised GUI-design (thanks @mariolukas for contribution!) + (untested) PCB added for Wemos Lolin D32 + gerberfiles for headphone-PCB
-* 18.12.2020: Added SD-MMC 1 Bit-mode (`SD_MMC_1BIT_MODE`). This mode needs one GPIO less and provides almost doubled speed (compared to SPI) for FTP-transfers (thanks @tueddy for contribution!)
-* 18.12.2020: Added support for RFID-reader PN5180 (`RFID_READER_TYPE_PN5180`). PN5180 has better RFID-range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (thanks @tueddy for contribution!)
-* 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
-<br />More to come...
-* 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
-* 13.01.2020: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
-* 17.01.2020: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration
+* As the creator of ESPuino claims it's trademarkt right, my project has been renamed to ESPuino. I'm totally respecting this. So I instantly renamed everything and hopefully, I didn't forget any parts.
+* EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
+* DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
+## Changelog
+Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
 * 18.01.2020: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
 * 25.01.2020: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
+* 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
-## Disclaimer
-This is a **fork** of the popular [Tonuino-project](https://github.com/xfjx/TonUINO) which means, that it only shares the basic concept of controlling a music-player by RFID-tags and buttons. **Said this I want to rule out, that the code-basis is completely different and developed by myself + contributors**. So there might be features, that are supported by my fork whereas others are missing or implemented differently. For sure both share that it's non-profit, DIY and developed on [Arduino](https://www.arduino.cc/).
+## ESPuino - what's that?
+The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
-
-## What's different (basically)?
-The original project makes use of microcontrollers (µC) like Arduino nano (which is the [Microchip AVR-platform](https://de.wikipedia.org/wiki/Microchip_AVR) behind the scenes). Music-decoding is done in hardware using [DFPlayer mini](https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299) which offers an uSD-card-slot and an integrated amp as well. Control of this unit is done by a serial-interconnect with a µC using the API provided.
-
-The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. However, my primary focus was to port the project to a modular base. Said this mp3-decoding is done in software with a dedicated uSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). Hopefully, not only in theory, other DACs that support I2S can be used as well.
-
-## Basic concept/handling of Tonuino
-The basic idea of Tonuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
+The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. However, my primary focus was to port the project to a modular base. Said this mp3-decoding is done in software with a dedicated uSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). Hopefully, not only in theory, other DACs that support I2S can be used as well.
 
 ## Hardware-setup
 The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€) but even in Europe it's only around 8€. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). But probably it's better to use it's successor (which has battery-measurement already included): [Wemos Lolin D32](https://de.aliexpress.com/item/32808551116.html). Or, if you're planning to hear webstreams regularly, [Wemos Lolin D32 pro](https://de.aliexpress.com/item/32883116057.html) might be a good decision. It comes with uSD-slot onboard and because of its ESP32-WROVER-B has PSRAM included. PSRAM is used as webstream-cache and might be used more intensively in future.
@@ -64,7 +37,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * Arduino-IDE can be used but you need to satisfy dependencies for all the libraries listed in `platformio.ini` manually.
 * Instead I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
 * Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html). Step-by-step-manual is available [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
-* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/Tonuino-ESP32-I2S.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here}(https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
+* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here}(https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
 * There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
@@ -73,11 +46,11 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32.h` for Lolin D32). If you're running a board that is not listed there: start with `settings-lolin32.h`. Specific means: it was successfully tested or is at least supposed to be working. Said this I want to outline in many cases `settings-lolin32.h` can be used with other boards as well (with no or just a few tweaks).
 * Connect your develboard via USB, click the alien-head to the left and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware. Depending on your develboard it might me necessary to push a button in order to allow ESP32 to enter flashmode (not necessary für Lolin32, D32 und D32 pro).
 * Now have a look at the serial-output at the bottom of Visual Studio Code's windows. At the first run there might appear a few error-messages (related to missing entries in NVS). Don't worry, this is just normal. However, make sure SD is running as this is mandatory!
-* If everything ran fine, at the first run, Tonuino should open an access-point with the name "Tonuino". Join this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart Tonuino. Hint: I tried to connect this access-point via Android mobile. Basically that's no problem, but as my mobile detected there'd be no internet-connection, it keept LTE-connection open and prevented me from connecting to `192.168.4.1`. So if in doubts use a computer.
-* After reboot Tonuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call Tonuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `tonuino` as hostname, you can use `tonuino.local` for webgui and FTP.
+* If everything ran fine, at the first run, ESPuino should open an access-point with the name "ESPuino". Join this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart ESPuino. Hint: I tried to connect this access-point via Android mobile. Basically that's no problem, but as my mobile detected there'd be no internet-connection, it keept LTE-connection open and prevented me from connecting to `192.168.4.1`. So if in doubts use a computer.
+* After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call ESPuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `espuino` as hostname, you can use `espuino.local` for webgui and FTP.
 * Via FTP you can upload data (but don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 310 kB/s if SD is in MMC-mode.
 * FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
-* Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTp-support was not compiled, their config-tabs won't appear.
+* Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
 
 ## Prerequisites / tipps
 * Open settings.h
@@ -91,23 +64,23 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 130k resistors (VBat(+)--130k--X--130k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to leave both resistor-values unchanged at 100k. Same for GPIO: unchanged at 35.
 Please note: via GUI upper and lower voltage cut-offs for visualisation of battery-voltage (Neopixel) is available. Additional GUI-configurable values are interval (in minutes) for checking battery voltage and the cut off-voltage below whose a warning is shown via Neopixel.
 * If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it to GPIO22.
-* Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your Tonuino in battery-mode without having a restart-button exposed to the outside of Tonuino's enclosure. Because otherwise there's no way to restart your Tonuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
-* Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell Tonuino to remember the last RFID-tag played after next reboot. So rebooting Tonuino will end up in autoplay. I don't really recommend this feature because if you use it along with a webstream, in case of streaming-issues this might end up in an infinite loop.
+* Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your ESPuino in battery-mode without having a restart-button exposed to the outside of ESPuino's enclosure. Because otherwise there's no way to restart your ESPuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
+* Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell ESPuino to remember the last RFID-tag played after next reboot. So rebooting ESPuino will end up in autoplay. I don't really recommend this feature because if you use it along with a webstream, in case of streaming-issues this might end up in an infinite loop.
 
 
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
 Having SD working is mandatory. However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
 Advantages SD-MMC (1 bit) over SPI:
 * Needs only three GPIOs (instead of four)
-* It is almost 70% faster when it comes to FTP-transfer<br />
-So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the uSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a 10k-resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high at boot, ESP32 doesn't enter flash-mode. As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in Tonuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set, pullup is done in software using `pinMode(2, INPUT_PULLUP);`.
+* It's faster. FTP-upload: 298 kiB vs 178 kiB. HTTP-upload: 372 kiB vs 184 kiB. (tested with filesize of 70.7 MiB.<br />
+So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the uSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a 10k-resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high at boot, ESP32 doesn't enter flash-mode. As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in ESPuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set, pullup is done in software using `pinMode(2, INPUT_PULLUP);`. So it's not really a problem but you have to take note of that!
 
 ## RFID: RC522 or PN5180?
 RC522 is so to say the Tonuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies). You can also wake-up the board with the card. Disadvantages: is a bit more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V make sure to connect PN5180 to +5V AND 3.3V. Sounds weird but it's necessary.
 
 ## 3.3 or 5V?
 * Why 3.3V? Because: if you plan to use battery-mode with a LiPo, there's no 5 V available (unless USB is connected).
-That's why my design's focus is 3.3 V. If you want to use 5 V - do so, but be advised it's not compatible with LiPo-battery-mode. The Mosfet-circuit for saving power in deepsleep (see [Lolin32-schematics](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino%20V2-Schematics.pdf) as reference) works as well for 5 V.
+That's why my design's focus is 3.3 V. If you want to use 5 V - do so, but be advised it's not compatible with LiPo-battery-mode. The Mosfet-circuit for saving power in deepsleep (see [Lolin32-schematics](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino%20V2-Schematics.pdf) as reference) works as well for 5 V.
 * MAX98357a: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in my opinion).
 * Neopixel: specification says it needs 5 V but also runs at 3.3 V.
 * RC522: needs 3.3 V (don't power with 5 V!)
@@ -118,11 +91,11 @@ That's why my design's focus is 3.3 V. If you want to use 5 V - do so, but be ad
 
 ## Wiring (general)
 Depending on the develboard you're using and the needs you have, there are different options available.
-A lot of wiring is necessary to get ESP32-Tonuino working. After my first experiments on a breadboard I soldered all the stuff onto a PCB in order to avoid wild-west-cabling. Especially for the interconnect between µC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
+A lot of wiring is necessary to get ESPuino working. After my first experiments on a breadboard I soldered all the stuff onto a PCB in order to avoid wild-west-cabling. Especially for the interconnect between µC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
 Have a look at the PCB-folder. I provided PCBs for a number of develboards. Probably this makes things easier for you.
 
 ## Wiring (2 SPI-instances: RC522 + SD)
-Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32).<br />
+Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32).<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
@@ -162,15 +135,15 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
 
 
-Optionally, GPIO 17 can be used to drive a Mosfet-circuit in order to switch off peripherals (SD, Neopixel, RFID and MAX98357a) if ESP32 is in deepsleep. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/Tonuino-ESP32-I2S/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations. If you need further informations on transistor-circuits visit this [website](https://dl6gl.de/schalten-mit-transistoren.html). <br />
-In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968) that can be run solely with 3.3V (doesn't have a voltage-regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-). And by the way: when LiPo-battery is connected, there's no 5V. That's why I designed my [Lolin-PCBs](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/PCBs/Wemos%20Lolin32) with 3.3V only.
+Optionally, GPIO 17 can be used to drive a Mosfet-circuit in order to switch off peripherals (SD, Neopixel, RFID and MAX98357a) if ESP32 is in deepsleep. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations. If you need further informations on transistor-circuits visit this [website](https://dl6gl.de/schalten-mit-transistoren.html). <br />
+In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-SPI-Kartenleser-Card-Reader-2GB-SD-8GB-SDHC-Card-3-3V-ESP8266-Arduino-NEU/333796577968) that can be run solely with 3.3V (doesn't have a voltage-regulator). This is because if 3.3V go through the voltage regulator a small voltage-drop will be introduced, which may lead to SD-malfunction as the resulting voltage is a bit too low. Vice versa if you want to connect your reader solely to 5V, make sure to have one WITH a voltage regulator :-). And by the way: when LiPo-battery is connected, there's no 5V. That's why I designed my [Lolin-PCBs](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32) with 3.3V only.
 
 ## Wiring (SD-card in 1 Bit SD-MMC mode) different to above
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | --            | SD-reader             | CS     | no CS required                                               |
 | 15            | SD-reader             | MOSI   |                                                              |
-| 2             | SD-reader             | MISO   | make sure there's no [hardware-pullup](https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Pullup-removal.jpg) for MISO |
+| 2             | SD-reader             | MISO   | make sure there's no [hardware-pullup](https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Pullup-removal.jpg) for MISO |
 | 14            | SD-reader             | SCK    |                                                              |
 
 Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. Don't(!) enable `SINGLE_SPI_ENABLE`. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).
@@ -236,15 +209,15 @@ You can enable low power card-detection with `PN5180_ENABLE_LPCD`, but this need
 
 ## Wiring (custom) / different pinout
 When using a develboard with SD-card-reader already integrated (Lolin D32 Pro, several TTGO-boards), the pinouts described above my not fit. Feel free to change them according your needs. Additionaly some boards may use one or some of the GPIOs I used for their internal purposes and that reason for are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start/boot for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
-[Here](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. Please note I used a slightly modified [RFID-lib](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit/lib/MFRC522) there. Please note: the code-basis is outdated. Will need to re-integrate it into my master-branch...
+[Here](https://github.com/biologist79/ESPuino/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. Please note I used a slightly modified [RFID-lib](https://github.com/biologist79/ESPuino/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit/lib/MFRC522) there. Please note: the code-basis is outdated. Will need to re-integrate it into my master-branch...
 
 ## WiFi
 WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled. There are two ways to do that:
 * Use a special modification-card that can be configured via webgui
 * Press previous-key (and keep it pressed) + press next-button in parallel shortly. Now release both.
-This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that Tonuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *blue*.
-## After Tonuino-ESP32 is connected to your WiFi
-After bringing Tonuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can configure:
+This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that ESPuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *blue*.
+## After ESPuino is connected to your WiFi
+After bringing ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can configure:
 * WiFi
 * Binding between RFID-tag, file/directory/URL and playMode
 * Binding between RFID-tag and a modification-type
@@ -253,36 +226,36 @@ After bringing Tonuino part of your LAN/WiFi, the 'regular' webgui is available 
 * Initial volume, maximum volume (speaker / headphone), brightness of Neopixel (nightmode / default) and inactivity-time
 
 Webgui #1:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI1.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI1.jpg" width="300">
 
 Webgui #2:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI2.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI2.jpg" width="300">
 
 Webgui #3:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI3.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI3.jpg" width="300">
 
 Webgui #4:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI4.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI4.jpg" width="300">
 
 Webgui #5:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI5.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI5.jpg" width="300">
 
 Webgui #6:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI6.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI6.jpg" width="300">
 
 Webgui #7:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI7.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI7.jpg" width="300">
 
 Webgui: websocket broken:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt-GUI_connection_broken.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI_connection_broken.jpg" width="300">
 
 Webgui: action ok:
-<img src="https://raw.githubusercontent.com/biologist79/Tonuino-ESP32-I2S/master/pictures/Mgmt_GUI_action_ok.jpg" width="300">
+<img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt_GUI_action_ok.jpg" width="300">
 
 Please note: as you apply a RFID-tag to the RFID-reader, the corresponding ID is pushed to the GUI. So there's no need to enter such IDs manually (unless you want to). Filepath can be filled out by selecting a file/directory in the tree.
 IMPORTANT: Every time you add, delete or rename stuff on the SD-card, it's necessary to rebuild the json-indexfile. Simply click on the refresh-button below the filetree and wait until it's done. This is because all operations of the filebrowser rely on this file in order to provide a fast way to access all the files and directories.
 
-## Interacting with Tonuino
+## Interacting with ESPuino
 ### Playmodes
 It's not just simply playing music; different playmodes are supported:
 * `single track` => plays one track one time
@@ -345,12 +318,12 @@ Some buttons have different actions if pressed long or short. Minimum duration f
 
 ### Music-play
 * Music starts to play right after a valid RFID-tag was applied
-* If `PLAY_LAST_RFID_AFTER_REBOOT` is active, Tonuino will remember the last RFID applied => music-autoplay (if in doubts don't use this feature).
+* If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay (if in doubts don't use this feature).
 * If a folder should be played that contains many mp3s, the playlist generation can take a few seconds. Please note that a file's name including path cannot exceed 255 characters.
 * While playlist is generated Neopixel indicates BUSY-mode.
 * After last track was played, Neopixel indicates IDLE-mode.
 * In audiobook-mode, last play-position is remembered (position in actual file and number of track, respectively) when a new track begins of if pause-button was hit.
-* In webstream-mode the stream will instantly stop if WiFi-status is toggled to disabled. Tonuino will return to idle-mode and wait for new RFID-tag.
+* In webstream-mode the stream will instantly stop if WiFi-status is toggled to disabled. ESPuino will return to idle-mode and wait for new RFID-tag.
 
 ### Audiobook-mode
 This mode is different from the other ones because the last playposition is saved. Playposition is saved when...
@@ -361,8 +334,8 @@ This mode is different from the other ones because the last playposition is save
 * Please note: last playposition is not saved when applying a new RFID-tag. This is intended because otherwise you woldn't have a possibility to not save it.
 
 ### Webinterface-configuration
-After having Tonuino running on your ESP32 in your local WiFi, the webinterface-configuration is accessable. Using this GUI you can configure:
-* Wifi-configuration (Wifi-SSID, Wifi-password, Tonuino's name (for nameserver))
+After having ESPuino running on your ESP32 in your local WiFi, the webinterface-configuration is accessable. Using this GUI you can configure:
+* Wifi-configuration (Wifi-SSID, Wifi-password, ESPuino's name (for nameserver))
 * Link between RFID-tag and corresponding action
 * (optional) MQTT-configuration (broker's IP)
 * (optional) FTP-configuration (username and password)
@@ -370,7 +343,7 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 
 ### FTP (optional)
 * FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
-* In order to avoid exposing uSD-card or disassembling Tonuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
+* In order to avoid exposing uSD-card or disassembling ESPuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
 * Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
 * Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to ISO8859-1.
 * Secured FTP is not available. So make sure to disable SSL/TLS.
@@ -379,10 +352,10 @@ After having Tonuino running on your ESP32 in your local WiFi, the webinterface-
 * Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer.
 
 ### Energy saving
-As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless Tonuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
+As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless ESPuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
 
 ### MQTT (optional)
-Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT (excepting toggling WiFi-status as this doesn't make sense). All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to "encapsulate" MQTT into a nice GUI, that's accessible via APP + web. I [described](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB) a sample-config for openHAB2. However, meanwhile openHAb3 is available and all the stuff described can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend some time to get familiar with it.
+Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT (excepting toggling WiFi-status as this doesn't make sense). All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to "encapsulate" MQTT into a nice GUI, that's accessible via APP + web. I [described](https://github.com/biologist79/ESPuino/tree/master/openHAB) a sample-config for openHAB2. However, meanwhile openHAb3 is available and all the stuff described can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend some time to get familiar with it.
 
 ### Supported file/stream-types
 Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), as this is the library I used for music-decoding. Make sure to update especially this library regularly as it's development is still in progress.
@@ -391,16 +364,16 @@ Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), a
 As all assignments between RFID-IDs and actions (playmode, file to play...) is saved in ESP's NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes into play. So every time you change or add a new assignment between a RFID-tag and an action via GUI, a backup-file is saved on the uSD-card. The file's name can be changed via `backupFile`. So better don't delete it! Using the webgui you can use the upload-form to import such a file. To be honest: Sometimes I had some issues with Firefox doing this whereas Safari turned out to do it right. Don't know why :-(.
 
 ## Smarthome (optional)
-As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, Tonuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations (and pictures) refer the [subfolder](https://github.com/biologist79/Tonuino-ESP32-I2S/tree/master/openHAB).
+As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, ESPuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations (and pictures) refer the [subfolder](https://github.com/biologist79/ESPuino/tree/master/openHAB).
 
 ## MQTT-topics and their ranges
-Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to Tonuino, you have to use a cmnd-topic whereas Tonuino pushes its states back via state-topics. So guess you want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, Tonuino sends a conformation of this command using `topicLoudnessState`. To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introducton (covers more than you need for Tonuino).
+Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to ESPuino, you have to use a cmnd-topic whereas ESPuino pushes its states back via state-topics. So guess you want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, ESPuino sends a conformation of this command using `topicLoudnessState`. To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introducton (covers more than you need for ESPuino).
 
 
 | topic-variable          | range           | meaning                                                                        |
 | ----------------------- | --------------- | ------------------------------------------------------------------------------ |
-| topicSleepCmnd          | 0 or OFF        | Power off Tonuino immediately                                                  |
-| topicSleepState         | ON or OFF       | Sends Tonuino's current/last state                                             |
+| topicSleepCmnd          | 0 or OFF        | Power off ESPuino immediately                                                  |
+| topicSleepState         | ON or OFF       | Sends ESPuino's current/last state                                             |
 | topicRfidCmnd           | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
 | topicRfidState          | 12 digits       | ID of current RFID-tag (if not a modification-card)                            |
 | topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3" |
@@ -414,7 +387,7 @@ Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-
 |                         | 0               | Deactivate timer (if active)                                                   |
 | topicSleepTimerState    | various         | Sends active timer (`EOP`, `EOT`, `EO5T`, `0`, ...)                            |
 | topicState              | Online, Offline | `Online` when powering on, `Offline` when powering off                         |
-| topicCurrentIPv4IP      | IPv4-string     | Sends Tonuino's IP-address (e.g. `192.168.2.78`)                               |
+| topicCurrentIPv4IP      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                               |
 | topicLockControlsCmnd   | ON, OFF         | Set if controls (buttons, rotary encoder) should be locked                     |
 | topicLockControlsState  | ON, OFF         | Sends if controls (buttons, rotary encoder) are locked                         |
 | topicPlaymodeState      | 0 - 10          | Sends current playmode (single track, audiobook...; see playmodes)             |

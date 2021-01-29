@@ -52,8 +52,8 @@ static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
             <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"SSID\" required><br>\
             <label for=\"pwd\">Password:</label><br>\
             <input type=\"password\" id=\"pwd\" name=\"pwd\" autocomplete=\"off\" required><br>\
-            <label for=\"hostname\">Tonuino's name (hostname):</label><br>\
-            <input type=\"text\" id=\"hostname\" name=\"hostname\" placeholder=\"Tonuino\" required><br><br>\
+            <label for=\"hostname\">ESPuino's name (hostname):</label><br>\
+            <input type=\"text\" id=\"hostname\" name=\"hostname\" placeholder=\"espuino\" required><br><br>\
             <input class=\"btn\" type=\"submit\" id=\"save-button\" value=\"Save\">\
         </form>\
         <form action=\"/restart\" class=\"box\">\

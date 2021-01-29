@@ -49,7 +49,7 @@
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
 #define DREHENCODER_DT                  39          // 39 = 'VN'
-#define DREHENCODER_BUTTON              36          // Button is used to switch Tonuino on and off; 36 = 'VP'
+#define DREHENCODER_BUTTON              36          // Button is used to switch ESPuino on and off; 36 = 'VP'
 
 // Control-buttons
 #define PAUSEPLAY_BUTTON                32          // GPIO to detect pause/play
