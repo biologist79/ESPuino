@@ -4,15 +4,15 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <title>ESPuino-Konfiguration</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-    <link rel=\"stylesheet\" href=\"https://ts-cs.de/tonuino/css/bootstrap.min.css\">\
+    <link rel=\"stylesheet\" href=\"https://espuino.de/espuino/css/bootstrap.min.css\">\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css\" />\
-    <script src=\"https://ts-cs.de/tonuino/js/jquery.min.js\"></script>\
+    <script src=\"https://espuino.de/espuino/js/jquery.min.js\"></script>\
     <script src=\"https://code.jquery.com/ui/1.12.0/jquery-ui.min.js\"></script>\
-    <script src=\"https://ts-cs.de/tonuino/js/popper.min.js\"></script>\
-    <script src=\"https://ts-cs.de/tonuino/js/bootstrap.min.js\"></script>\
+    <script src=\"https://espuino.de/espuino/js/popper.min.js\"></script>\
+    <script src=\"https://espuino.de/espuino/js/bootstrap.min.js\"></script>\
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js\"></script>\
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js\"></script>\
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js\"></script>\
@@ -105,8 +105,6 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
     <a class=\"float-left navbar-brand\">\
-        <img src=\"https://raw.githubusercontent.com/biologist79/ESPuino/master/html/tonuino_logo.png\"\
-             width=\"30\" height=\"30\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
 \
