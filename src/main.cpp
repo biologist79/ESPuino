@@ -675,8 +675,8 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 }
 
 
-/* Cyclic posting via MQTT that ESP is still alive. Use case: when Tonuino is switched off, it will post via
-   MQTT it's gonna be offline now. But when unplugging Tonuino e.g. openHAB doesn't know Tonuino is offline.
+/* Cyclic posting via MQTT that ESP is still alive. Use case: when ESPuino is switched off, it will post via
+   MQTT it's gonna be offline now. But when unplugging ESPuino e.g. openHAB doesn't know ESPuino is offline.
    One way to recognize this is to determine, when a topic has been updated for the last time. So by
    telling openHAB connection is timed out after 2mins for instance, this is the right topic to check for.  */
 void postHeartbeatViaMqtt(void) {
@@ -4110,12 +4110,12 @@ void setup() {
 
    // welcome message
    Serial.println(F(""));
-   Serial.println(F("_____         _____ _____ _____ _____     "));
-   Serial.println(F("|_   _|___ ___|  |  |     |   | |     |   "));
-   Serial.println(F("  | | | . |   |  |  |-   -| | | |  |  |   "));
-   Serial.println(F("  |_| |___|_|_|_____|_____|_|___|_____|   "));
-   Serial.println(F("  ESP32-version"));
-   Serial.println(F(""));
+   Serial.println(F("  _____   ____    ____            _                 "));
+   Serial.println(F(" | ____| / ___|  |  _ \\   _   _  (_)  _ __     ___  "));
+   Serial.println(F(" |  _|   \\__  \\  | |_) | | | | | | | | '_ \\   / _ \\"));
+   Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
+   Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
+   Serial.println(F(" Rfid-controlled musicplayer\n"));
    // print wake-up reason
    printWakeUpReason();
    #ifdef PN5180_ENABLE_LPCD
@@ -4156,7 +4156,7 @@ void setup() {
             .data_in_num = I2S_PIN_NO_CHANGE
         };
         a2dp_sink.set_pin_config(pin_config);
-        a2dp_sink.start("Tonuino");
+        a2dp_sink.start("ESPuino");
     #endif
 
     // Create queues
