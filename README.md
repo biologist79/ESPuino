@@ -2,6 +2,7 @@
 
 ## NEWS
 * As the creator of TonUINO claims it's trademark right, my project has been renamed to ESPuino. I'm totally respecting this and have to admit that I've been not aware of that. However, I instantly renamed everything and hopefully I didn't forget any parts. Since my repository has moved, please make sure (at least if you're using git) to change the URL of your local repository. An explanation was kindly [written by user](https://github.com/biologist79/ESPuino/issues/81). 
+* Please note: inline with the renaming of the project, MQTT-topics were changed as well as they've been including the old name. Please make sure to change your local MQTT-configuration as well. Sorry to [those](https://github.com/biologist79/ESPuino/issues/83) that spent time on this to point out.
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
