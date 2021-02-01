@@ -1,15 +1,15 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
 ## NEWS
-* As the creator of TonUINO claims it's trademark right, my project has been renamed to ESPuino. I'm totally respecting this and have to admit that I've been not aware of that. However, I instantly renamed everything and hopefully I didn't forget any parts. Since my repository has moved, please make sure (at least if you're using git) to change the URL of your local repository. An explanation was kindly [written by user](https://github.com/biologist79/ESPuino/issues/81). 
+* As the creator of TonUINO claims it's trademark right, my project has been renamed to ESPuino. I'm totally respecting this and have to admit that I've been not aware of that. However, I instantly renamed everything and hopefully I didn't forget any parts. Since my repository has moved, please make sure (at least if you're using git) to change the URL of your local repository. An explanation was kindly [written by user](https://github.com/biologist79/ESPuino/issues/81).
 * Please note: inline with the renaming of the project, MQTT-topics were changed as well as they've been including the old name. Please make sure to change your local MQTT-configuration as well. Sorry to [those](https://github.com/biologist79/ESPuino/issues/83) that spent time on this to point out.
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 18.01.2020: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
 * 25.01.2020: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
 * 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
+* 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.

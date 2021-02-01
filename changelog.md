@@ -23,3 +23,4 @@
 * 18.01.2020: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
 * 25.01.2020: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
 * 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
+* 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
