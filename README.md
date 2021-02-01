@@ -1,7 +1,7 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
 ## NEWS
-* As the creator of ESPuino claims it's trademarkt right, my project has been renamed to ESPuino. I'm totally respecting this. So I instantly renamed everything and hopefully, I didn't forget any parts.
+* As the creator of TonUINO claims it's trademark right, my project has been renamed to ESPuino. I'm totally respecting this and have to admit that I've been not aware of that. However, I instantly renamed everything and hopefully I didn't forget any parts.
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
