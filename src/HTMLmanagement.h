@@ -156,11 +156,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 					<div class=\"filetree demo\" id=\"explorerTree\"></div>\
 				</div>\
 				<div>\
-					<form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\" accept-charset=\"iso-8859-1\">\
+					<form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\">\
 						<input id=\"explorerUploadedFiles\" type=\"file\" class=\"form-control-file\" name=\"explorerUploadFiles\" multiple> <input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Hochladen\">\
 						<progress id=\"explorerUploadProgress\" value=\"0\" max=\"100\"></progress> <span id=\"explorerUploadPercent\"></span>\
 					</form>\
-\
 				</div>\
             </fieldset>\
         </div>\
@@ -485,9 +484,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 	function doRest(path, callback, obj) {\
 		obj.url      = path;\
 		obj.dataType = \"json\";\
-		obj.contentType= \"application/json;charset=iso-8859-1\",\
-		obj.scriptCharset= \"iso-8859-1\",\
-		obj.success  = function(data, textStatus, jqXHR) {\
+		obj.contentType= \"application/json;charset=IBM437\",\
+        obj.scriptCharset= \"IBM437\",\
+        obj.success  = function(data, textStatus, jqXHR) {\
 			if (callback) {\
 				callback(data);\
 			}\
@@ -771,7 +770,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						/* Delete */\
 						items.delete = {\
-							label: \"Loeschen\",\
+							label: \"Löschen\",\
 							action: function(x) {\
 								handleDeleteData(nodeId);\
 								refreshNode(ref.get_parent(nodeId));\

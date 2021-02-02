@@ -362,6 +362,7 @@ void freeMultiCharArray(char **arr, const uint32_t cnt);
 uint8_t getRepeatMode(void);
 bool getWifiEnableStatusFromNVS(void);
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void convertAsciiToUtf8(String asciiString, char *utf8String);
 void convertUtf8ToAscii(String utf8String, char *asciiString);
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 void explorerHandleFileStorageTask(void *parameter);
@@ -3593,25 +3594,62 @@ void webserverStart(void) {
         return true;
     }
 
-// Conversion routine for http UTF-8 strings
-void convertUtf8ToAscii(String utf8String, char *asciiString) {
-    uint16_t i = 0, j=0;
-    bool f_C3_seen = false;
+// Conversion routine 
+void convertAsciiToUtf8(String asciiString, char *utf8String) {
 
-    while(utf8String[i] != 0) {                                     // convert UTF8 to ASCII
-        if(utf8String[i] == 195){                                   // C3
-            i++;
-            f_C3_seen = true;
-            continue;
+    int k=0;
+    
+    for (int i=0; i<asciiString.length(); i++)
+    {
+        
+        switch (asciiString[i]) {
+            case 0x8e: utf8String[k++]=0xc3; utf8String[k++]=0x84;  break; // Ä
+            case 0x84: utf8String[k++]=0xc3; utf8String[k++]=0xa4;  break; // ä
+            case 0x9a: utf8String[k++]=0xc3; utf8String[k++]=0x9c;  break; // Ü
+            case 0x81: utf8String[k++]=0xc3; utf8String[k++]=0xbc;  break; // ü
+            case 0x99: utf8String[k++]=0xc3; utf8String[k++]=0x96;  break; // Ö
+            case 0x94: utf8String[k++]=0xc3; utf8String[k++]=0xb6;  break; // ö
+            case 0xe1: utf8String[k++]=0xc3; utf8String[k++]=0x9f;  break; // ß
+            default: utf8String[k++]=asciiString[i];   
         }
-        asciiString[j] = utf8String[i];
-        if(asciiString[j] > 128 && asciiString[j] < 189 && f_C3_seen == true) {
-            asciiString[j] = asciiString[j] + 64;                      // found a related ASCII sign
-            f_C3_seen = false;
-        }
-        i++; j++;
     }
-    asciiString[j] = 0;
+
+    utf8String[k]=0;
+
+}
+
+void convertUtf8ToAscii(String utf8String, char *asciiString) {
+
+  int k=0;
+  bool f_C3_seen = false;
+  
+  for (int i=0; i<utf8String.length(); i++)
+  {
+
+    if(utf8String[i] == 195){                                   // C3
+      f_C3_seen = true;
+      continue;
+    } else {
+      if (f_C3_seen == true) {
+        f_C3_seen = false;
+        switch (utf8String[i]) {
+          case 0x84: asciiString[k++]=0x8e;  break; // Ä
+          case 0xa4: asciiString[k++]=0x84;  break; // ä
+          case 0x9c: asciiString[k++]=0x9a;  break; // Ü
+          case 0xbc: asciiString[k++]=0x81;  break; // ü
+          case 0x96: asciiString[k++]=0x99;  break; // Ö
+          case 0xb6: asciiString[k++]=0x94;  break; // ö
+          case 0x9f: asciiString[k++]=0xe1;  break; // ß
+          default: asciiString[k++]=0xdb;  // Unknow... 
+        }
+      } else {
+        asciiString[k++]=utf8String[i];
+      }
+
+    }
+  }
+
+  asciiString[k]=0;
 
 }
 
@@ -3624,7 +3662,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
     // New File
     if (!index) {
         String utf8FilePath;
-        static char asciiFilePath[256];
+        static char filePath[256];
         if (request->hasParam("path")) {
             AsyncWebParameter *param = request->getParam("path");
             utf8FilePath = param->value() + "/" + filename;
@@ -3632,7 +3670,11 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         } else {
             utf8FilePath = "/" + filename;
         }
-        convertUtf8ToAscii(utf8FilePath, asciiFilePath);
+
+        convertUtf8ToAscii(utf8FilePath, filePath);
+
+        snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), utf8FilePath.c_str());
+        loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
 
         // Create Ringbuffer for upload
         if(explorerFileUploadRingBuffer == NULL) {
@@ -3649,7 +3691,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
             explorerHandleFileStorageTask, /* Function to implement the task */
             "fileStorageTask", /* Name of the task */
             4000,  /* Stack size in words */
-            asciiFilePath,  /* Task input parameter */
+            filePath,  /* Task input parameter */
             2 | portPRIVILEGE_BIT,  /* Priority of the task */
             &fileStorageTaskHandle  /* Task handle. */
         );
@@ -3685,9 +3727,6 @@ void explorerHandleFileStorageTask(void *parameter) {
 
     uploadFile = FSystem.open((char *)parameter, "w");
 
-    snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(writingFile), (char *) parameter);
-    loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
-
     for(;;) {
         esp_task_wdt_reset();
 
@@ -3718,13 +3757,13 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     //StaticJsonDocument<4096> jsonBuffer;
     String serializedJsonString;
     AsyncWebParameter *param;
-    char asciiFilePath[256];
+    char filePath[256];
     JsonArray obj = jsonBuffer.createNestedArray();
     File root;
     if(request->hasParam("path")){
         param = request->getParam("path");
-        convertUtf8ToAscii(param->value(), asciiFilePath);
-        root = FSystem.open(asciiFilePath);
+        convertUtf8ToAscii(param->value(), filePath);
+        root = FSystem.open(filePath);
     } else {
         root = FSystem.open("/");
     }
@@ -3745,7 +3784,8 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
     while(file) {
         JsonObject entry = obj.createNestedObject();
-        std::string path = file.name();
+        convertAsciiToUtf8(file.name(), filePath);
+        std::string path = filePath;
         std::string fileName = path.substr(path.find_last_of("/") + 1);
 
         entry["name"] = fileName;
@@ -3758,7 +3798,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     }
 
     serializeJson(obj, serializedJsonString);
-    request->send(200, "application/json; charset=iso-8859-1", serializedJsonString);
+    request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
 bool explorerDeleteDirectory(File dir) {
@@ -3786,31 +3826,31 @@ bool explorerDeleteDirectory(File dir) {
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
     File file;
     AsyncWebParameter *param;
-    char asciiFilePath[256];
+    char filePath[256];
     if(request->hasParam("path")){
         param = request->getParam("path");
-        convertUtf8ToAscii(param->value(), asciiFilePath);
-        if(FSystem.exists(asciiFilePath)) {
-            file = FSystem.open(asciiFilePath);
+        convertUtf8ToAscii(param->value(), filePath);
+        if(FSystem.exists(filePath)) {
+            file = FSystem.open(filePath);
             if(file.isDirectory()) {
                 if(explorerDeleteDirectory(file)) {
-                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
+                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", param->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                 } else {
-                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
+                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", param->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                 }
             } else {
-                if(FSystem.remove(asciiFilePath)) {
-                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", asciiFilePath);
+                if(FSystem.remove(filePath)) {
+                    snprintf(logBuf, serialLoglength, "DELETE:  %s deleted", param->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
                 } else {
-                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", asciiFilePath);
+                    snprintf(logBuf, serialLoglength, "DELETE:  Cannot delete %s", param->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
                 }
             }
         } else {
-            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exist", asciiFilePath);
+            snprintf(logBuf, serialLoglength, "DELETE: Path %s does not exist", param->value().c_str());
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
@@ -3824,15 +3864,15 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the new directory
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
     AsyncWebParameter *param;
-    char asciiFilePath[256];
+    char filePath[256];
     if(request->hasParam("path")){
         param = request->getParam("path");
-        convertUtf8ToAscii(param->value(), asciiFilePath);
-        if(FSystem.mkdir(asciiFilePath)) {
-            snprintf(logBuf, serialLoglength, "CREATE:  %s created", asciiFilePath);
+        convertUtf8ToAscii(param->value(), filePath);
+        if(FSystem.mkdir(filePath)) {
+            snprintf(logBuf, serialLoglength, "CREATE:  %s created", param->value().c_str());
             loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
         } else {
-            snprintf(logBuf, serialLoglength, "CREATE:  Cannot create %s", asciiFilePath);
+            snprintf(logBuf, serialLoglength, "CREATE:  Cannot create %s", param->value().c_str());
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
@@ -3856,14 +3896,14 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
         convertUtf8ToAscii(dstPath->value(), dstFullFilePath);
         if(FSystem.exists(srcFullFilePath)) {
             if(FSystem.rename(srcFullFilePath, dstFullFilePath)) {
-                    snprintf(logBuf, serialLoglength, "RENAME:  %s renamed to %s", srcFullFilePath, dstFullFilePath);
+                    snprintf(logBuf, serialLoglength, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
             } else {
-                    snprintf(logBuf, serialLoglength, "RENAME:  Cannot rename %s", srcFullFilePath);
+                    snprintf(logBuf, serialLoglength, "RENAME:  Cannot rename %s", srcPath->value().c_str());
                     loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             }
         } else {
-            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exist", srcFullFilePath);
+            snprintf(logBuf, serialLoglength, "RENAME: Path %s does not exist", srcPath->value().c_str());
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
         }
     } else {
@@ -3880,15 +3920,15 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
     AsyncWebParameter *param;
     String playModeString;
     uint32_t playMode;
-    char asciiFilePath[256];
+    char filePath[256];
     if(request->hasParam("path") && request->hasParam("playmode")) {
         param = request->getParam("path");
-        convertUtf8ToAscii(param->value(), asciiFilePath);
+        convertUtf8ToAscii(param->value(), filePath);
         param = request->getParam("playmode");
         playModeString = param->value();
 
         playMode = atoi(playModeString.c_str());
-        trackQueueDispatcher(asciiFilePath,0,playMode,0);
+        trackQueueDispatcher(filePath,0,playMode,0);
     } else {
         loggerNl(serialDebug, "AUDIO: No path variable set", LOGLEVEL_ERROR);
     }
