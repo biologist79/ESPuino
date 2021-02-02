@@ -90,12 +90,12 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [LiPo-battery (2500 mAh) with connector JST PH 2.0mm](https://www.eremit.de/p/eremit-3-7v-2500mah-lipo-104050-jst-ph-2-0mm)
 
 ## Parts
-* 1x IRL3103 (N-channel MOSFET) (instead of IRF530NPbF as IRL3103 has lower Vgs)
+* 1x IRL3103 (N-channel MOSFET)
 * 1x NDP6020P (P-channel MOSFET)
 * 1x 1k resistor
 * 1x 10k resistor
 * 2x 100k resistor
-* 2x 130k resistor (can be replaced by 100k; don't use 390k+130k as printed in the circuit => use 2x130k instead!)
+* 2x 130k resistor (can be replaced by 100k + 100k)
 * 5x JST-PH2.0-connector (2 Pins)
 * 3x JST-PH2.0-connector (3 Pins)
 * 1x JST-PH2.0-connector (5 Pins)

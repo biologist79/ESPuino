@@ -1,5 +1,5 @@
 ## Disclaimer
-This PCB was kindly provided by a user (@mariolukas) of my Tonuino-fork and I (@biologist79) didn't test it myself. PCB-circuit is provided 'as is' without warranty. It was made to keep wiring much simpler. However, Mario stated it's working fine with his Tonuinos.
+This PCB was kindly provided by a user (@mariolukas) of ESPuino and I (@biologist79) didn't test it myself. PCB-circuit is provided 'as is' without warranty. It was made to keep wiring much simpler. However, Mario stated it's working fine with his ESPuinos.
 ## ESP32 I2S breakout carrier PCB
 This is a simple PCB which makes wiring the whole stuff much easier. It contains connections for all components which are described in the projects wiring table. An [ESP32 from AZ-Delivery](https://www.amazon.de/AZDelivery-NodeMCU-Development-Nachfolgermodell-ESP8266/dp/B074RGW2VQ/) was used but every pin-Compatible ESP32-board will do the job.
 

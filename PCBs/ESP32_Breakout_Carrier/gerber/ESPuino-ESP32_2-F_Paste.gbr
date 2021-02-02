@@ -1,0 +1,29 @@
+%TF.GenerationSoftware,KiCad,Pcbnew,(5.1.8-0-10_14)*%
+%TF.CreationDate,2021-01-10T22:50:04+01:00*%
+%TF.ProjectId,Tonuino-ESP32_2,546f6e75-696e-46f2-9d45-535033325f32,rev?*%
+%TF.SameCoordinates,Original*%
+%TF.FileFunction,Paste,Top*%
+%TF.FilePolarity,Positive*%
+%FSLAX46Y46*%
+G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+G04 Created by KiCad (PCBNEW (5.1.8-0-10_14)) date 2021-01-10 22:50:04*
+%MOMM*%
+%LPD*%
+G01*
+G04 APERTURE LIST*
+%ADD10C,1.676400*%
+G04 APERTURE END LIST*
+D10*
+%TO.C,R5*%
+X181102000Y-46990000D03*
+X171958000Y-46990000D03*
+%TD*%
+%TO.C,R4*%
+X181102000Y-40640000D03*
+X171958000Y-40640000D03*
+%TD*%
+%TO.C,R1*%
+X160020000Y-46990000D03*
+X169164000Y-46990000D03*
+%TD*%
+M02*
