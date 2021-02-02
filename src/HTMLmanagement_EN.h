@@ -219,7 +219,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <option value=\"107\">Auto-sleep after after five tracks</option>\
                         <option value=\"110\">Loop current playlist</option>\
                         <option value=\"111\">Loop current track</option>\
-                        <option value=\"112\">Dimm LEDs (nightmode)</option>\
+                        <option value=\"120\">Dimm LEDs (nightmode)</option>\
                         <option value=\"130\">Enable/disable (toggle) WiFi</option>\
                     </select>\
                 </div>\

@@ -221,7 +221,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <option value=\"107\">Schlafen nach fünf Titeln</option>\
                         <option value=\"110\">Wiederhole Playlist (endlos)</option>\
                         <option value=\"111\">Wiederhole Titel (endlos)</option>\
-                        <option value=\"112\">Dimme LEDs (Nachtmodus)</option>\
+                        <option value=\"120\">Dimme LEDs (Nachtmodus)</option>\
                         <option value=\"130\">Aktiviere/deaktive WLAN</option>\
                     </select>\
                 </div>\
