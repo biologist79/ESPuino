@@ -79,6 +79,9 @@
 uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
 
+// FilePathLength
+#define MAX_FILEPATH_LENTGH 256
+
 #ifdef HEADPHONE_ADJUST_ENABLE
     bool headphoneLastDetectionState;
     uint32_t headphoneLastDetectionTimestamp = 0;
@@ -3308,10 +3311,11 @@ bool processJsonRequest(char *_serialJson) {
 
     } else if (doc.containsKey("rfidAssign")) {
         const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
-        const char *_fileOrUrl = object["rfidAssign"]["fileOrUrl"];
+        char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
+        convertUtf8ToAscii(object["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
         uint8_t _playMode = object["rfidAssign"]["playMode"];
         char rfidString[275];
-        snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrl, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
+        snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
         prefsRfid.putString(_rfidIdAssinId, rfidString);
         Serial.println(_rfidIdAssinId);
         Serial.println(rfidString);
@@ -3599,7 +3603,7 @@ void convertAsciiToUtf8(String asciiString, char *utf8String) {
 
     int k=0;
     
-    for (int i=0; i<asciiString.length(); i++)
+    for (int i=0; i<asciiString.length() && k<MAX_FILEPATH_LENTGH-2; i++)
     {
         
         switch (asciiString[i]) {
@@ -3623,7 +3627,7 @@ void convertUtf8ToAscii(String utf8String, char *asciiString) {
   int k=0;
   bool f_C3_seen = false;
   
-  for (int i=0; i<utf8String.length(); i++)
+  for (int i=0; i<utf8String.length() && k<MAX_FILEPATH_LENTGH-1; i++)
   {
 
     if(utf8String[i] == 195){                                   // C3
@@ -3662,7 +3666,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
     // New File
     if (!index) {
         String utf8FilePath;
-        static char filePath[256];
+        static char filePath[MAX_FILEPATH_LENTGH];
         if (request->hasParam("path")) {
             AsyncWebParameter *param = request->getParam("path");
             utf8FilePath = param->value() + "/" + filename;
@@ -3757,7 +3761,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     //StaticJsonDocument<4096> jsonBuffer;
     String serializedJsonString;
     AsyncWebParameter *param;
-    char filePath[256];
+    char filePath[MAX_FILEPATH_LENTGH];
     JsonArray obj = jsonBuffer.createNestedArray();
     File root;
     if(request->hasParam("path")){
@@ -3826,7 +3830,7 @@ bool explorerDeleteDirectory(File dir) {
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
     File file;
     AsyncWebParameter *param;
-    char filePath[256];
+    char filePath[MAX_FILEPATH_LENTGH];
     if(request->hasParam("path")){
         param = request->getParam("path");
         convertUtf8ToAscii(param->value(), filePath);
@@ -3864,7 +3868,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the new directory
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
     AsyncWebParameter *param;
-    char filePath[256];
+    char filePath[MAX_FILEPATH_LENTGH];
     if(request->hasParam("path")){
         param = request->getParam("path");
         convertUtf8ToAscii(param->value(), filePath);
@@ -3887,8 +3891,8 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
     AsyncWebParameter *srcPath;
     AsyncWebParameter *dstPath;
-    char srcFullFilePath[256];
-    char dstFullFilePath[256];
+    char srcFullFilePath[MAX_FILEPATH_LENTGH];
+    char dstFullFilePath[MAX_FILEPATH_LENTGH];
     if(request->hasParam("srcpath") && request->hasParam("dstpath")) {
         srcPath = request->getParam("srcpath");
         dstPath = request->getParam("dstpath");
@@ -3920,7 +3924,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
     AsyncWebParameter *param;
     String playModeString;
     uint32_t playMode;
-    char filePath[256];
+    char filePath[MAX_FILEPATH_LENTGH];
     if(request->hasParam("path") && request->hasParam("playmode")) {
         param = request->getParam("path");
         convertUtf8ToAscii(param->value(), filePath);
