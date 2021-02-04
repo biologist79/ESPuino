@@ -7,9 +7,9 @@
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 25.01.2020: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
 * 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
 * 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
+* 06.02.2020: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
@@ -346,7 +346,7 @@ After having ESPuino running on your ESP32 in your local WiFi, the webinterface-
 * FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
 * In order to avoid exposing uSD-card or disassembling ESPuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
 * Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
-* Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to ISO8859-1.
+* Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to CP437. CP437 is important if you want to use german umlauts (öäüß).
 * Secured FTP is not available. So make sure to disable SSL/TLS.
 * Software: my recommendation is [Filezilla](https://filezilla-project.org/) as it's free and available for multiple platforms.
 * Don't expect a super fast data-transfer; it's around 185 kB/s (SPI-mode) and 310 kB/s (MMC-mode).
