@@ -99,6 +99,28 @@
             display: none;
             width: 100%;
         }
+
+        #SubTabContent.tab-content {
+            display: flex;
+        }
+
+        #SubTabContent.tab-content > .tab-pane {
+            display: block; /* undo "display: none;" */
+            visibility: hidden;
+            margin-right: -100%;
+            width: 100%;
+        }
+
+        #SubTabContent.tab-content > .active {
+            visibility: visible;
+        }
+
+        /* IOS display fix */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
     </style>
 </head>
 <body>
@@ -157,10 +179,23 @@
 				</div>
 				<div>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
-						<input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
-						<progress id="explorerUploadProgress" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
-					</form>
+                        <div class="input-group">
+                            <span class="form-control"></span>
+                            <span class="input-group-btn">
+                                <span class="btn btn-secondary" onclick="$(this).parent().find('input[type=file]').click();">Browse</span>
+                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();">Upload</span>
+                                <input name="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file">
+                            </span>
+                        </div>
 
+                    </form>
+                    <br> 
+                    <div class="progress">
+                        <div id="explorerUploadProgress" class="progress-bar" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                            <span id="explorerUploadPercent" class="sr-only">70% Complete</span>
+                        </div>
+                    </div>
+                    <br> 
 				</div>
             </fieldset>
         </div>
@@ -172,59 +207,51 @@
                     <label for="rfidIdMusic">RFID-Chip-Nummer (12-stellig)</label>
                     <input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
                            placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
-                    <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
-                    <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" name="fileOrUrl" required>
-                    <label for="playMode">Abspielmodus</label>
-                    <select class="form-control" id="playMode" name="playMode">
-                        <option class="option-file" value="1">Einzelner Titel</option>
-                        <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
-                        <option class="option-file-and-folder" value="3">Hörbuch</option>
-                        <option class="option-file-and-folder" value="4">Hörbuch (Endlosschleife)</option>
-                        <option class="option-folder" value="5">Alle Titel eines Verzeichnis (sortiert)</option>
-                        <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
-                        <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
-                        <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
-                        <option class="option-stream" value="8">Webradio</option>
-                    </select>
-                </div>
-                <br>
-                <div class="text-center">
-                <button type="reset" class="btn btn-secondary">Reset</button>
-                <button type="submit" class="btn btn-primary">Absenden</button>
-                </div>
-            </form>
-            </fieldset>
-        </div>
-
-        <br>
-        <br>
-        <div class="container" id="rfidModTags">
-            <fieldset>
-                <legend>RFID-Modifkationen</legend>
-            <form class="needs-validation" action="#rfidModTags" method="POST" onsubmit="rfidMods('rfidModTags'); return false">
-                <div class="form-group col-md-12">
-                    <label for="rfidIdMod">RFID-Chip-Nummer (12-stellig)</label>
-                    <input type="text" class="form-control" id="rfidIdMod" maxlength="12" pattern="[0-9]{12}"
-                           placeholder="%RFID_TAG_ID%" name="rfidIdMod" required>
-                    <div class="invalid-feedback">
-                        Bitte eine 12-stellige Zahl eingeben.
+                    <br>
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab" aria-controls="home" aria-selected="true"><i class="fas fa-music"></i> Musik</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="rfid-mod-tab" data-toggle="tab" href="#rfidmod" role="tab" aria-controls="profile" aria-selected="false"><i class="fas fa-cog"></i> Modifikation</a>
+                    </li>
+                    </ul>
+                    <div class="tab-content" id="SubTabContent">
+                    <div class="tab-pane show active" id="rfidmusic" role="tabpanel" aria-labelledby="home-tab">
+                        <br>
+                        <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
+                        <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" pattern="^[^\^#]+$" name="fileOrUrl" required>
+                        <label for="playMode">Abspielmodus</label>
+                        <select class="form-control" id="playMode" name="playMode">
+                            <option class="option-file" value="1">Einzelner Titel</option>
+                            <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
+                            <option class="option-file-and-folder" value="3">Hörbuch</option>
+                            <option class="option-file-and-folder" value="4">Hörbuch (Endlosschleife)</option>
+                            <option class="option-folder" value="5">Alle Titel eines Verzeichnis (sortiert)</option>
+                            <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
+                            <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
+                            <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
+                            <option class="option-stream" value="8">Webradio</option>
+                        </select>
                     </div>
-                    <label for="modId">Konfiguration</label>
-                    <select class="form-control" id="modId" name="modId">
-                        <option value="100">Tastensperre</option>
-                        <option value="101">Schlafen nach 15 Minuten</option>
-                        <option value="102">Schlafen nach 30 Minuten</option>
-                        <option value="103">Schlafen nach 1 Stunde</option>
-                        <option value="104">Schlafen nach 2 Stunden</option>
-                        <option value="105">Schlafen nach Ende des Titels</option>
-                        <option value="106">Schlafen nach Ende der Playlist</option>
-                        <option value="107">Schlafen nach fünf Titeln</option>
-                        <option value="110">Wiederhole Playlist (endlos)</option>
-                        <option value="111">Wiederhole Titel (endlos)</option>
-                        <option value="120">Dimme LEDs (Nachtmodus)</option>
-                        <option value="130">Aktiviere/deaktive WLAN</option>
-                    </select>
-                </div>
+                    <div class="tab-pane " id="rfidmod" role="tabpanel" aria-labelledby="profile-tab">
+                        <label for="modId"></label>
+                        <select class="form-control" id="modId" name="modId">
+                            <option value="100">Tastensperre</option>
+                            <option value="101">Schlafen nach 15 Minuten</option>
+                            <option value="102">Schlafen nach 30 Minuten</option>
+                            <option value="103">Schlafen nach 1 Stunde</option>
+                            <option value="104">Schlafen nach 2 Stunden</option>
+                            <option value="105">Schlafen nach Ende des Titels</option>
+                            <option value="106">Schlafen nach Ende der Playlist</option>
+                            <option value="107">Schlafen nach fünf Titeln</option>
+                            <option value="110">Wiederhole Playlist (endlos)</option>
+                            <option value="111">Wiederhole Titel (endlos)</option>
+                            <option value="112">Dimme LEDs (Nachtmodus)</option>
+                            <option value="130">Aktiviere/deaktive WLAN</option>
+                        </select>
+                    </div>
+                </div>                    
                 <br>
                 <div class="text-center">
                 <button type="reset" class="btn btn-secondary">Reset</button>
@@ -401,8 +428,20 @@
 <script type="text/javascript">
     var DEBUG = false;
     var lastIdclicked = '';
+    var ActiveSubTab = 'rfid-music-tab';
     var host = $(location).attr('hostname');
 
+    //show active / selected tab 
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        ActiveSubTab = $(e.target).attr('id')
+        console.log ( ActiveSubTab);
+        if (ActiveSubTab == 'rfid-music-tab') {
+            document.getElementById("fileOrUrl").required = true;
+        } else {
+            document.getElementById("fileOrUrl").required = false;
+        }
+});
+ 
     if (DEBUG) {
         host = "192.168.178.114";
     }
@@ -570,13 +609,7 @@
 					var percentComplete = evt.loaded / evt.total;
 					percentComplete = parseInt(percentComplete * 100);
 					console.log(percentComplete);
-					document.getElementById("explorerUploadProgress").value = percentComplete;
-					document.getElementById("explorerUploadPercent").innerHTML = percentComplete + "%";
-
-					if (percentComplete === 100) {
-
-					}
-
+					$(".progress-bar").css("width", percentComplete + "%").text(percentComplete + " %");
 				  }
 				}, false);
 
@@ -853,13 +886,9 @@
           console.log(event.data);
           var socketMsg = JSON.parse(event.data);
           if (socketMsg.rfidId != null) {
-              document.getElementById('rfidIdMod').value = socketMsg.rfidId;
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
               toastr.info("RFID Tag mit "+ socketMsg.rfidId + " erkannt." );
-
               $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
-              $("#rfidIdMod").effect("highlight", {color:"#abf5af"}, 3000);
-
           } if ("status" in socketMsg) {
               if (socketMsg.status == "ok") {
                   toastr.success("Aktion erfolgreich ausgeführt." );
@@ -941,18 +970,6 @@
         socket.send(myJSON);
     }
 
-    function rfidMods(clickedId) {
-        lastIdclicked = clickedId;
-        var myObj = {
-            "rfidMod": {
-                rfidIdMod: document.getElementById('rfidIdMod').value,
-                modId: document.getElementById('modId').value
-            }
-        };
-        var myJSON = JSON.stringify(myObj);
-        socket.send(myJSON);
-    }
-
     function removeTrSlash(str) {
         if (str.substr(-1) === '/') {
             return str.substr(0, str.length - 1);
@@ -962,13 +979,22 @@
 
     function rfidAssign(clickedId) {
         lastIdclicked = clickedId;
-        var myObj = {
-            "rfidAssign": {
-                rfidIdMusic: document.getElementById('rfidIdMusic').value,
-                fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
-                playMode: document.getElementById('playMode').value
-            }
-        };
+        if (ActiveSubTab == 'rfid-music-tab') {
+            var myObj = {
+                "rfidAssign": {
+                    rfidIdMusic: document.getElementById('rfidIdMusic').value,
+                    fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
+                    playMode: document.getElementById('playMode').value
+                }
+            };
+        } else {
+            var myObj = {
+                "rfidMod": {
+                    rfidIdMod: document.getElementById('rfidIdMusic').value,
+                    modId: document.getElementById('modId').value
+                }
+            };
+        }
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
     }
