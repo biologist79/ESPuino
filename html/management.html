@@ -208,7 +208,7 @@
                     <input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
                            placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
                     <br>
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <ul class="nav nav-tabs" id="SubTab" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab" aria-controls="home" aria-selected="true"><i class="fas fa-music"></i> Musik</a>
                     </li>
@@ -432,7 +432,7 @@
     var host = $(location).attr('hostname');
 
     //show active / selected tab 
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
         ActiveSubTab = $(e.target).attr('id')
         console.log ( ActiveSubTab);
         if (ActiveSubTab == 'rfid-music-tab') {
