@@ -3147,6 +3147,8 @@ wl_status_t wifiManager(void) {
     return WiFi.status();
 }
 
+const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i> MQTT</a>";
+const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> FTP</a>";
 
 // Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
 String templateProcessor(const String& templ) {
@@ -3158,6 +3160,12 @@ String templateProcessor(const String& templ) {
         return String(ftpUserLength-1);
     } else if (templ == "FTP_PWD_LENGTH") {
         return String(ftpPasswordLength-1);
+    } else if (templ == "SHOW_FTP_TAB") {         // Only show FTP-tab if FTP-support was compiled
+        #ifdef FTP_ENABLE
+            return (String) FPSTR(ftpTab);
+        #else
+            return String();
+        #endif
     } else if (templ == "INIT_LED_BRIGHTNESS") {
         return String(prefsSettings.getUChar("iLedBrightness", 0));
     } else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -3180,6 +3188,12 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("vCheckIntv", voltageCheckInterval));
     } else if (templ == "MQTT_SERVER") {
         return prefsSettings.getString("mqttServer", "-1");
+    } else if (templ == "SHOW_MQTT_TAB") {        // Only show MQTT-tab if MQTT-support was compiled
+        #ifdef MQTT_ENABLE
+            return (String) FPSTR(mqttTab);
+        #else
+            return String();
+        #endif
     } else if (templ == "MQTT_ENABLE") {
         if (enableMqtt) {
             return String("checked=\"checked\"");
@@ -3598,14 +3612,14 @@ void webserverStart(void) {
         return true;
     }
 
-// Conversion routine 
+// Conversion routine
 void convertAsciiToUtf8(String asciiString, char *utf8String) {
 
     int k=0;
-    
+
     for (int i=0; i<asciiString.length() && k<MAX_FILEPATH_LENTGH-2; i++)
     {
-        
+
         switch (asciiString[i]) {
             case 0x8e: utf8String[k++]=0xc3; utf8String[k++]=0x84;  break; // Ä
             case 0x84: utf8String[k++]=0xc3; utf8String[k++]=0xa4;  break; // ä
@@ -3614,7 +3628,7 @@ void convertAsciiToUtf8(String asciiString, char *utf8String) {
             case 0x99: utf8String[k++]=0xc3; utf8String[k++]=0x96;  break; // Ö
             case 0x94: utf8String[k++]=0xc3; utf8String[k++]=0xb6;  break; // ö
             case 0xe1: utf8String[k++]=0xc3; utf8String[k++]=0x9f;  break; // ß
-            default: utf8String[k++]=asciiString[i];   
+            default: utf8String[k++]=asciiString[i];
         }
     }
 
@@ -3626,7 +3640,7 @@ void convertUtf8ToAscii(String utf8String, char *asciiString) {
 
   int k=0;
   bool f_C3_seen = false;
-  
+
   for (int i=0; i<utf8String.length() && k<MAX_FILEPATH_LENTGH-1; i++)
   {
 
@@ -3644,7 +3658,7 @@ void convertUtf8ToAscii(String utf8String, char *asciiString) {
           case 0x96: asciiString[k++]=0x99;  break; // Ö
           case 0xb6: asciiString[k++]=0x94;  break; // ö
           case 0x9f: asciiString[k++]=0xe1;  break; // ß
-          default: asciiString[k++]=0xdb;  // Unknow... 
+          default: asciiString[k++]=0xdb;  // Unknow...
         }
       } else {
         asciiString[k++]=utf8String[i];
