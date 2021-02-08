@@ -105,6 +105,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
     <a class=\"float-left navbar-brand\">\
+        <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
+             width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
 \
@@ -160,6 +162,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 						<input id=\"explorerUploadedFiles\" type=\"file\" class=\"form-control-file\" name=\"explorerUploadFiles\" multiple> <input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Hochladen\">\
 						<progress id=\"explorerUploadProgress\" value=\"0\" max=\"100\"></progress> <span id=\"explorerUploadPercent\"></span>\
 					</form>\
+\
 				</div>\
             </fieldset>\
         </div>\
