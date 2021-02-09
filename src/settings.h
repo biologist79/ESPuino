@@ -29,7 +29,7 @@
 //#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 //#define USE_LAST_VOLUME_AFTER_REBOOT  // Remembers the volume used at last shutdown after reboot
 
-//#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
+#define BLUETOOTH_ENABLE          // Doesn't work currently (so don't enable) as there's not enough DRAM available
 
 
 //################## select SD card mode #############################
