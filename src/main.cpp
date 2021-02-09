@@ -4542,7 +4542,7 @@ void setup() {
             .data_in_num = I2S_PIN_NO_CHANGE
         };
         a2dp_sink->set_pin_config(pin_config);
-        a2dp_sink->start("ESPuino");
+        a2dp_sink->start((char *) FPSTR(nameBluetoothDevice));
     } else {
         esp_bt_mem_release(ESP_BT_MODE_BTDM);
     #endif

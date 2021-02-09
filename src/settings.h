@@ -80,6 +80,7 @@ uint16_t intervalToLongPress = 700;                 // Interval in ms to disting
 
 // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
 static const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
+static const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
 
 // Where to store the backup-file for NVS-records
 static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
