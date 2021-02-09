@@ -7,9 +7,9 @@
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
 * 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
 * 06.02.2020: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
+* 09.02.2020: Added support for bluetooth-sink (a2dp). Thanks @grch87 & @elmar-ops for providing this feature! Please note: wifi not available is now coloured green as blue make totally sense for bluetooth :-)
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
@@ -216,7 +216,10 @@ When using a develboard with SD-card-reader already integrated (Lolin D32 Pro, s
 WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled. There are two ways to do that:
 * Use a special modification-card that can be configured via webgui
 * Press previous-key (and keep it pressed) + press next-button in parallel shortly. Now release both.
-This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that ESPuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *blue*.
+This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that ESPuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *green*. Bluetooth-mode is indicated by *blue* LEDs.
+
+## Bluetooth
+ESPuino can be used as bluetooth-sink (a2dp). This mode can be enabled/disabled via a RFID-modification-card. Applying one will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. If bluetooth is active, this is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and worked 100% flawless.
 ## After ESPuino is connected to your WiFi
 After bringing ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can configure:
 * WiFi
@@ -281,12 +284,14 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * playlist in loop-mode
 * track und playlist loop-mode can both be activated at the same time, but unless track-loop isn't deactivated, playlist-loop won't be effective
 * Toggle WiFi (enable/disable) => disabling WiFi while webstream is active will stop the webstream instantly!
+* Toggle Bluetooth (enable/disable) => restarts ESPuino immediately
 
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
 * While booting: every second LED (rotating orange)
 * Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available or `SHUTDOWN_IF_SD_BOOT_FAILS` is active)
-* IDLE: four LEDs slow rotating (white if WiFi enabled; blue if WiFi disabled)
+* IDLE: four LEDs slow rotating (white if WiFi enabled; green if WiFi disabled)
+* BLUETOOTH: four LEDs slow rotating coloured blue
 * ERROR: all LEDs flashing red (1x) if an action was not accepted
 * OK: all LEDs flashing green (1x) if an action was accepted
 * BUSY: violet; four fast rotating LEDs when generating a playlist. Duration depends on the number of files in your playlist.
