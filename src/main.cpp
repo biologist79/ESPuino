@@ -4227,6 +4227,7 @@ void setup() {
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         mfrc522.PCD_Init();
+        mfrc522.PCD_SetAntennaGain(rfidGain);
         delay(50);
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
