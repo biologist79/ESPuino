@@ -104,9 +104,11 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <body>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
-    <a class=\"float-left navbar-brand\">\
-        ESPuino\
-    </a>\
+        <a class=\"float-left navbar-brand\">\
+            <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
+                 width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
+            ESPuino\
+        </a>\
 \
     <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-power-off\"></i> Neustart</a>\
     </div>\

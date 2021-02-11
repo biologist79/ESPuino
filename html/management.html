@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
-    <style>
+    <style type="text/css">
         .filetree {
             border: 1px solid black;
             height: 200px;
@@ -99,34 +99,14 @@
             display: none;
             width: 100%;
         }
-
-        #SubTabContent.tab-content {
-            display: flex;
-        }
-
-        #SubTabContent.tab-content > .tab-pane {
-            display: block; /* undo "display: none;" */
-            visibility: hidden;
-            margin-right: -100%;
-            width: 100%;
-        }
-
-        #SubTabContent.tab-content > .active {
-            visibility: visible;
-        }
-
-        /* IOS display fix */
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
     <div class="col-md-12">
     <a class="float-left navbar-brand">
+        <img src="https://www.espuino.de/espuino/Espuino32.png"
+             width="35" height="35" class="d-inline-block align-top" alt=""/>
         ESPuino
     </a>
 
@@ -142,6 +122,7 @@
             %SHOW_FTP_TAB%
             <a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i> Allgemein</a>
             <a class="nav-item nav-link" id="nav-tools-tab" data-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i> Tools</a>
+            <a class="nav-item nav-link" id="nav-forum-tab" data-toggle="tab" href="#nav-forum" role="tab" aria-controls="nav-forum" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"> Forum</span></a>
         </div>
     </nav>
 <br>
@@ -150,6 +131,7 @@
         <div class="container" id="wifiConfig">
             <form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
                 <div class="form-group col-md-12">
+                    <legend>WLAN-Einstellungen</legend>
                     <label for="ssid">WLAN-Name (SSID):</label>
                     <input type="text" class="form-control" id="ssid" placeholder="SSID" name="ssid" required>
                     <div class="invalid-feedback">
@@ -173,29 +155,16 @@
         <div class="container" id="filetreeContainer">
             <fieldset>
                 <legend>Dateien</legend>
-                <div class="filetree-container">
+				<div class="filetree-container">
 				<div id="filebrowser">
 					<div class="filetree demo" id="explorerTree"></div>
 				</div>
 				<div>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
-                        <div class="input-group">
-                            <span class="form-control" id="uploaded_file_text"></span>
-                            <span class="input-group-btn">
-                                <span class="btn btn-secondary" onclick="$(this).parent().find('input[type=file]').click();">Browse</span>
-                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();">Upload</span>
-                                <input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
-                            </span>
-                        </div>
+						<input id="explorerUploadedFiles" type="file" class="form-control-file" name="explorerUploadFiles" multiple> <input type="submit" class="btn btn-primary" id="submit" value="Hochladen">
+						<progress id="explorerUploadProgress" value="0" max="100"></progress> <span id="explorerUploadPercent"></span>
+					</form>
 
-                    </form>
-                    <br>
-                    <div class="progress">
-                        <div id="explorerUploadProgress" class="progress-bar" role="progressbar" style="width: 0"></div>
-                            
-                        </div>
-                    </div>
-                    <br> 
 				</div>
             </fieldset>
         </div>
@@ -207,52 +176,21 @@
                     <label for="rfidIdMusic">RFID-Chip-Nummer (12-stellig)</label>
                     <input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
                            placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
-                    <br>
-                    <ul class="nav nav-tabs" id="SubTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> Musik</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="rfid-mod-tab" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> Modifikation</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="SubTabContent">
-                        <div class="tab-pane show active" id="rfidmusic" role="tabpanel">
-                            <br>
-                            <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
-                            <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" pattern="^[^\^#]+$" name="fileOrUrl" required>
-                            <label for="playMode">Abspielmodus</label>
-                            <select class="form-control" id="playMode" name="playMode">
-                                <option class="option-file" value="1">Einzelner Titel</option>
-                                <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
-                                <option class="option-file-and-folder" value="3">Hörbuch</option>
-                                <option class="option-file-and-folder" value="4">Hörbuch (Endlosschleife)</option>
-                                <option class="option-folder" value="5">Alle Titel eines Verzeichnis (sortiert)</option>
-                                <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
-                                <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
-                                <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
-                                <option class="option-stream" value="8">Webradio</option>
-                            </select>
-                        </div>
-                        <div class="tab-pane " id="rfidmod" role="tabpanel">
-                            <label for="modId"></label>
-                            <select class="form-control" id="modId" name="modId">
-                                <option value="100">Tastensperre</option>
-                                <option value="101">Schlafen nach 15 Minuten</option>
-                                <option value="102">Schlafen nach 30 Minuten</option>
-                                <option value="103">Schlafen nach 1 Stunde</option>
-                                <option value="104">Schlafen nach 2 Stunden</option>
-                                <option value="105">Schlafen nach Ende des Titels</option>
-                                <option value="106">Schlafen nach Ende der Playlist</option>
-                                <option value="107">Schlafen nach fünf Titeln</option>
-                                <option value="110">Wiederhole Playlist (endlos)</option>
-                                <option value="111">Wiederhole Titel (endlos)</option>
-                                <option value="120">Dimme LEDs (Nachtmodus)</option>
-                                <option value="130">Aktiviere/deaktive WLAN</option>
-                            </select>
-                        </div>
-                    </div>  
-                </div>                  
+                    <label for="fileOrUrl">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>
+                    <input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" name="fileOrUrl" required>
+                    <label for="playMode">Abspielmodus</label>
+                    <select class="form-control" id="playMode" name="playMode">
+                        <option class="option-file" value="1">Einzelner Titel</option>
+                        <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
+                        <option class="option-file-and-folder" value="3">Hörbuch</option>
+                        <option class="option-file-and-folder" value="4">Hörbuch (Endlosschleife)</option>
+                        <option class="option-folder" value="5">Alle Titel eines Verzeichnis (sortiert)</option>
+                        <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
+                        <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
+                        <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
+                        <option class="option-stream" value="8">Webradio</option>
+                    </select>
+                </div>
                 <br>
                 <div class="text-center">
                 <button type="reset" class="btn btn-secondary">Reset</button>
@@ -261,13 +199,54 @@
             </form>
             </fieldset>
         </div>
+
+        <br>
+        <br>
+        <div class="container" id="rfidModTags">
+            <fieldset>
+                <legend>RFID-Modifkationen</legend>
+            <form class="needs-validation" action="#rfidModTags" method="POST" onsubmit="rfidMods('rfidModTags'); return false">
+                <div class="form-group col-md-12">
+                    <label for="rfidIdMod">RFID-Chip-Nummer (12-stellig)</label>
+                    <input type="text" class="form-control" id="rfidIdMod" maxlength="12" pattern="[0-9]{12}"
+                           placeholder="%RFID_TAG_ID%" name="rfidIdMod" required>
+                    <div class="invalid-feedback">
+                        Bitte eine 12-stellige Zahl eingeben.
+                    </div>
+                    <label for="modId">Konfiguration</label>
+                    <select class="form-control" id="modId" name="modId">
+                        <option value="100">Tastensperre</option>
+                        <option value="101">Schlafen nach 15 Minuten</option>
+                        <option value="102">Schlafen nach 30 Minuten</option>
+                        <option value="103">Schlafen nach 1 Stunde</option>
+                        <option value="104">Schlafen nach 2 Stunden</option>
+                        <option value="105">Schlafen nach Ende des Titels</option>
+                        <option value="106">Schlafen nach Ende der Playlist</option>
+                        <option value="107">Schlafen nach fünf Titeln</option>
+                        <option value="110">Wiederhole Playlist (endlos)</option>
+                        <option value="111">Wiederhole Titel (endlos)</option>
+                        <option value="120">Dimme LEDs (Nachtmodus)</option>
+                        <option value="130">Aktiviere/deaktive WLAN</option>
+                        <option value="140">Aktiviere/deaktiviere Bluetooth</option>
+                    </select>
+                </div>
+                <br>
+                <div class="text-center">
+                <button type="reset" class="btn btn-secondary">Reset</button>
+                <button type="submit" class="btn btn-primary">Absenden</button>
+                </div>
+            </form>
+            </fieldset>
+        </div>
+        <br />
     </div>
-    <div class="tab-pane fade" id="nav-mqtt" role="tabpanel">
+    <div class="tab-pane fade" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
         <div class="container" id="mqttConfig">
 
             <form class="needs-validation" action="#mqttConfig" method="POST"
                   onsubmit="mqttSettings('mqttConfig'); return false">
                 <div class="form-check col-md-12">
+                    <legend>MQTT-Einstellungen</legend>
                     <input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable" %MQTT_ENABLE%>
                     <label class="form-check-label" for="mqttEnable">
                         MQTT aktivieren
@@ -292,11 +271,12 @@
             </form>
         </div>
     </div>
-    <div class="tab-pane fade" id="nav-ftp" role="tabpanel">
+    <div class="tab-pane fade" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
         <div class="container" id="ftpConfig">
 
             <form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
                 <div class="form-group col-md-12">
+                    <legend>FTP-Einstellungen</legend>
                     <label for="ftpUser">FTP-Benutzername:</label>
                     <input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%"
                            placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
@@ -338,10 +318,10 @@
                         </div>
                 </fieldset>
                 </div>
-                <br>
+<br>
                 <div class="form-group col-md-12">
                     <fieldset >
-                        <legend  class="w-auto">Neopixel (Helligkeit)</legend>
+                        <legend class="w-auto">Neopixel (Helligkeit)</legend>
                     <label for="initBrightness">Nach dem Einschalten:</label>
                         <div class="text-center">
                             <i class="far fa-sun fa-2x .icon-pos"></i>
@@ -382,7 +362,7 @@
                     <label for="voltageIndicatorLow">Eine LED leuchtet bei dieser Spannung
                         </label>
                         <div class="text-center">
-                        <i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.0" data-slider-step="0.1" data-slider-min="2.0" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
+                        <i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.0" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" max="5.0"type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
                           data-slider-value="%VOLTAGE_INDICATOR_LOW%"  value="%VOLTAGE_INDICATOR_LOW%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
                         </div>
                         <br>
@@ -409,40 +389,35 @@
                 </div>
             </form>
         </div>
+        <br />
     </div>
     <div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
-        <div class="container my-5" id="importNvs">
-            <h2>NVS-Importer</h2>
+        <div class="container" id="importNvs">
+            <legend>NVS-Importer</legend>
             <form action="/upload" enctype="multipart/form-data" method="POST">
                 <div class="form-group">
                     <label for="nvsUpload">Hier kann eine Backup-Datei importiert werden.</label>
                     <input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
                 </div>
-                <br>
-                <div class="text-center">
                 <button type="submit" class="btn btn-primary">Absenden</button>
-                </div>
             </form>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="nav-forum" role="tabpanel" aria-labelledby="nav-forum-tab">
+        <div class="container" id="forum">
+            <legend>Forum</legend>
+            <p>Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />
+                Dann schaue doch mal im <a href="https://forum.espuino.de" target="_blank">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br />
+                <a href="https://forum.espuino.de/c/dokumentation/anleitungen/10" target="_blank">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!
+            </p>
         </div>
     </div>
 </div>
 <script type="text/javascript">
     var DEBUG = false;
     var lastIdclicked = '';
-    var ActiveSubTab = 'rfid-music-tab';
     var host = $(location).attr('hostname');
 
-    /* show active / selected tab */
-    $('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
-        ActiveSubTab = $(e.target).attr('id');
-        console.log ( ActiveSubTab);
-        if (ActiveSubTab == 'rfid-music-tab') {
-            document.getElementById("fileOrUrl").required = true;
-        } else {
-            document.getElementById("fileOrUrl").required = false;
-        }
-});
- 
     if (DEBUG) {
         host = "192.168.178.114";
     }
@@ -584,8 +559,7 @@
 		var ref = $('#explorerTree').jstree(true),
 			sel = ref.get_selected(),
 			path = "/";
-        if(!sel.length) { alert("Please select the upload location!");return false; }
-        if(!document.getElementById('uploaded_file').files.length > 0) { alert("Please select files to upload!");return false; }
+		if(!sel.length) { alert("Please select the upload location!");return false; }
 		sel = sel[0];
 		selectedNode = ref.get_node(sel);
 		if(selectedNode.data.directory){
@@ -611,17 +585,20 @@
 					var percentComplete = evt.loaded / evt.total;
 					percentComplete = parseInt(percentComplete * 100);
 					console.log(percentComplete);
-                    $("#explorerUploadProgress").css("width", percentComplete + "%").text(percentComplete);
+					document.getElementById("explorerUploadProgress").value = percentComplete;
+					document.getElementById("explorerUploadPercent").innerHTML = percentComplete + "%";
+
+					if (percentComplete === 100) {
+
+					}
+
 				  }
 				}, false);
 
 				return xhr;
 			},
 			success: function(data, textStatus, jqXHR) {
-                console.log("Upload success!");
-                $("#explorerUploadProgress").text("Upload success!");
-                document.getElementById('uploaded_file').value = '';
-                document.getElementById('uploaded_file_text').innerHTML = '';
+				console.log("Upload success!");
 
 				getData("/explorer?path=" + path, function(data) {
 					/* We now have data! */
@@ -891,9 +868,13 @@
           console.log(event.data);
           var socketMsg = JSON.parse(event.data);
           if (socketMsg.rfidId != null) {
+              document.getElementById('rfidIdMod').value = socketMsg.rfidId;
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
               toastr.info("RFID Tag mit "+ socketMsg.rfidId + " erkannt." );
+
               $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
+              $("#rfidIdMod").effect("highlight", {color:"#abf5af"}, 3000);
+
           } if ("status" in socketMsg) {
               if (socketMsg.status == "ok") {
                   toastr.success("Aktion erfolgreich ausgeführt." );
@@ -975,6 +956,18 @@
         socket.send(myJSON);
     }
 
+    function rfidMods(clickedId) {
+        lastIdclicked = clickedId;
+        var myObj = {
+            "rfidMod": {
+                rfidIdMod: document.getElementById('rfidIdMod').value,
+                modId: document.getElementById('modId').value
+            }
+        };
+        var myJSON = JSON.stringify(myObj);
+        socket.send(myJSON);
+    }
+
     function removeTrSlash(str) {
         if (str.substr(-1) === '/') {
             return str.substr(0, str.length - 1);
@@ -984,22 +977,13 @@
 
     function rfidAssign(clickedId) {
         lastIdclicked = clickedId;
-        if (ActiveSubTab == 'rfid-music-tab') {
-            var myObj = {
-                "rfidAssign": {
-                    rfidIdMusic: document.getElementById('rfidIdMusic').value,
-                    fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
-                    playMode: document.getElementById('playMode').value
-                }
-            };
-        } else {
-            var myObj = {
-                "rfidMod": {
-                    rfidIdMod: document.getElementById('rfidIdMusic').value,
-                    modId: document.getElementById('modId').value
-                }
-            };
-        }
+        var myObj = {
+            "rfidAssign": {
+                rfidIdMusic: document.getElementById('rfidIdMusic').value,
+                fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
+                playMode: document.getElementById('playMode').value
+            }
+        };
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
     }

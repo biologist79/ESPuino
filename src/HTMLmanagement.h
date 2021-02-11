@@ -105,6 +105,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
     <a class=\"float-left navbar-brand\">\
+        <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
+             width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
 \
@@ -120,6 +122,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             %SHOW_FTP_TAB%\
             <a class=\"nav-item nav-link\" id=\"nav-general-tab\" data-toggle=\"tab\" href=\"#nav-general\" role=\"tab\" aria-controls=\"nav-general\" aria-selected=\"false\"><i class=\"fas fa-sliders-h\"></i> Allgemein</a>\
             <a class=\"nav-item nav-link\" id=\"nav-tools-tab\" data-toggle=\"tab\" href=\"#nav-tools\" role=\"tab\" aria-controls=\"nav-tools\" aria-selected=\"false\"><i class=\"fas fa-wrench\"></i> Tools</a>\
+            <a class=\"nav-item nav-link\" id=\"nav-forum-tab\" data-toggle=\"tab\" href=\"#nav-forum\" role=\"tab\" aria-controls=\"nav-forum\" aria-selected=\"false\"><i class=\"fas fa-comment\"></i><span class=\".d-sm-none .d-md-block\"> Forum</span></a>\
         </div>\
     </nav>\
 <br>\
@@ -128,6 +131,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"wifiConfig\">\
             <form action=\"#wifiConfig\" method=\"POST\" onsubmit=\"wifiConfig('wifiConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
+                    <legend>WLAN-Einstellungen</legend>\
                     <label for=\"ssid\">WLAN-Name (SSID):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ssid\" placeholder=\"SSID\" name=\"ssid\" required>\
                     <div class=\"invalid-feedback\">\
@@ -160,6 +164,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 						<input id=\"explorerUploadedFiles\" type=\"file\" class=\"form-control-file\" name=\"explorerUploadFiles\" multiple> <input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Hochladen\">\
 						<progress id=\"explorerUploadProgress\" value=\"0\" max=\"100\"></progress> <span id=\"explorerUploadPercent\"></span>\
 					</form>\
+\
 				</div>\
             </fieldset>\
         </div>\
@@ -222,6 +227,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <option value=\"111\">Wiederhole Titel (endlos)</option>\
                         <option value=\"120\">Dimme LEDs (Nachtmodus)</option>\
                         <option value=\"130\">Aktiviere/deaktive WLAN</option>\
+                        <option value=\"140\">Aktiviere/deaktiviere Bluetooth</option>\
                     </select>\
                 </div>\
                 <br>\
@@ -232,6 +238,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             </form>\
             </fieldset>\
         </div>\
+        <br />\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-mqtt\" role=\"tabpanel\" aria-labelledby=\"nav-mqtt-tab\">\
         <div class=\"container\" id=\"mqttConfig\">\
@@ -239,6 +246,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\"\
                   onsubmit=\"mqttSettings('mqttConfig'); return false\">\
                 <div class=\"form-check col-md-12\">\
+                    <legend>MQTT-Einstellungen</legend>\
                     <input class=\"form-check-input\" type=\"checkbox\" value=\"1\" id=\"mqttEnable\" name=\"mqttEnable\" %MQTT_ENABLE%>\
                     <label class=\"form-check-label\" for=\"mqttEnable\">\
                         MQTT aktivieren\
@@ -268,6 +276,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
             <form action=\"#ftpConfig\" method=\"POST\" onsubmit=\"ftpSettings('ftpConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
+                    <legend>FTP-Einstellungen</legend>\
                     <label for=\"ftpUser\">FTP-Benutzername:</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
@@ -312,7 +321,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <br>\
                 <div class=\"form-group col-md-12\">\
                     <fieldset >\
-                        <legend  class=\"w-auto\">Neopixel (Helligkeit)</legend>\
+                        <legend class=\"w-auto\">Neopixel (Helligkeit)</legend>\
                     <label for=\"initBrightness\">Nach dem Einschalten:</label>\
                         <div class=\"text-center\">\
                             <i class=\"far fa-sun fa-2x .icon-pos\"></i>\
@@ -380,20 +389,27 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 </div>\
             </form>\
         </div>\
+        <br />\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-tools\" role=\"tabpanel\" aria-labelledby=\"nav-tools-tab\">\
-        <div class=\"container my-5\" id=\"importNvs\">\
-            <h2>NVS-Importer</h2>\
+        <div class=\"container\" id=\"importNvs\">\
+            <legend>NVS-Importer</legend>\
             <form action=\"/upload\" enctype=\"multipart/form-data\" method=\"POST\">\
                 <div class=\"form-group\">\
                     <label for=\"nvsUpload\">Hier kann eine Backup-Datei importiert werden.</label>\
                     <input type=\"file\" class=\"form-control-file\" id=\"nvsUpload\" name=\"nvsUpload\" accept=\".txt\">\
                 </div>\
-                <br>\
-                <div class=\"text-center\">\
                 <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
-                </div>\
             </form>\
+        </div>\
+    </div>\
+    <div class=\"tab-pane fade\" id=\"nav-forum\" role=\"tabpanel\" aria-labelledby=\"nav-forum-tab\">\
+        <div class=\"container\" id=\"forum\">\
+            <legend>Forum</legend>\
+            <p>Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />\
+                Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br />\
+                <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!\
+            </p>\
         </div>\
     </div>\
 </div>\
@@ -997,5 +1013,4 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     });\
 </script>\
 </body>\
-</html>\
-";
+</html>";
