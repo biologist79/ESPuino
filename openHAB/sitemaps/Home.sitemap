@@ -2,11 +2,11 @@ sitemap Home label="Home" {
     Frame label="Huette" {
 		Text label="Obergeschoss" icon="firstfloor" {
 			Text label="Zimmer Kind" icon="boy_2" {
-				Text label="Tonuino" icon="receiver" {
-					Text item=Tonuino_Status label="Status" valuecolor=[Tonuino_Status==Online="green", ==Offline="red"] icon="network"
-					Switch item=Tonuino_Sleep label="Ausschalten" icon="wallswitch" mappings=[OFF="AUS"] visibility=[Tonuino_Status=="Online"]
-					Switch item=Tonuino_LockControls label="Sperren" icon="wallswitch" mappings=[OFF="AUS", ON="AN"] visibility=[Tonuino_Status=="Online"]
-					Selection item=Tonuino_Rfid label="Titelauswahl" icon="text" visibility=[Tonuino_Status=="Online"] mappings=[
+				Text label="Espuino" icon="receiver" {
+					Text item=Espuino_Status label="Status" valuecolor=[Espuino_Status==Online="green", ==Offline="red"] icon="network"
+					Switch item=Espuino_Sleep label="Ausschalten" icon="wallswitch" mappings=[OFF="AUS"] visibility=[Espuino_Status=="Online"]
+					Switch item=Espuino_LockControls label="Sperren" icon="wallswitch" mappings=[OFF="AUS", ON="AN"] visibility=[Espuino_Status=="Online"]
+					Selection item=Espuino_Rfid label="Titelauswahl" icon="text" visibility=[Espuino_Status=="Online"] mappings=[
 															"244189084042"="Yakari und die Pferdediebe",
 															"244042007042"="Yakari - Der Gesang des Raben",
 															"004134024043"="Yakari - Schneeball in Gefahr",
@@ -20,16 +20,16 @@ sitemap Home label="Home" {
 															"215123125075"="Kinderlieder",
 															"182146124043"="Ibiza Global Radio"
 														       ]
-					Setpoint item=Tonuino_Loudness icon="soundvolume" minValue=0 maxValue=21 step=1 label="Lautstärke [%d/21]" visibility=[Tonuino_Status=="Online"]
-					Selection item=Tonuino_SleepTimer label="Ausschalten in..." icon="time" visibility=[Tonuino_Status=="Online"] mappings=[0="Nicht gesetzt", 1="1 Minute", 5="5 Minuten", 10="10 Minuten", 30="30 Minuten", 45="45 Minuten", 60="1 Stunde", 120="2 Stunden", EOT="Ende des Titels", EOP="Ende der Playlist", EO5T="Nach fünf Titeln"]
-					Switch item=Tonuino_TrackControl label="Steuerung" mappings=["6"="⏮", "5"="⏪", "3"="⏸", "4"="⏩", "7"="⏭"] visibility=[Tonuino_Status=="Online" ] icon="movecontrol"
-					Switch item=Tonuino_Repeatmode label="Wiederholung" mappings=["0"="Nein", "1"="Titel", "2"="Playlist", "3"="Titel+Playlist"] visibility=[Tonuino_Status=="Online" ] icon="mediacontrol"
-					Text item=Tonuino_LastUpdate label="Letztes Update" visibility=[Tonuino_Status=="Online"]
-					Text item=Tonuino_Playmode label="Modus" icon="mediacontrol" visibility=[Tonuino_Status=="Online"]
-					Setpoint item=Tonuino_LedBrightness icon="lightbulb" label="LED-Helligkeit" visibility=[Tonuino_Status=="Online"] maxValue=64 step=2
-					Text item=Tonuino_IPv4 label="IP-Adresse" icon="network" visibility=[Tonuino_Status=="Online"]
-					Text item=Tonuino_CurrentTrack label="Aktuell:" icon="mediacontrol" visibility=[Tonuino_Status=="Online"]
-					Text item=Tonuino_Voltage label="Akkuspannung:" icon="batterylevel" visibility=[Tonuino_Status=="Online"]
+					Setpoint item=Espuino_Loudness icon="soundvolume" minValue=0 maxValue=21 step=1 label="Lautstärke [%d/21]" visibility=[Espuino_Status=="Online"]
+					Selection item=Espuino_SleepTimer label="Ausschalten in..." icon="time" visibility=[Espuino_Status=="Online"] mappings=[0="Nicht gesetzt", 1="1 Minute", 5="5 Minuten", 10="10 Minuten", 30="30 Minuten", 45="45 Minuten", 60="1 Stunde", 120="2 Stunden", EOT="Ende des Titels", EOP="Ende der Playlist", EO5T="Nach fünf Titeln"]
+					Switch item=Espuino_TrackControl label="Steuerung" mappings=["6"="⏮", "5"="⏪", "3"="⏸", "4"="⏩", "7"="⏭"] visibility=[Espuino_Status=="Online" ] icon="movecontrol"
+					Switch item=Espuino_Repeatmode label="Wiederholung" mappings=["0"="Nein", "1"="Titel", "2"="Playlist", "3"="Titel+Playlist"] visibility=[Espuino_Status=="Online" ] icon="mediacontrol"
+					Text item=Espuino_LastUpdate label="Letztes Update" visibility=[Espuino_Status=="Online"]
+					Text item=Espuino_Playmode label="Modus" icon="mediacontrol" visibility=[Espuino_Status=="Online"]
+					Setpoint item=Espuino_LedBrightness icon="lightbulb" label="LED-Helligkeit" visibility=[Espuino_Status=="Online"] maxValue=64 step=2
+					Text item=Espuino_IPv4 label="IP-Adresse" icon="network" visibility=[Espuino_Status=="Online"]
+					Text item=Espuino_CurrentTrack label="Aktuell:" icon="mediacontrol" visibility=[Espuino_Status=="Online"]
+					Text item=Espuino_Voltage label="Akkuspannung:" icon="batterylevel" visibility=[Espuino_Status=="Online"]
 				}
 			}
 		}

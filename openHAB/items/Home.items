@@ -6,16 +6,16 @@ Group Obergeschoss	                "Obergeschoss"		                            <
 Group ZimmerTim		                "Kinderzimmer Tim"	                            <boy_2>			    (Obergeschoss)
 
 // Zimmer Kind
-Switch Tonuino_Sleep															            { channel="mqtt:topic:MQTT:tonuino:tonuino_sleep_mqtt", autoupdate="true" }
-String Tonuino_Rfid															                { channel="mqtt:topic:MQTT:tonuino:rfid", autoupdate="true" }
-Number Tonuino_Loudness			    "Lautstärke [%d]"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_loudness_mqtt", autoupdate="true" }
-String Tonuino_SleepTimer															        { channel="mqtt:topic:MQTT:tonuino:tonuino_sleeptimer_mqtt", autoupdate="true" }
-String Tonuino_Status															            { channel="mqtt:topic:MQTT:tonuino:tonuino_status_mqtt", autoupdate="true", expire="2m, command=Offline" }
-String Tonuino_CurrentTrack			"Aktueller Track"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_current_track_mqtt", autoupdate="true" }
-String Tonuino_TrackControl			"Track-Control"											{ channel="mqtt:topic:MQTT:tonuino:tonuino_track_control_mqtt", autoupdate="false" }
-String Tonuino_IPv4				    "IPv4-Adresse"											{ channel="mqtt:topic:MQTT:tonuino:tonuino_ipv4_mqtt", autoupdate="true" }
-Switch Tonuino_LockControls			"Bedienung sperren"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_lock_controls_mqtt", autoupdate="true" }
-Number Tonuino_Playmode			    "Aktueller Playmode [MAP(playmodes.map):%d]"			{ channel="mqtt:topic:MQTT:tonuino:tonuino_playmode_mqtt", autoupdate="true" }
-Number Tonuino_LedBrightness		"Helligkeit LEDs"										{ channel="mqtt:topic:MQTT:tonuino:tonuino_led_brightness_mqtt", autoupdate="true" }
-DateTime Tonuino_LastUpdate			"Letztes Update [%1$ta %1$tR]" 		            <time>
-Number Tonuino_Repeatmode			"Wiederholung"  										{ channel="mqtt:topic:MQTT:tonuino:tonuino_led_repeatmode_mqtt", autoupdate="true" }
+Switch Espuino_Sleep															            { channel="mqtt:topic:MQTT:espuino:espuino_sleep_mqtt", autoupdate="true" }
+String Espuino_Rfid															                { channel="mqtt:topic:MQTT:espuino:espuino_rfid_mqtt", autoupdate="true" }
+Number Espuino_Loudness			    "Lautstärke [%d]"										{ channel="mqtt:topic:MQTT:espuino:espuino_loudness_mqtt", autoupdate="true" }
+String Espuino_SleepTimer															        { channel="mqtt:topic:MQTT:espuino:espuino_sleeptimer_mqtt", autoupdate="true" }
+String Espuino_Status															            { channel="mqtt:topic:MQTT:espuino:espuino_status_mqtt", autoupdate="true", expire="2m, command=Offline" }
+String Espuino_CurrentTrack			"Aktueller Track"										{ channel="mqtt:topic:MQTT:espuino:espuino_current_track_mqtt", autoupdate="true" }
+String Espuino_TrackControl			"Track-Control"											{ channel="mqtt:topic:MQTT:espuino:espuino_track_control_mqtt", autoupdate="false" }
+String Espuino_IPv4				    "IPv4-Adresse"											{ channel="mqtt:topic:MQTT:espuino:espuino_ipv4_mqtt", autoupdate="true" }
+Switch Espuino_LockControls			"Bedienung sperren"										{ channel="mqtt:topic:MQTT:espuino:espuino_lock_controls_mqtt", autoupdate="true" }
+Number Espuino_Playmode			    "Aktueller Playmode [MAP(playmodes.map):%d]"			{ channel="mqtt:topic:MQTT:espuino:espuino_playmode_mqtt", autoupdate="true" }
+Number Espuino_LedBrightness		"Helligkeit LEDs"										{ channel="mqtt:topic:MQTT:espuino:espuino_led_brightness_mqtt", autoupdate="true" }
+DateTime Espuino_LastUpdate			"Letztes Update [%1$ta %1$tR]" 		            <time>
+Number Espuino_Repeatmode			"Wiederholung"  										{ channel="mqtt:topic:MQTT:espuino:espuino_led_repeatmode_mqtt", autoupdate="true" }
