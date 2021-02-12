@@ -2,17 +2,17 @@ Bridge mqtt:broker:MQTT [ host="<mqttServerIP>", secure=false, username="<userna
 
 	Thing topic espuino "Espuino" {
 	Channels:
-		Type switch: espuino_sleep_mqtt					"Ausschalten"						[ stateTopic="State/Espuino/Sleep", commandTopic="Cmnd/Espuino/Sleep", on="ON", off="OFF" ]
-		Type string: espuino_rfid_mqtt					"Track"							    [ stateTopic="State/Espuino/Rfid", commandTopic="Cmnd/Espuino/Rfid" ]
-		Type number: espuino_loudness_mqtt				"Lautstaerke"						[ stateTopic="State/Espuino/Loudness", commandTopic="Cmnd/Espuino/Loudness" ]
-		Type string: espuino_sleeptimer_mqtt			"Sleep-Timer"						[ stateTopic="State/Espuino/SleepTimer", commandTopic="Cmnd/Espuino/SleepTimer" ]
-		Type string: espuino_status_mqtt				"Status"						    [ stateTopic="State/Espuino/State" ]
-		Type string: espuino_current_track_mqtt			"Aktueller Track"					[ stateTopic="State/Espuino/Track" ]
-		Type string: espuino_track_control_mqtt			"Track-Control"						[ stateTopic="State/Espuino/TrackControl", commandTopic="Cmnd/Espuino/TrackControl" ]
-		Type string: espuino_ipv4_mqtt					"IPv4-Adresse"						[ stateTopic="State/Espuino/IPv4" ]
-		Type switch: espuino_lock_controls_mqtt			"Bedienung sperren"					[ stateTopic="State/Espuino/LockControls", commandTopic="Cmnd/Espuino/LockControls", on="ON", off="OFF" ]
-		Type number: espuino_playmode_mqtt				"Aktueller Playmode"				[ stateTopic="State/Espuino/Playmode", commandTopic="Cmnd/Espuino/Playmode" ]
-		Type number: espuino_led_brightness_mqtt		"Aktuelle LED-Helligkeit"			[ stateTopic="State/Espuino/LedBrightness", commandTopic="Cmnd/Espuino/LedBrightness" ]
-		Type number: espuino_led_repeatmode_mqtt		"Aktueller Wiederholungsmodus"		[ stateTopic="State/Espuino/RepeatMode", commandTopic="Cmnd/Espuino/RepeatMode" ]
+		Type switch: espuino_sleep_mqtt					"Ausschalten"						[ stateTopic="State/ESPuino/Sleep", commandTopic="Cmnd/ESPuino/Sleep", on="ON", off="OFF" ]
+		Type string: espuino_rfid_mqtt					"Track"							    [ stateTopic="State/ESPuino/Rfid", commandTopic="Cmnd/ESPuino/Rfid" ]
+		Type number: espuino_loudness_mqtt				"Lautstaerke"						[ stateTopic="State/ESPuino/Loudness", commandTopic="Cmnd/ESPuino/Loudness" ]
+		Type string: espuino_sleeptimer_mqtt			"Sleep-Timer"						[ stateTopic="State/ESPuino/SleepTimer", commandTopic="Cmnd/ESPuino/SleepTimer" ]
+		Type string: espuino_status_mqtt				"Status"						    [ stateTopic="State/ESPuino/State" ]
+		Type string: espuino_current_track_mqtt			"Aktueller Track"					[ stateTopic="State/ESPuino/Track" ]
+		Type string: espuino_track_control_mqtt			"Track-Control"						[ stateTopic="State/ESPuino/TrackControl", commandTopic="Cmnd/ESPuino/TrackControl" ]
+		Type string: espuino_ipv4_mqtt					"IPv4-Adresse"						[ stateTopic="State/ESPuino/IPv4" ]
+		Type switch: espuino_lock_controls_mqtt			"Bedienung sperren"					[ stateTopic="State/ESPuino/LockControls", commandTopic="Cmnd/ESPuino/LockControls", on="ON", off="OFF" ]
+		Type number: espuino_playmode_mqtt				"Aktueller Playmode"				[ stateTopic="State/ESPuino/Playmode", commandTopic="Cmnd/ESPuino/Playmode" ]
+		Type number: espuino_led_brightness_mqtt		"Aktuelle LED-Helligkeit"			[ stateTopic="State/ESPuino/LedBrightness", commandTopic="Cmnd/ESPuino/LedBrightness" ]
+		Type number: espuino_led_repeatmode_mqtt		"Aktueller Wiederholungsmodus"		[ stateTopic="State/ESPuino/RepeatMode", commandTopic="Cmnd/ESPuino/RepeatMode" ]
 	}
 }
