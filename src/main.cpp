@@ -144,6 +144,7 @@ char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all 
 #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
 #define TOGGLE_WIFI_STATUS              130         // Toggles WiFi-status
 #define TOGGLE_BLUETOOTH_MODE           140         // Toggles Normal/Bluetooth Mode
+#define ENABLE_FTP_SERVER               150         // Enables FTP-server
 
 // Repeat-Modes
 #define NO_REPEAT                       0           // No repeat
@@ -2912,24 +2913,37 @@ void doRfidCardModifications(const uint32_t mod) {
 
             break;
         #ifdef BLUETOOTH_ENABLE
-        case TOGGLE_BLUETOOTH_MODE:
-            if (readOperationModeFromNVS() == OPMODE_NORMAL) {
+            case TOGGLE_BLUETOOTH_MODE:
+                if (readOperationModeFromNVS() == OPMODE_NORMAL) {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedOk = true;
+                    #endif
+                    setOperationMode(OPMODE_BLUETOOTH);
+                } else if (readOperationModeFromNVS() == OPMODE_BLUETOOTH) {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedOk = true;
+                    #endif
+                    setOperationMode(OPMODE_NORMAL);
+                } else {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                }
+                break;
+        #endif
+        case ENABLE_FTP_SERVER:
+            if (!ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+                ftpEnableLastStatus = true;
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
                 #endif
-                setOperationMode(OPMODE_BLUETOOTH);
-            } else if (readOperationModeFromNVS() == OPMODE_BLUETOOTH) {
-                #ifdef NEOPIXEL_ENABLE
-                    showLedOk = true;
-                #endif
-                setOperationMode(OPMODE_NORMAL);
             } else {
-                 #ifdef NEOPIXEL_ENABLE
+                #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
                 #endif
             }
-            break;
-        #endif
+
+        break;
         default:
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
