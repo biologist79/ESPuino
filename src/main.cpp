@@ -584,6 +584,13 @@ void doButtonActions(void) {
             if (buttons[0].isPressed && buttons[2].isPressed) {
                 buttons[0].isPressed = false;
                 buttons[2].isPressed = false;
+                if (wifiManager() != WL_CONNECTED) {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                        loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
+                    #endif
+                    return;
+                }
                 ftpEnableLastStatus = true;
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
@@ -2932,7 +2939,7 @@ void doRfidCardModifications(const uint32_t mod) {
                 break;
         #endif
         case ENABLE_FTP_SERVER:
-            if (!ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+            if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
                 ftpEnableLastStatus = true;
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
@@ -2940,6 +2947,7 @@ void doRfidCardModifications(const uint32_t mod) {
             } else {
                 #ifdef NEOPIXEL_ENABLE
                     showLedError = true;
+                    loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
                 #endif
             }
 
