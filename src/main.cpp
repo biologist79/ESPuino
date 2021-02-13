@@ -11,6 +11,8 @@
     #include "settings-lolin_d32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
 #elif (HAL == 4)
     #include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
+#elif (HAL == 5)
+    #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 #endif
 
 #include <ESP32Encoder.h>
