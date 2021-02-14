@@ -2941,19 +2941,20 @@ void doRfidCardModifications(const uint32_t mod) {
                 break;
         #endif
         case ENABLE_FTP_SERVER:
-            if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-                ftpEnableLastStatus = true;
-                #ifdef NEOPIXEL_ENABLE
-                    showLedOk = true;
-                #endif
-            } else {
-                #ifdef NEOPIXEL_ENABLE
-                    showLedError = true;
-                    loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
-                #endif
-            }
-
-        break;
+            #ifdef FTP_ENABLE
+                if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+                    ftpEnableLastStatus = true;
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedOk = true;
+                    #endif
+                } else {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                        loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
+                    #endif
+                }
+            #endif
+            break;
         default:
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
