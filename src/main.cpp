@@ -291,14 +291,15 @@ volatile SemaphoreHandle_t timerSemaphore;
 
 // Button-helper
 typedef struct {
-    bool lastState;
-    bool currentState;
-    bool isPressed;
-    bool isReleased;
+    bool lastState : 1;
+    bool currentState : 1;
+    bool isPressed : 1;
+    bool isReleased : 1;
     unsigned long lastPressedTimestamp;
     unsigned long lastReleasedTimestamp;
 } t_button;
-t_button buttons[4];
+
+t_button buttons[6];
 
 Preferences prefsRfid;
 Preferences prefsSettings;
@@ -491,7 +492,11 @@ void buttonHandler() {
         buttons[0].currentState = digitalRead(NEXT_BUTTON);
         buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
         buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
-        buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
+        #ifdef USEROTARY_ENABLE
+            buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
+        #endif
+        if(BUTTON_4 > 0 && BUTTON_4 < 50) buttons[4].currentState = digitalRead(BUTTON_4);
+        if(BUTTON_5 > 0 && BUTTON_5 < 50) buttons[5].currentState = digitalRead(BUTTON_5);
 
         // Iterate over all buttons in struct-array
         for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
@@ -572,6 +577,16 @@ void doButtonActions(void) {
                             doCmdAction(BUTTON_3_LONG);
                             buttons[i].isPressed = false;
                             break;
+
+                        case 4:
+                            doCmdAction(BUTTON_4_LONG);
+                            buttons[i].isPressed = false;
+                            break;
+
+                        case 5:
+                            doCmdAction(BUTTON_5_LONG);
+                            buttons[i].isPressed = false;
+                            break;
                         }
                     } else {
                         switch (i)      // Short-press-actions
@@ -594,6 +609,17 @@ void doButtonActions(void) {
                         case 3:
                             doCmdAction(BUTTON_3_SHORT);
                             buttons[i].isPressed = false;
+                            break;
+
+                        case 4:
+                            doCmdAction(BUTTON_4_SHORT);
+                            buttons[i].isPressed = false;
+                            break;
+
+                        case 5:
+                            doCmdAction(BUTTON_5_SHORT);
+                            buttons[i].isPressed = false;
+                            break;
                         }
                     }
                 }
@@ -2504,7 +2530,7 @@ void doRfidCardModifications(const uint32_t mod) {
         }
 	#endif
 
-    doAction(mod);
+    doCmdAction(mod);
 }
 
 void doCmdAction(const uint32_t mod) {
@@ -2900,10 +2926,10 @@ void doCmdAction(const uint32_t mod) {
         case CMD_NEXTTRACK:
             trackControlToQueueSender(NEXTTRACK);
             break;
-        case CMD_FIRSTRACK:
+        case CMD_FIRSTTRACK:
             trackControlToQueueSender(FIRSTTRACK);
             break;
-        case CMD_LASTRACK:
+        case CMD_LASTTRACK:
             trackControlToQueueSender(LASTTRACK);
             break;
         case CMD_VOLUMEINIT:

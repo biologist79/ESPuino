@@ -52,6 +52,8 @@
 #define PAUSEPLAY_BUTTON                5           // GPIO to detect pause/play
 #define NEXT_BUTTON                     4           // GPIO to detect next
 #define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
+#define BUTTON_4                       99           // Button 4
+#define BUTTON_5                       99           // Button 5
 
 // (optional) Power-control
 #define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
