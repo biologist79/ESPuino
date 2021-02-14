@@ -10,10 +10,10 @@
    2: ESP32-A1S Audiokit        => settings-espa1s.h
    3: Wemos Lolin D32           => settings-lolin_D32.h
    4: Wemos Lolin D32 pro       => settings-lolin_D32_pro.h
-   5: custom                    => settings-custom.h
+   99: custom                   => settings-custom.h
    more to come...
 */
- #define HAL 1                // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 5 = custom
+ #define HAL 1                // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
 
 
 //########################## MODULES #################################
