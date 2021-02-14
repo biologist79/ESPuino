@@ -47,9 +47,9 @@
 
 #define CMD_PLAYPAUSE                   170         // Admin-Cmd Play/Pause
 #define CMD_PREVTRACK                   171         // Admin-Cmd Prev Track
-#define CMD_NEXTTACK                    172         // Admin-Cmd Next Track
+#define CMD_NEXTTRACK                   172         // Admin-Cmd Next Track
 #define CMD_FIRSTTRACK                  173         // Admin-Cmd Prev Track
-#define CMD_LASTTACK                    174         // Admin-Cmd Next Track
+#define CMD_LASTTRACK                   174         // Admin-Cmd Next Track
 #define CMD_VOLUMEINIT                  175         // Set Volume to Initial
 #define CMD_VOLUMEUP                    176         // Set Volume up
 #define CMD_VOLUMEDOWN                  177         // Set Volume down

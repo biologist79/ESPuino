@@ -578,6 +578,16 @@ void doButtonActions(void) {
                         case 3:
                             doCmdAction(BUTTON_3_LONG);
                             buttons[i].isPressed = false;
+                            break;                    
+
+                        case 4:
+                            doCmdAction(BUTTON_4_LONG);
+                            buttons[i].isPressed = false;
+                            break;
+
+                        case 5: 
+                            doCmdAction(BUTTON_5_LONG);
+                            buttons[i].isPressed = false;
                             break;
                         }
                     } else {
@@ -601,6 +611,17 @@ void doButtonActions(void) {
                         case 3:
                             doCmdAction(BUTTON_3_SHORT);
                             buttons[i].isPressed = false;
+                            break;
+
+                        case 4:
+                            doCmdAction(BUTTON_4_SHORT);
+                            buttons[i].isPressed = false;
+                            break;
+
+                        case 5: 
+                            doCmdAction(BUTTON_5_SHORT);
+                            buttons[i].isPressed = false;
+                            break;
                         }
                     }
                 }
@@ -2511,7 +2532,7 @@ void doRfidCardModifications(const uint32_t mod) {
         }
 	#endif
 
-    doAction(mod);
+    doCmdAction(mod);
 }
 
 void doCmdAction(const uint32_t mod) {
@@ -2903,10 +2924,10 @@ void doCmdAction(const uint32_t mod) {
         case CMD_NEXTTRACK:
             trackControlToQueueSender(NEXTTRACK);
             break;
-        case CMD_FIRSTRACK:
+        case CMD_FIRSTTRACK:
             trackControlToQueueSender(FIRSTTRACK);
             break;
-        case CMD_LASTRACK:
+        case CMD_LASTTRACK:
             trackControlToQueueSender(LASTTRACK);
             break;
         case CMD_VOLUMEINIT:
