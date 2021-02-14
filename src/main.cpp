@@ -316,6 +316,25 @@ QueueHandle_t rfidCardQueue;
 RingbufHandle_t explorerFileUploadRingBuffer;
 QueueHandle_t explorerFileUploadStatusQueue;
 
+#if (NEXT_BUTTON > 0 && NEXT_BUTTON<50)
+    #define BUTTON_0_ENABLE
+#endif
+#if (PREVIOUS_BUTTON > 0 && PREVIOUS_BUTTON<50)
+    #define BUTTON_1_ENABLE
+#endif
+#if (PAUSEPLAY_BUTTON > 0 && PAUSEPLAY_BUTTON<50)
+    #define BUTTON_2_ENABLE
+#endif
+#ifdef USEROTARY_ENABLE
+    #define BUTTON_3_ENABLE
+#endif
+#if (BUTTON_4 > 0 && BUTTON_4<50)
+    #define BUTTON_4_ENABLE
+#endif
+#if (BUTTON_5 > 0 && BUTTON_5<50)
+    #define BUTTON_5_ENABLE
+#endif
+
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
 static int arrSortHelper(const void* a, const void* b);
@@ -491,14 +510,24 @@ void buttonHandler() {
             return;
         }
         unsigned long currentTimestamp = millis();
-        buttons[0].currentState = digitalRead(NEXT_BUTTON);
-        buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
-        buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
-        #ifdef USEROTARY_ENABLE
+        #ifdef BUTTON_0_ENABLE
+            buttons[0].currentState = digitalRead(NEXT_BUTTON);
+        #endif
+        #ifdef BUTTON_1_ENABLE
+            buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
+        #endif
+        #ifdef BUTTON_2_ENABLE
+            buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
+        #endif
+        #ifdef BUTTON_3_ENABLE
             buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
         #endif
-        if(BUTTON_4 > 0 && BUTTON_4 < 50) buttons[4].currentState = digitalRead(BUTTON_4);
-        if(BUTTON_5 > 0 && BUTTON_5 < 50) buttons[5].currentState = digitalRead(BUTTON_5);
+        #ifdef BUTTON_4_ENABLE
+            buttons[4].currentState = digitalRead(BUTTON_4);
+        #endif
+        #ifdef BUTTON_5_ENABLE
+            buttons[5].currentState = digitalRead(BUTTON_5);
+        #endif
 
         // Iterate over all buttons in struct-array
         for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {

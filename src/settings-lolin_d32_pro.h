@@ -48,14 +48,14 @@
 // Rotary encoder
 #define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
 #define DREHENCODER_DT                  39          // 39 = 'VN'
-#define DREHENCODER_BUTTON              36          // Button is used to switch ESPuino on and off; 36 = 'VP'
+#define DREHENCODER_BUTTON              36          // Button 3: is used to switch ESPuino on and off; 36 = 'VP'
 
 // Control-buttons
-#define PAUSEPLAY_BUTTON                32          // GPIO to detect pause/play
-#define NEXT_BUTTON                     0           // GPIO to detect next
-#define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
-#define BUTTON_4                       99           // Button 4
-#define BUTTON_5                       99           // Button 5
+#define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
+#define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
+#define PAUSEPLAY_BUTTON                32          // Button 2: GPIO to detect pause/play
+#define BUTTON_4                        99          // Button 4
+#define BUTTON_5                        99          // Button 5
 
 // (optional) Power-control
 #define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
