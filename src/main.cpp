@@ -80,6 +80,8 @@
 
 #include "values.h"
 
+#include "values.h"
+
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
 char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
@@ -577,16 +579,6 @@ void doButtonActions(void) {
                             doCmdAction(BUTTON_3_LONG);
                             buttons[i].isPressed = false;
                             break;
-
-                        case 4:
-                            doCmdAction(BUTTON_4_LONG);
-                            buttons[i].isPressed = false;
-                            break;
-
-                        case 5:
-                            doCmdAction(BUTTON_5_LONG);
-                            buttons[i].isPressed = false;
-                            break;
                         }
                     } else {
                         switch (i)      // Short-press-actions
@@ -609,17 +601,6 @@ void doButtonActions(void) {
                         case 3:
                             doCmdAction(BUTTON_3_SHORT);
                             buttons[i].isPressed = false;
-                            break;
-
-                        case 4:
-                            doCmdAction(BUTTON_4_SHORT);
-                            buttons[i].isPressed = false;
-                            break;
-
-                        case 5:
-                            doCmdAction(BUTTON_5_SHORT);
-                            buttons[i].isPressed = false;
-                            break;
                         }
                     }
                 }
@@ -2530,7 +2511,7 @@ void doRfidCardModifications(const uint32_t mod) {
         }
 	#endif
 
-    doCmdAction(mod);
+    doAction(mod);
 }
 
 void doCmdAction(const uint32_t mod) {
@@ -2550,11 +2531,7 @@ void doCmdAction(const uint32_t mod) {
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 #endif
-                #ifdef NEOPIXEL_ENABLE
-                    showLedOk = true;
-                #endif
             }
-            break;
 
         case SLEEP_TIMER_MOD_15:    // Enables/disables sleep after 15 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 15) {
@@ -2926,10 +2903,10 @@ void doCmdAction(const uint32_t mod) {
         case CMD_NEXTTRACK:
             trackControlToQueueSender(NEXTTRACK);
             break;
-        case CMD_FIRSTTRACK:
+        case CMD_FIRSTRACK:
             trackControlToQueueSender(FIRSTTRACK);
             break;
-        case CMD_LASTTRACK:
+        case CMD_LASTRACK:
             trackControlToQueueSender(LASTTRACK);
             break;
         case CMD_VOLUMEINIT:
