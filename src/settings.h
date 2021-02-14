@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "values.h"
 
 //######################### INFOS ####################################
 // This is the general configfile for ESPuino-configuration.
@@ -140,4 +141,35 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
     #ifdef MEASURE_BATTERY_VOLTAGE
         static const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
     #endif
+#endif
+
+#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
+    #define RFID_CARDMAN
+#endif
+
+#define CHUNK_SIZE 1024
+
+
+// Button Layout
+#define BUTTON_MULTI_01 = TOGGLE_WIFI_STATUS
+#define BUTTON_MULTI_02 = ENABLE_FTP_SERVER
+#define BUTTON_MULTI_03 = CMD_NOTHING
+#define BUTTON_MULTI_12 = CMD_MEASUREBATTERY
+#define BUTTON_MULTI_13 = CMD_NOTHING
+#define BUTTON_MULTI_23 = CMD_NOTHING
+
+#define BUTTON_0_SHORT  = CMD_NEXTTRACK
+#define BUTTON_1_SHORT  = CMD_PREVTRACK
+#define BUTTON_2_SHORT  = CMD_PLAYPAUSE
+#define BUTTON_3_SHORT  = CMD_MEASUREBATTERY
+#define BUTTON_3_LONG   = CMD_SLEEPMODE
+
+#ifdef USEROTARY_ENABLE
+    #define BUTTON_0_LONG = CMD_LASTTRACK
+    #define BUTTON_1_LONG = CMD_FIRSTTRACK
+    #define BUTTON_2_LONG = CMD_PLAYPAUSE
+#else
+    #define BUTTON_0_LONG = CMD_VOLUMEDOWN
+    #define BUTTON_1_LONG = CMD_VOLUMEUP
+    #define BUTTON_2_LONG = CMD_SLEEPMODE
 #endif
