@@ -2278,7 +2278,7 @@ void gotoLPCD() {
     if (nfc.switchToLPCD(wakeupCounterInMs)) {
         Serial.println(F("switch to low power card detection: success"));
         // configure wakeup pin for deep-sleep wake-up, use ext1
-        esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+        esp_sleep_enable_ext1_wakeup((1ULL<<(RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
         // freeze pin states in deep sleep
         gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
         gpio_hold_en(gpio_num_t(RFID_RST)); // RST
@@ -4117,7 +4117,7 @@ void printWakeUpReason() {
             if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
                 loggerNl(serialDebug, (char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
                 // configure wakeup pin for deep-sleep wake-up, use ext1
-                esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+                esp_sleep_enable_ext1_wakeup((1ULL<<(RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
                 // freeze pin states in deep sleep
                 gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
                 gpio_hold_en(gpio_num_t(RFID_RST)); // RST
