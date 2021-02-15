@@ -3404,12 +3404,16 @@ bool processJsonRequest(char *_serialJson) {
         const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
         uint8_t _modId = object["rfidMod"]["modId"];
         char rfidString[12];
-        snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
-        prefsRfid.putString(_rfidIdModId, rfidString);
+        if(_modId<=0) {
+            prefsRfid.remove(_rfidIdModId);
+        } else {
+            snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
+            prefsRfid.putString(_rfidIdModId, rfidString);
 
-        String s = prefsRfid.getString(_rfidIdModId, "-1");
-        if (s.compareTo(rfidString)) {
-            return false;
+            String s = prefsRfid.getString(_rfidIdModId, "-1");
+            if (s.compareTo(rfidString)) {
+                return false;
+            }
         }
         dumpNvsToSd("rfidTags", (char *) FPSTR(backupFile));        // Store backup-file every time when a new rfid-tag is programmed
 
@@ -3449,6 +3453,17 @@ bool processJsonRequest(char *_serialJson) {
     } else if (doc.containsKey("ping")) {
         sendWebsocketData(0, 20);
         return false;
+    }else if (doc.containsKey("controls")) {
+        if(object["controls"].containsKey("set_volume"))
+        {
+            uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
+            volumeToQueueSender(new_vol);
+        } 
+        if(object["controls"].containsKey("action"))
+        {
+            uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
+            doCmdAction(cmd);
+        }
     }
 
     return true;
