@@ -45,16 +45,16 @@
 #define TOGGLE_BLUETOOTH_MODE           140         // Toggles Normal/Bluetooth Mode
 #define ENABLE_FTP_SERVER               150         // Enables FTP-server
 
-#define CMD_PLAYPAUSE                   170         // Admin-Cmd Play/Pause
-#define CMD_PREVTRACK                   171         // Admin-Cmd Prev Track
-#define CMD_NEXTTRACK                   172         // Admin-Cmd Next Track
-#define CMD_FIRSTTRACK                  173         // Admin-Cmd Prev Track
-#define CMD_LASTTRACK                   174         // Admin-Cmd Next Track
-#define CMD_VOLUMEINIT                  175         // Set Volume to Initial
-#define CMD_VOLUMEUP                    176         // Set Volume up
-#define CMD_VOLUMEDOWN                  177         // Set Volume down
-#define CMD_MEASUREBATTERY              178         // Measure Battery Voltage
-#define CMD_SLEEPMODE                   179         // Goto Sleepmode
+#define CMD_PLAYPAUSE                   170         // Admin-cmd Play/Pause
+#define CMD_PREVTRACK                   171         // Admin-cmd Prev Track
+#define CMD_NEXTTRACK                   172         // Admin-cmd Next Track
+#define CMD_FIRSTTRACK                  173         // Admin-cmd Prev Track
+#define CMD_LASTTRACK                   174         // Admin-cmd Next Track
+#define CMD_VOLUMEINIT                  175         // Set volume to Initial
+#define CMD_VOLUMEUP                    176         // Set volume up
+#define CMD_VOLUMEDOWN                  177         // Set volume down
+#define CMD_MEASUREBATTERY              178         // Measure battery-voltage
+#define CMD_SLEEPMODE                   179         // Goto deepsleep
 
 // Repeat-Modes
 #define NO_REPEAT                       0           // No repeat

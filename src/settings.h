@@ -30,6 +30,7 @@
 #define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
 //#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 //#define USE_LAST_VOLUME_AFTER_REBOOT  // Remembers the volume used at last shutdown after reboot
+#define USEROTARY_ENABLE                // If rotary-encoder is used
 
 #define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino via bluetooth (a2dp-sink).
 
@@ -150,24 +151,48 @@ float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-
 #define CHUNK_SIZE 1024
 
 
-// Button Layout
+// Button-layout
+/* Please note the following numbers as you need to know them in order to define actions for buttons.
+   Even if you don't use all of them, their numbers won't change
+    0: NEXT_BUTTON
+    1: PREVIOUS_BUTTON
+    2: PAUSEPLAY_BUTTON
+    3: DREHENCODER_BUTTON
+    4: BUTTON_4
+    5: BUTTON_5
+
+   Don't forget to enable those buttons you want to use in your develboard-specific config (e.g. settings-custom.h)
+
+   Multi-buttons (examples):
+    BUTTON_MULTI_01 => Buttons 0+1 (NEXT+PREVIOUS) pressed in parallel
+    BUTTON_MULTI_23 => Buttons 0+2 (NEXT+PAUSEPLAY_BUTTON) pressed in parallel
+
+   Single-buttons (examples):
+    BUTTON_0_SHORT => Button 0 (NEXT) pressed shortly
+    BUTTON_3_SHORT => Button 3 (DREHENCODER) pressed shortly
+
+   Actions:
+    To all of those buttons, an action can be assigned freely.
+    Please have a look at values.h to look up actions available (>100 can be used)
+*/
+// *****BUTTON*****        *****ACTION*****
 #define BUTTON_MULTI_01   TOGGLE_WIFI_STATUS
 #define BUTTON_MULTI_02   ENABLE_FTP_SERVER
 #define BUTTON_MULTI_03   CMD_NOTHING
-#define BUTTON_MULTI_12   CMD_MEASUREBATTERY
+#define BUTTON_MULTI_12   CMD_NOTHING
 #define BUTTON_MULTI_13   CMD_NOTHING
 #define BUTTON_MULTI_23   CMD_NOTHING
 
-#define BUTTON_0_SHORT  CMD_NEXTTRACK
-#define BUTTON_1_SHORT  CMD_PREVTRACK
-#define BUTTON_2_SHORT  CMD_PLAYPAUSE
-#define BUTTON_3_SHORT  CMD_MEASUREBATTERY
-#define BUTTON_3_LONG   CMD_SLEEPMODE
+#define BUTTON_0_SHORT    CMD_NEXTTRACK
+#define BUTTON_1_SHORT    CMD_PREVTRACK
+#define BUTTON_2_SHORT    CMD_PLAYPAUSE
+#define BUTTON_3_SHORT    CMD_MEASUREBATTERY
+#define BUTTON_3_LONG     CMD_SLEEPMODE
 
-#define BUTTON_4_SHORT  CMD_VOLUMEDOWN
-#define BUTTON_4_LONG   CMD_VOLUMEDOWN
-#define BUTTON_5_SHORT  CMD_VOLUMEUP
-#define BUTTON_5_LONG   CMD_VOLUMEUP
+#define BUTTON_4_SHORT    CMD_VOLUMEDOWN
+#define BUTTON_4_LONG     CMD_VOLUMEDOWN
+#define BUTTON_5_SHORT    CMD_VOLUMEUP
+#define BUTTON_5_LONG     CMD_VOLUMEUP
 
 #ifdef USEROTARY_ENABLE
     #define BUTTON_0_LONG   CMD_LASTTRACK

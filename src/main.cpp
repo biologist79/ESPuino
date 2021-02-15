@@ -316,22 +316,23 @@ QueueHandle_t rfidCardQueue;
 RingbufHandle_t explorerFileUploadRingBuffer;
 QueueHandle_t explorerFileUploadStatusQueue;
 
-#if (NEXT_BUTTON > 0 && NEXT_BUTTON<50)
+// Only enable those buttons that use GPIOs <= 39
+#if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= 39)
     #define BUTTON_0_ENABLE
 #endif
-#if (PREVIOUS_BUTTON > 0 && PREVIOUS_BUTTON<50)
+#if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= 39)
     #define BUTTON_1_ENABLE
 #endif
-#if (PAUSEPLAY_BUTTON > 0 && PAUSEPLAY_BUTTON<50)
+#if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= 39)
     #define BUTTON_2_ENABLE
 #endif
 #ifdef USEROTARY_ENABLE
     #define BUTTON_3_ENABLE
 #endif
-#if (BUTTON_4 > 0 && BUTTON_4<50)
+#if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
     #define BUTTON_4_ENABLE
 #endif
-#if (BUTTON_5 > 0 && BUTTON_5<50)
+#if (BUTTON_5 >= 0 && BUTTON_5 <= 39)
     #define BUTTON_5_ENABLE
 #endif
 
@@ -607,14 +608,14 @@ void doButtonActions(void) {
                         case 3:
                             doCmdAction(BUTTON_3_LONG);
                             buttons[i].isPressed = false;
-                            break;                    
+                            break;
 
                         case 4:
                             doCmdAction(BUTTON_4_LONG);
                             buttons[i].isPressed = false;
                             break;
 
-                        case 5: 
+                        case 5:
                             doCmdAction(BUTTON_5_LONG);
                             buttons[i].isPressed = false;
                             break;
@@ -647,7 +648,7 @@ void doButtonActions(void) {
                             buttons[i].isPressed = false;
                             break;
 
-                        case 5: 
+                        case 5:
                             doCmdAction(BUTTON_5_SHORT);
                             buttons[i].isPressed = false;
                             break;
@@ -2566,7 +2567,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
 void doCmdAction(const uint32_t mod) {
     switch (mod) {
-        case LOCK_BUTTONS_MOD:      // Locks/unlocks all buttons
+        case LOCK_BUTTONS_MOD: {     // Locks/unlocks all buttons
             lockControls = !lockControls;
             if (lockControls) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
@@ -2582,8 +2583,9 @@ void doCmdAction(const uint32_t mod) {
                     publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 #endif
             }
+        }
 
-        case SLEEP_TIMER_MOD_15:    // Enables/disables sleep after 15 minutes
+        case SLEEP_TIMER_MOD_15: {   // Enables/disables sleep after 15 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 15) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2615,8 +2617,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_TIMER_MOD_30:    // Enables/disables sleep after 30 minutes
+        case SLEEP_TIMER_MOD_30: {   // Enables/disables sleep after 30 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 30) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2648,8 +2651,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_TIMER_MOD_60:    // Enables/disables sleep after 60 minutes
+        case SLEEP_TIMER_MOD_60: {   // Enables/disables sleep after 60 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 60) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2681,8 +2685,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_TIMER_MOD_120:    // Enables/disables sleep after 2 hrs
+        case SLEEP_TIMER_MOD_120: {   // Enables/disables sleep after 2 hrs
             if (sleepTimerStartTimestamp && sleepTimer == 120) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2714,8 +2719,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_AFTER_END_OF_TRACK:  // Puts uC to sleep after end of current track
+        case SLEEP_AFTER_END_OF_TRACK: { // Puts uC to sleep after end of current track
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
@@ -2753,8 +2759,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_AFTER_END_OF_PLAYLIST:   // Puts uC to sleep after end of whole playlist (can take a while :->)
+        case SLEEP_AFTER_END_OF_PLAYLIST: {  // Puts uC to sleep after end of whole playlist (can take a while :->)
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
@@ -2792,8 +2799,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case SLEEP_AFTER_5_TRACKS:
+        case SLEEP_AFTER_5_TRACKS:{
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
@@ -2840,8 +2848,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case REPEAT_PLAYLIST:
+        case REPEAT_PLAYLIST: {
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
@@ -2864,8 +2873,9 @@ void doCmdAction(const uint32_t mod) {
                 #endif
             }
             break;
+        }
 
-        case REPEAT_TRACK:      // Introduces looping for track-mode
+        case REPEAT_TRACK: {     // Introduces looping for track-mode
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 #ifdef NEOPIXEL_ENABLE
@@ -2888,8 +2898,9 @@ void doCmdAction(const uint32_t mod) {
                 #endif
             }
             break;
+        }
 
-        case DIMM_LEDS_NIGHTMODE:
+        case DIMM_LEDS_NIGHTMODE: {
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
             #endif
@@ -2899,8 +2910,9 @@ void doCmdAction(const uint32_t mod) {
                 showLedOk = true;
             #endif
             break;
+        }
 
-        case TOGGLE_WIFI_STATUS:
+        case TOGGLE_WIFI_STATUS: {
             if (writeWifiStatusToNVS(!getWifiEnableStatusFromNVS())) {
                 #ifdef NEOPIXEL_ENABLE
                     showLedOk = true;
@@ -2911,8 +2923,9 @@ void doCmdAction(const uint32_t mod) {
                 #endif
             }
             break;
+        }
         #ifdef BLUETOOTH_ENABLE
-            case TOGGLE_BLUETOOTH_MODE:
+            case TOGGLE_BLUETOOTH_MODE: {
                 if (readOperationModeFromNVS() == OPMODE_NORMAL) {
                     #ifdef NEOPIXEL_ENABLE
                         showLedOk = true;
@@ -2929,8 +2942,9 @@ void doCmdAction(const uint32_t mod) {
                     #endif
                 }
                 break;
+            }
         #endif
-        case ENABLE_FTP_SERVER:
+        case ENABLE_FTP_SERVER: {
             if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
                 ftpEnableLastStatus = true;
                 #ifdef NEOPIXEL_ENABLE
@@ -2943,32 +2957,41 @@ void doCmdAction(const uint32_t mod) {
                 #endif
             }
 
-        break;
-        case CMD_PLAYPAUSE:
+            break;
+        }
+        case CMD_PLAYPAUSE: {
             trackControlToQueueSender(PAUSEPLAY);
             break;
-        case CMD_PREVTRACK:
+        }
+        case CMD_PREVTRACK: {
             trackControlToQueueSender(PREVIOUSTRACK);
             break;
-        case CMD_NEXTTRACK:
+        }
+        case CMD_NEXTTRACK: {
             trackControlToQueueSender(NEXTTRACK);
             break;
-        case CMD_FIRSTTRACK:
+        }
+        case CMD_FIRSTTRACK: {
             trackControlToQueueSender(FIRSTTRACK);
             break;
-        case CMD_LASTTRACK:
+        }
+        case CMD_LASTTRACK: {
             trackControlToQueueSender(LASTTRACK);
             break;
-        case CMD_VOLUMEINIT:
+        }
+        case CMD_VOLUMEINIT: {
             volumeToQueueSender(initVolume);
             break;
-        case CMD_VOLUMEUP:
+        }
+        case CMD_VOLUMEUP: {
             volumeToQueueSender(currentVolume + 2);
             break;
-        case CMD_VOLUMEDOWN:
+        }
+        case CMD_VOLUMEDOWN: {
             volumeToQueueSender(currentVolume - 2);
             break;
-        case CMD_MEASUREBATTERY:
+        }
+        case CMD_MEASUREBATTERY: {
             #ifdef MEASURE_BATTERY_VOLTAGE
                 float voltage = measureBatteryVoltage();
                 snprintf(logBuf, serialLoglength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
@@ -2983,15 +3006,18 @@ void doCmdAction(const uint32_t mod) {
                 #endif
             #endif
             break;
-        case CMD_SLEEPMODE:
+        }
+        case CMD_SLEEPMODE: {
             gotoSleep = true;
             break;
-        default:
+        }
+        default: {
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
                 showLedError = true;
             #endif
+        }
     }
 }
 
@@ -4582,11 +4608,26 @@ void setup() {
         0 /* Core where the task should run */
     );
 
-    // Activate internal pullups for all buttons
-    pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
-    pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
-    pinMode(NEXT_BUTTON, INPUT_PULLUP);
-    pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
+    // Activate internal pullups for all enabled buttons
+    #ifdef BUTTON_0_ENABLE
+        pinMode(NEXT_BUTTON, INPUT_PULLUP);
+    #endif
+    #ifdef BUTTON_1_ENABLE
+        pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
+    #endif
+    #ifdef BUTTON_2_ENABLE
+        pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
+    #endif
+    #ifdef BUTTON_3_ENABLE
+        pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
+    #endif
+    #ifdef BUTTON_4_ENABLE
+        pinMode(BUTTON_4, INPUT_PULLUP);
+    #endif
+    #ifdef BUTTON_5_ENABLE
+        pinMode(BUTTON_5, INPUT_PULLUP);
+    #endif
+    unsigned long currentTimestamp = millis();
 
     // Init rotary encoder
     encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
