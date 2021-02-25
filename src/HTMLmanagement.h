@@ -120,6 +120,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             -webkit-appearance: none;\
             -moz-appearance: none;\
             appearance: none;\
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAAAAADhgtq/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAR0lEQVR4nGP5z4ADsOCSGOoyC+NRabjMQqjQQrgUTCYeIrQQyEI3DSyFJIHkApAUkgSy21B0oLo6fiGSBKp/kCUGU4hSRQYAYg0Rw+gGlUQAAAAASUVORK5CYII=') no-repeat;\
+            background-position: center right;\
         }\
     </style>\
 </head>\
@@ -138,7 +140,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <br/>\
     <nav>\
         <div class=\"container nav nav-tabs\" id=\"nav-tab\" role=\"tablist\">\
-            <a class=\"nav-item nav-link\" id=\"nav-control-tab\" data-toggle=\"tab\" href=\"#nav-control\" role=\"tab\" aria-controls=\"nav-control\" aria-selected=\"false\"><i class=\"fas fa-gamepad\"></i><span class=\".d-sm-none .d-md-block\"> Control</span></a>\
+            <a class=\"nav-item nav-link\" id=\"nav-control-tab\" data-toggle=\"tab\" href=\"#nav-control\" role=\"tab\" aria-controls=\"nav-control\" aria-selected=\"false\"><i class=\"fas fa-gamepad\"></i><span class=\".d-sm-none .d-md-block\"> Steuerung</span></a>\
             <a class=\"nav-item nav-link active\" id=\"nav-rfid-tab\" data-toggle=\"tab\" href=\"#nav-rfid\" role=\"tab\" aria-controls=\"nav-rfid\" aria-selected=\"true\"><i class=\"fas fa-dot-circle\"></i> RFID</a>\
             <a class=\"nav-item nav-link\" id=\"nav-wifi-tab\" data-toggle=\"tab\" href=\"#nav-wifi\" role=\"tab\" aria-controls=\"nav-wifi\" aria-selected=\"false\"><i class=\"fas fa-wifi\"></i><span class=\".d-sm-none .d-md-block\"> WLAN</span></a>\
             %SHOW_MQTT_TAB%\
@@ -175,7 +177,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         </div>\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-control\" role=\"tabpanel\" aria-labelledby=\"nav-control-tab\">\
-        <div class=\"container\" id=\"navControl\">         \
+        <div class=\"container\" id=\"navControl\">\
                 <div class=\"form-group col-md-12\">\
                     <legend>Steuerung</legend>\
                     <div class=\"buttons\">\
@@ -194,13 +196,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(174)\">\
                             <span class=\"fas fa-fast-forward\"></span>\
                         </button>\
-                    </div>                   \
+                    </div>\
                 </div>\
                 <br>\
                 <div class=\"form-group col-md-12\">\
                     <legend>Lautst&auml;rke</legend>\
                         <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"setVolume\"\
-                            data-slider-value=\"%INIT_VOLUME%\" value=\"%INIT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>              \
+                            data-slider-value=\"%CURRENT_VOLUME%\" value=\"%CURRENT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                 </div>\
                 <br/>\
         </div>\
@@ -223,15 +225,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <input name=\"uploaded_file\" id =\"uploaded_file\" onchange=\"$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());\" style=\"display: none;\" type=\"file\" multiple>\
                             </span>\
                         </div>\
-\
                     </form>\
                     <br>\
                     <div class=\"progress\">\
-                        <div id=\"explorerUploadProgress\" class=\"progress-bar\" role=\"progressbar\" style=\"width: 0\"></div>\
-\
-                        </div>\
+                        <div id=\"explorerUploadProgress\" class=\"progress-bar\" role=\"progressbar\" ></div>\
                     </div>\
-                    <br>\
+                </div>\
+                <br>\
 				</div>\
             </fieldset>\
         </div>\
@@ -259,6 +259,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                             <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
                             <label for=\"playMode\">Abspielmodus</label>\
                             <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
+                                <option class=\"placeholder\" disabled selected value=\"\">Modus auswählen</option>\
                                 <option class=\"option-file\" value=\"1\">Einzelner Titel</option>\
                                 <option class=\"option-file\" value=\"2\">Einzelner Titel (Endlosschleife)</option>\
                                 <option class=\"option-file-and-folder\" value=\"3\">Hörbuch</option>\
@@ -273,6 +274,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <div class=\"tab-pane \" id=\"rfidmod\" role=\"tabpanel\">\
                             <label for=\"modId\"></label>\
                             <select class=\"form-control\" id=\"modId\" name=\"modId\">\
+                                <option class=\"placeholder\" disabled selected value=\"\">Modifikation auswählen</option>\
                                 <option value=\"100\">Tastensperre</option>\
                                 <option value=\"101\">Schlafen nach 15 Minuten</option>\
                                 <option value=\"102\">Schlafen nach 30 Minuten</option>\
@@ -539,6 +541,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
         $('input[name=fileOrUrl]').val(data.node.data.path);\
 \
+        if (ActiveSubTab !== 'rfid-music-tab') {\
+            $('#SubTab.nav-tabs a[id=\"rfid-music-tab\"]').tab('show');\
+        }\
+\
         if (data.node.type == \"folder\") {\
             $('.option-folder').show();\
             $('.option-file').hide();\
@@ -659,8 +665,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 				  if (evt.lengthComputable) {\
 					var percentComplete = evt.loaded / evt.total;\
 					percentComplete = parseInt(percentComplete * 100);\
-					console.log(percentComplete);\
-                    $(\"#explorerUploadProgress\").css(\"width\", percentComplete + \"%\").text(percentComplete);\
+                    console.log(percentComplete);\
+                    var percent = percentComplete + '%';\
+                    $(\"#explorerUploadProgress\").css('width', percent).text(percent);\
 				  }\
 				}, false);\
 \

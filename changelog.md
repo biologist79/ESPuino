@@ -26,3 +26,7 @@
 * 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
 * 06.02.2020: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
 * 09.02.2020: Added support for bluetooth-sink (a2dp). Thanks @grch87 & @elmar-ops for providing this feature!
+* 25.02.2020: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
+* 25.02.2020: Actions can be freely assigned to buttons (multi-button, single-button (short), single-button (long))
+* 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
+* 25.02.2020: Added support for .m4a and .wav-files.

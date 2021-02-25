@@ -27,8 +27,10 @@ After providing PCBs based on RC522 / SD-SPI it was about time to integrate "the
 * Disable `RFID_READER_TYPE_MFRC522_SPI` and `SINGLE_SPI_ENABLE`.
 * Don't forget to add jumper for jp1! Connect the upper and the middle pin if you don't want to use LPCD. In this case PN5180 is switched off while deepsleep is active. Connect the middle and the lower pin in order to power PN5180 continously (which is mandatory for LPCD)
 * Make sure [Pullup-resistor was removed](https://github.com/biologist79/ESPuino/blob/master/pictures/Pullup-removal.jpg) for GPIO2/MISO.
+* Enable `USEROTARY_ENABLE`.
+* Enable buttons for previous, next, pause/play.
 
-## PCB-Wiring (2 SPI-instances: PN5180 + SD_MMC)
+## PCB-Wiring (2 SPI-instances: PN5180 + SD_MMC + 3 buttons + rotary encoder)
 Please refer [Schematics](Pictures/Schematics.pdf) for reference.<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |

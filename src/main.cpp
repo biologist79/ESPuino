@@ -15,7 +15,9 @@
     #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 #endif
 
-#include <ESP32Encoder.h>
+#ifdef USEROTARY_ENABLE
+    #include <ESP32Encoder.h>
+#endif
 #include "Arduino.h"
 #include <WiFi.h>
 #ifdef MDNS_ENABLE
@@ -74,12 +76,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <nvsDump.h>
-
 #include "freertos/ringbuf.h"
-
-
-#include "values.h"
-
 #include "values.h"
 
 // Serial-logging buffer
@@ -285,7 +282,9 @@ IPAddress myIP;
 #endif
 
 // Rotary encoder-configuration
-ESP32Encoder encoder;
+#ifdef USEROTARY_ENABLE
+    ESP32Encoder encoder;
+#endif
 
 // HW-Timer
 hw_timer_t *timer = NULL;
@@ -301,7 +300,8 @@ typedef struct {
     unsigned long lastReleasedTimestamp;
 } t_button;
 
-t_button buttons[6];
+t_button buttons[7];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+uint8_t shutdownButton = 99;    // Helper used for Neopixel: stores button-number of shutdown-button
 
 Preferences prefsRfid;
 Preferences prefsSettings;
@@ -347,7 +347,7 @@ void buttonHandler();
 void deepSleepManager(void);
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
-void doCmdAction(const uint32_t mod);
+void doCmdAction(const uint16_t mod);
 bool dumpNvsToSd(char *_namespace, char *_destFile);
 bool endsWith (const char *str, const char *suf);
 bool fileValid(const char *_fileItem);
@@ -394,8 +394,10 @@ void rfidPreferenceLookupHandler (void);
 void sendWebsocketData(uint32_t client, uint8_t code);
 void setupVolume(void);
 void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
-void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
-void volumeToQueueSender(const int32_t _newVolume);
+#ifdef USEROTARY_ENABLE
+    void rotaryVolumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
+#endif
+void volumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
 wl_status_t wifiManager(void);
 bool writeWifiStatusToNVS(bool wifiStatus);
 void bluetoothHandler(void);
@@ -568,6 +570,16 @@ void doButtonActions(void) {
         buttons[3].isPressed = false;
         doCmdAction(BUTTON_MULTI_03);
     }
+    else if (buttons[0].isPressed && buttons[4].isPressed) {
+        buttons[0].isPressed = false;
+        buttons[4].isPressed = false;
+        doCmdAction(BUTTON_MULTI_04);
+    }
+    else if (buttons[0].isPressed && buttons[5].isPressed) {
+        buttons[0].isPressed = false;
+        buttons[5].isPressed = false;
+        doCmdAction(BUTTON_MULTI_05);
+    }
     else if (buttons[1].isPressed && buttons[2].isPressed) {
         buttons[1].isPressed = false;
         buttons[2].isPressed = false;
@@ -578,10 +590,45 @@ void doButtonActions(void) {
         buttons[3].isPressed = false;
         doCmdAction(BUTTON_MULTI_13);
     }
+    else if (buttons[1].isPressed && buttons[4].isPressed) {
+        buttons[1].isPressed = false;
+        buttons[4].isPressed = false;
+        doCmdAction(BUTTON_MULTI_14);
+    }
+    else if (buttons[1].isPressed && buttons[5].isPressed) {
+        buttons[1].isPressed = false;
+        buttons[5].isPressed = false;
+        doCmdAction(BUTTON_MULTI_15);
+    }
     else if (buttons[2].isPressed && buttons[3].isPressed) {
         buttons[2].isPressed = false;
         buttons[3].isPressed = false;
         doCmdAction(BUTTON_MULTI_23);
+    }
+    else if (buttons[2].isPressed && buttons[4].isPressed) {
+        buttons[2].isPressed = false;
+        buttons[4].isPressed = false;
+        doCmdAction(BUTTON_MULTI_24);
+    }
+    else if (buttons[2].isPressed && buttons[5].isPressed) {
+        buttons[2].isPressed = false;
+        buttons[5].isPressed = false;
+        doCmdAction(BUTTON_MULTI_25);
+    }
+    else if (buttons[3].isPressed && buttons[4].isPressed) {
+        buttons[3].isPressed = false;
+        buttons[4].isPressed = false;
+        doCmdAction(BUTTON_MULTI_34);
+    }
+    else if (buttons[3].isPressed && buttons[5].isPressed) {
+        buttons[3].isPressed = false;
+        buttons[5].isPressed = false;
+        doCmdAction(BUTTON_MULTI_35);
+    }
+    else if (buttons[4].isPressed && buttons[5].isPressed) {
+        buttons[4].isPressed = false;
+        buttons[5].isPressed = false;
+        doCmdAction(BUTTON_MULTI_45);
     }
     else {
         for (uint8_t i=0; i < sizeof(buttons) / sizeof(buttons[0]); i++) {
@@ -812,9 +859,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
     // Loudness to change?
     else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
         unsigned long vol = strtoul(receivedString, NULL, 10);
-        volumeToQueueSender(vol);
-        encoder.clearCount();
-        encoder.setCount(vol * 2);      // Update encoder-value to keep it in-sync with MQTT-updates
+        volumeToQueueSender(vol, true);
     }
     // Modify sleep-timer?
     else if (strcmp_P(topic, topicSleepTimerCmnd) == 0) {
@@ -1089,6 +1134,8 @@ bool fileValid(const char *_fileItem) {
         (endsWith(_fileItem, ".mp3") || endsWith(_fileItem, ".MP3") ||
          endsWith(_fileItem, ".aac") || endsWith(_fileItem, ".AAC") ||
          endsWith(_fileItem, ".m3u") || endsWith(_fileItem, ".M3U") ||
+         endsWith(_fileItem, ".m4a") || endsWith(_fileItem, ".M4A") ||
+         endsWith(_fileItem, ".wav") || endsWith(_fileItem, ".WAV") ||
          endsWith(_fileItem, ".asx") || endsWith(_fileItem, ".ASX"));
 }
 
@@ -1857,6 +1904,7 @@ void showLed(void *parameter) {
     static bool notificationShown = false;
     static bool volumeChangeShown = false;
     static bool showEvenError = false;
+    static bool turnedOffLeds = false;
     static uint8_t ledPosWebstream = 0;
     static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
     static uint8_t webstreamColor = 0;
@@ -1869,12 +1917,19 @@ void showLed(void *parameter) {
     FastLED.setBrightness(ledBrightness);
 
     for (;;) {
-        #ifdef NEOPIXEL_ENABLE
-            if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
-                vTaskDelay(portTICK_RATE_MS*10);
-                continue;
+        if (pauseNeopixel) { // Workaround to prevent exceptions while NVS-writes take place
+            vTaskDelay(portTICK_RATE_MS*10);
+            continue;
+        }
+        if (gotoSleep) { // If deepsleep is planned, turn off LEDs first in order to avoid LEDs still glowing when ESP32 is in deepsleep
+            if (!turnedOffLeds) {
+                FastLED.clear();
+                turnedOffLeds = true;
             }
-        #endif
+
+            vTaskDelay(portTICK_RATE_MS*10);
+            continue;
+        }
         if (!bootComplete) {                    // Rotates orange unless boot isn't complete
             FastLED.clear();
             for (uint8_t led = 0; led < NUM_LEDS; led++) {
@@ -1908,18 +1963,26 @@ void showLed(void *parameter) {
             lastLedBrightness = ledBrightness;
         }
 
-        if (!buttons[3].currentState) {
-            FastLED.clear();
-            for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                leds[ledAddress(led)] = CRGB::Red;
-                if (buttons[3].currentState) {
+        // LEDs growing red as long button for sleepmode is pressed.
+        if (shutdownButton < (sizeof(buttons) / sizeof(buttons[0])) - 1) {      // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
+            if (!buttons[shutdownButton].currentState) {
+                FastLED.clear();
+                for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                    leds[ledAddress(led)] = CRGB::Red;
+                    if (buttons[shutdownButton].currentState) {
+                        FastLED.show();
+                        delay(5);
+                        deepSleepManager();
+                        break;
+                    }
                     FastLED.show();
-                    delay(5);
-                    deepSleepManager();
-                    break;
+                    vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
                 }
-                FastLED.show();
-                vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
+            }
+        } else {
+            shutdownButton = (sizeof(buttons) / sizeof(buttons[0])) - 1;    // If CMD_SLEEPMODE was not assigned to an enabled button, dummy-button is used
+            if (!buttons[shutdownButton].currentState) {
+                buttons[shutdownButton].currentState = true;
             }
         }
 
@@ -1994,7 +2057,7 @@ void showLed(void *parameter) {
                     }
 
                     for (uint8_t i=0; i<=100; i++) {
-                        if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                             break;
                         }
 
@@ -2016,7 +2079,7 @@ void showLed(void *parameter) {
             FastLED.show();
 
             for (uint8_t i=0; i<=50; i++) {
-                if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[3].currentState) {
+                if (hlastVolume != currentVolume || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                     if (hlastVolume != currentVolume) {
                         volumeChangeShown = false;
                     }
@@ -2032,7 +2095,7 @@ void showLed(void *parameter) {
             for (uint8_t i=NUM_LEDS-1; i>0; i--) {
                 leds[ledAddress(i)] = CRGB::Black;
                 FastLED.show();
-                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                     break;
                 } else {
                     vTaskDelay(portTICK_RATE_MS*30);
@@ -2049,9 +2112,9 @@ void showLed(void *parameter) {
                     leds[ledAddress(i)] = CRGB::Blue;
                     FastLED.show();
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[shutdownButton].currentState || gotoSleep) {
                     #else
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                     #endif
                         break;
                     } else {
@@ -2061,9 +2124,9 @@ void showLed(void *parameter) {
 
                 for (uint8_t i=0; i<=100; i++) {
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[shutdownButton].currentState || gotoSleep) {
                     #else
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                     #endif
                         break;
                     } else {
@@ -2075,9 +2138,9 @@ void showLed(void *parameter) {
                     leds[ledAddress(i)-1] = CRGB::Black;
                     FastLED.show();
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || !buttons[shutdownButton].currentState || gotoSleep) {
                     #else
-                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[3].currentState) {
+                        if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || !buttons[shutdownButton].currentState || gotoSleep) {
                     #endif
                         break;
                     } else {
@@ -2119,9 +2182,9 @@ void showLed(void *parameter) {
                         FastLED.show();
                         for (uint8_t i=0; i<=50; i++) {
                             #ifdef MEASURE_BATTERY_VOLTAGE
-                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
+                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || showVoltageWarning || showLedVoltage || playProperties.playMode != NO_PLAYLIST || !buttons[shutdownButton].currentState || gotoSleep) {
                             #else
-                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[3].currentState) {
+                                if (hlastVolume != currentVolume || lastLedBrightness != ledBrightness || showLedError || showLedOk || playProperties.playMode != NO_PLAYLIST || !buttons[shutdownButton].currentState || gotoSleep) {
                             #endif
                                 break;
                             } else {
@@ -2158,9 +2221,9 @@ void showLed(void *parameter) {
             default:                            // If playlist is active (doesn't matter which type)
                 if (!playProperties.playlistFinished) {
                     #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || showVoltageWarning || showLedVoltage || !buttons[3].currentState) {
+                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || showVoltageWarning || showLedVoltage || !buttons[shutdownButton].currentState || gotoSleep) {
                     #else
-                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[3].currentState) {
+                        if (playProperties.pausePlay != lastPlayState || lockControls != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !buttons[shutdownButton].currentState || gotoSleep) {
                     #endif
                         lastPlayState = playProperties.pausePlay;
                         lastLockState = lockControls;
@@ -2322,14 +2385,24 @@ void deepSleepManager(void) {
 
 
 // Adds new volume-entry to volume-queue
-void volumeToQueueSender(const int32_t _newVolume) {
+// If volume is changed via webgui or MQTT, it's necessary to re-adjust current value of rotary-encoder.
+void volumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary) {
     uint32_t _volume;
-    if (_newVolume <= minVolume) {
-        _volume = minVolume;
+    if (_newVolume < minVolume) {
+        loggerNl(serialDebug, (char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
+        return;
     } else if (_newVolume > maxVolume) {
-        _volume = maxVolume;
+        loggerNl(serialDebug, (char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
+        return;
     } else {
         _volume = _newVolume;
+        currentVolume = _volume;
+        #ifdef USEROTARY_ENABLE
+            if (reAdjustRotary) {
+                encoder.clearCount();
+                encoder.setCount(currentVolume * 2);
+            }
+        #endif
     }
     xQueueSend(volumeQueue, &_volume, 0);
 }
@@ -2342,36 +2415,38 @@ void trackControlToQueueSender(const uint8_t trackCommand) {
 
 
 // Handles volume directed by rotary encoder
-void volumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
-    if (lockControls) {
-        encoder.clearCount();
-        encoder.setCount(currentVolume*2);
-        return;
-    }
+#ifdef USEROTARY_ENABLE
+    void rotaryVolumeHandler(const int32_t _minVolume, const int32_t _maxVolume) {
+        if (lockControls) {
+            encoder.clearCount();
+            encoder.setCount(currentVolume*2);
+            return;
+        }
 
-    currentEncoderValue = encoder.getCount();
-    // Only if initial run or value has changed. And only after "full step" of rotary encoder
-    if (((lastEncoderValue != currentEncoderValue) || lastVolume == -1) && (currentEncoderValue % 2 == 0)) {
-        lastTimeActiveTimestamp = millis();        // Set inactive back if rotary encoder was used
-        if (_maxVolume * 2 < currentEncoderValue) {
-            encoder.clearCount();
-            encoder.setCount(_maxVolume * 2);
-            loggerNl(serialDebug, (char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
-            currentEncoderValue = encoder.getCount();
-        } else if (currentEncoderValue < _minVolume) {
-            encoder.clearCount();
-            encoder.setCount(_minVolume);
-            loggerNl(serialDebug, (char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
-            currentEncoderValue = encoder.getCount();
-        }
-        lastEncoderValue = currentEncoderValue;
-        currentVolume = lastEncoderValue / 2;
-        if (currentVolume != lastVolume) {
-            lastVolume = currentVolume;
-            volumeToQueueSender(currentVolume);
+        currentEncoderValue = encoder.getCount();
+        // Only if initial run or value has changed. And only after "full step" of rotary encoder
+        if (((lastEncoderValue != currentEncoderValue) || lastVolume == -1) && (currentEncoderValue % 2 == 0)) {
+            lastTimeActiveTimestamp = millis();        // Set inactive back if rotary encoder was used
+            if (_maxVolume * 2 < currentEncoderValue) {
+                encoder.clearCount();
+                encoder.setCount(_maxVolume * 2);
+                loggerNl(serialDebug, (char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
+                currentEncoderValue = encoder.getCount();
+            } else if (currentEncoderValue < _minVolume) {
+                encoder.clearCount();
+                encoder.setCount(_minVolume);
+                loggerNl(serialDebug, (char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
+                currentEncoderValue = encoder.getCount();
+            }
+            lastEncoderValue = currentEncoderValue;
+            currentVolume = lastEncoderValue / 2;
+            if (currentVolume != lastVolume) {
+                lastVolume = currentVolume;
+                volumeToQueueSender(currentVolume, false);
+            }
         }
     }
-}
+#endif
 
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
@@ -2565,7 +2640,7 @@ void doRfidCardModifications(const uint32_t mod) {
     doCmdAction(mod);
 }
 
-void doCmdAction(const uint32_t mod) {
+void doCmdAction(const uint16_t mod) {
     switch (mod) {
         case LOCK_BUTTONS_MOD: {     // Locks/unlocks all buttons
             lockControls = !lockControls;
@@ -2583,6 +2658,7 @@ void doCmdAction(const uint32_t mod) {
                     publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 #endif
             }
+            break;
         }
 
         case SLEEP_TIMER_MOD_15: {   // Enables/disables sleep after 15 minutes
@@ -2980,15 +3056,15 @@ void doCmdAction(const uint32_t mod) {
             break;
         }
         case CMD_VOLUMEINIT: {
-            volumeToQueueSender(initVolume);
+            volumeToQueueSender(initVolume, true);
             break;
         }
         case CMD_VOLUMEUP: {
-            volumeToQueueSender(currentVolume + 2);
+            volumeToQueueSender(currentVolume+1, true);
             break;
         }
         case CMD_VOLUMEDOWN: {
-            volumeToQueueSender(currentVolume - 2);
+            volumeToQueueSender(currentVolume-1, true);
             break;
         }
         case CMD_MEASUREBATTERY: {
@@ -3321,6 +3397,8 @@ String templateProcessor(const String& templ) {
         return String(prefsSettings.getUInt("mInactiviyT", 0));
     } else if (templ == "INIT_VOLUME") {
         return String(prefsSettings.getUInt("initVolume", 0));
+    } else if (templ == "CURRENT_VOLUME") {
+        return String(currentVolume);
     } else if (templ == "MAX_VOLUME_SPEAKER") {
         return String(prefsSettings.getUInt("maxVolumeSp", 0));
     } else if (templ == "MAX_VOLUME_HEADPHONE") {
@@ -3510,14 +3588,12 @@ bool processJsonRequest(char *_serialJson) {
     } else if (doc.containsKey("ping")) {
         sendWebsocketData(0, 20);
         return false;
-    }else if (doc.containsKey("controls")) {
-        if(object["controls"].containsKey("set_volume"))
-        {
+    } else if (doc.containsKey("controls")) {
+        if (object["controls"].containsKey("set_volume")) {
             uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
-            volumeToQueueSender(new_vol);
+            volumeToQueueSender(new_vol, true);
         }
-        if(object["controls"].containsKey("action"))
-        {
+        if (object["controls"].containsKey("action")) {
             uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
             doCmdAction(cmd);
         }
@@ -3622,7 +3698,7 @@ void setupVolume(void) {
             } else {
                 maxVolume = maxVolumeHeadphone;
                 if (currentVolume > maxVolume) {
-                    volumeToQueueSender(maxVolume);         // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+                    volumeToQueueSender(maxVolume, true);         // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
                 }
             }
             headphoneLastDetectionState = currentHeadPhoneDetectionState;
@@ -4205,7 +4281,43 @@ void printWakeUpReason() {
 
 void setup() {
     Serial.begin(115200);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t) DREHENCODER_BUTTON, 0);
+    #if (WAKEUP_BUTTON <= 39)
+        esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0);
+    #endif
+
+    #ifdef NEOPIXEL_ENABLE      // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
+        #ifdef BUTTON_0_ENABLE
+            #if (BUTTON_0_LONG == CMD_SLEEPMODE)
+                shutdownButton = 0;
+            #endif
+        #endif
+        #ifdef BUTTON_1_ENABLE
+            #if (BUTTON_1_LONG == CMD_SLEEPMODE)
+                shutdownButton = 1;
+            #endif
+        #endif
+        #ifdef BUTTON_2_ENABLE
+            #if (BUTTON_2_LONG == CMD_SLEEPMODE)
+                shutdownButton = 2;
+            #endif
+        #endif
+        #ifdef BUTTON_3_ENABLE
+            #if (BUTTON_3_LONG == CMD_SLEEPMODE)
+                shutdownButton = 3;
+            #endif
+        #endif
+        #ifdef BUTTON_4_ENABLE
+            #if (BUTTON_4_LONG == CMD_SLEEPMODE)
+                shutdownButton = 4;
+            #endif
+        #endif
+        #ifdef BUTTON_5_ENABLE
+            #if (BUTTON_5_LONG == CMD_SLEEPMODE)
+                shutdownButton = 5;
+            #endif
+        #endif
+    #endif
+
     #ifdef PN5180_ENABLE_LPCD
         // disable pin hold from deep sleep (LPCD)
         gpio_deep_sleep_hold_dis();
@@ -4630,9 +4742,11 @@ void setup() {
     unsigned long currentTimestamp = millis();
 
     // Init rotary encoder
-    encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
-    encoder.clearCount();
-    encoder.setCount(initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
+    #ifdef USEROTARY_ENABLE
+        encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
+        encoder.clearCount();
+        encoder.setCount(initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
+    #endif
 
     // Only enable MQTT if requested
     #ifdef MQTT_ENABLE
@@ -4703,7 +4817,9 @@ void loop() {
         #ifdef FTP_ENABLE
             ftpManager();
         #endif
-        volumeHandler(minVolume, maxVolume);
+        #ifdef USEROTARY_ENABLE
+            rotaryVolumeHandler(minVolume, maxVolume);
+        #endif
         if (wifiManager() == WL_CONNECTED) {
             #ifdef MQTT_ENABLE
                 if (enableMqtt) {
