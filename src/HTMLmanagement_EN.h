@@ -116,6 +116,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <br/>\
     <nav>\
         <div class=\"container nav nav-tabs\" id=\"nav-tab\" role=\"tablist\">\
+            <a class=\"nav-item nav-link\" id=\"nav-control-tab\" data-toggle=\"tab\" href=\"#nav-control\" role=\"tab\" aria-controls=\"nav-control\" aria-selected=\"false\"><i class=\"fas fa-gamepad\"></i><span class=\".d-sm-none .d-md-block\"> Control</span></a>\
             <a class=\"nav-item nav-link active\" id=\"nav-rfid-tab\" data-toggle=\"tab\" href=\"#nav-rfid\" role=\"tab\" aria-controls=\"nav-rfid\" aria-selected=\"true\"><i class=\"fas fa-dot-circle\"></i> RFID</a>\
             <a class=\"nav-item nav-link\" id=\"nav-wifi-tab\" data-toggle=\"tab\" href=\"#nav-wifi\" role=\"tab\" aria-controls=\"nav-wifi\" aria-selected=\"false\"><i class=\"fas fa-wifi\"></i><span class=\".d-sm-none .d-md-block\"> WiFi</span></a>\
             %SHOW_MQTT_TAB%\
@@ -147,6 +148,37 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
                 </div>\
             </form>\
+        </div>\
+    </div>\
+    <div class=\"tab-pane fade\" id=\"nav-control\" role=\"tabpanel\" aria-labelledby=\"nav-control-tab\">\
+        <div class=\"container\" id=\"navControl\">         \
+                <div class=\"form-group col-md-12\">\
+                    <legend>Controls</legend>\
+                    <div class=\"buttons\">\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(173)\">\
+                            <span class=\"fas fa-fast-backward\"></span>\
+                        </button>\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(171)\">\
+                            <span class=\"fas fa-backward\"></span>\
+                        </button>\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(170)\">\
+                            <i class=\"fas fa-pause\"></i>\
+                        </button>\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(172)\">\
+                            <span class=\"fas fa-forward\"></span>\
+                        </button>\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(174)\">\
+                            <span class=\"fas fa-fast-forward\"></span>\
+                        </button>\
+                    </div>                   \
+                </div>\
+                <br>\
+                <div class=\"form-group col-md-12\">\
+                    <legend>Volume</legend>\
+                        <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"setVolume\"\
+                            data-slider-value=\"%INIT_VOLUME%\" value=\"%INIT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>              \
+                </div>\
+                <br/>\
         </div>\
     </div>\
     <div class=\"tab-pane fade show active\" id=\"nav-rfid\" role=\"tabpanel\" aria-labelledby=\"nav-rfid-tab\">\
@@ -223,6 +255,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <option value=\"111\">Loop current track</option>\
                         <option value=\"120\">Dimm LEDs (nightmode)</option>\
                         <option value=\"130\">Enable/disable (toggle) WiFi</option>\
+                        <option value=\"140\">Enable/disable Bluetooth</option>\
+                        <option value=\"150\">Enable FTP</option>\
+                        <option value=\"0\">Delete assignments</option>\
                     </select>\
                 </div>\
                 <br>\
@@ -706,6 +741,24 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 ssid: document.getElementById('ssid').value,\
                 pwd: document.getElementById('pwd').value,\
                 hostname: document.getElementById('hostname').value\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
+    }\
+    function sendControl(cmd) {\
+        var myObj = {\
+            \"controls\": {\
+                action: cmd\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
+    }\
+    function sendVolume(vol) {\
+        var myObj = {\
+            \"controls\": {\
+                set_volume: vol\
             }\
         };\
         var myJSON = JSON.stringify(myObj);\

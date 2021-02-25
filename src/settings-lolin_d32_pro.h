@@ -46,14 +46,22 @@
 #define I2S_LRC                         26          // LRC (I2S)
 
 // Rotary encoder
-#define DREHENCODER_CLK                 34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-#define DREHENCODER_DT                  39          // 39 = 'VN'
-#define DREHENCODER_BUTTON              36          // Button is used to switch ESPuino on and off; 36 = 'VP'
+#ifdef USEROTARY_ENABLE
+    #define DREHENCODER_CLK             34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
+    #define DREHENCODER_DT              39          // 39 = 'VN'; Info: Lolin D32 pro is using 35 for battery-voltage-monitoring!
+    #define DREHENCODER_BUTTON          36          // Button 3: is used to switch ESPuino on and off; 36 = 'VP'
+#endif
 
-// Control-buttons
-#define PAUSEPLAY_BUTTON                32          // GPIO to detect pause/play
-#define NEXT_BUTTON                     0           // GPIO to detect next
-#define PREVIOUS_BUTTON                 2           // GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2)
+// Control-buttons (set to 99 to disable)
+#define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
+#define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
+#define PAUSEPLAY_BUTTON                32          // Button 2: GPIO to detect pause/play
+#define BUTTON_4                        99          // Button 4: unnamed optional button
+#define BUTTON_5                        99          // Button 5: unnamed optional button
+
+// Wake-up button
+// Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to disable.
+#define WAKEUP_BUTTON                   DREHENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
 
 // (optional) Power-control
 #define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep

@@ -22,8 +22,9 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
 * Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
 * Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
-
-## PCB-Wiring (2 SPI-instances: RC522 + SD)
+* Enable `USEROTARY_ENABLE`.
+* Enable buttons for previous, next, pause/play.
+## PCB-Wiring (2 SPI-instances: RC522 + SD + 3 buttons + rotary encoder)
 Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. Please refer [Schematics](Pictures/Schematics.pdf) for reference.<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |

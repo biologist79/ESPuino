@@ -7,12 +7,14 @@
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
-* 06.02.2020: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
-* 09.02.2020: Added support for bluetooth-sink (a2dp). Thanks @grch87 & @elmar-ops for providing this feature! Please note: wifi not available is now coloured green as blue make totally sense for bluetooth :-)
+* 25.02.2020: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
+* 25.02.2020: Actions can be freely assigned to buttons (multi-button(s), single-button(s) (short), single-button(s) (long))
+* 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
+* 25.02.2020: Added support for .m4a and .wav-files.
+Thanks @QDaniel for the idea + basic implementation (first three features named above)!
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
-* English translation for webgui is currently outdated. This will be fixed soon when i18n-support will be integrated.
+* English translation for webgui is currently pretty outdated. This will be fixed soon when i18n-support will be integrated.
 ## ESPuino - what's that?
 The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
@@ -50,12 +52,13 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * If everything ran fine, at the first run, ESPuino should open an access-point with the name "ESPuino". Join this WiFi with your computer (or mobile) and enter `192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart ESPuino. Hint: I tried to connect this access-point via Android mobile. Basically that's no problem, but as my mobile detected there'd be no internet-connection, it keept LTE-connection open and prevented me from connecting to `192.168.4.1`. So if in doubts use a computer.
 * After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call ESPuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `espuino` as hostname, you can use `espuino.local` for webgui and FTP.
 * Via FTP you can upload data (but don't expect it to be super fast). It's round about 185 kb/s if SD is in SPI-mode and 310 kB/s if SD is in MMC-mode.
-* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
+* FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
 
 ## Prerequisites / tipps
 * Open settings.h
 * choose if optional modules (e.g. MQTT, FTP, Neopixel) should be compiled/enabled
+* Make sure to edit/review button-layout. Default-design is three buttons and a rotary-encoder. All actions available are listed in `values.h` (values >= 100).
 * For debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG.
 * If MQTT=yes, set the IP or hostname of the MQTT-server accordingly and check the MQTT-topics (states and commands)
 * Advice: don't enable MQTT if there's no broker around because network-timeouts can really be a PITA.
@@ -95,7 +98,7 @@ Depending on the develboard you're using and the needs you have, there are diffe
 A lot of wiring is necessary to get ESPuino working. After my first experiments on a breadboard I soldered all the stuff onto a PCB in order to avoid wild-west-cabling. Especially for the interconnect between µC and uSD-card-reader make sure to use short wires (like 10cm or so)! As of my experience with a breadbord, male/male-connectors are better than female/female-connectors. Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
 Have a look at the PCB-folder. I provided PCBs for a number of develboards. Probably this makes things easier for you.
 
-## Wiring (2 SPI-instances: RC522 + SD)
+## Wiring (2 SPI-instances: RC522 + SD + 3 buttons + rotary-encoder)
 Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32).<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
@@ -150,7 +153,7 @@ In general I recommend using a [uSD-card-reader](https://www.ebay.de/itm/Micro-S
 Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. Don't(!) enable `SINGLE_SPI_ENABLE`. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).
 Advice: Double check that above PINs are not used elsewhere (e.g. GPIO2 is used as PREVIOUS_BUTTON as per default in settings.h).
 
-## Wiring (1 SPI-instance: RC522 + SD) [EXPERIMENTAL, maybe not working!]
+## Wiring (1 SPI-instance: RC522 + SD + 3 buttons + rotary-encoder) [EXPERIMENTAL, maybe not working!]
 Basically the same as using 2 SPI-instances but...
 In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins. Have to admit I had some problems to get this running. Seems to be connected properly, but nothing happens when an RFID-tag is applied. Maybe anybody else wants to point out :-)
 
@@ -310,7 +313,8 @@ Please note: some Neopixels use a reversed addressing which leads to the 'proble
 counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.
 
 ### Buttons
-Some buttons have different actions if pressed long or short. Minimum duration for long press in ms is defined by `intervalToLongPress`.
+Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change button-number and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
+Minimum duration for long press in ms is defined by `intervalToLongPress`.
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
 * previous (long): first track of playlist
 * next (short): next track of playlist
@@ -346,9 +350,10 @@ After having ESPuino running on your ESP32 in your local WiFi, the webinterface-
 * (optional) MQTT-configuration (broker's IP)
 * (optional) FTP-configuration (username and password)
 * General-configuration (volume (speaker + headphone), neopixel-brightness (night-mode + initial), sleep after inactivity)
+* Basic music-control: first, last, previous, next-track; volume +/-; play/pause
 
 ### FTP (optional)
-* FTP needs to be activated after boot by pressing `PAUSE` + `NEXT`-buttons (in parallel) first! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
+* FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't running.
 * In order to avoid exposing uSD-card or disassembling ESPuino all the time for adding new music, it's possible to transfer music to the uSD-card using FTP.
 * Default-user and password are set to `esp32` / `esp32` but can be changed later via GUI.
 * Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to CP437. CP437 is important if you want to use german umlauts (öäüß).
