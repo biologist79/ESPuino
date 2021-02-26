@@ -3021,18 +3021,19 @@ void doCmdAction(const uint16_t mod) {
             }
         #endif
         case ENABLE_FTP_SERVER: {
-            if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-                ftpEnableLastStatus = true;
-                #ifdef NEOPIXEL_ENABLE
-                    showLedOk = true;
-                #endif
-            } else {
-                #ifdef NEOPIXEL_ENABLE
-                    showLedError = true;
-                    loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
-                #endif
-            }
-
+            #ifdef FTP_ENABLE
+                if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+                    ftpEnableLastStatus = true;
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedOk = true;
+                    #endif
+                } else {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                        loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
+                    #endif
+                }
+            #endif
             break;
         }
         case CMD_PLAYPAUSE: {
