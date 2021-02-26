@@ -133,8 +133,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
              width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
-\
-    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-power-off\"></i> Neustart</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Neustart</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/shutdown\"><i class=\"fas fa-power-off\"></i> Ausschalten</a>\
     </div>\
 </nav>\
 <br/>\

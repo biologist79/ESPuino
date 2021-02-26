@@ -164,6 +164,7 @@ static const char sdMountedMmc1BitMode[] PROGMEM = "Versuche SD-Karte wird im SD
 static const char sdMountedSpiMode[] PROGMEM = "Versuche SD-Karte wird im SPI-Modus zu mounten...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
+static const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino wird ausgeschaltet...</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
 static const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";

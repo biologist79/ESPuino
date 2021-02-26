@@ -124,6 +124,8 @@ typedef struct { // Bit field
     bool trackFinished:                 1;      // If current track is finished
     bool playlistFinished:              1;      // If whole playlist is finished
     uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
+    uint8_t currentSeekmode:            2;      // If seekmode is active and if yes: forward or backwards?
+    uint8_t lastSeekmode:               2;      // Helper to determine if seekmode was changed
 } playProps;
 playProps playProperties;
 
@@ -456,7 +458,7 @@ void IRAM_ATTR onTimer() {
             recoverLastRfid = false;
             String lastRfidPlayed = prefsSettings.getString("lastRfid", "-1");
             if (!lastRfidPlayed.compareTo("-1")) {
-                loggerNl(serialDebug,((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
+                loggerNl(serialDebug,(char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
             } else {
                 char *lastRfid = strdup(lastRfidPlayed.c_str());
                 xQueueSend(rfidCardQueue, &lastRfid, 0);
@@ -1376,6 +1378,8 @@ void playAudio(void *parameter) {
                 playProperties.trackFinished = false;
                 if (playProperties.playMode == NO_PLAYLIST) {
                     playProperties.playlistFinished = true;
+                    //playProperties.currentSeekmode = SEEK_NORMAL;
+                    //playProperties.lastSeekmode = SEEK_NORMAL;
                     continue;
                 }
                 if (playProperties.saveLastPlayPosition) {     // Don't save for AUDIOBOOK_LOOP because not necessary
@@ -1678,6 +1682,27 @@ void playAudio(void *parameter) {
                     loggerNl(serialDebug, logBuf, LOGLEVEL_NOTICE);
                     playProperties.playlistFinished = false;
                 }
+            }
+        }
+
+        if (playProperties.currentSeekmode != playProperties.lastSeekmode) {
+            Serial.println(F("Seekmode has changed!")); // Todo
+            bool seekmodeChangeSuccessful = false;
+            if (playProperties.currentSeekmode == SEEK_NORMAL) {
+                seekmodeChangeSuccessful = audio.audioFileSeek(1);
+            } else if (playProperties.currentSeekmode == SEEK_FORWARDS) {
+                seekmodeChangeSuccessful = audio.audioFileSeek(4);
+            } else if (playProperties.currentSeekmode == SEEK_BACKWARDS) {
+                seekmodeChangeSuccessful = audio.audioFileSeek(-4);
+            }
+
+            if (seekmodeChangeSuccessful) {
+                playProperties.lastSeekmode = playProperties.currentSeekmode;
+            } else {
+                playProperties.currentSeekmode = playProperties.lastSeekmode;
+                #ifdef NEOPIXEL_ENABLE
+                    showLedError = true;
+                #endif
             }
         }
 
@@ -3088,6 +3113,28 @@ void doCmdAction(const uint16_t mod) {
             gotoSleep = true;
             break;
         }
+        case CMD_SEEK_FORWARDS: {
+            Serial.println(F("Seek forwards")); // todo
+            if (playProperties.currentSeekmode == SEEK_FORWARDS) {
+                playProperties.currentSeekmode = SEEK_NORMAL;
+            } else {
+                playProperties.currentSeekmode = SEEK_FORWARDS;
+            }
+            Serial.println(playProperties.currentSeekmode);
+            Serial.println(playProperties.lastSeekmode);
+            break;
+        }
+        case CMD_SEEK_BACKWARDS: {
+            Serial.println(F("Seek backwards")); // todo
+            if (playProperties.currentSeekmode == SEEK_BACKWARDS) {
+                playProperties.currentSeekmode = SEEK_NORMAL;
+            } else {
+                playProperties.currentSeekmode = SEEK_BACKWARDS;
+            }
+            Serial.println(playProperties.currentSeekmode);
+            Serial.println(playProperties.lastSeekmode);
+            break;
+        }
         default: {
             snprintf(logBuf, serialLoglength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             loggerNl(serialDebug, logBuf, LOGLEVEL_ERROR);
@@ -3201,12 +3248,21 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
 
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
         #if (LANGUAGE == 1)
-            request->send(200, "text/html", "ESP wird neu gestartet...");
+            request->send(200, "text/html", "ESPuino wird neu gestartet...");
         #else
-            request->send(200, "text/html", "ESP is being restarted...");
+            request->send(200, "text/html", "ESPuino is being restarted...");
         #endif
         Serial.flush();
         ESP.restart();
+    });
+
+    wServer.on("/shutdown", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        #if (LANGUAGE == 1)
+            request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
+        #else
+            request->send(200, "text/html", "ESPuino is being shutdown...");
+        #endif
+        gotoSleep = true;
     });
 
     // allow cors for local debug
@@ -3752,6 +3808,12 @@ void webserverStart(void) {
         request->send_P(200, "text/html", restartWebsite);
         Serial.flush();
         ESP.restart();
+    });
+
+    // ESP-shutdown
+    wServer.on("/shutdown", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        request->send_P(200, "text/html", shutdownWebsite);
+        gotoSleep = true;
     });
 
     // Fileexplorer (realtime)
@@ -4352,6 +4414,8 @@ void setup() {
     playProperties.pausePlay = false;
     playProperties.trackFinished = NULL;
     playProperties.playlistFinished = true;
+    playProperties.currentSeekmode = SEEK_NORMAL;
+    playProperties.lastSeekmode = SEEK_NORMAL;
 
     // Examples for serialized RFID-actions that are stored in NVS
     // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>

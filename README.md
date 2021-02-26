@@ -4,13 +4,14 @@
 * As the creator of TonUINO claims it's trademark right, my project has been renamed to ESPuino. I'm totally respecting this and have to admit that I've been not aware of that. However, I instantly renamed everything and hopefully I didn't forget any parts. Since my repository has moved, please make sure (at least if you're using git) to change the URL of your local repository. An explanation was kindly [written by user](https://github.com/biologist79/ESPuino/issues/81).
 * Please note: inline with the renaming of the project, MQTT-topics were changed as well as they've been including the old name. Please make sure to change your local MQTT-configuration as well. Sorry to [those](https://github.com/biologist79/ESPuino/issues/83) that spent time on this to point out.
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
-* DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden.
+* DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
 * 25.02.2020: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
 * 25.02.2020: Actions can be freely assigned to buttons (multi-button(s), single-button(s) (short), single-button(s) (long))
 * 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
 * 25.02.2020: Added support for .m4a and .wav-files.
+* 26.02.2020: Shutdown via webgui is now available.
 Thanks @QDaniel for the idea + basic implementation (first three features named above)!
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).

@@ -55,7 +55,8 @@
 
 
 //################## BUTTON-Layout ##################################
-/* Please note the following numbers as you need to know them in order to define actions for buttons.
+/* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
+   Please note the following numbers as you need to know them in order to define actions for buttons.
    Even if you don't use all of them, their numbers won't change
     0: NEXT_BUTTON
     1: PREVIOUS_BUTTON

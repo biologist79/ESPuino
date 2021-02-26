@@ -30,3 +30,4 @@
 * 25.02.2020: Actions can be freely assigned to buttons (multi-button, single-button (short), single-button (long))
 * 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
 * 25.02.2020: Added support for .m4a and .wav-files.
+* 26.02.2020: Shutdown via webgui is now available.

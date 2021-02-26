@@ -55,11 +55,18 @@
     #define CMD_VOLUMEDOWN                  177         // Command: lower volume by 1
     #define CMD_MEASUREBATTERY              178         // Command: Measure battery-voltage
     #define CMD_SLEEPMODE                   179         // Command: Go to deepsleep
+    #define CMD_SEEK_FORWARDS               180         // Command: fast forward => don't use, has no effect currently!
+    #define CMD_SEEK_BACKWARDS              181         // Command: wind back => don't use, has no effect currently!
 
     // Repeat-Modes
     #define NO_REPEAT                       0           // No repeat
     #define TRACK                           1           // Repeat current track (infinite loop)
     #define PLAYLIST                        2           // Repeat whole playlist (infinite loop)
     #define TRACK_N_PLAYLIST                3           // Repeat both (infinite loop)
+
+    // Seek-modes
+    #define SEEK_NORMAL                     0           // Normal play
+    #define SEEK_FORWARDS                   1           // Seek forwards
+    #define SEEK_BACKWARDS                  2           // Seek backwards
 
 #endif

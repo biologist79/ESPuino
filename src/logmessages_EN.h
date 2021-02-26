@@ -163,6 +163,7 @@ static const char notADirectory[] PROGMEM = "Not a directory";
 static const char sdMountedMmc1BitMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
+static const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino is being shutdown...</p>";
 static const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
 static const char trackPausedAtPos[] PROGMEM = "Track paused at position";
 static const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation";
