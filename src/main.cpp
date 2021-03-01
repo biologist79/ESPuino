@@ -224,7 +224,7 @@ uint8_t mqttPasswordLength = 16;
 char *mqtt_server = strndup((char*) "192.168.2.43", mqttServerLength);      // IP-address of MQTT-server (if not found in NVS this one will be taken)
 char *mqttUser = strndup((char*) "mqtt-user", mqttUserLength);              // MQTT-user
 char *mqttPassword = strndup((char*) "mqtt-password", mqttPasswordLength);  // MQTT-password*/
-
+uint16_t mqttPort = 1883;                                                       // MQTT-Port
 
 char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
 char stringOuterDelimiter[] = "^";                          // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
@@ -341,9 +341,6 @@ QueueHandle_t explorerFileUploadStatusQueue;
 // Prototypes
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
 static int arrSortHelper(const void* a, const void* b);
-#ifdef MQTT_ENABLE
-    void callback(const char *topic, const byte *payload, uint32_t length);
-#endif
 void batteryVoltageTester(void);
 void buttonHandler();
 void deepSleepManager(void);
@@ -372,18 +369,15 @@ void loggerNl(const uint8_t _currentLogLevel, const char *str, const uint8_t _lo
 void logger(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
 float measureBatteryVoltage(void);
 #ifdef MQTT_ENABLE
+    void callback(const char *topic, const byte *payload, uint32_t length);
     bool publishMqtt(const char *topic, const char *payload, bool retained);
+    void postHeartbeatViaMqtt(void);
+    bool reconnect();
 #endif
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
-#ifdef MQTT_ENABLE
-    void postHeartbeatViaMqtt(void);
-#endif
 bool processJsonRequest(char *_serialJson);
 void randomizePlaylist (char *str[], const uint32_t count);
-#ifdef MQTT_ENABLE
-    bool reconnect();
-#endif
 char ** returnPlaylistFromWebstream(const char *_webUrl);
 char ** returnPlaylistFromSD(File _fileOrDirectory);
 void rfidScanner(void *parameter);
@@ -3045,22 +3039,22 @@ void doCmdAction(const uint16_t mod) {
                 break;
             }
         #endif
-        case ENABLE_FTP_SERVER: {
-            #ifdef FTP_ENABLE
-                if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-                    ftpEnableLastStatus = true;
-                    #ifdef NEOPIXEL_ENABLE
-                        showLedOk = true;
-                    #endif
-                } else {
-                    #ifdef NEOPIXEL_ENABLE
-                        showLedError = true;
-                        loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
-                    #endif
-                }
-            #endif
-            break;
-        }
+        #ifdef FTP_ENABLE
+            case ENABLE_FTP_SERVER: {
+                    if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+                        ftpEnableLastStatus = true;
+                        #ifdef NEOPIXEL_ENABLE
+                            showLedOk = true;
+                        #endif
+                    } else {
+                        #ifdef NEOPIXEL_ENABLE
+                            showLedError = true;
+                            loggerNl(serialDebug, (char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
+                        #endif
+                    }
+                break;
+            }
+        #endif
         case CMD_PLAYPAUSE: {
             trackControlToQueueSender(PAUSEPLAY);
             break;
@@ -3492,6 +3486,8 @@ String templateProcessor(const String& templ) {
         return String(mqttPasswordLength-1);
     } else if (templ == "MQTT_SERVER_LENGTH") {
         return String(mqttServerLength-1);
+    } else if (templ == "MQTT_PORT") {
+        return String(mqttPort);
     } else if (templ == "IPv4") {
         myIP = WiFi.localIP();
         snprintf(logBuf, serialLoglength, "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -3579,13 +3575,14 @@ bool processJsonRequest(char *_serialJson) {
         prefsSettings.putString("mqttServer", (String) _mqttServer);
         const char *_mqttUser = doc["mqtt"]["mqttUser"];
         const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
+        uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
 
-        prefsSettings.putUChar("enableMQTT", _mqttEnable);
         prefsSettings.putUChar("enableMQTT", _mqttEnable);
         prefsSettings.putString("mqttServer", (String) _mqttServer);
         prefsSettings.putString("mqttServer", (String) _mqttServer);
         prefsSettings.putString("mqttUser", (String) _mqttUser);
         prefsSettings.putString("mqttPassword", (String) _mqttPwd);
+        prefsSettings.putUInt("mqttPort", _mqttPort);
 
         if ((prefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
             (!String(_mqttServer).equals(prefsSettings.getString("mqttServer", "-1")))) {
@@ -4102,14 +4099,16 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     File file = root.openNextFile();
 
     while(file) {
-        JsonObject entry = obj.createNestedObject();
-        convertAsciiToUtf8(file.name(), filePath);
-        std::string path = filePath;
-        std::string fileName = path.substr(path.find_last_of("/") + 1);
+        // ignore hidden folders, e.g. MacOS spotlight files
+        if (!startsWith(file.name(),  (char *) "/.")) {
+            JsonObject entry = obj.createNestedObject();
+            convertAsciiToUtf8(file.name(), filePath);
+            std::string path = filePath;
+            std::string fileName = path.substr(path.find_last_of("/") + 1);
 
-        entry["name"] = fileName;
-        entry["dir"].set(file.isDirectory());
-
+            entry["name"] = fileName;
+            entry["dir"].set(file.isDirectory());
+        }
         file = root.openNextFile();
 
         esp_task_wdt_reset();
@@ -4728,6 +4727,16 @@ void setup() {
         loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
     }
 
+    // Get MQTT-password from NVS
+    uint32_t nvsMqttPort = prefsSettings.getUInt("mqttPort", 99999);
+    if (nvsMqttPort == 99999) {
+       prefsSettings.putUInt("mqttPort", mqttPort);
+    } else {
+         mqttPort = nvsMqttPort;
+         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(restoredMqttPortFromNvs), mqttPort);
+         loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
+    }
+
     #ifdef MEASURE_BATTERY_VOLTAGE
         // Get voltages from NVS for Neopixel
         float vLowIndicator = prefsSettings.getFloat("vIndicatorLow", 999.99);
@@ -4816,7 +4825,7 @@ void setup() {
     // Only enable MQTT if requested
     #ifdef MQTT_ENABLE
         if (enableMqtt) {
-            MQTTclient.setServer(mqtt_server, 1883);
+            MQTTclient.setServer(mqtt_server, mqttPort);
             MQTTclient.setCallback(callback);
         }
     #endif

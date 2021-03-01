@@ -4,6 +4,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <title>ESPuino-Konfiguration</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"https://espuino.de/espuino/favicon.ico\">\
     <link rel=\"stylesheet\" href=\"https://espuino.de/espuino/css/bootstrap.min.css\">\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css\"/>\
@@ -326,6 +327,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"mqttPwd\">MQTT-Passwort (optional):</label>\
                     <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\"\
                            placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
+                    <label for=\"mqttPort\">MQTT-Port:</label>\
+                    <input type=\"number\" class=\"form-control\" id=\"mqttPort\" min=\"1\" max=\"65535\"\
+                            placeholder=\"Port\" name=\"mqttPort\" value=\"%MQTT_PORT%\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
@@ -1024,7 +1028,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 mqttEnable: val,\
                 mqttServer: document.getElementById('mqttServer').value,\
                 mqttUser: document.getElementById('mqttUser').value,\
-                mqttPwd: document.getElementById('mqttPwd').value\
+                mqttPwd: document.getElementById('mqttPwd').value,\
+                mqttPort: document.getElementById('mqttPort').value\
             }\
         };\
         var myJSON = JSON.stringify(myObj);\

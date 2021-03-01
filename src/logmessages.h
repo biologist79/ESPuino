@@ -133,6 +133,7 @@ static const char wroteMqttUserToNvs[] PROGMEM = "MQTT-User wurde ins NVS geschr
 static const char restoredMqttUserFromNvs[] PROGMEM = "MQTT-User wurde aus NVS geladen";
 static const char wroteMqttPwdToNvs[] PROGMEM = "MQTT-Passwort wurde ins NVS geschrieben.";
 static const char restoredMqttPwdFromNvs[] PROGMEM = "MQTT-Passwort wurde aus NVS geladen";
+static const char restoredMqttPortFromNvs[] PROGMEM = "MQTT-Port wurde aus NVS geladen";
 static const char mqttWithPwd[] PROGMEM = "Verbinde zu MQTT-Server mit User und Passwort";
 static const char mqttWithoutPwd[] PROGMEM = "Verbinde zu MQTT-Server ohne User und Passwort";
 static const char ssidNotFoundInNvs[] PROGMEM = "SSID wurde im NVS nicht gefunden.";
