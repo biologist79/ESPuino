@@ -31,3 +31,4 @@
 * 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
 * 25.02.2020: Added support for .m4a and .wav-files.
 * 26.02.2020: Shutdown via webgui is now available.
+* 05.03.2020: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.

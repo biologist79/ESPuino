@@ -7,12 +7,9 @@
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 25.02.2020: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
-* 25.02.2020: Actions can be freely assigned to buttons (multi-button(s), single-button(s) (short), single-button(s) (long))
-* 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
 * 25.02.2020: Added support for .m4a and .wav-files.
 * 26.02.2020: Shutdown via webgui is now available.
-Thanks @QDaniel for the idea + basic implementation (first three features named above)!
+* 05.03.2020: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation for webgui is currently pretty outdated. This will be fixed soon when i18n-support will be integrated.

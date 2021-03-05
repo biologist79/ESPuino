@@ -30,6 +30,9 @@
     #include "esp_bt.h"
     #include "BluetoothA2DPSink.h"
 #endif
+#ifdef IR_CONTROL_ENABLE
+    #include <IRremote.h>
+#endif
 #include "Audio.h"
 #include "SPI.h"
 #include "FS.h"
@@ -289,7 +292,11 @@ IPAddress myIP;
 #endif
 
 // HW-Timer
-hw_timer_t *timer = NULL;
+#ifndef IR_CONTROL_ENABLE
+    hw_timer_t *timer = NULL;
+#else
+    uint32_t lastRcCmdTimestamp = 0;
+#endif
 volatile SemaphoreHandle_t timerSemaphore;
 
 // Button-helper
@@ -4341,6 +4348,112 @@ void printWakeUpReason() {
     }
 #endif
 
+#ifdef IR_CONTROL_ENABLE
+    void handleIrReceiver() {
+        static uint8_t lastVolume = 0;
+
+        if (IrReceiver.decode()) {
+
+            // Print a short summary of received data
+            IrReceiver.printIRResultShort(&Serial);
+            Serial.println();
+            IrReceiver.resume(); // Enable receiving of the next value
+            bool rcActionOk = false;
+            if (millis() - lastRcCmdTimestamp >= IR_DEBOUNCE) {
+                rcActionOk = true; // not used for volume up/down
+                lastRcCmdTimestamp = millis();
+            }
+
+            switch (IrReceiver.decodedIRData.command) {
+                case RC_PLAY: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_PLAYPAUSE);
+                        Serial.println(F("RC: Play"));
+                    }
+                    break;
+                }
+                case RC_PAUSE: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_PLAYPAUSE);
+                        Serial.println(F("RC: Pause"));
+                    }
+                    break;
+                }
+                case RC_NEXT: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_NEXTTRACK);
+                        Serial.println(F("RC: Next"));
+                    }
+                    break;
+                }
+                case RC_PREVIOUS: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_PREVTRACK);
+                        Serial.println(F("RC: Previous"));
+                    }
+                    break;
+                }
+                case RC_FIRST: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_FIRSTTRACK);
+                        Serial.println(F("RC: First"));
+                    }
+                    break;
+                }
+                case RC_LAST: {
+                    if (rcActionOk) {
+                        doCmdAction(CMD_LASTTRACK);
+                        Serial.println(F("RC: Last"));
+                    }
+                    break;
+                }
+                case RC_MUTE: {
+                    if (rcActionOk) {
+                        if (currentVolume > 0) {
+                            lastVolume = currentVolume;
+                            currentVolume = 0;
+                        } else {
+                            currentVolume = lastVolume;     // Remember last volume if mute is pressed again
+                        }
+                        xQueueSend(volumeQueue, &currentVolume, 0);
+                        Serial.println(F("RC: Mute"));
+                    }
+                    break;
+                }
+                case RC_BLUETOOTH: {
+                    if (rcActionOk) {
+                        doCmdAction(TOGGLE_BLUETOOTH_MODE);
+                        Serial.println(F("RC: Bluetooth"));
+                    }
+                    break;
+                }
+               case RC_FTP: {
+                    if (rcActionOk) {
+                        doCmdAction(ENABLE_FTP_SERVER);
+                        Serial.println(F("RC: FTP"));
+                    }
+                    break;
+                }
+                case RC_VOL_DOWN: {
+                    doCmdAction(CMD_VOLUMEDOWN);
+                    Serial.println(F("RC: Volume down"));
+                    break;
+                }
+                case RC_VOL_UP: {
+                    doCmdAction(CMD_VOLUMEUP);
+                    Serial.println(F("RC: Volume up"));
+                    break;
+                }
+                default: {
+                    if (rcActionOk) {
+                        Serial.println(F("RC: unknown"));
+                    }
+                }
+            }
+        }
+    }
+#endif
+
 void setup() {
     Serial.begin(115200);
     #if (WAKEUP_BUTTON <= 39)
@@ -4861,6 +4974,10 @@ void setup() {
     }
     #endif
 
+    #ifdef IR_CONTROL_ENABLE
+        IrReceiver.begin(IRLED_PIN);
+    #endif
+
     lastTimeActiveTimestamp = millis();     // initial set after boot
 
     bootComplete = true;
@@ -4936,7 +5053,9 @@ void loop() {
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
         recoverLastRfidPlayed();
     #endif
-
+    #ifdef IR_CONTROL_ENABLE
+        handleIrReceiver();
+    #endif
 }
 
 
