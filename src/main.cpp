@@ -4434,6 +4434,13 @@ void printWakeUpReason() {
                     }
                     break;
                 }
+                case RC_SHUTDOWN: {
+                    if (rcActionOk) {
+                        gotoSleep = true;
+                        Serial.println(F("RC: Shutdown"));
+                    }
+                    break;
+                }
                 case RC_VOL_DOWN: {
                     doCmdAction(CMD_VOLUMEDOWN);
                     Serial.println(F("RC: Volume down"));
