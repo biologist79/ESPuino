@@ -4575,11 +4575,7 @@ void setup() {
 #endif
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
-        #if (HAL == 4)
-            SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);     // ToDo: Not sure if this should be the default-case
-        #else
-            SPI.begin();
-        #endif
+        SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
         SPI.setFrequency(1000000);
     #endif
 
