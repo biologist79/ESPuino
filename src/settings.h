@@ -13,6 +13,7 @@
     2: ESP32-A1S Audiokit        => settings-espa1s.h
     3: Wemos Lolin D32           => settings-lolin_D32.h
     4: Wemos Lolin D32 pro       => settings-lolin_D32_pro.h
+    5: Lilygo T8 (V1.7)          => settings-ttgo_t8.h
     99: custom                   => settings-custom.h
     more to come...
     */
