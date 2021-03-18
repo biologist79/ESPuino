@@ -86,7 +86,7 @@
 
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
-char *logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
+char *logBuf;   // Defintion in setup()
 
 // FilePathLength
 #define MAX_FILEPATH_LENTGH 256
@@ -1155,7 +1155,12 @@ char ** returnPlaylistFromWebstream(const char *_webUrl) {
         freeMultiCharArray(url, strtoul(*url, NULL, 10));
     }
 
-    url = (char **) malloc(sizeof(char *) * 2);
+    if (psramInit()) {
+        url = (char **) ps_malloc(sizeof(char *) * 2);
+    } else {
+        url = (char **) malloc(sizeof(char *) * 2);
+    }
+
     url[0] = strdup("1");         // Number of files is always 1 in url-mode
     url[1] = strdup(webUrl);
 
@@ -1188,7 +1193,11 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 
     // File-mode
     if (!_fileOrDirectory.isDirectory()) {
-        files = (char **) malloc(sizeof(char *) * 2);        // +1 because [0] is used for number of elements; [1] -> [n] is used for payload
+        if (psramInit()) {
+            files = (char **) ps_malloc(sizeof(char *) * 2);
+        } else {
+            files = (char **) malloc(sizeof(char *) * 2);        // +1 because [0] is used for number of elements; [1] -> [n] is used for payload
+        }
         if (files == NULL) {
             loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
             #ifdef NEOPIXEL_ENABLE
@@ -1199,7 +1208,12 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
         loggerNl(serialDebug, (char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
         strncpy(fileNameBuf, (char *) _fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
         if (fileValid(fileNameBuf)) {
-            files = (char **) malloc(sizeof(char *) * 2);
+            if (psramInit()) {
+                files = (char **) ps_malloc(sizeof(char *) * 2);
+            } else {
+                files = (char **) malloc(sizeof(char *) * 2);
+            }
+
             files[1] = strdup(fileNameBuf);
         }
         files[0] = strdup("1");         // Number of files is always 1 in file-mode
@@ -1210,7 +1224,14 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     // Directory-mode
     uint16_t allocCount = 1;
     uint16_t allocSize = 512;
-    char *serializedPlaylist = (char*) calloc(allocSize, sizeof(char));
+    char *serializedPlaylist;
+
+    if (psramInit()) {
+        serializedPlaylist = (char*) ps_calloc(allocSize, sizeof(char));
+    } else {
+        serializedPlaylist = (char*) calloc(allocSize, sizeof(char));
+    }
+
 
     while (true) {
        File fileItem = _fileOrDirectory.openNextFile();
@@ -1252,7 +1273,12 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     }
 
     // Alloc only necessary number of playlist-pointers
-    files = (char **) malloc(sizeof(char *) * cnt + 1);
+    if (psramInit()) {
+        files = (char **) ps_malloc(sizeof(char *) * cnt + 1);
+    } else {
+        files = (char **) malloc(sizeof(char *) * cnt + 1);
+    }
+
     if (files == NULL) {
         loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
@@ -1273,7 +1299,12 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 
     free(serializedPlaylist);
 
-    files[0] = (char *) malloc(sizeof(char) * 5);
+    if (psramInit()) {
+        files[0] = (char *) ps_malloc(sizeof(char) * 5);
+    } else {
+        files[0] = (char *) malloc(sizeof(char) * 5);
+    }
+
     if (files[0] == NULL) {
         loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
         #ifdef NEOPIXEL_ENABLE
@@ -1760,7 +1791,12 @@ void rfidScanner(void *parameter) {
             mfrc522.PICC_HaltA();
             mfrc522.PCD_StopCrypto1();
 
-            cardIdString = (char *) malloc(cardIdSize*3 +1);
+            if (psramInit()) {
+                cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
+            } else {
+                cardIdString = (char *) malloc(cardIdSize*3 +1);
+            }
+
             if (cardIdString == NULL) {
                 logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                 #ifdef NEOPIXEL_ENABLE
@@ -1828,7 +1864,12 @@ void rfidScanner(void *parameter) {
             nfc14443.setupRF();
             uint8_t uid[10];
             if (nfc14443.isCardPresent() && nfc14443.readCardSerial(uid)) {
-                cardIdString = (char *) malloc(cardIdSize*3 +1);
+                if (psramInit()) {
+                    cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
+                } else {
+                    cardIdString = (char *) malloc(cardIdSize*3 +1);
+                }
+
                 if (cardIdString == NULL) {
                     logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                     #ifdef NEOPIXEL_ENABLE
@@ -1872,7 +1913,12 @@ void rfidScanner(void *parameter) {
             // try to read ISO15693 inventory
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
             if (rc == ISO15693_EC_OK) {
-                cardIdString = (char *) malloc(cardIdSize*3 +1);
+                if (psramInit()) {
+                    cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
+                } else {
+                    cardIdString = (char *) malloc(cardIdSize*3 +1);
+                }
+
                 if (cardIdString == NULL) {
                     logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                     #ifdef NEOPIXEL_ENABLE
@@ -2480,7 +2526,13 @@ void trackControlToQueueSender(const uint8_t trackCommand) {
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
 void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
-    char *filename = (char *) malloc(sizeof(char) * 255);
+    char *filename;
+    if (psramInit()) {
+        filename = (char *) ps_malloc(sizeof(char) * 255);
+    } else {
+        filename = (char *) malloc(sizeof(char) * 255);
+    }
+
     strncpy(filename, _itemToPlay, 255);
     playProperties.startAtFilePos = _lastPlayPos;
     playProperties.currentTrackNumber = _trackLastPlayed;
@@ -3665,9 +3717,14 @@ bool processJsonRequest(char *_serialJson) {
     return true;
 }
 
-char *jBuf = (char *) calloc(255, sizeof(char));        // In heap to save static memory
 // Sends JSON-answers via websocket
 void sendWebsocketData(uint32_t client, uint8_t code) {
+    char *jBuf;
+    if (psramInit()) {
+    jBuf = (char *) ps_calloc(255, sizeof(char));
+    } else {
+    jBuf = (char *) calloc(255, sizeof(char));          // In heap to save static memory
+}
     const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 20;
     StaticJsonDocument<CAPACITY> doc;
     JsonObject object = doc.to<JsonObject>();
@@ -3689,6 +3746,7 @@ void sendWebsocketData(uint32_t client, uint8_t code) {
     } else {
         ws.printf(client, jBuf);
     }
+    free(jBuf);
 }
 
 
@@ -4085,7 +4143,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     char filePath[MAX_FILEPATH_LENTGH];
     JsonArray obj = jsonBuffer.createNestedArray();
     File root;
-    if(request->hasParam("path")){
+    if (request->hasParam("path")){
         param = request->getParam("path");
         convertUtf8ToAscii(param->value(), filePath);
         root = FSystem.open(filePath);
@@ -4465,6 +4523,11 @@ void printWakeUpReason() {
 
 void setup() {
     Serial.begin(115200);
+    if (psramInit()) {
+        logBuf = (char*) ps_calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
+    } else {
+        logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
+    }
     #if (WAKEUP_BUTTON <= 39)
         esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0);
     #endif
@@ -4952,7 +5015,7 @@ void setup() {
     wifiEnabled = getWifiEnableStatusFromNVS();
 
     #ifdef BLUETOOTH_ENABLE
-    if(operationMode == OPMODE_BLUETOOTH) {
+    if (operationMode == OPMODE_BLUETOOTH) {
         a2dp_sink = new BluetoothA2DPSink();
         i2s_pin_config_t pin_config = {
             .bck_io_num = I2S_BCLK,
