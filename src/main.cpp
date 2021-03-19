@@ -47,8 +47,10 @@
 #ifdef RFID_READER_TYPE_MFRC522_SPI
         #include <MFRC522.h>
 #endif
-#ifdef RFID_READER_TYPE_MFRC522_I2C
+#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
     #include "Wire.h"
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
     #include <MFRC522_I2C.h>
 #endif
 #ifdef RFID_READER_TYPE_PN5180
@@ -259,6 +261,18 @@ TaskHandle_t fileStorageTaskHandle;
     TaskHandle_t LED;
 #endif
 
+// I2C
+#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    static TwoWire i2cBusTwo = TwoWire(1);
+#endif
+#ifdef RFID_READER_TYPE_MFRC522_I2C
+    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
+#endif
+
+#ifdef PORT_EXPANDER_ENABLE
+    uint8_t expanderPorts[portsToRead];
+#endif
+
 #if (HAL == 2)
     #include "AC101.h"
     static TwoWire i2cBusOne = TwoWire(0);
@@ -266,10 +280,6 @@ TaskHandle_t fileStorageTaskHandle;
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_SPI
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
-#endif
-#ifdef RFID_READER_TYPE_MFRC522_I2C
-    static TwoWire i2cBusTwo = TwoWire(1);
-    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
 #endif
 
 // FTP
@@ -327,24 +337,40 @@ QueueHandle_t rfidCardQueue;
 RingbufHandle_t explorerFileUploadRingBuffer;
 QueueHandle_t explorerFileUploadStatusQueue;
 
-// Only enable those buttons that use GPIOs <= 39
+// Only enable those buttons that are not disabled (99 or >115)
+// 0 -> 39: GPIOs
+// 100 -> 115: Port-expander
 #if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= 39)
     #define BUTTON_0_ENABLE
+#elif (NEXT_BUTTON >= 100 && NEXT_BUTTON <= 115)
+    #define EXPANDER_0_ENABLE
 #endif
 #if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= 39)
     #define BUTTON_1_ENABLE
+#elif (PREVIOUS_BUTTON >= 100 && PREVIOUS_BUTTON <= 115)
+    #define EXPANDER_1_ENABLE
 #endif
 #if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= 39)
     #define BUTTON_2_ENABLE
+#elif (PAUSEPLAY_BUTTON >= 100 && PAUSEPLAY_BUTTON <= 115)
+    #define EXPANDER_2_ENABLE
 #endif
 #ifdef USEROTARY_ENABLE
-    #define BUTTON_3_ENABLE
+    #if (DREHENCODER_BUTTON >= 0 && DREHENCODER_BUTTON <= 39)
+        #define BUTTON_3_ENABLE
+    #elif (DREHENCODER_BUTTON >= 100 && DREHENCODER_BUTTON <= 115)
+        #define EXPANDER_3_ENABLE
+    #endif
 #endif
 #if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
     #define BUTTON_4_ENABLE
+#elif (BUTTON_4 >= 100 && BUTTON_4 <= 115)
+    #define EXPANDER_4_ENABLE
 #endif
 #if (BUTTON_5 >= 0 && BUTTON_5 <= 39)
     #define BUTTON_5_ENABLE
+#elif (BUTTON_5 >= 100 && BUTTON_5 <= 115)
+    #define EXPANDER_5_ENABLE
 #endif
 
 // Prototypes
@@ -353,6 +379,7 @@ static int arrSortHelper(const void* a, const void* b);
 void batteryVoltageTester(void);
 void buttonHandler();
 void deepSleepManager(void);
+bool digitalReadFromAll(const uint8_t _channel);
 void doButtonActions(void);
 void doRfidCardModifications(const uint32_t mod);
 void doCmdAction(const uint16_t mod);
@@ -385,6 +412,9 @@ float measureBatteryVoltage(void);
 #endif
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+#ifdef PORT_EXPANDER_ENABLE
+    bool portExpanderHandler();
+#endif
 bool processJsonRequest(char *_serialJson);
 void randomizePlaylist (char *str[], const uint32_t count);
 char ** returnPlaylistFromWebstream(const char *_webUrl);
@@ -430,19 +460,6 @@ void logger(const uint8_t _currentLogLevel, const char *_logBuffer, const uint8_
   }
 }
 
-
-int countChars(const char* string, char ch) {
-    int count = 0;
-    int length = strlen(string);
-
-    for (uint8_t i = 0; i < length; i++) {
-        if (string[i] == ch) {
-            count++;
-        }
-    }
-
-    return count;
-}
 
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -510,6 +527,52 @@ void IRAM_ATTR onTimer() {
     }
 #endif
 
+#ifdef PORT_EXPANDER_ENABLE
+    // Reads input from port-expander and writes output into global array
+    // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
+    bool portExpanderHandler() {
+        i2cBusTwo.beginTransmission(expanderI2cAddress);
+        for (uint8_t i=0; i<portsToRead; i++) {
+            i2cBusTwo.write(0x00+i);                        // Go to input-register...
+            i2cBusTwo.endTransmission();
+            i2cBusTwo.requestFrom(expanderI2cAddress, 1);   // ...and read its byte
+
+            if (i2cBusTwo.available()) {
+                expanderPorts[i] = i2cBusTwo.read();
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+#endif
+
+
+// Wrapper: reads from GPIOs (via digitalRead()) or from port-expander (if enabled)
+// Behaviour like digitalRead(): returns true if not pressed and false if pressed
+bool digitalReadFromAll(const uint8_t _channel) {
+    switch (_channel) {
+        case 0 ... 39:          // GPIO
+            return digitalRead(_channel);
+
+        #ifdef PORT_EXPANDER_ENABLE
+            case 100 ... 107:   // Port-expander (port 0)
+                return (expanderPorts[0] & (1 << (_channel-100)));    // Remove offset 100 (return false if pressed)
+
+            case 108 ... 115:   // Port-expander (port 1)
+                if (portsToRead == 2) {     // Make sure portsToRead != 1 when channel > 107
+                    return (expanderPorts[1] & (1 << (_channel-108)));    // Remove offset 100 + 8 (return false if pressed)
+                } else {
+                    return true;
+                }
+
+        #endif
+
+        default:                // Everything else (doesn't make sense at all) isn't supposed to be pressed
+            return true;
+    }
+}
+
 
 // If timer-semaphore is set, read buttons (unless controls are locked)
 void buttonHandler() {
@@ -517,24 +580,30 @@ void buttonHandler() {
         if (lockControls) {
             return;
         }
+        #ifdef PORT_EXPANDER_ENABLE
+            portExpanderHandler();
+        #endif
         unsigned long currentTimestamp = millis();
-        #ifdef BUTTON_0_ENABLE
-            buttons[0].currentState = digitalRead(NEXT_BUTTON);
+
+        // Buttons can be mixed between GPIO and port-expander.
+        // But at the same time only one of them can be for example NEXT_BUTTON
+        #if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
+            buttons[0].currentState = digitalReadFromAll(NEXT_BUTTON);
         #endif
-        #ifdef BUTTON_1_ENABLE
-            buttons[1].currentState = digitalRead(PREVIOUS_BUTTON);
+        #if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
+            buttons[1].currentState = digitalReadFromAll(PREVIOUS_BUTTON);
         #endif
-        #ifdef BUTTON_2_ENABLE
-            buttons[2].currentState = digitalRead(PAUSEPLAY_BUTTON);
+        #if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
+            buttons[2].currentState = digitalReadFromAll(PAUSEPLAY_BUTTON);
         #endif
-        #ifdef BUTTON_3_ENABLE
-            buttons[3].currentState = digitalRead(DREHENCODER_BUTTON);
+        #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
+            buttons[3].currentState = digitalReadFromAll(DREHENCODER_BUTTON);
         #endif
-        #ifdef BUTTON_4_ENABLE
-            buttons[4].currentState = digitalRead(BUTTON_4);
+        #if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
+            buttons[4].currentState = digitalReadFromAll(BUTTON_4);
         #endif
-        #ifdef BUTTON_5_ENABLE
-            buttons[5].currentState = digitalRead(BUTTON_5);
+        #if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
+            buttons[5].currentState = digitalReadFromAll(BUTTON_5);
         #endif
 
         // Iterate over all buttons in struct-array
@@ -551,15 +620,12 @@ void buttonHandler() {
             buttons[i].lastState = buttons[i].currentState;
         }
     }
+    doButtonActions();
 }
 
 
 // Do corresponding actions for all buttons
 void doButtonActions(void) {
-    if (lockControls) {
-        return; // Avoid button-handling if buttons are locked
-    }
-
     if (buttons[0].isPressed && buttons[1].isPressed) {
         buttons[0].isPressed = false;
         buttons[1].isPressed = false;
@@ -2401,7 +2467,7 @@ void gotoLPCD() {
     Serial.println(F("prepare low power card detection..."));
     nfc.prepareLPCD();
     nfc.clearIRQStatus(0xffffffff);
-    Serial.print(F("PN5180 IRQ PIN: ")); Serial.println(digitalRead(RFID_IRQ));
+    Serial.print(F("PN5180 IRQ PIN: ")); Serial.println(digitalReadFromAll(RFID_IRQ));
     // turn on LPCD
     uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
     if (nfc.switchToLPCD(wakeupCounterInMs)) {
@@ -3797,7 +3863,7 @@ void setupVolume(void) {
         maxVolume = maxVolumeSpeaker;
         return;
     #else
-        if (digitalRead(HP_DETECT)) {
+        if (digitalReadFromAll(HP_DETECT)) {
             maxVolume = maxVolumeSpeaker;               // 1 if headphone is not connected
         } else {
             maxVolume = maxVolumeHeadphone;             // 0 if headphone is connected (put to GND)
@@ -3811,7 +3877,7 @@ void setupVolume(void) {
 
 #ifdef HEADPHONE_ADJUST_ENABLE
     void headphoneVolumeManager(void) {
-        bool currentHeadPhoneDetectionState = digitalRead(HP_DETECT);
+        bool currentHeadPhoneDetectionState = digitalReadFromAll(HP_DETECT);
 
         if (headphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - headphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
             if (currentHeadPhoneDetectionState) {
@@ -4388,7 +4454,7 @@ void printWakeUpReason() {
         nfc14443.setupRF();
         if (!nfc14443.isCardPresent()) {
             nfc14443.clearIRQStatus(0xffffffff);
-            Serial.print(F("Logic level at PN5180' IRQ-PIN: ")); Serial.println(digitalRead(RFID_IRQ));
+            Serial.print(F("Logic level at PN5180' IRQ-PIN: ")); Serial.println(digitalReadFromAll(RFID_IRQ));
             // turn on LPCD
             uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
             if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
@@ -4533,32 +4599,32 @@ void setup() {
     #endif
 
     #ifdef NEOPIXEL_ENABLE      // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
-        #ifdef BUTTON_0_ENABLE
+        #if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
             #if (BUTTON_0_LONG == CMD_SLEEPMODE)
                 shutdownButton = 0;
             #endif
         #endif
-        #ifdef BUTTON_1_ENABLE
+        #if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
             #if (BUTTON_1_LONG == CMD_SLEEPMODE)
                 shutdownButton = 1;
             #endif
         #endif
-        #ifdef BUTTON_2_ENABLE
+        #if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
             #if (BUTTON_2_LONG == CMD_SLEEPMODE)
                 shutdownButton = 2;
             #endif
         #endif
-        #ifdef BUTTON_3_ENABLE
+        #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
             #if (BUTTON_3_LONG == CMD_SLEEPMODE)
                 shutdownButton = 3;
             #endif
         #endif
-        #ifdef BUTTON_4_ENABLE
+        #if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
             #if (BUTTON_4_LONG == CMD_SLEEPMODE)
                 shutdownButton = 4;
             #endif
         #endif
-        #ifdef BUTTON_5_ENABLE
+        #if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
             #if (BUTTON_5_LONG == CMD_SLEEPMODE)
                 shutdownButton = 5;
             #endif
@@ -4610,34 +4676,34 @@ void setup() {
     prefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     prefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
 
-#ifdef NEOPIXEL_ENABLE
-    xTaskCreatePinnedToCore(
-        showLed, /* Function to implement the task */
-        "LED", /* Name of the task */
-        2000,  /* Stack size in words */
-        NULL,  /* Task input parameter */
-        1 | portPRIVILEGE_BIT,  /* Priority of the task */
-        &LED,  /* Task handle. */
-        0 /* Core where the task should run */
-    );
-#endif
+    #ifdef NEOPIXEL_ENABLE
+        xTaskCreatePinnedToCore(
+            showLed, /* Function to implement the task */
+            "LED", /* Name of the task */
+            2000,  /* Stack size in words */
+            NULL,  /* Task input parameter */
+            1 | portPRIVILEGE_BIT,  /* Priority of the task */
+            &LED,  /* Task handle. */
+            0 /* Core where the task should run */
+        );
+    #endif
 
-#if (HAL == 2)
-    i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
+    #if (HAL == 2)
+        i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
-    while (not ac.begin()) {
-        Serial.println(F("AC101 Failed!"));
-        delay(1000);
-    }
-    Serial.println(F("AC101 via I2C - OK!"));
+        while (not ac.begin()) {
+            Serial.println(F("AC101 Failed!"));
+            delay(1000);
+        }
+        Serial.println(F("AC101 via I2C - OK!"));
 
-    pinMode(22, OUTPUT);
-    digitalWrite(22, HIGH);
+        pinMode(22, OUTPUT);
+        digitalWrite(22, HIGH);
 
-    pinMode(GPIO_PA_EN, OUTPUT);
-    digitalWrite(GPIO_PA_EN, HIGH);
-    Serial.println(F("Built-in amplifier enabled\n"));
-#endif
+        pinMode(GPIO_PA_EN, OUTPUT);
+        digitalWrite(GPIO_PA_EN, HIGH);
+        Serial.println(F("Built-in amplifier enabled\n"));
+    #endif
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
@@ -4673,7 +4739,8 @@ void setup() {
                 #endif
             }
 
-    #ifdef RFID_READER_TYPE_MFRC522_I2C
+    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
         delay(50);
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
@@ -4697,18 +4764,18 @@ void setup() {
    // print wake-up reason
    printWakeUpReason();
    #ifdef PN5180_ENABLE_LPCD
-     // disable pin hold from deep sleep
-     gpio_deep_sleep_hold_dis();
-     gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
-     gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+        // disable pin hold from deep sleep
+        gpio_deep_sleep_hold_dis();
+        gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
+        gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
    #endif
-  // show SD card type
+    // show SD card type
     #ifdef SD_MMC_1BIT_MODE
-      loggerNl(serialDebug, (char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
-      uint8_t cardType = SD_MMC.cardType();
+        loggerNl(serialDebug, (char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
+        uint8_t cardType = SD_MMC.cardType();
     #else
-      loggerNl(serialDebug, (char *) FPSTR(sdMountedSpiMode), LOGLEVEL_NOTICE);
-      uint8_t cardType = SD.cardType();
+        loggerNl(serialDebug, (char *) FPSTR(sdMountedSpiMode), LOGLEVEL_NOTICE);
+        uint8_t cardType = SD.cardType();
     #endif
     Serial.print(F("SD card type: "));
     if (cardType == CARD_MMC) {
@@ -4723,7 +4790,7 @@ void setup() {
 
     #ifdef HEADPHONE_ADJUST_ENABLE
         pinMode(HP_DETECT, INPUT);
-        headphoneLastDetectionState = digitalRead(HP_DETECT);
+        headphoneLastDetectionState = digitalReadFromAll(HP_DETECT);
     #endif
 
     // Create queues
@@ -4961,7 +5028,7 @@ void setup() {
     timerSemaphore = xSemaphoreCreateBinary();
     timer = timerBegin(0, 240, true);           // Prescaler: CPU-clock in MHz
     timerAttachInterrupt(timer, &onTimer, true);
-    timerAlarmWrite(timer, 1000, true);         // 1000 Hz
+    timerAlarmWrite(timer, 10000, true);        // 100 Hz
     timerAlarmEnable(timer);
 
     // Create tasks
@@ -5113,7 +5180,6 @@ void loop() {
         batteryVoltageTester();
     #endif
     buttonHandler();
-    doButtonActions();
     sleepHandler();
     deepSleepManager();
     rfidPreferenceLookupHandler();

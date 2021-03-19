@@ -5,9 +5,9 @@
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
-* 25.02.2020: Added support for .m4a and .wav-files.
-* 26.02.2020: Shutdown via webgui is now available.
-* 05.03.2020: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
+* 26.02.2021: Shutdown via webgui is now available.
+* 05.03.2021: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
+* 19.03.2021: Added support for port-expander PCA9555. Can be used for everything, that is "button-like": buttons, headphone-detect, PN5180.IRQ.
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * English translation/version for webgui is currently pretty outdated. This will be fixed soon when i18n-support will be integrated.
@@ -219,6 +219,10 @@ This toggles the current WiFi-status: if it's currently enabled, it will be disa
 
 ## Bluetooth
 ESPuino can be used as bluetooth-sink (a2dp). This mode can be enabled/disabled via a RFID-modification-card. Applying one will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. If bluetooth is active, this is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and worked 100% flawless.
+
+## Port-expander
+There might be situations where you run out of GPIOs. To address this, port-expander [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend number of input-channels (output-mode is not supported by ESPuino). This port-expander provides 2 ports with 8 channels each - so 16 channels in total. To activate PCA9555 you need to set `PORT_EXPANDER_ENABLE`. Like GPIOs in your develboard-specific settings-file, you can assign numbers. Range is 100->115 where 100: port 0 channel 0 -> 107: port 0 channel 7; 108: port 1 channel 0 -> 115: port 1 channel 7. If you only need 8 channels: connect stuff only to port 0 and change `portsToRead` to 1. Via `expanderI2cAddress` port-expander's I2C-address can be changed. 0x20 is true, if all A0, A1, A2 are wired to GND.<br />
+Port-expander is read by hardware-timer. Interrupt-pin can be connected optionally and is only used to wake up ESP32. If so I suggest to use `WAKEUP_BUTTON`.
 ## After ESPuino is connected to your WiFi
 After bringing ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can configure:
 * WiFi

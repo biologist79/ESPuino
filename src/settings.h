@@ -21,6 +21,7 @@
 
 
     //########################## MODULES #################################
+    //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
     #define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
     #define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
     #define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
@@ -56,6 +57,12 @@
         uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 
+
+    //############# Port-expander-configuration ######################
+    #ifdef PORT_EXPANDER_ENABLE
+        const uint8_t portsToRead = 2;      // PCA9555 has two ports à 8 channels. If 8 channels are sufficient, set to 1 and only use the first port!
+        uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
+    #endif
 
     //################## BUTTON-Layout ##################################
     /* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
