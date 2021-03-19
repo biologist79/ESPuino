@@ -18,17 +18,18 @@
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
 <br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
-* 13.01.2020: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
-* 17.01.2020: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration
-* 18.01.2020: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
-* 25.01.2020: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
-* 28.01.2020: Removed cached RFID-filebrowser and replaced by realtime-browser
-* 01.02.2020: Introducing PCB: Lolin32 with SD_MMC + PN5180
-* 06.02.2020: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
-* 09.02.2020: Added support for bluetooth-sink (a2dp). Thanks @grch87 & @elmar-ops for providing this feature!
-* 25.02.2020: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
-* 25.02.2020: Actions can be freely assigned to buttons (multi-button, single-button (short), single-button (long))
-* 25.02.2020: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
-* 25.02.2020: Added support for .m4a and .wav-files.
-* 26.02.2020: Shutdown via webgui is now available.
-* 05.03.2020: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
+* 13.01.2021: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
+* 17.01.2021: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration
+* 18.01.2021: Added directive `PN5180_ENABLE_LPCD`: awake from deepsleep with PN5180 is now possible (but needs another GPIO)
+* 25.01.2021: Added directive `USE_LAST_VOLUME_AFTER_REBOOT`: Remembers volume used at last shutdown after reboot. This overwrites initial volume from GUI.
+* 28.01.2021: Removed cached RFID-filebrowser and replaced by realtime-browser
+* 01.02.2021: Introducing PCB: Lolin32 with SD_MMC + PN5180
+* 06.02.2021: German umlauts now supported. When uploading via FTP make sure to change charset to CP437.
+* 09.02.2021: Added support for bluetooth-sink (a2dp). Thanks @grch87 & @elmar-ops for providing this feature!
+* 25.02.2021: Added support for dynamic button-layout. Rotary-encoder is now optional and up to five buttons can be used.
+* 25.02.2021: Actions can be freely assigned to buttons (multi-button, single-button (short), single-button (long))
+* 25.02.2021: Added support for webcontrol: basic control (volume, play/pause, next, previous, first, last track) can now be controlled via webgui.
+* 25.02.2021: Added support for .m4a and .wav-files.
+* 26.02.2021: Shutdown via webgui is now available.
+* 05.03.2021: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
+* 19.03.2021: Added support for port-expander PCA9555. Can be used for everything, that is "button-like": buttons, headphone-detect, PN5180.IRQ.

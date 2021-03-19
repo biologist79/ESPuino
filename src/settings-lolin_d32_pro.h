@@ -51,18 +51,25 @@
     #ifdef USEROTARY_ENABLE
         #define DREHENCODER_CLK             34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
         #define DREHENCODER_DT              39          // 39 = 'VN'; Info: Lolin D32 pro is using 35 for battery-voltage-monitoring!
-        #define DREHENCODER_BUTTON          36          // Button 3: is used to switch ESPuino on and off; 36 = 'VP'
+        #define DREHENCODER_BUTTON          36          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
-    // Control-buttons (set to 99 to disable)
+    // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
     #define PAUSEPLAY_BUTTON                32          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
-    // Wake-up button
-    // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to disable.
+    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+        #define ext_IIC_CLK                 5           // i2c-SCL (clock)
+        #define ext_IIC_DATA                2           // i2c-SDA (data)
+    #endif
+
+    // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
+    // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
+    // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.
     #define WAKEUP_BUTTON                   DREHENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
 
     // (optional) Power-control
