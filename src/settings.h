@@ -17,7 +17,9 @@
     99: custom                   => settings-custom.h
     more to come...
     */
-    #define HAL 1                // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
+    #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
+        #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
+    #endif
 
 
     //########################## MODULES #################################
@@ -49,8 +51,12 @@
     //#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
     //#define RFID_READER_TYPE_PN5180       // use PN5180
 
+    #ifdef RFID_READER_TYPE_MFRC522_I2C
+        #define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
+    #endif
+
     #ifdef RFID_READER_TYPE_PN5180
-        //#define PN5180_ENABLE_LPCD        // enable PN5180 low power card detection. Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
+        //#define PN5180_ENABLE_LPCD        // Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
     #endif
 
     #ifdef RFID_READER_TYPE_MFRC522_SPI

@@ -13,7 +13,7 @@
 
 
     //################## GPIO-configuration ##############################
-    // uSD-card-reader (via SPI)
+    // uSD-card-reader (via SPI - better use SD_MMC instead!)
     #define SPISD_CS                        13          // GPIO for chip select (SD)
     #ifndef SINGLE_SPI_ENABLE
         #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
@@ -21,10 +21,21 @@
         #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
     #endif
 
+    // RFID (via SPI; currently not supported)
+    #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
+    #define RFID_CS                         21          // GPIO for chip select (RFID)
+    #define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
+    #define RFID_MISO                       19          // GPIO for master in slave out (RFID)
+    #define RFID_SCK                        18          // GPIO for clock-signal (RFID)
+
+    // RFID (via I2C)
     #define MFRC522_RST_PIN                 12          // needed for i2c-comm  MTDI on JTAG
-    #define MFRC522_ADDR                    0x28        // default Address of MFRC522
-    #define ext_IIC_CLK                     23          // 14-pin-header
-    #define ext_IIC_DATA                    18          // 14-pin-header
+
+    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+        #define ext_IIC_CLK                 23          // i2c-SCL (clock) [14 pin-header]
+        #define ext_IIC_DATA                18          // i2c-SDA (data) [14 pin-header]
+    #endif
 
     // I2S (DAC)
     #define I2S_DOUT                        25          // Digital out (I2S)
@@ -52,12 +63,6 @@
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
-
-    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        #define ext_IIC_CLK                 5           // i2c-SCL (clock)
-        #define ext_IIC_DATA                2           // i2c-SDA (data)
-    #endif
 
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
