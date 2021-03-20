@@ -3,6 +3,8 @@
 ## NEWS
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
+## Build status
+![build workflow](https://github.com/biologist79/ESPuino/actions/workflows/build.yml/badge.svg)
 ## Changelog
 Moved to [another location](changelog.md) as it became to prominent here. Only last three events are kept:
 * 26.02.2021: Shutdown via webgui is now available.
