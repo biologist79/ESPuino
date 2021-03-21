@@ -1,16 +1,11 @@
-# Tonuino based on ESP32-A1S Audio-Development-Kit
-
-AI-Tinker released (almost two years ago or so) a development-board that contains an ESP32-A1S, which means a DAC is already included upfront. It's sorta ready to use but in the end, to make it compatible with my Tonuino-fork, there's some work waiting.
-
 ## Things to know
 * As there's a lack of GPIOs, it's necessary to share a single SPI-instance by SD and RFID.
-* As per default, [RFID-Lib](https://github.com/miguelbalboa/rfid/) doesn't support to run on non-default-SPI-GPIOs. So that's why I used a [modified one](https://github.com/madias123/STM32duino-RFID-Mp3-Player/tree/master/3d%20party%20libraries%20(modified)/MFRC522).
 * The board provides 6 keys but due to lack of free GPIOs, we need them for other purposes. Additionaly the problem is, that all keys are equipped with capacitors (maybe to debounce) which makes it hard to use those GPIOs for other purposes. That's why I unsoldered R66, 67, 68, 69, 70 (all 0 Ohms) to free these GPIOs from the capacitors.
 * Please note: key1 still works but if you additionaly want to use keys2-6, you can use GPIO36 along with analogRead() by using voltage-dividers. But first one has to calculate + solder resistor-pairs 56/61, 57/62, 58/63, 59/64 to 'build' those voltage-dividers. Without doing that online Key1 is usable as it doesn't need resistors. However, didn't solder/test dividers so far.
 * When switching over to use analogRead() one has to modify buttonHandler() in my code.
 * Additionaly I unsoldered resistor R14 in order to deactivate LED D4 (probably not necessary)
 
-## GPIOS
+## GPIOs (outdated; will be updated soon!)
 Please note: You need to unsolder R66, 67, 68, 69, 70 first to use the board that way!
 
 | GPIO          | Usage            | Pin         | Comment                                                      |
@@ -51,6 +46,4 @@ Now, question is what to do with GPIO22. Could be used to externally connect key
 * In order to safe energy consider the unsolder LEDs.
 
 ## Please note
-* This one is more or less a project to test whether it's possible to run my fork on this special board. It's not really maintained actively but feel free to contact me in case of questions.
 * Some additional informations regarding this board can be found [here](https://www.mikrocontroller.net/topic/474383?goto=6429727) and [here] (https://www.mikrocontroller.net/topic/492149).
-* I discovered RFID.RST is uninportant. So you need to initialize it but doesn't matter whether it's connected or not. So I used just anything.
