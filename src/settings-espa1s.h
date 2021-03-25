@@ -62,8 +62,8 @@
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                    199          // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                198          // Button 1: GPIO to detect previous
+    #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next
+    #define PREVIOUS_BUTTON                 99          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
