@@ -47,7 +47,7 @@
 #ifdef RFID_READER_TYPE_MFRC522_SPI
         #include <MFRC522.h>
 #endif
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
     #include "Wire.h"
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
@@ -58,6 +58,12 @@
     #include <PN5180ISO14443.h>
     #include <PN5180ISO15693.h>
 #endif
+//############# MPR121-based Touch configuration ######################
+#ifdef PORT_TOUCHMPR121_ENABLE
+    #include <MPR121.h>
+    MPR121 mpr121;
+#endif
+
 #include <Preferences.h>
 #ifdef MQTT_ENABLE
     #define MQTT_SOCKET_TIMEOUT 1               // https://github.com/knolleary/pubsubclient/issues/403
@@ -262,7 +268,7 @@ TaskHandle_t fileStorageTaskHandle;
 #endif
 
 // I2C
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(PORT_TOUCHMPR121_ENABLE)
     static TwoWire i2cBusTwo = TwoWire(1);
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
@@ -4740,7 +4746,7 @@ void setup() {
             }
 
     // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(PORT_TOUCHMPR121_ENABLE)
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
         delay(50);
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
@@ -4752,6 +4758,21 @@ void setup() {
         mfrc522.PCD_SetAntennaGain(rfidGain);
         delay(50);
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #endif
+
+    // Init MPR121 Touch-Buttons
+    #ifdef PORT_TOUCHMPR121_ENABLE
+        const MPR121::DeviceAddress mpr_device_address = MPR121::ADDRESS_5A;
+        mpr121.setupSingleDevice(&i2cBusTwo, mpr_device_address, true);
+        mpr121.setAllChannelsThresholds(40, 20);
+        mpr121.setDebounce(mpr_device_address, 1, 1);
+        mpr121.setBaselineTracking(mpr_device_address, MPR121::BASELINE_TRACKING_INIT_10BIT);
+        mpr121.setChargeDischargeCurrent(mpr_device_address, 63);
+        mpr121.setChargeDischargeTime(mpr_device_address, MPR121::CHARGE_DISCHARGE_TIME_HALF_US);
+        mpr121.setFirstFilterIterations(mpr_device_address, MPR121::FIRST_FILTER_ITERATIONS_34);
+        mpr121.setSecondFilterIterations(mpr_device_address, MPR121::SECOND_FILTER_ITERATIONS_10);
+        mpr121.setSamplePeriod(mpr_device_address, MPR121::SAMPLE_PERIOD_1MS);
+        mpr121.startChannels(2, MPR121::COMBINE_CHANNELS_0_TO_1);
     #endif
 
    // welcome message
