@@ -22,14 +22,18 @@
     #endif
 
     // RFID (via SPI; currently not supported)
-    #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-    #define RFID_CS                         21          // GPIO for chip select (RFID)
-    #define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
-    #define RFID_MISO                       19          // GPIO for master in slave out (RFID)
-    #define RFID_SCK                        18          // GPIO for clock-signal (RFID)
+    #if defined(RFID_READER_TYPE_MFRC522_SPI)
+        #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
+        #define RFID_CS                         21          // GPIO for chip select (RFID)
+        #define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
+        #define RFID_MISO                       19          // GPIO for master in slave out (RFID)
+        #define RFID_SCK                        18          // GPIO for clock-signal (RFID)
+    #endif
 
     // RFID (via I2C)
-    #define MFRC522_RST_PIN                 12          // needed for i2c-comm  MTDI on JTAG
+    #if defined(RFID_READER_TYPE_MFRC522_I2C)
+        #define MFRC522_RST_PIN                 12          // needed for initialisation -> MTDI on JTAG header
+    #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
@@ -59,7 +63,7 @@
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                    199          // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                198          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
+    #define PREVIOUS_BUTTON                198          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
@@ -67,13 +71,15 @@
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.
-    #define WAKEUP_BUTTON                   DREHENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
+    #define WAKEUP_BUTTON                   PAUSEPLAY_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
 
     // Power-control
     #define POWER                           19          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
 
     // (optional) Neopixel
-    #define LED_PIN                         23          // GPIO for Neopixel-signaling
+    #if defined(NEOPIXEL_ENABLE)
+        #define LED_PIN                         23          // GPIO for Neopixel-signaling
+    #endif
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
