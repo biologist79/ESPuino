@@ -1852,7 +1852,8 @@ void rfidScanner(void *parameter) {
             if (!mfrc522.PICC_ReadCardSerial()) {
                 continue;
             }
-//            mfrc522.PICC_DumpToSerial();
+
+            //mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
             mfrc522.PICC_HaltA();
             mfrc522.PCD_StopCrypto1();
 
