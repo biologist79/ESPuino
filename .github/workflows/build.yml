@@ -17,6 +17,6 @@ jobs:
       - name: Install Platform IO
         run: |
           python -m pip install --upgrade pip
-          pip install -U platformio
+          pip3 install -U platformio
       - name: Build
         run: platformio run -e esp32-a1s -e lolin32 -e lolin_d32 -e lolin_d32_pro -e nodemcu-32s -e az-delivery-devkit-v4 -e ttgo_t8
