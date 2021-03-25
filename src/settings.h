@@ -43,7 +43,7 @@
 
     //################## select SD card mode #############################
     //#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode
-    //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!) (Works on ESP32-A1S with RFID via I2C)
+    //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!)
 
 
     //################## select RFID reader ##############################
@@ -59,7 +59,7 @@
         //#define PN5180_ENABLE_LPCD        // Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
     #endif
 
-    #ifdef RFID_READER_TYPE_MFRC522_SPI
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
         uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 

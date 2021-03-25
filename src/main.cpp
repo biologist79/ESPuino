@@ -266,7 +266,7 @@ TaskHandle_t fileStorageTaskHandle;
     static TwoWire i2cBusTwo = TwoWire(1);
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
-    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, i2cBusTwo);
+    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
 #endif
 
 #ifdef PORT_EXPANDER_ENABLE
@@ -276,7 +276,7 @@ TaskHandle_t fileStorageTaskHandle;
 #if (HAL == 2)
     #include "AC101.h"
     static TwoWire i2cBusOne = TwoWire(0);
-    static AC101 ac(i2cBusOne);
+    static AC101 ac(&i2cBusOne);
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_SPI
     static MFRC522 mfrc522(RFID_CS, RST_PIN);
@@ -4746,7 +4746,8 @@ void setup() {
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
-    #ifdef RFID_READER_TYPE_MFRC522_SPI
+    // Init RC522 Card-Reader 
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
         mfrc522.PCD_Init();
         mfrc522.PCD_SetAntennaGain(rfidGain);
         delay(50);
@@ -5061,6 +5062,7 @@ void setup() {
     #ifdef BUTTON_5_ENABLE
         pinMode(BUTTON_5, INPUT_PULLUP);
     #endif
+
     unsigned long currentTimestamp = millis();
 
     // Init rotary encoder
