@@ -131,8 +131,7 @@ typedef struct { // Bit field
     bool trackFinished:                 1;      // If current track is finished
     bool playlistFinished:              1;      // If whole playlist is finished
     uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
-    uint8_t currentSeekmode:            2;      // If seekmode is active and if yes: forward or backwards?
-    uint8_t lastSeekmode:               2;      // Helper to determine if seekmode was changed
+    uint8_t seekmode:                   2;      // If seekmode is active and if yes: forward or backwards?
 } playProps;
 playProps playProperties;
 
@@ -1478,8 +1477,6 @@ void playAudio(void *parameter) {
                 playProperties.trackFinished = false;
                 if (playProperties.playMode == NO_PLAYLIST) {
                     playProperties.playlistFinished = true;
-                    //playProperties.currentSeekmode = SEEK_NORMAL;
-                    //playProperties.lastSeekmode = SEEK_NORMAL;
                     continue;
                 }
                 if (playProperties.saveLastPlayPosition) {     // Don't save for AUDIOBOOK_LOOP because not necessary
@@ -1785,25 +1782,34 @@ void playAudio(void *parameter) {
             }
         }
 
-        if (playProperties.currentSeekmode != playProperties.lastSeekmode) {
-            Serial.println(F("Seekmode has changed!")); // Todo
-            bool seekmodeChangeSuccessful = false;
-            if (playProperties.currentSeekmode == SEEK_NORMAL) {
-                seekmodeChangeSuccessful = audio.audioFileSeek(1);
-            } else if (playProperties.currentSeekmode == SEEK_FORWARDS) {
-                seekmodeChangeSuccessful = audio.audioFileSeek(4);
-            } else if (playProperties.currentSeekmode == SEEK_BACKWARDS) {
-                seekmodeChangeSuccessful = audio.audioFileSeek(-4);
+        // Handle seekmodes
+        if (playProperties.seekmode != SEEK_NORMAL) {
+            if (playProperties.seekmode == SEEK_FORWARDS) {
+                if (audio.setTimeOffset(jumpOffset)) {
+                    #if (LANGUAGE == 1)
+                        Serial.printf("%d Sekunden nach vorne gesprungen\n", jumpOffset);
+                    #else
+                        Serial.printf("Jumped %d seconds forwards\n", jumpOffset);
+                    #endif
+                } else {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                }
+            } else if (playProperties.seekmode == SEEK_BACKWARDS) {
+                if (audio.setTimeOffset(-(jumpOffset))) {
+                    #if (LANGUAGE == 1)
+                        Serial.printf("%d Sekunden zurueck gesprungen\n", jumpOffset);
+                    #else
+                        Serial.printf("Jumped %d seconds backwards\n", jumpOffset);
+                    #endif
+                } else {
+                    #ifdef NEOPIXEL_ENABLE
+                        showLedError = true;
+                    #endif
+                }
             }
-
-            if (seekmodeChangeSuccessful) {
-                playProperties.lastSeekmode = playProperties.currentSeekmode;
-            } else {
-                playProperties.currentSeekmode = playProperties.lastSeekmode;
-                #ifdef NEOPIXEL_ENABLE
-                    showLedError = true;
-                #endif
-            }
+            playProperties.seekmode = SEEK_NORMAL;
         }
 
         // Calculate relative position in file (for neopixel) for SD-card-mode
@@ -3235,25 +3241,11 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
         case CMD_SEEK_FORWARDS: {
-            Serial.println(F("Seek forwards")); // todo
-            if (playProperties.currentSeekmode == SEEK_FORWARDS) {
-                playProperties.currentSeekmode = SEEK_NORMAL;
-            } else {
-                playProperties.currentSeekmode = SEEK_FORWARDS;
-            }
-            Serial.println(playProperties.currentSeekmode);
-            Serial.println(playProperties.lastSeekmode);
+            playProperties.seekmode = SEEK_FORWARDS;
             break;
         }
         case CMD_SEEK_BACKWARDS: {
-            Serial.println(F("Seek backwards")); // todo
-            if (playProperties.currentSeekmode == SEEK_BACKWARDS) {
-                playProperties.currentSeekmode = SEEK_NORMAL;
-            } else {
-                playProperties.currentSeekmode = SEEK_BACKWARDS;
-            }
-            Serial.println(playProperties.currentSeekmode);
-            Serial.println(playProperties.lastSeekmode);
+            playProperties.seekmode = SEEK_BACKWARDS;
             break;
         }
         default: {
@@ -4664,8 +4656,7 @@ void setup() {
     playProperties.pausePlay = false;
     playProperties.trackFinished = NULL;
     playProperties.playlistFinished = true;
-    playProperties.currentSeekmode = SEEK_NORMAL;
-    playProperties.lastSeekmode = SEEK_NORMAL;
+    playProperties.seekmode = SEEK_NORMAL;
 
     // Examples for serialized RFID-actions that are stored in NVS
     // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
@@ -4746,7 +4737,7 @@ void setup() {
         loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
-    // Init RC522 Card-Reader 
+    // Init RC522 Card-Reader
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
         mfrc522.PCD_Init();
         mfrc522.PCD_SetAntennaGain(rfidGain);
