@@ -14,12 +14,21 @@
 
 
     //################## GPIO-configuration ##############################
-    // uSD-card-reader (via SPI - better use SD_MMC instead!)
-    #define SPISD_CS                        13          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+    #ifdef SD_MMC_1BIT_MODE
+        // uSD-card-reader (via SD-MMC 1Bit)
+        //
+        // SD_MMC uses fixed pins
+        //  MOSI    15
+        //  SCK     14
+        //  MISO    2
+    #else
+        // uSD-card-reader (via SPI)
+        #define SPISD_CS                    13          // GPIO for chip select (SD)
+        #ifndef SINGLE_SPI_ENABLE
+            #define SPISD_MOSI              15          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO               2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #endif
     #endif
 
     // RFID (via SPI; currently not supported!)
