@@ -4,11 +4,12 @@
 
     //######################### INFOS ####################################
     /* This is a develboard-specific config-file for *AI Tinker ESP32-A1S-AudioKit*. It's highly customized and almost certainly
-    not suitable for a different develboards.
-    Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed
+    not suitable for a different develboard.
+    Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed.
     PCB: Not necessary.
     Infos: https://github.com/Ai-Thinker-Open/ESP32-A1S-AudioKit
-    Status: untested
+           https://forum.espuino.de/t/esp32-audio-kit-esp32-a1s/106
+    Status: tested by kkloesner with RC522-I2C
     */
 
 
@@ -21,7 +22,7 @@
         #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
     #endif
 
-    // RFID (via SPI; currently not supported)
+    // RFID (via SPI; currently not supported!)
     #if defined(RFID_READER_TYPE_MFRC522_SPI)
         #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
         #define RFID_CS                         21          // GPIO for chip select (RFID)
@@ -78,7 +79,7 @@
 
     // (optional) Neopixel
     #if defined(NEOPIXEL_ENABLE)
-        #define LED_PIN                         23          // GPIO for Neopixel-signaling
+        #define LED_PIN                     23          // GPIO for Neopixel-signaling
     #endif
 
     // (optinal) Headphone-detection

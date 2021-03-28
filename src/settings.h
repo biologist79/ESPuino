@@ -189,6 +189,9 @@
         uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
     #endif
 
+    // Seekmode-configuration
+    uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
+
     // (optional) Topics for MQTT
     #ifdef MQTT_ENABLE
         uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken

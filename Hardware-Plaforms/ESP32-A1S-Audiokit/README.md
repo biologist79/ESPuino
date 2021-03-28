@@ -5,7 +5,7 @@
 * When switching over to use analogRead() one has to modify buttonHandler() in my code.
 * Additionaly I unsoldered resistor R14 in order to deactivate LED D4 (probably not necessary)
 
-## GPIOs (outdated; will be updated soon!)
+## GPIOs (outdated! Best have a look at settings-espa1s.h)
 Please note: You need to unsolder R66, 67, 68, 69, 70 first to use the board that way!
 
 | GPIO          | Usage            | Pin         | Comment                                                      |
