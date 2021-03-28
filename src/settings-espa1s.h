@@ -4,24 +4,34 @@
 
     //######################### INFOS ####################################
     /* This is a develboard-specific config-file for *AI Tinker ESP32-A1S-AudioKit*. It's highly customized and almost certainly
-    not suitable for a different develboards.
-    Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed
+    not suitable for a different develboard.
+    Has a lot of stuff already onboard but needs some soldering rework as there are not all GPIOs exposed.
     PCB: Not necessary.
     Infos: https://github.com/Ai-Thinker-Open/ESP32-A1S-AudioKit
-    Status: untested
+           https://forum.espuino.de/t/esp32-audio-kit-esp32-a1s/106
+    Status: tested by kkloesner with RC522-I2C
     */
 
 
     //################## GPIO-configuration ##############################
-    // uSD-card-reader (via SPI - better use SD_MMC instead!)
-    #define SPISD_CS                        13          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+    #ifdef SD_MMC_1BIT_MODE
+        // uSD-card-reader (via SD-MMC 1Bit)
+        //
+        // SD_MMC uses fixed pins
+        //  MOSI    15
+        //  SCK     14
+        //  MISO    2
+    #else
+        // uSD-card-reader (via SPI)
+        #define SPISD_CS                    13          // GPIO for chip select (SD)
+        #ifndef SINGLE_SPI_ENABLE
+            #define SPISD_MOSI              15          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO               2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #endif
     #endif
 
-    // RFID (via SPI; currently not supported)
+    // RFID (via SPI; currently not supported!)
     #if defined(RFID_READER_TYPE_MFRC522_SPI)
         #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
         #define RFID_CS                         21          // GPIO for chip select (RFID)
@@ -62,8 +72,8 @@
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                    199          // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                198          // Button 1: GPIO to detect previous
+    #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next
+    #define PREVIOUS_BUTTON                 99          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
@@ -78,7 +88,7 @@
 
     // (optional) Neopixel
     #if defined(NEOPIXEL_ENABLE)
-        #define LED_PIN                         23          // GPIO for Neopixel-signaling
+        #define LED_PIN                     23          // GPIO for Neopixel-signaling
     #endif
 
     // (optinal) Headphone-detection
