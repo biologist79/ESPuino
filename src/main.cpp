@@ -132,6 +132,8 @@ typedef struct { // Bit field
     bool playlistFinished:              1;      // If whole playlist is finished
     uint8_t playUntilTrackNumber:       6;      // Number of tracks to play after which uC goes to sleep
     uint8_t seekmode:                   2;      // If seekmode is active and if yes: forward or backwards?
+    bool newPlayMono:                   1;      // true if mono; false if stereo (helper)
+    bool currentPlayMono:               1;      // true if mono; false if stereo
 } playProps;
 playProps playProperties;
 
@@ -1428,6 +1430,10 @@ void playAudio(void *parameter) {
     static Audio audio;
     audio.setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio.setVolume(initVolume);
+    audio.forceMono(playProperties.currentPlayMono);
+    if (playProperties.currentPlayMono) {
+        audio.setTone(3,0,0);
+    }
 
 
     uint8_t currentVolume;
@@ -1812,6 +1818,19 @@ void playAudio(void *parameter) {
             playProperties.seekmode = SEEK_NORMAL;
         }
 
+        // Handle if mono/stereo should be changed (e.g. if plugging headphones)
+        if (playProperties.newPlayMono != playProperties.currentPlayMono) {
+            playProperties.currentPlayMono = playProperties.newPlayMono;
+            audio.forceMono(playProperties.currentPlayMono);
+            if (playProperties.currentPlayMono) {
+                loggerNl(serialDebug, newPlayModeMono, LOGLEVEL_NOTICE);
+                audio.setTone(3,0,0);
+            } else {
+                loggerNl(serialDebug, newPlayModeStereo, LOGLEVEL_NOTICE);
+                audio.setTone(0,0,0);
+            }
+        }
+
         // Calculate relative position in file (for neopixel) for SD-card-mode
         #ifdef NEOPIXEL_ENABLE
             if (!playProperties.playlistFinished && playProperties.playMode != WEBSTREAM) {
@@ -2069,7 +2088,7 @@ void showLed(void *parameter) {
         }
         if (gotoSleep) { // If deepsleep is planned, turn off LEDs first in order to avoid LEDs still glowing when ESP32 is in deepsleep
             if (!turnedOffLeds) {
-                FastLED.clear();
+                FastLED.clear(true);
                 turnedOffLeds = true;
             }
 
@@ -3857,8 +3876,14 @@ void setupVolume(void) {
     #else
         if (digitalReadFromAll(HP_DETECT)) {
             maxVolume = maxVolumeSpeaker;               // 1 if headphone is not connected
+            #ifdef PLAY_MONO_SPEAKER
+                playProperties.newPlayMono = true;
+            #else
+                playProperties.newPlayMono = false;
+            #endif
         } else {
             maxVolume = maxVolumeHeadphone;             // 0 if headphone is connected (put to GND)
+            playProperties.newPlayMono = false;         // always stereo for headphones!
         }
         snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(maxVolumeSet), maxVolume);
         loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
@@ -3874,10 +3899,16 @@ void setupVolume(void) {
         if (headphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - headphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
             if (currentHeadPhoneDetectionState) {
                 maxVolume = maxVolumeSpeaker;
+                #ifdef PLAY_MONO_SPEAKER
+                    playProperties.newPlayMono = true;
+                #else
+                    playProperties.newPlayMono = false;
+                #endif
             } else {
                 maxVolume = maxVolumeHeadphone;
+                playProperties.newPlayMono = false;                 // Always stereo for headphones
                 if (currentVolume > maxVolume) {
-                    volumeToQueueSender(maxVolume, true);         // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+                    volumeToQueueSender(maxVolume, true);           // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
                 }
             }
             headphoneLastDetectionState = currentHeadPhoneDetectionState;
@@ -4657,6 +4688,13 @@ void setup() {
     playProperties.trackFinished = NULL;
     playProperties.playlistFinished = true;
     playProperties.seekmode = SEEK_NORMAL;
+    #ifdef PLAY_MONO_SPEAKER
+        playProperties.newPlayMono = true;
+        playProperties.currentPlayMono = true;
+    #else
+        playProperties.newPlayMono = false;
+        playProperties.currentPlayMono = false;
+    #endif
 
     // Examples for serialized RFID-actions that are stored in NVS
     // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
