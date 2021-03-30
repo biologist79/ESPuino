@@ -267,7 +267,7 @@ TaskHandle_t fileStorageTaskHandle;
     static TwoWire i2cBusTwo = TwoWire(1);
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
-    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
+    static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
 #endif
 
 #ifdef PORT_EXPANDER_ENABLE
