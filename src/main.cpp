@@ -1212,6 +1212,7 @@ bool fileValid(const char *_fileItem) {
          endsWith(_fileItem, ".m3u") || endsWith(_fileItem, ".M3U") ||
          endsWith(_fileItem, ".m4a") || endsWith(_fileItem, ".M4A") ||
          endsWith(_fileItem, ".wav") || endsWith(_fileItem, ".WAV") ||
+         endsWith(_fileItem, ".flac") || endsWith(_fileItem, ".FLAC") ||
          endsWith(_fileItem, ".asx") || endsWith(_fileItem, ".ASX"));
 }
 
@@ -1478,7 +1479,7 @@ void playAudio(void *parameter) {
 
                 // If we're in audiobook-mode and apply a modification-card, we don't
                 // want to save lastPlayPosition for the mod-card but for the card that holds the playlist
-                if(currentRfidTagId != NULL){
+                if (currentRfidTagId != NULL) {
                     strncpy(playProperties.playRfidTag, currentRfidTagId, sizeof(playProperties.playRfidTag) / sizeof(playProperties.playRfidTag[0]));
                 }
 
@@ -1846,6 +1847,11 @@ void playAudio(void *parameter) {
                 playProperties.currentRelPos = 0;
             }
         #endif
+
+        // If error occured: remove playlist from ESPuino
+        if ((playProperties.playMode != NO_PLAYLIST) && !audio.isRunning()) {
+            playProperties.trackFinished = true;
+        }
 
         audio.loop();
         if (playProperties.playlistFinished || playProperties.pausePlay) {
