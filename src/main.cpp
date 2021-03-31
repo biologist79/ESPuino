@@ -476,6 +476,10 @@ void IRAM_ATTR onTimer() {
     // Get last RFID-tag applied from NVS
     void recoverLastRfidPlayed(void) {
         if (recoverLastRfid) {
+            if (operationMode == OPMODE_BLUETOOTH) {        // Don't recover if BT-mode is desired
+                recoverLastRfid = false;
+                return;
+            }
             recoverLastRfid = false;
             String lastRfidPlayed = prefsSettings.getString("lastRfid", "-1");
             if (!lastRfidPlayed.compareTo("-1")) {
@@ -2318,11 +2322,11 @@ void showLed(void *parameter) {
         switch (playProperties.playMode) {
             case NO_PLAYLIST:                   // If no playlist is active (idle)
                 #ifdef BLUETOOTH_ENABLE
-                if(operationMode == OPMODE_BLUETOOTH ) {
+                if (operationMode == OPMODE_BLUETOOTH) {
                     idleColor = CRGB::Blue;
                 } else  {
                 #endif
-                    if(wifiManager() == WL_CONNECTED) {
+                    if (wifiManager() == WL_CONNECTED) {
                         idleColor = CRGB::White;
                     } else {
                         idleColor = CRGB::Green;
@@ -2800,14 +2804,6 @@ void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, 
 // Modification-cards can change some settings (e.g. introducing track-looping or sleep after track/playlist).
 // This function handles them.
 void doRfidCardModifications(const uint32_t mod) {
-    #ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	    if (recoverLastRfid) {
-            recoverLastRfid = false;
-            // We don't want to remember modification-cards
-            return;
-        }
-	#endif
-
     doCmdAction(mod);
 }
 
@@ -3339,7 +3335,7 @@ void rfidPreferenceLookupHandler (void) {
 
                 #ifdef BLUETOOTH_ENABLE
                 // if music rfid was read, go back to normal mode
-                if(operationMode == OPMODE_BLUETOOTH) {
+                if (operationMode == OPMODE_BLUETOOTH) {
                     setOperationMode(OPMODE_NORMAL);
                 }
                 #endif
@@ -3404,6 +3400,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     accessPointStarted = true;
 }
 
+
 // Reads stored WiFi-status from NVS
 bool getWifiEnableStatusFromNVS(void) {
     uint32_t wifiStatus = prefsSettings.getUInt("enableWifi", 99);
@@ -3443,10 +3440,14 @@ bool writeWifiStatusToNVS(bool wifiStatus) {
     return true;
 }
 
+
+// Reads from NVS, if bluetooth or "normal" mode is desired
 uint8_t readOperationModeFromNVS(void) {
     return prefsSettings.getUChar("operationMode", OPMODE_NORMAL);
 }
 
+
+// Writes to NVS, if bluetooth or "normal" mode is desired
 bool setOperationMode(uint8_t newOperationMode) {
     uint8_t currentOperationMode = prefsSettings.getUChar("operationMode", OPMODE_NORMAL);
     if(currentOperationMode != newOperationMode) {
