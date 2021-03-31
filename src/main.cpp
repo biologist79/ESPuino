@@ -1849,7 +1849,7 @@ void playAudio(void *parameter) {
         #endif
 
         // If error occured: remove playlist from ESPuino
-        if ((playProperties.playMode != NO_PLAYLIST) && !audio.isRunning()) {
+        if ((playProperties.playMode != NO_PLAYLIST) && !audio.isRunning() && !playProperties.pausePlay) {
             playProperties.trackFinished = true;
         }
 
