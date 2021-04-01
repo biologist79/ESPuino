@@ -152,7 +152,7 @@
     uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID
-    #define RFID_SCAN_INTERVAL 300                      // Interval-time in ms (how often is RFID read?)
+    #define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
