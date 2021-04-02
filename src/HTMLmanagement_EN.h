@@ -1,9 +1,10 @@
 static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
 <head>\
-    <title>ESPuino-configuration</title>\
+    <title>ESPuino-Settings</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"https://espuino.de/espuino/favicon.ico\">\
     <link rel=\"stylesheet\" href=\"https://espuino.de/espuino/css/bootstrap.min.css\">\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css\"/>\
@@ -99,18 +100,42 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             display: none;\
             width: 100%%;\
         }\
+\
+        #SubTabContent.tab-content {\
+            display: flex;\
+        }\
+\
+        #SubTabContent.tab-content > .tab-pane {\
+            display: block; /* undo \"display: none;\" */\
+            visibility: hidden;\
+            margin-right: -100%%;\
+            width: 100%%;\
+        }\
+\
+        #SubTabContent.tab-content > .active {\
+            visibility: visible;\
+        }\
+\
+        /* IOS display fix */\
+        select {\
+            -webkit-appearance: none;\
+            -moz-appearance: none;\
+            appearance: none;\
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAAAAADhgtq/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAR0lEQVR4nGP5z4ADsOCSGOoyC+NRabjMQqjQQrgUTCYeIrQQyEI3DSyFJIHkApAUkgSy21B0oLo6fiGSBKp/kCUGU4hSRQYAYg0Rw+gGlUQAAAAASUVORK5CYII=') no-repeat;\
+            background-position: center right;\
+        }\
     </style>\
 </head>\
 <body>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
-        <a class=\"float-left navbar-brand\">\
-            <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
-                 width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
-            ESPuino\
-        </a>\
-\
-    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-power-off\"></i> Neustart</a>\
+    <a class=\"float-left navbar-brand\">\
+        <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
+             width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
+        ESPuino\
+    </a>\
+    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Restart</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/shutdown\"><i class=\"fas fa-power-off\"></i> Shutdown</a>\
     </div>\
 </nav>\
 <br/>\
@@ -123,6 +148,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             %SHOW_FTP_TAB%\
             <a class=\"nav-item nav-link\" id=\"nav-general-tab\" data-toggle=\"tab\" href=\"#nav-general\" role=\"tab\" aria-controls=\"nav-general\" aria-selected=\"false\"><i class=\"fas fa-sliders-h\"></i> General</a>\
             <a class=\"nav-item nav-link\" id=\"nav-tools-tab\" data-toggle=\"tab\" href=\"#nav-tools\" role=\"tab\" aria-controls=\"nav-tools\" aria-selected=\"false\"><i class=\"fas fa-wrench\"></i> Tools</a>\
+            <a class=\"nav-item nav-link\" id=\"nav-forum-tab\" data-toggle=\"tab\" href=\"#nav-forum\" role=\"tab\" aria-controls=\"nav-forum\" aria-selected=\"false\"><i class=\"fas fa-comment\"></i><span class=\".d-sm-none .d-md-block\"> Forum</span></a>\
         </div>\
     </nav>\
 <br>\
@@ -131,14 +157,15 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"wifiConfig\">\
             <form action=\"#wifiConfig\" method=\"POST\" onsubmit=\"wifiConfig('wifiConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
-                    <label for=\"ssid\">Wifi (SSID):</label>\
+                    <legend>WiFi-settings</legend>\
+                    <label for=\"ssid\">WiFi-name (SSID):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ssid\" placeholder=\"SSID\" name=\"ssid\" required>\
                     <div class=\"invalid-feedback\">\
-                        Please enter WiFi's SSID.\
+                        Enter WiFi's SSID.\
                     </div>\
                     <label for=\"pwd\">Password:</label>\
                     <input type=\"password\" class=\"form-control\" id=\"pwd\" placeholder=\"Passwort\" name=\"pwd\" required>\
-                    <label for=\"hostname\">ESPuino-name (Hostname):</label>\
+                    <label for=\"hostname\">ESPuino-Name (Hostname):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"hostname\" placeholder=\"espuino\" name=\"hostname\"\
                            value=\"%HOSTNAME%\" pattern=\"^[^-\\.]{2,32}\" required>\
                 </div>\
@@ -151,9 +178,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         </div>\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-control\" role=\"tabpanel\" aria-labelledby=\"nav-control-tab\">\
-        <div class=\"container\" id=\"navControl\">         \
+        <div class=\"container\" id=\"navControl\">\
                 <div class=\"form-group col-md-12\">\
-                    <legend>Controls</legend>\
+                    <legend>Control</legend>\
                     <div class=\"buttons\">\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(173)\">\
                             <span class=\"fas fa-fast-backward\"></span>\
@@ -170,54 +197,103 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(174)\">\
                             <span class=\"fas fa-fast-forward\"></span>\
                         </button>\
-                    </div>                   \
+                    </div>\
                 </div>\
                 <br>\
                 <div class=\"form-group col-md-12\">\
                     <legend>Volume</legend>\
                         <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"setVolume\"\
-                            data-slider-value=\"%INIT_VOLUME%\" value=\"%INIT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>              \
+                            data-slider-value=\"%CURRENT_VOLUME%\" value=\"%CURRENT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                 </div>\
                 <br/>\
         </div>\
     </div>\
     <div class=\"tab-pane fade show active\" id=\"nav-rfid\" role=\"tabpanel\" aria-labelledby=\"nav-rfid-tab\">\
+        <div class=\"container\" id=\"filetreeContainer\">\
+            <fieldset>\
+                <legend>Files</legend>\
+				<div class=\"filetree-container\">\
+				<div id=\"filebrowser\">\
+					<div class=\"filetree demo\" id=\"explorerTree\"></div>\
+				</div>\
+				<div>\
+					<form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\">\
+                        <div class=\"input-group\">\
+                            <span class=\"form-control\" id=\"uploaded_file_text\"></span>\
+                            <span class=\"input-group-btn\">\
+                                <span class=\"btn btn-secondary\" onclick=\"$(this).parent().find('input[type=file]').click();\">Browse</span>\
+                                <span class=\"btn btn-primary\" onclick=\"$(this).parent().find('input[type=file]').submit();\">Upload</span>\
+                                <input name=\"uploaded_file\" id =\"uploaded_file\" onchange=\"$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());\" style=\"display: none;\" type=\"file\" multiple>\
+                            </span>\
+                        </div>\
+                    </form>\
+                    <br>\
+                    <div class=\"progress\">\
+                        <div id=\"explorerUploadProgress\" class=\"progress-bar\" role=\"progressbar\" ></div>\
+                    </div>\
+                </div>\
+                <br>\
+				</div>\
+            </fieldset>\
+        </div>\
         <div class=\"container\" id=\"rfidMusicTags\">\
             <fieldset>\
-                <legend>RFID-assignments</legend>\
+                <legend>RFID-Assignments</legend>\
             <form action=\"#rfidMusicTags\" method=\"POST\" onsubmit=\"rfidAssign('rfidMusicTags'); return false\">\
                 <div class=\"form-group col-md-12\">\
-                    <label for=\"rfidIdMusic\">RFID-tag-ID (12-digits)</label>\
+                    <label for=\"rfidIdMusic\">RFID-number (12 digits)</label>\
                     <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\"\
                            placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
-                    <label for=\"fileOrUrl\">File, directory or URL (^ and # not allowed as characters)</label>\
-                    <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
-                    <div class=\"filetree-container\">\
-                        <div id=\"filebrowser\">\
-                            <div class=\"filetree demo\" id=\"filetree\"></div>\
-                            <div class=\"refreshAction\">\
-                                <span id=\"refreshAction\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"Refresh indexfile.\"><i class=\"fas fa-sync fa-1x\"></i> Refresh indexfile</span>\
-                            </div>\
+                    <br>\
+                    <ul class=\"nav nav-tabs\" id=\"SubTab\" role=\"tablist\">\
+                        <li class=\"nav-item\">\
+                            <a class=\"nav-link active\" id=\"rfid-music-tab\" data-toggle=\"tab\" href=\"#rfidmusic\" role=\"tab\"><i class=\"fas fa-music\"></i> Musik</a>\
+                        </li>\
+                        <li class=\"nav-item\">\
+                            <a class=\"nav-link\" id=\"rfid-mod-tab\" data-toggle=\"tab\" href=\"#rfidmod\" role=\"tab\"><i class=\"fas fa-cog\"></i> Modifikation</a>\
+                        </li>\
+                    </ul>\
+                    <div class=\"tab-content\" id=\"SubTabContent\">\
+                        <div class=\"tab-pane show active\" id=\"rfidmusic\" role=\"tabpanel\">\
+                            <br>\
+                            <label for=\"fileOrUrl\">File, directory or URL (^ and # aren't allowed as chars)</label>\
+                            <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
+                            <label for=\"playMode\">Playmode</label>\
+                            <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
+                                <option class=\"placeholder\" disabled selected value=\"\">Select mode</option>\
+                                <option class=\"option-file\" value=\"1\">Single track</option>\
+                                <option class=\"option-file\" value=\"2\">Single track (loop)</option>\
+                                <option class=\"option-file-and-folder\" value=\"3\">Audiobook</option>\
+                                <option class=\"option-file-and-folder\" value=\"4\">Audiobook (loop)</option>\
+                                <option class=\"option-folder\" value=\"5\">All tracks of a directory (sorted alph.)</option>\
+                                <option class=\"option-folder\" value=\"6\">All tracks of a directory (random)</option>\
+                                <option class=\"option-folder\" value=\"7\">All tracks of a directory (sorted alph., loop)</option>\
+                                <option class=\"option-folder\" value=\"9\">All tracks of a directory (random, loop)</option>\
+                                <option class=\"option-stream\" value=\"8\">Webradio</option>\
+                            </select>\
                         </div>\
-                        <div id=\"indexing-progress\" class=\"indexing-progress overlay\">\
-                            <div style=\"text-align: center; color:white; margin-top:2em;\">\
-                                <div><i class=\"fas fa-sync fa-spin fa-2x\"></i> <br><br>  This could take while...</div>\
-                                <div id=\"currentProcessedFile\"></div>\
-                            </div>\
+                        <div class=\"tab-pane \" id=\"rfidmod\" role=\"tabpanel\">\
+                            <label for=\"modId\"></label>\
+                            <select class=\"form-control\" id=\"modId\" name=\"modId\">\
+                                <option class=\"placeholder\" disabled selected value=\"\">Select modification</option>\
+                                <option value=\"100\">Keylock</option>\
+                                <option value=\"101\">Sleep after 15 minutes</option>\
+                                <option value=\"102\">Sleep after 30 minutes</option>\
+                                <option value=\"103\">Sleep after 1 hour</option>\
+                                <option value=\"104\">Sleep after 2 hours</option>\
+                                <option value=\"105\">Sleep after end of track</option>\
+                                <option value=\"106\">Sleep after end of playlist</option>\
+                                <option value=\"107\">Sleep after end of five tracks</option>\
+                                <option value=\"110\">Loop playlist</option>\
+                                <option value=\"111\">Loop track</option>\
+                                <option value=\"120\">Dimm LEDs (nightmode)</option>\
+                                <option value=\"130\">Toggle WiFi</option>\
+                                <option value=\"140\">Toggle Bluetooth</option>\
+                                <option value=\"150\">Enable FTP</option>\
+                                <option value=\"0\">Remove assignment</option>\
+                            </select>\
                         </div>\
                     </div>\
-                    <label for=\"playMode\">Playmode</label>\
-                    <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
-                        <option class=\"option-file\" value=\"1\">Single track</option>\
-                        <option class=\"option-file\" value=\"2\">Single track (loop)</option>\
-                        <option class=\"option-file-and-folder\" value=\"3\">Audiobook</option>\
-                        <option class=\"option-file-and-folder\" value=\"4\">Audiobook (loop)</option>\
-                        <option class=\"option-folder\" value=\"5\">All tracks of directory (alph. sorted)</option>\
-                        <option class=\"option-folder\" value=\"6\">All tracks of directory (random, loop)</option>\
-                        <option class=\"option-folder\" value=\"7\">All tracks of directory (alph. sorted, loop)</option>\
-                        <option class=\"option-folder\" value=\"9\">All tracks of directory (random)</option>\
-                        <option class=\"option-stream\" value=\"8\">Webstream</option>\
-                    </select>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
@@ -227,47 +303,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             </form>\
             </fieldset>\
         </div>\
-\
-        <br>\
-        <br>\
-        <div class=\"container\" id=\"rfidModTags\">\
-            <fieldset>\
-                <legend>RFID-modifications</legend>\
-            <form class=\"needs-validation\" action=\"#rfidModTags\" method=\"POST\" onsubmit=\"rfidMods('rfidModTags'); return false\">\
-                <div class=\"form-group col-md-12\">\
-                    <label for=\"rfidIdMod\">RFID-tag-ID (12-digits)</label>\
-                    <input type=\"text\" class=\"form-control\" id=\"rfidIdMod\" maxlength=\"12\" pattern=\"[0-9]{12}\"\
-                           placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMod\" required>\
-                    <div class=\"invalid-feedback\">\
-                        Please enter 12-digits-number.\
-                    </div>\
-                    <label for=\"modId\">Configuration</label>\
-                    <select class=\"form-control\" id=\"modId\" name=\"modId\">\
-                        <option value=\"100\">Keylock</option>\
-                        <option value=\"101\">Auto-sleep after 15 minutes</option>\
-                        <option value=\"102\">Auto-sleep after 30 minutes</option>\
-                        <option value=\"103\">Auto-sleep after 1 hour</option>\
-                        <option value=\"104\">Auto-sleep after 2 hours</option>\
-                        <option value=\"105\">Auto-sleep after after end of current track</option>\
-                        <option value=\"106\">Auto-sleep after after end of current playlist</option>\
-                        <option value=\"107\">Auto-sleep after after five tracks</option>\
-                        <option value=\"110\">Loop current playlist</option>\
-                        <option value=\"111\">Loop current track</option>\
-                        <option value=\"120\">Dimm LEDs (nightmode)</option>\
-                        <option value=\"130\">Enable/disable (toggle) WiFi</option>\
-                        <option value=\"140\">Enable/disable Bluetooth</option>\
-                        <option value=\"150\">Enable FTP</option>\
-                        <option value=\"0\">Delete assignments</option>\
-                    </select>\
-                </div>\
-                <br>\
-                <div class=\"text-center\">\
-                <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
-                </div>\
-            </form>\
-            </fieldset>\
-        </div>\
+        <br />\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-mqtt\" role=\"tabpanel\" aria-labelledby=\"nav-mqtt-tab\">\
         <div class=\"container\" id=\"mqttConfig\">\
@@ -275,6 +311,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\"\
                   onsubmit=\"mqttSettings('mqttConfig'); return false\">\
                 <div class=\"form-check col-md-12\">\
+                    <legend>MQTT-settings</legend>\
                     <input class=\"form-check-input\" type=\"checkbox\" value=\"1\" id=\"mqttEnable\" name=\"mqttEnable\" %MQTT_ENABLE%>\
                     <label class=\"form-check-label\" for=\"mqttEnable\">\
                         Enable MQTT\
@@ -290,6 +327,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"mqttPwd\">MQTT-password (optional):</label>\
                     <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\"\
                            placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
+                    <label for=\"mqttPort\">MQTT-port:</label>\
+                    <input type=\"number\" class=\"form-control\" id=\"mqttPort\" min=\"1\" max=\"65535\"\
+                            placeholder=\"Port\" name=\"mqttPort\" value=\"%MQTT_PORT%\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
@@ -304,6 +344,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
             <form action=\"#ftpConfig\" method=\"POST\" onsubmit=\"ftpSettings('ftpConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
+                    <legend>FTP-settings</legend>\
                     <label for=\"ftpUser\">FTP-username:</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
@@ -327,36 +368,36 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <div class=\"form-group col-md-12\">\
                     <fieldset>\
                             <legend class=\"w-auto\">Volume</legend>\
-                    <label for=\"initialVolume\">After power on</label>\
+                    <label for=\"initialVolume\">After restart</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\"\
                         data-slider-value=\"%INIT_VOLUME%\"  value=\"%INIT_VOLUME%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i></div>\
                         <br>\
-                    <label for=\"maxVolumeSpeaker\">Maximum (speaker)</label>\
+                    <label for=\"maxVolumeSpeaker\">Max. volume (speaker)</label>\
                         <div class=\"text-center\">\
                      <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
                         data-slider-value=\"%MAX_VOLUME_SPEAKER%\"  value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                         <br>\
-                    <label for=\"maxVolumeHeadphone\">Maximum (headphones)</label>\
+                    <label for=\"maxVolumeHeadphone\">Max. volume (headphones)</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\"\
                          data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                 </fieldset>\
                 </div>\
-<br>\
+                <br>\
                 <div class=\"form-group col-md-12\">\
                     <fieldset >\
-                        <legend  class=\"w-auto\">Neopixel (brightness)</legend>\
-                    <label for=\"initBrightness\">After power on:</label>\
+                        <legend class=\"w-auto\">Neopixel (brightness)</legend>\
+                    <label for=\"initBrightness\">After restart:</label>\
                         <div class=\"text-center\">\
                             <i class=\"far fa-sun fa-2x .icon-pos\"></i>\
                         <input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\"\
                                data-slider-value=\"%INIT_LED_BRIGHTNESS%\"  value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
 \
-                    <label for=\"nightBrightness\">In nightmode</label>\
+                    <label for=\"nightBrightness\">For nightmode:</label>\
                         <div class=\"text-center\">\
                         <i class=\"far fa-sun fa-2x .icon-pos\"></i><input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\" data-slider-value=\"%NIGHT_LED_BRIGHTNESS%\" value=\"%NIGHT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
@@ -367,7 +408,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <fieldset>\
                         <legend>Deep Sleep</legend>\
 \
-                        <label for=\"inactivityTime\">Inactivity (minutes)</label>\
+                        <label for=\"inactivityTime\">After n minutes inactivity</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i> <input type=\"number\" data-provide=\"slider\" data-slider-min=\"0\" data-slider-max=\"30\" min=\"1\" max=\"120\" class=\"form-control\" id=\"inactivityTime\" name=\"inactivityTime\"\
                          data-slider-value=\"%MAX_INACTIVITY%\"  value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
                     </fieldset>\
@@ -377,23 +418,23 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <div class=\"form-group col-md-12\">\
                     <fieldset>\
                         <legend>Battery</legend>\
-                    <div>Status via Neopixel</div>\
+                    <div>Show voltage-status via Neopixel</div>\
                         <br>\
-                    <label for=\"warningLowVoltage\">LED-warning will appear below this voltage.\
+                    <label for=\"warningLowVoltage\">Show warning below this threshold.\
                     </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input  data-provide=\"slider\"  data-slider-step=\"0.1\" data-slider-min=\"3.0\" data-slider-max=\"5.0\"  min=\"3.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"warningLowVoltage\" name=\"warningLowVoltage\"\
                         data-slider-value=\"%WARNING_LOW_VOLTAGE%\" value=\"%WARNING_LOW_VOLTAGE%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 <br>\
-                    <label for=\"voltageIndicatorLow\">One LED lights at this voltage\
+                    <label for=\"voltageIndicatorLow\">Lowest voltage, that is indicated by one LED\
                         </label>\
                         <div class=\"text-center\">\
-                        <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\"type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
+                        <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\" data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
                           data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
                         <br>\
-                        <label for=\"voltageIndicatorHigh\">All LEDs light at this voltage</label>\
+                        <label for=\"voltageIndicatorHigh\">Voltage that is indicated by all LEDs</label>\
 \
                             <div class=\"text-center\">\
                                 <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" min=\"2.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
@@ -401,7 +442,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         </div>\
 \
                         <br>\
-                    <label for=\"voltageCheckInterval\">Interval of measurement (minutes)</label>\
+                    <label for=\"voltageCheckInterval\">Interval between measurements (in minutes)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
                                    data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
@@ -416,27 +457,46 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 </div>\
             </form>\
         </div>\
+        <br />\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-tools\" role=\"tabpanel\" aria-labelledby=\"nav-tools-tab\">\
-        <div class=\"container my-5\" id=\"importNvs\">\
-            <h2>NVS-Importer</h2>\
+        <div class=\"container\" id=\"importNvs\">\
+            <legend>NVS-Importer</legend>\
             <form action=\"/upload\" enctype=\"multipart/form-data\" method=\"POST\">\
                 <div class=\"form-group\">\
-                    <label for=\"nvsUpload\">Select backup-file for import.</label>\
+                    <label for=\"nvsUpload\">Backupfile can be imported right here.</label>\
                     <input type=\"file\" class=\"form-control-file\" id=\"nvsUpload\" name=\"nvsUpload\" accept=\".txt\">\
                 </div>\
-                <br>\
-                <div class=\"text-center\">\
                 <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
-                </div>\
             </form>\
+        </div>\
+    </div>\
+    <div class=\"tab-pane fade\" id=\"nav-forum\" role=\"tabpanel\" aria-labelledby=\"nav-forum-tab\">\
+        <div class=\"container\" id=\"forum\">\
+            <legend>Forum</legend>\
+            <p>Having problems or aim to discuss about ESPuino?<br />\
+                Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br />\
+                <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!\
+            </p>\
         </div>\
     </div>\
 </div>\
 <script type=\"text/javascript\">\
     var DEBUG = false;\
     var lastIdclicked = '';\
+    var ActiveSubTab = 'rfid-music-tab';\
     var host = $(location).attr('hostname');\
+\
+    /* show active / selected tab */\
+    $('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {\
+        ActiveSubTab = $(e.target).attr('id');\
+        console.log ( ActiveSubTab);\
+        if (ActiveSubTab == 'rfid-music-tab') {\
+            document.getElementById(\"fileOrUrl\").required = true;\
+        } else {\
+            document.getElementById(\"fileOrUrl\").required = false;\
+        }\
+});\
 \
     if (DEBUG) {\
         host = \"192.168.178.114\";\
@@ -467,7 +527,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             var lastFolder = cur['id'].split('/').filter(function (el) {\
                 return el.trim().length > 0;\
             }).pop();\
-            if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(lastFolder)) {\
+            if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|m4a|M4A)$/i).test(lastFolder)) {\
                 data.instance.set_type(data.instance._model.data[key], 'audio');\
             } else {\
                 if (data.instance._model.data[key]['type'] == \"file\") {\
@@ -478,56 +538,16 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         });\
     }\
 \
-    function renderFileTree() {\
+    /* File Explorer functions begin*/\
+    var lastSelectedNodePath = \"\";\
 \
-        var filesURI = \"/files\";\
-        if (DEBUG) {\
-            filesURI = \"http://\" + host + \"/files\";\
+    $('#explorerTree').on('select_node.jstree', function (e, data) {\
+\
+        $('input[name=fileOrUrl]').val(data.node.data.path);\
+\
+        if (ActiveSubTab !== 'rfid-music-tab') {\
+            $('#SubTab.nav-tabs a[id=\"rfid-music-tab\"]').tab('show');\
         }\
-        $('#filetree').jstree({\
-            'core': {\
-                'check_callback': true,\
-                'data': {\
-                    url: filesURI,\
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {\
-                        $('#j1_loading').hide();\
-                        $(\"#refreshAction\").hide();\
-                        $('#filetree').html(\"<div class='clickForRefresh' ><i class='fas fa-sync fa-1x'><span id='#clickForRefresh' > Refresh fileindex.</span></div>\");\
-                        $('#filetree').on(\"click\", function () {\
-                            refreshFileList();\
-                        });\
-                        toastr.error(\"Unable to fetch directory-list.\");\
-                    }\
-                },\
-\
-            },\
-            'types': {\
-                'folder': {\
-                    'icon': \"fa fa-folder\"\
-                },\
-                'file': {\
-                    'icon': \"fa fa-file\"\
-                },\
-                'audio': {\
-                    'icon': \"fa fa-file-audio\"\
-                },\
-                'default': {\
-                    'icon': \"fa fa-folder\"\
-                }\
-            },\
-            'plugins': [\"themes\", \"types\"]\
-        }).bind('loaded.jstree', function (event, data) {\
-            postRendering(event, data);\
-            if ((data.instance._model.data['#']['children'].length == 0)) {\
-                toastr.info(\"SD-card-index needs to be refreshed.\");\
-            }\
-        }).bind('refresh.jstree', function (event, data) {\
-            postRendering(event, data);\
-        });\
-    }\
-\
-    $('#filetree').on('select_node.jstree', function (e, data) {\
-        $('input[name=fileOrUrl]').val(data.node.id);\
 \
         if (data.node.type == \"folder\") {\
             $('.option-folder').show();\
@@ -540,31 +560,370 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             $('.option-folder').hide();\
             $('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);\
         }\
-    });\
 \
-    $('#refreshAction').on(\"click\", function () {\
-        refreshFileList();\
-        $(\"#indexing-progress\").show();\
-        $(\"#refreshAction\").hide();\
-    });\
+        if(lastSelectedNodePath != data.node.data.path) {\
+            if (data.node.data.directory) {\
 \
-    $('#playMode').on(\"change\", function () {\
-        if (this.value == 8) {\
-            $('#filebrowser').slideUp();\
-        } else {\
-            $('#filebrowser').slideDown();\
+                var ref = $('#explorerTree').jstree(true),\
+                    sel = ref.get_selected();\
+                if(!sel.length) { return false; }\
+                sel = sel[0];\
+                var children = $(\"#explorerTree\").jstree(\"get_children_dom\",sel);\
+                /* refresh only, when there is no child -> possible not yet updated */\
+                if(children.length < 1){\
+                    refreshNode(sel);\
+                }\
+\
+            }\
+         lastSelectedNodePath = data.node.data.path;\
         }\
+\
+\
     });\
 \
-    function showFileIndexingState() {\
-        $(\"#indexing-progress\").show();\
-        $(\"#refreshAction\").hide();\
-    }\
+	function doRest(path, callback, obj) {\
+		obj.url      = path;\
+		obj.dataType = \"json\";\
+		obj.contentType= \"application/json;charset=IBM437\",\
+        obj.scriptCharset= \"IBM437\",\
+        obj.success  = function(data, textStatus, jqXHR) {\
+			if (callback) {\
+				callback(data);\
+			}\
+		};\
+		obj.error    = function(jqXHR, textStatus, errorThrown) {\
+			console.log(\"AJAX error\");\
+			/*debugger; */\
+		};\
+		jQuery.ajax(obj);\
+	} /* doRest */\
 \
-    function hideFileIndexingState() {\
-        $(\"#indexing-progress\").hide();\
-        $(\"#refreshAction\").show();\
-    }\
+	function getData(path, callback) {\
+		doRest(path, callback, {\
+			method   : \"GET\"\
+		});\
+	} /* getData */\
+\
+	function deleteData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"DELETE\",\
+			data: _data\
+		});\
+	} /* deleteData */\
+\
+	function patchData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"PATCH\",\
+			data: _data\
+		});\
+	} /* patchData */\
+\
+	function postData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"POST\",\
+			data: _data\
+		});\
+	} /* postData */\
+\
+\
+	function putData(path, callback, _data) {\
+		doRest(path, callback, {\
+			method   : \"PUT\",\
+			data: _data\
+		});\
+	} /* putData */\
+\
+\
+	/* File Upload */\
+	$('#explorerUploadForm').submit(function(e){\
+		e.preventDefault();\
+		console.log(\"Upload!\");\
+		var data = new FormData(this);\
+\
+		var ref = $('#explorerTree').jstree(true),\
+			sel = ref.get_selected(),\
+			path = \"/\";\
+        if(!sel.length) { alert(\"Please select the upload location!\");return false; }\
+        if(!document.getElementById('uploaded_file').files.length > 0) { alert(\"Please select files to upload!\");return false; }\
+		sel = sel[0];\
+		selectedNode = ref.get_node(sel);\
+		if(selectedNode.data.directory){\
+			path = selectedNode.data.path\
+		} else {\
+			/* remap sel to parent folder */\
+			sel = ref.get_node(ref.get_parent(sel));\
+			path = parentNode.data.path;\
+			console.log(\"Parent path: \" + path);\
+		}\
+\
+		$.ajax({\
+			url: '/explorer?path=' + path,\
+            type: 'POST',\
+            data: data,\
+            contentType: false,\
+            processData:false,\
+			xhr: function() {\
+				var xhr = new window.XMLHttpRequest();\
+\
+				xhr.upload.addEventListener(\"progress\", function(evt) {\
+				  if (evt.lengthComputable) {\
+					var percentComplete = evt.loaded / evt.total;\
+					percentComplete = parseInt(percentComplete * 100);\
+                    console.log(percentComplete);\
+                    var percent = percentComplete + '%';\
+                    $(\"#explorerUploadProgress\").css('width', percent).text(percent);\
+				  }\
+				}, false);\
+\
+				return xhr;\
+			},\
+			success: function(data, textStatus, jqXHR) {\
+                console.log(\"Upload success!\");\
+                $(\"#explorerUploadProgress\").text(\"Upload success!\");\
+                document.getElementById('uploaded_file').value = '';\
+                document.getElementById('uploaded_file_text').innerHTML = '';\
+\
+				getData(\"/explorer?path=\" + path, function(data) {\
+					/* We now have data! */\
+					deleteChildrenNodes(sel);\
+					addFileDirectory(sel, data);\
+					ref.open_node(sel);\
+\
+\
+				});\
+\
+			}\
+        });\
+	});\
+\
+	/* File Delete */\
+	function handleDeleteData(nodeId) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var node = ref.get_node(nodeId);\
+		console.log(\"call delete request: \" + node.data.path);\
+		deleteData(\"/explorer?path=\" + node.data.path);\
+	}\
+\
+	function fileNameSort( a, b ) {\
+		if ( a.dir && !b.dir ) {\
+			return -1\
+		}\
+		if ( !a.dir && b.dir ) {\
+			return 1\
+		}\
+		if ( a.name < b.name ){\
+			return -1;\
+		}\
+		if ( a.name > b.name ){\
+			return 1;\
+		}\
+		return 0;\
+	}\
+\
+	function createChild(nodeId, data) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var node = ref.get_node(nodeId);\
+		var parentNodePath = node.data.path;\
+		/* In case of root node remove leading '/' to avoid '//' */\
+		if(parentNodePath == \"/\"){\
+			parentNodePath = \"\";\
+		}\
+		var child = {\
+			text: data.name,\
+			type: getType(data),\
+			data: {\
+				path: parentNodePath + \"/\" + data.name,\
+				directory: data.dir\
+			}\
+		};\
+\
+		return child;\
+\
+	}\
+\
+	function deleteChildrenNodes(nodeId) {\
+		var ref = $('#explorerTree').jstree(true);\
+		var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
+		for(var i=0;i<children.length;i++)\
+		{\
+			ref.delete_node(children[i].id);\
+		}\
+\
+	}\
+\
+	function refreshNode(nodeId) {\
+\
+		var ref = $('#explorerTree').jstree(true);\
+\
+		var node = ref.get_node(nodeId);\
+\
+		getData(\"/explorer?path=\" + node.data.path, function(data) {\
+			/* We now have data! */\
+\
+			deleteChildrenNodes(nodeId);\
+			addFileDirectory(nodeId, data);\
+			ref.open_node(nodeId);\
+\
+		});\
+\
+\
+	}\
+\
+	function getType(data) {\
+		var type = \"\";\
+\
+		if(data.dir) {\
+			type = \"folder\";\
+		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {\
+			type = \"audio\";\
+		} else {\
+			type = \"file\";\
+		}\
+\
+		return type;\
+	}\
+\
+\
+	function addFileDirectory(parent, data) {\
+\
+		data.sort( fileNameSort );\
+		var ref = $('#explorerTree').jstree(true);\
+\
+		for (var i=0; i<data.length; i++) {\
+			console.log(\"Create Node\");\
+			ref.create_node(parent, createChild(parent, data[i]));\
+		}\
+	} /* addFileDirectory */\
+\
+	function buildFileSystemTree(path) {\
+\
+		$('#explorerTree').jstree({\
+				\"core\" : {\
+						\"check_callback\" : true,\
+						'force_text' : true,\
+						\"themes\" : { \"stripes\" : true },\
+						'data' : {	text: '/',\
+									state: {\
+										opened: true\
+									},\
+									type: 'folder',\
+									children: [],\
+									data: {\
+										path: '/',\
+										directory: true\
+								}}\
+					},\
+					'types': {\
+						'folder': {\
+							'icon': \"fa fa-folder\"\
+						},\
+						'file': {\
+							'icon': \"fa fa-file\"\
+						},\
+						'audio': {\
+							'icon': \"fa fa-file-audio\"\
+						},\
+						'default': {\
+							'icon': \"fa fa-folder\"\
+						}\
+					},\
+				plugins: [\"contextmenu\", \"themes\", \"types\"],\
+				contextmenu: {\
+					items: function(nodeId) {\
+						var ref = $('#explorerTree').jstree(true);\
+						var node = ref.get_node(nodeId);\
+						var items = {};\
+\
+\
+						if (node.data.directory) {\
+							items.createDir = {\
+								label: \"Neuer Ordner\",\
+								action: function(x) {\
+									var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
+									if(childNode) {\
+										ref.edit(childNode, null, function(childNode, status){\
+											putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
+											refreshNode(nodeId);\
+										});\
+									}\
+								}\
+							};\
+						}\
+\
+						/* Play */\
+						items.play = {\
+							label: \"Abspielen\",\
+							action: function(x) {\
+								var playMode = node.data.directory?\"5\":\"1\";\
+								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
+							}\
+						};\
+\
+						/* Refresh */\
+						items.refresh = {\
+							label: \"Aktualisieren\",\
+							action: function(x) {\
+								refreshNode(nodeId);\
+							}\
+						};\
+\
+						/* Delete */\
+						items.delete = {\
+							label: \"Löschen\",\
+							action: function(x) {\
+								handleDeleteData(nodeId);\
+								refreshNode(ref.get_parent(nodeId));\
+							}\
+						};\
+\
+						/* Rename */\
+						items.rename = {\
+							label: \"Umbenennen\",\
+							action: function(x) {\
+								var srcPath = node.data.path;\
+								ref.edit(nodeId, null, function(node, status){\
+									node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf(\"/\")+1) + node.text;\
+									patchData(\"/explorer?srcpath=\" + srcPath + \"&dstpath=\" + node.data.path);\
+									refreshNode(ref.get_parent(nodeId));\
+								});\
+							}\
+						};\
+\
+					   return items;\
+					}\
+				}\
+			});\
+\
+		if (path.length == 0) {\
+			return;\
+		}\
+		getData(\"/explorer?path=/\", function(data) {\
+			/* We now have data! */\
+			$('#explorerTree').jstree(true).settings.core.data.children = [];\
+\
+			data.sort( fileNameSort );\
+\
+\
+			for (var i=0; i<data.length; i++) {\
+				var newChild = {\
+					text: data[i].name,\
+					type: getType(data[i]),\
+					data: {\
+						path: \"/\" + data[i].name,\
+						directory: data[i].dir\
+					},\
+					children: []\
+				};\
+				$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);\
+			}\
+\
+			$(\"#explorerTree\").jstree(true).refresh();\
+\
+\
+		});\
+	} /* buildFileSystemTree */\
+\
+    /* File Explorer functions end */\
 \
     var socket = undefined;\
     var tm;\
@@ -592,31 +951,16 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
           console.log(event.data);\
           var socketMsg = JSON.parse(event.data);\
           if (socketMsg.rfidId != null) {\
-              document.getElementById('rfidIdMod').value = socketMsg.rfidId;\
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;\
               toastr.info(\"RFID Tag mit \"+ socketMsg.rfidId + \" erkannt.\" );\
-\
               $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
-              $(\"#rfidIdMod\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
-\
           } if (\"status\" in socketMsg) {\
               if (socketMsg.status == \"ok\") {\
-                  toastr.success(\"Action completed successfully.\" );\
+                  toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
               }\
           } if (\"pong\" in socketMsg) {\
               if (socketMsg.pong == 'pong') {\
                   pong();\
-              }\
-          } if (\"refreshFileList\" in socketMsg) {\
-              hideFileIndexingState();\
-              toastr.info(\"SD-card-index has been refreshed!\");\
-              $('#filetree').jstree(true).refresh();\
-\
-          }\
-          if (\"indexingState\" in socketMsg) {\
-              if(socketMsg.indexingState != null) {\
-                  $(\"#currentProcessedFile\").text(socketMsg.indexingState);\
-                  console.log(socketMsg.indexingState);\
               }\
           }\
       };\
@@ -631,24 +975,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         var myJSON = JSON.stringify(myObj);\
         socket.send(myJSON);\
         tm = setTimeout(function () {\
-            toastr.warning('Connection to ESPuino is broken. Please refresh.');\
+            toastr.warning('Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.');\
         }, 5000);\
     }\
 \
     function pong() {\
         clearTimeout(tm);\
     }\
-\
-    function refreshFileList(clickedId) {\
-        lastIdclicked = clickedId;\
-        var myObj = {\
-            \"refreshFileList\": true\
-        };\
-        var myJSON = JSON.stringify(myObj);\
-        $(\"#refreshAction\").hide();\
-        socket.send(myJSON);\
-        showFileIndexingState();\
-    };\
 \
     function genSettings(clickedId) {\
         lastIdclicked = clickedId;\
@@ -695,19 +1028,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 mqttEnable: val,\
                 mqttServer: document.getElementById('mqttServer').value,\
                 mqttUser: document.getElementById('mqttUser').value,\
-                mqttPwd: document.getElementById('mqttPwd').value\
-            }\
-        };\
-        var myJSON = JSON.stringify(myObj);\
-        socket.send(myJSON);\
-    }\
-\
-    function rfidMods(clickedId) {\
-        lastIdclicked = clickedId;\
-        var myObj = {\
-            \"rfidMod\": {\
-                rfidIdMod: document.getElementById('rfidIdMod').value,\
-                modId: document.getElementById('modId').value\
+                mqttPwd: document.getElementById('mqttPwd').value,\
+                mqttPort: document.getElementById('mqttPort').value\
             }\
         };\
         var myJSON = JSON.stringify(myObj);\
@@ -723,13 +1045,22 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
     function rfidAssign(clickedId) {\
         lastIdclicked = clickedId;\
-        var myObj = {\
-            \"rfidAssign\": {\
-                rfidIdMusic: document.getElementById('rfidIdMusic').value,\
-                fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),\
-                playMode: document.getElementById('playMode').value\
-            }\
-        };\
+        if (ActiveSubTab == 'rfid-music-tab') {\
+            var myObj = {\
+                \"rfidAssign\": {\
+                    rfidIdMusic: document.getElementById('rfidIdMusic').value,\
+                    fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),\
+                    playMode: document.getElementById('playMode').value\
+                }\
+            };\
+        } else {\
+            var myObj = {\
+                \"rfidMod\": {\
+                    rfidIdMod: document.getElementById('rfidIdMusic').value,\
+                    modId: document.getElementById('modId').value\
+                }\
+            };\
+        }\
         var myJSON = JSON.stringify(myObj);\
         socket.send(myJSON);\
     }\
@@ -767,7 +1098,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
     $(document).ready(function () {\
         connect();\
-        renderFileTree();\
+		buildFileSystemTree(\"/\");\
 \
         console.log(parseInt(document.getElementById('warningLowVoltage').value));\
         $(function () {\
@@ -777,5 +1108,4 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     });\
 </script>\
 </body>\
-</html>\
-";
+</html>";
