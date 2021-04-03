@@ -58,10 +58,11 @@
     #include <PN5180ISO14443.h>
     #include <PN5180ISO15693.h>
 #endif
-//############# MPR121-based Touch configuration ######################
 #ifdef PORT_TOUCHMPR121_ENABLE
-    #include <MPR121.h>
-    MPR121 mpr121;
+    #include <Button.h>
+    #include <ButtonEventCallback.h>
+    #include <MPR121Button.h>
+    #include <Adafruit_MPR121.h> 
 #endif
 
 #include <Preferences.h>
@@ -271,11 +272,22 @@ TaskHandle_t fileStorageTaskHandle;
     static TwoWire i2cBusTwo = TwoWire(1);
 #endif
 #ifdef RFID_READER_TYPE_MFRC522_I2C
-    static MFRC522 mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
+    static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
 #endif
 
 #ifdef PORT_EXPANDER_ENABLE
     uint8_t expanderPorts[portsToRead];
+#endif
+
+//############# MPR121-based Touch configuration ######################
+#ifdef PORT_TOUCHMPR121_ENABLE
+    Adafruit_MPR121 touchSensor = Adafruit_MPR121();
+    MPR121Button button1 = MPR121Button(touchSensor, 1);
+    MPR121Button button2 = MPR121Button(touchSensor, 2);
+    MPR121Button button3 = MPR121Button(touchSensor, 3);
+    MPR121Button button4 = MPR121Button(touchSensor, 4);
+    MPR121Button button5 = MPR121Button(touchSensor, 5);
+    MPR121Button button6 = MPR121Button(touchSensor, 6);
 #endif
 
 #if (HAL == 2)
@@ -329,6 +341,10 @@ typedef struct {
 t_button buttons[7];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t shutdownButton = 99;    // Helper used for Neopixel: stores button-number of shutdown-button
 
+#ifdef PORT_TOUCHMPR121_ENABLE
+    t_button touchbuttons[6];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+#endif
+
 Preferences prefsRfid;
 Preferences prefsSettings;
 static const char prefsRfidNamespace[] PROGMEM = "rfidTags";        // Namespace used to save IDs of rfid-tags
@@ -349,33 +365,45 @@ QueueHandle_t explorerFileUploadStatusQueue;
     #define BUTTON_0_ENABLE
 #elif (NEXT_BUTTON >= 100 && NEXT_BUTTON <= 115)
     #define EXPANDER_0_ENABLE
+#elif (NEXT_BUTTON >= 200 && NEXT_BUTTON <= 211)
+    #define TOUCH_0_ENABLE
 #endif
 #if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= 39)
     #define BUTTON_1_ENABLE
 #elif (PREVIOUS_BUTTON >= 100 && PREVIOUS_BUTTON <= 115)
     #define EXPANDER_1_ENABLE
+#elif (PREVIOUS_BUTTON >= 200 && PREVIOUS_BUTTON <= 211)
+    #define TOUCH_1_ENABLE
 #endif
 #if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= 39)
     #define BUTTON_2_ENABLE
 #elif (PAUSEPLAY_BUTTON >= 100 && PAUSEPLAY_BUTTON <= 115)
     #define EXPANDER_2_ENABLE
+#elif (PAUSEPLAY_BUTTON >= 200 && PAUSEPLAY_BUTTON <= 211)
+    #define TOUCH_2_ENABLE
 #endif
 #ifdef USEROTARY_ENABLE
     #if (DREHENCODER_BUTTON >= 0 && DREHENCODER_BUTTON <= 39)
         #define BUTTON_3_ENABLE
     #elif (DREHENCODER_BUTTON >= 100 && DREHENCODER_BUTTON <= 115)
         #define EXPANDER_3_ENABLE
+    #elif (DREHENCODER_BUTTON >= 200 && DREHENCODER_BUTTON <= 211)
+        #define TOUCH_3_ENABLE
     #endif
 #endif
 #if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
     #define BUTTON_4_ENABLE
 #elif (BUTTON_4 >= 100 && BUTTON_4 <= 115)
     #define EXPANDER_4_ENABLE
+#elif (BUTTON_4 >= 200 && BUTTON_4 <= 211)
+    #define TOUCH_4_ENABLE
 #endif
 #if (BUTTON_5 >= 0 && BUTTON_5 <= 39)
     #define BUTTON_5_ENABLE
 #elif (BUTTON_5 >= 100 && BUTTON_5 <= 115)
     #define EXPANDER_5_ENABLE
+#elif (BUTTON_5 >= 200 && BUTTON_5 <= 211)
+    #define TOUCH_5_ENABLE
 #endif
 
 // Prototypes
@@ -418,7 +446,12 @@ float measureBatteryVoltage(void);
 size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 #ifdef PORT_EXPANDER_ENABLE
-    bool portExpanderHandler();
+    void portExpanderHandler(void);
+#endif
+#ifdef PORT_TOUCHMPR121_ENABLE
+    void onButtonPressed(Button& btn);
+    void onButtonReleased(Button& btn);
+    void portMPR121Handler(void);
 #endif
 bool processJsonRequest(char *_serialJson);
 void randomizePlaylist (char *str[], const uint32_t count);
@@ -532,10 +565,46 @@ void IRAM_ATTR onTimer() {
     }
 #endif
 
+
+// Init MPR121 Touch-Buttons
+#ifdef PORT_TOUCHMPR121_ENABLE
+    void onButtonReleased(Button& btn){
+        if (button1.is(btn)) { touchbuttons[0].currentState = true; Serial.println("electrode 1 touched"); }
+        if (button2.is(btn)) { touchbuttons[1].currentState = true; Serial.println("electrode 2 touched"); }
+        if (button3.is(btn)) { touchbuttons[2].currentState = true; Serial.println("electrode 3 touched"); }
+        if (button4.is(btn)) { touchbuttons[3].currentState = true; Serial.println("electrode 4 touched"); }
+        if (button5.is(btn)) { touchbuttons[4].currentState = true; Serial.println("electrode 5 touched"); }
+        if (button6.is(btn)) { touchbuttons[5].currentState = true; Serial.println("electrode 6 touched"); }
+    }
+
+    void onButtonPressed(Button& btn){
+        if (button1.is(btn)) { touchbuttons[0].currentState = false; Serial.println("electrode 1 released"); }
+        if (button2.is(btn)) { touchbuttons[1].currentState = false; Serial.println("electrode 2 released"); }
+        if (button3.is(btn)) { touchbuttons[2].currentState = false; Serial.println("electrode 3 released"); }
+        if (button4.is(btn)) { touchbuttons[3].currentState = false; Serial.println("electrode 4 released"); }
+        if (button5.is(btn)) { touchbuttons[4].currentState = false; Serial.println("electrode 5 released"); }
+        if (button6.is(btn)) { touchbuttons[5].currentState = false; Serial.println("electrode 6 released"); }
+    }
+
+    void portMPR121Handler(void) {
+        if(digitalRead(MPR121_IRQ_PIN) == LOW){
+            Serial.println("MPRHandler called  ->  IRQ LOW");
+            // Get the latest touch readings from the sensor. Do this here means we only call .touched() once instead of 6 times
+            int latestTouchReading = touchSensor.touched();
+            button1.update(latestTouchReading);
+            button2.update(latestTouchReading);
+            button3.update(latestTouchReading);
+            button4.update(latestTouchReading);
+            button5.update(latestTouchReading);
+            button6.update(latestTouchReading);
+        }
+    }
+#endif
+
 #ifdef PORT_EXPANDER_ENABLE
     // Reads input from port-expander and writes output into global array
     // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
-    bool portExpanderHandler() {
+    void portExpanderHandler(void) {
         i2cBusTwo.beginTransmission(expanderI2cAddress);
         for (uint8_t i=0; i<portsToRead; i++) {
             i2cBusTwo.write(0x00+i);                        // Go to input-register...
@@ -544,13 +613,11 @@ void IRAM_ATTR onTimer() {
 
             if (i2cBusTwo.available()) {
                 expanderPorts[i] = i2cBusTwo.read();
-            } else {
-                return false;
             }
         }
-        return false;
     }
 #endif
+
 
 
 // Wrapper: reads from GPIOs (via digitalRead()) or from port-expander (if enabled)
@@ -585,30 +652,47 @@ void buttonHandler() {
         if (lockControls) {
             return;
         }
+        unsigned long currentTimestamp = millis();
+
         #ifdef PORT_EXPANDER_ENABLE
             portExpanderHandler();
         #endif
-        unsigned long currentTimestamp = millis();
 
-        // Buttons can be mixed between GPIO and port-expander.
-        // But at the same time only one of them can be for example NEXT_BUTTON
+        #ifdef PORT_TOUCHMPR121_ENABLE
+            portMPR121Handler();
+        #endif
+
+        // Buttons can be mixed between GPIO, port-expander and mpr121
+        // But at the same time only one of them can be used for a button. 
         #if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
             buttons[0].currentState = digitalReadFromAll(NEXT_BUTTON);
+        #elif defined(TOUCH_0_ENABLE)
+            buttons[0].currentState = touchbuttons[0].currentState;
         #endif
         #if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
             buttons[1].currentState = digitalReadFromAll(PREVIOUS_BUTTON);
+        #elif defined(TOUCH_1_ENABLE)
+            buttons[1].currentState = touchbuttons[1].currentState;
         #endif
         #if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
             buttons[2].currentState = digitalReadFromAll(PAUSEPLAY_BUTTON);
+        #elif defined(TOUCH_2_ENABLE)
+            buttons[2].currentState = touchbuttons[2].currentState;
         #endif
         #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
             buttons[3].currentState = digitalReadFromAll(DREHENCODER_BUTTON);
+        #elif defined(TOUCH_3_ENABLE)
+            buttons[3].currentState = touchbuttons[3].currentState;
         #endif
         #if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
             buttons[4].currentState = digitalReadFromAll(BUTTON_4);
+        #elif defined(TOUCH_4_ENABLE)
+            buttons[4].currentState = touchbuttons[4].currentState;
         #endif
         #if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
             buttons[5].currentState = digitalReadFromAll(BUTTON_5);
+        #elif defined(TOUCH_5_ENABLE)
+            buttons[5].currentState = touchbuttons[5].currentState;
         #endif
 
         // Iterate over all buttons in struct-array
@@ -4753,17 +4837,25 @@ void setup() {
 
     // Init MPR121 Touch-Buttons
     #ifdef PORT_TOUCHMPR121_ENABLE
-        const MPR121::DeviceAddress mpr_device_address = MPR121::ADDRESS_5A;
-        mpr121.setupSingleDevice(&i2cBusTwo, mpr_device_address, true);
-        mpr121.setAllChannelsThresholds(40, 20);
-        mpr121.setDebounce(mpr_device_address, 1, 1);
-        mpr121.setBaselineTracking(mpr_device_address, MPR121::BASELINE_TRACKING_INIT_10BIT);
-        mpr121.setChargeDischargeCurrent(mpr_device_address, 63);
-        mpr121.setChargeDischargeTime(mpr_device_address, MPR121::CHARGE_DISCHARGE_TIME_HALF_US);
-        mpr121.setFirstFilterIterations(mpr_device_address, MPR121::FIRST_FILTER_ITERATIONS_34);
-        mpr121.setSecondFilterIterations(mpr_device_address, MPR121::SECOND_FILTER_ITERATIONS_10);
-        mpr121.setSamplePeriod(mpr_device_address, MPR121::SAMPLE_PERIOD_1MS);
-        mpr121.startChannels(2, MPR121::COMBINE_CHANNELS_0_TO_1);
+        pinMode(MPR121_IRQ_PIN, INPUT_PULLUP);
+        if (!touchSensor.begin(MPR121_I2C_ADR, &i2cBusTwo)) {
+            Serial.println("MPR121 not found, check wiring?");
+        }
+        Serial.println("MPR121 found!");
+        // Register Callbacks for ButtonPressed
+        button1.onPress(onButtonPressed);
+        button2.onPress(onButtonPressed);
+        button3.onPress(onButtonPressed);
+        button4.onPress(onButtonPressed);
+        button5.onPress(onButtonPressed);
+        button6.onPress(onButtonPressed);
+        // Register Callbacks for ButtonReleased
+        button1.onPress(onButtonReleased);
+        button2.onPress(onButtonReleased);
+        button3.onPress(onButtonReleased);
+        button4.onPress(onButtonReleased);
+        button5.onPress(onButtonReleased);
+        button6.onPress(onButtonReleased);
     #endif
 
    // welcome message
@@ -5075,7 +5167,7 @@ void setup() {
         pinMode(BUTTON_5, INPUT_PULLUP);
     #endif
 
-    unsigned long currentTimestamp = millis();
+//    unsigned long currentTimestamp = millis();
 
     // Init rotary encoder
     #ifdef USEROTARY_ENABLE
@@ -5185,7 +5277,6 @@ void loop() {
     #ifdef BLUETOOTH_ENABLE
     }
     #endif
-
 
     #ifdef HEADPHONE_ADJUST_ENABLE
         headphoneVolumeManager();
