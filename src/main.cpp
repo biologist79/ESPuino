@@ -86,6 +86,83 @@
 #include "freertos/ringbuf.h"
 #include "values.h"
 
+// Prototypes
+void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
+void actionError(void);
+void actionOk(void);
+static int arrSortHelper(const void* a, const void* b);
+void batteryVoltageTester(void);
+void buttonHandler();
+void deepSleepManager(void);
+bool digitalReadFromAll(const uint8_t _channel);
+void doButtonActions(void);
+void doRfidCardModifications(const uint32_t mod);
+void doCmdAction(const uint16_t mod);
+bool dumpNvsToSd(char *_namespace, char *_destFile);
+bool endsWith (const char *str, const char *suf);
+bool fileValid(const char *_fileItem);
+void freeMultiCharArray(char **arr, const uint32_t cnt);
+uint8_t getRepeatMode(void);
+bool getWifiEnableStatusFromNVS(void);
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void convertAsciiToUtf8(String asciiString, char *utf8String);
+void convertUtf8ToAscii(String utf8String, char *asciiString);
+void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+void explorerHandleFileStorageTask(void *parameter);
+void explorerHandleListRequest(AsyncWebServerRequest *request);
+void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
+void explorerHandleCreateRequest(AsyncWebServerRequest *request);
+void explorerHandleRenameRequest(AsyncWebServerRequest *request);
+void explorerHandleAudioRequest(AsyncWebServerRequest *request);
+void headphoneVolumeManager(void);
+bool isNumber(const char *str);
+void loggerNl(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
+void logger(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
+float measureBatteryVoltage(void);
+#ifdef MQTT_ENABLE
+    void callback(const char *topic, const byte *payload, uint32_t length);
+    bool publishMqtt(const char *topic, const char *payload, bool retained);
+    void postHeartbeatViaMqtt(void);
+    bool reconnect();
+#endif
+size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+#ifdef PORT_EXPANDER_ENABLE
+    bool portExpanderHandler();
+#endif
+bool processJsonRequest(char *_serialJson);
+void randomizePlaylist (char *str[], const uint32_t count);
+char ** returnPlaylistFromWebstream(const char *_webUrl);
+char ** returnPlaylistFromSD(File _fileOrDirectory);
+#ifdef RFID_READER_TYPE_PN5180
+    void rfidScanner(void *parameter);
+#else
+    void rfidScanner(void);
+#endif
+void sleepHandler(void) ;
+void sortPlaylist(const char** arr, int n);
+bool startsWith(const char *str, const char *pre);
+String templateProcessor(const String& templ);
+void trackControlToQueueSender(const uint8_t trackCommand);
+void rfidPreferenceLookupHandler (void);
+void sendWebsocketData(uint32_t client, uint8_t code);
+void setupVolume(void);
+void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
+#ifdef USEROTARY_ENABLE
+    void rotaryVolumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
+#endif
+void volumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
+wl_status_t wifiManager(void);
+bool writeWifiStatusToNVS(bool wifiStatus);
+void bluetoothHandler(void);
+uint8_t readOperationModeFromNVS(void);
+bool setOperationMode(uint8_t operationMode);
+char * x_calloc(uint32_t _allocSize, uint32_t _unitSize);
+char * x_malloc(uint32_t _allocSize);
+char * x_strdup(const char *_str);
+char * x_strndup(const char *_str, uint32_t _len);
+
+
 // Serial-logging buffer
 uint8_t serialLoglength = 200;
 char *logBuf;   // Defintion in setup()
@@ -174,8 +251,8 @@ uint8_t sleepTimer = 30;                                // Sleep timer in minute
 // FTP
 uint8_t ftpUserLength = 10;                             // Length will be published n-1 as maxlength to GUI
 uint8_t ftpPasswordLength = 15;                         // Length will be published n-1 as maxlength to GUI
-char *ftpUser = strndup((char*) "esp32", ftpUserLength);                // FTP-user (default; can be changed later via GUI)
-char *ftpPassword = strndup((char*) "esp32", ftpPasswordLength);        // FTP-password (default; can be changed later via GUI)
+char *ftpUser = x_strndup((char*) "esp32", ftpUserLength);                // FTP-user (default; can be changed later via GUI)
+char *ftpPassword = x_strndup((char*) "esp32", ftpPasswordLength);        // FTP-password (default; can be changed later via GUI)
 
 
 // Don't change anything here unless you know what you're doing
@@ -229,9 +306,9 @@ uint8_t mqttUserLength = 16;
 uint8_t mqttPasswordLength = 16;
 
 // Please note: all of them are defaults that can be changed later via GUI
-char *mqtt_server = strndup((char*) "192.168.2.43", mqttServerLength);      // IP-address of MQTT-server (if not found in NVS this one will be taken)
-char *mqttUser = strndup((char*) "mqtt-user", mqttUserLength);              // MQTT-user
-char *mqttPassword = strndup((char*) "mqtt-password", mqttPasswordLength);  // MQTT-password*/
+char *mqtt_server = x_strndup((char*) "192.168.2.43", mqttServerLength);      // IP-address of MQTT-server (if not found in NVS this one will be taken)
+char *mqttUser = x_strndup((char*) "mqtt-user", mqttUserLength);              // MQTT-user
+char *mqttPassword = x_strndup((char*) "mqtt-password", mqttPasswordLength);  // MQTT-password*/
 uint16_t mqttPort = 1883;                                                       // MQTT-Port
 
 char stringDelimiter[] = "#";                               // Character used to encapsulate data in linear NVS-strings (don't change)
@@ -376,77 +453,6 @@ QueueHandle_t explorerFileUploadStatusQueue;
     #define EXPANDER_5_ENABLE
 #endif
 
-// Prototypes
-void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
-void actionError(void);
-void actionOk(void);
-static int arrSortHelper(const void* a, const void* b);
-void batteryVoltageTester(void);
-void buttonHandler();
-void deepSleepManager(void);
-bool digitalReadFromAll(const uint8_t _channel);
-void doButtonActions(void);
-void doRfidCardModifications(const uint32_t mod);
-void doCmdAction(const uint16_t mod);
-bool dumpNvsToSd(char *_namespace, char *_destFile);
-bool endsWith (const char *str, const char *suf);
-bool fileValid(const char *_fileItem);
-void freeMultiCharArray(char **arr, const uint32_t cnt);
-uint8_t getRepeatMode(void);
-bool getWifiEnableStatusFromNVS(void);
-void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-void convertAsciiToUtf8(String asciiString, char *utf8String);
-void convertUtf8ToAscii(String utf8String, char *asciiString);
-void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-void explorerHandleFileStorageTask(void *parameter);
-void explorerHandleListRequest(AsyncWebServerRequest *request);
-void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
-void explorerHandleCreateRequest(AsyncWebServerRequest *request);
-void explorerHandleRenameRequest(AsyncWebServerRequest *request);
-void explorerHandleAudioRequest(AsyncWebServerRequest *request);
-void headphoneVolumeManager(void);
-bool isNumber(const char *str);
-void loggerNl(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
-void logger(const uint8_t _currentLogLevel, const char *str, const uint8_t _logLevel);
-float measureBatteryVoltage(void);
-#ifdef MQTT_ENABLE
-    void callback(const char *topic, const byte *payload, uint32_t length);
-    bool publishMqtt(const char *topic, const char *payload, bool retained);
-    void postHeartbeatViaMqtt(void);
-    bool reconnect();
-#endif
-size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
-void onWebsocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
-#ifdef PORT_EXPANDER_ENABLE
-    bool portExpanderHandler();
-#endif
-bool processJsonRequest(char *_serialJson);
-void randomizePlaylist (char *str[], const uint32_t count);
-char ** returnPlaylistFromWebstream(const char *_webUrl);
-char ** returnPlaylistFromSD(File _fileOrDirectory);
-#ifdef RFID_READER_TYPE_PN5180
-    void rfidScanner(void *parameter);
-#else
-    void rfidScanner(void);
-#endif
-void sleepHandler(void) ;
-void sortPlaylist(const char** arr, int n);
-bool startsWith(const char *str, const char *pre);
-String templateProcessor(const String& templ);
-void trackControlToQueueSender(const uint8_t trackCommand);
-void rfidPreferenceLookupHandler (void);
-void sendWebsocketData(uint32_t client, uint8_t code);
-void setupVolume(void);
-void trackQueueDispatcher(const char *_sdFile, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
-#ifdef USEROTARY_ENABLE
-    void rotaryVolumeHandler(const int32_t _minVolume, const int32_t _maxVolume);
-#endif
-void volumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
-wl_status_t wifiManager(void);
-bool writeWifiStatusToNVS(bool wifiStatus);
-void bluetoothHandler(void);
-uint8_t readOperationModeFromNVS(void);
-bool setOperationMode(uint8_t operationMode);
 
 
 /* Wrapper-function for serial-logging (with newline)
@@ -486,6 +492,59 @@ void actionOk(void) {
 }
 
 
+// Wraps strdup(). Without PSRAM, strdup is called => so heap is used.
+// With PSRAM being available, the same is done what strdup() does, but with allocation on PSRAM.
+char * x_strdup(const char *_str) {
+    if (!psramInit()) {
+        return strdup(_str);
+    } else {
+        char *dst = (char *) ps_malloc(strlen (_str) + 1);
+        if (dst == NULL) {
+            return NULL;
+        }
+        strcpy(dst, _str);
+        return dst;
+    }
+}
+
+
+// Wraps strndup(). Without PSRAM, strdup is called => so heap is used.
+// With PSRAM being available, the same is done what strndup() does, but with allocation on PSRAM.
+char * x_strndup(const char *_str, uint32_t _len) {
+    if (!psramInit()) {
+        return strndup(_str, _len);
+    } else {
+        char *dst = (char *) ps_malloc(_len + 1);
+        if (dst == NULL) {
+            return NULL;
+        }
+        strncpy(dst, _str, _len);
+        dst[_len] = '\0';
+        return dst;
+    }
+}
+
+
+// Wraps ps_malloc() and malloc(). Selection depends on whether PSRAM is available or not.
+char * x_malloc(uint32_t _allocSize) {
+    if (psramInit()) {
+        return (char *) ps_malloc(_allocSize);
+    } else {
+        return (char *) malloc(_allocSize);
+    }
+}
+
+
+// Wraps ps_calloc() and calloc(). Selection depends on whether PSRAM is available or not.
+char * x_calloc(uint32_t _allocSize, uint32_t _unitSize) {
+    if (psramInit()) {
+        return (char *) ps_calloc(_allocSize, _unitSize);
+    } else {
+        return (char *) calloc(_allocSize, _unitSize);
+    }
+}
+
+
 void IRAM_ATTR onTimer() {
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
 }
@@ -509,7 +568,7 @@ void IRAM_ATTR onTimer() {
             if (!lastRfidPlayed.compareTo("-1")) {
                 loggerNl(serialDebug,(char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
             } else {
-                char *lastRfid = strdup(lastRfidPlayed.c_str());
+                char *lastRfid = x_strdup(lastRfidPlayed.c_str());
                 xQueueSend(rfidCardQueue, &lastRfid, 0);
                 snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
                 loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
@@ -937,8 +996,8 @@ bool reconnect() {
 
 // Is called if there's a new MQTT-message for us
 void callback(const char *topic, const byte *payload, uint32_t length) {
-    char *receivedString = strndup((char*)payload, length);
-    char *mqttTopic = strdup(topic);
+    char *receivedString = x_strndup((char*)payload, length);
+    char *mqttTopic = x_strdup(topic);
 
     snprintf(logBuf, serialLoglength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
     loggerNl(serialDebug, logBuf, LOGLEVEL_INFO);
@@ -952,7 +1011,7 @@ void callback(const char *topic, const byte *payload, uint32_t length) {
 
     // New track to play? Take RFID-ID as input
     else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-        char *_rfidId = strdup(receivedString);
+        char *_rfidId = x_strdup(receivedString);
         xQueueSend(rfidCardQueue, &_rfidId, 0);
         //free(_rfidId);
     }
@@ -1211,7 +1270,7 @@ bool fileValid(const char *_fileItem) {
 
 // Adds webstream to playlist; same like returnPlaylistFromSD() but always only one entry
 char ** returnPlaylistFromWebstream(const char *_webUrl) {
-    char *webUrl = strdup(_webUrl);
+    char *webUrl = x_strdup(_webUrl);
     static char **url;
 
     if (url != NULL) {
@@ -1219,14 +1278,10 @@ char ** returnPlaylistFromWebstream(const char *_webUrl) {
         freeMultiCharArray(url, strtoul(*url, NULL, 10));
     }
 
-    if (psramInit()) {
-        url = (char **) ps_malloc(sizeof(char *) * 2);
-    } else {
-        url = (char **) malloc(sizeof(char *) * 2);
-    }
+    url = (char **) x_malloc(sizeof(char *) * 2);
 
-    url[0] = strdup("1");         // Number of files is always 1 in url-mode
-    url[1] = strdup(webUrl);
+    url[0] = x_strdup("1");         // Number of files is always 1 in url-mode
+    url[1] = x_strdup(webUrl);
 
     free(webUrl);
     return ++url;
@@ -1257,11 +1312,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
 
     // File-mode
     if (!_fileOrDirectory.isDirectory()) {
-        if (psramInit()) {
-            files = (char **) ps_malloc(sizeof(char *) * 2);
-        } else {
-            files = (char **) malloc(sizeof(char *) * 2);        // +1 because [0] is used for number of elements; [1] -> [n] is used for payload
-        }
+        files = (char **) x_malloc(sizeof(char *) * 2);
         if (files == NULL) {
             loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
             actionError();
@@ -1270,15 +1321,10 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
         loggerNl(serialDebug, (char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
         strncpy(fileNameBuf, (char *) _fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
         if (fileValid(fileNameBuf)) {
-            if (psramInit()) {
-                files = (char **) ps_malloc(sizeof(char *) * 2);
-            } else {
-                files = (char **) malloc(sizeof(char *) * 2);
-            }
-
-            files[1] = strdup(fileNameBuf);
+            files = (char **) x_malloc(sizeof(char *) * 2);
+            files[1] = x_strdup(fileNameBuf);
         }
-        files[0] = strdup("1");         // Number of files is always 1 in file-mode
+        files[0] = x_strdup("1");         // Number of files is always 1 in file-mode
 
         return ++files;
     }
@@ -1286,13 +1332,12 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     // Directory-mode
     uint16_t allocCount = 1;
     uint16_t allocSize = 512;
+    if (psramInit()) {
+        allocSize = 16384;      // There's enough PSRAM. So we don't have to care...
+    }
     char *serializedPlaylist;
 
-    if (psramInit()) {
-        serializedPlaylist = (char*) ps_calloc(allocSize, sizeof(char));
-    } else {
-        serializedPlaylist = (char*) calloc(allocSize, sizeof(char));
-    }
+    serializedPlaylist = (char*) x_calloc(allocSize, sizeof(char));
 
 
     while (true) {
@@ -1333,11 +1378,7 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     }
 
     // Alloc only necessary number of playlist-pointers
-    if (psramInit()) {
-        files = (char **) ps_malloc(sizeof(char *) * cnt + 1);
-    } else {
-        files = (char **) malloc(sizeof(char *) * cnt + 1);
-    }
+    files = (char **) x_malloc(sizeof(char *) * cnt + 1);
 
     if (files == NULL) {
         loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
@@ -1351,17 +1392,13 @@ char ** returnPlaylistFromSD(File _fileOrDirectory) {
     token = strtok(serializedPlaylist, stringDelimiter);
     uint32_t pos = 1;
     while (token != NULL) {
-        files[pos++] = strdup(token);
+        files[pos++] = x_strdup(token);
         token = strtok(NULL, stringDelimiter);
     }
 
     free(serializedPlaylist);
 
-    if (psramInit()) {
-        files[0] = (char *) ps_malloc(sizeof(char) * 5);
-    } else {
-        files[0] = (char *) malloc(sizeof(char) * 5);
-    }
+    files[0] = (char *) x_malloc(sizeof(char) * 5);
 
     if (files[0] == NULL) {
         loggerNl(serialDebug, (char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
@@ -1862,11 +1899,7 @@ void rfidScanner(void) {
         mfrc522.PICC_HaltA();
         mfrc522.PCD_StopCrypto1();
 
-        if (psramInit()) {
-            cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
-        } else {
-            cardIdString = (char *) malloc(cardIdSize*3 +1);
-        }
+        cardIdString = (char *) x_malloc(cardIdSize*3 +1);
 
         if (cardIdString == NULL) {
             logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
@@ -1930,11 +1963,7 @@ void rfidScanner(void *parameter) {
             nfc14443.setupRF();
             uint8_t uid[10];
             if (nfc14443.isCardPresent() && nfc14443.readCardSerial(uid)) {
-                if (psramInit()) {
-                    cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
-                } else {
-                    cardIdString = (char *) malloc(cardIdSize*3 +1);
-                }
+                cardIdString = (char *) x_malloc(cardIdSize*3 +1);
 
                 if (cardIdString == NULL) {
                     logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
@@ -1977,11 +2006,7 @@ void rfidScanner(void *parameter) {
             // try to read ISO15693 inventory
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
             if (rc == ISO15693_EC_OK) {
-                if (psramInit()) {
-                    cardIdString = (char *) ps_malloc(cardIdSize*3 +1);
-                } else {
-                    cardIdString = (char *) malloc(cardIdSize*3 +1);
-                }
+                cardIdString = (char *) x_malloc(cardIdSize*3 +1);
 
                 if (cardIdString == NULL) {
                     logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
@@ -2589,11 +2614,7 @@ void trackControlToQueueSender(const uint8_t trackCommand) {
 // playmode to the track-queue.
 void trackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
     char *filename;
-    if (psramInit()) {
-        filename = (char *) ps_malloc(sizeof(char) * 255);
-    } else {
-        filename = (char *) malloc(sizeof(char) * 255);
-    }
+    filename = (char *) x_malloc(sizeof(char) * 255);
 
     strncpy(filename, _itemToPlay, 255);
     playProperties.startAtFilePos = _lastPlayPos;
@@ -3200,7 +3221,7 @@ void rfidPreferenceLookupHandler (void) {
     if (rfidStatus == pdPASS) {
         lastTimeActiveTimestamp = millis();
         free(currentRfidTagId);
-        currentRfidTagId = strdup(rfidTagId);
+        currentRfidTagId = x_strdup(rfidTagId);
         free(rfidTagId);
         snprintf(logBuf, serialLoglength, "%s: %s", (char *) FPSTR(rfidTagReceived), currentRfidTagId);
         sendWebsocketData(0, 10);       // Push new rfidTagId to all websocket-clients
@@ -3707,11 +3728,8 @@ bool processJsonRequest(char *_serialJson) {
 // Sends JSON-answers via websocket
 void sendWebsocketData(uint32_t client, uint8_t code) {
     char *jBuf;
-    if (psramInit()) {
-    jBuf = (char *) ps_calloc(255, sizeof(char));
-    } else {
-    jBuf = (char *) calloc(255, sizeof(char));          // In heap to save static memory
-}
+    jBuf = (char *) x_calloc(255, sizeof(char));
+
     const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 20;
     StaticJsonDocument<CAPACITY> doc;
     JsonObject object = doc.to<JsonObject>();
@@ -4522,11 +4540,7 @@ void printWakeUpReason() {
 
 void setup() {
     Serial.begin(115200);
-    if (psramInit()) {
-        logBuf = (char*) ps_calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
-    } else {
-        logBuf = (char*) calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
-    }
+    logBuf = (char*) x_calloc(serialLoglength, sizeof(char)); // Buffer for all log-messages
     #if (WAKEUP_BUTTON <= 39)
         esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0);
     #endif
