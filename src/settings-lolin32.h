@@ -4,6 +4,7 @@
 /* This is a develboard-specific config-file for *Wemos Lolin32*. Specific doesn't mean it's only working with this board.
    Lolin32 is the predecessor of Lolin D32.
    PCB: https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32
+   PCB: https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77
    Infos: https://arduino-projekte.info/wemos-lolin32/
    Caveats: None
    Status:
@@ -104,6 +105,8 @@
     #define IR_DEBOUNCE                 200             // Interval in ms to wait at least for next signal (not used for actions volume up/down)
 
     // Actions available. Use your own remote control and have a look at the console for "Command=0x??". E.g. "Protocol=NEC Address=0x17F Command=0x68 Repeat gap=39750us"
+    // Make sure to define a hex-code not more than once as this will lead to a compile-error
+    // https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
     #define RC_PLAY                     0x68            // command for play
     #define RC_PAUSE                    0x67            // command for pause
     #define RC_NEXT                     0x6b            // command for next track of playlist
