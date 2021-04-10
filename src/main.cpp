@@ -2067,7 +2067,7 @@ void rfidScanner(void *parameter) {
 
 #if defined RFID_READER_TYPE_PN532_SPI || defined RFID_READER_TYPE_PN532_I2C || defined RFID_READER_TYPE_PN532_UART
 // Instructs RFID-scanner to scan for new RFID-tags
-void rfidScanner(void *parameter) {
+void rfidScanner(void) {
     uint8_t success;
     uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
     uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
@@ -2093,7 +2093,7 @@ void rfidScanner(void *parameter) {
             if (success) {
                 cardIdString = (char *) malloc(cardIdSize*3 +1);
                 if (cardIdString == NULL) {
-                    logger((char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
+                    logger(serialDebug, (char *) FPSTR(unableToAllocateMem), LOGLEVEL_ERROR);
                     #ifdef NEOPIXEL_ENABLE
                         showLedError = true;
                     #endif
@@ -2108,16 +2108,16 @@ void rfidScanner(void *parameter) {
                     continue;
                 memcpy(lastCardId, cardId, sizeof(cardId));
                 uint8_t n = 0;
-                logger((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+                logger(serialDebug, (char *) FPSTR(rfid15693TagDetected), LOGLEVEL_NOTICE);
                 for (uint8_t i=0; i<cardIdSize; i++) {
                     snprintf(logBuf, serialLoglength, "%02x", cardId[i]);
-                    logger(logBuf, LOGLEVEL_NOTICE);
+                    logger(serialDebug, logBuf, LOGLEVEL_NOTICE);
 
                     n += snprintf (&cardIdString[n], sizeof(cardIdString) / sizeof(cardIdString[0]), "%03d", cardId[i]);
                     if (i<(cardIdSize-1)) {
-                        logger("-", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "-", LOGLEVEL_NOTICE);
                     } else {
-                        logger("\n", LOGLEVEL_NOTICE);
+                        logger(serialDebug, "\n", LOGLEVEL_NOTICE);
                     }
                 }                
                 xQueueSend(rfidCardQueue, &cardIdString, 0);
