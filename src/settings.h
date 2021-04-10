@@ -51,6 +51,9 @@
     #define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
     //#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
     //#define RFID_READER_TYPE_PN5180       // use PN5180
+    //#define RFID_READER_TYPE_PN532_SPI        // use PN532 via SPI
+    //#define RFID_READER_TYPE_PN532_I2C        // use PN532 via I2C
+    //#define RFID_READER_TYPE_PN532_UART       // use PN532 via UART
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
         #define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
