@@ -157,7 +157,7 @@ bool processJsonRequest(char *_serialJson);
 void randomizePlaylist (char *str[], const uint32_t count);
 char ** returnPlaylistFromWebstream(const char *_webUrl);
 char ** returnPlaylistFromSD(File _fileOrDirectory);
-#ifdef RFID_READER_TYPE_PN5180
+#if defined(RFID_READER_TYPE_PN5180) || defined(RFID_READER_TYPE_PN532_SPI)
     void rfidScanner(void *parameter);
 #else
     void rfidScanner(void);
@@ -355,7 +355,7 @@ AsyncEventSource events("/events");
 #endif
 
 TaskHandle_t mp3Play;
-#ifdef RFID_READER_TYPE_PN5180
+#if defined(RFID_READER_TYPE_PN5180) || defined(RFID_READER_TYPE_PN532_SPI)
     TaskHandle_t rfid;
 #endif
 TaskHandle_t fileStorageTaskHandle;
@@ -1899,7 +1899,7 @@ void playAudio(void *parameter) {
 }
 
 
-#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
+#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
 // Instructs RFID-scanner to scan for new RFID-tags using RC522 (running as function)
 void rfidScanner(void) {
     byte cardId[cardIdSize];
@@ -2067,7 +2067,7 @@ void rfidScanner(void *parameter) {
 
 #if defined RFID_READER_TYPE_PN532_SPI || defined RFID_READER_TYPE_PN532_I2C || defined RFID_READER_TYPE_PN532_UART
 // Instructs RFID-scanner to scan for new RFID-tags
-void rfidScanner(void) {
+void rfidScanner(void *parameter) {
     uint8_t success;
     uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
     uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
@@ -5089,7 +5089,7 @@ void setup() {
     timerAlarmWrite(timer, 10000, true);        // 100 Hz
     timerAlarmEnable(timer);
 
-    #ifdef RFID_READER_TYPE_PN5180
+    #if defined(RFID_READER_TYPE_PN5180) || defined(RFID_READER_TYPE_PN532_SPI)
         // Create task for rfid
         xTaskCreatePinnedToCore(
             rfidScanner, /* Function to implement the task */
@@ -5194,7 +5194,7 @@ void bluetoothHandler(void) {
 #endif
 
 void loop() {
-    #ifndef RFID_READER_TYPE_PN5180
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
         rfidScanner();      // PN5180 runs as task; RC522 as function
     #endif
 
