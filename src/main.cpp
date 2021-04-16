@@ -1487,9 +1487,7 @@ void playAudio(void *parameter) {
         trackQStatus = xQueueReceive(trackQueue, &playProperties.playlist, 0);
         if (trackQStatus == pdPASS || playProperties.trackFinished || trackCommand != 0) {
             if (trackQStatus == pdPASS) {
-                if (playProperties.pausePlay) {
-                    playProperties.pausePlay = !playProperties.pausePlay;
-                }
+                playProperties.pausePlay = false;
                 audio.stopSong();
                 #if (LANGUAGE == LANGUAGE_DE)
                     snprintf(logBuf, serialLoglength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
@@ -1566,10 +1564,10 @@ void playAudio(void *parameter) {
                 case NEXTTRACK:
                     if (playProperties.pausePlay) {
                         audio.pauseResume();
-                        playProperties.pausePlay = !playProperties.pausePlay;
+                        playProperties.pausePlay = false;
                     }
                     if (playProperties.repeatCurrentTrack) {     // End loop if button was pressed
-                        playProperties.repeatCurrentTrack = !playProperties.repeatCurrentTrack;
+                        playProperties.repeatCurrentTrack = false;
                         char rBuf[2];
 						snprintf(rBuf, 2, "%u", getRepeatMode());
 						#ifdef MQTT_ENABLE
@@ -1598,10 +1596,10 @@ void playAudio(void *parameter) {
                 case PREVIOUSTRACK:
                     if (playProperties.pausePlay) {
                         audio.pauseResume();
-                        playProperties.pausePlay = !playProperties.pausePlay;
+                        playProperties.pausePlay = false;
                     }
                     if (playProperties.repeatCurrentTrack) {     // End loop if button was pressed
-                        playProperties.repeatCurrentTrack = !playProperties.repeatCurrentTrack;
+                        playProperties.repeatCurrentTrack = false;
                         char rBuf[2];
 						snprintf(rBuf, 2, "%u", getRepeatMode());
 						#ifdef MQTT_ENABLE
@@ -1653,7 +1651,7 @@ void playAudio(void *parameter) {
                 case FIRSTTRACK:
                     if (playProperties.pausePlay) {
                         audio.pauseResume();
-                        playProperties.pausePlay = !playProperties.pausePlay;
+                        playProperties.pausePlay = false;
                     }
                     if (playProperties.currentTrackNumber > 0) {
                         playProperties.currentTrackNumber = 0;
@@ -1677,7 +1675,7 @@ void playAudio(void *parameter) {
                 case LASTTRACK:
                     if (playProperties.pausePlay) {
                         audio.pauseResume();
-                        playProperties.pausePlay = !playProperties.pausePlay;
+                        playProperties.pausePlay = false;
                     }
                     if (playProperties.currentTrackNumber+1 < playProperties.numberOfTracks) {
                         playProperties.currentTrackNumber = playProperties.numberOfTracks-1;
