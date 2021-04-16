@@ -57,9 +57,9 @@
 
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
-        #define DREHENCODER_CLK              5          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-        #define DREHENCODER_DT              18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-        #define DREHENCODER_BUTTON           4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
+        #define ROTARYENCODER_CLK            5          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
+        #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+        #define ROTARYENCODER_BUTTON         4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)

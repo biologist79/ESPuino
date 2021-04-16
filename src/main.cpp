@@ -437,9 +437,9 @@ QueueHandle_t explorerFileUploadStatusQueue;
     #define EXPANDER_2_ENABLE
 #endif
 #ifdef USEROTARY_ENABLE
-    #if (DREHENCODER_BUTTON >= 0 && DREHENCODER_BUTTON <= 39)
+    #if (ROTARYNCODER_BUTTON >= 0 && ROTARYNCODER_BUTTON <= 39)
         #define BUTTON_3_ENABLE
-    #elif (DREHENCODER_BUTTON >= 100 && DREHENCODER_BUTTON <= 115)
+    #elif (ROTARYENCODER_BUTTON >= 100 && ROTARYENCODER_BUTTON <= 115)
         #define EXPANDER_3_ENABLE
     #endif
 #endif
@@ -686,7 +686,7 @@ void buttonHandler() {
             buttons[2].currentState = digitalReadFromAll(PAUSEPLAY_BUTTON);
         #endif
         #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-            buttons[3].currentState = digitalReadFromAll(DREHENCODER_BUTTON);
+            buttons[3].currentState = digitalReadFromAll(ROTARYENCODER_BUTTON);
         #endif
         #if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
             buttons[4].currentState = digitalReadFromAll(BUTTON_4);
@@ -5011,7 +5011,7 @@ void setup() {
         pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_3_ENABLE
-        pinMode(DREHENCODER_BUTTON, INPUT_PULLUP);
+        pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_4_ENABLE
         pinMode(BUTTON_4, INPUT_PULLUP);
@@ -5024,7 +5024,7 @@ void setup() {
 
     // Init rotary encoder
     #ifdef USEROTARY_ENABLE
-        encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
+        encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
         encoder.clearCount();
         encoder.setCount(initVolume*2);         // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
     #endif
