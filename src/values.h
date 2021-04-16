@@ -30,20 +30,20 @@
 
     // RFID-modifcation-types
     #define CMD_NOTHING                       0         // Do Nothing
-    #define LOCK_BUTTONS_MOD                100         // Locks all buttons and rotary encoder
-    #define SLEEP_TIMER_MOD_15              101         // Puts uC into deepsleep after 15 minutes + LED-DIMM
-    #define SLEEP_TIMER_MOD_30              102         // Puts uC into deepsleep after 30 minutes + LED-DIMM
-    #define SLEEP_TIMER_MOD_60              103         // Puts uC into deepsleep after 60 minutes + LED-DIMM
-    #define SLEEP_TIMER_MOD_120             104         // Puts uC into deepsleep after 120 minutes + LED-DIMM
-    #define SLEEP_AFTER_END_OF_TRACK        105         // Puts uC into deepsleep after track is finished + LED-DIMM
-    #define SLEEP_AFTER_END_OF_PLAYLIST     106         // Puts uC into deepsleep after playlist is finished + LED-DIMM
-    #define SLEEP_AFTER_5_TRACKS            107         // Puts uC into deepsleep after five tracks + LED-DIMM
-    #define REPEAT_PLAYLIST                 110         // Changes active playmode to endless-loop (for a playlist)
-    #define REPEAT_TRACK                    111         // Changes active playmode to endless-loop (for a single track)
-    #define DIMM_LEDS_NIGHTMODE             120         // Changes LED-brightness
-    #define TOGGLE_WIFI_STATUS              130         // Toggles WiFi-status
-    #define TOGGLE_BLUETOOTH_MODE           140         // Toggles Normal/Bluetooth Mode
-    #define ENABLE_FTP_SERVER               150         // Enables FTP-server
+    #define CMD_LOCK_BUTTONS_MOD            100         // Locks all buttons and rotary encoder
+    #define CMD_SLEEP_TIMER_MOD_15          101         // Puts uC into deepsleep after 15 minutes + LED-DIMM
+    #define CMD_SLEEP_TIMER_MOD_30          102         // Puts uC into deepsleep after 30 minutes + LED-DIMM
+    #define CMD_SLEEP_TIMER_MOD_60          103         // Puts uC into deepsleep after 60 minutes + LED-DIMM
+    #define CMD_SLEEP_TIMER_MOD_120         104         // Puts uC into deepsleep after 120 minutes + LED-DIMM
+    #define CMD_SLEEP_AFTER_END_OF_TRACK    105         // Puts uC into deepsleep after track is finished + LED-DIMM
+    #define CMD_SLEEP_AFTER_END_OF_PLAYLIST 106         // Puts uC into deepsleep after playlist is finished + LED-DIMM
+    #define CMD_SLEEP_AFTER_5_TRACKS        107         // Puts uC into deepsleep after five tracks + LED-DIMM
+    #define CMD_REPEAT_PLAYLIST             110         // Changes active playmode to endless-loop (for a playlist)
+    #define CMD_REPEAT_TRACK                111         // Changes active playmode to endless-loop (for a single track)
+    #define CMD_DIMM_LEDS_NIGHTMODE         120         // Changes LED-brightness
+    #define CMD_TOGGLE_WIFI_STATUS          130         // Toggles WiFi-status
+    #define CMD_TOGGLE_BLUETOOTH_MODE       140         // Toggles Normal/Bluetooth Mode
+    #define CMD_ENABLE_FTP_SERVER           150         // Enables FTP-server
 
     #define CMD_PLAYPAUSE                   170         // Command: play/pause
     #define CMD_PREVTRACK                   171         // Command: previous track

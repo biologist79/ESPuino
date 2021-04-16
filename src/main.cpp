@@ -2790,7 +2790,7 @@ void doRfidCardModifications(const uint32_t mod) {
 
 void doCmdAction(const uint16_t mod) {
     switch (mod) {
-        case LOCK_BUTTONS_MOD: {     // Locks/unlocks all buttons
+        case CMD_LOCK_BUTTONS_MOD: {     // Locks/unlocks all buttons
             lockControls = !lockControls;
             if (lockControls) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
@@ -2807,7 +2807,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_15: {   // Enables/disables sleep after 15 minutes
+        case CMD_SLEEP_TIMER_MOD_15: {   // Enables/disables sleep after 15 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 15) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2839,7 +2839,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_30: {   // Enables/disables sleep after 30 minutes
+        case CMD_SLEEP_TIMER_MOD_30: {   // Enables/disables sleep after 30 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 30) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2871,7 +2871,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_60: {   // Enables/disables sleep after 60 minutes
+        case CMD_SLEEP_TIMER_MOD_60: {   // Enables/disables sleep after 60 minutes
             if (sleepTimerStartTimestamp && sleepTimer == 60) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2903,7 +2903,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_120: {   // Enables/disables sleep after 2 hrs
+        case CMD_SLEEP_TIMER_MOD_120: {   // Enables/disables sleep after 2 hrs
             if (sleepTimerStartTimestamp && sleepTimer == 120) {
                 sleepTimerStartTimestamp = 0;
                 #ifdef NEOPIXEL_ENABLE
@@ -2935,7 +2935,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_END_OF_TRACK: { // Puts uC to sleep after end of current track
+        case CMD_SLEEP_AFTER_END_OF_TRACK: { // Puts uC to sleep after end of current track
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 actionError();
@@ -2971,7 +2971,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_END_OF_PLAYLIST: {  // Puts uC to sleep after end of whole playlist (can take a while :->)
+        case CMD_SLEEP_AFTER_END_OF_PLAYLIST: {  // Puts uC to sleep after end of whole playlist (can take a while :->)
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 actionError();
@@ -3007,7 +3007,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_5_TRACKS:{
+        case CMD_SLEEP_AFTER_5_TRACKS:{
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 actionError();
@@ -3052,7 +3052,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case REPEAT_PLAYLIST: {
+        case CMD_REPEAT_PLAYLIST: {
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 actionError();
@@ -3073,7 +3073,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case REPEAT_TRACK: {     // Introduces looping for track-mode
+        case CMD_REPEAT_TRACK: {     // Introduces looping for track-mode
             if (playProperties.playMode == NO_PLAYLIST) {
                 loggerNl(serialDebug, (char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 actionError();
@@ -3094,7 +3094,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case DIMM_LEDS_NIGHTMODE: {
+        case CMD_DIMM_LEDS_NIGHTMODE: {
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), ledBrightness, false);
             #endif
@@ -3106,7 +3106,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
 
-        case TOGGLE_WIFI_STATUS: {
+        case CMD_TOGGLE_WIFI_STATUS: {
             if (writeWifiStatusToNVS(!getWifiEnableStatusFromNVS())) {
                 actionOk();
             } else {
@@ -3115,7 +3115,7 @@ void doCmdAction(const uint16_t mod) {
             break;
         }
         #ifdef BLUETOOTH_ENABLE
-            case TOGGLE_BLUETOOTH_MODE: {
+            case CMD_TOGGLE_BLUETOOTH_MODE: {
                 if (readOperationModeFromNVS() == OPMODE_NORMAL) {
                     actionOk();
                     setOperationMode(OPMODE_BLUETOOTH);
@@ -3129,7 +3129,7 @@ void doCmdAction(const uint16_t mod) {
             }
         #endif
         #ifdef FTP_ENABLE
-            case ENABLE_FTP_SERVER: {
+            case CMD_ENABLE_FTP_SERVER: {
                     if (wifiManager() == WL_CONNECTED && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
                         ftpEnableLastStatus = true;
                         actionOk();
