@@ -68,15 +68,16 @@
     #include <FastLED.h>
 #endif
 
-#if (LANGUAGE == 1)
+#if (LANGUAGE == LANGUAGE_DE)
     #include "logmessages.h"
     #include "HTMLmanagement.h"
     #include "HTMLaccesspoint.h"
-#endif
-#if (LANGUAGE == 2)
+#elif (LANGUAGE == LANGUAGE_EN)
     #include "logmessages_EN.h"
     #include "HTMLmanagement_EN.h"
     #include "HTMLaccesspoint_EN.h"
+#else
+#error "language is not set correctly in settings.h"
 #endif
 
 #include <AsyncTCP.h>
@@ -1437,7 +1438,7 @@ size_t nvsRfidWriteWrapper (const char *_rfidCardId, const char *_track, const u
     }
 
     snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-    #if (LANGUAGE == 1)
+    #if (LANGUAGE == LANGUAGE_DE)
         snprintf(logBuf, serialLoglength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     #else
         snprintf(logBuf, serialLoglength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
@@ -1490,7 +1491,7 @@ void playAudio(void *parameter) {
                     playProperties.pausePlay = !playProperties.pausePlay;
                 }
                 audio.stopSong();
-                #if (LANGUAGE == 1)
+                #if (LANGUAGE == LANGUAGE_DE)
                     snprintf(logBuf, serialLoglength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
                 #else
                     snprintf(logBuf, serialLoglength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), playProperties.numberOfTracks);
@@ -1725,7 +1726,7 @@ void playAudio(void *parameter) {
                         nvsRfidWriteWrapper(playProperties.playRfidTag, *(playProperties.playlist + 0), 0, playProperties.playMode, 0, playProperties.numberOfTracks);
                     }
                     #ifdef MQTT_ENABLE
-                        #if (LANGUAGE == 1)
+                        #if (LANGUAGE == LANGUAGE_DE)
                             publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
                         #else
                             publishMqtt((char *) FPSTR(topicTrackState), "<End>", false);
@@ -1788,7 +1789,7 @@ void playAudio(void *parameter) {
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
                     #endif
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == LANGUAGE_DE)
                         snprintf(logBuf, serialLoglength, "'%s' wird abgespielt (%d von %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
                     #else
                         snprintf(logBuf, serialLoglength, "'%s' is being played (%d of %d)", *(playProperties.playlist + playProperties.currentTrackNumber), (playProperties.currentTrackNumber+1) , playProperties.numberOfTracks);
@@ -1803,7 +1804,7 @@ void playAudio(void *parameter) {
         if (playProperties.seekmode != SEEK_NORMAL) {
             if (playProperties.seekmode == SEEK_FORWARDS) {
                 if (audio.setTimeOffset(jumpOffset)) {
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == LANGUAGE_DE)
                         Serial.printf("%d Sekunden nach vorne gesprungen\n", jumpOffset);
                     #else
                         Serial.printf("Jumped %d seconds forwards\n", jumpOffset);
@@ -1813,7 +1814,7 @@ void playAudio(void *parameter) {
                 }
             } else if (playProperties.seekmode == SEEK_BACKWARDS) {
                 if (audio.setTimeOffset(-(jumpOffset))) {
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == LANGUAGE_DE)
                         Serial.printf("%d Sekunden zurueck gesprungen\n", jumpOffset);
                     #else
                         Serial.printf("Jumped %d seconds backwards\n", jumpOffset);
@@ -3305,7 +3306,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     });
 
     wServer.on("/restart", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        #if (LANGUAGE == 1)
+        #if (LANGUAGE == LANGUAGE_DE)
             request->send(200, "text/html", "ESPuino wird neu gestartet...");
         #else
             request->send(200, "text/html", "ESPuino is being restarted...");
@@ -3315,7 +3316,7 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     });
 
     wServer.on("/shutdown", HTTP_GET, [] (AsyncWebServerRequest *request) {
-        #if (LANGUAGE == 1)
+        #if (LANGUAGE == LANGUAGE_DE)
             request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
         #else
             request->send(200, "text/html", "ESPuino is being shutdown...");
@@ -3400,7 +3401,7 @@ bool setOperationMode(uint8_t newOperationMode) {
             ftpSrv->begin(FSystem, ftpUser, ftpPassword);
             snprintf(logBuf, serialLoglength, "%s: %u", (char *) FPSTR(freeHeapWithFtp), ESP.getFreeHeap());
             loggerNl(serialDebug, logBuf, LOGLEVEL_DEBUG);
-            #if (LANGUAGE == 1)
+            #if (LANGUAGE == LANGUAGE_DE)
                 Serial.println(F("FTP-Server gestartet"));
             #else
                 Serial.println(F("FTP-server started"));
@@ -3467,7 +3468,7 @@ wl_status_t wifiManager(void) {
 
         if (WiFi.status() == WL_CONNECTED) {
             myIP = WiFi.localIP();
-            #if (LANGUAGE == 1)
+            #if (LANGUAGE == LANGUAGE_DE)
                 snprintf(logBuf, serialLoglength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             #else
                 snprintf(logBuf, serialLoglength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -3579,7 +3580,7 @@ bool processJsonRequest(char *_serialJson) {
     JsonObject object = doc.as<JsonObject>();
 
     if (error) {
-        #if (LANGUAGE == 1)
+        #if (LANGUAGE == LANGUAGE_DE)
             Serial.print(F("deserializeJson() fehlgeschlagen: "));
         #else
             Serial.print(F("deserializeJson() failed: "));
