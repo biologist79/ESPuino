@@ -64,6 +64,12 @@
 #define BUTTON_4                        99          // Button 4: unnamed optional button
 #define BUTTON_5                        99          // Button 5: unnamed optional button
 
+#ifdef TOUCH_SENSOR_ENABLE
+    #define TOUCH_NEXT_SENSOR                4          // Touch Sensor 0: GPIO to detect next via touch
+    #define TOUCH_PREVIOUS_SENSOR            2          // Touch Sensor 1: GPIO to detect previous via touch
+    #define TOUCH_PAUSEPLAY_SENSOR           5          // Touch Sensor 2: GPIO to detect pause/play via touch
+#endif
+
 // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
 #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
     #define ext_IIC_CLK                 5           // i2c-SCL (clock)

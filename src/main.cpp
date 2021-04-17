@@ -684,6 +684,20 @@ bool digitalReadFromAll(const uint8_t _channel) {
     }
 }
 
+// checks if capacitive sensor was touched
+bool touchReadFromAll(const uint8_t _touch_pin_numer) {
+    int touchSensorValue = 99;
+    
+    // read value need to be below threshold for three times (to avoid signal noise errors)
+    for (size_t i = 0; i < 3; i++)
+    {
+        touchSensorValue = touchRead(_touch_pin_numer);
+        if (touchSensorValue > TOUCH_SENSOR_THRESHOLD) {
+            return false;
+        }
+    }
+    return true;
+}
 
 // If timer-semaphore is set, read buttons (unless controls are locked)
 void buttonHandler() {
@@ -700,12 +714,18 @@ void buttonHandler() {
         // But at the same time only one of them can be for example NEXT_BUTTON
         #if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
             buttons[0].currentState = digitalReadFromAll(NEXT_BUTTON);
+        #elif defined TOUCH_NEXT_SENSOR
+            buttons[0].currentState = touchReadFromAll(TOUCH_NEXT_SENSOR);
         #endif
         #if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
             buttons[1].currentState = digitalReadFromAll(PREVIOUS_BUTTON);
+        #elif defined TOUCH_PREVIOUS_SENSOR
+            buttons[1].currentState = touchReadFromAll(TOUCH_PREVIOUS_SENSOR);
         #endif
         #if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
             buttons[2].currentState = digitalReadFromAll(PAUSEPLAY_BUTTON);
+        #elif defined TOUCH_PAUSEPLAY_SENSOR
+            buttons[2].currentState = touchReadFromAll(TOUCH_PAUSEPLAY_SENSOR);
         #endif
         #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
             buttons[3].currentState = digitalReadFromAll(DREHENCODER_BUTTON);

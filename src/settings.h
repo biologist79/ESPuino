@@ -40,6 +40,7 @@
     #define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
     #define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino via bluetooth (a2dp-sink).
     //#define IR_CONTROL_ENABLE             // Enables remote control
+    //#define TOUCH_SENSOR_ENABLE             // Enables touch sensors (capacitive)
 
 
     //################## select SD card mode #############################
@@ -73,6 +74,11 @@
         const uint8_t portsToRead = 2;      // PCA9555 has two ports à 8 channels. If 8 channels are sufficient, set to 1 and only use the first port!
         uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
     #endif
+
+    //############# touch-button-configuration ######################
+    #ifdef TOUCH_SENSOR_ENABLE
+        #define TOUCH_SENSOR_THRESHOLD      20
+    #endif    
 
     //################## BUTTON-Layout ##################################
     /* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
