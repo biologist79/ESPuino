@@ -1,3 +1,5 @@
+#if (LANGUAGE == 1)
+
 static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
 <head>\
@@ -1109,3 +1111,5 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 </script>\
 </body>\
 </html>";
+
+#endif

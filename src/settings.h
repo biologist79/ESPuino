@@ -61,14 +61,14 @@
     #endif
 
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-        uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
+        constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 
 
     //############# Port-expander-configuration ######################
     #ifdef PORT_EXPANDER_ENABLE
-        const uint8_t portsToRead = 2;      // PCA9555 has two ports à 8 channels. If 8 channels are sufficient, set to 1 and only use the first port!
-        uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
+        constexpr const uint8_t portsToRead = 2;      // PCA9555 has two ports à 8 channels. If 8 channels are sufficient, set to 1 and only use the first port!
+        constexpr uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
     #endif
 
     //################## BUTTON-Layout ##################################
@@ -130,33 +130,28 @@
     #define BUTTON_MULTI_45   CMD_NOTHING
 
     //#################### Various settings ##############################
-    // Loglevels available (don't change!)
-    #define LOGLEVEL_ERROR                  1           // only errors
-    #define LOGLEVEL_NOTICE                 2           // errors + important messages
-    #define LOGLEVEL_INFO                   3           // infos + errors + important messages
-    #define LOGLEVEL_DEBUG                  4           // almost everything
 
     // Serial-logging-configuration
-    const uint8_t serialDebug = LOGLEVEL_DEBUG;          // Current loglevel for serial console
+    #define SERIAL_LOGLEVEL LOGLEVEL_DEBUG              // Current loglevel for serial console
 
     // Static ip-configuration
     #ifdef STATIC_IP_ENABLE
-        IPAddress local_IP(192, 168, 2, 100);           // ESPuino's IP
-        IPAddress gateway(192, 168, 2, 1);              // IP of the gateway/router
-        IPAddress subnet(255, 255, 255, 0);             // Netmask of your network (/24 => 255.255.255.0)
-        IPAddress primaryDNS(192, 168, 2, 1);           // DNS-server of your network; in private networks it's usually the gatewy's IP
+        #define LOCAL_IP   192,168,2,100                // ESPuino's IP
+        #define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router                  
+        #define SUBNET_IP  255,255,255,0                // Netmask of your network (/24 => 255.255.255.0)
+        #define DNS_IP     192,168,2,1                  // DNS-server of your network; in private networks it's usually the gatewy's IP
     #endif
 
     // Buttons (better leave unchanged if in doubts :-))
-    uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
-    uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
+    constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
+    constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID
     #define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-        uint32_t deepsleepTimeAfterBootFails = 20;      // Automatic restart takes place if boot was not successful after this period (in seconds)
+        constexpr uint32_t deepsleepTimeAfterBootFails = 20;      // Automatic restart takes place if boot was not successful after this period (in seconds)
     #endif
 
     // FTP
@@ -164,11 +159,11 @@
     // Default user/password is esp32/esp32 but can be changed via webgui
 
     // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
-    static const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-    static const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
+    constexpr const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
 
     // Where to store the backup-file for NVS-records
-    static const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
+    constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
 
 
     //#################### Settings for optional Modules##############################
@@ -180,45 +175,61 @@
     #endif
 
     // (optional) Default-voltages for battery-monitoring via Neopixel
-    float warningLowVoltage = 3.4;                      // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-    uint8_t voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
-    float voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
-    float voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
+    constexpr float s_warningLowVoltage = 3.4;                      // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
+    constexpr uint8_t s_voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
+    constexpr float s_voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
+    constexpr float s_voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
 
     // (optinal) Headphone-detection (leave unchanged if in doubts...)
     #ifdef HEADPHONE_ADJUST_ENABLE
-        uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
+        constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
     #endif
 
     // Seekmode-configuration
-    uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
+    constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
 
     // (optional) Topics for MQTT
     #ifdef MQTT_ENABLE
-        uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
-        uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
+        constexpr uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
+        constexpr uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
         #define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
-        static const char topicSleepCmnd[] PROGMEM = "Cmnd/ESPuino/Sleep";
-        static const char topicSleepState[] PROGMEM = "State/ESPuino/Sleep";
-        static const char topicRfidCmnd[] PROGMEM = "Cmnd/ESPuino/Rfid";
-        static const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
-        static const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
-        static const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
-        static const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
-        static const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
-        static const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
-        static const char topicSleepTimerState[] PROGMEM = "State/ESPuino/SleepTimer";
-        static const char topicState[] PROGMEM = "State/ESPuino/State";
-        static const char topicCurrentIPv4IP[] PROGMEM = "State/ESPuino/IPv4";
-        static const char topicLockControlsCmnd[] PROGMEM ="Cmnd/ESPuino/LockControls";
-        static const char topicLockControlsState[] PROGMEM ="State/ESPuino/LockControls";
-        static const char topicPlaymodeState[] PROGMEM = "State/ESPuino/Playmode";
-        static const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/ESPuino/RepeatMode";
-        static const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
-        static const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
-        static const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
+        constexpr const char topicSleepCmnd[] PROGMEM = "Cmnd/ESPuino/Sleep";
+        constexpr const char topicSleepState[] PROGMEM = "State/ESPuino/Sleep";
+        constexpr const char topicRfidCmnd[] PROGMEM = "Cmnd/ESPuino/Rfid";
+        constexpr const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
+        constexpr const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
+        constexpr const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
+        constexpr const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
+        constexpr const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
+        constexpr const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
+        constexpr const char topicSleepTimerState[] PROGMEM = "State/ESPuino/SleepTimer";
+        constexpr const char topicState[] PROGMEM = "State/ESPuino/State";
+        constexpr const char topicCurrentIPv4IP[] PROGMEM = "State/ESPuino/IPv4";
+        constexpr const char topicLockControlsCmnd[] PROGMEM ="Cmnd/ESPuino/LockControls";
+        constexpr const char topicLockControlsState[] PROGMEM ="State/ESPuino/LockControls";
+        constexpr const char topicPlaymodeState[] PROGMEM = "State/ESPuino/Playmode";
+        constexpr const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/ESPuino/RepeatMode";
+        constexpr const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
+        constexpr const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
+        constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
         #ifdef MEASURE_BATTERY_VOLTAGE
-            static const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
+            constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
         #endif
     #endif
+
+    // !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
+    #if (HAL == 1)
+        #include "settings-lolin32.h"                       // Contains all user-relevant settings for Wemos Lolin32
+    #elif (HAL == 2)
+        #include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
+    #elif (HAL == 3)
+        #include "settings-lolin_d32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
+    #elif (HAL == 4)
+        #include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
+    #elif (HAL == 5)
+        #include "settings-ttgo_t8.h"                       // Contains all user-relevant settings for Lilygo TTGO T8 1.7
+    #elif (HAL == 99)
+        #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
+    #endif
+
 #endif

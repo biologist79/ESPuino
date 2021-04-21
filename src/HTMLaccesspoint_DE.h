@@ -1,3 +1,5 @@
+#if (LANGUAGE == 1)
+
 static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html>\
     <head>\
@@ -62,3 +64,5 @@ static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
         </form>\
     </body>\
 </html>";
+
+#endif
