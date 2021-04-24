@@ -168,8 +168,8 @@ uint8_t const cardIdSize = 4;                           // RFID
 // Volume
 uint8_t maxVolume = 21;                                 // Current maximum volume that can be adjusted
 uint8_t maxVolumeSpeaker = 21;                          // Maximum volume that can be adjusted in speaker-mode (default; can be changed later via GUI)
-uint8_t minVolume = 0;                                  // Lowest volume that can be adjusted
-uint8_t initVolume = 3;                                 // 0...21 (If not found in NVS, this one will be taken) (default; can be changed later via GUI)
+uint8_t minVolume = 3;                                  // Lowest volume that can be adjusted
+uint8_t initVolume = 11;                                 // 0...21 (If not found in NVS, this one will be taken) (default; can be changed later via GUI)
 #ifdef HEADPHONE_ADJUST_ENABLE
     uint8_t maxVolumeHeadphone = 11;                    // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
 #endif
@@ -282,12 +282,12 @@ TaskHandle_t fileStorageTaskHandle;
 //############# MPR121-based Touch configuration ######################
 #ifdef PORT_TOUCHMPR121_ENABLE
     Adafruit_MPR121 touchSensor = Adafruit_MPR121();
-    MPR121Button button1 = MPR121Button(touchSensor, 1);
-    MPR121Button button2 = MPR121Button(touchSensor, 2);
-    MPR121Button button3 = MPR121Button(touchSensor, 3);
-    MPR121Button button4 = MPR121Button(touchSensor, 4);
-    MPR121Button button5 = MPR121Button(touchSensor, 5);
-    MPR121Button button6 = MPR121Button(touchSensor, 6);
+    MPR121Button button1 = MPR121Button(touchSensor, 2);
+    MPR121Button button2 = MPR121Button(touchSensor, 3);
+    MPR121Button button3 = MPR121Button(touchSensor, 4);
+    MPR121Button button4 = MPR121Button(touchSensor, 5);
+    MPR121Button button5 = MPR121Button(touchSensor, 6);
+    MPR121Button button6 = MPR121Button(touchSensor, 7);
 #endif
 
 #if (HAL == 2)
@@ -568,7 +568,7 @@ void IRAM_ATTR onTimer() {
 
 // Init MPR121 Touch-Buttons
 #ifdef PORT_TOUCHMPR121_ENABLE
-    void onButtonReleased(Button& btn){
+    void onButtonPressed(Button& btn){
         if (button1.is(btn)) { touchbuttons[0].currentState = true; Serial.println("electrode 1 touched"); }
         if (button2.is(btn)) { touchbuttons[1].currentState = true; Serial.println("electrode 2 touched"); }
         if (button3.is(btn)) { touchbuttons[2].currentState = true; Serial.println("electrode 3 touched"); }
@@ -577,7 +577,7 @@ void IRAM_ATTR onTimer() {
         if (button6.is(btn)) { touchbuttons[5].currentState = true; Serial.println("electrode 6 touched"); }
     }
 
-    void onButtonPressed(Button& btn){
+    void onButtonReleased(Button& btn){
         if (button1.is(btn)) { touchbuttons[0].currentState = false; Serial.println("electrode 1 released"); }
         if (button2.is(btn)) { touchbuttons[1].currentState = false; Serial.println("electrode 2 released"); }
         if (button3.is(btn)) { touchbuttons[2].currentState = false; Serial.println("electrode 3 released"); }
@@ -4838,10 +4838,10 @@ void setup() {
     // Init MPR121 Touch-Buttons
     #ifdef PORT_TOUCHMPR121_ENABLE
         pinMode(MPR121_IRQ_PIN, INPUT_PULLUP);
-        if (!touchSensor.begin(MPR121_I2C_ADR, &i2cBusTwo)) {
+        if (!touchSensor.begin(MPR121_I2C_ADR, &i2cBusTwo, 24, 12)) {
             Serial.println("MPR121 not found, check wiring?");
         }
-        Serial.println("MPR121 found!");
+        Serial.println("MPR121 initialized");
         // Register Callbacks for ButtonPressed
         button1.onPress(onButtonPressed);
         button2.onPress(onButtonPressed);
