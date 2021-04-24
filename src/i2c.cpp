@@ -13,7 +13,6 @@
 void I2C_Init() {
 
     #if (HAL == 2)
-        I2C_clear_lines(IIC_DATA, IIC_CLK);
         i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 //        loggerNl(serialDebug, (char *) FPSTR(i2cB1Active), LOGLEVEL_DEBUG);
     #endif
