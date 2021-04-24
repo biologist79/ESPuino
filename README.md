@@ -1,18 +1,17 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
 ## NEWS
-* EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not necessary.
+* EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Build status
 ![build workflow](https://github.com/biologist79/ESPuino/actions/workflows/build.yml/badge.svg)
 ## Changelog
-Moved to [another location](changelog.md). Only last three events are kept:
-* 05.03.2021: Added support for remote control via infrared. Make sure to enable `IR_CONTROL_ENABLE` to use this feature and don't forget to assign corresponding rc-commands of *your* remote control to actions.
+Last three events:
 * 19.03.2021: Added support for port-expander PCA9555. Can be used for everything, that is "button-like": buttons, headphone-detect, PN5180.IRQ.
 * 28.03.2021: Added support for fileseek. With commands `CMD_SEEK_FORWARDS` and `CMD_SEEK_BACKWARDS` it's possible to jump a number of seconds defined in `jumpOffset`.
+* 30.03.2021: Added support for stereo/mono via `PLAY_MONO_SPEAKER`. If active, mono is used while headphones remain stereo (if `HEADPHONE_ADJUST_ENABLE` is active).
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
-* English translation/version for webgui is currently pretty outdated. This will be fixed soon when i18n-support will be integrated.
 ## ESPuino - what's that?
 The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 

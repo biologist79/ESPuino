@@ -527,7 +527,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             var lastFolder = cur['id'].split('/').filter(function (el) {\
                 return el.trim().length > 0;\
             }).pop();\
-            if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|.m4a|.M4A)$/i).test(lastFolder)) {\
+            if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|m4a|M4A)$/i).test(lastFolder)) {\
                 data.instance.set_type(data.instance._model.data[key], 'audio');\
             } else {\
                 if (data.instance._model.data[key]['type'] == \"file\") {\

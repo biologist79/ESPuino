@@ -102,6 +102,8 @@
     #define IR_DEBOUNCE                 200             // Interval in ms to wait at least for next signal (not used for actions volume up/down)
 
     // Actions available. Use your own remote control and have a look at the console for "Command=0x??". E.g. "Protocol=NEC Address=0x17F Command=0x68 Repeat gap=39750us"
+    // Make sure to define a hex-code not more than once as this will lead to a compile-error
+    // https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
     #define RC_PLAY                     0x68            // command for play
     #define RC_PAUSE                    0x67            // command for pause
     #define RC_NEXT                     0x6b            // command for next track of playlist

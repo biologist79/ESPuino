@@ -123,7 +123,7 @@ static const char restoredMaxLoudnessForSpeakerFromNvs[] PROGMEM = "Restored max
 static const char restoredMaxLoudnessForHeadphoneFromNvs[] PROGMEM = "Restored maximum volume for headphone from NVS";
 static const char wroteMaxLoudnessForSpeakerToNvs[] PROGMEM = "Wrote maximum volume for speaker to NVS.";
 static const char wroteMaxLoudnessForHeadphoneToNvs[] PROGMEM = "Wrote maximum volume for headphone to NVS.";
-static const char maxVolumeSet[] PROGMEM = "Maximum volume set to ";
+static const char maxVolumeSet[] PROGMEM = "Maximum volume set to";
 static const char wroteMqttFlagToNvs[] PROGMEM = "Stored MQTT-flag to NVS.";
 static const char restoredMqttActiveFromNvs[] PROGMEM = "Restored MQTT-flag (enabled) from NVS";
 static const char restoredMqttDeactiveFromNvs[] PROGMEM = "Restored MQTT-flag (disabled) from NVS";
@@ -162,6 +162,7 @@ static const char listingDirectory[] PROGMEM = "Listing directory";
 static const char failedToOpenDirectory[] PROGMEM = "Failed to open directory";
 static const char notADirectory[] PROGMEM = "Not a directory";
 static const char sdMountedMmc1BitMode[] PROGMEM = "SD card mounted in SPI-mode configured...";
+static const char sdMountedSpiMode[] PROGMEM = "Mounting SD card in SPI-mode...";
 static const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char restartWebsite[] PROGMEM = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 static const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino is being shutdown...</p>";
@@ -176,3 +177,5 @@ static const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power c
 static const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";
 static const char rememberLastVolume[] PROGMEM = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";
 static const char unableToStartFtpServer[] PROGMEM = "FTP-server cannot be started. This is because FTP-service is already active of because WiFi is unavailable.";
+static const char newPlayModeStereo[] PROGMEM = "New mode: stereo";
+static const char newPlayModeMono[] PROGMEM = "New mode: mono";
