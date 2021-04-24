@@ -1,6 +1,5 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 #include <Arduino.h>
-#include <Wire.h>
 #include "settings.h" // Contains all user-relevant settings (general)
 
 #include "AudioPlayer.h"
@@ -17,6 +16,9 @@
 #include "MemX.h"
 #include "Port.h"
 #include "Queues.h"
+#include "i2c.h"
+#include "AMP.h"
+#include "ButtonMPR121.h"
 #include "Rfid.h"
 #include "RotaryEncoder.h"
 #include "SdCard.h"
@@ -29,17 +31,6 @@ bool recoverLastRfid = true;
 #endif
 
 ////////////
-
-#if (HAL == 2)
-#include "AC101.h"
-static TwoWire i2cBusOne = TwoWire(0);
-static AC101 ac(&i2cBusOne);
-#endif
-
-// I2C
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-TwoWire i2cBusTwo = TwoWire(1);
-#endif
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
 // Get last RFID-tag applied from NVS
@@ -123,32 +114,7 @@ void setup()
 
     Led_Init();
 
-#if (HAL == 2)
-    i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
-
-    while (not ac.begin())
-    {
-        Serial.println(F("AC101 Failed!"));
-        delay(1000);
-    }
-    Serial.println(F("AC101 via I2C - OK!"));
-
-    pinMode(22, OUTPUT);
-    digitalWrite(22, HIGH);
-
-    pinMode(GPIO_PA_EN, OUTPUT);
-    digitalWrite(GPIO_PA_EN, HIGH);
-    Serial.println(F("Built-in amplifier enabled\n"));
-#endif
-
     SdCard_Init();
-
-// Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-    i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-    delay(50);
-    Log_Println((char *)FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-#endif
 
     // welcome message
     Serial.println(F(""));
@@ -183,12 +149,15 @@ void setup()
         Serial.println(F("UNKNOWN"));
     }
 
+    I2C_Init();
+    AC101_Init();
     Queues_Init();
     Ftp_Init();
     AudioPlayer_Init();
     Mqtt_Init();
     Battery_Init();
     Button_Init();
+    ButtonMPR121_Init();
     Rfid_Init();
     RotaryEncoder_Init();
     Wlan_Init();
@@ -231,6 +200,7 @@ void loop()
     Battery_Cyclic();
     Port_Cyclic();
     Button_Cyclic();
+    ButtonMPR121_Cyclic();
     System_Cyclic();
     Rfid_PreferenceLookupHandler();
 

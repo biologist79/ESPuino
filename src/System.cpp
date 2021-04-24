@@ -84,7 +84,7 @@ bool System_SetSleepTimer(uint8_t minutes)
         System_SleepTimerStartTimestamp = 0u;
         Led_ResetToInitialBrightness();
         Log_Println((char *)FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-        publishMqtt((char *)FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+        //publishMqtt((char *)FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
     }
     else
     {
@@ -94,8 +94,8 @@ bool System_SetSleepTimer(uint8_t minutes)
 
         Led_ResetToNightBrightness();
         Log_Println((char *)FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
-        publishMqtt((char *)FPSTR(topicSleepTimerState), System_SleepTimer, false);
-        publishMqtt((char *)FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+        //publishMqtt((char *)FPSTR(topicSleepTimerState), System_SleepTimer, false);
+        //publishMqtt((char *)FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
     }
 
     return sleepTimerEnabled;
@@ -138,13 +138,13 @@ void System_ToggleLockControls(void)
     if (System_LockControls)
     {
         Log_Println((char *)FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
-        publishMqtt((char *)FPSTR(topicLockControlsState), "ON", false);
+        //publishMqtt((char *)FPSTR(topicLockControlsState), "ON", false);
         System_IndicateOk();
     }
     else
     {
         Log_Println((char *)FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
-        publishMqtt((char *)FPSTR(topicLockControlsState), "OFF", false);
+        //publishMqtt((char *)FPSTR(topicLockControlsState), "OFF", false);
     }
 }
 

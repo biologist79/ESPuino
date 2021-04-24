@@ -2,9 +2,9 @@
 #include <Wire.h>
 #include "settings.h"
 #include "Port.h"
+#include "i2c.h"
 
 #ifdef PORT_EXPANDER_ENABLE
-extern TwoWire i2cBusTwo;
 
 uint8_t Port_ExpanderPorts[portsToRead];
 bool Port_ExpanderHandler(void);
