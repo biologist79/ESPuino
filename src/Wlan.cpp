@@ -25,122 +25,103 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
 bool getWifiEnableStatusFromNVS(void);
 void writeWifiStatusToNVS(bool wifiStatus);
 
-void Wlan_Init(void)
-{
+void Wlan_Init(void) {
     wifiEnabled = getWifiEnableStatusFromNVS();
 }
 
-void Wlan_Cyclic(void)
-{
+void Wlan_Cyclic(void) {
     // If wifi whould not be activated, return instantly
-    if (!wifiEnabled)
-    {
+    if (!wifiEnabled) {
         return;
     }
 
-    if (!wifiCheckLastTimestamp || wifiNeedsRestart)
-    {
+    if (!wifiCheckLastTimestamp || wifiNeedsRestart) {
         // Get credentials from NVS
         String strSSID = gPrefsSettings.getString("SSID", "-1");
-        if (!strSSID.compareTo("-1"))
-        {
-            Log_Println((char *)FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
+        if (!strSSID.compareTo("-1")) {
+            Log_Println((char *) FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
         }
         String strPassword = gPrefsSettings.getString("Password", "-1");
-        if (!strPassword.compareTo("-1"))
-        {
-            Log_Println((char *)FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
+        if (!strPassword.compareTo("-1")) {
+            Log_Println((char *) FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
         }
         const char *_ssid = strSSID.c_str();
         const char *_pwd = strPassword.c_str();
 
         // Get (optional) hostname-configration from NVS
         String hostname = gPrefsSettings.getString("Hostname", "-1");
-        if (hostname.compareTo("-1"))
-        {
+        if (hostname.compareTo("-1")) {
             //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *)FPSTR(restoredHostnameFromNvs), hostname.c_str());
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        }
-        else
-        {
-            Log_Println((char *)FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
+        } else {
+            Log_Println((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
         }
 
-// Add configration of static IP (if requested)
-#ifdef STATIC_IP_ENABLE
-        snprintf(Log_Buffer, Log_BufferLength, "%s", (char *)FPSTR(tryStaticIpConfig));
-        Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-        if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP)))
-        {
-            snprintf(Log_Buffer, Log_BufferLength, "%s", (char *)FPSTR(staticIPConfigFailed));
-            Log_Println(Log_Buffer, LOGLEVEL_ERROR);
-        }
-#endif
+        // Add configration of static IP (if requested)
+        #ifdef STATIC_IP_ENABLE
+            snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(tryStaticIpConfig));
+            Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
+                snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(staticIPConfigFailed));
+                Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+            }
+        #endif
 
         // Try to join local WiFi. If not successful, an access-point is opened
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount = 0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 4)
-        {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 4) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED)
-            {
+            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
                 WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection sometimes fails)
             }
         }
 
-        if (WiFi.status() == WL_CONNECTED)
-        {
+        if (WiFi.status() == WL_CONNECTED) {
             IPAddress myIP = WiFi.localIP();
-#if (LANGUAGE == 1)
-            snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-#else
-            snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-#endif
+            #if (LANGUAGE == 1)
+                snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+            #else
+                snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+            #endif
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-        }
-        else
-        { // Starts AP if WiFi-connect wasn't successful
-            accessPointStart((char *)FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+        } else { // Starts AP if WiFi-connect wasn't successful
+            accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
 
-#ifdef MDNS_ENABLE
-        // zero conf, make device available as <hostname>.local
-        if (MDNS.begin(hostname.c_str()))
-        {
-            MDNS.addService("http", "tcp", 80);
-        }
-#endif
+        #ifdef MDNS_ENABLE
+            // zero conf, make device available as <hostname>.local
+            if (MDNS.begin(hostname.c_str())) {
+                MDNS.addService("http", "tcp", 80);
+            }
+        #endif
 
         wifiNeedsRestart = false;
     }
 }
 
-void Wlan_ToggleEnable(void)
-{
+void Wlan_ToggleEnable(void) {
     writeWifiStatusToNVS(!getWifiEnableStatusFromNVS());
 }
 
-String Wlan_GetIpAddress(void)
-{
+String Wlan_GetIpAddress(void) {
     return WiFi.localIP().toString();
 }
 
 // Initialize soft access-point
-void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask)
-{
+void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(ip, ip, netmask);
     WiFi.softAP(SSID);
     delay(500);
 
-    Log_Println((char *)FPSTR(apReady), LOGLEVEL_NOTICE);
+    Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
     snprintf(Log_Buffer, Log_BufferLength, "IP-Adresse: %d.%d.%d.%d", apIP[0], apIP[1], apIP[2], apIP[3]);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
@@ -150,13 +131,11 @@ void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask)
 }
 
 // Reads stored WiFi-status from NVS
-bool getWifiEnableStatusFromNVS(void)
-{
+bool getWifiEnableStatusFromNVS(void) {
     uint32_t wifiStatus = gPrefsSettings.getUInt("enableWifi", 99);
 
     // if not set so far, preseed with 1 (enable)
-    if (wifiStatus == 99)
-    {
+    if (wifiStatus == 99) {
         gPrefsSettings.putUInt("enableWifi", 1);
         wifiStatus = 1;
     }
@@ -165,34 +144,26 @@ bool getWifiEnableStatusFromNVS(void)
 }
 
 // Writes to NVS whether WiFi should be activated
-void writeWifiStatusToNVS(bool wifiStatus)
-{
-    if (!wifiStatus)
-    {
-        if (gPrefsSettings.putUInt("enableWifi", 0))
-        { // disable
-            Log_Println((char *)FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
-            if (gPlayProperties.playMode == WEBSTREAM)
-            {
+void writeWifiStatusToNVS(bool wifiStatus) {
+    if (!wifiStatus) {
+        if (gPrefsSettings.putUInt("enableWifi", 0)) { // disable
+            Log_Println((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
+            if (gPlayProperties.playMode == WEBSTREAM) {
                 AudioPlayer_TrackControlToQueueSender(STOP);
             }
             delay(300);
             WiFi.mode(WIFI_OFF);
             wifiEnabled = false;
         }
-    }
-    else
-    {
-        if (gPrefsSettings.putUInt("enableWifi", 1))
-        { // enable
-            Log_Println((char *)FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
+    } else {
+        if (gPrefsSettings.putUInt("enableWifi", 1)) { // enable
+            Log_Println((char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
             wifiNeedsRestart = true;
             wifiEnabled = true;
         }
     }
 }
 
-bool Wlan_IsConnected(void)
-{
+bool Wlan_IsConnected(void) {
     return (WiFi.status() == WL_CONNECTED);
 }

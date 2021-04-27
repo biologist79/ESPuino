@@ -1,7 +1,7 @@
 static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html>\
     <head>\
-        <title>WiFi-configuration</title>\
+        <title>WLAN-Einrichtung</title>\
         <style>\
             input {\
                 width: 90%%;\
@@ -47,17 +47,17 @@ static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
     </head>\
     <body>\
         <form id=\"settings\" action=\"/init\" class=\"box\" method=\"POST\">\
-            <h1>WiFi-configuration</h1>\
+            <h1>WLAN-Einrichtung</h1>\
             <label for=\"ssid\">SSID:</label><br>\
             <input type=\"text\" id=\"ssid\" name=\"ssid\" placeholder=\"SSID\" required><br>\
-            <label for=\"pwd\">Password:</label><br>\
+            <label for=\"pwd\">Passwort:</label><br>\
             <input type=\"password\" id=\"pwd\" name=\"pwd\" autocomplete=\"off\" required><br>\
-            <label for=\"hostname\">ESPuino's name (hostname):</label><br>\
+            <label for=\"hostname\">ESPuino-Name (Hostname):</label><br>\
             <input type=\"text\" id=\"hostname\" name=\"hostname\" placeholder=\"espuino\" required><br><br>\
             <input class=\"btn\" type=\"submit\" id=\"save-button\" value=\"Save\">\
         </form>\
         <form action=\"/restart\" class=\"box\">\
-            <h1>Ready to go?</h1>\
+            <h1>Fertig?</h1>\
             <input class=\"btn\" type=\"submit\" id=\"restart-button\" value=\"Reboot\">\
         </form>\
     </body>\

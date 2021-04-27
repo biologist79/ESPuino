@@ -1,7 +1,7 @@
 static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
 <head>\
-    <title>ESPuino-Settings</title>\
+    <title>ESPuino-Konfiguration</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
     <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"https://espuino.de/espuino/favicon.ico\">\
@@ -134,19 +134,19 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
              width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
-    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Restart</a>\
-    <a class=\"reboot float-right nav-link\" href=\"/shutdown\"><i class=\"fas fa-power-off\"></i> Shutdown</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Neustart</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/shutdown\"><i class=\"fas fa-power-off\"></i> Ausschalten</a>\
     </div>\
 </nav>\
 <br/>\
     <nav>\
         <div class=\"container nav nav-tabs\" id=\"nav-tab\" role=\"tablist\">\
-            <a class=\"nav-item nav-link\" id=\"nav-control-tab\" data-toggle=\"tab\" href=\"#nav-control\" role=\"tab\" aria-controls=\"nav-control\" aria-selected=\"false\"><i class=\"fas fa-gamepad\"></i><span class=\".d-sm-none .d-md-block\"> Control</span></a>\
+            <a class=\"nav-item nav-link\" id=\"nav-control-tab\" data-toggle=\"tab\" href=\"#nav-control\" role=\"tab\" aria-controls=\"nav-control\" aria-selected=\"false\"><i class=\"fas fa-gamepad\"></i><span class=\".d-sm-none .d-md-block\"> Steuerung</span></a>\
             <a class=\"nav-item nav-link active\" id=\"nav-rfid-tab\" data-toggle=\"tab\" href=\"#nav-rfid\" role=\"tab\" aria-controls=\"nav-rfid\" aria-selected=\"true\"><i class=\"fas fa-dot-circle\"></i> RFID</a>\
-            <a class=\"nav-item nav-link\" id=\"nav-wifi-tab\" data-toggle=\"tab\" href=\"#nav-wifi\" role=\"tab\" aria-controls=\"nav-wifi\" aria-selected=\"false\"><i class=\"fas fa-wifi\"></i><span class=\".d-sm-none .d-md-block\"> WiFi</span></a>\
+            <a class=\"nav-item nav-link\" id=\"nav-wifi-tab\" data-toggle=\"tab\" href=\"#nav-wifi\" role=\"tab\" aria-controls=\"nav-wifi\" aria-selected=\"false\"><i class=\"fas fa-wifi\"></i><span class=\".d-sm-none .d-md-block\"> WLAN</span></a>\
             %SHOW_MQTT_TAB%\
             %SHOW_FTP_TAB%\
-            <a class=\"nav-item nav-link\" id=\"nav-general-tab\" data-toggle=\"tab\" href=\"#nav-general\" role=\"tab\" aria-controls=\"nav-general\" aria-selected=\"false\"><i class=\"fas fa-sliders-h\"></i> General</a>\
+            <a class=\"nav-item nav-link\" id=\"nav-general-tab\" data-toggle=\"tab\" href=\"#nav-general\" role=\"tab\" aria-controls=\"nav-general\" aria-selected=\"false\"><i class=\"fas fa-sliders-h\"></i> Allgemein</a>\
             <a class=\"nav-item nav-link\" id=\"nav-tools-tab\" data-toggle=\"tab\" href=\"#nav-tools\" role=\"tab\" aria-controls=\"nav-tools\" aria-selected=\"false\"><i class=\"fas fa-wrench\"></i> Tools</a>\
             <a class=\"nav-item nav-link\" id=\"nav-forum-tab\" data-toggle=\"tab\" href=\"#nav-forum\" role=\"tab\" aria-controls=\"nav-forum\" aria-selected=\"false\"><i class=\"fas fa-comment\"></i><span class=\".d-sm-none .d-md-block\"> Forum</span></a>\
         </div>\
@@ -157,13 +157,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"wifiConfig\">\
             <form action=\"#wifiConfig\" method=\"POST\" onsubmit=\"wifiConfig('wifiConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
-                    <legend>WiFi-settings</legend>\
-                    <label for=\"ssid\">WiFi-name (SSID):</label>\
+                    <legend>WLAN-Einstellungen</legend>\
+                    <label for=\"ssid\">WLAN-Name (SSID):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ssid\" placeholder=\"SSID\" name=\"ssid\" required>\
                     <div class=\"invalid-feedback\">\
-                        Enter WiFi's SSID.\
+                        Bitte SSID des WLANs eintragen.\
                     </div>\
-                    <label for=\"pwd\">Password:</label>\
+                    <label for=\"pwd\">Passwort:</label>\
                     <input type=\"password\" class=\"form-control\" id=\"pwd\" placeholder=\"Passwort\" name=\"pwd\" required>\
                     <label for=\"hostname\">ESPuino-Name (Hostname):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"hostname\" placeholder=\"espuino\" name=\"hostname\"\
@@ -172,7 +172,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <br>\
                 <div class=\"text-center\">\
                 <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
                 </div>\
             </form>\
         </div>\
@@ -180,7 +180,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <div class=\"tab-pane fade\" id=\"nav-control\" role=\"tabpanel\" aria-labelledby=\"nav-control-tab\">\
         <div class=\"container\" id=\"navControl\">\
                 <div class=\"form-group col-md-12\">\
-                    <legend>Control</legend>\
+                    <legend>Steuerung</legend>\
                     <div class=\"buttons\">\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(173)\">\
                             <span class=\"fas fa-fast-backward\"></span>\
@@ -201,7 +201,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 </div>\
                 <br>\
                 <div class=\"form-group col-md-12\">\
-                    <legend>Volume</legend>\
+                    <legend>Lautst&auml;rke</legend>\
                         <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"setVolume\"\
                             data-slider-value=\"%CURRENT_VOLUME%\" value=\"%CURRENT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                 </div>\
@@ -211,7 +211,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <div class=\"tab-pane fade show active\" id=\"nav-rfid\" role=\"tabpanel\" aria-labelledby=\"nav-rfid-tab\">\
         <div class=\"container\" id=\"filetreeContainer\">\
             <fieldset>\
-                <legend>Files</legend>\
+                <legend>Dateien</legend>\
 				<div class=\"filetree-container\">\
 				<div id=\"filebrowser\">\
 					<div class=\"filetree demo\" id=\"explorerTree\"></div>\
@@ -238,10 +238,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         </div>\
         <div class=\"container\" id=\"rfidMusicTags\">\
             <fieldset>\
-                <legend>RFID-Assignments</legend>\
+                <legend>RFID-Zuweisungen</legend>\
             <form action=\"#rfidMusicTags\" method=\"POST\" onsubmit=\"rfidAssign('rfidMusicTags'); return false\">\
                 <div class=\"form-group col-md-12\">\
-                    <label for=\"rfidIdMusic\">RFID-number (12 digits)</label>\
+                    <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                     <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\"\
                            placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                     <br>\
@@ -256,41 +256,41 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <div class=\"tab-content\" id=\"SubTabContent\">\
                         <div class=\"tab-pane show active\" id=\"rfidmusic\" role=\"tabpanel\">\
                             <br>\
-                            <label for=\"fileOrUrl\">File, directory or URL (^ and # aren't allowed as chars)</label>\
+                            <label for=\"fileOrUrl\">Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)</label>\
                             <input type=\"text\" class=\"form-control\" id=\"fileOrUrl\" maxlength=\"255\" placeholder=\"z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3\" pattern=\"^[^\\^#]+$\" name=\"fileOrUrl\" required>\
-                            <label for=\"playMode\">Playmode</label>\
+                            <label for=\"playMode\">Abspielmodus</label>\
                             <select class=\"form-control\" id=\"playMode\" name=\"playMode\">\
-                                <option class=\"placeholder\" disabled selected value=\"\">Select mode</option>\
-                                <option class=\"option-file\" value=\"1\">Single track</option>\
-                                <option class=\"option-file\" value=\"2\">Single track (loop)</option>\
-                                <option class=\"option-file-and-folder\" value=\"3\">Audiobook</option>\
-                                <option class=\"option-file-and-folder\" value=\"4\">Audiobook (loop)</option>\
-                                <option class=\"option-folder\" value=\"5\">All tracks of a directory (sorted alph.)</option>\
-                                <option class=\"option-folder\" value=\"6\">All tracks of a directory (random)</option>\
-                                <option class=\"option-folder\" value=\"7\">All tracks of a directory (sorted alph., loop)</option>\
-                                <option class=\"option-folder\" value=\"9\">All tracks of a directory (random, loop)</option>\
+                                <option class=\"placeholder\" disabled selected value=\"\">Modus auswählen</option>\
+                                <option class=\"option-file\" value=\"1\">Einzelner Titel</option>\
+                                <option class=\"option-file\" value=\"2\">Einzelner Titel (Endlosschleife)</option>\
+                                <option class=\"option-file-and-folder\" value=\"3\">Hörbuch</option>\
+                                <option class=\"option-file-and-folder\" value=\"4\">Hörbuch (Endlosschleife)</option>\
+                                <option class=\"option-folder\" value=\"5\">Alle Titel eines Verzeichnis (sortiert)</option>\
+                                <option class=\"option-folder\" value=\"6\">Alle Titel eines Verzeichnis (zufällig)</option>\
+                                <option class=\"option-folder\" value=\"7\">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>\
+                                <option class=\"option-folder\" value=\"9\">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>\
                                 <option class=\"option-stream\" value=\"8\">Webradio</option>\
                             </select>\
                         </div>\
                         <div class=\"tab-pane \" id=\"rfidmod\" role=\"tabpanel\">\
                             <label for=\"modId\"></label>\
                             <select class=\"form-control\" id=\"modId\" name=\"modId\">\
-                                <option class=\"placeholder\" disabled selected value=\"\">Select modification</option>\
-                                <option value=\"100\">Keylock</option>\
-                                <option value=\"101\">Sleep after 15 minutes</option>\
-                                <option value=\"102\">Sleep after 30 minutes</option>\
-                                <option value=\"103\">Sleep after 1 hour</option>\
-                                <option value=\"104\">Sleep after 2 hours</option>\
-                                <option value=\"105\">Sleep after end of track</option>\
-                                <option value=\"106\">Sleep after end of playlist</option>\
-                                <option value=\"107\">Sleep after end of five tracks</option>\
-                                <option value=\"110\">Loop playlist</option>\
-                                <option value=\"111\">Loop track</option>\
-                                <option value=\"120\">Dimm LEDs (nightmode)</option>\
-                                <option value=\"130\">Toggle WiFi</option>\
-                                <option value=\"140\">Toggle Bluetooth</option>\
-                                <option value=\"150\">Enable FTP</option>\
-                                <option value=\"0\">Remove assignment</option>\
+                                <option class=\"placeholder\" disabled selected value=\"\">Modifikation auswählen</option>\
+                                <option value=\"100\">Tastensperre</option>\
+                                <option value=\"101\">Schlafen nach 15 Minuten</option>\
+                                <option value=\"102\">Schlafen nach 30 Minuten</option>\
+                                <option value=\"103\">Schlafen nach 1 Stunde</option>\
+                                <option value=\"104\">Schlafen nach 2 Stunden</option>\
+                                <option value=\"105\">Schlafen nach Ende des Titels</option>\
+                                <option value=\"106\">Schlafen nach Ende der Playlist</option>\
+                                <option value=\"107\">Schlafen nach fünf Titeln</option>\
+                                <option value=\"110\">Wiederhole Playlist (endlos)</option>\
+                                <option value=\"111\">Wiederhole Titel (endlos)</option>\
+                                <option value=\"120\">Dimme LEDs (Nachtmodus)</option>\
+                                <option value=\"130\">Aktiviere/deaktive WLAN</option>\
+                                <option value=\"140\">Aktiviere/deaktiviere Bluetooth</option>\
+                                <option value=\"150\">Aktiviere FTP</option>\
+                                <option value=\"0\">Lösche Zuordnung</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -298,7 +298,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <br>\
                 <div class=\"text-center\">\
                 <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
                 </div>\
             </form>\
             </fieldset>\
@@ -311,30 +311,30 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\"\
                   onsubmit=\"mqttSettings('mqttConfig'); return false\">\
                 <div class=\"form-check col-md-12\">\
-                    <legend>MQTT-settings</legend>\
+                    <legend>MQTT-Einstellungen</legend>\
                     <input class=\"form-check-input\" type=\"checkbox\" value=\"1\" id=\"mqttEnable\" name=\"mqttEnable\" %MQTT_ENABLE%>\
                     <label class=\"form-check-label\" for=\"mqttEnable\">\
-                        Enable MQTT\
+                        MQTT aktivieren\
                     </label>\
                 </div>\
                 <div class=\"form-group my-2 col-md-12\">\
-                    <label for=\"mqttServer\">MQTT-server</label>\
+                    <label for=\"mqttServer\">MQTT-Server</label>\
                     <input type=\"text\" class=\"form-control\" id=\"mqttServer\" minlength=\"7\" maxlength=\"%MQTT_SERVER_LENGTH%\"\
                            placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
-                    <label for=\"mqttUser\">MQTT-username (optional):</label>\
+                    <label for=\"mqttUser\">MQTT-Benutzername (optional):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"mqttUser\" maxlength=\"%MQTT_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
-                    <label for=\"mqttPwd\">MQTT-password (optional):</label>\
+                    <label for=\"mqttPwd\">MQTT-Passwort (optional):</label>\
                     <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\"\
                            placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
-                    <label for=\"mqttPort\">MQTT-port:</label>\
+                    <label for=\"mqttPort\">MQTT-Port:</label>\
                     <input type=\"number\" class=\"form-control\" id=\"mqttPort\" min=\"1\" max=\"65535\"\
                             placeholder=\"Port\" name=\"mqttPort\" value=\"%MQTT_PORT%\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
                 <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
                 </div>\
             </form>\
         </div>\
@@ -344,18 +344,18 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
             <form action=\"#ftpConfig\" method=\"POST\" onsubmit=\"ftpSettings('ftpConfig'); return false\">\
                 <div class=\"form-group col-md-12\">\
-                    <legend>FTP-settings</legend>\
-                    <label for=\"ftpUser\">FTP-username:</label>\
+                    <legend>FTP-Einstellungen</legend>\
+                    <label for=\"ftpUser\">FTP-Benutzername:</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\"\
                            placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
-                    <label for=\"pwd\">FTP-password:</label>\
+                    <label for=\"pwd\">FTP-Passwort:</label>\
                     <input type=\"password\" class=\"form-control\" id=\"ftpPwd\" maxlength=\"%FTP_PWD_LENGTH%\" placeholder=\"Passwort\"\
                            name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
                 <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
                 </div>\
             </form>\
         </div>\
@@ -367,19 +367,19 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             <form action=\"#generalConfig\" method=\"POST\" onsubmit=\"genSettings('generalConfig'); return false\">\
                     <div class=\"form-group col-md-12\">\
                     <fieldset>\
-                            <legend class=\"w-auto\">Volume</legend>\
-                    <label for=\"initialVolume\">After restart</label>\
+                            <legend class=\"w-auto\">Lautstärke</legend>\
+                    <label for=\"initialVolume\">Nach dem Einschalten</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"initialVolume\" name=\"initialVolume\"\
                         data-slider-value=\"%INIT_VOLUME%\"  value=\"%INIT_VOLUME%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i></div>\
                         <br>\
-                    <label for=\"maxVolumeSpeaker\">Max. volume (speaker)</label>\
+                    <label for=\"maxVolumeSpeaker\">Maximal (Lautsprecher)</label>\
                         <div class=\"text-center\">\
                      <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
                         data-slider-value=\"%MAX_VOLUME_SPEAKER%\"  value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                         <br>\
-                    <label for=\"maxVolumeHeadphone\">Max. volume (headphones)</label>\
+                    <label for=\"maxVolumeHeadphone\">Maximal (Kopfhörer)</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\"\
                          data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
@@ -389,15 +389,15 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <br>\
                 <div class=\"form-group col-md-12\">\
                     <fieldset >\
-                        <legend class=\"w-auto\">Neopixel (brightness)</legend>\
-                    <label for=\"initBrightness\">After restart:</label>\
+                        <legend class=\"w-auto\">Neopixel (Helligkeit)</legend>\
+                    <label for=\"initBrightness\">Nach dem Einschalten:</label>\
                         <div class=\"text-center\">\
                             <i class=\"far fa-sun fa-2x .icon-pos\"></i>\
                         <input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\"\
                                data-slider-value=\"%INIT_LED_BRIGHTNESS%\"  value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
 \
-                    <label for=\"nightBrightness\">For nightmode:</label>\
+                    <label for=\"nightBrightness\">Im Nachtmodus</label>\
                         <div class=\"text-center\">\
                         <i class=\"far fa-sun fa-2x .icon-pos\"></i><input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"nightBrightness\" name=\"nightBrightness\" data-slider-value=\"%NIGHT_LED_BRIGHTNESS%\" value=\"%NIGHT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
@@ -408,7 +408,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <fieldset>\
                         <legend>Deep Sleep</legend>\
 \
-                        <label for=\"inactivityTime\">After n minutes inactivity</label>\
+                        <label for=\"inactivityTime\">Inaktivität nach (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i> <input type=\"number\" data-provide=\"slider\" data-slider-min=\"0\" data-slider-max=\"30\" min=\"1\" max=\"120\" class=\"form-control\" id=\"inactivityTime\" name=\"inactivityTime\"\
                          data-slider-value=\"%MAX_INACTIVITY%\"  value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
                     </fieldset>\
@@ -417,24 +417,24 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
                 <div class=\"form-group col-md-12\">\
                     <fieldset>\
-                        <legend>Battery</legend>\
-                    <div>Show voltage-status via Neopixel</div>\
+                        <legend>Batterie</legend>\
+                    <div>Status über Neopixel anzeigen</div>\
                         <br>\
-                    <label for=\"warningLowVoltage\">Show warning below this threshold.\
+                    <label for=\"warningLowVoltage\">Unter dieser Spannung wird eine Warnung angezeigt.\
                     </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input  data-provide=\"slider\"  data-slider-step=\"0.1\" data-slider-min=\"3.0\" data-slider-max=\"5.0\"  min=\"3.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"warningLowVoltage\" name=\"warningLowVoltage\"\
                         data-slider-value=\"%WARNING_LOW_VOLTAGE%\" value=\"%WARNING_LOW_VOLTAGE%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 <br>\
-                    <label for=\"voltageIndicatorLow\">Lowest voltage, that is indicated by one LED\
+                    <label for=\"voltageIndicatorLow\">Eine LED leuchtet bei dieser Spannung\
                         </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\" data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
                           data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
                         <br>\
-                        <label for=\"voltageIndicatorHigh\">Voltage that is indicated by all LEDs</label>\
+                        <label for=\"voltageIndicatorHigh\">Alle LEDs leuchten bei dieser Spannung</label>\
 \
                             <div class=\"text-center\">\
                                 <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" min=\"2.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
@@ -442,7 +442,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         </div>\
 \
                         <br>\
-                    <label for=\"voltageCheckInterval\">Interval between measurements (in minutes)</label>\
+                    <label for=\"voltageCheckInterval\">Zeitabstand der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
                                    data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
@@ -453,7 +453,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <br>\
                 <div class=\"text-center\">\
                 <button type=\"reset\" class=\"btn btn-secondary\">Reset</button>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
                 </div>\
             </form>\
         </div>\
@@ -464,19 +464,19 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             <legend>NVS-Importer</legend>\
             <form action=\"/upload\" enctype=\"multipart/form-data\" method=\"POST\">\
                 <div class=\"form-group\">\
-                    <label for=\"nvsUpload\">Backupfile can be imported right here.</label>\
+                    <label for=\"nvsUpload\">Hier kann eine Backup-Datei importiert werden.</label>\
                     <input type=\"file\" class=\"form-control-file\" id=\"nvsUpload\" name=\"nvsUpload\" accept=\".txt\">\
                 </div>\
-                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+                <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
             </form>\
         </div>\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-forum\" role=\"tabpanel\" aria-labelledby=\"nav-forum-tab\">\
         <div class=\"container\" id=\"forum\">\
             <legend>Forum</legend>\
-            <p>Having problems or aim to discuss about ESPuino?<br />\
-                Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br />\
-                <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!\
+            <p>Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />\
+                Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br />\
+                <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!\
             </p>\
         </div>\
     </div>\

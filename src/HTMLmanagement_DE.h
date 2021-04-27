@@ -1,5 +1,3 @@
-#if (LANGUAGE == 1)
-
 static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
 <head>\
@@ -47,7 +45,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         .icon-pos{\
             top: 0.3em;\
             position: relative;\
-         }\
+        }\
         .reboot{\
             color:white;\
         }\
@@ -133,7 +131,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <div class=\"col-md-12\">\
     <a class=\"float-left navbar-brand\">\
         <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
-             width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
+            width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
     <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Neustart</a>\
@@ -169,7 +167,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <input type=\"password\" class=\"form-control\" id=\"pwd\" placeholder=\"Passwort\" name=\"pwd\" required>\
                     <label for=\"hostname\">ESPuino-Name (Hostname):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"hostname\" placeholder=\"espuino\" name=\"hostname\"\
-                           value=\"%HOSTNAME%\" pattern=\"^[^-\\.]{2,32}\" required>\
+                        value=\"%HOSTNAME%\" pattern=\"^[^-\\.]{2,32}\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
@@ -214,12 +212,12 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"filetreeContainer\">\
             <fieldset>\
                 <legend>Dateien</legend>\
-				<div class=\"filetree-container\">\
-				<div id=\"filebrowser\">\
-					<div class=\"filetree demo\" id=\"explorerTree\"></div>\
-				</div>\
-				<div>\
-					<form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\">\
+                <div class=\"filetree-container\">\
+                <div id=\"filebrowser\">\
+                    <div class=\"filetree demo\" id=\"explorerTree\"></div>\
+                </div>\
+                <div>\
+                    <form id=\"explorerUploadForm\" method=\"POST\" enctype=\"multipart/form-data\" action=\"/explorer\">\
                         <div class=\"input-group\">\
                             <span class=\"form-control\" id=\"uploaded_file_text\"></span>\
                             <span class=\"input-group-btn\">\
@@ -235,7 +233,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     </div>\
                 </div>\
                 <br>\
-				</div>\
+                </div>\
             </fieldset>\
         </div>\
         <div class=\"container\" id=\"rfidMusicTags\">\
@@ -245,7 +243,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <div class=\"form-group col-md-12\">\
                     <label for=\"rfidIdMusic\">RFID-Chip-Nummer (12-stellig)</label>\
                     <input type=\"text\" class=\"form-control\" id=\"rfidIdMusic\" maxlength=\"12\" pattern=\"[0-9]{12}\"\
-                           placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
+                        placeholder=\"%RFID_TAG_ID%\" name=\"rfidIdMusic\" required>\
                     <br>\
                     <ul class=\"nav nav-tabs\" id=\"SubTab\" role=\"tablist\">\
                         <li class=\"nav-item\">\
@@ -311,7 +309,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"mqttConfig\">\
 \
             <form class=\"needs-validation\" action=\"#mqttConfig\" method=\"POST\"\
-                  onsubmit=\"mqttSettings('mqttConfig'); return false\">\
+                onsubmit=\"mqttSettings('mqttConfig'); return false\">\
                 <div class=\"form-check col-md-12\">\
                     <legend>MQTT-Einstellungen</legend>\
                     <input class=\"form-check-input\" type=\"checkbox\" value=\"1\" id=\"mqttEnable\" name=\"mqttEnable\" %MQTT_ENABLE%>\
@@ -322,13 +320,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <div class=\"form-group my-2 col-md-12\">\
                     <label for=\"mqttServer\">MQTT-Server</label>\
                     <input type=\"text\" class=\"form-control\" id=\"mqttServer\" minlength=\"7\" maxlength=\"%MQTT_SERVER_LENGTH%\"\
-                           placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
+                        placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
                     <label for=\"mqttUser\">MQTT-Benutzername (optional):</label>\
                     <input type=\"text\" class=\"form-control\" id=\"mqttUser\" maxlength=\"%MQTT_USER_LENGTH%\"\
-                           placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
+                        placeholder=\"Benutzername\" name=\"mqttUser\" value=\"%MQTT_USER%\">\
                     <label for=\"mqttPwd\">MQTT-Passwort (optional):</label>\
                     <input type=\"password\" class=\"form-control\" id=\"mqttPwd\" maxlength=\"%MQTT_PWD_LENGTH%\"\
-                           placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
+                        placeholder=\"Passwort\" name=\"mqttPwd\" value=\"%MQTT_PWD%\">\
                     <label for=\"mqttPort\">MQTT-Port:</label>\
                     <input type=\"number\" class=\"form-control\" id=\"mqttPort\" min=\"1\" max=\"65535\"\
                             placeholder=\"Port\" name=\"mqttPort\" value=\"%MQTT_PORT%\" required>\
@@ -349,10 +347,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <legend>FTP-Einstellungen</legend>\
                     <label for=\"ftpUser\">FTP-Benutzername:</label>\
                     <input type=\"text\" class=\"form-control\" id=\"ftpUser\" maxlength=\"%FTP_USER_LENGTH%\"\
-                           placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
+                        placeholder=\"Benutzername\" name=\"ftpUser\" value=\"%FTP_USER%\" required>\
                     <label for=\"pwd\">FTP-Passwort:</label>\
                     <input type=\"password\" class=\"form-control\" id=\"ftpPwd\" maxlength=\"%FTP_PWD_LENGTH%\" placeholder=\"Passwort\"\
-                           name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
+                        name=\"ftpPwd\" value=\"%FTP_PWD%\" required>\
                 </div>\
                 <br>\
                 <div class=\"text-center\">\
@@ -377,14 +375,14 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <br>\
                     <label for=\"maxVolumeSpeaker\">Maximal (Lautsprecher)</label>\
                         <div class=\"text-center\">\
-                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
+                    <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i>   <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeSpeaker\" name=\"maxVolumeSpeaker\"\
                         data-slider-value=\"%MAX_VOLUME_SPEAKER%\"  value=\"%MAX_VOLUME_SPEAKER%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                         <br>\
                     <label for=\"maxVolumeHeadphone\">Maximal (Kopfhörer)</label>\
                         <div class=\"text-center\">\
                     <i class=\"fas fa-volume-down fa-2x .icon-pos\"></i> <input data-provide=\"slider\" type=\"number\" data-slider-min=\"1\" data-slider-max=\"21\" min=\"1\" max=\"21\" class=\"form-control\" id=\"maxVolumeHeadphone\" name=\"maxVolumeHeadphone\"\
-                         data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
+                        data-slider-value=\"%MAX_VOLUME_HEADPHONE%\" value=\"%MAX_VOLUME_HEADPHONE%\" required>  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                         </div>\
                 </fieldset>\
                 </div>\
@@ -396,7 +394,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <div class=\"text-center\">\
                             <i class=\"far fa-sun fa-2x .icon-pos\"></i>\
                         <input data-provide=\"slider\" type=\"number\" data-slider-min=\"0\" data-slider-max=\"255\" min=\"0\" max=\"255\" class=\"form-control\" id=\"initBrightness\" name=\"initBrightness\"\
-                               data-slider-value=\"%INIT_LED_BRIGHTNESS%\"  value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
+                            data-slider-value=\"%INIT_LED_BRIGHTNESS%\"  value=\"%INIT_LED_BRIGHTNESS%\" required><i class=\"fas fa-sun fa-2x .icon-pos\"></i>\
                         </div>\
 \
                     <label for=\"nightBrightness\">Im Nachtmodus</label>\
@@ -412,7 +410,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
                         <label for=\"inactivityTime\">Inaktivität nach (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i> <input type=\"number\" data-provide=\"slider\" data-slider-min=\"0\" data-slider-max=\"30\" min=\"1\" max=\"120\" class=\"form-control\" id=\"inactivityTime\" name=\"inactivityTime\"\
-                         data-slider-value=\"%MAX_INACTIVITY%\"  value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
+                        data-slider-value=\"%MAX_INACTIVITY%\"  value=\"%MAX_INACTIVITY%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i></div>\
                     </fieldset>\
                 </div>\
 <br>\
@@ -433,21 +431,21 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         </label>\
                         <div class=\"text-center\">\
                         <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i> <input data-provide=\"slider\" min=\"2.0\" data-slider-step=\"0.1\" data-slider-min=\"2.0\" data-slider-max=\"5.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorLow\" name=\"voltageIndicatorLow\"\
-                          data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
+                        data-slider-value=\"%VOLTAGE_INDICATOR_LOW%\"  value=\"%VOLTAGE_INDICATOR_LOW%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
                         <br>\
                         <label for=\"voltageIndicatorHigh\">Alle LEDs leuchten bei dieser Spannung</label>\
 \
                             <div class=\"text-center\">\
                                 <i class=\"fas fa-battery-quarter fa-2x .icon-pos\"></i><input data-provide=\"slider\" data-slider-step=\"0.1\"  data-slider-min=\"2.0\" data-slider-max=\"5.0\" min=\"2.0\" max=\"5.0\" type=\"text\" class=\"form-control\" id=\"voltageIndicatorHigh\" name=\"voltageIndicatorHigh\"\
-                           data-slider-value=\"%VOLTAGE_INDICATOR_HIGH%\"  value=\"%VOLTAGE_INDICATOR_HIGH%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
+                        data-slider-value=\"%VOLTAGE_INDICATOR_HIGH%\"  value=\"%VOLTAGE_INDICATOR_HIGH%\" pattern=\"^\\d{1,2}(\\.\\d{1,3})?\" required> <i class=\"fas fa-battery-three-quarters fa-2x .icon-pos\" fa-2x .icon-pos></i>\
                         </div>\
 \
                         <br>\
                     <label for=\"voltageCheckInterval\">Zeitabstand der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
-                                   data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
+                                data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
                     </div>\
 \
                     </fieldset>\
@@ -577,353 +575,353 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 }\
 \
             }\
-         lastSelectedNodePath = data.node.data.path;\
+        lastSelectedNodePath = data.node.data.path;\
         }\
 \
 \
     });\
 \
-	function doRest(path, callback, obj) {\
-		obj.url      = path;\
-		obj.dataType = \"json\";\
-		obj.contentType= \"application/json;charset=IBM437\",\
+    function doRest(path, callback, obj) {\
+        obj.url      = path;\
+        obj.dataType = \"json\";\
+        obj.contentType= \"application/json;charset=IBM437\",\
         obj.scriptCharset= \"IBM437\",\
         obj.success  = function(data, textStatus, jqXHR) {\
-			if (callback) {\
-				callback(data);\
-			}\
-		};\
-		obj.error    = function(jqXHR, textStatus, errorThrown) {\
-			console.log(\"AJAX error\");\
-			/*debugger; */\
-		};\
-		jQuery.ajax(obj);\
-	} /* doRest */\
+            if (callback) {\
+                callback(data);\
+            }\
+        };\
+        obj.error    = function(jqXHR, textStatus, errorThrown) {\
+            console.log(\"AJAX error\");\
+            /*debugger; */\
+        };\
+        jQuery.ajax(obj);\
+    } /* doRest */\
 \
-	function getData(path, callback) {\
-		doRest(path, callback, {\
-			method   : \"GET\"\
-		});\
-	} /* getData */\
+    function getData(path, callback) {\
+        doRest(path, callback, {\
+            method   : \"GET\"\
+        });\
+    } /* getData */\
 \
-	function deleteData(path, callback, _data) {\
-		doRest(path, callback, {\
-			method   : \"DELETE\",\
-			data: _data\
-		});\
-	} /* deleteData */\
+    function deleteData(path, callback, _data) {\
+        doRest(path, callback, {\
+            method   : \"DELETE\",\
+            data: _data\
+        });\
+    } /* deleteData */\
 \
-	function patchData(path, callback, _data) {\
-		doRest(path, callback, {\
-			method   : \"PATCH\",\
-			data: _data\
-		});\
-	} /* patchData */\
+    function patchData(path, callback, _data) {\
+        doRest(path, callback, {\
+            method   : \"PATCH\",\
+            data: _data\
+        });\
+    } /* patchData */\
 \
-	function postData(path, callback, _data) {\
-		doRest(path, callback, {\
-			method   : \"POST\",\
-			data: _data\
-		});\
-	} /* postData */\
-\
-\
-	function putData(path, callback, _data) {\
-		doRest(path, callback, {\
-			method   : \"PUT\",\
-			data: _data\
-		});\
-	} /* putData */\
+    function postData(path, callback, _data) {\
+        doRest(path, callback, {\
+            method   : \"POST\",\
+            data: _data\
+        });\
+    } /* postData */\
 \
 \
-	/* File Upload */\
-	$('#explorerUploadForm').submit(function(e){\
-		e.preventDefault();\
-		console.log(\"Upload!\");\
-		var data = new FormData(this);\
+    function putData(path, callback, _data) {\
+        doRest(path, callback, {\
+            method   : \"PUT\",\
+            data: _data\
+        });\
+    } /* putData */\
 \
-		var ref = $('#explorerTree').jstree(true),\
-			sel = ref.get_selected(),\
-			path = \"/\";\
+\
+    /* File Upload */\
+    $('#explorerUploadForm').submit(function(e){\
+        e.preventDefault();\
+        console.log(\"Upload!\");\
+        var data = new FormData(this);\
+\
+        var ref = $('#explorerTree').jstree(true),\
+            sel = ref.get_selected(),\
+            path = \"/\";\
         if(!sel.length) { alert(\"Please select the upload location!\");return false; }\
         if(!document.getElementById('uploaded_file').files.length > 0) { alert(\"Please select files to upload!\");return false; }\
-		sel = sel[0];\
-		selectedNode = ref.get_node(sel);\
-		if(selectedNode.data.directory){\
-			path = selectedNode.data.path\
-		} else {\
-			/* remap sel to parent folder */\
-			sel = ref.get_node(ref.get_parent(sel));\
-			path = parentNode.data.path;\
-			console.log(\"Parent path: \" + path);\
-		}\
+        sel = sel[0];\
+        selectedNode = ref.get_node(sel);\
+        if(selectedNode.data.directory){\
+            path = selectedNode.data.path\
+        } else {\
+            /* remap sel to parent folder */\
+            sel = ref.get_node(ref.get_parent(sel));\
+            path = parentNode.data.path;\
+            console.log(\"Parent path: \" + path);\
+        }\
 \
-		$.ajax({\
-			url: '/explorer?path=' + path,\
+        $.ajax({\
+            url: '/explorer?path=' + path,\
             type: 'POST',\
             data: data,\
             contentType: false,\
             processData:false,\
-			xhr: function() {\
-				var xhr = new window.XMLHttpRequest();\
+            xhr: function() {\
+                var xhr = new window.XMLHttpRequest();\
 \
-				xhr.upload.addEventListener(\"progress\", function(evt) {\
-				  if (evt.lengthComputable) {\
-					var percentComplete = evt.loaded / evt.total;\
-					percentComplete = parseInt(percentComplete * 100);\
+                xhr.upload.addEventListener(\"progress\", function(evt) {\
+                if (evt.lengthComputable) {\
+                    var percentComplete = evt.loaded / evt.total;\
+                    percentComplete = parseInt(percentComplete * 100);\
                     console.log(percentComplete);\
                     var percent = percentComplete + '%';\
                     $(\"#explorerUploadProgress\").css('width', percent).text(percent);\
-				  }\
-				}, false);\
+                }\
+                }, false);\
 \
-				return xhr;\
-			},\
-			success: function(data, textStatus, jqXHR) {\
+                return xhr;\
+            },\
+            success: function(data, textStatus, jqXHR) {\
                 console.log(\"Upload success!\");\
                 $(\"#explorerUploadProgress\").text(\"Upload success!\");\
                 document.getElementById('uploaded_file').value = '';\
                 document.getElementById('uploaded_file_text').innerHTML = '';\
 \
-				getData(\"/explorer?path=\" + path, function(data) {\
-					/* We now have data! */\
-					deleteChildrenNodes(sel);\
-					addFileDirectory(sel, data);\
-					ref.open_node(sel);\
+                getData(\"/explorer?path=\" + path, function(data) {\
+                    /* We now have data! */\
+                    deleteChildrenNodes(sel);\
+                    addFileDirectory(sel, data);\
+                    ref.open_node(sel);\
 \
 \
-				});\
+                });\
 \
-			}\
+            }\
         });\
-	});\
+    });\
 \
-	/* File Delete */\
-	function handleDeleteData(nodeId) {\
-		var ref = $('#explorerTree').jstree(true);\
-		var node = ref.get_node(nodeId);\
-		console.log(\"call delete request: \" + node.data.path);\
-		deleteData(\"/explorer?path=\" + node.data.path);\
-	}\
+    /* File Delete */\
+    function handleDeleteData(nodeId) {\
+        var ref = $('#explorerTree').jstree(true);\
+        var node = ref.get_node(nodeId);\
+        console.log(\"call delete request: \" + node.data.path);\
+        deleteData(\"/explorer?path=\" + node.data.path);\
+    }\
 \
-	function fileNameSort( a, b ) {\
-		if ( a.dir && !b.dir ) {\
-			return -1\
-		}\
-		if ( !a.dir && b.dir ) {\
-			return 1\
-		}\
-		if ( a.name < b.name ){\
-			return -1;\
-		}\
-		if ( a.name > b.name ){\
-			return 1;\
-		}\
-		return 0;\
-	}\
+    function fileNameSort( a, b ) {\
+        if ( a.dir && !b.dir ) {\
+            return -1\
+        }\
+        if ( !a.dir && b.dir ) {\
+            return 1\
+        }\
+        if ( a.name < b.name ){\
+            return -1;\
+        }\
+        if ( a.name > b.name ){\
+            return 1;\
+        }\
+        return 0;\
+    }\
 \
-	function createChild(nodeId, data) {\
-		var ref = $('#explorerTree').jstree(true);\
-		var node = ref.get_node(nodeId);\
-		var parentNodePath = node.data.path;\
-		/* In case of root node remove leading '/' to avoid '//' */\
-		if(parentNodePath == \"/\"){\
-			parentNodePath = \"\";\
-		}\
-		var child = {\
-			text: data.name,\
-			type: getType(data),\
-			data: {\
-				path: parentNodePath + \"/\" + data.name,\
-				directory: data.dir\
-			}\
-		};\
+    function createChild(nodeId, data) {\
+        var ref = $('#explorerTree').jstree(true);\
+        var node = ref.get_node(nodeId);\
+        var parentNodePath = node.data.path;\
+        /* In case of root node remove leading '/' to avoid '//' */\
+        if(parentNodePath == \"/\"){\
+            parentNodePath = \"\";\
+        }\
+        var child = {\
+            text: data.name,\
+            type: getType(data),\
+            data: {\
+                path: parentNodePath + \"/\" + data.name,\
+                directory: data.dir\
+            }\
+        };\
 \
-		return child;\
+        return child;\
 \
-	}\
+    }\
 \
-	function deleteChildrenNodes(nodeId) {\
-		var ref = $('#explorerTree').jstree(true);\
-		var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
-		for(var i=0;i<children.length;i++)\
-		{\
-			ref.delete_node(children[i].id);\
-		}\
+    function deleteChildrenNodes(nodeId) {\
+        var ref = $('#explorerTree').jstree(true);\
+        var children = $(\"#explorerTree\").jstree(\"get_children_dom\",nodeId);\
+        for(var i=0;i<children.length;i++)\
+        {\
+            ref.delete_node(children[i].id);\
+        }\
 \
-	}\
+    }\
 \
-	function refreshNode(nodeId) {\
+    function refreshNode(nodeId) {\
 \
-		var ref = $('#explorerTree').jstree(true);\
+        var ref = $('#explorerTree').jstree(true);\
 \
-		var node = ref.get_node(nodeId);\
+        var node = ref.get_node(nodeId);\
 \
-		getData(\"/explorer?path=\" + node.data.path, function(data) {\
-			/* We now have data! */\
+        getData(\"/explorer?path=\" + node.data.path, function(data) {\
+            /* We now have data! */\
 \
-			deleteChildrenNodes(nodeId);\
-			addFileDirectory(nodeId, data);\
-			ref.open_node(nodeId);\
+            deleteChildrenNodes(nodeId);\
+            addFileDirectory(nodeId, data);\
+            ref.open_node(nodeId);\
 \
-		});\
-\
-\
-	}\
-\
-	function getType(data) {\
-		var type = \"\";\
-\
-		if(data.dir) {\
-			type = \"folder\";\
-		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {\
-			type = \"audio\";\
-		} else {\
-			type = \"file\";\
-		}\
-\
-		return type;\
-	}\
+        });\
 \
 \
-	function addFileDirectory(parent, data) {\
+    }\
 \
-		data.sort( fileNameSort );\
-		var ref = $('#explorerTree').jstree(true);\
+    function getType(data) {\
+        var type = \"\";\
 \
-		for (var i=0; i<data.length; i++) {\
-			console.log(\"Create Node\");\
-			ref.create_node(parent, createChild(parent, data[i]));\
-		}\
-	} /* addFileDirectory */\
+        if(data.dir) {\
+            type = \"folder\";\
+        } else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {\
+            type = \"audio\";\
+        } else {\
+            type = \"file\";\
+        }\
 \
-	function buildFileSystemTree(path) {\
-\
-		$('#explorerTree').jstree({\
-				\"core\" : {\
-						\"check_callback\" : true,\
-						'force_text' : true,\
-						\"themes\" : { \"stripes\" : true },\
-						'data' : {	text: '/',\
-									state: {\
-										opened: true\
-									},\
-									type: 'folder',\
-									children: [],\
-									data: {\
-										path: '/',\
-										directory: true\
-								}}\
-					},\
-					'types': {\
-						'folder': {\
-							'icon': \"fa fa-folder\"\
-						},\
-						'file': {\
-							'icon': \"fa fa-file\"\
-						},\
-						'audio': {\
-							'icon': \"fa fa-file-audio\"\
-						},\
-						'default': {\
-							'icon': \"fa fa-folder\"\
-						}\
-					},\
-				plugins: [\"contextmenu\", \"themes\", \"types\"],\
-				contextmenu: {\
-					items: function(nodeId) {\
-						var ref = $('#explorerTree').jstree(true);\
-						var node = ref.get_node(nodeId);\
-						var items = {};\
+        return type;\
+    }\
 \
 \
-						if (node.data.directory) {\
-							items.createDir = {\
-								label: \"Neuer Ordner\",\
-								action: function(x) {\
-									var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
-									if(childNode) {\
-										ref.edit(childNode, null, function(childNode, status){\
-											putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
-											refreshNode(nodeId);\
-										});\
-									}\
-								}\
-							};\
-						}\
+    function addFileDirectory(parent, data) {\
 \
-						/* Play */\
-						items.play = {\
-							label: \"Abspielen\",\
-							action: function(x) {\
-								var playMode = node.data.directory?\"5\":\"1\";\
-								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
-							}\
-						};\
+        data.sort( fileNameSort );\
+        var ref = $('#explorerTree').jstree(true);\
 \
-						/* Refresh */\
-						items.refresh = {\
-							label: \"Aktualisieren\",\
-							action: function(x) {\
-								refreshNode(nodeId);\
-							}\
-						};\
+        for (var i=0; i<data.length; i++) {\
+            console.log(\"Create Node\");\
+            ref.create_node(parent, createChild(parent, data[i]));\
+        }\
+    } /* addFileDirectory */\
 \
-						/* Delete */\
-						items.delete = {\
-							label: \"Löschen\",\
-							action: function(x) {\
-								handleDeleteData(nodeId);\
-								refreshNode(ref.get_parent(nodeId));\
-							}\
-						};\
+    function buildFileSystemTree(path) {\
 \
-						/* Rename */\
-						items.rename = {\
-							label: \"Umbenennen\",\
-							action: function(x) {\
-								var srcPath = node.data.path;\
-								ref.edit(nodeId, null, function(node, status){\
-									node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf(\"/\")+1) + node.text;\
-									patchData(\"/explorer?srcpath=\" + srcPath + \"&dstpath=\" + node.data.path);\
-									refreshNode(ref.get_parent(nodeId));\
-								});\
-							}\
-						};\
-\
-					   return items;\
-					}\
-				}\
-			});\
-\
-		if (path.length == 0) {\
-			return;\
-		}\
-		getData(\"/explorer?path=/\", function(data) {\
-			/* We now have data! */\
-			$('#explorerTree').jstree(true).settings.core.data.children = [];\
-\
-			data.sort( fileNameSort );\
+        $('#explorerTree').jstree({\
+                \"core\" : {\
+                        \"check_callback\" : true,\
+                        'force_text' : true,\
+                        \"themes\" : { \"stripes\" : true },\
+                        'data' : {	text: '/',\
+                                    state: {\
+                                        opened: true\
+                                    },\
+                                    type: 'folder',\
+                                    children: [],\
+                                    data: {\
+                                        path: '/',\
+                                        directory: true\
+                                }}\
+                    },\
+                    'types': {\
+                        'folder': {\
+                            'icon': \"fa fa-folder\"\
+                        },\
+                        'file': {\
+                            'icon': \"fa fa-file\"\
+                        },\
+                        'audio': {\
+                            'icon': \"fa fa-file-audio\"\
+                        },\
+                        'default': {\
+                            'icon': \"fa fa-folder\"\
+                        }\
+                    },\
+                plugins: [\"contextmenu\", \"themes\", \"types\"],\
+                contextmenu: {\
+                    items: function(nodeId) {\
+                        var ref = $('#explorerTree').jstree(true);\
+                        var node = ref.get_node(nodeId);\
+                        var items = {};\
 \
 \
-			for (var i=0; i<data.length; i++) {\
-				var newChild = {\
-					text: data[i].name,\
-					type: getType(data[i]),\
-					data: {\
-						path: \"/\" + data[i].name,\
-						directory: data[i].dir\
-					},\
-					children: []\
-				};\
-				$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);\
-			}\
+                        if (node.data.directory) {\
+                            items.createDir = {\
+                                label: \"Neuer Ordner\",\
+                                action: function(x) {\
+                                    var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
+                                    if(childNode) {\
+                                        ref.edit(childNode, null, function(childNode, status){\
+                                            putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
+                                            refreshNode(nodeId);\
+                                        });\
+                                    }\
+                                }\
+                            };\
+                        }\
 \
-			$(\"#explorerTree\").jstree(true).refresh();\
+                        /* Play */\
+                        items.play = {\
+                            label: \"Abspielen\",\
+                            action: function(x) {\
+                                var playMode = node.data.directory?\"5\":\"1\";\
+                                postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
+                            }\
+                        };\
+\
+                        /* Refresh */\
+                        items.refresh = {\
+                            label: \"Aktualisieren\",\
+                            action: function(x) {\
+                                refreshNode(nodeId);\
+                            }\
+                        };\
+\
+                        /* Delete */\
+                        items.delete = {\
+                            label: \"Löschen\",\
+                            action: function(x) {\
+                                handleDeleteData(nodeId);\
+                                refreshNode(ref.get_parent(nodeId));\
+                            }\
+                        };\
+\
+                        /* Rename */\
+                        items.rename = {\
+                            label: \"Umbenennen\",\
+                            action: function(x) {\
+                                var srcPath = node.data.path;\
+                                ref.edit(nodeId, null, function(node, status){\
+                                    node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf(\"/\")+1) + node.text;\
+                                    patchData(\"/explorer?srcpath=\" + srcPath + \"&dstpath=\" + node.data.path);\
+                                    refreshNode(ref.get_parent(nodeId));\
+                                });\
+                            }\
+                        };\
+\
+                    return items;\
+                    }\
+                }\
+            });\
+\
+        if (path.length == 0) {\
+            return;\
+        }\
+        getData(\"/explorer?path=/\", function(data) {\
+            /* We now have data! */\
+            $('#explorerTree').jstree(true).settings.core.data.children = [];\
+\
+            data.sort( fileNameSort );\
 \
 \
-		});\
-	} /* buildFileSystemTree */\
+            for (var i=0; i<data.length; i++) {\
+                var newChild = {\
+                    text: data[i].name,\
+                    type: getType(data[i]),\
+                    data: {\
+                        path: \"/\" + data[i].name,\
+                        directory: data[i].dir\
+                    },\
+                    children: []\
+                };\
+                $('#explorerTree').jstree(true).settings.core.data.children.push(newChild);\
+            }\
+\
+            $(\"#explorerTree\").jstree(true).refresh();\
+\
+\
+        });\
+    } /* buildFileSystemTree */\
 \
     /* File Explorer functions end */\
 \
@@ -950,22 +948,22 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         };\
 \
         socket.onmessage = function(event) {\
-          console.log(event.data);\
-          var socketMsg = JSON.parse(event.data);\
-          if (socketMsg.rfidId != null) {\
-              document.getElementById('rfidIdMusic').value = socketMsg.rfidId;\
-              toastr.info(\"RFID Tag mit \"+ socketMsg.rfidId + \" erkannt.\" );\
-              $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
-          } if (\"status\" in socketMsg) {\
-              if (socketMsg.status == \"ok\") {\
-                  toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
-              }\
-          } if (\"pong\" in socketMsg) {\
-              if (socketMsg.pong == 'pong') {\
-                  pong();\
-              }\
-          }\
-      };\
+        console.log(event.data);\
+        var socketMsg = JSON.parse(event.data);\
+        if (socketMsg.rfidId != null) {\
+            document.getElementById('rfidIdMusic').value = socketMsg.rfidId;\
+            toastr.info(\"RFID Tag mit \"+ socketMsg.rfidId + \" erkannt.\" );\
+            $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
+        } if (\"status\" in socketMsg) {\
+            if (socketMsg.status == \"ok\") {\
+                toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
+            }\
+        } if (\"pong\" in socketMsg) {\
+            if (socketMsg.pong == 'pong') {\
+                pong();\
+            }\
+        }\
+    };\
     }\
 \
     function ping() {\
@@ -1100,7 +1098,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
     $(document).ready(function () {\
         connect();\
-		buildFileSystemTree(\"/\");\
+        buildFileSystemTree(\"/\");\
 \
         console.log(parseInt(document.getElementById('warningLowVoltage').value));\
         $(function () {\
@@ -1111,5 +1109,3 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 </script>\
 </body>\
 </html>";
-
-#endif
