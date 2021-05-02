@@ -6,7 +6,7 @@
 
 // Serial-logging buffer
 uint8_t Log_BufferLength = 200;
-char *Log_Buffer = (char *) calloc(Log_BufferLength, sizeof(char)); // Buffer for all log-messages
+char *Log_Buffer;
 
 static LogRingBuffer Log_RingBuffer;
 

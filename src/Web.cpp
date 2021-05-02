@@ -182,8 +182,7 @@ void webserverStart(void) {
 }
 
 // Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
-String templateProcessor(const String &templ)
-{
+String templateProcessor(const String &templ) {
     if (templ == "FTP_USER") {
         return gPrefsSettings.getString("ftpuser", "-1");
     } else if (templ == "FTP_PWD") {
@@ -193,11 +192,11 @@ String templateProcessor(const String &templ)
     } else if (templ == "FTP_PWD_LENGTH") {
         return String(ftpPasswordLength - 1);
     } else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
-    #ifdef FTP_ENABLE
-        return (String) FPSTR(ftpTab);
-    #else
-        return String();
-    #endif
+        #ifdef FTP_ENABLE
+            return (String) FPSTR(ftpTab);
+        #else
+            return String();
+        #endif
     } else if (templ == "INIT_LED_BRIGHTNESS") {
         return String(gPrefsSettings.getUChar("iLedBrightness", 0));
     } else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -223,10 +222,10 @@ String templateProcessor(const String &templ)
     } else if (templ == "MQTT_SERVER") {
         return gPrefsSettings.getString("mqttServer", "-1");
     } else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
-    #ifdef MQTT_ENABLE
-        return (String) FPSTR(mqttTab);
-    #else
-        return String();
+        #ifdef MQTT_ENABLE
+            return (String) FPSTR(mqttTab);
+        #else
+            return String();
         #endif
     } else if (templ == "MQTT_ENABLE") {
         if (Mqtt_IsEnabled()) {

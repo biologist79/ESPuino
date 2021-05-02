@@ -136,6 +136,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     </a>\
     <a class=\"reboot float-right nav-link\" href=\"/restart\"><i class=\"fas fa-redo\"></i> Restart</a>\
     <a class=\"reboot float-right nav-link\" href=\"/shutdown\"><i class=\"fas fa-power-off\"></i> Shutdown</a>\
+    <a class=\"reboot float-right nav-link\" href=\"/log\"><i class=\"fas fa-book\"></i> Log</a>\
     </div>\
 </nav>\
 <br/>\
