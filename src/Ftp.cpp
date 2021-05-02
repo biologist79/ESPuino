@@ -68,9 +68,14 @@ void Ftp_Cyclic(void) {
 }
 
 void Ftp_EnableServer(void) {
-    if (Wlan_IsConnected() && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-        ftpEnableLastStatus = true;
-        System_IndicateOk();
+    #ifdef FTP_ENABLE
+        if (Wlan_IsConnected() && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+            ftpEnableLastStatus = true;
+    #else
+        if (Wlan_IsConnected()) {
+    #endif
+
+            System_IndicateOk();
     } else {
         Log_Println((char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
         System_IndicateError();
