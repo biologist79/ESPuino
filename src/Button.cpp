@@ -47,10 +47,7 @@ uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number 
 
 static volatile SemaphoreHandle_t Button_TimerSemaphore;
 
-#ifndef IR_CONTROL_ENABLE
-    hw_timer_t *Button_Timer = NULL;
-#endif
-
+hw_timer_t *Button_Timer = NULL;
 static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
