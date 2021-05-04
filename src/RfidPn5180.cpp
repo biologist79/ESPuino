@@ -7,6 +7,7 @@
 #include "MemX.h"
 #include "Queues.h"
 #include "System.h"
+#include "Port.h"
 
 #ifdef RFID_READER_TYPE_PN5180
     #include <PN5180.h>
