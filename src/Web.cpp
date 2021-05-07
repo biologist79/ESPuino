@@ -138,9 +138,15 @@ void webserverStart(void) {
         // heap/psram-info
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-                String info = "Free heap: " + String(ESP.getFreeHeap());
-                info += "\nFree PSRAM: ";
-                info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
+                #if (LANGUAGE == 1)
+                    String info = "Freier heap: " + String(ESP.getFreeHeap());
+                    info += "\nFreier PSRAM: ";
+                    info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
+                #else
+                    String info = "Free heap: " + String(ESP.getFreeHeap());
+                    info += "\nFree PSRAM: ";
+                    info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
+                #endif
                 request->send_P(200, "text/plain", info.c_str());
             },
             handleUpload);
@@ -584,8 +590,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
-    DynamicJsonDocument jsonBuffer(16384);
-    //StaticJsonDocument<4096> jsonBuffer;
+    DynamicJsonDocument jsonBuffer(8192);
+    //StaticJsonDocument<16384> jsonBuffer;
     String serializedJsonString;
     AsyncWebParameter *param;
     char filePath[MAX_FILEPATH_LENTGH];
