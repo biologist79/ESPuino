@@ -122,6 +122,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
             if (rc == ISO15693_EC_OK) {
                 cardReceived = true;
+            } else {
+                for (uint8_t i=0; i<cardIdSize; i++) {
+                    lastCardId[i] = 0;
+                }
             }
         }
 
