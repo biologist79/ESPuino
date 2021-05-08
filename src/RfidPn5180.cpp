@@ -67,7 +67,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
         static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
         static uint8_t stateMachine = RFID_PN5180_STATE_INIT;
-        byte cardId[cardIdSize];
+        byte cardId[cardIdSize], lastCardId[cardIdSize];
         uint8_t uid[10];
         String cardIdString;
         bool cardReceived = false;
@@ -95,6 +95,12 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         } else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
             if (nfc14443.readCardSerial(uid) >= 4u) {
                 cardReceived = true;
+            } else {
+                // Reset to dummy-value if no card is there
+                // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
+                for (uint8_t i=0; i<cardIdSize; i++) {
+                    lastCardId[i] = 0;
+                }
             }
 
         // 2. check for an ISO-15693 card
@@ -122,6 +128,15 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         // send card to queue
         if (cardReceived) {
             memcpy(cardId, uid, cardIdSize);
+
+            // check for different card id
+            if (memcmp((const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0) {
+                // reset state machine
+                stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+                return;
+            }
+
+            memcpy(lastCardId, cardId, cardIdSize);
 
             Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
             for (uint8_t i = 0u; i < cardIdSize; i++) {
