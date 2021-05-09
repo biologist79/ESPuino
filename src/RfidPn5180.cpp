@@ -20,11 +20,13 @@
 #define RFID_PN5180_NFC14443_STATE_RESET 1u
 #define RFID_PN5180_NFC14443_STATE_SETUPRF 2u
 #define RFID_PN5180_NFC14443_STATE_READCARD 3u
+#define RFID_PN5180_NFC14443_STATE_ACTIVE 99u
 
 #define RFID_PN5180_NFC15693_STATE_RESET 4u
 #define RFID_PN5180_NFC15693_STATE_SETUPRF 5u
 #define RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE 6u
 #define RFID_PN5180_NFC15693_STATE_GETINVENTORY 7u
+#define RFID_PN5180_NFC15693_STATE_ACTIVE 100u
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 
@@ -95,6 +97,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         } else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
             if (nfc14443.readCardSerial(uid) >= 4u) {
                 cardReceived = true;
+                stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
             } else {
                 // Reset to dummy-value if no card is there
                 // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
@@ -122,6 +125,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             ISO15693ErrorCode rc = nfc15693.getInventory(uid);
             if (rc == ISO15693_EC_OK) {
                 cardReceived = true;
+                stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
             } else {
                 for (uint8_t i=0; i<cardIdSize; i++) {
                     lastCardId[i] = 0;
@@ -155,12 +159,18 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             }
 
             xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+            //Serial.printf("Trigger %s\n", cardIdString.c_str());
         }
 
-        stateMachine++;
-
-        if (stateMachine > RFID_PN5180_NFC15693_STATE_GETINVENTORY) {
+        if (stateMachine == RFID_PN5180_NFC14443_STATE_ACTIVE) {            // If 14443 is active, bypass 15693 as next check (performance)
             stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+        } else if (stateMachine == RFID_PN5180_NFC15693_STATE_ACTIVE) {     // If 15693 is active, bypass 14443 as next check (performance)
+            stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+        } else {
+            stateMachine++;
+            if (stateMachine > RFID_PN5180_NFC15693_STATE_GETINVENTORY) {
+                stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+            }
         }
     }
 
