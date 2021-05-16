@@ -3455,12 +3455,12 @@ wl_status_t wifiManager(void) {
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount=0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 4) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 12) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
+            if (tryCount >= 6 && WiFi.status() == WL_CONNECT_FAILED) {
                 WiFi.begin(_ssid, _pwd);        // ESP32-workaround (otherwise WiFi-connection sometimes fails)
             }
         }
