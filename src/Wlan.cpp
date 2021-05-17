@@ -73,7 +73,7 @@ void Wlan_Cyclic(void) {
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount = 0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 4) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 12) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
