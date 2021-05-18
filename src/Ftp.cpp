@@ -13,8 +13,8 @@
 #endif
 
 // FTP
-char *Ftp_User = x_strndup((char *) "esp32", ftpUserLength);         // FTP-user (default; can be changed later via GUI)
-char *Ftp_Password = x_strndup((char *) "esp32", ftpPasswordLength); // FTP-password (default; can be changed later via GUI)
+String Ftp_User = "esp32";      // FTP-user (default; can be changed later via GUI)
+String Ftp_Password = "esp32";  // FTP-password (default; can be changed later via GUI)
 
 // FTP
 #ifdef FTP_ENABLE
@@ -26,13 +26,14 @@ bool ftpEnableCurrentStatus = false;
 void ftpManager(void);
 
 void Ftp_Init(void) {
+    String info;
     // Get FTP-user from NVS
     String nvsFtpUser = gPrefsSettings.getString("ftpuser", "-1");
     if (!nvsFtpUser.compareTo("-1")) {
         gPrefsSettings.putString("ftpuser", (String)Ftp_User);
         Log_Println((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(Ftp_User, nvsFtpUser.c_str(), ftpUserLength);
+        Ftp_User = nvsFtpUser;
         snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredFtpUserFromNvs), nvsFtpUser.c_str());
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }
@@ -43,7 +44,7 @@ void Ftp_Init(void) {
         gPrefsSettings.putString("ftppassword", (String)Ftp_Password);
         Log_Println((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
     } else {
-        strncpy(Ftp_Password, nvsFtpPassword.c_str(), ftpPasswordLength);
+        Ftp_Password = nvsFtpPassword;
         snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredFtpPwdFromNvs), nvsFtpPassword.c_str());
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }

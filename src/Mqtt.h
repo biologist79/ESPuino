@@ -10,8 +10,8 @@ constexpr uint8_t mqttServerLength = 32u;
 constexpr uint8_t mqttUserLength = 16u;
 constexpr uint8_t mqttPasswordLength = 16u;
 
-extern char *gMqttUser;
-extern char *gMqttPassword;
+extern String gMqttUser;
+extern String gMqttPassword;
 extern uint16_t gMqttPort;
 
 void Mqtt_Init(void);

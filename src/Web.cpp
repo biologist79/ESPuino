@@ -140,16 +140,17 @@ void webserverStart(void) {
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
                 #if (LANGUAGE == 1)
                     String info = "Freier heap: " + String(ESP.getFreeHeap());
+                    info += "\nGroesster freier heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
                 #else
                     String info = "Free heap: " + String(ESP.getFreeHeap());
+                    info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
                 #endif
                 request->send_P(200, "text/plain", info.c_str());
-            },
-            handleUpload);
+            });
 
         // NVS-backup-upload
         wServer.on(

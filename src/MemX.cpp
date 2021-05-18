@@ -16,24 +16,6 @@ char * x_strdup(const char *_str) {
     }
 }
 
-
-// Wraps strndup(). Without PSRAM, strdup is called => so heap is used.
-// With PSRAM being available, the same is done what strndup() does, but with allocation on PSRAM.
-char * x_strndup(const char *_str, uint32_t _len) {
-    if (!psramInit()) {
-        return strndup(_str, _len);
-    } else {
-        char *dst = (char *) ps_malloc(_len + 1);
-        if (dst == NULL) {
-            return NULL;
-        }
-        strncpy(dst, _str, _len);
-        dst[_len] = '\0';
-        return dst;
-    }
-}
-
-
 // Wraps ps_malloc() and malloc(). Selection depends on whether PSRAM is available or not.
 char * x_malloc(uint32_t _allocSize) {
     if (psramInit()) {

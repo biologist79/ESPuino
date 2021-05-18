@@ -24,10 +24,10 @@ constexpr uint8_t stillOnlineInterval = 60u; // Interval 'I'm still alive' is se
 #endif
 
 // Please note: all of them are defaults that can be changed later via GUI
-char *gMqttServer = x_strndup((char *) "192.168.2.43", mqttServerLength);      // IP-address of MQTT-server (if not found in NVS this one will be taken)
-char *gMqttUser = x_strndup((char *) "mqtt-user", mqttUserLength);             // MQTT-user
-char *gMqttPassword = x_strndup((char *) "mqtt-password", mqttPasswordLength); // MQTT-password*/
-uint16_t gMqttPort = 1883;                                                    // MQTT-Port
+String gMqttServer = "192.168.2.43";    // IP-address of MQTT-server (if not found in NVS this one will be taken)
+String gMqttUser = "mqtt-user";         // MQTT-user
+String gMqttPassword = "mqtt-password"; // MQTT-password
+uint16_t gMqttPort = 1883;              // MQTT-Port
 
 // MQTT
 static bool Mqtt_Enabled = true;
@@ -60,10 +60,10 @@ void Mqtt_Init() {
         // Get MQTT-server from NVS
         String nvsMqttServer = gPrefsSettings.getString("mqttServer", "-1");
         if (!nvsMqttServer.compareTo("-1")) {
-            gPrefsSettings.putString("mqttServer", (String)gMqttServer);
+            gPrefsSettings.putString("mqttServer", gMqttServer);
             Log_Println((char *) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
         } else {
-            strncpy(gMqttServer, nvsMqttServer.c_str(), mqttServerLength);
+            gMqttServer = nvsMqttServer;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         }
@@ -74,7 +74,7 @@ void Mqtt_Init() {
             gPrefsSettings.putString("mqttUser", (String)gMqttUser);
             Log_Println((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
         } else {
-            strncpy(gMqttUser, nvsMqttUser.c_str(), mqttUserLength);
+            gMqttUser = nvsMqttUser;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         }
@@ -85,7 +85,7 @@ void Mqtt_Init() {
             gPrefsSettings.putString("mqttPassword", (String)gMqttPassword);
             Log_Println((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
         } else {
-            strncpy(gMqttPassword, nvsMqttPassword.c_str(), mqttPasswordLength);
+            gMqttPassword = nvsMqttPassword;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         }
@@ -102,7 +102,7 @@ void Mqtt_Init() {
 
         // Only enable MQTT if requested
         if (Mqtt_Enabled) {
-            Mqtt_PubSubClient.setServer(gMqttServer, gMqttPort);
+            Mqtt_PubSubClient.setServer(gMqttServer.c_str(), gMqttPort);
             Mqtt_PubSubClient.setCallback(Mqtt_ClientCallback);
         }
     #endif
@@ -209,18 +209,18 @@ bool Mqtt_Reconnect() {
 
         while (!Mqtt_PubSubClient.connected() && i < mqttMaxRetriesPerInterval) {
             i++;
-            snprintf(Log_Buffer, Log_BufferLength, "%s %s", (char *) FPSTR(tryConnectMqttS), gMqttServer);
+            snprintf(Log_Buffer, Log_BufferLength, "%s %s", (char *) FPSTR(tryConnectMqttS), gMqttServer.c_str());
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
             // Try to connect to MQTT-server. If username AND password are set, they'll be used
-            if (strlen(gMqttUser) < 1 || strlen(gMqttPassword) < 1) {
+            if ((gMqttUser.length() < 1u) || (gMqttPassword.length()) < 1u) {
                 Log_Println((char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
                 if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME)) {
                     connect = true;
                 }
             } else {
                 Log_Println((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser, gMqttPassword)) {
+                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser.c_str(), gMqttPassword.c_str())) {
                     connect = true;
                 }
             }
@@ -275,7 +275,8 @@ bool Mqtt_Reconnect() {
 // Is called if there's a new MQTT-message for us
 void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length) {
     #ifdef MQTT_ENABLE
-        char *receivedString = x_strndup((char *) payload, length);
+        char *receivedString = (char*)x_calloc(length + 1u, sizeof(char));
+        memcpy(receivedString, (char *) payload, length);
         char *mqttTopic = x_strdup(topic);
 
         snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
