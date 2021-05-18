@@ -101,7 +101,7 @@ void AudioPlayer_Init(void) {
     xTaskCreatePinnedToCore(
         AudioPlayer_Task,      /* Function to implement the task */
         "mp3play",             /* Name of the task */
-        11000,                 /* Stack size in words */
+        4000,                  /* Stack size in words */
         NULL,                  /* Task input parameter */
         2 | portPRIVILEGE_BIT, /* Priority of the task */
         NULL,                  /* Task handle. */

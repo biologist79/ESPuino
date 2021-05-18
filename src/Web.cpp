@@ -591,8 +591,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
-    DynamicJsonDocument jsonBuffer(8192);
-    //StaticJsonDocument<16384> jsonBuffer;
+    //DynamicJsonDocument jsonBuffer(8192);
+    StaticJsonDocument<8192> jsonBuffer;
     String serializedJsonString;
     AsyncWebParameter *param;
     char filePath[MAX_FILEPATH_LENTGH];
