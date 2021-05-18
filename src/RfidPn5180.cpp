@@ -31,7 +31,6 @@
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 #ifdef RFID_READER_TYPE_PN5180
-    static void Rfid_Task(void *parameter);
     static void Rfid_Read(void);
 
     void Rfid_Init(void) {
@@ -41,28 +40,11 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
             gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
         #endif
-
-        // Create task for rfid
-        xTaskCreatePinnedToCore(
-            Rfid_Task,   /* Function to implement the task */
-            "Rfid_Task", /* Name of the task */
-            1500,        /* Stack size in words */
-            NULL,        /* Task input parameter */
-            1,           /* Priority of the task */
-            NULL,        /* Task handle. */
-            0            /* Core where the task should run */
-        );
     }
 
     void Rfid_Cyclic(void) {
-        // Implemented via task
-    }
-
-    void Rfid_Task(void *parameter) {
-        for (;;) {
-            Rfid_Read();
-            vTaskDelay(5u);
-        }
+        Rfid_Read();
+        vTaskDelay(5u);
     }
 
     void Rfid_Read(void) {
