@@ -51,7 +51,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
         static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
         static uint8_t stateMachine = RFID_PN5180_STATE_INIT;
-        byte cardId[cardIdSize], lastCardId[cardIdSize];
+        static byte cardId[cardIdSize], lastCardId[cardIdSize];
         uint8_t uid[10];
         String cardIdString;
         bool cardReceived = false;
@@ -141,7 +141,6 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             }
 
             xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
-            //Serial.printf("Trigger %s\n", cardIdString.c_str());
         }
 
         if (stateMachine == RFID_PN5180_NFC14443_STATE_ACTIVE) {            // If 14443 is active, bypass 15693 as next check (performance)
