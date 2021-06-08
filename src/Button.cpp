@@ -44,6 +44,9 @@
 
 t_button gButtons[7];         // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
+#ifdef PORT_EXPANDER_ENABLE
+    extern bool Port_AllowReadFromPortExpander;
+#endif
 
 static volatile SemaphoreHandle_t Button_TimerSemaphore;
 
@@ -125,6 +128,9 @@ void Button_Cyclic() {
         }
 
         unsigned long currentTimestamp = millis();
+        #ifdef PORT_EXPANDER_ENABLE
+            Port_Cyclic();      // todo: probably change behaviour to read from port-expander via interrupt
+        #endif
 
         // Buttons can be mixed between GPIO and port-expander.
         // But at the same time only one of them can be for example NEXT_BUTTON
@@ -148,17 +154,12 @@ void Button_Cyclic() {
         #endif
 
         // Iterate over all buttons in struct-array
-        for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++)
-        {
-            if (gButtons[i].currentState != gButtons[i].lastState && currentTimestamp - gButtons[i].lastPressedTimestamp > buttonDebounceInterval)
-            {
-                if (!gButtons[i].currentState)
-                {
+        for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {
+            if (gButtons[i].currentState != gButtons[i].lastState && currentTimestamp - gButtons[i].lastPressedTimestamp > buttonDebounceInterval) {
+                if (!gButtons[i].currentState) {
                     gButtons[i].isPressed = true;
                     gButtons[i].lastPressedTimestamp = currentTimestamp;
-                }
-                else
-                {
+                } else {
                     gButtons[i].isReleased = true;
                     gButtons[i].lastReleasedTimestamp = currentTimestamp;
                 }
@@ -170,8 +171,7 @@ void Button_Cyclic() {
 }
 
 // Do corresponding actions for all buttons
-void Button_DoButtonActions(void)
-{
+void Button_DoButtonActions(void) {
     if (gButtons[0].isPressed && gButtons[1].isPressed) {
         gButtons[0].isPressed = false;
         gButtons[1].isPressed = false;

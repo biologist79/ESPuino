@@ -136,7 +136,8 @@ void setup()
 
     // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
+        //i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
         delay(50);
         Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
@@ -149,7 +150,7 @@ void setup()
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210502-1\n"));
+    Serial.println(F(" Rev 20210608-1\n"));
 
     // print wake-up reason
     printWakeUpReason();
@@ -168,6 +169,9 @@ void setup()
     }
 
     Queues_Init();
+    #if defined(GPIO_PA_EN) || defined(GPIO_HP_EN)
+        Port_Init();
+    #endif
     Ftp_Init();
     AudioPlayer_Init();
     Mqtt_Init();
@@ -206,7 +210,7 @@ void loop() {
 
     AudioPlayer_Cyclic();
     Battery_Cyclic();
-    Port_Cyclic();
+    //Port_Cyclic(); // called by button (controlled via hw-timer)
     Button_Cyclic();
     System_Cyclic();
     Rfid_PreferenceLookupHandler();

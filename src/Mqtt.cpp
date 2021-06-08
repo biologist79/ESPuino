@@ -11,8 +11,8 @@
 #include "Wlan.h"
 
 #ifdef MQTT_ENABLE
-#define MQTT_SOCKET_TIMEOUT 1 // https://github.com/knolleary/pubsubclient/issues/403
-#include <PubSubClient.h>
+    #define MQTT_SOCKET_TIMEOUT 1 // https://github.com/knolleary/pubsubclient/issues/403
+    #include <PubSubClient.h>
 #endif
 
 constexpr uint8_t stillOnlineInterval = 60u; // Interval 'I'm still alive' is sent via MQTT (in seconds)

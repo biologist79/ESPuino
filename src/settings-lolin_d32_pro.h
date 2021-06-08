@@ -51,8 +51,12 @@
     #ifdef USEROTARY_ENABLE
         #define DREHENCODER_CLK             34          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
         #define DREHENCODER_DT              39          // 39 = 'VN'; Info: Lolin D32 pro is using 35 for battery-voltage-monitoring!
-        #define DREHENCODER_BUTTON          36          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
+        #define DREHENCODER_BUTTON          32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
+
+    // Amp enable (optional)
+    //#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
+    //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
@@ -80,6 +84,7 @@
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
+        //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
         #define HP_DETECT                   22          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 

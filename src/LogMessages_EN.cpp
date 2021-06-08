@@ -185,5 +185,7 @@
     const char unableToStartFtpServer[] PROGMEM = "FTP-server cannot be started. This is because FTP-service is already active of because WiFi is unavailable.";
     const char newPlayModeStereo[] PROGMEM = "New mode: stereo";
     const char newPlayModeMono[] PROGMEM = "New mode: mono";
+    const char portExpanderFound[] PROGMEM = "Port-expander found";
+    const char portExpanderNotFound[] PROGMEM = "Unable to detect port-expander";
 
 #endif

@@ -185,5 +185,7 @@
     const char unableToStartFtpServer[] PROGMEM = "Der FTP-Server konnte nicht gestartet werden. Entweder weil er ist bereits gestartet oder kein WLAN verfügbar ist.";
     const char newPlayModeStereo[] PROGMEM = "Neuer Modus: stereo";
     const char newPlayModeMono[] PROGMEM = "Neuer Modus: mono";
+    const char portExpanderFound[] PROGMEM = "Port-expander gefunden";
+    const char portExpanderNotFound[] PROGMEM = "Port-expander nicht gefunden";
 
 #endif

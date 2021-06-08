@@ -52,8 +52,7 @@
     #define IIC_DATA                        33          // internal
 
     // Amp enable
-    #define GPIO_PA_EN                  GPIO_NUM_21          // internal
-    #define GPIO_SEL_PA_EN              GPIO_SEL_21
+    #define GPIO_PA_EN                      21          // internal
 
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
@@ -84,6 +83,7 @@
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
+        //#define DETECT_HP_ON_HIGH                     // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
         #define HP_DETECT                   39          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 

@@ -54,6 +54,10 @@
     #define DREHENCODER_BUTTON          32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
 #endif
 
+// Amp enable (optional)
+//#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
+//#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
+
 // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
 #define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
 #define PREVIOUS_BUTTON                 36          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
@@ -80,6 +84,7 @@
 
 // (optinal) Headphone-detection
 #ifdef HEADPHONE_ADJUST_ENABLE
+    //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
     #define HP_DETECT                   13          // GPIO that detects, if there's a plug in the headphone jack or not
 #endif
 

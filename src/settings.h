@@ -14,11 +14,12 @@
     3: Wemos Lolin D32           => settings-lolin_D32.h
     4: Wemos Lolin D32 pro       => settings-lolin_D32_pro.h
     5: Lilygo T8 (V1.7)          => settings-ttgo_t8.h
+    6: ESPuino complete          => settings-complete.h
     99: custom                   => settings-custom.h
     more to come...
     */
     #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
-        #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; 99 = custom
+        #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; ... 99 = custom
     #endif
 
 
@@ -137,7 +138,7 @@
     // Static ip-configuration
     #ifdef STATIC_IP_ENABLE
         #define LOCAL_IP   192,168,2,100                // ESPuino's IP
-        #define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router                  
+        #define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router
         #define SUBNET_IP  255,255,255,0                // Netmask of your network (/24 => 255.255.255.0)
         #define DNS_IP     192,168,2,1                  // DNS-server of your network; in private networks it's usually the gatewy's IP
     #endif
@@ -228,6 +229,8 @@
         #include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
     #elif (HAL == 5)
         #include "settings-ttgo_t8.h"                       // Contains all user-relevant settings for Lilygo TTGO T8 1.7
+    #elif (HAL == 6)
+        #include "settings-complete.h"                      // Contains all user-relevant settings for ESPuino complete
     #elif (HAL == 99)
         #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
     #endif

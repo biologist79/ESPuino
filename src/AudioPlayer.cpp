@@ -82,7 +82,7 @@ void AudioPlayer_Init(void) {
 
     #ifdef HEADPHONE_ADJUST_ENABLE
         pinMode(HP_DETECT, INPUT);
-        AudioPlayer_HeadphoneLastDetectionState = Port_Read(HP_DETECT);
+        AudioPlayer_HeadphoneLastDetectionState = Port_Detect_Mode_HP(Port_Read(HP_DETECT));
 
         // Get maximum volume for headphone from NVS
         uint32_t nvsAudioPlayer_MaxVolumeHeadphone = gPrefsSettings.getUInt("maxVolumeHp", 0);
@@ -159,16 +159,30 @@ void AudioPlayer_SetupVolume(void) {
         AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
         return;
     #else
-        if (Port_Read(HP_DETECT)) {
+        if (Port_Detect_Mode_HP(Port_Read(HP_DETECT))) {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
             #ifdef PLAY_MONO_SPEAKER
                 gPlayProperties.newPlayMono = true;
             #else
                 gPlayProperties.newPlayMono = false;
             #endif
+
+            #ifdef GPIO_PA_EN
+                Port_Write(GPIO_PA_EN, true, true);
+            #endif
+            #ifdef GPIO_HP_EN
+                Port_Write(GPIO_HP_EN, false, true);
+            #endif
         } else {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone; // 0 if headphone is connected (put to GND)
             gPlayProperties.newPlayMono = false;                     // always stereo for headphones!
+
+            #ifdef GPIO_PA_EN
+                Port_Write(GPIO_PA_EN, false, true);
+            #endif
+            #ifdef GPIO_HP_EN
+                Port_Write(GPIO_HP_EN, true, true);
+            #endif
         }
         snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(maxVolumeSet), AudioPlayer_MaxVolume);
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -178,7 +192,7 @@ void AudioPlayer_SetupVolume(void) {
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
     #ifdef HEADPHONE_ADJUST_ENABLE
-        bool currentHeadPhoneDetectionState = Port_Read(HP_DETECT);
+        bool currentHeadPhoneDetectionState = Port_Detect_Mode_HP(Port_Read(HP_DETECT));
 
         if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
             if (currentHeadPhoneDetectionState) {
@@ -188,12 +202,26 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
                 #else
                     gPlayProperties.newPlayMono = false;
                 #endif
+
+                #ifdef GPIO_PA_EN
+                    Port_Write(GPIO_PA_EN, true);
+                #endif
+                #ifdef GPIO_HP_EN
+                    Port_Write(GPIO_HP_EN, false);
+                #endif
             } else {
                 AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
                 gPlayProperties.newPlayMono = false; // Always stereo for headphones
                 if (AudioPlayer_GetCurrentVolume() > AudioPlayer_MaxVolume) {
                     AudioPlayer_VolumeToQueueSender(AudioPlayer_MaxVolume, true); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
                 }
+
+                #ifdef GPIO_PA_EN
+                    Port_Write(GPIO_PA_EN, false);
+                #endif
+                #ifdef GPIO_HP_EN
+                    Port_Write(GPIO_HP_EN, true);
+                #endif
             }
             AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;
             AudioPlayer_HeadphoneLastDetectionTimestamp = millis();
