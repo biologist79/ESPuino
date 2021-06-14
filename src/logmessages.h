@@ -183,3 +183,4 @@ extern const char newPlayModeStereo[];
 extern const char newPlayModeMono[];
 extern const char portExpanderFound[];
 extern const char portExpanderNotFound[];
+extern const char portExpanderInterruptEnabled[];

@@ -150,7 +150,7 @@ void setup()
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210608-1\n"));
+    Serial.println(F(" Rev 20210615-1\n"));
 
     // print wake-up reason
     printWakeUpReason();
@@ -169,7 +169,7 @@ void setup()
     }
 
     Queues_Init();
-    #if defined(GPIO_PA_EN) || defined(GPIO_HP_EN)
+    #ifdef PORT_EXPANDER_ENABLE
         Port_Init();
     #endif
     Ftp_Init();

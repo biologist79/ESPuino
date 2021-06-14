@@ -16,18 +16,31 @@
 #ifdef PORT_EXPANDER_ENABLE
     extern TwoWire i2cBusTwo;
 
-    uint8_t Port_ExpanderPortsInputChannelStatus[portsToRead];
+    uint8_t Port_ExpanderPortsInputChannelStatus[2];
     static uint8_t Port_ExpanderPortsOutputChannelStatus[2] = {255, 255};          // Stores current configuration of output-channels locally
-    bool Port_ExpanderHandler(void);
+    void Port_ExpanderHandler(void);
     uint8_t Port_ChannelToBit(const uint8_t _channel);
     void Port_WriteInitMaskForOutputChannels(void);
     void Port_Test(void);
+
+    #if (PE_INTERRUPT_PIN >= 0 && PE_INTERRUPT_PIN <= 39)
+        #define PE_INTERRUPT_PIN_ENABLE
+        void IRAM_ATTR PORT_ExpanderISR(void);
+        bool Port_AllowReadFromPortExpander = false;
+        bool Port_AllowInitReadFromPortExpander = true;
+    #endif
 #endif
 
 void Port_Init(void) {
     #ifdef PORT_EXPANDER_ENABLE
         Port_Test();
         Port_WriteInitMaskForOutputChannels();
+    #endif
+
+    #ifdef PE_INTERRUPT_PIN_ENABLE
+        pinMode(PE_INTERRUPT_PIN, INPUT_PULLUP);
+        attachInterrupt(PE_INTERRUPT_PIN, PORT_ExpanderISR, FALLING);
+        Log_Println(portExpanderInterruptEnabled, LOGLEVEL_NOTICE);
     #endif
 
     // If automatic HP-detection is not used...
@@ -59,11 +72,8 @@ bool Port_Read(const uint8_t _channel) {
                 return (Port_ExpanderPortsInputChannelStatus[0] & (1 << (_channel - 100)));       // Remove offset 100 (return false if pressed)
 
             case 108 ... 115: // Port-expander (port 1)
-                if (portsToRead == 2) {  // Make sure portsToRead != 1 when channel > 107
-                    return (Port_ExpanderPortsInputChannelStatus[1] & (1 << (_channel - 108)));   // Remove offset 100 + 8 (return false if pressed)
-                } else {
-                    return true;
-                }
+                return (Port_ExpanderPortsInputChannelStatus[1] & (1 << (_channel - 108)));   // Remove offset 100 + 8 (return false if pressed)
+
         #endif
 
         default: // Everything else (doesn't make sense at all) isn't supposed to be pressed
@@ -196,7 +206,7 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
                 // So in order to change I/O-direction to output we need to set those bits to 0.
                 OutputBitMaskAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
                 //Serial.printf("PA LO: %u\n", OutputBitMaskAsPerPort[0]);
-            } else if ((GPIO_PA_EN >= 108 && GPIO_PA_EN <= 115) && portsToRead > 1) {
+            } else if (GPIO_PA_EN >= 108 && GPIO_PA_EN <= 115) {
                 OutputBitMaskAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
                 //Serial.printf("PA HI: %u\n", OutputBitMaskAsPerPort[1]);
             }
@@ -206,7 +216,7 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
             if (GPIO_HP_EN >= 100 && GPIO_HP_EN <= 107) {
                 OutputBitMaskAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
                 //Serial.printf("HP LO: %u\n", OutputBitMaskAsPerPort[0]);
-            } else if ((GPIO_HP_EN >= 108 && GPIO_HP_EN <= 115) && portsToRead > 1) {
+            } else if (GPIO_HP_EN >= 108 && GPIO_HP_EN <= 115) {
                 OutputBitMaskAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
                 //Serial.printf("HP HI: %u\n", OutputBitMaskAsPerPort[1]);
             }
@@ -232,23 +242,30 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
 
     // Reads input from port-expander and writes output into global array
     // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
-    bool Port_ExpanderHandler() {
+    void Port_ExpanderHandler(void) {
+        // If interrupt-handling is active, only ready port-expander's register if interrupt was fired
+        #ifdef PE_INTERRUPT_PIN_ENABLE
+            if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander) {
+                return;
+            } else {
+                Port_AllowReadFromPortExpander = false;
+                Port_AllowInitReadFromPortExpander = false;
+            }
+        #endif
+
         i2cBusTwo.beginTransmission(expanderI2cAddress);
-        for (uint8_t i = 0; i < portsToRead; i++) {
+        for (uint8_t i = 0; i < 2; i++) {
             i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
             i2cBusTwo.endTransmission();
             i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
 
             if (i2cBusTwo.available()) {
                 Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
-            } else {
-                return false;
             }
         }
-        return false;
     }
 
-    // Tests if port-expander can be detected
+    // Tests if port-expander can be detected at address configured
     void Port_Test(void) {
         i2cBusTwo.beginTransmission(expanderI2cAddress);
         i2cBusTwo.write(0x02);
@@ -258,4 +275,10 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
             Log_Println(portExpanderNotFound, LOGLEVEL_ERROR);
         }
     }
+
+    #ifdef PE_INTERRUPT_PIN_ENABLE
+        void IRAM_ATTR PORT_ExpanderISR(void) {
+            Port_AllowReadFromPortExpander = true;
+        }
+    #endif
 #endif

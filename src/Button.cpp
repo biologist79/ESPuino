@@ -129,7 +129,7 @@ void Button_Cyclic() {
 
         unsigned long currentTimestamp = millis();
         #ifdef PORT_EXPANDER_ENABLE
-            Port_Cyclic();      // todo: probably change behaviour to read from port-expander via interrupt
+            Port_Cyclic();
         #endif
 
         // Buttons can be mixed between GPIO and port-expander.

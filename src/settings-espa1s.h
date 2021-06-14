@@ -68,6 +68,12 @@
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
+    // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
+    // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
+    #ifdef PORT_EXPANDER_ENABLE
+        #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
+    #endif
+
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.

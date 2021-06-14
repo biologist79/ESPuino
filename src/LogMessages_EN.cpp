@@ -187,5 +187,6 @@
     const char newPlayModeMono[] PROGMEM = "New mode: mono";
     const char portExpanderFound[] PROGMEM = "Port-expander found";
     const char portExpanderNotFound[] PROGMEM = "Unable to detect port-expander";
+    const char portExpanderInterruptEnabled[] PROGMEM = "Enabled interrupt-handling for port-expander";
 
 #endif

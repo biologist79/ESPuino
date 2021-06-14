@@ -52,12 +52,22 @@
         #define DREHENCODER_BUTTON          32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
+    // Amp enable (optional)
+    //#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
+    //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
+
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                      4          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
     #define PAUSEPLAY_BUTTON                 0          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
+
+    // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
+    // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
+    #ifdef PORT_EXPANDER_ENABLE
+        #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
+    #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
@@ -78,6 +88,7 @@
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
+        //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
         #define HP_DETECT                   22          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 

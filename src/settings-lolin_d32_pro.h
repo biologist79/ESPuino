@@ -65,6 +65,12 @@
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
+    // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
+    // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
+    #ifdef PORT_EXPANDER_ENABLE
+        #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
+    #endif
+
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
         #define ext_IIC_CLK                 5           // i2c-SCL (clock)
