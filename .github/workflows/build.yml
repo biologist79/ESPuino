@@ -9,9 +9,9 @@ jobs:
     name: Build all boards
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@refactoring
+      - uses: actions/checkout@master
       - name: Setup Python
-        uses: actions/setup-python@refactoring
+        uses: actions/setup-python@master
         with:
           python-version: '3.x'
       - name: Install Platform IO
