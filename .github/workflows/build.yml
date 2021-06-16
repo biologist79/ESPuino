@@ -2,16 +2,16 @@ name: Build all boards
 on:
   push:
     branches:    
-      - master
+      - refactoring
 
 jobs:
   main:
     name: Build all boards
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@refactoring
       - name: Setup Python
-        uses: actions/setup-python@master
+        uses: actions/setup-python@refactoring
         with:
           python-version: '3.x'
       - name: Install Platform IO
