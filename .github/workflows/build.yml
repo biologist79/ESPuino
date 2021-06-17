@@ -2,7 +2,7 @@ name: Build all boards
 on:
   push:
     branches:    
-      - master
+      - refactoring
 
 jobs:
   main:
