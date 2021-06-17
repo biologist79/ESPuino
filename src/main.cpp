@@ -4744,7 +4744,7 @@ void setup() {
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
-        pinMode(HP_DETECT, INPUT);
+        pinMode(HP_DETECT, INPUT_PULLUP);
         headphoneLastDetectionState = digitalReadFromAll(HP_DETECT);
     #endif
 
