@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "Mqtt.h"
 #include "SdCard.h"
+#include "Port.h"
 
 constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
@@ -185,6 +186,14 @@ void System_DeepSleepManager(void) {
         if (System_Sleeping) {
             return;
         }
+
+        // Disable amps in order to avoid ugly noises when powering off
+        #ifdef GPIO_PA_EN
+            Port_Write(GPIO_PA_EN, false);
+        #endif
+        #ifdef GPIO_HP_EN
+            Port_Write(GPIO_HP_EN, false);
+        #endif
 
         System_Sleeping = true;
         Log_Println((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);

@@ -168,9 +168,15 @@ void AudioPlayer_SetupVolume(void) {
             #endif
 
             #ifdef GPIO_PA_EN
+                while (millis() < 500) {
+                    delay(10);  // Wait a bit in order to avoid ugly noises when enabling amp
+                }
                 Port_Write(GPIO_PA_EN, true, true);
             #endif
             #ifdef GPIO_HP_EN
+                while (millis() < 500) {
+                    delay(10);  // Wait a bit in order to avoid ugly noises when enabling amp
+                }
                 Port_Write(GPIO_HP_EN, false, true);
             #endif
         } else {
