@@ -81,7 +81,7 @@ void AudioPlayer_Init(void) {
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
-        pinMode(HP_DETECT, INPUT);
+        pinMode(HP_DETECT, INPUT_PULLUP);
         AudioPlayer_HeadphoneLastDetectionState = Port_Detect_Mode_HP(Port_Read(HP_DETECT));
 
         // Get maximum volume for headphone from NVS
