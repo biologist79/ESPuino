@@ -150,7 +150,7 @@ void setup()
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210615-1\n"));
+    Serial.println(F(" Rev 20210622-1\n"));
 
     // print wake-up reason
     printWakeUpReason();
@@ -192,7 +192,11 @@ void setup()
 
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-    Serial.printf("PSRAM: %u bytes\n", ESP.getPsramSize());
+    snprintf(Log_Buffer, Log_BufferLength, "PSRAM: %u bytes", ESP.getPsramSize());
+    Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+    snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
+    Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+    System_ShowUpgradeWarning();
 }
 
 void loop() {

@@ -215,3 +215,15 @@ void System_DeepSleepManager(void) {
         esp_deep_sleep_start();
     }
 }
+
+// Shows warning after upgrade
+void System_ShowUpgradeWarning(void) {
+    uint32_t nvsShowUpgradeWarningCount = gPrefsSettings.getUInt("wcountrefact", 0);
+    if (!nvsShowUpgradeWarningCount) {
+        gPrefsSettings.putUInt("wcountrefact", 1);
+        Log_Println((char *) FPSTR(warningRefactoring), LOGLEVEL_ERROR);
+    } else if (nvsShowUpgradeWarningCount < 5) {
+        gPrefsSettings.putUInt("wcountrefact", ++nvsShowUpgradeWarningCount);
+        Log_Println((char *) FPSTR(warningRefactoring), LOGLEVEL_ERROR);
+    }
+}

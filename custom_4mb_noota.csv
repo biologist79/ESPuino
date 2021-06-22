@@ -1,0 +1,5 @@
+# 256 kB (instead of 24 kB) for nvs, the rest is used by application
+# Infos: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html
+# Name,   Type, SubType,  Offset,  Size, Flags
+app0,     app,  factory, 0x10000,  0x3B0000,
+nvs,      data, nvs,            ,  0x40000,

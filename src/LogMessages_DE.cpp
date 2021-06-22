@@ -188,5 +188,6 @@
     const char portExpanderFound[] PROGMEM = "Port-expander gefunden";
     const char portExpanderNotFound[] PROGMEM = "Port-expander nicht gefunden";
     const char portExpanderInterruptEnabled[] PROGMEM = "Interrupt für Port-Expander aktiviert";
+    const char warningRefactoring[] PROGMEM = "!!!!WICHTIG!!!! Beachte bitte https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510 !!!!WICHTIG!!!!";
 
 #endif
