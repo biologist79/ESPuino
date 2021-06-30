@@ -185,3 +185,6 @@ extern const char portExpanderFound[];
 extern const char portExpanderNotFound[];
 extern const char portExpanderInterruptEnabled[];
 extern const char warningRefactoring[];
+extern const char playlistGenModeUncached[];
+extern const char playlistGenModeCached[];
+extern const char playlistCacheFoundBut0[];

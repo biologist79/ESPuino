@@ -718,7 +718,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     #endif
 
     if (_playMode != WEBSTREAM) {
-        musicFiles = SdCard_ReturnPlaylist(filename);
+        musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
     } else {
         musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
     }

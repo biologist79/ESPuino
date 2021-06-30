@@ -82,11 +82,62 @@ bool fileValid(const char *_fileItem) {
 
 /* Puts SD-file(s) or directory into a playlist
     First element of array always contains the number of payload-items. */
-char **SdCard_ReturnPlaylist(const char *fileName) {
+char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
     static char **files;
+    char *serializedPlaylist;
     char fileNameBuf[255];
+    char cacheFileNameBuf[275];
+    bool readFromCacheFile = false;
 
+    // Look if file/folder requested really exists. If not => break.
     File fileOrDirectory = gFSystem.open(fileName);
+    if (!fileOrDirectory) {
+        Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
+        return NULL;
+    }
+
+    #ifdef CACHED_PLAYLIST_ENABLE
+        strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
+        strcat(cacheFileNameBuf, "/");
+        strcat(cacheFileNameBuf, (const char*) FPSTR(playlistCacheFile));       // Build absolute path of cacheFile
+
+        // Decide if to use cacheFile. It needs to exist first...
+        if (gFSystem.exists(cacheFileNameBuf)) {     // Check if cacheFile (already) exists
+            readFromCacheFile = true;
+        }
+
+        // ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
+        if (_playMode == ALL_TRACKS_OF_DIR_RANDOM ||
+            _playMode == ALL_TRACKS_OF_DIR_RANDOM_LOOP ||
+            _playMode == SINGLE_TRACK ||
+            _playMode == SINGLE_TRACK_LOOP) {
+                readFromCacheFile = false;
+        }
+
+        // Read linear playlist (csv with #-delimiter) from cachefile (faster!)
+        if (readFromCacheFile) {
+            File cacheFile = gFSystem.open(cacheFileNameBuf);
+            if (cacheFile) {
+                uint32_t cacheFileSize = cacheFile.size();
+
+                if (!(cacheFileSize >= 1)) {        // Make sure it's greater than 0 bytes
+                    Log_Println((char *) FPSTR(playlistCacheFoundBut0), LOGLEVEL_ERROR);
+                    readFromCacheFile = false;
+                } else {
+                    Log_Println((char *) FPSTR(playlistGenModeCached), LOGLEVEL_NOTICE);
+                    serializedPlaylist = (char *) x_calloc(cacheFileSize+10, sizeof(char));
+
+                    char buf;
+                    uint32_t fPos = 0;
+                    while (cacheFile.available() > 0) {
+                        buf = cacheFile.read();
+                        serializedPlaylist[fPos++] = buf;
+                    }
+                }
+                cacheFile.close();
+            }
+        }
+    #endif
 
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
@@ -99,67 +150,76 @@ char **SdCard_ReturnPlaylist(const char *fileName) {
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     }
 
-    if (!fileOrDirectory) {
-        Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
-        return NULL;
-    }
-
-    // File-mode
-    if (!fileOrDirectory.isDirectory()) {
-        files = (char **) x_malloc(sizeof(char *) * 2);
-        if (files == NULL) {
-            Log_Println((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
-            System_IndicateError();
-            return NULL;
-        }
-        Log_Println((char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
-        strncpy(fileNameBuf, (char *) fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-        if (fileValid(fileNameBuf))
-        {
+    // Don't read from cachefile (if cachefile doesn't exist, playmode doesn't fit or caching isn't desired)
+    if (!readFromCacheFile) {
+        Log_Println((char *) FPSTR(playlistGenModeUncached), LOGLEVEL_NOTICE);
+        // File-mode
+        if (!fileOrDirectory.isDirectory()) {
             files = (char **) x_malloc(sizeof(char *) * 2);
-            files[1] = x_strdup(fileNameBuf);
-        }
-        files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
-
-        return ++files;
-    }
-
-    // Directory-mode
-    uint16_t allocCount = 1;
-    uint16_t allocSize = 512;
-    if (psramInit()) {
-        allocSize = 16384; // There's enough PSRAM. So we don't have to care...
-    }
-    char *serializedPlaylist;
-
-    serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-
-    while (true) {
-        File fileItem = fileOrDirectory.openNextFile();
-        if (!fileItem) {
-            break;
-        }
-        if (fileItem.isDirectory()) {
-            continue;
-        } else {
-            strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-
-            // Don't support filenames that start with "." and only allow .mp3
+            if (files == NULL) {
+                Log_Println((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
+                System_IndicateError();
+                return NULL;
+            }
+            Log_Println((char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
+            strncpy(fileNameBuf, (char *) fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
             if (fileValid(fileNameBuf)) {
-                /*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
-                Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
-                if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
-                    serializedPlaylist = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
-                    Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
-                    if (serializedPlaylist == NULL) {
-                        Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
-                        System_IndicateError();
-                        return files;
+                files = (char **) x_malloc(sizeof(char *) * 2);
+                files[1] = x_strdup(fileNameBuf);
+            }
+            files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
+
+            return ++files;
+        }
+
+        // Directory-mode
+        uint16_t allocCount = 1;
+        uint16_t allocSize = 4096;
+        if (psramInit()) {
+            allocSize = 16384; // There's enough PSRAM. So we don't have to care...
+        }
+
+        serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
+        File cacheFile;
+        if (readFromCacheFile) {
+            cacheFile = gFSystem.open(cacheFileNameBuf, FILE_WRITE);
+        }
+
+        while (true) {
+            File fileItem = fileOrDirectory.openNextFile();
+            if (!fileItem) {
+                break;
+            }
+            if (fileItem.isDirectory()) {
+                continue;
+            } else {
+                strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+
+                // Don't support filenames that start with "." and only allow .mp3
+                if (fileValid(fileNameBuf)) {
+                    /*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
+                    Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
+                    if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
+                        serializedPlaylist = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
+                        Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
+                        if (serializedPlaylist == NULL) {
+                            Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+                            System_IndicateError();
+                            return files;
+                        }
+                    }
+                    strcat(serializedPlaylist, stringDelimiter);
+                    strcat(serializedPlaylist, fileNameBuf);
+                    if (cacheFile && readFromCacheFile) {
+                        cacheFile.print(stringDelimiter);
+                        cacheFile.print(fileNameBuf);       // Write linear playlist to cacheFile
                     }
                 }
-                strcat(serializedPlaylist, stringDelimiter);
-                strcat(serializedPlaylist, fileNameBuf);
             }
+        }
+
+        if (cacheFile && readFromCacheFile) {
+            cacheFile.close();
         }
     }
 

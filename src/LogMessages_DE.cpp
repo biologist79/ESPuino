@@ -189,5 +189,8 @@
     const char portExpanderNotFound[] PROGMEM = "Port-expander nicht gefunden";
     const char portExpanderInterruptEnabled[] PROGMEM = "Interrupt für Port-Expander aktiviert";
     const char warningRefactoring[] PROGMEM = "!!!!WICHTIG!!!! Beachte bitte https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510 !!!!WICHTIG!!!!";
+    const char playlistGenModeUncached[] PROGMEM = "Playlist-Generierung: uncached";
+    const char playlistGenModeCached[] PROGMEM = "Playlist-Generierung: cached";
+    const char playlistCacheFoundBut0[] PROGMEM = "Playlist-Cache-File gefunden, jedoch 0 Bytes groß";
 
 #endif

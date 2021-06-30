@@ -3,7 +3,8 @@
 * xx.05.2021: Fixing/stabilizing code
 * 08.06.2021: Added global support for PA/HP-enable
 * 15.06.2021: Added interrupt-handling to PCA9555
-* 22.06.2021: Changed ESP32's partition-layout in order to provider bigger NVS-storage.
+* 22.06.2021: Changed ESP32's partition-layout in order to provider bigger NVS-storage
+* 30.06.2021: Added directive `CACHED_PLAYLIST_ENABLE` for faster playlist-generation
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.
 * 09.10.2020: mqttUser / mqttPassword can now be configured via webgui.

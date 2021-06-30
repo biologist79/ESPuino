@@ -10,9 +10,9 @@
 * Partition-layout for ESP32 is changed along with this branch. This step was necessary in order to resize (enlarge) the memory-region where especially the assignments for the RFID-tags are saved. As all permanent settings (e.g. WiFi-settings) are saved there too, it's necessary to re-enter WiFi-credentials after update. But the most important thing is to recover the assignments for the RFID-tags. Please consult my [migration-document](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510).
 ## Changelog
 Last three events:
+* 30.06.2021: Added directive `CACHED_PLAYLIST_ENABLE` for faster playlist-generation
 * 22.06.2021: Changed ESP32' partition-layout in order to provider bigger NVS-storage.
 * 15.06.2021: Added interrupt-handling to PCA9555
-* 08.06.2021: Added global support for PA/HP-enable
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 ## ESPuino - what's that?

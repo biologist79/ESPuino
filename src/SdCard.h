@@ -11,4 +11,4 @@ extern fs::FS gFSystem;
 void SdCard_Init(void);
 void SdCard_Exit(void);
 sdcard_type_t SdCard_GetType(void);
-char **SdCard_ReturnPlaylist(const char *fileName);
+char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode);
