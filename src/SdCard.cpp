@@ -88,6 +88,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
     char fileNameBuf[255];
     char cacheFileNameBuf[275];
     bool readFromCacheFile = false;
+    bool enablePlaylistCaching = false;
 
     // Look if file/folder requested really exists. If not => break.
     File fileOrDirectory = gFSystem.open(fileName);
@@ -112,6 +113,8 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
             _playMode == SINGLE_TRACK ||
             _playMode == SINGLE_TRACK_LOOP) {
                 readFromCacheFile = false;
+        } else {
+            enablePlaylistCaching = true;
         }
 
         // Read linear playlist (csv with #-delimiter) from cachefile (faster!)
@@ -181,7 +184,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 
         serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
         File cacheFile;
-        if (readFromCacheFile) {
+        if (enablePlaylistCaching) {
             cacheFile = gFSystem.open(cacheFileNameBuf, FILE_WRITE);
         }
 
@@ -210,7 +213,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
                     }
                     strcat(serializedPlaylist, stringDelimiter);
                     strcat(serializedPlaylist, fileNameBuf);
-                    if (cacheFile && readFromCacheFile) {
+                    if (cacheFile && enablePlaylistCaching) {
                         cacheFile.print(stringDelimiter);
                         cacheFile.print(fileNameBuf);       // Write linear playlist to cacheFile
                     }
@@ -218,7 +221,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
             }
         }
 
-        if (cacheFile && readFromCacheFile) {
+        if (cacheFile && enablePlaylistCaching) {
             cacheFile.close();
         }
     }
