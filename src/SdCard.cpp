@@ -179,7 +179,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
         uint16_t allocCount = 1;
         uint16_t allocSize = 4096;
         if (psramInit()) {
-            allocSize = 16384; // There's enough PSRAM. So we don't have to care...
+            allocSize = 65535; // There's enough PSRAM. So we don't have to care...
         }
 
         serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));

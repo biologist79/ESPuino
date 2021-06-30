@@ -65,6 +65,18 @@ static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *clien
 static String templateProcessor(const String &templ);
 static void webserverStart(void);
 
+// If PSRAM is available use it allocate memory for JSON-objects
+struct SpiRamAllocator {
+    void* allocate(size_t size) {
+        return ps_malloc(size);
+
+    }
+    void deallocate(void* pointer) {
+        free(pointer);
+    }
+};
+using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
+
 void Web_Init(void) {
     wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send_P(200, "text/html", accesspoint_HTML);
@@ -278,7 +290,12 @@ String templateProcessor(const String &templ) {
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
 bool processJsonRequest(char *_serialJson) {
-    StaticJsonDocument<1000> doc;
+    #ifdef BOARD_HAS_PSRAM
+        SpiRamJsonDocument doc(1000);
+    #else
+        StaticJsonDocument<1000> doc;
+    #endif
+
     DeserializationError error = deserializeJson(doc, _serialJson);
     JsonObject object = doc.as<JsonObject>();
 
@@ -592,7 +609,12 @@ void explorerHandleFileStorageTask(void *parameter) {
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
     //DynamicJsonDocument jsonBuffer(8192);
-    StaticJsonDocument<8192> jsonBuffer;
+    #ifdef BOARD_HAS_PSRAM
+        SpiRamJsonDocument jsonBuffer(65636);
+    #else
+        StaticJsonDocument<8192> jsonBuffer;
+    #endif
+
     String serializedJsonString;
     AsyncWebParameter *param;
     char filePath[MAX_FILEPATH_LENTGH];
