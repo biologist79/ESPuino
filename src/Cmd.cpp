@@ -12,12 +12,12 @@
 
 void Cmd_Action(const uint16_t mod) {
     switch (mod) {
-        case LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
+        case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
             System_ToggleLockControls();
             break;
         }
 
-        case SLEEP_TIMER_MOD_15: { // Enables/disables sleep after 15 minutes
+        case CMD_SLEEP_TIMER_MOD_15: { // Enables/disables sleep after 15 minutes
             System_SetSleepTimer(15u);
 
             gPlayProperties.sleepAfterCurrentTrack = false; // deactivate/overwrite if already active
@@ -27,7 +27,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_30: { // Enables/disables sleep after 30 minutes
+        case CMD_SLEEP_TIMER_MOD_30: { // Enables/disables sleep after 30 minutes
             System_SetSleepTimer(30u);
 
             gPlayProperties.sleepAfterCurrentTrack = false; // deactivate/overwrite if already active
@@ -37,7 +37,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_60: { // Enables/disables sleep after 60 minutes
+        case CMD_SLEEP_TIMER_MOD_60: { // Enables/disables sleep after 60 minutes
             System_SetSleepTimer(60u);
 
             gPlayProperties.sleepAfterCurrentTrack = false; // deactivate/overwrite if already active
@@ -47,7 +47,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_TIMER_MOD_120: { // Enables/disables sleep after 2 hrs
+        case CMD_SLEEP_TIMER_MOD_120: { // Enables/disables sleep after 2 hrs
             System_SetSleepTimer(120u);
 
             gPlayProperties.sleepAfterCurrentTrack = false; // deactivate/overwrite if already active
@@ -57,7 +57,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_END_OF_TRACK: { // Puts uC to sleep after end of current track
+        case CMD_SLEEP_AFTER_END_OF_TRACK: { // Puts uC to sleep after end of current track
             if (gPlayProperties.playMode == NO_PLAYLIST) {
                 Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 System_IndicateError();
@@ -95,7 +95,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_END_OF_PLAYLIST: { // Puts uC to sleep after end of whole playlist (can take a while :->)
+        case CMD_SLEEP_AFTER_END_OF_PLAYLIST: { // Puts uC to sleep after end of whole playlist (can take a while :->)
             if (gPlayProperties.playMode == NO_PLAYLIST) {
                 Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 System_IndicateError();
@@ -131,7 +131,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case SLEEP_AFTER_5_TRACKS: {
+        case CMD_SLEEP_AFTER_5_TRACKS: {
             if (gPlayProperties.playMode == NO_PLAYLIST) {
                 Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 System_IndicateError();
@@ -176,7 +176,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case REPEAT_PLAYLIST: {
+        case CMD_REPEAT_PLAYLIST: {
             if (gPlayProperties.playMode == NO_PLAYLIST) {
                 Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 System_IndicateError();
@@ -197,7 +197,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case REPEAT_TRACK: { // Introduces looping for track-mode
+        case CMD_REPEAT_TRACK: { // Introduces looping for track-mode
             if (gPlayProperties.playMode == NO_PLAYLIST) {
                 Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_NOTICE);
                 System_IndicateError();
@@ -218,7 +218,7 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case DIMM_LEDS_NIGHTMODE: {
+        case CMD_DIMM_LEDS_NIGHTMODE: {
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
             #endif
@@ -230,14 +230,14 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
-        case TOGGLE_WIFI_STATUS: {
+        case CMD_TOGGLE_WIFI_STATUS: {
             Wlan_ToggleEnable();
             System_IndicateOk();
             break;
         }
 
         #ifdef BLUETOOTH_ENABLE
-            case TOGGLE_BLUETOOTH_MODE: {
+            case CMD_TOGGLE_BLUETOOTH_MODE: {
                 if (System_GetOperationModeFromNvs() == OPMODE_NORMAL) {
                     System_IndicateOk();
                     System_SetOperationMode(OPMODE_BLUETOOTH);
@@ -252,7 +252,7 @@ void Cmd_Action(const uint16_t mod) {
         #endif
 
         #ifdef FTP_ENABLE
-            case ENABLE_FTP_SERVER: {
+            case CMD_ENABLE_FTP_SERVER: {
                 Ftp_EnableServer();
                 break;
             }
