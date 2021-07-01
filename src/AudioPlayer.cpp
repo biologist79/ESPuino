@@ -287,7 +287,7 @@ void AudioPlayer_Task(void *parameter) {
         if (trackQStatus == pdPASS || gPlayProperties.trackFinished || trackCommand != 0) {
             if (trackQStatus == pdPASS) {
                 if (gPlayProperties.pausePlay) {
-                    gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+                    gPlayProperties.pausePlay = false;
                 }
                 audio->stopSong();
                 #if (LANGUAGE == DE)
@@ -321,8 +321,8 @@ void AudioPlayer_Task(void *parameter) {
                 if (gPlayProperties.sleepAfterCurrentTrack) { // Go to sleep if "sleep after track" was requested
                     System_RequestSleep();
                     break;
-                } if (!gPlayProperties.repeatCurrentTrack)
-                { // If endless-loop requested, track-number will not be incremented
+                }
+                if (!gPlayProperties.repeatCurrentTrack) { // If endless-loop requested, track-number will not be incremented
                     gPlayProperties.currentTrackNumber++;
                 } else {
                     Log_Println((char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
@@ -363,10 +363,10 @@ void AudioPlayer_Task(void *parameter) {
                 case NEXTTRACK:
                     if (gPlayProperties.pausePlay) {
                         audio->pauseResume();
-                        gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+                        gPlayProperties.pausePlay = false;
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
-                        gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
+                        gPlayProperties.repeatCurrentTrack = false;
                         char rBuf[2];
                         snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
@@ -395,10 +395,10 @@ void AudioPlayer_Task(void *parameter) {
                 case PREVIOUSTRACK:
                     if (gPlayProperties.pausePlay) {
                         audio->pauseResume();
-                        gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+                        gPlayProperties.pausePlay = false;
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
-                        gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
+                        gPlayProperties.repeatCurrentTrack = false;
                         char rBuf[2];
                         snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
@@ -448,7 +448,7 @@ void AudioPlayer_Task(void *parameter) {
                 case FIRSTTRACK:
                     if (gPlayProperties.pausePlay) {
                         audio->pauseResume();
-                        gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+                        gPlayProperties.pausePlay = false;
                     }
                     if (gPlayProperties.currentTrackNumber > 0) {
                         gPlayProperties.currentTrackNumber = 0;
@@ -472,7 +472,7 @@ void AudioPlayer_Task(void *parameter) {
                 case LASTTRACK:
                     if (gPlayProperties.pausePlay) {
                         audio->pauseResume();
-                        gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+                        gPlayProperties.pausePlay = false;
                     }
                     if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.numberOfTracks) {
                         gPlayProperties.currentTrackNumber = gPlayProperties.numberOfTracks - 1;
