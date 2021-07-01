@@ -21,7 +21,7 @@
 void RotaryEncoder_Init(void) {
     // Init rotary encoder
     #ifdef USEROTARY_ENABLE
-        encoder.attachHalfQuad(DREHENCODER_CLK, DREHENCODER_DT);
+        encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
         encoder.clearCount();
         encoder.setCount(AudioPlayer_GetInitVolume() * 2); // Ganzes Raster ist immer +2, daher initiale Lautstärke mit 2 multiplizieren
     #endif

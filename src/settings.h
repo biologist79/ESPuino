@@ -79,7 +79,7 @@
         0: NEXT_BUTTON
         1: PREVIOUS_BUTTON
         2: PAUSEPLAY_BUTTON
-        3: DREHENCODER_BUTTON
+        3: ROTARYENCODER_BUTTON
         4: BUTTON_4
         5: BUTTON_5
 
@@ -87,7 +87,7 @@
 
     Single-buttons [can be long or short] (examples):
         BUTTON_0_SHORT => Button 0 (NEXT_BUTTON) pressed shortly
-        BUTTON_3_SHORT => Button 3 (DREHENCODER_BUTTON) pressed shortly
+        BUTTON_3_SHORT => Button 3 (ROTARYENCODER_BUTTON) pressed shortly
         BUTTON_4_LONG => Button 4 (BUTTON_4) pressed long
 
     Multi-buttons [short only] (examples):
