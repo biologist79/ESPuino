@@ -69,4 +69,8 @@
     #define SEEK_FORWARDS                   1           // Seek forwards
     #define SEEK_BACKWARDS                  2           // Seek backwards
 
+    // supported languages
+    #define DE                              1
+    #define EN                              2
+
 #endif

@@ -85,7 +85,7 @@ void Wlan_Cyclic(void) {
 
         if (WiFi.status() == WL_CONNECTED) {
             IPAddress myIP = WiFi.localIP();
-            #if (LANGUAGE == 1)
+            #if (LANGUAGE == DE)
                 snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             #else
                 snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);

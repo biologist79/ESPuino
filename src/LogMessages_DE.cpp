@@ -1,7 +1,7 @@
 
 #include "settings.h"
 
-#if (LANGUAGE == 1)
+#if (LANGUAGE == DE)
     #include "Log.h"
 
     const char stillOnlineMqtt[] PROGMEM = "MQTT: Bin noch online.";

@@ -94,7 +94,7 @@ void ftpManager(void) {
             ftpSrv->begin(gFSystem, Ftp_User, Ftp_Password);
             snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapWithFtp), ESP.getFreeHeap());
             Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-        #if (LANGUAGE == 1)
+        #if (LANGUAGE == DE)
                 Serial.println(F("FTP-Server gestartet"));
         #else
                 Serial.println(F("FTP-server started"));

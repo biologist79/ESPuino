@@ -290,7 +290,7 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
                 }
                 audio->stopSong();
-                #if (LANGUAGE == 1)
+                #if (LANGUAGE == DE)
                     snprintf(Log_Buffer, Log_BufferLength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
                 #else
                     snprintf(Log_Buffer, Log_BufferLength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
@@ -521,7 +521,7 @@ void AudioPlayer_Task(void *parameter) {
                         AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
                     }
                     #ifdef MQTT_ENABLE
-                        #if (LANGUAGE == 1)
+                        #if (LANGUAGE == DE)
                             publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
                         #else
                             publishMqtt((char *) FPSTR(topicTrackState), "<End>", false);
@@ -582,7 +582,7 @@ void AudioPlayer_Task(void *parameter) {
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
                     #endif
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == DE)
                         snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
                     #else
                         snprintf(Log_Buffer, Log_BufferLength, "'%s' is being played (%d of %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
@@ -597,7 +597,7 @@ void AudioPlayer_Task(void *parameter) {
         if (gPlayProperties.seekmode != SEEK_NORMAL) {
             if (gPlayProperties.seekmode == SEEK_FORWARDS) {
                 if (audio->setTimeOffset(jumpOffset)) {
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == DE)
                         Serial.printf("%d Sekunden nach vorne gesprungen\n", jumpOffset);
                     #else
                         Serial.printf("Jumped %d seconds forwards\n", jumpOffset);
@@ -607,7 +607,7 @@ void AudioPlayer_Task(void *parameter) {
                 }
             } else if (gPlayProperties.seekmode == SEEK_BACKWARDS) {
                 if (audio->setTimeOffset(-(jumpOffset))) {
-                    #if (LANGUAGE == 1)
+                    #if (LANGUAGE == DE)
                         Serial.printf("%d Sekunden zurueck gesprungen\n", jumpOffset);
                     #else
                         Serial.printf("Jumped %d seconds backwards\n", jumpOffset);
@@ -895,7 +895,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
     }
 
     snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-    #if (LANGUAGE == 1)
+    #if (LANGUAGE == DE)
         snprintf(Log_Buffer, Log_BufferLength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     #else
         snprintf(Log_Buffer, Log_BufferLength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);

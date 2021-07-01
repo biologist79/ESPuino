@@ -21,12 +21,12 @@
 #include "Web.h"
 #include "Wlan.h"
 
-#if (LANGUAGE == 1)
+#if (LANGUAGE == DE)
     #include "HTMLaccesspoint_DE.h"
     #include "HTMLmanagement_DE.h"
 #endif
 
-#if (LANGUAGE == 2)
+#if (LANGUAGE == EN)
     #include "HTMLaccesspoint_EN.h"
     #include "HTMLmanagement_EN.h"
 #endif
@@ -95,7 +95,7 @@ void Web_Init(void) {
     });
 
     wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
-    #if (LANGUAGE == 1)
+    #if (LANGUAGE == DE)
         request->send(200, "text/html", "ESPuino wird neu gestartet...");
     #else
         request->send(200, "text/html", "ESPuino is being restarted...");
@@ -105,7 +105,7 @@ void Web_Init(void) {
     });
 
     wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
-    #if (LANGUAGE == 1)
+    #if (LANGUAGE == DE)
         request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
     #else
         request->send(200, "text/html", "ESPuino is being shutdown...");
@@ -150,7 +150,7 @@ void webserverStart(void) {
         // heap/psram-info
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-                #if (LANGUAGE == 1)
+                #if (LANGUAGE == DE)
                     String info = "Freier heap: " + String(ESP.getFreeHeap());
                     info += "\nGroesster freier heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFreier PSRAM: ";
@@ -300,7 +300,7 @@ bool processJsonRequest(char *_serialJson) {
     JsonObject object = doc.as<JsonObject>();
 
     if (error) {
-        #if (LANGUAGE == 1)
+        #if (LANGUAGE == DE)
             Serial.print(F("deserializeJson() fehlgeschlagen: "));
         #else
             Serial.print(F("deserializeJson() failed: "));
