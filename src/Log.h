@@ -1,5 +1,5 @@
 #pragma once
-#include "LogMessages.h"
+#include "logmessages.h"
 
 // Loglevels available (don't change!)
 #define LOGLEVEL_ERROR 1  // only errors

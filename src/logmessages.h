@@ -188,3 +188,5 @@ extern const char warningRefactoring[];
 extern const char playlistGenModeUncached[];
 extern const char playlistGenModeCached[];
 extern const char playlistCacheFoundBut0[];
+extern const char bootLoopDetected[];
+extern const char noBootLoopDetected[];

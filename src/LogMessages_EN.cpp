@@ -192,5 +192,7 @@
     const char playlistGenModeUncached[] PROGMEM = "Playlist-generation: uncached";
     const char playlistGenModeCached[] PROGMEM = "Playlist-generation: cached";
     const char playlistCacheFoundBut0[] PROGMEM = "Playlist-cache-file found but 0 bytes";
+    const char bootLoopDetected[] PROGMEM = "Bootloop detected! Last RFID won't be restored.";
+    const char noBootLoopDetected[] PROGMEM = "No bootloop detected. Great :-)";
 
 #endif

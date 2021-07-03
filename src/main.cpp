@@ -26,6 +26,9 @@
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
+    bool recoverBootCount = true;
+    bool resetBootCount = false;
+    uint32_t bootCount = 0;
 #endif
 
 ////////////
@@ -42,8 +45,40 @@
 #endif
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
+    // If a problem occurs, remembering last rfid can lead into a boot loop that's hard to escape of.
+    // That reason for a mechanism is necessary to prevent this.
+    // At start of a boot, bootCount is incremented by one and after 30s decremented because
+    // uptime of 30s is considered as "successful boot".
+    void recoverBootCountFromNvs(void) {
+        if (recoverBootCount) {
+            recoverBootCount = false;
+            resetBootCount = true;
+            bootCount = gPrefsSettings.getUInt("bootCount", 999);
+
+            if (bootCount == 999) {         // first init
+                bootCount = 1;
+                gPrefsSettings.putUInt("bootCount", bootCount);
+            } else if (bootCount >= 3) {    // considered being a bootloop => don't recover last rfid!
+                bootCount = 1;
+                gPrefsSettings.putUInt("bootCount", bootCount);
+                gPrefsSettings.putString("lastRfid", "-1");     // reset last rfid
+                Log_Println((char *) FPSTR(bootLoopDetected), LOGLEVEL_ERROR);
+                recoverLastRfid = false;
+            } else {                        // normal operation
+                gPrefsSettings.putUInt("bootCount", ++bootCount);
+            }
+        }
+
+        if (resetBootCount && millis() >= 30000) {      // reset bootcount
+            resetBootCount = false;
+            bootCount = 0;
+            gPrefsSettings.putUInt("bootCount", bootCount);
+            Log_Println((char *) FPSTR(noBootLoopDetected), LOGLEVEL_INFO);
+        }
+    }
+
     // Get last RFID-tag applied from NVS
-    void recoverLastRfidPlayed(void) {
+    void recoverLastRfidPlayedFromNvs(void) {
         if (recoverLastRfid) {
             if (System_GetOperationMode() == OPMODE_BLUETOOTH) { // Don't recover if BT-mode is desired
                 recoverLastRfid = false;
@@ -220,7 +255,8 @@ void loop() {
     Rfid_PreferenceLookupHandler();
 
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
-        recoverLastRfidPlayed();
+        recoverBootCountFromNvs();
+        recoverLastRfidPlayedFromNvs();
     #endif
 
     IrReceiver_Cyclic();
