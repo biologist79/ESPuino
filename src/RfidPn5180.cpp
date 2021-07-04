@@ -50,6 +50,8 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
     void Rfid_Read(void) {
         static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
         static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
+        static uint32_t lastTimeDetected14443 = 0;
+        static uint32_t lastTimeDetected15693 = 0;
         static uint8_t stateMachine = RFID_PN5180_STATE_INIT;
         static byte cardId[cardIdSize], lastCardId[cardIdSize];
         uint8_t uid[10];
@@ -68,7 +70,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             Serial.println(firmwareVersion[0]);
 
             // activate RF field
-            delay(4);
+            delay(4u);
             Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
         // 1. check for an ISO-14443 card
@@ -80,11 +82,16 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             if (nfc14443.readCardSerial(uid) >= 4u) {
                 cardReceived = true;
                 stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
+                lastTimeDetected14443 = millis();
             } else {
                 // Reset to dummy-value if no card is there
                 // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
-                for (uint8_t i=0; i<cardIdSize; i++) {
-                    lastCardId[i] = 0;
+                // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
+                if (!lastTimeDetected14443 || (lastTimeDetected14443 - millis() >= 300)) {
+                    lastTimeDetected14443 = 0;
+                    for (uint8_t i=0; i<cardIdSize; i++) {
+                        lastCardId[i] = 0;
+                    }
                 }
             }
 
@@ -108,9 +115,14 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             if (rc == ISO15693_EC_OK) {
                 cardReceived = true;
                 stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
+                lastTimeDetected15693 = millis();
             } else {
-                for (uint8_t i=0; i<cardIdSize; i++) {
-                    lastCardId[i] = 0;
+                // lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
+                if (!lastTimeDetected15693 || (lastTimeDetected15693 - millis() >= 300)) {
+                    lastTimeDetected15693 = 0;
+                    for (uint8_t i=0; i<cardIdSize; i++) {
+                        lastCardId[i] = 0;
+                    }
                 }
             }
         }
@@ -203,7 +215,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             nfc14443.setupRF();
             if (!nfc14443.isCardPresent()) {
                 nfc14443.clearIRQStatus(0xffffffff);
-                Serial.print(F("Logic level at PN5180' IRQ-PIN: "));
+                Serial.print(F("Logic-level at PN5180's IRQ-PIN: "));
                 Serial.println(Port_Read(RFID_IRQ));
                 // turn on LPCD
                 uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
