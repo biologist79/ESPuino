@@ -87,7 +87,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 // Reset to dummy-value if no card is there
                 // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
                 // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-                if (!lastTimeDetected14443 || (lastTimeDetected14443 - millis() >= 300)) {
+                if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 300)) {
                     lastTimeDetected14443 = 0;
                     for (uint8_t i=0; i<cardIdSize; i++) {
                         lastCardId[i] = 0;
@@ -118,7 +118,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 lastTimeDetected15693 = millis();
             } else {
                 // lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
-                if (!lastTimeDetected15693 || (lastTimeDetected15693 - millis() >= 300)) {
+                if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 300)) {
                     lastTimeDetected15693 = 0;
                     for (uint8_t i=0; i<cardIdSize; i++) {
                         lastCardId[i] = 0;
