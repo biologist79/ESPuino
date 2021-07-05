@@ -1,6 +1,10 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
-## NEWS
+## News
+I started this project back in october 2019 and never expected it to become that large. The project grew and grew - so did main.cpp. So it was about time to have it split into modules. This was done in march/april. After spending some time on tests, improvements and implementing new features, [refactoring-branch](https://github.com/biologist79/ESPuino/tree/refactoring) will soon (in july 2021) become the new master whereas the current master will become a new branch named old. It will be kept as reference but won't by maintained anymore.
+Please be advised that moving to refactoring-branch will re-arrange ESP32's partition. All things to know are described [here](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510) in german language.
+
+## Forum
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Build status
