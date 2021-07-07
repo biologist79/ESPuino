@@ -194,5 +194,8 @@
     const char playlistCacheFoundBut0[] PROGMEM = "Playlist-cache-file found but 0 bytes";
     const char bootLoopDetected[] PROGMEM = "Bootloop detected! Last RFID won't be restored.";
     const char noBootLoopDetected[] PROGMEM = "No bootloop detected. Great :-)";
+    const char importCountNokNvs[] PROGMEM = "Number of invalid import-entries";
+    const char errorReadingTmpfile[] PROGMEM = "Error occured while reading from import-tmpfile";
+    const char errorWritingTmpfile[] PROGMEM = "Error occured while writing to import-tmpfile";
 
 #endif

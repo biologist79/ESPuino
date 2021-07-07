@@ -194,5 +194,7 @@
     const char playlistCacheFoundBut0[] PROGMEM = "Playlist-Cache-File gefunden, jedoch 0 Bytes groß";
     const char bootLoopDetected[] PROGMEM = "Bootschleife erkannt! Letzte RFID wird nicht aufgerufen.";
     const char noBootLoopDetected[] PROGMEM = "Keine Bootschleife erkannt. Wunderbar :-)";
-
+    const char importCountNokNvs[] PROGMEM = "Anzahl der ungültigen Import-Einträge";
+    const char errorReadingTmpfile[] PROGMEM = "Beim Lesen der temporären Importdatei ist ein Fehler aufgetreten!";
+    const char errorWritingTmpfile[] PROGMEM = "Beim Schreiben der temporären Importdatei ist ein Fehler aufgetreten!";
 #endif

@@ -190,3 +190,6 @@ extern const char playlistGenModeCached[];
 extern const char playlistCacheFoundBut0[];
 extern const char bootLoopDetected[];
 extern const char noBootLoopDetected[];
+extern const char importCountNokNvs[];
+extern const char errorReadingTmpfile[];
+extern const char errorWritingTmpfile[];

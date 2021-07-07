@@ -50,6 +50,7 @@ static RingbufHandle_t explorerFileUploadRingBuffer;
 static QueueHandle_t explorerFileUploadStatusQueue;
 static TaskHandle_t fileStorageTaskHandle;
 
+void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 static void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 static void explorerHandleFileStorageTask(void *parameter);
@@ -796,42 +797,92 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
     request->send(200);
 }
 
-// Handles uploaded backup-file and writes valid entries into NVS
+// Takes stream from file-upload and writes payload into a temporary sd-file.
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-    Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+    static File tmpFile;
+    static size_t fileIndex = 0;
+    static char tmpFileName[13];
+    esp_task_wdt_reset();
+
+    if (!index) {
+        snprintf(tmpFileName, 13, "/_%lu", millis());
+        tmpFile = gFSystem.open(tmpFileName, FILE_WRITE);
+    } else {
+        tmpFile.seek(fileIndex);
+    }
+
+    if (!tmpFile) {
+        Serial.println(F("Error occured while saving tmpfile to SD"));
+        return;
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        tmpFile.printf("%c", data[i]);
+    }
+    fileIndex += len;
+
+    if (final) {
+        tmpFile.close();
+        Web_DumpSdToNvs(tmpFileName);
+        fileIndex = 0;
+    }
+}
+
+// Parses content of temporary backup-file and writes payload into NVS
+void Web_DumpSdToNvs(const char *_filename) {
     char ebuf[290];
     uint16_t j = 0;
     char *token;
-    uint8_t count = 0;
+    bool count = false;
+    uint16_t importCount = 0;
+    uint16_t invalidCount = 0;
     nvs_t nvsEntry[1];
+    char buf;
+    File tmpFile = gFSystem.open(_filename);
 
-    for (size_t i = 0; i < len; i++) {
-        if (data[i] != '\n') {
-            ebuf[j++] = data[i];
+    if (!tmpFile) {
+        Log_Println((char *) FPSTR(errorReadingTmpfile), LOGLEVEL_ERROR);
+        return;
+    }
+
+    Led_SetPause(true);
+    while (tmpFile.available() > 0) {
+        buf = tmpFile.read();
+        if (buf != '\n') {
+            ebuf[j++] = buf;
         } else {
             ebuf[j] = '\0';
             j = 0;
             token = strtok(ebuf, stringOuterDelimiter);
             while (token != NULL) {
                 if (!count) {
-                    count++;
+                    count = true;
                     memcpy(nvsEntry[0].nvsKey, token, strlen(token));
                     nvsEntry[0].nvsKey[strlen(token)] = '\0';
-                } else if (count == 1) {
-                    count = 0;
+                    //Serial.printf("Key: %s\n", token);
+                } else {
+                    count = false;
                     memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
                     nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+                    //Serial.printf("Entry: %s\n", token);
                 }
                 token = strtok(NULL, stringOuterDelimiter);
             }
             if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
-                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %s", (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+                snprintf(Log_Buffer, Log_BufferLength, "[%u] %s: %s => %s", ++importCount, (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
                 Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 gPrefsRfid.putString(nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+            } else {
+                invalidCount++;
             }
         }
     }
+
     Led_SetPause(false);
+    snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(importCountNokNvs), invalidCount);
+    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+    tmpFile.close();
+    gFSystem.remove(_filename);
 }
 
 // Dumps all RFID-entries from NVS into a file on SD-card
