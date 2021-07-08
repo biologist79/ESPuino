@@ -156,11 +156,17 @@ void webserverStart(void) {
                     info += "\nGroesster freier heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
+                    if (Wlan_IsConnected) {
+                        info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
+                    }
                 #else
                     String info = "Free heap: " + String(ESP.getFreeHeap());
                     info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
+                    if (Wlan_IsConnected) {
+                        info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
+                    }
                 #endif
                 request->send_P(200, "text/plain", info.c_str());
             });
@@ -812,7 +818,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     }
 
     if (!tmpFile) {
-        Serial.println(F("Error occured while saving tmpfile to SD"));
+        Log_Println((char *) FPSTR(errorWritingTmpfile), LOGLEVEL_ERROR);
         return;
     }
 
@@ -859,12 +865,10 @@ void Web_DumpSdToNvs(const char *_filename) {
                     count = true;
                     memcpy(nvsEntry[0].nvsKey, token, strlen(token));
                     nvsEntry[0].nvsKey[strlen(token)] = '\0';
-                    //Serial.printf("Key: %s\n", token);
                 } else {
                     count = false;
                     memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
                     nvsEntry[0].nvsEntry[strlen(token)] = '\0';
-                    //Serial.printf("Entry: %s\n", token);
                 }
                 token = strtok(NULL, stringOuterDelimiter);
             }

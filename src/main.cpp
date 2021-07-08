@@ -185,7 +185,7 @@ void setup()
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210707-1\n"));
+    Serial.println(F(" Rev 20210708-1\n"));
 
     // print wake-up reason
     printWakeUpReason();
@@ -231,6 +231,10 @@ void setup()
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+    if (Wlan_IsConnected()) {
+        snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
+        Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+    }
     System_ShowUpgradeWarning();
 }
 

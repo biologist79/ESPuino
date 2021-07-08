@@ -30,7 +30,7 @@ void Wlan_Init(void) {
 }
 
 void Wlan_Cyclic(void) {
-    // If wifi whould not be activated, return instantly
+    // If wifi would not be activated, return instantly
     if (!wifiEnabled) {
         return;
     }
@@ -112,6 +112,10 @@ void Wlan_ToggleEnable(void) {
 
 String Wlan_GetIpAddress(void) {
     return WiFi.localIP().toString();
+}
+
+int8_t Wlan_GetRssi(void) {
+    return WiFi.RSSI();
 }
 
 // Initialize soft access-point
