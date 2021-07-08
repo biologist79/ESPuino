@@ -24,6 +24,10 @@ bool accessPointStarted = false;
 void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
 bool getWifiEnableStatusFromNVS(void);
 void writeWifiStatusToNVS(bool wifiStatus);
+bool Wlan_IsConnected(void);
+int8_t Wlan_GetRssi(void);
+
+uint32_t lastPrintRssiTimestamp = 0;
 
 void Wlan_Init(void) {
     wifiEnabled = getWifiEnableStatusFromNVS();
@@ -103,6 +107,14 @@ void Wlan_Cyclic(void) {
         #endif
 
         wifiNeedsRestart = false;
+    }
+
+    if (Wlan_IsConnected()) {
+        if (millis() - lastPrintRssiTimestamp >= 60000) {
+            lastPrintRssiTimestamp = millis();
+            snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+        }
     }
 }
 

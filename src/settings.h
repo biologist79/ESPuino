@@ -213,6 +213,7 @@
         constexpr const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
         constexpr const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
         constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
+        constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
         #ifdef MEASURE_BATTERY_VOLTAGE
             constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
         #endif
