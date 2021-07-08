@@ -156,7 +156,7 @@ void webserverStart(void) {
                     info += "\nGroesster freier heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
-                    if (Wlan_IsConnected) {
+                    if (Wlan_IsConnected()) {
                         info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
                 #else
@@ -189,6 +189,14 @@ void webserverStart(void) {
         wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
             request->send_P(200, "text/html", shutdownWebsite);
             System_RequestSleep();
+        });
+
+        // ESP-shutdown
+        wServer.on("/rfidnvserase", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send_P(200, "text/html", eraseRfidNvsWeb);
+            Log_Println((char *) FPSTR(eraseRfidNvs), LOGLEVEL_NOTICE);
+            gPrefsRfid.clear();
+            Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile));
         });
 
         // Fileexplorer (realtime)

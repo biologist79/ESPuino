@@ -462,11 +462,22 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <br />\
     </div>\
     <div class=\"tab-pane fade\" id=\"nav-tools\" role=\"tabpanel\" aria-labelledby=\"nav-tools-tab\">\
+        <div class=\"container\" id=\"eraseNvs\">\
+            <legend>Erase NVS RFID-assignments</legend>\
+            <form action=\"/rfidnvserase\" enctype=\"multipart/form-data\" method=\"GET\">\
+                <div class=\"form-group\">\
+                    <p>Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.</p>\
+                </div>\
+                <button type=\"submit\" class=\"btn btn-primary\">Delete assignments</button>\
+            </form>\
+        </div>\
+        <br />\
+        <br />\
         <div class=\"container\" id=\"importNvs\">\
-            <legend>NVS-Importer</legend>\
+            <legend>NVS RFID-Importer</legend>\
             <form action=\"/upload\" enctype=\"multipart/form-data\" method=\"POST\">\
                 <div class=\"form-group\">\
-                    <label for=\"nvsUpload\">Backupfile can be imported right here.</label>\
+                    <label for=\"nvsUpload\">Backupfile can be uploaded right here in order to import NVS-RFID-assignments.</label>\
                     <input type=\"file\" class=\"form-control-file\" id=\"nvsUpload\" name=\"nvsUpload\" accept=\".txt\">\
                 </div>\
                 <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\

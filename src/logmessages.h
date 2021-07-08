@@ -193,3 +193,5 @@ extern const char noBootLoopDetected[];
 extern const char importCountNokNvs[];
 extern const char errorReadingTmpfile[];
 extern const char errorWritingTmpfile[];
+extern const char eraseRfidNvsWeb[];
+extern const char eraseRfidNvs[];
