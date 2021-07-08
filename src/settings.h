@@ -92,7 +92,7 @@
 
     Multi-buttons [short only] (examples):
         BUTTON_MULTI_01 => Buttons 0+1 (NEXT_BUTTON + PREVIOUS_BUTTON) pressed in parallel
-        BUTTON_MULTI_23 => Buttons 0+2 (NEXT_BUTTON + PAUSEPLAY_BUTTON) pressed in parallel
+        BUTTON_MULTI_12 => Buttons 1+2 (PREV_BUTTON + PAUSEPLAY_BUTTON) pressed in parallel
 
     Actions:
         To all of those buttons, an action can be assigned freely.
