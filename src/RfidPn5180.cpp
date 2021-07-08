@@ -83,6 +83,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 cardReceived = true;
                 stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
                 lastTimeDetected14443 = millis();
+                //Serial.println("14443");
             } else {
                 // Reset to dummy-value if no card is there
                 // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
@@ -118,6 +119,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 cardReceived = true;
                 stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
                 lastTimeDetected15693 = millis();
+                //Serial.println("15693");
             } else {
                 // lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
                 if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 400)) {
@@ -138,13 +140,21 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             // check for different card id
             if (memcmp((const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0) {
                 // reset state machine
-                stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
-                return;
+                if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
+                    stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+                    return;
+                } else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
+                    stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+                    return;
+                }
             }
 
             memcpy(lastCardId, cardId, cardIdSize);
 
             Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+            snprintf(Log_Buffer, Log_BufferLength, "(%s) ID: ", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
+            Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+
             for (uint8_t i = 0u; i < cardIdSize; i++) {
                 snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
                 Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
