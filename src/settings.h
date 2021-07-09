@@ -218,6 +218,7 @@
             constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
         #endif
     #endif
+<<<<<<< HEAD
 
     // !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
     #if (HAL == 1)
@@ -236,4 +237,6 @@
         #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
     #endif
 
+=======
+>>>>>>> 15a06350b94ca27ba7d88401436a90da2c068d50
 #endif
