@@ -179,12 +179,14 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 
 // Cyclic posting of WiFi-signal-strength
 void Mqtt_PostWiFiRssi(void) {
-    static uint32_t lastMqttRssiTimestamp = 0;
+    #ifdef MQTT_ENABLE
+        static uint32_t lastMqttRssiTimestamp = 0;
 
-    if (!lastMqttRssiTimestamp || (millis() - lastMqttRssiTimestamp >= 60000)) {
-        lastMqttRssiTimestamp = millis();
-        publishMqtt((char *) FPSTR(topicWiFiRssiState), Wlan_GetRssi(), false);
-    }
+        if (!lastMqttRssiTimestamp || (millis() - lastMqttRssiTimestamp >= 60000)) {
+            lastMqttRssiTimestamp = millis();
+            publishMqtt((char *) FPSTR(topicWiFiRssiState), Wlan_GetRssi(), false);
+        }
+    #endif
 }
 
 /* Cyclic posting via MQTT that ESP is still alive. Use case: when ESPuino is switched off, it will post via
