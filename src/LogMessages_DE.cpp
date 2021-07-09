@@ -199,4 +199,5 @@
     const char errorWritingTmpfile[] PROGMEM = "Beim Schreiben der temporären Importdatei ist ein Fehler aufgetreten!";
     const char eraseRfidNvsWeb[] PROGMEM = "<p>Die NVS-RFID-Zuweisungen werden gel&ouml;scht...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
     const char eraseRfidNvs[] PROGMEM = "NVS-RFID-Zuweisungen werden gelöscht...";
+    const char erasePlaylistCachefile[] PROGMEM = "Playlist-Cachefile gelöscht";
 #endif

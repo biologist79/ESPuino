@@ -195,3 +195,4 @@ extern const char errorReadingTmpfile[];
 extern const char errorWritingTmpfile[];
 extern const char eraseRfidNvsWeb[];
 extern const char eraseRfidNvs[];
+extern const char erasePlaylistCachefile[];

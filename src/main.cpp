@@ -184,7 +184,7 @@ void setup() {
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210709-1\n"));
+    Serial.println(F(" Rev 20210709-2\n"));
 
     // print wake-up reason
     printWakeUpReason();

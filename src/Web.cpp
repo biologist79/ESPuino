@@ -65,6 +65,7 @@ static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static String templateProcessor(const String &templ);
 static void webserverStart(void);
+void Web_DeleteCachefile(const char *fileOrDirectory);
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
@@ -546,6 +547,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
         snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
+        Web_DeleteCachefile(utf8FilePath.c_str());
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
@@ -696,6 +698,24 @@ bool explorerDeleteDirectory(File dir) {
     return gFSystem.rmdir(dir.name());
 }
 
+// Handles delete-requests for cachefiles.
+// This is necessary to avoid outdated cachefiles if content of a directory changes (create, rename, delete).
+void Web_DeleteCachefile(const char *fileOrDirectory) {
+    char cacheFile[MAX_FILEPATH_LENTGH];
+    const char s = '/';
+	char *last = strrchr(fileOrDirectory, s);
+	char *first = strchr(fileOrDirectory, s);
+	unsigned long substr = last - first + 1;
+	snprintf(cacheFile, substr+1, "%s", fileOrDirectory);
+    strcat(cacheFile, playlistCacheFile);
+    if (gFSystem.exists(cacheFile)) {
+        if (gFSystem.remove(cacheFile)) {
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(erasePlaylistCachefile), cacheFile);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+        }
+    }
+}
+
 // Handles delete request of a file or directory
 // requires a GET parameter path to the file or directory
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
@@ -719,6 +739,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
                 if (gFSystem.remove(filePath)) {
                     snprintf(Log_Buffer, Log_BufferLength, "DELETE:  %s deleted", param->value().c_str());
                     Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                    Web_DeleteCachefile(filePath);
                 } else {
                     snprintf(Log_Buffer, Log_BufferLength, "DELETE:  Cannot delete %s", param->value().c_str());
                     Log_Println(Log_Buffer, LOGLEVEL_ERROR);
@@ -773,6 +794,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
             if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
                 snprintf(Log_Buffer, Log_BufferLength, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
                 Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                Web_DeleteCachefile(dstFullFilePath);
             } else {
                 snprintf(Log_Buffer, Log_BufferLength, "RENAME:  Cannot rename %s", srcPath->value().c_str());
                 Log_Println(Log_Buffer, LOGLEVEL_ERROR);

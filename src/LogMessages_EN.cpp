@@ -199,4 +199,5 @@
     const char errorWritingTmpfile[] PROGMEM = "Error occured while writing to import-tmpfile";
     const char eraseRfidNvsWeb[] PROGMEM = "<p>NVS-RFID-assignments are being deleted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
     const char eraseRfidNvs[] PROGMEM = "NVS-RFID-assignments are being deleted...";
+    const char erasePlaylistCachefile[] PROGMEM = "Playlist-cachefile deleted";
 #endif
