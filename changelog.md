@@ -5,6 +5,10 @@
 * 15.06.2021: Added interrupt-handling to PCA9555
 * 22.06.2021: Changed ESP32's partition-layout in order to provider bigger NVS-storage
 * 30.06.2021: Added directive `CACHED_PLAYLIST_ENABLE` for faster playlist-generation
+* 08.07.2021: Added support to monitor WiFi's RSSI
+* 09.07.2021: Making branch `refactoring` the the master
+* 09.07.2021: Making master the new branch `old` (not maintained any longer!)
+
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.
 * 09.10.2020: mqttUser / mqttPassword can now be configured via webgui.

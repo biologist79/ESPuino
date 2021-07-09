@@ -1,6 +1,8 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
-## NEWS
+News:
+I started this project back in october 2019 and never expected it to become that large. The project grew and grew - so did main.cpp. So it was about time to have it split into modules. This was done in march/april. After spending some time on tests, improvements and implementing new features, refactoring-branch will is NOW the new master whereas the previous master  a new branch named `old`. It will be kept as reference but won't by maintained anymore. Please be advised that moving to refactoring-branch will re-arrange ESP32's partition. All things to know are described [here](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510) in german language. Development of the new master is documented [here](https://forum.espuino.de/t/refactoring/415). Have fun and don't hesitate to contact me in case of problems/questions.
+## Forum
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Build status
@@ -10,9 +12,9 @@
 * Partition-layout for ESP32 is changed along with this branch. This step was necessary in order to resize (enlarge) the memory-region where especially the assignments for the RFID-tags are saved. As all permanent settings (e.g. WiFi-settings) are saved there too, it's necessary to re-enter WiFi-credentials after update. But the most important thing is to recover the assignments for the RFID-tags. Please consult my [migration-document](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510).
 ## Changelog
 Last three events:
-* 30.06.2021: Added directive `CACHED_PLAYLIST_ENABLE` for faster playlist-generation
-* 22.06.2021: Changed ESP32' partition-layout in order to provider bigger NVS-storage.
-* 15.06.2021: Added interrupt-handling to PCA9555
+* 09.07.2021: Making branch `refactoring` the the master
+* 09.07.2021: Making master the new branch `old` (not maintained any longer!)
+* 08.07.2021: Added support to monitor WiFi's RSSI
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 ## ESPuino - what's that?
@@ -411,3 +413,4 @@ Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-
 | topicLedBrightnessCmnd  | 0 - 255         | Set brightness of Neopixel                                                     |
 | topicLedBrightnessState | 0 - 255         | Sends brightness of Neopixel                                                   |
 | topicBatteryVoltage     | float           | Voltage (e.g. 3.81)                                                            |
+| topicWiFiRssiState      | int             | Numeric WiFi signal-strength (dBm)                                             |
