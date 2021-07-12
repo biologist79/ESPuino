@@ -200,4 +200,9 @@
     const char eraseRfidNvsWeb[] PROGMEM = "<p>NVS-RFID-assignments are being deleted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
     const char eraseRfidNvs[] PROGMEM = "NVS-RFID-assignments are being deleted...";
     const char erasePlaylistCachefile[] PROGMEM = "Playlist-cachefile deleted";
+    const char fwStart[] PROGMEM = "Starting firmware-update via OTA...";
+    const char fwEnd[] PROGMEM = "Firmware-update finished";
+    const char otaNotSupported[] PROGMEM = "Firmware-update isn't supported by this ESPuino!";
+    const char otaNotSupportedWebsite[] PROGMEM = "<p>FFirmware-update isn't supported by this ESPuino!<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
+
 #endif

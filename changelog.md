@@ -8,6 +8,7 @@
 * 08.07.2021: Added support to monitor WiFi's RSSI
 * 09.07.2021: Making branch `refactoring` the the master
 * 09.07.2021: Making master the new branch `old` (not maintained any longer!)
+* 13.07.2021: Adding OTA-support via webGUI
 
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.

@@ -196,3 +196,7 @@ extern const char errorWritingTmpfile[];
 extern const char eraseRfidNvsWeb[];
 extern const char eraseRfidNvs[];
 extern const char erasePlaylistCachefile[];
+extern const char fwStart[];
+extern const char fwEnd[];
+extern const char otaNotSupported[];
+extern const char otaNotSupportedWebsite[];

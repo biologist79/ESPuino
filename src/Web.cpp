@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <Update.h>
 #include <nvsDump.h>
 #include <esp_task_wdt.h>
 #include "freertos/ringbuf.h"
@@ -178,6 +179,36 @@ void webserverStart(void) {
                 request->send_P(200, "text/html", backupRecoveryWebsite);
             },
             handleUpload);
+
+        // OTA-upload
+        wServer.on(
+            "/update", HTTP_POST, [](AsyncWebServerRequest *request) {
+                #ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+                    request->send(200, "text/html", restartWebsite); },
+                #else
+                    request->send(200, "text/html", otaNotSupportedWebsite); },
+                #endif
+            [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+                #ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+                    Log_Println((char *) FPSTR(otaNotSupported), LOGLEVEL_NOTICE);
+                    return;
+                #endif
+
+                if (!index) {
+                    Update.begin();
+                    Log_Println((char *) FPSTR(fwStart), LOGLEVEL_NOTICE);
+                }
+
+                Update.write(data, len);
+                Serial.print(".");
+
+                if (final) {
+                    Update.end(true);
+                    Log_Println((char *) FPSTR(fwEnd), LOGLEVEL_NOTICE);
+                    Serial.flush();
+                    ESP.restart();
+                }
+        });
 
         // ESP-restart
         wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {

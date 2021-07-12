@@ -484,6 +484,18 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             </form>\
         </div>\
     </div>\
+    <br />\
+    <br />\
+    <div class=\"container\" id=\"httpUpdate\">\
+        <legend>Firmware-Update</legend>\
+        <form action=\"/update\" enctype=\"multipart/form-data\" method=\"POST\">\
+            <div class=\"form-group\">\
+                <label for=\"firmwareUpload\">Hier kann ein Firmware-Update durchgeführt werden.</label>\
+                <input type=\"file\" class=\"form-control-file\" id=\"firmwareUpload\" name=\"firmwareUpload\" accept=\".bin\">\
+            </div>\
+            <button type=\"submit\" class=\"btn btn-primary\">Absenden</button>\
+        </form>\
+    </div>\
     <div class=\"tab-pane fade\" id=\"nav-forum\" role=\"tabpanel\" aria-labelledby=\"nav-forum-tab\">\
         <div class=\"container\" id=\"forum\">\
             <legend>Forum</legend>\
