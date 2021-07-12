@@ -108,9 +108,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
         }
 
         // ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
-        if (_playMode == ALL_TRACKS_OF_DIR_RANDOM ||
-            _playMode == ALL_TRACKS_OF_DIR_RANDOM_LOOP ||
-            _playMode == SINGLE_TRACK ||
+        if (_playMode == SINGLE_TRACK ||
             _playMode == SINGLE_TRACK_LOOP) {
                 readFromCacheFile = false;
         } else {
