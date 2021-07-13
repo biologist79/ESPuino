@@ -154,21 +154,25 @@ void webserverStart(void) {
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
                 #if (LANGUAGE == DE)
-                    String info = "Freier heap: " + String(ESP.getFreeHeap());
-                    info += "\nGroesster freier heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+                    String info = "Freier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
+                    info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
                     if (Wlan_IsConnected()) {
                         info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
                 #else
-                    String info = "Free heap: " + String(ESP.getFreeHeap());
-                    info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+                    String info = "Free heap: " + String(ESP.getFreeHeap()) + " bytes";
+                    info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
                     if (Wlan_IsConnected) {
                         info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
+                #endif
+                #ifdef MEASURE_BATTERY_VOLTAGE
+                    snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
+                    info += (String) Log_Buffer;
                 #endif
                 request->send_P(200, "text/plain", info.c_str());
             });
