@@ -566,9 +566,11 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 
     System_UpdateActivityTimer();
+    static uint32_t transferStartTimestamp = 0;
 
     // New File
     if (!index) {
+        transferStartTimestamp = millis();
         String utf8FilePath;
         static char filePath[MAX_FILEPATH_LENTGH];
         if (request->hasParam("path")) {
@@ -619,6 +621,8 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
         // delete task
         vTaskDelete(fileStorageTaskHandle);
+        snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)\n", (char *)FPSTR (fileWritten), filename.c_str(), index+len, (millis() - transferStartTimestamp), (index+len)/(millis() - transferStartTimestamp));
+        Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }
 }
 
@@ -635,7 +639,7 @@ void explorerHandleFileStorageTask(void *parameter) {
     uploadFile = gFSystem.open((char *)parameter, "w");
 
     for (;;) {
-        esp_task_wdt_reset();
+        //esp_task_wdt_reset();
 
         item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
         if (item != NULL) {
@@ -651,6 +655,7 @@ void explorerHandleFileStorageTask(void *parameter) {
             }
             vTaskDelay(portTICK_PERIOD_MS * 100);
         }
+        vTaskDelay(portTICK_PERIOD_MS * 1);
     }
     // send signal to upload function to terminate
     xQueueSend(explorerFileUploadStatusQueue, &value, 0);
