@@ -166,7 +166,7 @@ void webserverStart(void) {
                     info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
-                    if (Wlan_IsConnected) {
+                    if (Wlan_IsConnected()) {
                         info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
                 #endif
