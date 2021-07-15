@@ -23,6 +23,7 @@
 #include "System.h"
 #include "Web.h"
 #include "Wlan.h"
+#include "revision.h"
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
@@ -183,8 +184,8 @@ void setup() {
     Serial.println(F(" |  _|   \\__  \\  | |_) | | | | | | | | '_ \\   / _ \\"));
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
-    Serial.println(F(" Rfid-controlled musicplayer\n"));
-    Serial.println(F(" Rev 20210714-1\n"));
+    Serial.print(F(" Rfid-controlled musicplayer\n "));
+    Serial.printf("%s\n\n", softwareRevision);
 
     // print wake-up reason
     printWakeUpReason();

@@ -21,6 +21,7 @@
 #include "System.h"
 #include "Web.h"
 #include "Wlan.h"
+#include "revision.h"
 
 #if (LANGUAGE == DE)
     #include "HTMLaccesspoint_DE.h"
@@ -174,6 +175,7 @@ void webserverStart(void) {
                     snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
                     info += (String) Log_Buffer;
                 #endif
+                info += "\n" + (String) softwareRevision;
                 request->send_P(200, "text/plain", info.c_str());
             });
 
