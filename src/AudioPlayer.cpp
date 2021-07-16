@@ -574,6 +574,7 @@ void AudioPlayer_Task(void *parameter) {
                     Led_Indicate(LedIndicatorType::PlaylistProgress);
                     if (gPlayProperties.startAtFilePos > 0) {
                         audio->setFilePos(gPlayProperties.startAtFilePos);
+                        gPlayProperties.startAtFilePos = 0;
                         snprintf(Log_Buffer, Log_BufferLength, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
                         Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                     }
