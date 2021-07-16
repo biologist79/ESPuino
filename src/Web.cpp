@@ -568,11 +568,9 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 
     System_UpdateActivityTimer();
-    static uint32_t transferStartTimestamp = 0;
 
     // New File
     if (!index) {
-        transferStartTimestamp = millis();
         String utf8FilePath;
         static char filePath[MAX_FILEPATH_LENTGH];
         if (request->hasParam("path")) {
@@ -623,8 +621,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
         // delete task
         vTaskDelete(fileStorageTaskHandle);
-        snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)\n", (char *)FPSTR (fileWritten), filename.c_str(), index+len, (millis() - transferStartTimestamp), (index+len)/(millis() - transferStartTimestamp));
-        Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }
 }
 
@@ -632,6 +628,9 @@ void explorerHandleFileStorageTask(void *parameter) {
 
     File uploadFile;
     size_t item_size;
+    size_t bytesOk = 0;
+    size_t bytesNok = 0;
+    uint32_t transferStartTimestamp = millis();
     uint8_t *item;
     uint8_t value = 0;
 
@@ -645,19 +644,31 @@ void explorerHandleFileStorageTask(void *parameter) {
 
         item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
         if (item != NULL) {
-            uploadFile.write(item, item_size);
+            if (!uploadFile.write(item, item_size)) {
+                bytesNok += item_size;
+            } else {
+                bytesOk += item_size;
+            }
             vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
         } else {
             // No data in the buffer, check if all data arrived for the file
             uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
             if (uploadFileNotification == pdPASS) {
                 uploadFile.close();
+                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+                Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu\n", bytesOk, bytesNok);
+                Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
                 // done exit loop to terminate
                 break;
             }
             vTaskDelay(portTICK_PERIOD_MS * 100);
         }
-        vTaskDelay(portTICK_PERIOD_MS * 1);
+        #ifdef SD_MMC_1BIT_MODE
+            vTaskDelay(portTICK_PERIOD_MS * 1);
+        #else
+            vTaskDelay(portTICK_PERIOD_MS * 6);
+        #endif
     }
     // send signal to upload function to terminate
     xQueueSend(explorerFileUploadStatusQueue, &value, 0);
