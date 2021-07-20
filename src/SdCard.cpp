@@ -142,36 +142,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
         }
     #endif
 
-    // Parse m3u-playlist and create linear-playlist out of it
-    if (_playMode == WEBSTREAMS_LOCAL_M3U) {
-        enablePlaylistFromM3u = true;
-        if (fileOrDirectory && !fileOrDirectory.isDirectory()) {
-            serializedPlaylist = (char *) x_calloc(2048, sizeof(char));
-            if (serializedPlaylist == NULL) {
-                Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
-                System_IndicateError();
-                return files;
-            }
-            char buf;
-            uint32_t fPos = 1;
-
-            serializedPlaylist[0] = '#';
-            while (fileOrDirectory.available() > 0) {
-                buf = fileOrDirectory.read();
-                if (buf != '\n' && buf != '\r') {
-                    serializedPlaylist[fPos++] = buf;
-                } else {
-                    serializedPlaylist[fPos++] = '#';
-                }
-            }
-            if (serializedPlaylist[fPos-1] == '#') {    // Remove trailing delimiter if set
-                serializedPlaylist[fPos-1] = '\0';
-            }
-        } else {
-            return files;
-        }
-    }
-
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 
@@ -181,6 +151,58 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
         freeMultiCharArray(files, strtoul(*files, NULL, 10));
         snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+    }
+
+    // Parse m3u-playlist and create linear-playlist out of it
+    if (_playMode == WEBSTREAMS_LOCAL_M3U) {
+        if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() >= 0) {
+            enablePlaylistFromM3u = true;
+            uint16_t allocCount = 1;
+            uint16_t allocSize = 1024;
+            if (psramInit()) {
+                allocSize = 65535; // There's enough PSRAM. So we don't have to care...
+            }
+
+            serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
+            if (serializedPlaylist == NULL) {
+                Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+                System_IndicateError();
+                return files;
+            }
+            char buf;
+            char lastBuf = '0';
+            uint32_t fPos = 1;
+
+            serializedPlaylist[0] = '#';
+            while (fileOrDirectory.available() > 0) {
+                buf = fileOrDirectory.read();
+                if (fPos+1 >= allocCount * allocSize) {
+                    serializedPlaylist = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
+                    Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
+                    if (serializedPlaylist == NULL) {
+                        Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+                        System_IndicateError();
+                        free(serializedPlaylist);
+                        return files;
+                    }
+                }
+
+                if (buf != '\n' && buf != '\r') {
+                    serializedPlaylist[fPos++] = buf;
+                    lastBuf = buf;
+                } else {
+                    if (lastBuf != '#') {   // Strip empty lines from m3u
+                        serializedPlaylist[fPos++] = '#';
+                        lastBuf = '#';
+                    }
+                }
+            }
+            if (serializedPlaylist[fPos-1] == '#') {    // Remove trailing delimiter if set
+                serializedPlaylist[fPos-1] = '\0';
+            }
+        } else {
+            return files;
+        }
     }
 
     // Don't read from cachefile or m3u-file. Means: read filenames from SD and make playlist of it
