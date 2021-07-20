@@ -31,7 +31,7 @@
     const char nameOfFileFound[] PROGMEM = "Gefundenes File";
     const char reallocCalled[] PROGMEM = "Speicher reallokiert.";
     const char unableToAllocateMemForLinearPlaylist[] PROGMEM = "Speicher für lineare Playlist konnte nicht allokiert werden!";
-    const char numberOfValidFiles[] PROGMEM = "Anzahl gültiger Files";
+    const char numberOfValidFiles[] PROGMEM = "Anzahl gültiger Files/Webstreams";
     const char newLoudnessReceivedQueue[] PROGMEM = "Neue Lautstärke empfangen via Queue";
     const char newCntrlReceivedQueue[] PROGMEM = "Kontroll-Kommando empfangen via Queue";
     const char newPlaylistReceived[] PROGMEM = "Neue Playlist empfangen";
@@ -72,6 +72,7 @@
     const char modeAllTrackAlphSortedLoop[] PROGMEM = "Modus: Alle Tracks eines Ordners sortiert (alphabetisch) in Endlosschleife";
     const char modeAllTrackRandomLoop[] PROGMEM = "Modus: Alle Tracks eines Ordners zufällig in Endlosschleife";
     const char modeWebstream[] PROGMEM = "Modus: Webstream";
+    const char modeWebstreamM3u[] PROGMEM = "Modus: Webstream (lokale .m3u-Datei)";
     const char webstreamNotAvailable[] PROGMEM = "Aktuell kein Webstream möglich, da keine WLAN-Verbindung vorhanden!";
     const char modeDoesNotExist[] PROGMEM = "Abspielmodus existiert nicht!";
     const char modeRepeatNone[] PROGMEM = "Repeatmodus: Kein Repeat";

@@ -553,7 +553,7 @@ void AudioPlayer_Task(void *parameter) {
                 }
             }
 
-            if (gPlayProperties.playMode == WEBSTREAM) { // Webstream
+            if (gPlayProperties.playMode == WEBSTREAM || gPlayProperties.playMode == WEBSTREAMS_LOCAL_M3U) { // Webstream
                 audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
             } else {
@@ -852,6 +852,22 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
         case WEBSTREAM: { // This is always just one "track"
             Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
+            if (Wlan_IsConnected()) {
+                xQueueSend(gTrackQueue, &(musicFiles), 0);
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
+                #endif
+            } else {
+                Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
+                System_IndicateError();
+                gPlayProperties.playMode = NO_PLAYLIST;
+            }
+            break;
+        }
+
+        case WEBSTREAMS_LOCAL_M3U: { // This is always just one "track"
+            Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
             if (Wlan_IsConnected()) {
                 xQueueSend(gTrackQueue, &(musicFiles), 0);
                 #ifdef MQTT_ENABLE

@@ -164,7 +164,7 @@ void writeWifiStatusToNVS(bool wifiStatus) {
     if (!wifiStatus) {
         if (gPrefsSettings.putUInt("enableWifi", 0)) { // disable
             Log_Println((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
-            if (gPlayProperties.playMode == WEBSTREAM) {
+            if (gPlayProperties.playMode == WEBSTREAM || gPlayProperties.playMode == WEBSTREAMS_LOCAL_M3U) {
                 AudioPlayer_TrackControlToQueueSender(STOP);
             }
             delay(300);

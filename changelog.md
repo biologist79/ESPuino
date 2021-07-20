@@ -9,6 +9,7 @@
 * 09.07.2021: Making branch `refactoring` the the master
 * 09.07.2021: Making master the new branch `old` (not maintained any longer!)
 * 13.07.2021: Adding OTA-support via webGUI
+* 20.07.2021: Adding new playmode: multiple webradio-paylist from local .m3u-file
 
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.

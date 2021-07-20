@@ -272,6 +272,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option class=\"option-folder\" value=\"7\">All tracks of a directory (sorted alph., loop)</option>\
                                 <option class=\"option-folder\" value=\"9\">All tracks of a directory (random, loop)</option>\
                                 <option class=\"option-stream\" value=\"8\">Webradio</option>\
+                                <option class=\"option-stream\" value=\"11\">Webradiolist from local .m3u-File</option>\
                             </select>\
                         </div>\
                         <div class=\"tab-pane \" id=\"rfidmod\" role=\"tabpanel\">\

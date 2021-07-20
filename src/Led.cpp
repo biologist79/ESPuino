@@ -467,7 +467,7 @@ static void Led_Task(void *parameter) {
                         redrawProgress = true;
                     }
 
-                    if (gPlayProperties.playMode != WEBSTREAM) {
+                    if (gPlayProperties.playMode != WEBSTREAM && gPlayProperties.playMode != WEBSTREAMS_LOCAL_M3U) {
                         if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
                             redrawProgress = false;
                             lastPos = gPlayProperties.currentRelPos;

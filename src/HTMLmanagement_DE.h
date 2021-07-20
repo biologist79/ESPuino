@@ -272,6 +272,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option class=\"option-folder\" value=\"7\">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>\
                                 <option class=\"option-folder\" value=\"9\">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>\
                                 <option class=\"option-stream\" value=\"8\">Webradio</option>\
+                                <option class=\"option-stream\" value=\"11\">Webradioliste aus .m3u-Datei</option>\
                             </select>\
                         </div>\
                         <div class=\"tab-pane \" id=\"rfidmod\" role=\"tabpanel\">\

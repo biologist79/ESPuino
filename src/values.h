@@ -25,6 +25,7 @@
     #define ALL_TRACKS_OF_DIR_SORTED_LOOP   7           // Play all files of a directory (alph. sorted) in infinite-loop
     #define ALL_TRACKS_OF_DIR_RANDOM_LOOP   9           // Play all files of a directory (randomized) in infinite-loop
     #define WEBSTREAM                       8           // Play webradio-stream
+    #define WEBSTREAMS_LOCAL_M3U            11          // Plays webreadio-streams with addresses from a local m3u-file
     #define BUSY                            10          // Used if playlist is created
 
 
