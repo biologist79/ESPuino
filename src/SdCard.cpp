@@ -154,7 +154,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
     }
 
     // Parse m3u-playlist and create linear-playlist out of it
-    if (_playMode == WEBSTREAMS_LOCAL_M3U) {
+    if (_playMode == LOCAL_M3U) {
         if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() >= 0) {
             enablePlaylistFromM3u = true;
             uint16_t allocCount = 1;
@@ -170,7 +170,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
                 return files;
             }
             char buf;
-            char lastBuf = '0';
+            char lastBuf = '#';
             uint32_t fPos = 1;
 
             serializedPlaylist[0] = '#';

@@ -13,7 +13,7 @@ I started this project back in october 2019 and never expected it to become that
 * Partition-layout for ESP32 is changed along with this branch. This step was necessary in order to resize (enlarge) the memory-region where especially the assignments for the RFID-tags are saved. As all permanent settings (e.g. WiFi-settings) are saved there too, it's necessary to re-enter WiFi-credentials after update. But the most important thing is to recover the assignments for the RFID-tags. Please consult my [migration-document](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510).
 ## Changelog
 Last three events:
-* 20.07.2021: Adding new playmode: multiple webradio-paylist from local .m3u-file
+* 23.07.2021: Adding new playmode: from local .m3u-file (files or webstreams)
 * 13.07.2021: Adding OTA-support via webGUI
 * 09.07.2021: Making branch `refactoring` the new master
 ## Known bugs
@@ -278,7 +278,7 @@ It's not just simply playing music; different playmodes are supported:
 * `folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
 * `folder/playlist (random order)` => plays all tracks in random order from a folder forever
 * `webradio` => always only one "track": plays a webstream
-* `Webradiolist from local .m3u-File` => can be one or more webradio-stations with local .m3u as sourcefile
+* `list (files from SD and/or webstreams) from local .m3u-File` => can be one or more files / webradio-stations with local .m3u as sourcefile
 
 ### Modification RFID-tags
 There are special RFID-tags, that don't start music by themself but can modify things. If applied a second time, it's previous action/modification will be reversed. Please note: all sleep-modes do dimming (Neopixel) automatically because it's supposed to be used in the evening when going to bed. Well, at least that's my children's indication :-) So first make sure to start the music then use a modification-card in order to apply your desired modification:

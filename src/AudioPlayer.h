@@ -20,6 +20,7 @@ typedef struct { // Bit field
     uint8_t seekmode:                   2;      // If seekmode is active and if yes: forward or backwards?
     bool newPlayMono:                   1;      // true if mono; false if stereo (helper)
     bool currentPlayMono:               1;      // true if mono; false if stereo
+    bool isWebstream:                   1;      // Indicates if track currenty played is a webstream
 } playProps;
 
 extern playProps gPlayProperties;

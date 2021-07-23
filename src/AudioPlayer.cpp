@@ -553,10 +553,18 @@ void AudioPlayer_Task(void *parameter) {
                 }
             }
 
-            if (gPlayProperties.playMode == WEBSTREAM || gPlayProperties.playMode == WEBSTREAMS_LOCAL_M3U) { // Webstream
-                audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                gPlayProperties.playlistFinished = false;
+            if (!strncmp("http", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 4)) {
+                gPlayProperties.isWebstream = true;
             } else {
+                gPlayProperties.isWebstream = false;
+            }
+            gPlayProperties.currentRelPos = 0;
+            audioReturnCode = false;
+
+            if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
+                audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                gPlayProperties.playlistFinished = false;
+            } else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
                 // Files from SD
                 if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
                     snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(dirOrFileDoesNotExist), *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
@@ -566,31 +574,37 @@ void AudioPlayer_Task(void *parameter) {
                 } else {
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
-                    if (!audioReturnCode) {
-                        System_IndicateError();
-                        gPlayProperties.trackFinished = true;
-                        continue;
-                    }
+                }
+            }
+
+            if (!audioReturnCode) {
+                System_IndicateError();
+                gPlayProperties.trackFinished = true;
+                continue;
+            } else {
+                if (gPlayProperties.currentTrackNumber) {
                     Led_Indicate(LedIndicatorType::PlaylistProgress);
-                    if (gPlayProperties.startAtFilePos > 0) {
-                        audio->setFilePos(gPlayProperties.startAtFilePos);
-                        gPlayProperties.startAtFilePos = 0;
-                        snprintf(Log_Buffer, Log_BufferLength, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
-                        Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-                    }
+                }
+                if (gPlayProperties.startAtFilePos > 0) {
+                    audio->setFilePos(gPlayProperties.startAtFilePos);
+                    gPlayProperties.startAtFilePos = 0;
+                    snprintf(Log_Buffer, Log_BufferLength, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
+                    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+                }
+                if (!gPlayProperties.isWebstream) {         // Is done via audio_showstation()
                     char buf[255];
                     snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
                     #endif
-                    #if (LANGUAGE == DE)
-                        snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
-                    #else
-                        snprintf(Log_Buffer, Log_BufferLength, "'%s' is being played (%d of %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
-                    #endif
-                    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-                    gPlayProperties.playlistFinished = false;
                 }
+                #if (LANGUAGE == DE)
+                    snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
+                #else
+                    snprintf(Log_Buffer, Log_BufferLength, "'%s' is being played (%d of %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
+                #endif
+                Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+                gPlayProperties.playlistFinished = false;
             }
         }
 
@@ -599,20 +613,22 @@ void AudioPlayer_Task(void *parameter) {
             if (gPlayProperties.seekmode == SEEK_FORWARDS) {
                 if (audio->setTimeOffset(jumpOffset)) {
                     #if (LANGUAGE == DE)
-                        Serial.printf("%d Sekunden nach vorne gesprungen\n", jumpOffset);
+                        snprintf(Log_Buffer, Log_BufferLength, "%d Sekunden nach vorne gesprungen", jumpOffset);
                     #else
-                        Serial.printf("Jumped %d seconds forwards\n", jumpOffset);
+                        snprintf(Log_Buffer, Log_BufferLength, "Jumped %d seconds forwards", jumpOffset);
                     #endif
+                    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 } else {
                     System_IndicateError();
                 }
             } else if (gPlayProperties.seekmode == SEEK_BACKWARDS) {
                 if (audio->setTimeOffset(-(jumpOffset))) {
                     #if (LANGUAGE == DE)
-                        Serial.printf("%d Sekunden zurueck gesprungen\n", jumpOffset);
+                        snprintf(Log_Buffer, Log_BufferLength, "%d Sekunden zurueck gesprungen", jumpOffset);
                     #else
-                        Serial.printf("Jumped %d seconds backwards\n", jumpOffset);
+                        snprintf(Log_Buffer, Log_BufferLength, "Jumped %d seconds backwards", jumpOffset);
                     #endif
+                    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 } else {
                     System_IndicateError();
                 }
@@ -634,7 +650,7 @@ void AudioPlayer_Task(void *parameter) {
         }
 
         // Calculate relative position in file (for neopixel) for SD-card-mode
-        if (!gPlayProperties.playlistFinished && gPlayProperties.playMode != WEBSTREAM) {
+        if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
             double fp = (double)audio->getFilePos() / (double)audio->getFileSize();
             if (millis() % 100 == 0) {
                 gPlayProperties.currentRelPos = fp * 100;
@@ -866,7 +882,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             break;
         }
 
-        case WEBSTREAMS_LOCAL_M3U: { // This is always just one "track"
+        case LOCAL_M3U: { // Can be one or more webradio-station(s)
             Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
             if (Wlan_IsConnected()) {
                 xQueueSend(gTrackQueue, &(musicFiles), 0);
