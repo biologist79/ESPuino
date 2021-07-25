@@ -255,6 +255,10 @@ void AudioPlayer_Task(void *parameter) {
         Audio *audio = &audioAsStatic;
     #endif
 
+    #ifdef I2S_COMM_FMT_ENABLE
+        audio->setI2SCommFMT_LSB(true);
+    #endif
+
     uint8_t settleCount = 0;
     audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
     audio->setVolume(AudioPlayer_GetInitVolume());

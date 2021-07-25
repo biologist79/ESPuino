@@ -25,6 +25,7 @@
 
     //########################## MODULES #################################
     //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
+    //#define I2S_COMM_FMT_ENABLE           // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
     #define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
     #define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
     #define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
@@ -42,7 +43,7 @@
     #define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino via bluetooth (a2dp-sink).
     //#define IR_CONTROL_ENABLE             // Enables remote control
     #define CACHED_PLAYLIST_ENABLE          // Enables playlist-caching (infos: https://forum.espuino.de/t/neues-feature-cached-playlist/515)
-    //#define PAUSE_WHEN_RFID_REMOVED        // (Only PN5180) Playback starts when card is applied and pauses, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
+    //#define PAUSE_WHEN_RFID_REMOVED       // (Only PN5180) Playback starts when card is applied and pauses, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
 
 
     //################## select SD card mode #############################
