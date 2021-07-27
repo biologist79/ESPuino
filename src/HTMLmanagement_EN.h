@@ -484,19 +484,21 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
             </form>\
         </div>\
+        <br />\
+        <br />\
+        <div class=\"container\" id=\"httpUpdate\">\
+            <legend>Firmware-Update</legend>\
+            <form action=\"/update\" enctype=\"multipart/form-data\" method=\"POST\">\
+                <div class=\"form-group\">\
+                    <label for=\"firmwareUpload\">Firmware can be updated right here.</label>\
+                    <input type=\"file\" class=\"form-control-file\" id=\"firmwareUpload\" name=\"firmwareUpload\" accept=\".bin\">\
+                </div>\
+                <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
+            </form>\
+        </div>\
     </div>\
     <br />\
     <br />\
-    <div class=\"container\" id=\"httpUpdate\">\
-        <legend>Firmware Update</legend>\
-        <form action=\"/update\" enctype=\"multipart/form-data\" method=\"POST\">\
-            <div class=\"form-group\">\
-                <label for=\"firmwareUpload\">Firmware can be updated right here.</label>\
-                <input type=\"file\" class=\"form-control-file\" id=\"firmwareUpload\" name=\"firmwareUpload\" accept=\".bin\">\
-            </div>\
-            <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\
-        </form>\
-    </div>\
     <div class=\"tab-pane fade\" id=\"nav-forum\" role=\"tabpanel\" aria-labelledby=\"nav-forum-tab\">\
         <div class=\"container\" id=\"forum\">\
             <legend>Forum</legend>\
