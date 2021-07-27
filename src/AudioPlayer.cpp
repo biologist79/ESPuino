@@ -102,7 +102,7 @@ void AudioPlayer_Init(void) {
         xTaskCreatePinnedToCore(
             AudioPlayer_Task,      /* Function to implement the task */
             "mp3play",             /* Name of the task */
-            4000,                  /* Stack size in words */
+            5000,                  /* Stack size in words */
             NULL,                  /* Task input parameter */
             2 | portPRIVILEGE_BIT, /* Priority of the task */
             NULL,                  /* Task handle. */
@@ -933,7 +933,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 
     snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
     #if (LANGUAGE == DE)
-        snprintf(Log_Buffer, Log_BufferLength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit playmode %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+        snprintf(Log_Buffer, Log_BufferLength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     #else
         snprintf(Log_Buffer, Log_BufferLength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
     #endif
@@ -969,7 +969,7 @@ void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand) {
 
 // Knuth-Fisher-Yates-algorithm to randomize playlist
 void AudioPlayer_SortPlaylist(char *str[], const uint32_t count) {
-    if (count < 1) {
+    if (!count) {
         return;
     }
 
@@ -978,11 +978,7 @@ void AudioPlayer_SortPlaylist(char *str[], const uint32_t count) {
     uint32_t max = count - 1;
 
     for (i = 0; i < count; i++) {
-        if (max > 0) {
-            r = rand() % max;
-        } else {
-            r = 0;
-        }
+        r = (max > 0) ? rand() % max : 0;
         swap = *(str + max);
         *(str + max) = *(str + r);
         *(str + r) = swap;
