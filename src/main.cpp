@@ -128,6 +128,7 @@ void printWakeUpReason() {
 
 void setup() {
     Log_Init();
+    Rfid_Init();
     Rfid_WakeupCheck();
     System_Init();
 
@@ -212,7 +213,6 @@ void setup() {
     Mqtt_Init();
     Battery_Init();
     Button_Init();
-    Rfid_Init();
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();

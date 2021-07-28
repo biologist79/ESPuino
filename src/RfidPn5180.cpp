@@ -40,6 +40,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             gpio_deep_sleep_hold_dis();
             gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
             gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+            pinMode(RFID_IRQ, INPUT);
         #endif
     }
 
