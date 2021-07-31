@@ -129,7 +129,11 @@ void printWakeUpReason() {
 void setup() {
     Log_Init();
     Rfid_Init();
-    Rfid_WakeupCheck();
+    // Check if wakeup-reason was card-detection (PN5180 only)
+    esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+    if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
+        Rfid_WakeupCheck();
+    }
     System_Init();
 
     memset(&gPlayProperties, 0, sizeof(gPlayProperties));
