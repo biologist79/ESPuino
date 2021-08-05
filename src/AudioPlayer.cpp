@@ -16,6 +16,7 @@
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
+#include "Web.h"
 
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
@@ -533,6 +534,7 @@ void AudioPlayer_Task(void *parameter) {
                     #endif
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
+                    Web_SendWebsocketData(0, 30);
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                     #endif
@@ -568,6 +570,7 @@ void AudioPlayer_Task(void *parameter) {
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
+                Web_SendWebsocketData(0, 30);
             } else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
                 // Files from SD
                 if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -598,6 +601,7 @@ void AudioPlayer_Task(void *parameter) {
                 if (!gPlayProperties.isWebstream) {         // Is done via audio_showstation()
                     char buf[255];
                     snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    Web_SendWebsocketData(0, 30);
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
                     #endif

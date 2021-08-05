@@ -489,6 +489,8 @@ bool processJsonRequest(char *_serialJson) {
             uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
             Cmd_Action(cmd);
         }
+    } else if (doc.containsKey("getTrack")) {
+        Web_SendWebsocketData(0, 30);
     }
 
     return true;
@@ -496,10 +498,9 @@ bool processJsonRequest(char *_serialJson) {
 
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
-    char *jBuf;
-    jBuf = (char *)x_calloc(255, sizeof(char));
+    char *jBuf = (char *) x_calloc(255, sizeof(char));
 
-    const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 20;
+    const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 200;
     StaticJsonDocument<CAPACITY> doc;
     JsonObject object = doc.to<JsonObject>();
 
@@ -511,6 +512,15 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         object["rfidId"] = gCurrentRfidTagId;
     } else if (code == 20) {
         object["pong"] = "pong";
+    } else if (code == 30) {
+        if (gPlayProperties.playMode == NO_PLAYLIST) {
+            object["track"] = (char *)FPSTR (noPlaylist);
+        } else {
+            snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+            char utf8Buffer[200];
+            convertAsciiToUtf8(Log_Buffer, utf8Buffer);
+            object["track"] = utf8Buffer;
+        }
     }
 
     serializeJson(doc, jBuf, 255);
@@ -547,7 +557,9 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
             Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
             if (processJsonRequest((char *)data)) {
-                Web_SendWebsocketData(client->id(), 1);
+                if (strncmp((char *)data, "getTrack", 8)) {   // Don't send back ok-feedback if track's name is requested in background
+                    Web_SendWebsocketData(client->id(), 1);
+                }
             }
 
             if (info->opcode == WS_TEXT) {

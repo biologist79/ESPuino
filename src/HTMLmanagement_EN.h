@@ -208,6 +208,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                             data-slider-value=\"%CURRENT_VOLUME%\" value=\"%CURRENT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                 </div>\
                 <br/>\
+                <div class=\"form-group col-md-12\">\
+                    <legend>Current track</legend>\
+                    <div id=\"track\"></div>\
+                </div>\
         </div>\
     </div>\
     <div class=\"tab-pane fade show active\" id=\"nav-rfid\" role=\"tabpanel\" aria-labelledby=\"nav-rfid-tab\">\
@@ -865,9 +869,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						if (node.data.directory) {\
 							items.createDir = {\
-								label: \"Neuer Ordner\",\
+								label: \"New folder\",\
 								action: function(x) {\
-									var childNode = ref.create_node(nodeId, {text: \"Neuer Ordner\", type: \"folder\"});\
+									var childNode = ref.create_node(nodeId, {text: \"New folder\", type: \"folder\"});\
 									if(childNode) {\
 										ref.edit(childNode, null, function(childNode, status){\
 											putData(\"/explorer?path=\" + node.data.path + \"/\" + childNode.text);\
@@ -880,7 +884,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						/* Play */\
 						items.play = {\
-							label: \"Abspielen\",\
+							label: \"Play\",\
 							action: function(x) {\
 								var playMode = node.data.directory?\"5\":\"1\";\
 								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
@@ -889,7 +893,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						/* Refresh */\
 						items.refresh = {\
-							label: \"Aktualisieren\",\
+							label: \"Refresh\",\
 							action: function(x) {\
 								refreshNode(nodeId);\
 							}\
@@ -897,7 +901,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						/* Delete */\
 						items.delete = {\
-							label: \"Löschen\",\
+							label: \"Delete\",\
 							action: function(x) {\
 								handleDeleteData(nodeId);\
 								refreshNode(ref.get_parent(nodeId));\
@@ -906,7 +910,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
 						/* Rename */\
 						items.rename = {\
-							label: \"Umbenennen\",\
+							label: \"Rename\",\
 							action: function(x) {\
 								var srcPath = node.data.path;\
 								ref.edit(nodeId, null, function(node, status){\
@@ -961,10 +965,11 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
         socket.onopen = function () {\
             setInterval(ping, 15000);\
+            getTrack();\
         };\
 \
         socket.onclose = function (e) {\
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
+            console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);\
             socket = null;\
             setTimeout(function () {\
                 connect();\
@@ -980,16 +985,18 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
           var socketMsg = JSON.parse(event.data);\
           if (socketMsg.rfidId != null) {\
               document.getElementById('rfidIdMusic').value = socketMsg.rfidId;\
-              toastr.info(\"RFID Tag mit \"+ socketMsg.rfidId + \" erkannt.\" );\
+              toastr.info(\"RFID-tag \"+ socketMsg.rfidId + \" detected.\" );\
               $(\"#rfidIdMusic\").effect(\"highlight\", {color:\"#abf5af\"}, 3000);\
           } if (\"status\" in socketMsg) {\
               if (socketMsg.status == \"ok\") {\
-                  toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
+                  toastr.success(\"Action performed successfully.\" );\
               }\
           } if (\"pong\" in socketMsg) {\
               if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
+            } if (\"track\" in socketMsg) {\
+                document.getElementById('track').innerHTML = socketMsg.track;\
           }\
       };\
     }\
@@ -1003,12 +1010,22 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         var myJSON = JSON.stringify(myObj);\
         socket.send(myJSON);\
         tm = setTimeout(function () {\
-            toastr.warning('Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.');\
+            toastr.warning('Connection to ESPuino broken! Please reload website.');\
         }, 5000);\
     }\
 \
     function pong() {\
         clearTimeout(tm);\
+    }\
+\
+    function getTrack() {\
+        var myObj = {\
+            \"getTrack\": {\
+                getTrack: 'getTrack'\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
     }\
 \
     function genSettings(clickedId) {\

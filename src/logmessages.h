@@ -201,3 +201,4 @@ extern const char fwStart[];
 extern const char fwEnd[];
 extern const char otaNotSupported[];
 extern const char otaNotSupportedWebsite[];
+extern const char noPlaylist[];

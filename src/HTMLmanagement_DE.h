@@ -208,6 +208,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                             data-slider-value=\"%CURRENT_VOLUME%\" value=\"%CURRENT_VOLUME%\" onchange=\"sendVolume(this.value)\">  <i class=\"fas fa-volume-up fa-2x .icon-pos\"></i>\
                 </div>\
                 <br/>\
+                <div class=\"form-group col-md-12\">\
+                    <legend>Aktueller Titel</legend>\
+                    <div id=\"track\"></div>\
+                </div>\
         </div>\
     </div>\
     <div class=\"tab-pane fade show active\" id=\"nav-rfid\" role=\"tabpanel\" aria-labelledby=\"nav-rfid-tab\">\
@@ -961,10 +965,11 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
         socket.onopen = function () {\
             setInterval(ping, 15000);\
+            getTrack();\
         };\
 \
         socket.onclose = function (e) {\
-            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);\
+            console.log('Socket is geschlossen. Neuer Versuch in fuenf Sekunden.', e.reason);\
             socket = null;\
             setTimeout(function () {\
                 connect();\
@@ -972,7 +977,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         };\
 \
         socket.onerror = function (err) {\
-            console.error('Socket encountered error: ', err.message, 'Closing socket');\
+            console.error('Socket-Fehler: ', err.message, 'Socket wird geschlossen');\
         };\
 \
         socket.onmessage = function(event) {\
@@ -990,6 +995,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
               if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
+          } if (\"track\" in socketMsg) {\
+                document.getElementById('track').innerHTML = socketMsg.track;\
           }\
       };\
     }\
@@ -1009,6 +1016,16 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
     function pong() {\
         clearTimeout(tm);\
+    }\
+\
+    function getTrack() {\
+        var myObj = {\
+            \"getTrack\": {\
+                getTrack: 'getTrack'\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
     }\
 \
     function genSettings(clickedId) {\

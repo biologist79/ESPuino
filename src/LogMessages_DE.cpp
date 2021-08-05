@@ -205,5 +205,5 @@
     const char fwEnd[] PROGMEM = "Firmware-update beendet";
     const char otaNotSupported[] PROGMEM = "Firmware-update wird von diesem ESPuino nicht unterstuetzt!";
     const char otaNotSupportedWebsite[] PROGMEM = "<p>Firmware-update wird von diesem ESPuino nicht unterstuetzt!<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
-
+    const char noPlaylist[] PROGMEM = "Keine Playlist aktiv.";
 #endif
