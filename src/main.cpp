@@ -128,7 +128,9 @@ void printWakeUpReason() {
 
 void setup() {
     Log_Init();
-    Rfid_Init();
+    #ifdef RFID_READER_TYPE_PN5180
+        Rfid_Init();
+    #endif
     // Check if wakeup-reason was card-detection (PN5180 only)
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
@@ -217,6 +219,9 @@ void setup() {
     Mqtt_Init();
     Battery_Init();
     Button_Init();
+    #ifndef RFID_READER_TYPE_PN5180
+        Rfid_Init();
+    #endif
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();
