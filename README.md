@@ -1,7 +1,7 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
 News:
-I started this project back in october 2019 and never expected it to become that large. The project grew and grew - so did main.cpp. So it was about time to have it split into modules. This was done in march/april. After spending some time on tests, improvements and implementing new features, refactoring-branch will is NOW the new master whereas the previous master  a new branch named [old](https://github.com/biologist79/ESPuino/tree/old). It will be kept as reference but won't by maintained anymore. Please be advised that moving to refactoring-branch will re-arrange ESP32's partition. All things to know are described [here](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510) in german language. Development of the new master is documented [here](https://forum.espuino.de/t/refactoring/415). Have fun and don't hesitate to contact me in case of problems/questions.
+I started this project back in october 2019 and never expected it to become that large. The project grew and grew - so did main.cpp. So it was about time to have it split into modules. This was done in march/april. After spending some time on tests, improvements and implementing new features, refactoring-branch will is NOW the new master whereas the previous master a new branch named [old](https://github.com/biologist79/ESPuino/tree/old). It will be kept as reference but won't by maintained anymore. Please be advised that moving to refactoring-branch will re-arrange ESP32's partition. All things to know are described [here](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510) in german language. Development of the new master is documented [here](https://forum.espuino.de/t/refactoring/415). Have fun and don't hesitate to contact me in case of problems/questions.
 
 ## Forum
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
@@ -18,6 +18,7 @@ Last three events:
 * 09.07.2021: Making branch `refactoring` the new master
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
+* For ESPuinos making use of SPI for SD (instead of SD_MMC), there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. I'm about to [investigate...](https://forum.espuino.de/t/probleme-beim-webtransfer/542)
 ## ESPuino - what's that?
 The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
@@ -40,7 +41,7 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * [Much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
 * I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
 * Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html). Step-by-step-manual is available [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
-* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here}(https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
+* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here](https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
 * There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration-file. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
@@ -56,24 +57,24 @@ The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https
 * Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
 
 ## Prerequisites / tipps
-* [Many many many tipps im german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
+* [Much much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
 * Open settings.h
-* choose if optional modules (e.g. MQTT, FTP, Neopixel) should be compiled/enabled
+* Choose if optional modules (e.g. MQTT, FTP, Neopixel) should be compiled/enabled.
 * Make sure to edit/review button-layout. Default-design is three buttons and a rotary-encoder. All actions available are listed in `src/values.h` (values with numbers >= 100).
 * For debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG. I usually have DEBUG set.
 * If Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
 * Open board-specific config-file and edit according your needs.
-* If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 130k resistors (VBat(+)--130k--X--130k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to leave both resistor-values unchanged at 100k. Same goes for GPIO: unchanged at 35.
+* If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 130k resistors (VBat(+)--130k--X--130k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to leave both resistor-values unchanged at 100k - voltage-divider is already integrated there. Same goes for GPIO: leave unchanged at 35.
 Please note: via GUI upper and lower voltage cut-offs for visualisation of battery-voltage (Neopixel) is available. Additional GUI-configurable values are interval (in minutes) for checking battery voltage and the cut off-voltage below whose a warning is shown via Neopixel.
-* If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it to GPIO22.
+* If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it e.g. to GPIO22.
 * Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your ESPuino in battery-mode without having a restart-button exposed to the outside of ESPuino's enclosure. Because otherwise there's no way to restart your ESPuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
 * Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell ESPuino to remember the last RFID-tag played after next reboot. So rebooting ESPuino will end up in autoplay.
 
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
-Having SD working is mandatory. However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
+Having SD working is mandatory! However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
 Advantages SD-MMC (1 bit) over SPI:
 * Needs only three GPIOs (instead of four)
-* It's faster. FTP-upload: 298 kiB vs 178 kiB. HTTP-upload: 372 kiB vs 184 kiB. (tested with filesize of 70.7 MiB.<br />
+* It's faster. FTP-upload: 298 kiB vs 178 kiB. HTTP-upload: 350 kiB vs 184 kiB. (tested with filesize of 70.7 MiB.<br />
 So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the µSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a 10k-resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high at boot, ESP32 doesn't enter flash-mode (so you cannot flash new firmwares). As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in ESPuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set because pullup is done in software using `pinMode(2, INPUT_PULLUP);`. So it's not really a problem but you have to take note of that!
 
 ## RFID: RC522 or PN5180?
@@ -83,7 +84,7 @@ RC522 is so to say the ESPuino-standard. It's cheap and works, but RFID-tag has 
 * Why 3.3V? Because: if you plan to use battery-mode with a LiPo, there's no 5 V available (unless USB is connected).
 That's why my design's focus is on 3.3 V. If you want to use 5 V - do so, but be advised it's not compatible with LiPo-battery-mode. The Mosfet-circuit for saving power in deepsleep (see [Lolin32-schematics](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino%20V2-Schematics.pdf) as reference) works as well for 5 V.
 * MAX98357a: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in my opinion).
-* Neopixel: specification says it needs 5 V but also runs at 3.3 V.
+* Neopixel: specification says it needs 5 V but runs at 3.3 V as well.
 * RC522: needs 3.3 V (don't power with 5 V!)
 * PN5180: at 3.3 V make sure to connect both 5 V and 3.3 V-pins to 3.3 V.
 * SD: needs 3.3 V but if voltage-regulator is onboard, it can be connected to 5 V as well
@@ -97,7 +98,7 @@ Important: you can easily connect another I2S-DACs by just connecting them in pa
 
 
 ## Wiring (2 SPI-instances: RC522 + SPI-SD + 3 buttons + rotary-encoder)
-Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32).<br />
+Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use primarily](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32).<br />
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
@@ -106,7 +107,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 | 13            | SD-reader             | MOSI   |                                                              |
 | 16            | SD-reader             | MISO   |                                                              |
 | 14            | SD-reader             | SCK    |                                                              |
-| 3.3 V         | RFID-reader           | 3.3V   | (Connect directly to GPIO 17 for power-saving when µC is off)  |
+| 3.3 V         | RFID-reader           | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA |                                                              |
 | 23            | RFID-reader           | MOSI   |                                                              |
@@ -138,7 +139,7 @@ Uses two SPI-instances. The first one for the RFID-reader and the second for SD-
 
 
 Optionally, GPIO 17 can be used to drive a Mosfet-circuit in order to switch off peripherals (SD, Neopixel, RFID and MAX98357a) if ESP32 is in deepsleep. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations. If you need further informations on transistor-circuits visit this [website](https://dl6gl.de/schalten-mit-transistoren.html). <br />
-In general I recommend using a [µSD-card-reader](https://www.ebay.de/itm/183106778276) that can be run solely with 3.3V (doesn't have a voltage-regulator - don't use it with 5V!). And by the way: when LiPo-battery is connected, there's no 5V. That's why I designed my [Lolin-PCBs](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32) with 3.3V only.
+In general I recommend using a [µSD-card-reader](https://www.ebay.de/itm/183106778276) that can be run solely with 3.3V (doesn't have a voltage-regulator - don't use it with 5V!).
 
 ## Wiring (SD-card in 1 Bit SD-MMC mode) different to above
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
@@ -153,14 +154,14 @@ Advice: Double check that above PINs are not used elsewhere (e.g. GPIO2 is used 
 
 ## Wiring (1 SPI-instance: RC522 + SD + 3 buttons + rotary-encoder) [EXPERIMENTAL, maybe not working!]
 Basically the same as using 2 SPI-instances but...
-In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins. Have to admit I had some problems to get this running. Seems to be connected properly, but nothing happens when an RFID-tag is applied. Maybe anybody else wants to point out :-)
+In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins. Have to admit I had problems to get this running. Seems to be connected properly, but nothing happens when an RFID-tag is applied. Maybe anybody else wants to point out :-)
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
 | ------------- | --------------------- | ------ | ------------------------------------------------------------ |
 | 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | SD-reader             | GND    |                                                              |
 | 15            | SD-reader             | CS     | Don't share with RFID!                                       |
-| 3.3 V         | RFID-reader           | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off  |
+| 3.3 V         | RFID-reader           | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off  |
 | GND           | RFID-reader           | GND    |                                                              |
 | 21            | RFID-reader           | CS/SDA | Don't share with SD!                                         |
 | 23            | RFID+SD-reader        | MOSI   |                                                              |
@@ -197,7 +198,7 @@ You can enable low power card-detection with `PN5180_ENABLE_LPCD`, but this need
 
 | ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                           |
 | ------------- | --------------------- | ------ | ----------------------------------------------------------------- |
-| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect directly to GPIO 17 for power-saving when µC is off       |
+| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off       |
 | 3.3 V         |                       | 3.3V   | For low power card detection mode (LPCD) connect directly to 3.3V |
 | 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V             |
 | GND           | PN5180 RFID-reader    | GND    |                                                                   |
@@ -220,7 +221,7 @@ WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or 
 This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that ESPuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *green*. Bluetooth-mode is indicated by *blue* LEDs.
 
 ## Bluetooth
-ESPuino can be used as bluetooth-sink (a2dp). This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. If bluetooth is active, this is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and worked 100% flawless. Please note: due to memory-restrictions it's not possible to run Bluetooth in parallel with WiFi.
+ESPuino can be used as bluetooth-sink (a2dp). This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. Activated bluetooth is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and Mac OS: worked 100% flawless. Please note: due to memory-restrictions it's not possible to run Bluetooth in parallel with WiFi.
 
 ## Port-expander
 There might be situations where you run out of GPIOs. To address this, port-expander [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend number of input-channels (output-mode is only supported in special cases). This port-expander provides 2 ports with 8 channels each - so 16 channels in total. To activate PCA9555 you need to enable `PORT_EXPANDER_ENABLE`. Like GPIOs in your develboard-specific settings-file, you can assign numbers. Range is 100->115 where 100: port 0 channel 0 -> 107: port 0 channel 7; 108: port 1 channel 0 -> 115: port 1 channel 7. Via `expanderI2cAddress` port-expander's I2C-address can be changed. It's `0x20` if all A0, A1, A2 are wired to GND.<br />
@@ -230,12 +231,15 @@ After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at
 * configure WiFi
 * make binding between RFID-tag, file/directory/URL and playMode
 * make bindings between RFID-tag and a modification-type
-* configure MQTT
-* configure FTP
+* configure MQTT (if enabled)
+* configure FTP (if enabled)
 * configure nitial volume, maximum volume (speaker / headphone), brightness of Neopixel (nightmode / default) and inactivity-time
-* view logs / status
+* view logs / status / current track
 * control player
-* upload audiofiles (webtransfer)
+* upload audiofiles (called webtransfer)
+* do OTA-updates (ESP32s with 16 MB of flash-memory only)
+* import + delete NVS-RFID-assigments
+* restart + shutdown ESPuino
 
 Webgui #1:
 <img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI1.jpg" width="300">
@@ -319,7 +323,7 @@ counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_R
 
 ### Buttons
 Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change button-number and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
-Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`.
+Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using GPIO >= 35 make sure to add a external pullup-resistor (10 k).
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
 * previous (long): first track of playlist
 * next (short): next track of playlist
@@ -332,21 +336,22 @@ Minimum duration for long press (to distinguish vom short press) in ms is define
 * previous (long; keep pressed) + next (short) + release (both): toggle WiFi enabled/disabled
 
 ### Music-play
-* Music starts to play right after a valid RFID-tag was applied
-* If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay
+* Music starts to play right after a valid RFID-tag was applied.
+* If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay.
 * If a folder should be played that contains many mp3s, the playlist-generation can take a few seconds.
-* For all playmodes that are not single tracks or webradio a filecache is available to speed up playlist-generation. The cache is generated as you apply the corresponding RFID-tag for the first time. Use `CACHED_PLAYLIST_ENABLE` to enable it.
+* For all playmodes that are not single tracks or webradio a filecache is available to speed up playlist-generation. The cache is generated as you apply the corresponding RFID-tag for the first time. Use `CACHED_PLAYLIST_ENABLE` to enable it - I really recommend to use it.
 * A file's name including path isn't allowed exceed 255 characters.
 * While playlist is generated Neopixel indicates BUSY-mode.
 * After last track was played, Neopixel indicates IDLE-mode.
 
 ### Audiobook-mode
-This mode is different from the other ones because the last playposition is saved. Playposition is saved when...
+This mode is different from the others because the last playposition is saved. Playposition is saved when...
 * next track starts.
 * first/previous/last track requested by button.
 * pause was pressed.
+* track is over.
 * playlist is over (playposition is set back to the first track and file-position 0).
-* Please note: last playposition is not saved when applying a new RFID-tag. This is intended because otherwise you woldn't have a possibility to not save it.
+* Please note: last playposition is not saved when applying a new RFID-tag. This is intended because otherwise you wouldn't have a possibility to not save it. If you want to save the playposition: press pause first.
 
 ### FTP (optional)
 * FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` or use a modification-card to to activate it! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to save heap-memory when FTP isn't needed.
