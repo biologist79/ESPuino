@@ -549,7 +549,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         \"showEasing\": \"swing\",\
         \"hideEasing\": \"linear\",\
         \"showMethod\": \"fadeIn\",\
-        \"hideMethod\": \"fadeOut\"\
+        \"hideMethod\": \"fadeOut\",\
+        \"preventDuplicates\": true,\
+        \"preventOpenDuplicates\": true\
     };\
 \
     function postRendering(event, data) {\
