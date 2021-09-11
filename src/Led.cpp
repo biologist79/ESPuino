@@ -139,6 +139,7 @@ static void Led_Task(void *parameter) {
         static bool volumeChangeShown = false;
         static bool showEvenError = false;
         static bool turnedOffLeds = false;
+        static bool singleLedStatus = false;
         static uint8_t ledPosWebstream = 0;
         static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
         static uint8_t webstreamColor = 0;
@@ -164,7 +165,9 @@ static void Led_Task(void *parameter) {
                 vTaskDelay(portTICK_RATE_MS * 10);
                 continue;
             }
-            if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) { // Rotates orange unless boot isn't complete
+            // Multi-LED: rotates orange unless boot isn't complete
+            // Single-LED: blinking orange
+            if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
                 FastLED.clear();
                 for (uint8_t led = 0; led < NUM_LEDS; led++) {
                     if (showEvenError) {
@@ -197,19 +200,41 @@ static void Led_Task(void *parameter) {
                 lastLedBrightness = Led_Brightness;
             }
 
-            // LEDs growing red as long button for sleepmode is pressed.
+            // Multi-LED: growing red as long button for sleepmode is pressed.
+            // Single-LED: red when pressed and flashing red when long interval-duration is reached
             if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
-                if (!gButtons[gShutdownButton].currentState) {
-                    FastLED.clear();
-                    for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                        leds[Led_Address(led)] = CRGB::Red;
-                        if (gButtons[gShutdownButton].currentState) {
+                if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
+                    if (NUM_LEDS == 1) {
+                        FastLED.clear();
+                        if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
+                            leds[0] = CRGB::Red;
                             FastLED.show();
-                            delay(5);
-                            break;
+                        } else {
+                            if (singleLedStatus) {
+                                leds[0] = CRGB::Red;
+                            } else {
+                                leds[0] = CRGB::Black;
+                            }
+                            FastLED.show();
+                            singleLedStatus = !singleLedStatus;
+                            vTaskDelay(portTICK_RATE_MS * 50);
                         }
-                        FastLED.show();
-                        vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
+                    } else {
+                        if (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) {
+                            vTaskDelay(portTICK_RATE_MS * 50);
+                            continue;
+                        }
+                        FastLED.clear();
+                        for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                            leds[Led_Address(led)] = CRGB::Red;
+                            if (gButtons[gShutdownButton].currentState) {
+                                FastLED.show();
+                                vTaskDelay(portTICK_RATE_MS * 5);
+                                break;
+                            }
+                            FastLED.show();
+                            vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
+                        }
                     }
                 }
             } else {
@@ -219,32 +244,65 @@ static void Led_Task(void *parameter) {
                 }
             }
 
+            // Multi-LED: all leds flash red 1x
+            // Single-LED: led flashes red 5x
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) { // If error occured (e.g. RFID-modification not accepted)
                 LED_INDICATOR_CLEAR(LedIndicatorType::Error);
                 notificationShown = true;
                 FastLED.clear();
 
-                for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                    leds[Led_Address(led)] = CRGB::Red;
+                if (NUM_LEDS == 1) {
+                    for (uint8_t cnt = 0; cnt < 5; cnt++) {
+                        FastLED.clear();
+                        if (singleLedStatus) {
+                            leds[0] = CRGB::Red;
+                        } else {
+                            leds[0] = CRGB::Black;
+                        }
+                        FastLED.show();
+                        singleLedStatus = !singleLedStatus;
+                        vTaskDelay(portTICK_RATE_MS * 100);
+                    }
+                } else {
+                    for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                        leds[Led_Address(led)] = CRGB::Red;
+                    }
+                    FastLED.show();
+                    vTaskDelay(portTICK_RATE_MS * 200);
                 }
-                FastLED.show();
-                vTaskDelay(portTICK_RATE_MS * 200);
             }
 
+            // Multi-LED: all leds flash green 1x
+            // Single-LED: led flashes green 5x
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) { // If action was accepted
                 LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
                 notificationShown = true;
                 FastLED.clear();
 
-                for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                    leds[Led_Address(led)] = CRGB::Green;
+                if (NUM_LEDS == 1) {
+                    for (uint8_t cnt = 0; cnt < 5; cnt++) {
+                        FastLED.clear();
+                        if (singleLedStatus) {
+                            leds[0] = CRGB::Green;
+                        } else {
+                            leds[0] = CRGB::Black;
+                        }
+                        FastLED.show();
+                        singleLedStatus = !singleLedStatus;
+                        vTaskDelay(portTICK_RATE_MS * 100);
+                    }
+                } else {
+                    for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                        leds[Led_Address(led)] = CRGB::Green;
+                    }
+                    FastLED.show();
+                    vTaskDelay(portTICK_RATE_MS * 400);
                 }
-                FastLED.show();
-                vTaskDelay(portTICK_RATE_MS * 400);
             }
 
         #ifdef MEASURE_BATTERY_VOLTAGE
-            if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) { // Flashes red three times if battery-voltage is low
+            // Single + Multiple LEDs: flashes red three times if battery-voltage is low
+            if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
                 LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
                 notificationShown = true;
                 for (uint8_t i = 0; i < 3; i++) {
@@ -265,6 +323,8 @@ static void Led_Task(void *parameter) {
                 }
             }
 
+            // Single-LED: indicates voltage coloured between gradient green (high) => red (low)
+            // Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
                 LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
                 float currentVoltage = Battery_GetVoltage();
@@ -275,18 +335,29 @@ static void Led_Task(void *parameter) {
                     LED_INDICATOR_SET(LedIndicatorType::Error);
                     break;
                 } else {
-                    uint8_t numLedsToLight = ((float)vDiffCurrent / vDiffIndicatorRange) * NUM_LEDS;
                     FastLED.clear();
-                    for (uint8_t led = 0; led < numLedsToLight; led++) {
-                        if (((float)numLedsToLight / NUM_LEDS) >= 0.6) {
-                            leds[Led_Address(led)] = CRGB::Green;
-                        } else if (((float)numLedsToLight / NUM_LEDS) <= 0.6 && ((float)numLedsToLight / NUM_LEDS) >= 0.3) {
-                            leds[Led_Address(led)] = CRGB::Orange;
+                    if (NUM_LEDS == 1) {
+                        if ((float) vDiffCurrent / vDiffIndicatorRange >= 0.6) {
+                            leds[0] = CRGB::Green;
+                        } else if ((float) vDiffCurrent / vDiffIndicatorRange < 0.6 && (float) vDiffCurrent / vDiffIndicatorRange >= 0.3) {
+                            leds[0] = CRGB::Orange;
                         } else {
-                            leds[Led_Address(led)] = CRGB::Red;
+                            leds[0] = CRGB::Red;
                         }
                         FastLED.show();
-                        vTaskDelay(portTICK_RATE_MS * 20);
+                    } else {
+                        uint8_t numLedsToLight = ((float)vDiffCurrent / vDiffIndicatorRange) * NUM_LEDS;
+                        for (uint8_t led = 0; led < numLedsToLight; led++) {
+                            if (((float)numLedsToLight / NUM_LEDS) >= 0.6) {
+                                leds[Led_Address(led)] = CRGB::Green;
+                            } else if (((float)numLedsToLight / NUM_LEDS) < 0.6 && ((float)numLedsToLight / NUM_LEDS) >= 0.3) {
+                                leds[Led_Address(led)] = CRGB::Orange;
+                            } else {
+                                leds[Led_Address(led)] = CRGB::Red;
+                            }
+                            FastLED.show();
+                            vTaskDelay(portTICK_RATE_MS * 20);
+                        }
                     }
 
                     for (uint8_t i = 0; i <= 100; i++) {
@@ -300,14 +371,20 @@ static void Led_Task(void *parameter) {
             }
         #endif
 
+        // Single-LED: led indicates loudness between green (low) => red (high)
+        // Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between green (low) => red (high)
         if (hlastVolume != AudioPlayer_GetCurrentVolume()) { // If volume has been changed
             uint8_t numLedsToLight = map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, NUM_LEDS);
             hlastVolume = AudioPlayer_GetCurrentVolume();
             volumeChangeShown = true;
             FastLED.clear();
 
-            for (int led = 0; led < numLedsToLight; led++) { // (Inverse) color-gradient from green (85) back to (still) red (245) using unsigned-cast
-                leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)95 / NUM_LEDS) * led));
+            if (NUM_LEDS == 1) {
+                leds[0].setHue((uint8_t)(85 - (90 * ((double)AudioPlayer_GetCurrentVolume() / (double)AudioPlayer_GetMaxVolumeSpeaker()))));
+            } else {
+                for (int led = 0; led < numLedsToLight; led++) { // (Inverse) color-gradient from green (85) back to (still) red (250) using unsigned-cast
+                    leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)90 / NUM_LEDS) * led));
+                }
             }
             FastLED.show();
 
@@ -323,65 +400,79 @@ static void Led_Task(void *parameter) {
             }
         }
 
+        // < 4 LEDs: doesn't make sense at all
+        // >= 4 LEDs: collapsing ring (blue => black)
         if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
             LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
-            for (uint8_t i = NUM_LEDS - 1; i > 0; i--) {
-                leds[Led_Address(i)] = CRGB::Black;
-                FastLED.show();
-                if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    break;
-                } else {
-                    vTaskDelay(portTICK_RATE_MS * 30);
+            if (NUM_LEDS >= 4) {
+                for (uint8_t i = NUM_LEDS - 1; i > 0; i--) {
+                    leds[Led_Address(i)] = CRGB::Black;
+                    FastLED.show();
+                    if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        break;
+                    } else {
+                        vTaskDelay(portTICK_RATE_MS * 30);
+                    }
                 }
             }
         }
 
+        // < 4 LEDs: doesn't make sense at all
+        // >= 4 LEDs: growing ring (black => blue); relative number of LEDs indicate playlist-progress
         if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
             LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
-            if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-                uint8_t numLedsToLight = map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS);
-                FastLED.clear();
-                for (uint8_t i = 0; i < numLedsToLight; i++) {
-                    leds[Led_Address(i)] = CRGB::Blue;
-                    FastLED.show();
-                    #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #else
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #endif
-                        break;
-                    } else {
-                        vTaskDelay(portTICK_RATE_MS * 30);
+            if (NUM_LEDS >= 4) {
+                if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
+                    uint8_t numLedsToLight = map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS);
+                    FastLED.clear();
+                    for (uint8_t i = 0; i < numLedsToLight; i++) {
+                        leds[Led_Address(i)] = CRGB::Blue;
+                        FastLED.show();
+                        #ifdef MEASURE_BATTERY_VOLTAGE
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #else
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #endif
+                            break;
+                        } else {
+                            vTaskDelay(portTICK_RATE_MS * 30);
+                        }
                     }
-                }
 
-                for (uint8_t i = 0; i <= 100; i++)  {
-                    #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #else
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #endif
-                        break;
-                    } else {
-                        vTaskDelay(portTICK_RATE_MS * 15);
+                    for (uint8_t i = 0; i <= 100; i++)  {
+                        #ifdef MEASURE_BATTERY_VOLTAGE
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #else
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #endif
+                            break;
+                        } else {
+                            vTaskDelay(portTICK_RATE_MS * 15);
+                        }
                     }
-                }
 
-                for (uint8_t i = numLedsToLight; i > 0; i--) {
-                    leds[Led_Address(i) - 1] = CRGB::Black;
-                    FastLED.show();
-                    #ifdef MEASURE_BATTERY_VOLTAGE
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #else
-                        if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-                    #endif
-                        break;
-                    }
-                    else {
-                        vTaskDelay(portTICK_RATE_MS * 30);
+                    for (uint8_t i = numLedsToLight; i > 0; i--) {
+                        leds[Led_Address(i) - 1] = CRGB::Black;
+                        FastLED.show();
+                        #ifdef MEASURE_BATTERY_VOLTAGE
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #else
+                            if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+                        #endif
+                            break;
+                        }
+                        else {
+                            vTaskDelay(portTICK_RATE_MS * 30);
+                        }
                     }
                 }
             }
+        }
+
+        // Skip playmodes if shutdown-button is pressed as this leads to ugly indications
+        if (!gButtons[gShutdownButton].currentState && gShutdownButton != 99) {
+            vTaskDelay(portTICK_RATE_MS * 20);
+            continue;
         }
 
         switch (gPlayProperties.playMode) {
@@ -427,24 +518,36 @@ static void Led_Task(void *parameter) {
 
             case BUSY: // If uC is busy (parsing SD-card)
                 ledBusyShown = true;
-                for (uint8_t i = 0; i < NUM_LEDS; i++) {
+                if (NUM_LEDS == 1) {
                     FastLED.clear();
-                    if (Led_Address(i) == 0) {
+                    singleLedStatus = !singleLedStatus;
+                    if (singleLedStatus) {
                         leds[0] = CRGB::BlueViolet;
-                        leds[NUM_LEDS / 4] = CRGB::BlueViolet;
-                        leds[NUM_LEDS / 2] = CRGB::BlueViolet;
-                        leds[NUM_LEDS / 4 * 3] = CRGB::BlueViolet;
                     } else {
-                        leds[Led_Address(i) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::BlueViolet;
-                        leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = CRGB::BlueViolet;
+                        leds[0] = CRGB::Black;
                     }
                     FastLED.show();
-                    if (gPlayProperties.playMode != BUSY) {
-                        break;
+                    vTaskDelay(portTICK_RATE_MS * 100);
+                } else {
+                    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+                        FastLED.clear();
+                        if (Led_Address(i) == 0) {
+                            leds[0] = CRGB::BlueViolet;
+                            leds[NUM_LEDS / 4] = CRGB::BlueViolet;
+                            leds[NUM_LEDS / 2] = CRGB::BlueViolet;
+                            leds[NUM_LEDS / 4 * 3] = CRGB::BlueViolet;
+                        } else {
+                            leds[Led_Address(i) % NUM_LEDS] = CRGB::BlueViolet;
+                            leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = CRGB::BlueViolet;
+                            leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::BlueViolet;
+                            leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = CRGB::BlueViolet;
+                        }
+                        FastLED.show();
+                        if (gPlayProperties.playMode != BUSY) {
+                            break;
+                        }
+                        vTaskDelay(portTICK_RATE_MS * 50);
                     }
-                    vTaskDelay(portTICK_RATE_MS * 50);
                 }
                 break;
 
@@ -467,24 +570,32 @@ static void Led_Task(void *parameter) {
                         redrawProgress = true;
                     }
 
+                    // Single-LED: led indicates between gradient green (beginning) => red (end)
+                    // Multiple-LED: growing number of leds indicate between gradient green (beginning) => red (end)
                     if (!gPlayProperties.isWebstream) {
                         if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
                             redrawProgress = false;
                             lastPos = gPlayProperties.currentRelPos;
-                            uint8_t numLedsToLight = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
                             FastLED.clear();
-                            for (uint8_t led = 0; led < numLedsToLight; led++) {
-                                if (System_AreControlsLocked()) {
-                                    leds[Led_Address(led)] = CRGB::Red;
-                                } else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-                                    leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)95 / NUM_LEDS) * led));
+                            if (NUM_LEDS == 1) {
+                                leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * (double)gPlayProperties.currentRelPos));
+                            } else {
+                                uint8_t numLedsToLight = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
+                                for (uint8_t led = 0; led < numLedsToLight; led++) {
+                                    if (System_AreControlsLocked()) {
+                                        leds[Led_Address(led)] = CRGB::Red;
+                                    } else if (!gPlayProperties.pausePlay) { // Hue-rainbow
+                                        leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)90 / NUM_LEDS) * led));
+                                    }
                                 }
                             }
                             if (gPlayProperties.pausePlay) {
                                 leds[Led_Address(0)] = CRGB::Orange;
-                                leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = CRGB::Orange;
-                                leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = CRGB::Orange;
-                                leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = CRGB::Orange;
+                                if (NUM_LEDS > 1) {
+                                    leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = CRGB::Orange;
+                                }
                                 break;
                             }
                         }
@@ -501,14 +612,23 @@ static void Led_Task(void *parameter) {
                             }
                             if (System_AreControlsLocked()) {
                                 leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-                                leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+                                if (NUM_LEDS > 1) {
+                                    leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+                                }
                             } else if (!gPlayProperties.pausePlay) {
-                                leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-                                leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
-                            } else if (gPlayProperties.pausePlay)
-                            {
-                                leds[Led_Address(ledPosWebstream)] = CRGB::Orange;
-                                leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Orange;
+                                if (NUM_LEDS == 1) {
+                                    leds[0].setHue(webstreamColor++);
+                                } else {
+                                    leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
+                                    leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
+                                }
+                            } else if (gPlayProperties.pausePlay) {
+                                if (NUM_LEDS == 1) {
+                                    leds[0] = CRGB::Orange;
+                                } else {
+                                    leds[Led_Address(ledPosWebstream)] = CRGB::Orange;
+                                    leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Orange;
+                                }
                             }
                         }
                     }

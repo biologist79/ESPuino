@@ -6,6 +6,8 @@
 #include "Port.h"
 #include "System.h"
 
+bool gButtonInitComplete = false;
+
 // Only enable those buttons that are not disabled (99 or >115)
 // 0 -> 39: GPIOs
 // 100 -> 115: Port-expander
@@ -159,14 +161,19 @@ void Button_Cyclic() {
                 if (!gButtons[i].currentState) {
                     gButtons[i].isPressed = true;
                     gButtons[i].lastPressedTimestamp = currentTimestamp;
+                    if (!gButtons[i].firstPressedTimestamp) {
+                        gButtons[i].firstPressedTimestamp = currentTimestamp;
+                    }
                 } else {
                     gButtons[i].isReleased = true;
                     gButtons[i].lastReleasedTimestamp = currentTimestamp;
+                    gButtons[i].firstPressedTimestamp = 0;
                 }
             }
             gButtons[i].lastState = gButtons[i].currentState;
         }
     }
+    gButtonInitComplete = true;
     Button_DoButtonActions();
 }
 
