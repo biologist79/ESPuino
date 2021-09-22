@@ -148,7 +148,7 @@ void webserverStart(void) {
 
         // Log
         wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
-            request->send(200, "text/plain", Log_GetRingBuffer());
+            request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
         });
 
         // heap/psram-info
