@@ -13,9 +13,9 @@ I started this project back in october 2019 and never expected it to become that
 * Partition-layout for ESP32 is changed along with this branch. This step was necessary in order to resize (enlarge) the memory-region where especially the assignments for the RFID-tags are saved. As all permanent settings (e.g. WiFi-settings) are saved there too, it's necessary to re-enter WiFi-credentials after update. But the most important thing is to recover the assignments for the RFID-tags. Please consult my [migration-document](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510).
 ## Changelog
 Last three events:
+* 30.09.2021: Added feature `PAUSE_WHEN_RFID_REMOVED` for RC522 after having it already for PN5180 (thanks @elmar-ops for contribution)
 * 23.07.2021: Adding new playmode: from local .m3u-file (files or webstreams)
 * 13.07.2021: Adding OTA-support via webGUI
-* 09.07.2021: Making branch `refactoring` the new master
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
 * For ESPuinos making use of SPI for SD (instead of SD_MMC), there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. I'm about to [investigate...](https://forum.espuino.de/t/probleme-beim-webtransfer/542)

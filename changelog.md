@@ -10,7 +10,7 @@
 * 09.07.2021: Making master the new branch `old` (not maintained any longer!)
 * 13.07.2021: Adding OTA-support via webGUI
 * 23.07.2021: Adding new playmode: from local .m3u-file (files or webstreams)
-
+* 30.09.2021: Added feature `PAUSE_WHEN_RFID_REMOVED` for RC522 after having it already for PN5180 (thanks @elmar-ops for contribution)
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.
 * 09.10.2020: mqttUser / mqttPassword can now be configured via webgui.
@@ -49,3 +49,4 @@
 * 19.03.2021: Added support for port-expander PCA9555. Can be used for everything, that is "button-like": buttons, headphone-detect, PN5180.IRQ.
 * 28.03.2021: Added support for fileseek. With commands `CMD_SEEK_FORWARDS` and `CMD_SEEK_BACKWARDS` it's possible to jump a number of seconds defined in `jumpOffset`.
 * 30.03.2021: Added support for stereo/mono via `PLAY_MONO_SPEAKER`. If active, mono is used while headphones remain stereo (if `HEADPHONE_ADJUST_ENABLE` is active).
+* no more updates will follow!

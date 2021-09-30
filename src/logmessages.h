@@ -202,3 +202,5 @@ extern const char fwEnd[];
 extern const char otaNotSupported[];
 extern const char otaNotSupportedWebsite[];
 extern const char noPlaylist[];
+extern const char rfidTagRemoved[];
+extern const char rfidTagReapplied[];

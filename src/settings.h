@@ -24,7 +24,7 @@
 
 
     //########################## MODULES #################################
-    //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
+    //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
     //#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
     #define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
     //#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
@@ -41,13 +41,13 @@
     //#define USE_LAST_VOLUME_AFTER_REBOOT  // Remembers the volume used at last shutdown after reboot
     #define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
     #define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino via bluetooth (a2dp-sink).
-    //#define IR_CONTROL_ENABLE             // Enables remote control
+    //#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
     #define CACHED_PLAYLIST_ENABLE          // Enables playlist-caching (infos: https://forum.espuino.de/t/neues-feature-cached-playlist/515)
-    //#define PAUSE_WHEN_RFID_REMOVED       // (Only PN5180) Playback starts when card is applied and pauses, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
+    //#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
 
 
     //################## select SD card mode #############################
-    //#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode
+    //#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
     //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!)
 
 
@@ -71,7 +71,7 @@
 
     //############# Port-expander-configuration ######################
     #ifdef PORT_EXPANDER_ENABLE
-        constexpr uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555
+        constexpr uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555 (0x20 is true if PCA's pins A0+A1+A2 are pulled to GND)
     #endif
 
     //################## BUTTON-Layout ##################################
