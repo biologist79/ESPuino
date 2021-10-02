@@ -64,7 +64,7 @@ void Led_Init(void) {
         xTaskCreatePinnedToCore(
             Led_Task,   /* Function to implement the task */
             "Led_Task", /* Name of the task */
-            2000,       /* Stack size in words */
+            1512,       /* Stack size in words */
             NULL,       /* Task input parameter */
             1,          /* Priority of the task */
             NULL,       /* Task handle. */
@@ -191,7 +191,6 @@ static void Led_Task(void *parameter) {
                 FastLED.show();
                 showEvenError = !showEvenError;
                 vTaskDelay(portTICK_RATE_MS * 500);
-                esp_task_wdt_reset();
                 continue;
             }
 
@@ -203,6 +202,8 @@ static void Led_Task(void *parameter) {
             // Multi-LED: growing red as long button for sleepmode is pressed.
             // Single-LED: red when pressed and flashing red when long interval-duration is reached
             if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
+                //snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
+                //Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
                 if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
                     if (NUM_LEDS == 1) {
                         FastLED.clear();
@@ -636,8 +637,8 @@ static void Led_Task(void *parameter) {
                     vTaskDelay(portTICK_RATE_MS * 5);
                 }
             }
-            //vTaskDelay(portTICK_RATE_MS * 10);
-            esp_task_wdt_reset();
+            vTaskDelay(portTICK_RATE_MS * 1);
+            //esp_task_wdt_reset();
         }
         vTaskDelete(NULL);
     #endif

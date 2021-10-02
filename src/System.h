@@ -24,3 +24,4 @@ void System_SetOperationMode(uint8_t opMode);
 uint8_t System_GetOperationMode(void);
 uint8_t System_GetOperationModeFromNvs(void);
 void System_ShowUpgradeWarning(void);
+void System_esp_print_tasks(void);

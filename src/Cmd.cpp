@@ -328,6 +328,13 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
+        #ifdef ENABLE_ESPUINO_DEBUG
+            case PRINT_TASK_STATS: {
+                System_esp_print_tasks();
+                break;
+            }
+        #endif
+
         default: {
             snprintf(Log_Buffer, Log_BufferLength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
             Log_Println(Log_Buffer, LOGLEVEL_ERROR);

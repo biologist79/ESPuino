@@ -687,7 +687,8 @@ void AudioPlayer_Task(void *parameter) {
             }
         }
 
-        esp_task_wdt_reset(); // Don't forget to feed the dog!
+        vTaskDelay(portTICK_PERIOD_MS * 3);
+        //esp_task_wdt_reset(); // Don't forget to feed the dog!
     }
     vTaskDelete(NULL);
 }

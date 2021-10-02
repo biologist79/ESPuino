@@ -74,4 +74,6 @@
     #define DE                              1
     #define EN                              2
 
+    // Debug
+    #define PRINT_TASK_STATS                900         // Prints task stats (only debugging; needs modification of platformio.ini (https://forum.espuino.de/t/rfid-mit-oder-ohne-task/353/21))
 #endif

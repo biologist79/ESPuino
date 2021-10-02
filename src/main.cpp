@@ -273,6 +273,5 @@ void loop() {
     #endif
 
     IrReceiver_Cyclic();
-
-    vTaskDelay(5u);
+    vTaskDelay(portTICK_RATE_MS * 5u);
 }

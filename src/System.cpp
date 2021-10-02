@@ -8,6 +8,9 @@
 #include "Mqtt.h"
 #include "SdCard.h"
 #include "Port.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
 
 constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
@@ -227,3 +230,12 @@ void System_ShowUpgradeWarning(void) {
         Log_Println((char *) FPSTR(warningRefactoring), LOGLEVEL_ERROR);
     }
 }
+
+#ifdef ENABLE_ESPUINO_DEBUG
+    void System_esp_print_tasks(void) {
+        char *pbuffer = (char *)calloc(2048, 1);
+        vTaskGetRunTimeStats(pbuffer);
+        Serial.printf("=====\n%s\n=====", pbuffer);
+        free(pbuffer);
+    }
+#endif

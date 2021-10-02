@@ -609,13 +609,14 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         }
 
         // Create Task for handling the storage of the data
-        xTaskCreate(
+        xTaskCreatePinnedToCore(
             explorerHandleFileStorageTask, /* Function to implement the task */
             "fileStorageTask",             /* Name of the task */
             4000,                          /* Stack size in words */
             filePath,                      /* Task input parameter */
             2 | portPRIVILEGE_BIT,         /* Priority of the task */
-            &fileStorageTaskHandle         /* Task handle. */
+            &fileStorageTaskHandle,        /* Task handle. */
+            1                              /* Core where the task should run */
         );
     }
 
@@ -674,7 +675,7 @@ void explorerHandleFileStorageTask(void *parameter) {
                 // done exit loop to terminate
                 break;
             }
-            vTaskDelay(portTICK_PERIOD_MS * 100);
+            vTaskDelay(portTICK_PERIOD_MS * 20);
         }
         #ifdef SD_MMC_1BIT_MODE
             vTaskDelay(portTICK_PERIOD_MS * 1);
@@ -737,7 +738,12 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
         }
         file = root.openNextFile();
 
-        esp_task_wdt_reset();
+        // If playback is active this can (at least sometimes) prevent scattering
+        if (!gPlayProperties.pausePlay) {
+            vTaskDelay(portTICK_PERIOD_MS * 5);
+        } else {
+            vTaskDelay(portTICK_PERIOD_MS * 1);
+        }
     }
 
     serializeJson(obj, serializedJsonString);

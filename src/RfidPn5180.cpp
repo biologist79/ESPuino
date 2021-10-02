@@ -8,6 +8,7 @@
 #include "Queues.h"
 #include "System.h"
 #include "Port.h"
+#include <esp_task_wdt.h>
 #include "AudioPlayer.h"
 
 #ifdef RFID_READER_TYPE_PN5180
@@ -32,7 +33,7 @@
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 #ifdef RFID_READER_TYPE_PN5180
-    static void Rfid_Read(void);
+    static void Rfid_Task(void *parameter);
 
     void Rfid_Init(void) {
         #ifdef PN5180_ENABLE_LPCD
@@ -42,184 +43,203 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
             pinMode(RFID_IRQ, INPUT);
         #endif
+
+        xTaskCreatePinnedToCore(
+            Rfid_Task,              /* Function to implement the task */
+            "rfid",                 /* Name of the task */
+            1536,                   /* Stack size in words */
+            NULL,                   /* Task input parameter */
+            2 | portPRIVILEGE_BIT,  /* Priority of the task */
+            NULL,                   /* Task handle. */
+            0                       /* Core where the task should run */
+        );
     }
 
     void Rfid_Cyclic(void) {
-        Rfid_Read();
-        vTaskDelay(5u);
+        // Not necessary as cyclic stuff performed by task Rfid_Task()
     }
 
-    void Rfid_Read(void) {
+    void Rfid_Task(void *parameter) {
         static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
         static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
-        static uint32_t lastTimeDetected14443 = 0;
-        static uint32_t lastTimeDetected15693 = 0;
+        uint32_t lastTimeDetected14443 = 0;
+        uint32_t lastTimeDetected15693 = 0;
         #ifdef PAUSE_WHEN_RFID_REMOVED
-            static byte lastValidcardId[cardIdSize];
-            static bool cardAppliedCurrentRun = false;
-            static bool cardAppliedLastRun = false;
-            bool sameCardReapplied = false;
+            byte lastValidcardId[cardIdSize];
+            bool cardAppliedCurrentRun = false;
+            bool cardAppliedLastRun = false;
         #endif
-        static uint8_t stateMachine = RFID_PN5180_STATE_INIT;
+        uint8_t stateMachine = RFID_PN5180_STATE_INIT;
         static byte cardId[cardIdSize], lastCardId[cardIdSize];
         uint8_t uid[10];
-        String cardIdString;
-        bool cardReceived = false;
 
-        if (RFID_PN5180_STATE_INIT == stateMachine) {
-            nfc14443.begin();
-            nfc14443.reset();
-            // show PN5180 reader version
-            uint8_t firmwareVersion[2];
-            nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-            Serial.print(F("Firmware version="));
-            Serial.print(firmwareVersion[1]);
-            Serial.print(".");
-            Serial.println(firmwareVersion[0]);
+        for (;;) {
+            vTaskDelay(portTICK_RATE_MS * 10u);
+            String cardIdString;
+            bool cardReceived = false;
+            #ifdef PAUSE_WHEN_RFID_REMOVED
+                bool sameCardReapplied = false;
+            #endif
 
-            // activate RF field
-            delay(4u);
-            Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+            if (RFID_PN5180_STATE_INIT == stateMachine) {
+                nfc14443.begin();
+                nfc14443.reset();
+                // show PN5180 reader version
+                uint8_t firmwareVersion[2];
+                nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
+                Serial.print(F("Firmware version="));
+                Serial.print(firmwareVersion[1]);
+                Serial.print(".");
+                Serial.println(firmwareVersion[0]);
 
-        // 1. check for an ISO-14443 card
-        } else if (RFID_PN5180_NFC14443_STATE_RESET == stateMachine) {
-            nfc14443.reset();
-        } else if (RFID_PN5180_NFC14443_STATE_SETUPRF == stateMachine) {
-            nfc14443.setupRF();
-        } else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
-            if (nfc14443.readCardSerial(uid) >= 4u) {
-                cardReceived = true;
-                stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
-                lastTimeDetected14443 = millis();
-                #ifdef PAUSE_WHEN_RFID_REMOVED
-                    cardAppliedCurrentRun = true;
-                #endif
-            } else {
-                // Reset to dummy-value if no card is there
-                // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
-                // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-                if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 400)) {
-                    lastTimeDetected14443 = 0;
+                // activate RF field
+                delay(4u);
+                Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+
+            // 1. check for an ISO-14443 card
+            } else if (RFID_PN5180_NFC14443_STATE_RESET == stateMachine) {
+                nfc14443.reset();
+                //snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
+                //Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+            } else if (RFID_PN5180_NFC14443_STATE_SETUPRF == stateMachine) {
+                nfc14443.setupRF();
+            } else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
+                if (nfc14443.readCardSerial(uid) >= 4u) {
+                    cardReceived = true;
+                    stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
+                    lastTimeDetected14443 = millis();
                     #ifdef PAUSE_WHEN_RFID_REMOVED
-                        cardAppliedCurrentRun = false;
+                        cardAppliedCurrentRun = true;
                     #endif
-                    for (uint8_t i=0; i<cardIdSize; i++) {
-                        lastCardId[i] = 0;
-                    }
                 } else {
-                    stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;       // Still consider first event as "active"
+                    // Reset to dummy-value if no card is there
+                    // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
+                    // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
+                    if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 400)) {
+                        lastTimeDetected14443 = 0;
+                        #ifdef PAUSE_WHEN_RFID_REMOVED
+                            cardAppliedCurrentRun = false;
+                        #endif
+                        for (uint8_t i=0; i<cardIdSize; i++) {
+                            lastCardId[i] = 0;
+                        }
+                    } else {
+                        stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;       // Still consider first event as "active"
+                    }
                 }
-            }
 
-        // 2. check for an ISO-15693 card
-        } else if (RFID_PN5180_NFC15693_STATE_RESET == stateMachine) {
-            nfc15693.reset();
-        } else if (RFID_PN5180_NFC15693_STATE_SETUPRF == stateMachine) {
-            nfc15693.setupRF();
-        } else if (RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE == stateMachine) {
-            // check for ICODE-SLIX2 password protected tag
-            // put your privacy password here, e.g.:
-            // https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
-            uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
-            ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
-            if (ISO15693_EC_OK == myrc) {
-                Serial.println(F("disabling privacy-mode successful"));
-            }
-        } else if (RFID_PN5180_NFC15693_STATE_GETINVENTORY == stateMachine) {
-            // try to read ISO15693 inventory
-            ISO15693ErrorCode rc = nfc15693.getInventory(uid);
-            if (rc == ISO15693_EC_OK) {
-                cardReceived = true;
-                stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
-                lastTimeDetected15693 = millis();
-                #ifdef PAUSE_WHEN_RFID_REMOVED
-                    cardAppliedCurrentRun = true;
-                #endif
-            } else {
-                // lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
-                if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 400)) {
-                    lastTimeDetected15693 = 0;
-                    #ifdef PAUSE_WHEN_RFID_REMOVED
-                        cardAppliedCurrentRun = false;
-                    #endif
-                    for (uint8_t i=0; i<cardIdSize; i++) {
-                        lastCardId[i] = 0;
-                    }
-                } else {
+            // 2. check for an ISO-15693 card
+            } else if (RFID_PN5180_NFC15693_STATE_RESET == stateMachine) {
+                nfc15693.reset();
+            } else if (RFID_PN5180_NFC15693_STATE_SETUPRF == stateMachine) {
+                nfc15693.setupRF();
+            } else if (RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE == stateMachine) {
+                // check for ICODE-SLIX2 password protected tag
+                // put your privacy password here, e.g.:
+                // https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
+                uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
+                ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
+                if (ISO15693_EC_OK == myrc) {
+                    Serial.println(F("disabling privacy-mode successful"));
+                }
+            } else if (RFID_PN5180_NFC15693_STATE_GETINVENTORY == stateMachine) {
+                // try to read ISO15693 inventory
+                ISO15693ErrorCode rc = nfc15693.getInventory(uid);
+                if (rc == ISO15693_EC_OK) {
+                    cardReceived = true;
                     stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
-                }
-            }
-        }
-
-        #ifdef PAUSE_WHEN_RFID_REMOVED
-            if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay) {   // Card removed => pause
-                AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-            }
-            cardAppliedLastRun = cardAppliedCurrentRun;
-        #endif
-
-        // send card to queue
-        if (cardReceived) {
-            memcpy(cardId, uid, cardIdSize);
-
-            // check for different card id
-            if (memcmp((const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0) {
-                // reset state machine
-                if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
-                    stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
-                    return;
-                } else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
-                    stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
-                    return;
-                }
-            }
-
-            memcpy(lastCardId, cardId, cardIdSize);
-
-            #ifdef PAUSE_WHEN_RFID_REMOVED
-                if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
-                    sameCardReapplied = true;
-                }
-            #endif
-
-            Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
-            snprintf(Log_Buffer, Log_BufferLength, "(%s) ID: ", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
-            Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
-
-            for (uint8_t i = 0u; i < cardIdSize; i++) {
-                snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-                Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
-            }
-
-            for (uint8_t i = 0u; i < cardIdSize; i++) {
-                char num[4];
-                snprintf(num, sizeof(num), "%03d", cardId[i]);
-                cardIdString += num;
-            }
-
-            #ifdef PAUSE_WHEN_RFID_REMOVED
-                if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
-                    xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+                    lastTimeDetected15693 = millis();
+                    #ifdef PAUSE_WHEN_RFID_REMOVED
+                        cardAppliedCurrentRun = true;
+                    #endif
                 } else {
-                    // If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
-                    if (gPlayProperties.pausePlay) {
-                        AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead
+                    // lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
+                    if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 400)) {
+                        lastTimeDetected15693 = 0;
+                        #ifdef PAUSE_WHEN_RFID_REMOVED
+                            cardAppliedCurrentRun = false;
+                        #endif
+                        for (uint8_t i=0; i<cardIdSize; i++) {
+                            lastCardId[i] = 0;
+                        }
+                    } else {
+                        stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
                     }
                 }
-                memcpy(lastValidcardId, uid, cardIdSize);
-            #else
-                xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);        // If PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
-            #endif
-        }
+            }
 
-        if (stateMachine == RFID_PN5180_NFC14443_STATE_ACTIVE) {            // If 14443 is active, bypass 15693 as next check (performance)
-            stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
-        } else if (stateMachine == RFID_PN5180_NFC15693_STATE_ACTIVE) {     // If 15693 is active, bypass 14443 as next check (performance)
-            stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
-        } else {
-            stateMachine++;
-            if (stateMachine > RFID_PN5180_NFC15693_STATE_GETINVENTORY) {
+            #ifdef PAUSE_WHEN_RFID_REMOVED
+                if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {   // Card removed => pause
+                    AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+                    Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+                }
+                cardAppliedLastRun = cardAppliedCurrentRun;
+            #endif
+
+            // send card to queue
+            if (cardReceived) {
+                memcpy(cardId, uid, cardIdSize);
+
+                // check for different card id
+                if (memcmp((const void *)cardId, (const void *)lastCardId, sizeof(cardId)) == 0) {
+                    // reset state machine
+                    if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
+                        stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+                        continue;
+                    } else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
+                        stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+                        continue;
+                    }
+                }
+
+                memcpy(lastCardId, cardId, cardIdSize);
+
+                #ifdef PAUSE_WHEN_RFID_REMOVED
+                    if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
+                        sameCardReapplied = true;
+                    }
+                #endif
+
+                Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+                snprintf(Log_Buffer, Log_BufferLength, "(%s) ID: ", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
+                Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+
+                for (uint8_t i = 0u; i < cardIdSize; i++) {
+                    snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
+                    Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+                }
+
+                for (uint8_t i = 0u; i < cardIdSize; i++) {
+                    char num[4];
+                    snprintf(num, sizeof(num), "%03d", cardId[i]);
+                    cardIdString += num;
+                }
+
+                #ifdef PAUSE_WHEN_RFID_REMOVED
+                    if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
+                        xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+                    } else {
+                        // If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
+                        if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
+                            AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead
+                            Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
+                        }
+                    }
+                    memcpy(lastValidcardId, uid, cardIdSize);
+                #else
+                    xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);        // If PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
+                #endif
+            }
+
+            if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {            // If 14443 is active, bypass 15693 as next check (performance)
                 stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+            } else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {     // If 15693 is active, bypass 14443 as next check (performance)
+                stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+            } else {
+                stateMachine++;
+                if (stateMachine > RFID_PN5180_NFC15693_STATE_GETINVENTORY) {
+                    stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+                }
             }
         }
     }
@@ -292,5 +312,4 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             }
         #endif
     }
-
 #endif
