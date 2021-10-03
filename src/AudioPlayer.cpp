@@ -23,6 +23,7 @@
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
 playProps gPlayProperties;
+uint32_t cnt123 = 0;
 
 // Volume
 static uint8_t AudioPlayer_CurrentVolume = AUDIOPLAYER_VOLUME_INIT;
@@ -103,7 +104,7 @@ void AudioPlayer_Init(void) {
         xTaskCreatePinnedToCore(
             AudioPlayer_Task,      /* Function to implement the task */
             "mp3play",             /* Name of the task */
-            5000,                  /* Stack size in words */
+            5500,                  /* Stack size in words */
             NULL,                  /* Task input parameter */
             2 | portPRIVILEGE_BIT, /* Priority of the task */
             NULL,                  /* Task handle. */
@@ -274,6 +275,10 @@ void AudioPlayer_Task(void *parameter) {
     bool audioReturnCode;
 
     for (;;) {
+        if (cnt123++ % 100 == 0) {
+            snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+        }
         if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
             snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -687,7 +692,7 @@ void AudioPlayer_Task(void *parameter) {
             }
         }
 
-        vTaskDelay(portTICK_PERIOD_MS * 3);
+        vTaskDelay(portTICK_PERIOD_MS * 1);
         //esp_task_wdt_reset(); // Don't forget to feed the dog!
     }
     vTaskDelete(NULL);
