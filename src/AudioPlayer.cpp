@@ -23,7 +23,7 @@
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
 playProps gPlayProperties;
-uint32_t cnt123 = 0;
+//uint32_t cnt123 = 0;
 
 // Volume
 static uint8_t AudioPlayer_CurrentVolume = AUDIOPLAYER_VOLUME_INIT;
@@ -275,10 +275,10 @@ void AudioPlayer_Task(void *parameter) {
     bool audioReturnCode;
 
     for (;;) {
-        if (cnt123++ % 100 == 0) {
+        /*if (cnt123++ % 100 == 0) {
             snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
             Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-        }
+        }*/
         if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
             snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
