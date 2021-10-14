@@ -132,6 +132,7 @@ void setup() {
         Rfid_Init();
     #endif
     // Check if wakeup-reason was card-detection (PN5180 only)
+    // This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
         Rfid_WakeupCheck();

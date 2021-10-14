@@ -246,13 +246,30 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
         // If interrupt-handling is active, only ready port-expander's register if interrupt was fired
         #ifdef PE_INTERRUPT_PIN_ENABLE
             if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander) {
+                //Serial.println("Interrupt false!");
                 return;
-            } else {
-                Port_AllowReadFromPortExpander = false;
+            } else if (Port_AllowInitReadFromPortExpander) {
                 Port_AllowInitReadFromPortExpander = false;
+            } else if (Port_AllowReadFromPortExpander || Port_AllowInitReadFromPortExpander) {
+                //Serial.println("Interrupt true!");
+                Port_AllowReadFromPortExpander = false;
             }
         #endif
 
+        i2cBusTwo.beginTransmission(expanderI2cAddress);
+        for (uint8_t i = 0; i < 2; i++) {
+            i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
+            i2cBusTwo.endTransmission();
+            i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
+
+            if (i2cBusTwo.available()) {
+                Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
+            }
+        }
+    }
+
+    // Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
+    void Port_Exit(void) {
         i2cBusTwo.beginTransmission(expanderI2cAddress);
         for (uint8_t i = 0; i < 2; i++) {
             i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...

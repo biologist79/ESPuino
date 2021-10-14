@@ -214,6 +214,7 @@ void System_DeepSleepManager(void) {
         digitalWrite(POWER, LOW);
         delay(200);
         Rfid_Exit();
+        Port_Exit();
         Serial.println(F("deep-sleep, good night......."));
         esp_deep_sleep_start();
     }
