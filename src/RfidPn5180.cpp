@@ -313,7 +313,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 Serial.println(F("switch to low power card detection: success"));
                 // configure wakeup pin for deep-sleep wake-up, use ext1
                 #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
-                    esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
+                    esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
                 #endif
                 // freeze pin states in deep sleep
                 gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
@@ -342,7 +342,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                     Log_Println((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
                     // configure wakeup pin for deep-sleep wake-up, use ext1
                     #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
-                        esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
+                        esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
                     #endif
                     // freeze pin states in deep sleep
                     gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
