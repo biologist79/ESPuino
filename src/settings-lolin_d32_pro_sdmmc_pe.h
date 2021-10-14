@@ -5,7 +5,7 @@
     //######################### INFOS ####################################
     /* This is a PCB-specific config-file for *Wemos Lolin32 D32 pro with port-expander PCA9555PW and SD_MMC*.
     PCB: t.b.a.
-    Forum: t.b.a.
+    Forum: https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638
     Infos: https://www.wemos.cc/en/latest/d32/d32_pro.html
     Schematics Lolin D32 pro: https://www.wemos.cc/en/latest/_static/files/sch_d32_pro_v2.0.0.pdf
     Schematics PCB: t.b.a.
@@ -23,7 +23,7 @@
     #ifdef SD_MMC_1BIT_MODE
         // 15 / 14 / 2 (fixed for SD_MMC)
     #else
-        // NOT SUPPORTED BY THIS BOARD!
+        // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
     #endif
 
     // RFID (via SPI)
