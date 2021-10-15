@@ -51,6 +51,12 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
     void Rfid_Init(void) {
         #ifdef PN5180_ENABLE_LPCD
+            // Check if wakeup-reason was card-detection (PN5180 only)
+            // This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
+            esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+            if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
+                Rfid_WakeupCheck();
+            }
             // disable pin hold from deep sleep
             gpio_deep_sleep_hold_dis();
             gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
@@ -328,22 +334,25 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
     // wake up from LPCD, check card is present. This works only for ISO-14443 compatible cards
     void Rfid_WakeupCheck(void) {
         #ifdef PN5180_ENABLE_LPCD
+            // disable pin hold from deep sleep
+            gpio_deep_sleep_hold_dis();
+            gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
+            gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+            #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
+                pinMode(RFID_IRQ, INPUT);
+            #endif
             static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
             nfc14443.begin();
             nfc14443.reset();
+            // enable RF field
             nfc14443.setupRF();
             if (!nfc14443.isCardPresent()) {
-                nfc14443.clearIRQStatus(0xffffffff);
-                Serial.print(F("Logic-level at PN5180's IRQ-PIN: "));
-                Serial.println(Port_Read(RFID_IRQ));
-                // turn on LPCD
+                nfc14443.reset();
                 uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
                 if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
                     Log_Println((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
                     // configure wakeup pin for deep-sleep wake-up, use ext1
-                    #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
-                        esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
-                    #endif
+                    esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
                     // freeze pin states in deep sleep
                     gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
                     gpio_hold_en(gpio_num_t(RFID_RST)); // RST
@@ -354,6 +363,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                     Serial.println(F("switchToLPCD failed"));
                 }
             }
+            nfc14443.end();
         #endif
     }
 #endif
