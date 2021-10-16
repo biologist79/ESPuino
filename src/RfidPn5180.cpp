@@ -305,7 +305,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 return;
             }
             Serial.println(F("prepare low power card detection..."));
-            uint8_t irqConfig = 0b0000010; // Set IRQ active low + clear IRQ-register
+            uint8_t irqConfig = 0b0000000; // Set IRQ active low + clear IRQ-register
             nfc.writeEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
             /*nfc.readEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
             Serial.print(F("IRQ_PIN_CONFIG=0x"));
