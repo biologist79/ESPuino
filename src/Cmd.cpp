@@ -3,6 +3,7 @@
 #include "Cmd.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
+#include "Bluetooth.h"
 #include "Ftp.h"
 #include "Led.h"
 #include "Log.h"
@@ -259,17 +260,29 @@ void Cmd_Action(const uint16_t mod) {
         #endif
 
         case CMD_PLAYPAUSE: {
-            AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+            if (OPMODE_NORMAL == System_GetOperationMode()) {
+                AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+            } else {
+                Bluetooth_PlayPauseTrack();
+            }    
             break;
         }
 
         case CMD_PREVTRACK: {
-            AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
+            if (OPMODE_NORMAL == System_GetOperationMode()) {
+                AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
+            } else {
+                Bluetooth_PreviousTrack();
+            }    
             break;
         }
 
         case CMD_NEXTTRACK: {
-            AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
+            if (OPMODE_NORMAL == System_GetOperationMode()) {
+                AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
+            } else {
+                Bluetooth_NextTrack();
+            }    
             break;
         }
 
@@ -289,13 +302,21 @@ void Cmd_Action(const uint16_t mod) {
         }
 
         case CMD_VOLUMEUP: {
-            AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() + 1, true);
+            if (OPMODE_NORMAL == System_GetOperationMode()) {
+                AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() + 1, true);
+            } else {
+                Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
+            }    
             break;
         }
 
         case CMD_VOLUMEDOWN:{
-            AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() - 1, true);
-            break;
+            if (OPMODE_NORMAL == System_GetOperationMode()) {
+                AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() - 1, true);
+            } else {
+                Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
+            }    
+           break;
         }
 
         case CMD_MEASUREBATTERY: {
