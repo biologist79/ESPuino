@@ -99,7 +99,7 @@
 
     // (optional) For measuring battery-voltage a voltage-divider is already onboard. Connect a LiPo and use it!
     #ifdef MEASURE_BATTERY_VOLTAGE
-        constexpr uint8_t rdiv1 = 100;                  // Don't change, it's built in
+        constexpr uint16_t rdiv1 = 100;                 // Don't change, it's built in
         constexpr uint16_t rdiv2 = 100;                 // Don't change, it's built in
     #endif
 
