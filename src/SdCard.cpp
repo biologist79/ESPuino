@@ -94,7 +94,8 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
     // Look if file/folder requested really exists. If not => break.
     File fileOrDirectory = gFSystem.open(fileName);
     if (!fileOrDirectory) {
-        Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
+        snprintf(Log_Buffer, Log_BufferLength, "%s: \"%s\"", (char *) FPSTR(dirOrFileDoesNotExist), fileName);
+        Log_Println(Log_Buffer, LOGLEVEL_ERROR);
         return NULL;
     }
 

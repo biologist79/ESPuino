@@ -23,7 +23,6 @@
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
 playProps gPlayProperties;
-//uint32_t cnt123 = 0;
 
 // Volume
 static uint8_t AudioPlayer_CurrentVolume = AUDIOPLAYER_VOLUME_INIT;
@@ -275,14 +274,11 @@ void AudioPlayer_Task(void *parameter) {
     bool audioReturnCode;
 
     for (;;) {
-        /*if (cnt123++ % 100 == 0) {
-            snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
-            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-        }*/
         if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
             snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
             audio->setVolume(currentVolume);
+            Web_SendWebsocketData(0, 50);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicLoudnessState), currentVolume, false);
             #endif
@@ -441,6 +437,9 @@ void AudioPlayer_Task(void *parameter) {
                         }
                         audio->stopSong();
                         Led_Indicate(LedIndicatorType::Rewind);
+                        // delete cover image
+                        gFSystem.remove("/.cover");
+                        Web_SendWebsocketData(0, 40);
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
                         if (!audioReturnCode) {
@@ -584,6 +583,9 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.trackFinished = true;
                     continue;
                 } else {
+                    // delete cover image
+                    gFSystem.remove("/.cover");
+                    Web_SendWebsocketData(0, 40);
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
                 }
@@ -1058,3 +1060,22 @@ void audio_lasthost(const char *info) { //stream URL played
     snprintf(Log_Buffer, Log_BufferLength, "lasthost    : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 }
+
+// id3 tag: save cover image
+void audio_id3image(File& file, const size_t pos, const size_t size) { 
+
+    snprintf(Log_Buffer, Log_BufferLength, "save album cover image: \"%s\"", (char *) file.name());
+    Log_Println(Log_Buffer, LOGLEVEL_INFO);
+    // save raw image data to file "/.cover"
+    file.seek(pos);
+    File coverFile = gFSystem.open("/.cover", FILE_WRITE);
+    uint8_t buf[255];
+    while(file.position() < (pos + size)) {
+        int bytesRead = file.read(buf, sizeof(buf));
+        coverFile.write( buf, bytesRead); 
+    }
+    coverFile.close();
+    // websocket notify cover image has changed
+    Web_SendWebsocketData(0, 40);
+}
+

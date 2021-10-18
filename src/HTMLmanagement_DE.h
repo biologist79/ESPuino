@@ -1,4 +1,4 @@
-static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
+static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 <html lang=\"de\">\
 <head>\
     <title>ESPuino-Konfiguration</title>\
@@ -70,6 +70,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
         .filetree-container {\
             position: relative;\
+        }\
+\
+        .coverimage-container {\
+            width: 80%%;\
+            height:auto;\
+            margin-left: 1em;\
+            margin-right: 1em;\
         }\
 \
         .indexing-progress {\
@@ -183,20 +190,23 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         <div class=\"container\" id=\"navControl\">\
                 <div class=\"form-group col-md-12\">\
                     <legend>Steuerung</legend>\
+                    <div class=\"form-group col-md-12\">\
+                        <img src=\"/cover\" class=\"coverimage-container\" id=\"coverimg\">\
+                    </div>\
                     <div class=\"buttons\">\
-                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(173)\">\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-first\" onclick=\"sendControl(173)\">\
                             <span class=\"fas fa-fast-backward\"></span>\
                         </button>\
-                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(171)\">\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-prev\" onclick=\"sendControl(171)\">\
                             <span class=\"fas fa-backward\"></span>\
                         </button>\
-                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(170)\">\
-                            <i class=\"fas fa-pause\"></i>\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-play-pause\" onclick=\"sendControl(170)\">\
+                            <i class=\"fas fa-pause\" id=\"ico-play-pause\"></i>\
                         </button>\
-                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(172)\">\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-next\" onclick=\"sendControl(172)\">\
                             <span class=\"fas fa-forward\"></span>\
                         </button>\
-                        <button type=\"button\" class=\"btn btn-default btn-lg\" onclick=\"sendControl(174)\">\
+                        <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-last\" onclick=\"sendControl(174)\">\
                             <span class=\"fas fa-fast-forward\"></span>\
                         </button>\
                     </div>\
@@ -968,6 +978,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         socket.onopen = function () {\
             setInterval(ping, 15000);\
             getTrack();\
+            getCoverimage();\
         };\
 \
         socket.onclose = function (e) {\
@@ -997,11 +1008,46 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
               if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
-          } if (\"track\" in socketMsg) {\
-                document.getElementById('track').innerHTML = socketMsg.track;\
-          }\
+            } if (\"trackinfo\" in socketMsg) {\
+                document.getElementById('track').innerHTML = socketMsg.trackinfo.name;\
+                \
+                var icoPlayPause = document.getElementById('ico-play-pause');\
+                if (socketMsg.trackinfo.pausePlay) {\
+                    icoPlayPause.classList.remove('fa-play');\
+                    icoPlayPause.classList.add('fa-pause');\
+               } else {\
+                    icoPlayPause.classList.remove('fa-pause');\
+                    icoPlayPause.classList.add('fa-play');\
+                }  \
+                \
+                var btnTrackFirst = document.getElementById('nav-btn-first');\
+                var btnTrackPrev = document.getElementById('nav-btn-prev');\
+                if (socketMsg.trackinfo.currentTrackNumber <= 1) {\
+                    btnTrackFirst.classList.add(\"disabled\");\
+                    btnTrackPrev.classList.add(\"disabled\");\
+                } else {\
+                    btnTrackFirst.classList.remove(\"disabled\");\
+                    btnTrackPrev.classList.remove(\"disabled\");\
+                }\
+                var btnTrackLast = document.getElementById('nav-btn-last');\
+                var btnTrackNext = document.getElementById('nav-btn-next');\
+                if (socketMsg.trackinfo.currentTrackNumber >= socketMsg.trackinfo.numberOfTracks) {\
+                    btnTrackLast.classList.add(\"disabled\");\
+                    btnTrackNext.classList.add(\"disabled\");\
+                } else {\
+                    btnTrackLast.classList.remove(\"disabled\");\
+                    btnTrackNext.classList.remove(\"disabled\");\
+                }\
+            } if (\"coverimg\" in socketMsg) {\
+                document.getElementById('coverimg').src = \"/cover?\" + new Date().getTime();\
+            } if (\"volume\" in socketMsg) {\
+                /* +++ slider is not updating, why? +++ */\
+                document.getElementById('setVolume').value = socketMsg.volume;\
+                document.getElementById('setVolume').refresh();\
+          }  \
       };\
     }\
+\
 \
     function ping() {\
         var myObj = {\
@@ -1022,13 +1068,24 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
     function getTrack() {\
         var myObj = {\
-            \"getTrack\": {\
-                getTrack: 'getTrack'\
+            \"trackinfo\": {\
+                trackinfo: 'trackinfo'\
             }\
         };\
         var myJSON = JSON.stringify(myObj);\
         socket.send(myJSON);\
     }\
+\
+    function getCoverimage() {\
+        var myObj = {\
+            \"coverimg\": {\
+                coverimg: 'coverimg'\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
+    }\
+\
 \
     function genSettings(clickedId) {\
         lastIdclicked = clickedId;\
