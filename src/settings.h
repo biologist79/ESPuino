@@ -9,13 +9,15 @@
     //################## HARDWARE-PLATFORM ###############################
     /* Make sure to also edit the configfile, that is specific for your platform.
     If in doubts (your develboard is not listed) use HAL 1
-    1: Wemos Lolin32             => settings-lolin32.h
-    2: ESP32-A1S Audiokit        => settings-espa1s.h
-    3: Wemos Lolin D32           => settings-lolin_D32.h
-    4: Wemos Lolin D32 pro       => settings-lolin_D32_pro.h
-    5: Lilygo T8 (V1.7)          => settings-ttgo_t8.h
-    6: ESPuino complete          => settings-complete.h
-    99: custom                   => settings-custom.h
+    1: Wemos Lolin32                        => settings-lolin32.h
+    2: ESP32-A1S Audiokit                   => settings-espa1s.h
+    3: Wemos Lolin D32                      => settings-lolin_D32.h
+    4: Wemos Lolin D32 pro                  => settings-lolin_D32_pro.h
+    5: Lilygo T8 (V1.7)                     => settings-ttgo_t8.h
+    6: ESPuino complete                     => settings-complete.h
+    7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
+    8: AZDelivery ESP32 NodeMCU             => settings-azdelivery_sdmmc.h
+    99: custom                              => settings-custom.h
     more to come...
     */
     #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
@@ -236,6 +238,8 @@
         #include "settings-complete.h"                      // Contains all user-relevant settings for ESPuino complete
     #elif (HAL == 7)
         #include "settings-lolin_d32_pro_sdmmc_pe.h"        // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638)
+    #elif (HAL == 8)
+        #include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
     #elif (HAL == 99)
         #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
     #endif
