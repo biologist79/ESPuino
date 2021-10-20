@@ -1064,9 +1064,11 @@ void audio_lasthost(const char *info) { //stream URL played
 // id3 tag: save cover image
 void audio_id3image(File& file, const size_t pos, const size_t size) { 
 
+    // save raw image data to file "/.cover"
     snprintf(Log_Buffer, Log_BufferLength, "save album cover image: \"%s\"", (char *) file.name());
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
-    // save raw image data to file "/.cover"
+    // remember current file position
+    size_t savedPos = file.position();
     file.seek(pos);
     File coverFile = gFSystem.open("/.cover", FILE_WRITE);
     uint8_t buf[255];
@@ -1075,6 +1077,8 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
         coverFile.write( buf, bytesRead); 
     }
     coverFile.close();
+    // set file pointer to previous position
+    file.seek(savedPos);
     // websocket notify cover image has changed
     Web_SendWebsocketData(0, 40);
 }
