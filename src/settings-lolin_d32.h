@@ -107,7 +107,7 @@
     #endif
 
     #ifdef MEASURE_BATTERY_VOLTAGE
-        constexpr uint8_t rdiv1 = 100;                            // Cannot be changed, it's built in
+        constexpr uint16_t rdiv1 = 100;                           // Cannot be changed, it's built in
         constexpr uint16_t rdiv2 = 100;                           // Cannot be changed, it's built in
     #endif
 
