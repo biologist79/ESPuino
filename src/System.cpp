@@ -11,6 +11,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
+#include "Audio.h"
 
 constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
@@ -190,6 +191,19 @@ void System_DeepSleepManager(void) {
             return;
         }
 
+        System_Sleeping = true;
+        Log_Println((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
+
+        // Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
+        #ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
+            if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+                AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+                while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
+                    vTaskDelay(portTICK_RATE_MS * 100u);
+                }
+            }
+        #endif
+
         // Disable amps in order to avoid ugly noises when powering off
         #ifdef GPIO_PA_EN
             Port_Write(GPIO_PA_EN, false);
@@ -197,9 +211,6 @@ void System_DeepSleepManager(void) {
         #ifdef GPIO_HP_EN
             Port_Write(GPIO_HP_EN, false);
         #endif
-
-        System_Sleeping = true;
-        Log_Println((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
 
         Mqtt_Exit();
         Led_Exit();
