@@ -348,6 +348,9 @@ static void Led_Task(void *parameter) {
                         FastLED.show();
                     } else {
                         uint8_t numLedsToLight = ((float)vDiffCurrent / vDiffIndicatorRange) * NUM_LEDS;
+                        if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
+                            numLedsToLight = NUM_LEDS;
+                        }
                         for (uint8_t led = 0; led < numLedsToLight; led++) {
                             if (((float)numLedsToLight / NUM_LEDS) >= 0.6) {
                                 leds[Led_Address(led)] = CRGB::Green;
