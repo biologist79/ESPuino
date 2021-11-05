@@ -36,7 +36,11 @@ void System_DeepSleepManager(void);
 void System_Init(void) {
     srand(esp_random());
     pinMode(POWER, OUTPUT);
-    digitalWrite(POWER, HIGH);
+    #ifdef INVERT_POWER
+        digitalWrite(POWER, LOW);
+    #else
+        digitalWrite(POWER, HIGH);
+    #endif
 
     gPrefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     gPrefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
@@ -222,7 +226,11 @@ void System_DeepSleepManager(void) {
 
         Serial.flush();
         // switch off power
-        digitalWrite(POWER, LOW);
+        #ifdef INVERT_POWER
+            digitalWrite(POWER, HIGH);
+        #else
+            digitalWrite(POWER, LOW);
+        #endif
         delay(200);
         Rfid_Exit();
         #ifdef PORT_EXPANDER_ENABLE
