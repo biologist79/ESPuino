@@ -584,7 +584,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         //client connected
         Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
         //client->printf("Hello Client %u :)", client->id());
-        client->ping();
+        //client->ping();
     } else if (type == WS_EVT_DISCONNECT) {
         //client disconnected
         Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
