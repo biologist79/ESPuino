@@ -79,9 +79,6 @@
     #endif
 
 
-    //#define INVERT_POWER  // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
-
-
     //################## BUTTON-Layout ##################################
     /* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
     Please note the following numbers as you need to know them in order to define actions for buttons.
