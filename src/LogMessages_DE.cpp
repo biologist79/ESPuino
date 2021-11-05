@@ -51,6 +51,7 @@
     const char trackChangeWebstream[] PROGMEM = "Im Webradio-Modus kann nicht an den Anfang gesprungen werden.";
     const char endOfPlaylistReached[] PROGMEM = "Ende der Playlist erreicht.";
     const char trackStartatPos[] PROGMEM = "Titel wird abgespielt ab Position";
+    const char waitingForTaskQueues[] PROGMEM = "Task Queue für RFID existiert noch nicht, warte...";
     const char rfidScannerReady[] PROGMEM = "RFID-Tags koennen jetzt gescannt werden...";
     const char rfidTagDetected[] PROGMEM = "RFID-Karte erkannt: ";
     const char rfid15693TagDetected[] PROGMEM = "RFID-Karte (ISO-15693) erkannt: ";
