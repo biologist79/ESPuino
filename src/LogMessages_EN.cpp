@@ -51,6 +51,7 @@
     const char trackChangeWebstream[] PROGMEM = "Playing from the very beginning is not possible while webradio-mode is active.";
     const char endOfPlaylistReached[] PROGMEM = "Reached end of playlist.";
     const char trackStartatPos[] PROGMEM = "Starting track at position";
+    const char waitingForTaskQueues[] PROGMEM = "Task Queue for RFID does not exist yet, waiting...";
     const char rfidScannerReady[] PROGMEM = "RFID-tags can now be applied...";
     const char rfidTagDetected[] PROGMEM = "RFID-tag detected: ";
     const char rfid15693TagDetected[] PROGMEM = "RFID-ta (ISO-15693) detected: ";
