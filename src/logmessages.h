@@ -47,6 +47,7 @@ extern const char trackStart[];
 extern const char trackChangeWebstream[];
 extern const char endOfPlaylistReached[];
 extern const char trackStartatPos[];
+extern const char waitingForTaskQueues[];
 extern const char rfidScannerReady[];
 extern const char rfidTagDetected[];
 extern const char rfid15693TagDetected[];
