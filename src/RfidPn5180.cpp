@@ -358,7 +358,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
                     Log_Println((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
                     // configure wakeup pin for deep-sleep wake-up, use ext1
-                    esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ANY_HIGH);
+                    esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
                     // freeze pin states in deep sleep
                     gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
                     gpio_hold_en(gpio_num_t(RFID_RST)); // RST
