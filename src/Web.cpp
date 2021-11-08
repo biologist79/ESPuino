@@ -168,6 +168,10 @@ void webserverStart(void) {
                     if (Wlan_IsConnected()) {
                         info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
+                    info += "\nESP-IDF-version (major): ";
+                    info += ESP_IDF_VERSION_MAJOR;
+                    info += "\nESP-IDF-version (minor): ";
+                    info += ESP_IDF_VERSION_MINOR;
                 #else
                     String info = "Free heap: " + String(ESP.getFreeHeap()) + " bytes";
                     info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
@@ -176,6 +180,10 @@ void webserverStart(void) {
                     if (Wlan_IsConnected()) {
                         info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
+                    info += "ESP-IDF major: ";
+                    info += ESP_IDF_VERSION_MAJOR;
+                    info += "\nESP-IDF minor: ";
+                    info += ESP_IDF_VERSION_MINOR;
                 #endif
                 #ifdef MEASURE_BATTERY_VOLTAGE
                     snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
