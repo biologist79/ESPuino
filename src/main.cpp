@@ -128,6 +128,7 @@ void printWakeUpReason() {
 
 void setup() {
     Log_Init();
+    Queues_Init();
     #ifdef RFID_READER_TYPE_PN5180
         Rfid_Init();
     #endif
@@ -210,7 +211,6 @@ void setup() {
         Serial.println(F("UNKNOWN"));
     }
 
-    Queues_Init();
     #ifdef PORT_EXPANDER_ENABLE
         Port_Init();
     #endif

@@ -95,6 +95,12 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         static byte cardId[cardIdSize], lastCardId[cardIdSize];
         uint8_t uid[10];
 
+        // wait until queues are created
+        while(gRfidCardQueue == NULL){
+            Log_Println((char *) FPSTR(waitingForTaskQueues), LOGLEVEL_DEBUG);
+            vTaskDelay(50);
+        }
+
         for (;;) {
             vTaskDelay(portTICK_RATE_MS * 10u);
             #ifdef PN5180_ENABLE_LPCD
