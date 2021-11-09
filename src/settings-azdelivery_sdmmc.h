@@ -57,7 +57,7 @@
     //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                      4          // Button 0: GPIO to detect next
+    #define NEXT_BUTTON                     13          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                 39          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                 5          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
@@ -87,7 +87,7 @@
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
         //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
-        #define HP_DETECT                   13          // GPIO that detects, if there's a plug in the headphone jack or not
+        #define HP_DETECT                    4          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC
