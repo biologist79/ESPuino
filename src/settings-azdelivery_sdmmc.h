@@ -4,10 +4,10 @@
 
     //######################### INFOS ####################################
     /* This is a PCB-specific config-file for *AZ Delivery ESP32 NodeMCU/Devkit C with SD_MMC and PN5180*.
-    PCB: t.b.a.
+    PCB: https://github.com/biologist79/ESPuino/blob/master/PCBs/AZDelivery_ESP32_NodeMCU/gerber/gerber_rev2.zip
     Forum: https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634
     Infos: https://www.amazon.de/AZDelivery-NodeMCU-Development-Nachfolgermodell-ESP8266/dp/B074RGW2VQ
-    Schematics PCB: t.b.a.
+    Schematics PCB: https://github.com/biologist79/ESPuino/blob/master/PCBs/AZDelivery_ESP32_NodeMCU/pictures/Schematics_rev2.pdf
     Caveats: Battery-monitoring is not available and SD ist SD_MMC only
     Status:
         tested with PN5180 + SD_MMC (by biologist79)
@@ -92,7 +92,7 @@
 
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef MEASURE_BATTERY_VOLTAGE
-        // not supported
+        // not supported by DevkitC
     #endif
 
     // (Optional) remote control via infrared
