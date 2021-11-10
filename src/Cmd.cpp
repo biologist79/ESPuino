@@ -11,6 +11,13 @@
 #include "System.h"
 #include "Wlan.h"
 
+// Only enable measurements if valid GPIO is used
+#ifdef MEASURE_BATTERY_VOLTAGE
+    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
+        #define ENABLE_BATTERY_MEASUREMENTS
+    #endif
+#endif
+
 void Cmd_Action(const uint16_t mod) {
     switch (mod) {
         case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
@@ -264,7 +271,7 @@ void Cmd_Action(const uint16_t mod) {
                 AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
             } else {
                 Bluetooth_PlayPauseTrack();
-            }    
+            }
             break;
         }
 
@@ -273,7 +280,7 @@ void Cmd_Action(const uint16_t mod) {
                 AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
             } else {
                 Bluetooth_PreviousTrack();
-            }    
+            }
             break;
         }
 
@@ -282,7 +289,7 @@ void Cmd_Action(const uint16_t mod) {
                 AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
             } else {
                 Bluetooth_NextTrack();
-            }    
+            }
             break;
         }
 
@@ -306,7 +313,7 @@ void Cmd_Action(const uint16_t mod) {
                 AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() + 1, true);
             } else {
                 Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
-            }    
+            }
             break;
         }
 
@@ -315,12 +322,12 @@ void Cmd_Action(const uint16_t mod) {
                 AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() - 1, true);
             } else {
                 Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
-            }    
+            }
            break;
         }
 
         case CMD_MEASUREBATTERY: {
-            #ifdef MEASURE_BATTERY_VOLTAGE
+            #ifdef ENABLE_BATTERY_MEASUREMENTS
                     float voltage = Battery_GetVoltage();
                     snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
                     Log_Println(Log_Buffer, LOGLEVEL_INFO);

@@ -23,6 +23,13 @@
 #include "Wlan.h"
 #include "revision.h"
 
+// Only enable measurements if valid GPIO is used
+#ifdef MEASURE_BATTERY_VOLTAGE
+    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
+        #define ENABLE_BATTERY_MEASUREMENTS
+    #endif
+#endif
+
 #if (LANGUAGE == DE)
     #include "HTMLaccesspoint_DE.h"
     #include "HTMLmanagement_DE.h"
@@ -179,7 +186,7 @@ void webserverStart(void) {
                     info += "\nESP-IDF minor: ";
                     info += ESP_IDF_VERSION_MINOR;
                 #endif
-                #ifdef MEASURE_BATTERY_VOLTAGE
+                #ifdef ENABLE_BATTERY_MEASUREMENTS
                     snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
                     info += (String) Log_Buffer;
                 #endif

@@ -56,8 +56,8 @@
     #define CMD_VOLUMEDOWN                  177         // Command: lower volume by 1
     #define CMD_MEASUREBATTERY              178         // Command: Measure battery-voltage
     #define CMD_SLEEPMODE                   179         // Command: Go to deepsleep
-    #define CMD_SEEK_FORWARDS               180         // Command: fast forward => don't use, has no effect currently!
-    #define CMD_SEEK_BACKWARDS              181         // Command: wind back => don't use, has no effect currently!
+    #define CMD_SEEK_FORWARDS               180         // Command: fast forward
+    #define CMD_SEEK_BACKWARDS              181         // Command: wind back
 
     // Repeat-Modes
     #define NO_REPEAT                       0           // No repeat

@@ -13,8 +13,15 @@ uint8_t voltageCheckInterval = s_voltageCheckInterval;
 float voltageIndicatorLow = s_voltageIndicatorLow;
 float voltageIndicatorHigh = s_voltageIndicatorHigh;
 
+// Only enable measurements if valid GPIO is used
+#ifdef MEASURE_BATTERY_VOLTAGE
+    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
+        #define ENABLE_BATTERY_MEASUREMENTS
+    #endif
+#endif
+
 void Battery_Init() {
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef ENABLE_BATTERY_MEASUREMENTS
         // Get voltages from NVS for Neopixel
         float vLowIndicator = gPrefsSettings.getFloat("vIndicatorLow", 999.99);
         if (vLowIndicator <= 999) {
@@ -56,7 +63,7 @@ void Battery_Init() {
 
 // The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
 float Battery_GetVoltage(void) {
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef ENABLE_BATTERY_MEASUREMENTS
         float factor = 1 / ((float) rdiv2 / (rdiv2 + rdiv1));
         float averagedAnalogValue = 0;
         uint8_t i;
@@ -65,12 +72,14 @@ float Battery_GetVoltage(void) {
         }
         averagedAnalogValue /= 20.0;
         return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
+    #else
+        return 3.3;         // Dummy-value
     #endif
 }
 
 // Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
 void Battery_Cyclic(void) {
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef ENABLE_BATTERY_MEASUREMENTS
         static uint32_t lastVoltageCheckTimestamp = 0;
 
         if ((millis() - lastVoltageCheckTimestamp >= voltageCheckInterval * 60000) || (!lastVoltageCheckTimestamp && millis() >= 10000)) {

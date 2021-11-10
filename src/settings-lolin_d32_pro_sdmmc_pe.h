@@ -21,7 +21,9 @@
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
     #ifdef SD_MMC_1BIT_MODE
-        // 15 / 14 / 2 (fixed for SD_MMC)
+        //  (MOSI)    15  CMD
+        //  (SCK)     14  SCK
+        //  (MISO)     2  D0
     #else
         // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
     #endif
