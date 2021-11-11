@@ -138,7 +138,7 @@ bool publishMqtt(const char *topic, const char *payload, bool retained) {
         if (strcmp(topic, "") != 0) {
             if (Mqtt_PubSubClient.connected()) {
                 Mqtt_PubSubClient.publish(topic, payload, retained);
-                delay(100);
+                //delay(100);
                 return true;
             }
         }
