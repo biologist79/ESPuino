@@ -21,9 +21,9 @@
         // uSD-card-reader (via SD-MMC 1Bit)
         //
         // SD_MMC uses fixed pins
-        //  MOSI    15
-        //  SCK     14
-        //  MISO    2
+        //  (MOSI)    15  CMD
+        //  (SCK)     14  SCK
+        //  (MISO)     2  D0
     #else
         // uSD-card-reader (via SPI) is not supported by this board!
     #endif
@@ -92,7 +92,9 @@
 
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef MEASURE_BATTERY_VOLTAGE
-        // not supported by DevkitC
+        #define VOLTAGE_READ_PIN            99          // GPIO used to monitor battery-voltage.
+        constexpr float referenceVoltage = 3.3;         // Voltage between 3.3V and GND-pin in battery-mode (disconnect USB!)
+        constexpr float offsetVoltage = 0.0;            // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
     // (Optional) remote control via infrared

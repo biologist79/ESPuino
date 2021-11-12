@@ -17,9 +17,9 @@
     // uSD-card-reader (via SD-MMC 1Bit)
     //
     // SD_MMC uses fixed pins
-    //  MOSI    15
-    //  SCK     14
-    //  MISO    2
+    //  (MOSI)    15  CMD
+    //  (SCK)     14  SCK
+    //  (MISO)     2  D0
 #else
     // uSD-card-reader (via SPI) => don't use... won't work!
     #define SPISD_CS                    15          // GPIO for chip select (SD)
