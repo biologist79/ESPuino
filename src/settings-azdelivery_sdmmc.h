@@ -25,7 +25,13 @@
         //  (SCK)     14  SCK
         //  (MISO)     2  D0
     #else
-        // uSD-card-reader (via SPI) is not supported by this board!
+        // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
+        #define SPISD_CS                    99          // GPIO for chip select (SD)
+        #ifndef SINGLE_SPI_ENABLE
+            #define SPISD_MOSI              99          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO              99          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               99          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #endif
     #endif
 
     // RFID (via SPI)

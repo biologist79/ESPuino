@@ -26,6 +26,12 @@
         //  (MISO)     2  D0
     #else
         // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
+        #define SPISD_CS                    99          // GPIO for chip select (SD)
+        #ifndef SINGLE_SPI_ENABLE
+            #define SPISD_MOSI              99          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO              99          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               99          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #endif
     #endif
 
     // RFID (via SPI)
@@ -38,7 +44,7 @@
     #ifdef RFID_READER_TYPE_PN5180
         #define RFID_BUSY                   33          // PN5180 BUSY PIN
         #define RFID_RST                    22          // PN5180 RESET PIN
-        #define RFID_IRQ                    106         // PN5180 IRQ PIN (only used for low power card detection (LPCD))
+        #define RFID_IRQ                    99          // Needs to be adjusted to 106 if LPCD-mode is desired!
     #endif
 
     // I2S (DAC)

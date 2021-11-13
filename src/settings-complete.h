@@ -17,8 +17,13 @@
     //  (SCK)     14  SCK
     //  (MISO)     2  D0
 #else
-    // uSD-card-reader (via SPI)
-    // Not supported
+    // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
+    #define SPISD_CS                    99          // GPIO for chip select (SD)
+    #ifndef SINGLE_SPI_ENABLE
+        #define SPISD_MOSI              99          // GPIO for master out slave in (SD) => not necessary for single-SPI
+        #define SPISD_MISO              99          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+        #define SPISD_SCK               99          // GPIO for clock-signal (SD) => not necessary for single-SPI
+    #endif
 #endif
 
 // RFID (via SPI)
@@ -88,14 +93,14 @@
 // (optional) Monitoring of battery-voltage via ADC
 #ifdef MEASURE_BATTERY_VOLTAGE
     #define VOLTAGE_READ_PIN            39          // GPIO used to monitor battery-voltage.
-    constexpr float referenceVoltage = 3.3;         // Voltage between 3.3V and GND-pin in battery-mode (disconnect USB!)
-    constexpr float offsetVoltage = 0.0;            // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
+    constexpr float referenceVoltage = 3.3;         // Reference-voltage
+    constexpr float offsetVoltage = 0.55;           // If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
 #endif
 
 // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
 #ifdef MEASURE_BATTERY_VOLTAGE
     constexpr uint16_t rdiv1 = 100;                 // Rdiv1 of voltage-divider (kOhms)
-    constexpr uint16_t rdiv2 = 100;                 // Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
+    constexpr uint16_t rdiv2 = 33;                  // Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
 #endif
 
 // (Optional) remote control via infrared
