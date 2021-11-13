@@ -266,6 +266,22 @@ void Cmd_Action(const uint16_t mod) {
             }
         #endif
 
+        case CMD_TELL_IP_ADDRESS: {
+            if (Wlan_IsConnected()) {
+                if (!gPlayProperties.pausePlay) {
+                    AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+                }
+                gPlayProperties.tellIpAddress = true;
+                gPlayProperties.currentSpeechActive = true;
+                gPlayProperties.lastSpeechActive = true;
+                System_IndicateOk();
+            } else {
+                Log_Println(unableToTellIpAddress, LOGLEVEL_ERROR);
+                System_IndicateError();
+            }
+            break;
+        }
+
         case CMD_PLAYPAUSE: {
             if (OPMODE_NORMAL == System_GetOperationMode()) {
                 AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);

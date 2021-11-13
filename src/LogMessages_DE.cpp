@@ -185,6 +185,7 @@
     const char lowPowerCardSuccess[] PROGMEM = "Kartenerkennung via 'low power' erfolgreich durchgeführt";
     const char rememberLastVolume[] PROGMEM = "Lautstärke vor dem letzten Shutdown wird wiederhergestellt. Dies überschreibt die Einstellung der initialen Lautstärke aus der GUI.";
     const char unableToStartFtpServer[] PROGMEM = "Der FTP-Server konnte nicht gestartet werden. Entweder weil er ist bereits gestartet oder kein WLAN verfügbar ist.";
+    const char unableToTellIpAddress[] PROGMEM = "IP-Adresse kann nicht angesagt werden, da keine WLAN-Verbindung besteht.";
     const char newPlayModeStereo[] PROGMEM = "Neuer Modus: stereo";
     const char newPlayModeMono[] PROGMEM = "Neuer Modus: mono";
     const char portExpanderFound[] PROGMEM = "Port-expander gefunden";

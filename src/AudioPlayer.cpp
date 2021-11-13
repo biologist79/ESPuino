@@ -649,6 +649,30 @@ void AudioPlayer_Task(void *parameter) {
             gPlayProperties.seekmode = SEEK_NORMAL;
         }
 
+        // Handle IP-announcement
+        if (gPlayProperties.tellIpAddress) {
+            gPlayProperties.tellIpAddress = false;
+            char ipBuf[16];
+            Wlan_GetIpAddress().toCharArray(ipBuf, sizeof(ipBuf));
+            bool speechOk;
+            #if (LANGUAGE == DE)
+                speechOk = audio->connecttospeech(ipBuf, "de");
+            #else
+                speechOk = audio->connecttospeech(ipBuf, "en");
+            #endif
+            if (!speechOk) {
+                System_IndicateError();
+            }
+        }
+
+        // If speech is over, go back to predefined state
+        if (!gPlayProperties.currentSpeechActive && gPlayProperties.lastSpeechActive) {
+            gPlayProperties.lastSpeechActive = false;
+            if (gPlayProperties.playMode != NO_PLAYLIST) {
+                AudioPlayer_TrackControlToQueueSender(STOP);
+            }
+        }
+
         // Handle if mono/stereo should be changed (e.g. if plugging headphones)
         if (gPlayProperties.newPlayMono != gPlayProperties.currentPlayMono) {
             gPlayProperties.currentPlayMono = gPlayProperties.newPlayMono;
@@ -1056,8 +1080,7 @@ void audio_showstation(const char *info) {
     #endif
 }
 
-void audio_showstreamtitle(const char *info)
-{
+void audio_showstreamtitle(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "streamtitle : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 }
@@ -1080,4 +1103,8 @@ void audio_icyurl(const char *info) { //homepage
 void audio_lasthost(const char *info) { //stream URL played
     snprintf(Log_Buffer, Log_BufferLength, "lasthost    : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
+}
+
+void audio_eof_speech(const char *info){
+    gPlayProperties.currentSpeechActive = false;
 }

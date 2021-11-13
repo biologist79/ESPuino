@@ -185,6 +185,7 @@
     const char lowPowerCardSuccess[] PROGMEM = "Switch to low power card-detection: success";
     const char rememberLastVolume[] PROGMEM = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";
     const char unableToStartFtpServer[] PROGMEM = "FTP-server cannot be started. This is because FTP-service is already active of because WiFi is unavailable.";
+    const char unableToTellIpAddress[] PROGMEN = "IP-address can't be announced as there's no WiFi-connection available.";
     const char newPlayModeStereo[] PROGMEM = "New mode: stereo";
     const char newPlayModeMono[] PROGMEM = "New mode: mono";
     const char portExpanderFound[] PROGMEM = "Port-expander found";

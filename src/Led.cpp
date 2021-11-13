@@ -154,6 +154,8 @@ static void Led_Task(void *parameter) {
         static bool redrawProgress = false;
         static uint8_t lastLedBrightness = Led_Brightness;
         static CRGB::HTMLColorCode idleColor;
+        static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
+        static CRGB::HTMLColorCode generalColor;
         static CRGB leds[NUM_LEDS];
         FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
         FastLED.setBrightness(Led_Brightness);
@@ -491,10 +493,14 @@ static void Led_Task(void *parameter) {
                 if (System_GetOperationMode() == OPMODE_BLUETOOTH) {
                     idleColor = CRGB::Blue;
                 } else {
-                    if (Wlan_IsConnected()) {
-                        idleColor = CRGB::White;
+                    if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
+                        idleColor = speechColor;
                     } else {
-                        idleColor = CRGB::Green;
+                        if (Wlan_IsConnected()) {
+                            idleColor = CRGB::White;
+                        } else {
+                            idleColor = CRGB::Green;
+                        }
                     }
                 }
                 if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
@@ -601,11 +607,16 @@ static void Led_Task(void *parameter) {
                                 }
                             }
                             if (gPlayProperties.pausePlay) {
-                                leds[Led_Address(0)] = CRGB::Orange;
+                                generalColor = CRGB::Orange;
+                                if (gPlayProperties.currentSpeechActive) {
+                                    generalColor = speechColor;
+                                }
+
+                                leds[Led_Address(0)] = generalColor;
                                 if (NUM_LEDS > 1) {
-                                    leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = CRGB::Orange;
-                                    leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = CRGB::Orange;
+                                    leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = generalColor;
+                                    leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = generalColor;
+                                    leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = generalColor;
                                 }
                                 break;
                             }
@@ -634,11 +645,15 @@ static void Led_Task(void *parameter) {
                                     leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
                                 }
                             } else if (gPlayProperties.pausePlay) {
+                                generalColor = CRGB::Orange;
+                                if (gPlayProperties.currentSpeechActive) {
+                                    generalColor = speechColor;
+                                }
                                 if (NUM_LEDS == 1) {
-                                    leds[0] = CRGB::Orange;
+                                    leds[0] = generalColor;
                                 } else {
-                                    leds[Led_Address(ledPosWebstream)] = CRGB::Orange;
-                                    leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Orange;
+                                    leds[Led_Address(ledPosWebstream)] = generalColor;
+                                    leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
                                 }
                             }
                         }

@@ -21,6 +21,9 @@ typedef struct { // Bit field
     bool newPlayMono:                   1;      // true if mono; false if stereo (helper)
     bool currentPlayMono:               1;      // true if mono; false if stereo
     bool isWebstream:                   1;      // Indicates if track currenty played is a webstream
+    bool tellIpAddress:                 1;      // If true current IP-address is spoken
+    bool currentSpeechActive:           1;      // If speech-play is active
+    bool lastSpeechActive:              1;      // If speech-play was active
 } playProps;
 
 extern playProps gPlayProperties;

@@ -205,3 +205,4 @@ extern const char otaNotSupportedWebsite[];
 extern const char noPlaylist[];
 extern const char rfidTagRemoved[];
 extern const char rfidTagReapplied[];
+extern const char unableToTellIpAddress[];
