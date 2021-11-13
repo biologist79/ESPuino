@@ -669,7 +669,7 @@ void AudioPlayer_Task(void *parameter) {
         if (!gPlayProperties.currentSpeechActive && gPlayProperties.lastSpeechActive) {
             gPlayProperties.lastSpeechActive = false;
             if (gPlayProperties.playMode != NO_PLAYLIST) {
-                AudioPlayer_TrackControlToQueueSender(STOP);
+                xQueueSend(gRfidCardQueue, gPlayProperties.playRfidTag, 0);     // Re-inject previous RFID-ID in order to continue playback
             }
         }
 
