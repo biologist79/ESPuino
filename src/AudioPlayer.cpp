@@ -585,6 +585,8 @@ void AudioPlayer_Task(void *parameter) {
             audioReturnCode = false;
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
+                // delete cover image
+                gFSystem.remove("/.cover");
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
                 Web_SendWebsocketData(0, 30);
