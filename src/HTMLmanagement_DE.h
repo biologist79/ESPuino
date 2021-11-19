@@ -74,7 +74,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 \
         .coverimage-container {\
             width: 80%%;\
-            height:auto;\
+            height:15%%;\
             margin-left: 1em;\
             margin-right: 1em;\
         }\

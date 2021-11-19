@@ -585,8 +585,14 @@ void AudioPlayer_Task(void *parameter) {
             audioReturnCode = false;
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
+                // delete title
+                if (gPlayProperties.title) {
+                    free(gPlayProperties.title);
+                    gPlayProperties.title = NULL;
+                }    
                 // delete cover image
                 gFSystem.remove("/.cover");
+                Web_SendWebsocketData(0, 40);
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
                 Web_SendWebsocketData(0, 30);
@@ -1110,6 +1116,13 @@ void audio_showstation(const char *info) {
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicTrackState), buf, false);
     #endif
+    // copy title
+    if (!gPlayProperties.title) {
+        gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
+    };
+    strncpy(gPlayProperties.title, info + 6, 255);
+    // notify web ui
+    Web_SendWebsocketData(0, 30);
 }
 
 void audio_showstreamtitle(const char *info)
