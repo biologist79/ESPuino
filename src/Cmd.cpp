@@ -11,12 +11,6 @@
 #include "System.h"
 #include "Wlan.h"
 
-// Only enable measurements if valid GPIO is used
-#ifdef MEASURE_BATTERY_VOLTAGE
-    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
-        #define ENABLE_BATTERY_MEASUREMENTS
-    #endif
-#endif
 
 void Cmd_Action(const uint16_t mod) {
     switch (mod) {
@@ -343,16 +337,10 @@ void Cmd_Action(const uint16_t mod) {
         }
 
         case CMD_MEASUREBATTERY: {
-            #ifdef ENABLE_BATTERY_MEASUREMENTS
-                    float voltage = Battery_GetVoltage();
-                    snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
-                    Log_Println(Log_Buffer, LOGLEVEL_INFO);
-                    Led_Indicate(LedIndicatorType::Voltage);
-                #ifdef MQTT_ENABLE
-                        char vstr[6];
-                        snprintf(vstr, 6, "%.2f", voltage);
-                        publishMqtt((char *) FPSTR(topicBatteryVoltage), vstr, false);
-                #endif
+            #ifdef BATTERY_MEASURE_ENABLE
+                Battery_LogStatus();
+                Battery_PublishMQTT();
+                Led_Indicate(LedIndicatorType::Voltage);
             #endif
             break;
         }
