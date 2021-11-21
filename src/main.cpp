@@ -24,6 +24,7 @@
 #include "Web.h"
 #include "Wlan.h"
 #include "revision.h"
+#include "Power.h"
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
@@ -131,12 +132,21 @@ void setup() {
     Queues_Init();
 
     // make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
-    #ifdef RFID_READER_TYPE_PN5180
-        Button_Init();
+    Button_Init();
+    #ifdef PN5180_ENABLE_LPCD
         Rfid_Init();
     #endif
 
     System_Init();
+    Power_Init();
+
+    Battery_Init();
+
+    // Init audio before power on to avoid speaker noise
+    AudioPlayer_Init();
+
+    // All checks that could send us to sleep are done, power up fully
+    Power_PeripheralOn();
 
     memset(&gPlayProperties, 0, sizeof(gPlayProperties));
     gPlayProperties.playlistFinished = true;
@@ -215,11 +225,8 @@ void setup() {
         Port_Init();
     #endif
     Ftp_Init();
-    AudioPlayer_Init();
     Mqtt_Init();
-    Battery_Init();
     #ifndef RFID_READER_TYPE_PN5180
-        Button_Init();
         Rfid_Init();
     #endif
     RotaryEncoder_Init();
