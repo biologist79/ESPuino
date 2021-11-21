@@ -140,6 +140,10 @@ void setup() {
     System_Init();
     Power_Init();
 
+    #ifdef MEASURE_BATTERY_MAX17055
+        // TODO check I2C PIN definition and interop with Port expander settings
+        Wire.begin();
+    #endif
     Battery_Init();
 
     // Init audio before power on to avoid speaker noise

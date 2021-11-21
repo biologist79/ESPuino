@@ -152,6 +152,9 @@
     const char restoredHostnameFromNvs[] PROGMEM = "Restored hostname from NVS";
     const char currentVoltageMsg[] PROGMEM = "Current battery-voltage";
     const char currentChargeMsg[] PROGMEM = "Current battery charge";
+    const char batteryCurrentMsg[] PROGMEM = "Power usage (Battery)";
+    const char batteryTempMsg[] PROGMEM = "Battery temperature";
+    const char batteryCyclesMsg[] PROGMEM = "Seen battery cycles";
     const char batteryLowMsg[] PROGMEM = "Battery charge low";
     const char batteryCriticalMsg[] PROGMEM = "Battery charge critical. Will go to deepsleep...";
     const char sdBootFailedDeepsleep[] PROGMEM = "Failed to boot due to SD. Will go to deepsleep...";
@@ -162,6 +165,8 @@
     const char batteryCheckIntervalFromNVS[] PROGMEM = "Restored interval of battery-measurement or Neopixel-display from NVS";
     const char warningLowVoltageFromNVS[] PROGMEM = "Restored low battery-voltage-level for warning via Neopixel from NVS";
     const char warningCriticalVoltageFromNVS[] PROGMEM = "Restored critical battery-voltage-level for warning via Neopixel from NVS";
+    const char batteryLowFromNVS[] PROGMEM = "Restored low battery level from NVS";
+    const char batteryCriticalFromNVS[] PROGMEM = "Restored critical battery level from NVS";
     const char unableToRestoreLastRfidFromNVS[] PROGMEM = "Unable to restore last RFID from NVS";
     const char restoredLastRfidFromNVS[] PROGMEM = "Restored last RFID from NVS";
     const char failedOpenFileForWrite[] PROGMEM = "Failed to open file for writing";
