@@ -3,7 +3,7 @@
 extern uint8_t batteryCheckInterval;
 
 
-#if defined(MEASURE_BATTERY_VOLTAGE) && (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
+#if defined(MEASURE_BATTERY_VOLTAGE)
 extern float voltageIndicatorCritical;
 extern float warningLowVoltage;
 extern float voltageIndicatorLow;
