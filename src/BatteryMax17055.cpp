@@ -142,7 +142,7 @@ void Battery_LogStatus(void){
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
     float avgCurr = sensor.getAverageCurrent();
-    snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f mA", (char *)FPSTR(batteryCurrentMsg)), avgCurr);
+    snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f mA", (char *)FPSTR(batteryCurrentMsg), avgCurr);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
 
