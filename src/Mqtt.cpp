@@ -375,10 +375,12 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
             if (strcmp(receivedString, "OFF") == 0) {
                 System_SetLockControls(false);
                 Log_Println((char *) FPSTR(allowButtons), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 System_IndicateOk();
             } else if (strcmp(receivedString, "ON") == 0) {
                 System_SetLockControls(true);
                 Log_Println((char *) FPSTR(lockButtons), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
                 System_IndicateOk();
             }
         }
