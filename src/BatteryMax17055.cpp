@@ -21,14 +21,14 @@ extern TwoWire i2cBusTwo;
 
 void Battery_InitImpl()
 {
-    bool POR = sensor.getPOR();
-    sensor.init(s_batteryCapacity, s_emptyVoltage, s_recoveryVoltage, s_batteryChemistry, s_vCharge, s_resistSensor, &i2cBusTwo, &delay);
+    bool por = false;
+    sensor.init(s_batteryCapacity, s_emptyVoltage, s_recoveryVoltage, s_batteryChemistry, s_vCharge, s_resistSensor, por, &i2cBusTwo, &delay);
     cycles = gPrefsSettings.getUShort("MAX17055_cycles", 0x0000);
     snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f", (char *)"Cycles saved in NVS:", cycles/100.0);
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 
     // if power was lost, restore model params
-    if (POR){
+    if (por){
         // TODO i18n necessary?
         Log_Println("Battery detected power loss - loading fuel gauge parameters.", LOGLEVEL_NOTICE);
         uint16_t rComp0     = gPrefsSettings.getUShort("rComp0", 0x0000);
