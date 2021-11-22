@@ -441,6 +441,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
         // Check if LEDs should be dimmed
         else if (strcmp_P(topic, topicLedBrightnessCmnd) == 0) {
             Led_SetBrightness(strtoul(receivedString, NULL, 10));
+            publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
         }
 
         // Requested something that isn't specified?
