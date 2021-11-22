@@ -323,11 +323,13 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
             if (strcmp(receivedString, "EOP") == 0) {
                 gPlayProperties.sleepAfterPlaylist = true;
                 Log_Println((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EOT") == 0) {
                 gPlayProperties.sleepAfterCurrentTrack = true;
                 Log_Println((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EO5T") == 0) {
@@ -337,6 +339,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                     gPlayProperties.sleepAfterPlaylist = true;
                 }
                 Log_Println((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "0") == 0) {
@@ -355,6 +358,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
             System_SetSleepTimer((uint8_t)strtoul(receivedString, NULL, 10));
             snprintf(Log_Buffer, Log_BufferLength, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), System_GetSleepTimer());
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimer(), false);
             System_IndicateOk();
 
             gPlayProperties.sleepAfterPlaylist = false;
