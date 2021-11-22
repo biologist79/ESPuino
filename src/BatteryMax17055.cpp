@@ -71,7 +71,7 @@ void Battery_InitImpl()
     float vBatteryLow = gPrefsSettings.getFloat("batteryLow", 999.99);
     if (vBatteryLow <= 999) {
         batteryLow = vBatteryLow;
-        snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *)FPSTR(batteryLowFromNVS), batteryLow);
+        snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f %%", (char *)FPSTR(batteryLowFromNVS), batteryLow);
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }
     else
@@ -82,7 +82,7 @@ void Battery_InitImpl()
     float vBatteryCritical = gPrefsSettings.getFloat("batteryCritical", 999.99);
     if (vBatteryCritical <= 999) {
         batteryCritical = vBatteryCritical;
-        snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *)FPSTR(batteryCriticalFromNVS), batteryCritical);
+        snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f %%", (char *)FPSTR(batteryCriticalFromNVS), batteryCritical);
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
     }
     else
