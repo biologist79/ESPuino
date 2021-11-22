@@ -42,7 +42,7 @@
 #endif
 
 // I2C
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+#ifdef I2C_2_ENABLE
     TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
@@ -140,10 +140,13 @@ void setup() {
     System_Init();
     Power_Init();
 
-    #ifdef MEASURE_BATTERY_MAX17055
-        // TODO check I2C PIN definition and interop with Port expander settings
-        Wire.begin();
+    // Init 2nd i2c-bus if enabled
+    #ifdef I2C_2_ENABLE
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
+        delay(50);
+        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
+
     Battery_Init();
 
     // Init audio before power on to avoid speaker noise
@@ -189,14 +192,6 @@ void setup() {
     #endif
 
     SdCard_Init();
-
-    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
-        //i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-        delay(50);
-        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
 
     // welcome message
     Serial.println(F(""));

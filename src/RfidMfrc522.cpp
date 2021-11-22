@@ -12,10 +12,8 @@
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         #include <MFRC522.h>
     #endif
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        #include "Wire.h"
-    #endif
     #ifdef RFID_READER_TYPE_MFRC522_I2C
+	    #include "Wire.h"
         #include <MFRC522_I2C.h>
     #endif
 

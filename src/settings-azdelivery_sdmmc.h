@@ -76,7 +76,7 @@
     #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #ifdef I2C_2_ENABLE
         // Not supported
     #endif
 

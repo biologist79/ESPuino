@@ -210,6 +210,11 @@
         constexpr bool s_vCharge = 0;                   // true if charge voltage is greater than 4.275V
     #endif
 
+    // enable I2C if necessary
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+        #define I2C_2_ENABLE
+    #endif
+
     // (optinal) Headphone-detection (leave unchanged if in doubts...)
     #ifdef HEADPHONE_ADJUST_ENABLE
         constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
