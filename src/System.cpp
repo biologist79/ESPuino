@@ -88,20 +88,13 @@ bool System_SetSleepTimer(uint8_t minutes) {
         sleepTimerEnabled = true;
 
         Led_ResetToNightBrightness();
-        if (minutes == 15)
-        {
+        if (minutes == 15) {
             Log_Println((char *)FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
-        }
-        else if (minutes == 30)
-        {
+        } else if (minutes == 30) {
             Log_Println((char *)FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
-        }
-        else if (minutes == 60)
-        {
+        } else if (minutes == 60) {
             Log_Println((char *)FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
-        }
-        else
-        {
+        } else {
             Log_Println((char *)FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
         }
 
