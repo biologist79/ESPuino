@@ -19,4 +19,4 @@ jobs:
           python -m pip install --upgrade pip
           pip3 install -U platformio
       - name: Build
-        run: platformio run -e esp32-a1s -e lolin32 -e lolin_d32 -e lolin_d32_pro -e nodemcu-32s -e az-delivery-devkit-v4 -e ttgo_t8
+        run: platformio run -e esp32-a1s -e lolin32 -e lolin_d32 -e lolin_d32_pro -e lolin_d32_pro_sdmmc_pe -e nodemcu-32s -e az-delivery-devkit-v4 -e ttgo_t8 -e complete
