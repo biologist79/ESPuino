@@ -68,6 +68,7 @@ static void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
 static void explorerHandleCreateRequest(AsyncWebServerRequest *request);
 static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
+static void handleCoverImageRequest(AsyncWebServerRequest *request);
 
 static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 
@@ -124,7 +125,9 @@ void Web_Init(void) {
         System_RequestSleep();
     });
 
-    // allow cors for local debug
+    // allow cors for local debug (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080)
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     wServer.begin();
     Log_Println((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
@@ -150,9 +153,14 @@ void webserverStart(void) {
 
         // Default
         wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-            request->send_P(200, "text/html", management_HTML, templateProcessor);
+            if (gFSystem.exists("/.html/index.htm")) {
+                // serve webpage from SD card
+                request->send(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
+            } else {
+                // serve webpage from PROGMEM
+                request->send_P(200, "text/html", management_HTML, templateProcessor);    
+            }
         });
-
         // Log
         wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
             request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
@@ -269,6 +277,32 @@ void webserverStart(void) {
 
         wServer.on("/exploreraudio", HTTP_POST, explorerHandleAudioRequest);
 
+        // current cover image
+        wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
+
+        // ESPuino logo
+        wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
+            Serial.println("logo request");
+            if (gFSystem.exists("/.html/logo.png")) {
+                request->send(gFSystem, "/.html/logo.png", "image/png");
+                return;
+            };
+            if (gFSystem.exists("/.html/logo.svg")) {
+                request->send(gFSystem, "/.html/logo.svg", "image/svg+xml");
+                return;
+            };
+            request->redirect("https://www.espuino.de/espuino/Espuino32.png");
+        });
+        // ESPuino favicon
+        wServer.on("/favicon", HTTP_GET, [](AsyncWebServerRequest *request) {
+            Serial.println("favicon request");
+            if (gFSystem.exists("/.html/favicon.ico")) {
+                request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
+                return;
+            };
+            request->redirect("https://espuino.de/espuino/favicon.ico");
+        });
+
         wServer.onNotFound(notFound);
 
         // allow cors for local debug
@@ -358,6 +392,9 @@ String templateProcessor(const String &templ) {
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
 bool processJsonRequest(char *_serialJson) {
+    if (!_serialJson)  {
+        return false;
+    }    
     #ifdef BOARD_HAS_PSRAM
         SpiRamJsonDocument doc(1000);
     #else
@@ -365,8 +402,7 @@ bool processJsonRequest(char *_serialJson) {
     #endif
 
     DeserializationError error = deserializeJson(doc, _serialJson);
-    JsonObject object = doc.as<JsonObject>();
-
+ 
     if (error) {
         #if (LANGUAGE == DE)
             Serial.print(F("deserializeJson() fehlgeschlagen: "));
@@ -377,7 +413,9 @@ bool processJsonRequest(char *_serialJson) {
         return false;
     }
 
-    if (doc.containsKey("general")) {
+   JsonObject object = doc.as<JsonObject>();
+
+   if (doc.containsKey("general")) {
         uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
         uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
         uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
@@ -504,10 +542,14 @@ bool processJsonRequest(char *_serialJson) {
             uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
             Cmd_Action(cmd);
         }
-    } else if (doc.containsKey("getTrack")) {
+    } else if (doc.containsKey("trackinfo")) {
         Web_SendWebsocketData(0, 30);
+    } else if (doc.containsKey("coverimg")) {
+        Web_SendWebsocketData(0, 40);
+    } else if (doc.containsKey("volume")) {
+        Web_SendWebsocketData(0, 50);
     }
-
+    
     return true;
 }
 
@@ -528,15 +570,31 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
     } else if (code == 20) {
         object["pong"] = "pong";
     } else if (code == 30) {
-        if (gPlayProperties.playMode == NO_PLAYLIST) {
-            object["track"] = (char *)FPSTR (noPlaylist);
+        JsonObject entry = object.createNestedObject("trackinfo");
+        entry["pausePlay"] = gPlayProperties.pausePlay;
+        entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
+        entry["numberOfTracks"] = gPlayProperties.numberOfTracks;
+        entry["volume"] = AudioPlayer_GetCurrentVolume();
+        if (gPlayProperties.title)  {
+            // show current audio title from id3 metadata 
+            char utf8Buffer[200];
+            convertAsciiToUtf8(gPlayProperties.title, utf8Buffer);
+            entry["name"] = utf8Buffer;
+        } else  if (gPlayProperties.playMode == NO_PLAYLIST) {
+            // no active playlist
+            entry["name"] = (char *)FPSTR (noPlaylist);
         } else {
+            // show current playlist item
             snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
             char utf8Buffer[200];
             convertAsciiToUtf8(Log_Buffer, utf8Buffer);
-            object["track"] = utf8Buffer;
+            entry["name"] = utf8Buffer;
         }
-    }
+    } else if (code == 40) {
+        object["coverimg"] = "coverimg";
+    } else if (code == 50) {
+        object["volume"] = AudioPlayer_GetCurrentVolume();
+    };
 
     serializeJson(doc, jBuf, 255);
 
@@ -548,8 +606,10 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
     free(jBuf);
 }
 
+
 // Processes websocket-requests
 void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+
     if (type == WS_EVT_CONNECT) {
         //client connected
         Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
@@ -563,16 +623,16 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
     } else if (type == WS_EVT_PONG) {
         //pong message was received (in response to a ping request maybe)
-        Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+            Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
     } else if (type == WS_EVT_DATA) {
         //data packet
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
-        if (info->final && info->index == 0 && info->len == len) {
+        if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
             //the whole message is in a single frame and we got all of it's data
             Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
             if (processJsonRequest((char *)data)) {
-                if (strncmp((char *)data, "getTrack", 8)) {   // Don't send back ok-feedback if track's name is requested in background
+                if (data && (strncmp((char *)data, "getTrack", 8))) {   // Don't send back ok-feedback if track's name is requested in background
                     Web_SendWebsocketData(client->id(), 1);
                 }
             }
@@ -1071,3 +1131,66 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 
     return true;
 }
+
+
+// handle album cover image request
+static void handleCoverImageRequest(AsyncWebServerRequest *request) {
+    if (!gFSystem.exists("/.cover")) {
+        // empty image:
+        // request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>"); 
+        if (gPlayProperties.isWebstream) {
+            // no cover -> send placeholder icon for webstream (fa-soundcloud)
+            snprintf(Log_Buffer, Log_BufferLength, "no cover image for webstream");
+            Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg\>"));
+        } else {
+            // no cover -> send placeholder icon for playing music from SD-card (fa-music)
+            snprintf(Log_Buffer, Log_BufferLength, "no cover image for SD-card audio");
+            Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d\=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg\>"));
+        }    
+        return;
+    }
+
+    File coverFile = gFSystem.open("/.cover", FILE_READ);
+
+    // skip 1 byte encoding
+    coverFile.seek(1);
+    // mime-type (null terminated)
+    char mimeType[255];
+    for (uint8_t i = 0u; i < 255; i++) {
+        mimeType[i] = coverFile.read();
+        if (uint8_t(mimeType[i]) == 0) 
+            break;  
+    }
+    snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s)", (char *) mimeType);
+    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+  
+    // skip image type (1 Byte)
+    coverFile.read();
+    // skip description (null terminated)
+    for (uint8_t i = 0u; i < 255; i++) {
+        if (uint8_t(coverFile.read()) == 0)
+            break;  
+    }
+
+    int imageSize = coverFile.size() - coverFile.position();
+
+    AsyncWebServerResponse *response = request->beginResponse(
+        mimeType,
+        imageSize,
+        [coverFile](uint8_t *buffer, size_t maxLen, size_t total) -> size_t {
+            File file = coverFile; // local copy of file pointer
+            int bytes = file.read(buffer, maxLen);
+            // close file at the end
+            if (!file.available()) {
+                file.close();
+                    Log_Println("cover image serving finished, close file", LOGLEVEL_DEBUG);
+            }
+            return max(0, bytes); // return 0 even when no bytes were loaded
+        }
+    );
+    response->addHeader("Cache Control","no-cache, must-revalidate");
+    request->send(response);
+} 
+
