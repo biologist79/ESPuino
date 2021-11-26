@@ -36,6 +36,7 @@ void Battery_Init(void) {
         // keeping track of deinitialising modules and stuff
         // turn off power just to be sure
         Power_PeripheralOff();
+        delay(200);
         #ifdef PN5180_ENABLE_LPCD
             Rfid_Exit();
         #endif
