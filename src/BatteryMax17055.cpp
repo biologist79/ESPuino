@@ -91,10 +91,6 @@ void Battery_InitImpl()
     {
         gPrefsSettings.putFloat("batteryCritical", batteryCritical);
     }
-
-
-    // configure MAX17055 so that percentage will not drop under batteryCritical % until empty voltage is reached
-    sensor.setEmptySOCHold(batteryCritical);
 }
 
 void Battery_CyclicImpl(){
