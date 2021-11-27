@@ -102,7 +102,7 @@ void Battery_CyclicImpl(){
         uint16_t fullCapRep;
         uint16_t sensorCycles;
         uint16_t fullCapNom;
-        sensor.getLearnedParameters(rComp0, tempCo, fullCapRep, cycles, fullCapNom);
+        sensor.getLearnedParameters(rComp0, tempCo, fullCapRep, sensorCycles, fullCapNom);
         gPrefsSettings.putUShort("rComp0", rComp0);
         gPrefsSettings.putUShort("tempCo", tempCo);
         gPrefsSettings.putUShort("fullCapRep", fullCapRep);
