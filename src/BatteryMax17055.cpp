@@ -95,20 +95,20 @@ void Battery_InitImpl()
 
 void Battery_CyclicImpl(){
     // It is recommended to save the learned capacity parameters every time bit 6 of the Cycles register toggles 
-    if (cycles + 0x0040 < sensor.getCycles()) {
+    if (cycles + 0x0040 <= sensor.getCycles()) {
         Log_Println("Battery Cycle passed 64%, store MAX17055 learned parameters", LOGLEVEL_DEBUG);
         uint16_t rComp0;
         uint16_t tempCo;
         uint16_t fullCapRep;
-        uint16_t cycles;
+        uint16_t sensorCycles;
         uint16_t fullCapNom;
         sensor.getLearnedParameters(rComp0, tempCo, fullCapRep, cycles, fullCapNom);
         gPrefsSettings.putUShort("rComp0", rComp0);
         gPrefsSettings.putUShort("tempCo", tempCo);
         gPrefsSettings.putUShort("fullCapRep", fullCapRep);
-        gPrefsSettings.putUShort("MAX17055_cycles", cycles);
+        gPrefsSettings.putUShort("MAX17055_cycles", sensorCycles);
         gPrefsSettings.putUShort("fullCapNom", fullCapNom);
-        cycles = sensor.getCycles();
+        cycles = sensorCycles;
     }
 }
 
