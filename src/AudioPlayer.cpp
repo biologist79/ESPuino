@@ -359,6 +359,15 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.pausePlay = true;
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
+                    // delete title
+                    if (gPlayProperties.title) {
+                        free(gPlayProperties.title);
+                        gPlayProperties.title = NULL;
+                    }
+                    Web_SendWebsocketData(0, 30);
+                    // delete cover image
+                    gFSystem.remove("/.cover");
+                    Web_SendWebsocketData(0, 40);
                     continue;
 
                 case PAUSEPLAY:
@@ -449,7 +458,7 @@ void AudioPlayer_Task(void *parameter) {
                         if (gPlayProperties.title) {
                             free(gPlayProperties.title);
                             gPlayProperties.title = NULL;
-                        }   
+                        }
                         // delete cover image
                         gFSystem.remove("/.cover");
                         Web_SendWebsocketData(0, 40);
@@ -589,7 +598,7 @@ void AudioPlayer_Task(void *parameter) {
                 if (gPlayProperties.title) {
                     free(gPlayProperties.title);
                     gPlayProperties.title = NULL;
-                }    
+                }
                 // delete cover image
                 gFSystem.remove("/.cover");
                 Web_SendWebsocketData(0, 40);
@@ -608,7 +617,7 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }    
+                    }
                     // delete cover image
                     gFSystem.remove("/.cover");
                     Web_SendWebsocketData(0, 40);
@@ -1095,11 +1104,11 @@ void audio_id3data(const char *info) { //id3 metadata
         // copy title
         if (!gPlayProperties.title) {
             gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-        }  
+        }
         strncpy(gPlayProperties.title, info + 6, 255);
         // notify web ui
         Web_SendWebsocketData(0, 30);
-    }    
+    }
 }
 
 void audio_eof_mp3(const char *info) { //end of file
@@ -1161,7 +1170,7 @@ void audio_lasthost(const char *info) { //stream URL played
 }
 
 // id3 tag: save cover image
-void audio_id3image(File& file, const size_t pos, const size_t size) { 
+void audio_id3image(File& file, const size_t pos, const size_t size) {
 
     // save raw image data to file "/.cover"
     snprintf(Log_Buffer, Log_BufferLength, "save album cover image: \"%s\"", (char *) file.name());
@@ -1171,7 +1180,7 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
     uint8_t buf[255];
     while(file.position() < (pos + size)) {
         int bytesRead = file.read(buf, sizeof(buf));
-        coverFile.write( buf, bytesRead); 
+        coverFile.write( buf, bytesRead);
     }
     coverFile.close();
     // websocket notify cover image has changed
