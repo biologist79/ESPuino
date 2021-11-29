@@ -577,8 +577,13 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         entry["volume"] = AudioPlayer_GetCurrentVolume();
         if (gPlayProperties.title)  {
             // show current audio title from id3 metadata 
+            if (gPlayProperties.numberOfTracks > 1) {
+                snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, gPlayProperties.title);
+            } else {
+                snprintf(Log_Buffer, Log_BufferLength, "%s", gPlayProperties.title);
+            };
             char utf8Buffer[200];
-            convertAsciiToUtf8(gPlayProperties.title, utf8Buffer);
+            convertAsciiToUtf8(Log_Buffer, utf8Buffer);
             entry["name"] = utf8Buffer;
         } else  if (gPlayProperties.playMode == NO_PLAYLIST) {
             // no active playlist
@@ -1135,10 +1140,10 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 
 // handle album cover image request
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
-    if (!gFSystem.exists("/.cover")) {
+    if (!gPlayProperties.coverFileName) {
         // empty image:
         // request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>"); 
-        if (gPlayProperties.isWebstream) {
+        if (gPlayProperties.playMode == WEBSTREAM) {
             // no cover -> send placeholder icon for webstream (fa-soundcloud)
             snprintf(Log_Buffer, Log_BufferLength, "no cover image for webstream");
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
@@ -1152,10 +1157,9 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
         return;
     }
 
-    File coverFile = gFSystem.open("/.cover", FILE_READ);
-
-    // skip 1 byte encoding
-    coverFile.seek(1);
+    File coverFile = gFSystem.open(gPlayProperties.coverFileName, FILE_READ);
+    // seek to start position, skip 1 byte encoding
+    coverFile.seek(gPlayProperties.coverFilePos + 1);
     // mime-type (null terminated)
     char mimeType[255];
     for (uint8_t i = 0u; i < 255; i++) {
@@ -1163,7 +1167,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
         if (uint8_t(mimeType[i]) == 0) 
             break;  
     }
-    snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s)", (char *) mimeType);
+    snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, gPlayProperties.coverFileName);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
   
     // skip image type (1 Byte)
@@ -1174,7 +1178,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
             break;  
     }
 
-    int imageSize = coverFile.size() - coverFile.position();
+    int imageSize = gPlayProperties.coverFileSize - coverFile.position();
 
     AsyncWebServerResponse *response = request->beginResponse(
         mimeType,
@@ -1187,6 +1191,8 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
                 file.close();
                     Log_Println("cover image serving finished, close file", LOGLEVEL_DEBUG);
             }
+            // do not consume too much cpu time
+            vTaskDelay(portTICK_RATE_MS * 50u);  
             return max(0, bytes); // return 0 even when no bytes were loaded
         }
     );

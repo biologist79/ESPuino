@@ -101,7 +101,7 @@ void AudioPlayer_Init(void) {
     AudioPlayer_SetupVolume();
 
     // delete cover image
-    gFSystem.remove("/.cover");
+    gPlayProperties.coverFileName = NULL;
     if (System_GetOperationMode() == OPMODE_NORMAL) {       // Don't start audio-task in BT-mode!
         xTaskCreatePinnedToCore(
             AudioPlayer_Task,      /* Function to implement the task */
@@ -363,10 +363,10 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }
+                    }   
                     Web_SendWebsocketData(0, 30);
                     // delete cover image
-                    gFSystem.remove("/.cover");
+					gPlayProperties.coverFileName = NULL;
                     Web_SendWebsocketData(0, 40);
                     continue;
 
@@ -458,9 +458,9 @@ void AudioPlayer_Task(void *parameter) {
                         if (gPlayProperties.title) {
                             free(gPlayProperties.title);
                             gPlayProperties.title = NULL;
-                        }
+                        }   
                         // delete cover image
-                        gFSystem.remove("/.cover");
+						gPlayProperties.coverFileName = NULL;
                         Web_SendWebsocketData(0, 40);
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
@@ -598,9 +598,9 @@ void AudioPlayer_Task(void *parameter) {
                 if (gPlayProperties.title) {
                     free(gPlayProperties.title);
                     gPlayProperties.title = NULL;
-                }
+                }    
                 // delete cover image
-                gFSystem.remove("/.cover");
+                gPlayProperties.coverFileName = NULL;
                 Web_SendWebsocketData(0, 40);
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
@@ -617,9 +617,9 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }
+                    }    
                     // delete cover image
-                    gFSystem.remove("/.cover");
+                    gPlayProperties.coverFileName = NULL;
                     Web_SendWebsocketData(0, 40);
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
@@ -1104,11 +1104,11 @@ void audio_id3data(const char *info) { //id3 metadata
         // copy title
         if (!gPlayProperties.title) {
             gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-        }
+        }  
         strncpy(gPlayProperties.title, info + 6, 255);
         // notify web ui
         Web_SendWebsocketData(0, 30);
-    }
+    }    
 }
 
 void audio_eof_mp3(const char *info) { //end of file
@@ -1170,19 +1170,11 @@ void audio_lasthost(const char *info) { //stream URL played
 }
 
 // id3 tag: save cover image
-void audio_id3image(File& file, const size_t pos, const size_t size) {
-
-    // save raw image data to file "/.cover"
-    snprintf(Log_Buffer, Log_BufferLength, "save album cover image: \"%s\"", (char *) file.name());
-    Log_Println(Log_Buffer, LOGLEVEL_INFO);
-    file.seek(pos);
-    File coverFile = gFSystem.open("/.cover", FILE_WRITE);
-    uint8_t buf[255];
-    while(file.position() < (pos + size)) {
-        int bytesRead = file.read(buf, sizeof(buf));
-        coverFile.write( buf, bytesRead);
-    }
-    coverFile.close();
+void audio_id3image(File& file, const size_t pos, const size_t size) { 
+    // save cover image file and position/size for later use
+    gPlayProperties.coverFileName = (char *)(file.name()); 
+    gPlayProperties.coverFilePos = pos;                         
+    gPlayProperties.coverFileSize = size;
     // websocket notify cover image has changed
     Web_SendWebsocketData(0, 40);
 }
