@@ -112,7 +112,7 @@ void System_DisableSleepTimer(void) {
 }
 
 bool System_IsSleepTimerEnabled(void) {
-    return (System_SleepTimerStartTimestamp > 0u);
+    return (System_SleepTimerStartTimestamp > 0u || gPlayProperties.sleepAfterCurrentTrack || gPlayProperties.sleepAfterPlaylist || gPlayProperties.playUntilTrackNumber);
 }
 
 uint32_t System_GetSleepTimerTimeStamp(void) {

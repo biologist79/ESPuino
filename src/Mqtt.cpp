@@ -350,6 +350,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                     publishMqtt((char *) FPSTR(topicSleepState), 0, false);
                     gPlayProperties.sleepAfterPlaylist = false;
                     gPlayProperties.sleepAfterCurrentTrack = false;
+                    gPlayProperties.playUntilTrackNumber = 0;
                     return;
                 } else {
                     Log_Println((char *) FPSTR(sleepTimerAlreadyStopped), LOGLEVEL_INFO);
