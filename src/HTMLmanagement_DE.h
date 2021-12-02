@@ -824,7 +824,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 \
 		if(data.dir) {\
 			type = \"folder\";\
-		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {\
+		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|m4a|M4A|flac|FLAC)$/i).test(data.name)) {\
 			type = \"audio\";\
 		} else {\
 			type = \"file\";\
@@ -904,7 +904,14 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 						items.play = {\
 							label: \"Abspielen\",\
 							action: function(x) {\
-								var playMode = node.data.directory?\"5\":\"1\";\
+								var playMode = 1;\
+                                if (node.data.directory) {\
+                                    playMode = 5; \
+                                } else {\
+                                    if ((/\\.(m3u|M3U)$/i).test(node.data.path)) {\
+                                        playMode = 11;\
+                                    }\
+                                }                                \
 								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
 							}\
 						};\
