@@ -109,6 +109,7 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 void System_DisableSleepTimer(void) {
     System_SleepTimerStartTimestamp = 0u;
+    Led_ResetToInitialBrightness();
 }
 
 bool System_IsSleepTimerEnabled(void) {

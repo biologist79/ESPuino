@@ -88,6 +88,7 @@
     const char modificatorSleepTimer60[] PROGMEM = "Modifikator: Sleep-Timer per RFID aktiviert (60 Minuten).";
     const char modificatorSleepTimer120[] PROGMEM = "Modifikator: Sleep-Timer per RFID aktiviert (2 Stunden).";
     const char ledsDimmedToNightmode[] PROGMEM = "LEDs wurden auf Nachtmodus gedimmt.";
+    const char ledsDimmedToInitialValue[] PROGMEM = "LEDs wurden auf initiale Helligkeit gedimmt.";
     const char modificatorNotallowedWhenIdle[] PROGMEM = "Modifikator kann bei nicht aktivierter Playlist nicht angewendet werden.";
     const char modificatorSleepAtEOT[] PROGMEM = "Modifikator: Sleep-Timer am Ende des Titels aktiviert.";
     const char modificatorSleepAtEOTd[] PROGMEM = "Modifikator: Sleep-Timer am Ende des Titels deaktiviert.";

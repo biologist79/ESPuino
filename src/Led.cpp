@@ -102,6 +102,7 @@ void Led_SetPause(boolean value) {
 void Led_ResetToInitialBrightness(void) {
     #ifdef NEOPIXEL_ENABLE
         Led_Brightness = Led_InitialBrightness;
+        Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
     #endif
 }
 

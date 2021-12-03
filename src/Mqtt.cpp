@@ -324,22 +324,25 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                 gPlayProperties.sleepAfterPlaylist = true;
                 Log_Println((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
+                Led_ResetToNightBrightness();
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EOT") == 0) {
                 gPlayProperties.sleepAfterCurrentTrack = true;
                 Log_Println((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
+                Led_ResetToNightBrightness();
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EO5T") == 0) {
                 if ((gPlayProperties.numberOfTracks - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
                     gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
                 } else {
-                    gPlayProperties.sleepAfterPlaylist = true;
+                    gPlayProperties.sleepAfterPlaylist = true;  // If +5 tracks is > than active playlist, take end of current playlist
                 }
                 Log_Println((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
+                Led_ResetToNightBrightness();
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "0") == 0) {
