@@ -325,6 +325,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                 Log_Println((char *) FPSTR(sleepTimerEOP), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
                 Led_ResetToNightBrightness();
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EOT") == 0) {
@@ -332,6 +333,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                 Log_Println((char *) FPSTR(sleepTimerEOT), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
                 Led_ResetToNightBrightness();
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                 System_IndicateOk();
                 return;
             } else if (strcmp(receivedString, "EO5T") == 0) {
@@ -343,14 +345,16 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                 Log_Println((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
                 Led_ResetToNightBrightness();
+                publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                 System_IndicateOk();
                 return;
-            } else if (strcmp(receivedString, "0") == 0) {
+            } else if (strcmp(receivedString, "0") == 0) {  // Disable sleep after it was active previously
                 if (System_IsSleepTimerEnabled()) {
                     System_DisableSleepTimer();
                     Log_Println((char *) FPSTR(sleepTimerStop), LOGLEVEL_NOTICE);
                     System_IndicateOk();
                     publishMqtt((char *) FPSTR(topicSleepState), 0, false);
+                    publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                     gPlayProperties.sleepAfterPlaylist = false;
                     gPlayProperties.sleepAfterCurrentTrack = false;
                     gPlayProperties.playUntilTrackNumber = 0;

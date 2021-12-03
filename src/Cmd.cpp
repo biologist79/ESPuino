@@ -79,9 +79,7 @@ void Cmd_Action(const uint16_t mod) {
                 #ifdef NEOPIXEL_ENABLE
                     Led_ResetToInitialBrightness();
                 #endif
-            }
-            else
-            {
+            } else {
                 Log_Println((char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
                 #ifdef MQTT_ENABLE
                     publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
