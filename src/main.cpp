@@ -228,7 +228,7 @@ void setup() {
     #endif
     Ftp_Init();
     Mqtt_Init();
-    #ifndef RFID_READER_TYPE_PN5180
+    #ifndef PN5180_ENABLE_LPCD
         Rfid_Init();
     #endif
     RotaryEncoder_Init();
