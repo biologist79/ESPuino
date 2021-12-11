@@ -2,7 +2,9 @@
 #define __ESPUINO_SETTINGS_H__
     #include "Arduino.h"
     #include "values.h"
-
+#if __has_include("settings-override.h")
+#include "settings-override.h"
+#else
     //######################### INFOS ####################################
     // This is the general configfile for ESPuino-configuration.
 
@@ -247,5 +249,5 @@
     #endif
 
     //#define ENABLE_ESPUINO_DEBUG                            // Needs modification of platformio.ini (https://forum.espuino.de/t/rfid-mit-oder-ohne-task/353/21); better don't enable unless you know what you're doing :-)
-
+#endif //settings_override
 #endif
