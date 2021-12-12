@@ -214,9 +214,7 @@ void setup() {
         Serial.println(F("UNKNOWN"));
     }
 
-    #ifdef PORT_EXPANDER_ENABLE
-        Port_Init();
-    #endif
+    Port_Init();
     Ftp_Init();
     AudioPlayer_Init();
     Mqtt_Init();
