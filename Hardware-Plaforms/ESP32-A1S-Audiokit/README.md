@@ -2,7 +2,7 @@
 * As there's a lack of GPIOs, it's necessary to share a single SPI-instance by SD and RFID.
 * The board provides 6 keys but due to lack of free GPIOs, we need them for other purposes. Additionaly the problem is, that all keys are equipped with capacitors (maybe to debounce) which makes it hard to use those GPIOs for other purposes. That's why I unsoldered R66, 67, 68, 69, 70 (all 0 Ohms) to free these GPIOs from the capacitors.
 * Please note: key1 still works but if you additionaly want to use keys2-6, you can use GPIO36 along with analogRead() by using voltage-dividers. But first one has to calculate + solder resistor-pairs 56/61, 57/62, 58/63, 59/64 to 'build' those voltage-dividers. Without doing that online Key1 is usable as it doesn't need resistors. However, didn't solder/test dividers so far.
-* When switching over to use analogRead() one has to modify buttonHandler() in my code.
+* When switching over to use analogRead() one has to modify Button_Cyclic() in my code.
 * Additionaly I unsoldered resistor R14 in order to deactivate LED D4 (probably not necessary)
 
 ## GPIOs (outdated! Best have a look at settings-espa1s.h)

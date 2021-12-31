@@ -18,7 +18,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-HTML_FILES = ["management","management_EN", "accesspoint", "accesspoint_EN"]
+HTML_FILES = ["management_DE","management_EN", "accesspoint_DE", "accesspoint_EN"]
 
 class htmlHeaderProcessor(object):
 

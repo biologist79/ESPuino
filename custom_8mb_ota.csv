@@ -1,0 +1,10 @@
+# 256 kB (instead of 24 kB) for nvs, the rest is used by application
+# Infos: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/partition-tables.html
+# TOTAL AVAILABLE: 0x800000
+# Name,   Type, SubType, Offset,   Size,      Flags
+otadata,  data, ota,     0x9000 ,  0x2000,
+phy_init, data, phy,     0xb000 ,  0x1000
+app0,     app,  ota_0,   0x10000,  0x3B0000,
+app1,     app,  ota_1,          ,  0x3B0000,
+nvs,      data, nvs,            ,  0x40000,
+storage,  data, spiffs,         ,  0x50000,

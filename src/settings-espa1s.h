@@ -61,14 +61,13 @@
     #define IIC_DATA                        33          // internal
 
     // Amp enable
-    #define GPIO_PA_EN                  GPIO_NUM_21          // internal
-    #define GPIO_SEL_PA_EN              GPIO_SEL_21
+    #define GPIO_PA_EN                      21          // internal
 
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
-        #define DREHENCODER_CLK              5          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-        #define DREHENCODER_DT              18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-        #define DREHENCODER_BUTTON           4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
+        #define ROTARYENCODER_CLK            5          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
+        #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+        #define ROTARYENCODER_BUTTON         4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
@@ -77,6 +76,12 @@
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
+
+    // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
+    // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
+    #ifdef PORT_EXPANDER_ENABLE
+        #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
+    #endif
 
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
@@ -93,20 +98,21 @@
 
     // (optinal) Headphone-detection
     #ifdef HEADPHONE_ADJUST_ENABLE
+        //#define DETECT_HP_ON_HIGH                     // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
         #define HP_DETECT                   39          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
-        float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
-        float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
+        constexpr float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
+        constexpr float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
     // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
     #ifdef MEASURE_BATTERY_VOLTAGE
-        uint8_t rdiv1 = 129;                               // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
-        uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
+        constexpr uint16_t rdiv1 = 129;                              // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
+        constexpr uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
     #endif
 
     // (Optional) remote control via infrared
