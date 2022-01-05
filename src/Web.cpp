@@ -1178,8 +1178,8 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
             break;  
     }
 
-    int imageSize = gPlayProperties.coverFileSize - coverFile.position();
-
+    int imageSize = gPlayProperties.coverFileSize;
+	
     AsyncWebServerResponse *response = request->beginResponse(
         mimeType,
         imageSize,

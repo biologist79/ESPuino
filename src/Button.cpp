@@ -59,6 +59,8 @@ static void Button_DoButtonActions(void);
 void Button_Init() {
     #if (WAKEUP_BUTTON <= 39)
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0);
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)ROTARYENCODER_CLK, 0);
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)ROTARYENCODER_DT, 0);
     #endif
 
     #ifdef NEOPIXEL_ENABLE // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
