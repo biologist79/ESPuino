@@ -193,10 +193,7 @@ void setup() {
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.print(F(" Rfid-controlled musicplayer\n\n"));
     Serial.printf("%s\n\n", softwareRevision);
-    Serial.print(F("ESP-IDF-version (major): "));
-    Serial.println(ESP_IDF_VERSION_MAJOR);
-    Serial.print(F("ESP-IDF-version (minor): "));
-    Serial.println(ESP_IDF_VERSION_MINOR);
+    Serial.println("ESP-IDF version: " + String(esp_get_idf_version()));
 
     // print wake-up reason
     printWakeUpReason();

@@ -20,14 +20,13 @@
 #define RFID_PN5180_STATE_INIT 0u
 
 #define RFID_PN5180_NFC14443_STATE_RESET 1u
-#define RFID_PN5180_NFC14443_STATE_SETUPRF 2u
-#define RFID_PN5180_NFC14443_STATE_READCARD 3u
+#define RFID_PN5180_NFC14443_STATE_READCARD 2u
 #define RFID_PN5180_NFC14443_STATE_ACTIVE 99u
 
-#define RFID_PN5180_NFC15693_STATE_RESET 4u
-#define RFID_PN5180_NFC15693_STATE_SETUPRF 5u
-#define RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE 6u
-#define RFID_PN5180_NFC15693_STATE_GETINVENTORY 7u
+#define RFID_PN5180_NFC15693_STATE_RESET 3u
+#define RFID_PN5180_NFC15693_STATE_SETUPRF 4u
+#define RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE 5u
+#define RFID_PN5180_NFC15693_STATE_GETINVENTORY 6u
 #define RFID_PN5180_NFC15693_STATE_ACTIVE 100u
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
@@ -138,10 +137,9 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 nfc14443.reset();
                 //snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
                 //Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-            } else if (RFID_PN5180_NFC14443_STATE_SETUPRF == stateMachine) {
-                nfc14443.setupRF();
             } else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
-                if (nfc14443.readCardSerial(uid) >= 4u) {
+             
+                if (nfc14443.readCardSerial(uid) >= 4) {
                     cardReceived = true;
                     stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
                     lastTimeDetected14443 = millis();
@@ -152,7 +150,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                     // Reset to dummy-value if no card is there
                     // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
                     // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-                    if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 400)) {
+                    if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 800)) {
                         lastTimeDetected14443 = 0;
                         #ifdef PAUSE_WHEN_RFID_REMOVED
                             cardAppliedCurrentRun = false;
