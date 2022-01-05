@@ -385,7 +385,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
         <div class=\"container\" id=\"ftpStart\">\
             <legend>FTP Server starten</legend>\
             <div>\
-                Aktiviert den FTP Server bis zum Neustart des Geräts. (FTP muss aktiviert sein)\
+                Startet den FTP Server bis zum Neustart des Geräts. (FTP_ENABLE muss gesetzt sein)\
             </div>\
             <div class=\"text-center\">\
                 <button type=\"button\" class=\"btn btn-primary\" onclick=\"ftpStart()\">Server starten</button>\
