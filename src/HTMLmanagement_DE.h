@@ -382,6 +382,18 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
                 </div>\
             </form>\
         </div>\
+        <div class=\"container\" id=\"ftpStart\">\
+            <div class=\"form-group col-md-12\">\
+                <legend>FTP-Server starten</legend>\
+                <div>\
+                    Aktiviert den FTP-Server bis zum Neustart des Geräts.\
+                </div>\
+                <br>\
+                <div class=\"text-center\">\
+                    <button type=\"button\" class=\"btn btn-primary\" onclick=\"ftpStart()\">FTP-Server starten</button>\
+                </div>\
+            </div>\
+        </div>\
     </div>\
 \
     <div class=\"tab-pane fade\" id=\"nav-general\" role=\"tabpanel\" aria-labelledby=\"nav-general-tab\">\
@@ -1124,6 +1136,16 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
             \"ftp\": {\
                 ftpUser: document.getElementById('ftpUser').value,\
                 ftpPwd: document.getElementById('ftpPwd').value\
+            }\
+        };\
+        var myJSON = JSON.stringify(myObj);\
+        socket.send(myJSON);\
+    }\
+\
+    function ftpStart() {\
+        var myObj = {\
+            \"ftpStatus\": {\
+                start: 1\
             }\
         };\
         var myJSON = JSON.stringify(myObj);\

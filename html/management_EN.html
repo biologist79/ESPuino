@@ -366,6 +366,18 @@
                 </div>
             </form>
         </div>
+        <div class="container" id="ftpStart">
+            <div class="form-group col-md-12">
+                <legend>Start FTP-server</legend>
+                <div>
+                    Enables FTP-server until device is restarted.
+                </div>
+                <br>
+                <div class="text-center">
+                    <button type="button" class="btn btn-primary" onclick="ftpStart()">Start FTP-server</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
@@ -1056,6 +1068,16 @@
             "ftp": {
                 ftpUser: document.getElementById('ftpUser').value,
                 ftpPwd: document.getElementById('ftpPwd').value
+            }
+        };
+        var myJSON = JSON.stringify(myObj);
+        socket.send(myJSON);
+    }
+
+    function ftpStart() {
+        var myObj = {
+            "ftpStatus": {
+                start: 1
             }
         };
         var myJSON = JSON.stringify(myObj);
