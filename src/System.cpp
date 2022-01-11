@@ -35,8 +35,11 @@ void System_DeepSleepManager(void);
 
 void System_Init(void) {
     srand(esp_random());
-    pinMode(POWER, OUTPUT);
-    digitalWrite(POWER, HIGH);
+    #if (POWER >= 0 && POWER <= 39)
+        pinMode(POWER, OUTPUT);
+        delay(50);     // Makes booting Wemos Lolin D32 pro a bit faster if headphone-PCB is connected (for whatever reason)
+        digitalWrite(POWER, HIGH);
+    #endif
 
     gPrefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     gPrefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));

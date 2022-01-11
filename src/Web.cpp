@@ -462,6 +462,11 @@ bool processJsonRequest(char *_serialJson) {
               String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
             return false;
         }
+    } else if (doc.containsKey("ftpStatus")) {
+        uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
+        if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
+            Ftp_EnableServer();
+        }
     } else if (doc.containsKey("mqtt")) {
         uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
         const char *_mqttServer = object["mqtt"]["mqttServer"];
