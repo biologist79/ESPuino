@@ -1,0 +1,6 @@
+[env:myboard]
+board = esp32dev
+board_build.partitions = custom_4mb_noota.csv
+build_flags = -DHAL=99
+              -DLOG_BUFFER_SIZE=10240
+upload_protocol = esptool
