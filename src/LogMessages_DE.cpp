@@ -211,4 +211,5 @@
     const char noPlaylist[] PROGMEM = "Keine Playlist aktiv.";
     const char rfidTagRemoved[] PROGMEM = "RFID-Karte wurde entfernt";
     const char rfidTagReapplied[] PROGMEM = "RFID-Karte erneut aufgelegt";
+    const char ftpEnableTooLate[] PROGMEM = "FTP kann nur innerhalb der ersten 30s aktiviert werden. Kinderschutz :-)";
 #endif

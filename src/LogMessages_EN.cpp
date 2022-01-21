@@ -211,5 +211,6 @@
     const char noPlaylist[] PROGMEM = "No active playlist.";
     const char rfidTagRemoved[] PROGMEM = "RFID-tag removed";
     const char rfidTagReapplied[] PROGMEM = "RFID-tag reapplied";
+    const char ftpEnableTooLate[] PROGMEM = "FTP can only be enabled within the first 30s after ESPuino-start. Child-protection :-)";
 
 #endif
