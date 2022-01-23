@@ -3,6 +3,8 @@
 #include <Update.h>
 #include <nvsDump.h>
 #include <esp_task_wdt.h>
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
 #include "freertos/ringbuf.h"
 #include "ESPAsyncWebServer.h"
 #include "ArduinoJson.h"
@@ -685,7 +687,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
-            explorerFileUploadRingBuffer = xRingbufferCreate(4096, RINGBUF_TYPE_BYTEBUF);
+            explorerFileUploadRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
         }
 
         // Create Queue for receiving a signal from the store task as synchronisation
@@ -722,51 +724,75 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
     }
 }
 
+// feed the watchdog timer without delay
+void feedTheDog(){
+  // feed dog 0
+  TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG0.wdt_feed=1;                       // feed dog
+  TIMERG0.wdt_wprotect=0;                   // write protect
+  // feed dog 1
+  TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+  TIMERG1.wdt_feed=1;                       // feed dog
+  TIMERG1.wdt_wprotect=0;                   // write protect
+}
+
 void explorerHandleFileStorageTask(void *parameter) {
 
     File uploadFile;
     size_t item_size;
     size_t bytesOk = 0;
     size_t bytesNok = 0;
+    uint32_t chunkCount = 0;
     uint32_t transferStartTimestamp = millis();
     uint8_t *item;
     uint8_t value = 0;
 
     BaseType_t uploadFileNotification;
     uint32_t uploadFileNotificationValue;
-
     uploadFile = gFSystem.open((char *)parameter, "w");
-
+    size_t maxItems = xRingbufferGetMaxItemSize(explorerFileUploadRingBuffer);
     for (;;) {
-        //esp_task_wdt_reset();
+        // check buffer is filled with enough data
+        size_t itemsFree = xRingbufferGetCurFreeSize(explorerFileUploadRingBuffer);       
+        item_size = maxItems - itemsFree;
+        if (item_size < (maxItems / 2)) {
+            // not enough data in the buffer, check if all data arrived for the file
+            uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
+            if (uploadFileNotification == pdPASS) {
+                item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
+                if (item != NULL) {
+                    chunkCount++;
+                    if (!uploadFile.write(item, item_size)) {
+                        bytesNok += item_size;
+                    } else {
+                        bytesOk += item_size;
+                    }
+                    vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+                    vTaskDelay(portTICK_PERIOD_MS * 20);
+                } 
+                uploadFile.close();
+                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+                Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
+                Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+                // done exit loop to terminate
+                break;
+            }
+            vTaskDelay(portTICK_PERIOD_MS * 5);
+            continue;
+        }
 
         item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
         if (item != NULL) {
+            chunkCount++;
             if (!uploadFile.write(item, item_size)) {
                 bytesNok += item_size;
             } else {
                 bytesOk += item_size;
             }
             vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
-        } else {
-            // No data in the buffer, check if all data arrived for the file
-            uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
-            if (uploadFileNotification == pdPASS) {
-                uploadFile.close();
-                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
-                Log_Println(Log_Buffer, LOGLEVEL_INFO);
-                snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu\n", bytesOk, bytesNok);
-                Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-                // done exit loop to terminate
-                break;
-            }
-            vTaskDelay(portTICK_PERIOD_MS * 20);
-        }
-        #ifdef SD_MMC_1BIT_MODE
-            vTaskDelay(portTICK_PERIOD_MS * 1);
-        #else
-            vTaskDelay(portTICK_PERIOD_MS * 6);
-        #endif
+            feedTheDog();
+        } 
     }
     // send signal to upload function to terminate
     xQueueSend(explorerFileUploadStatusQueue, &value, 0);
@@ -1184,7 +1210,6 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     }
 
     int imageSize = gPlayProperties.coverFileSize;
-	
     AsyncWebServerResponse *response = request->beginResponse(
         mimeType,
         imageSize,
