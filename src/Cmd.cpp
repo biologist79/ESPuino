@@ -259,7 +259,12 @@ void Cmd_Action(const uint16_t mod) {
 
         #ifdef FTP_ENABLE
             case CMD_ENABLE_FTP_SERVER: {
-                Ftp_EnableServer();
+                if (millis() <= 30000) {    // Only allow to enable FTP within the first 30s after start (to prevent children it mess it up)
+                    Ftp_EnableServer();
+                } else {
+                    Log_Println((char *) FPSTR(ftpEnableTooLate), LOGLEVEL_ERROR);
+                    System_IndicateError();
+                }
                 break;
             }
         #endif

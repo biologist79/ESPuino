@@ -122,7 +122,7 @@
     #define BUTTON_4_LONG     CMD_NOTHING
     #define BUTTON_5_LONG     CMD_NOTHING
 
-    #define BUTTON_MULTI_01   CMD_TOGGLE_WIFI_STATUS
+    #define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
     #define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
     #define BUTTON_MULTI_03   CMD_NOTHING
     #define BUTTON_MULTI_04   CMD_NOTHING
