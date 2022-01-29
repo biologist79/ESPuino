@@ -1,18 +1,23 @@
 #include <Arduino.h>
 #include "settings.h"
 #include "Power.h"
+#include "Port.h"
 
 
 
-void Power_Init(void){
-    pinMode(POWER, OUTPUT);
-    digitalWrite(POWER, POWER_OFF);
+void Power_Init(void) {
+    #if (POWER >= 0 && POWER <= 39)
+        pinMode(POWER, OUTPUT);     // Only necessary for GPIO. For port-expander it's done (previously) via Port_init()
+    #endif
 }
 
-void Power_PeripheralOn(void){
-    digitalWrite(POWER, POWER_ON);
+// Switch on peripherals. Please note: meaning of POWER_ON is HIGH per default. But is LOW in case of INVERT_POWER is enabled.
+void Power_PeripheralOn(void) {
+    Port_Write(POWER, POWER_ON);
+    delay(50);  // Give peripherals some time to settle down
 }
 
-void Power_PeripheralOff(void){
-    digitalWrite(POWER, POWER_OFF);
+// Switch off peripherals. Please note: meaning of POWER_OFF is LOW per default. But is HIGH in case of INVERT_POWER is enabled.
+void Power_PeripheralOff(void) {
+    Port_Write(POWER, POWER_OFF);
 }

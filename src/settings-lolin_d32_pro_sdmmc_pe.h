@@ -88,7 +88,10 @@
     #define WAKEUP_BUTTON                   36          // Defines the button that is used to wake up ESPuino from deepsleep; set to 99 to disable
 
     // Power-control
-    #define POWER                           32          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #define POWER                           115          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #ifdef POWER
+        #define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
+    #endif
 
     // (optional) Neopixel
     #define LED_PIN                         12          // GPIO for Neopixel-signaling

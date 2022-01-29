@@ -1,4 +1,4 @@
 #ifndef __REVISION_H__
     #define __REVISION_H__
-    constexpr const char softwareRevision[] PROGMEM = "Software-revision: 20211121-MAX17055";
+    constexpr const char softwareRevision[] PROGMEM = "Software-revision: 20220129-1";
 #endif

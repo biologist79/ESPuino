@@ -131,13 +131,26 @@ void setup() {
     Log_Init();
     Queues_Init();
 
-    // make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
-    Button_Init();
+    // Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
+    Button_Init();  // To preseed internal button-storage with values
     #ifdef PN5180_ENABLE_LPCD
         Rfid_Init();
     #endif
 
     System_Init();
+
+    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
+        delay(50);
+        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+    #endif
+
+    #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first
+        Port_Init();
+    #endif
+
+    // If port-expander is used, port_init has to be called first, as power can be (possibly) done by port-expander
     Power_Init();
 
     Battery_Init();
@@ -156,15 +169,6 @@ void setup() {
         gPlayProperties.currentPlayMono = true;
     #endif
 
-    // Examples for serialized RFID-actions that are stored in NVS
-    // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
-    // Please note: There's no need to do this manually (unless you want to)
-    /*gPrefsRfid.putString("215123125075", "#/mp3/Kinderlieder#0#6#0");
-    gPrefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
-    gPrefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
-    gPrefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
-    gPrefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
-
     Led_Init();
 
     #if (HAL == 2)
@@ -179,20 +183,15 @@ void setup() {
         pinMode(22, OUTPUT);
         digitalWrite(22, HIGH);
 
-        pinMode(GPIO_PA_EN, OUTPUT);
-        digitalWrite(GPIO_PA_EN, HIGH);
+        #if (GPIO_PA_EN >= 0 && GPIO_PA_EN <= 39)
+            pinMode(GPIO_PA_EN, OUTPUT);
+            digitalWrite(GPIO_PA_EN, HIGH);
+        #endif
         Serial.println(F("Built-in amplifier enabled\n"));
     #endif
 
+    // Needs power first
     SdCard_Init();
-
-    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
-        //i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-        delay(50);
-        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
 
     // welcome message
     Serial.println(F(""));
@@ -221,12 +220,9 @@ void setup() {
         Serial.println(F("UNKNOWN"));
     }
 
-    #ifdef PORT_EXPANDER_ENABLE
-        Port_Init();
-    #endif
     Ftp_Init();
     Mqtt_Init();
-    #ifndef RFID_READER_TYPE_PN5180
+    #ifndef PN5180_ENABLE_LPCD
         Rfid_Init();
     #endif
     RotaryEncoder_Init();

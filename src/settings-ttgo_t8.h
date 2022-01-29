@@ -85,6 +85,9 @@
 
 // (optional) Power-control
 #define POWER                            4          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+#ifdef POWER
+    //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
+#endif
 
 // (optional) Neopixel
 #define LED_PIN                         12          // GPIO for Neopixel-signaling

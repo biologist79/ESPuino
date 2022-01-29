@@ -363,7 +363,7 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }   
+                    }
                     Web_SendWebsocketData(0, 30);
                     // delete cover image
 					gPlayProperties.coverFileName = NULL;
@@ -458,7 +458,7 @@ void AudioPlayer_Task(void *parameter) {
                         if (gPlayProperties.title) {
                             free(gPlayProperties.title);
                             gPlayProperties.title = NULL;
-                        }   
+                        }
                         // delete cover image
 						gPlayProperties.coverFileName = NULL;
                         Web_SendWebsocketData(0, 40);
@@ -598,7 +598,7 @@ void AudioPlayer_Task(void *parameter) {
                 if (gPlayProperties.title) {
                     free(gPlayProperties.title);
                     gPlayProperties.title = NULL;
-                }    
+                }
                 // delete cover image
                 gPlayProperties.coverFileName = NULL;
                 Web_SendWebsocketData(0, 40);
@@ -617,7 +617,7 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }    
+                    }
                     // delete cover image
                     gPlayProperties.coverFileName = NULL;
                     Web_SendWebsocketData(0, 40);
@@ -1035,6 +1035,15 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
     Log_Println(prefBuf, LOGLEVEL_INFO);
     Led_SetPause(false);
     return gPrefsRfid.putString(_rfidCardId, prefBuf);
+
+    // Examples for serialized RFID-actions that are stored in NVS
+    // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
+    // Please note: There's no need to do this manually (unless you want to)
+    /*gPrefsRfid.putString("215123125075", "#/mp3/Kinderlieder#0#6#0");
+    gPrefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
+    gPrefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
+    gPrefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
+    gPrefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
 }
 
 // Adds webstream to playlist; same like SdCard_ReturnPlaylist() but always only one entry
@@ -1104,11 +1113,11 @@ void audio_id3data(const char *info) { //id3 metadata
         // copy title
         if (!gPlayProperties.title) {
             gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-        }  
+        }
         strncpy(gPlayProperties.title, info + 6, 255);
         // notify web ui
         Web_SendWebsocketData(0, 30);
-    }    
+    }
 }
 
 void audio_eof_mp3(const char *info) { //end of file
@@ -1170,10 +1179,10 @@ void audio_lasthost(const char *info) { //stream URL played
 }
 
 // id3 tag: save cover image
-void audio_id3image(File& file, const size_t pos, const size_t size) { 
+void audio_id3image(File& file, const size_t pos, const size_t size) {
     // save cover image file and position/size for later use
-    gPlayProperties.coverFileName = (char *)(file.name()); 
-    gPlayProperties.coverFilePos = pos;                         
+    gPlayProperties.coverFileName = (char *)(file.name());
+    gPlayProperties.coverFilePos = pos;
     gPlayProperties.coverFileSize = size;
     // websocket notify cover image has changed
     Web_SendWebsocketData(0, 40);
