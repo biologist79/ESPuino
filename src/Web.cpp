@@ -3,6 +3,8 @@
 #include <Update.h>
 #include <nvsDump.h>
 #include <esp_task_wdt.h>
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
 #include "freertos/ringbuf.h"
 #include "ESPAsyncWebServer.h"
 #include "ArduinoJson.h"
@@ -158,7 +160,7 @@ void webserverStart(void) {
                 request->send(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
             } else {
                 // serve webpage from PROGMEM
-                request->send_P(200, "text/html", management_HTML, templateProcessor);    
+                request->send_P(200, "text/html", management_HTML, templateProcessor);
             }
         });
         // Log
@@ -394,7 +396,7 @@ String templateProcessor(const String &templ) {
 bool processJsonRequest(char *_serialJson) {
     if (!_serialJson)  {
         return false;
-    }    
+    }
     #ifdef BOARD_HAS_PSRAM
         SpiRamJsonDocument doc(1000);
     #else
@@ -402,7 +404,7 @@ bool processJsonRequest(char *_serialJson) {
     #endif
 
     DeserializationError error = deserializeJson(doc, _serialJson);
- 
+
     if (error) {
         #if (LANGUAGE == DE)
             Serial.print(F("deserializeJson() fehlgeschlagen: "));
@@ -461,6 +463,11 @@ bool processJsonRequest(char *_serialJson) {
         if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
               String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
             return false;
+        }
+    } else if (doc.containsKey("ftpStatus")) {
+        uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
+        if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
+            Ftp_EnableServer();
         }
     } else if (doc.containsKey("mqtt")) {
         uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
@@ -549,7 +556,7 @@ bool processJsonRequest(char *_serialJson) {
     } else if (doc.containsKey("volume")) {
         Web_SendWebsocketData(0, 50);
     }
-    
+
     return true;
 }
 
@@ -576,7 +583,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         entry["numberOfTracks"] = gPlayProperties.numberOfTracks;
         entry["volume"] = AudioPlayer_GetCurrentVolume();
         if (gPlayProperties.title)  {
-            // show current audio title from id3 metadata 
+            // show current audio title from id3 metadata
             if (gPlayProperties.numberOfTracks > 1) {
                 snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, gPlayProperties.title);
             } else {
@@ -680,7 +687,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
-            explorerFileUploadRingBuffer = xRingbufferCreate(4096, RINGBUF_TYPE_BYTEBUF);
+            explorerFileUploadRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
         }
 
         // Create Queue for receiving a signal from the store task as synchronisation
@@ -717,51 +724,80 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
     }
 }
 
-void explorerHandleFileStorageTask(void *parameter) {
+// feed the watchdog timer without delay
+void feedTheDog(void) {
+    #ifdef SD_MMC_1BIT_MODE
+        // feed dog 0
+        TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+        TIMERG0.wdt_feed=1;                       // feed dog
+        TIMERG0.wdt_wprotect=0;                   // write protect
+        // feed dog 1
+        TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
+        TIMERG1.wdt_feed=1;                       // feed dog
+        TIMERG1.wdt_wprotect=0;                   // write protect
+    #else
+    // Without delay upload-feature is broken for SD via SPI (for whatever reason...)
+        vTaskDelay(portTICK_PERIOD_MS * 11);
+    #endif
+}
 
+void explorerHandleFileStorageTask(void *parameter) {
     File uploadFile;
     size_t item_size;
     size_t bytesOk = 0;
     size_t bytesNok = 0;
+    uint32_t chunkCount = 0;
     uint32_t transferStartTimestamp = millis();
     uint8_t *item;
     uint8_t value = 0;
 
     BaseType_t uploadFileNotification;
     uint32_t uploadFileNotificationValue;
-
     uploadFile = gFSystem.open((char *)parameter, "w");
-
+    size_t maxItems = xRingbufferGetMaxItemSize(explorerFileUploadRingBuffer);
     for (;;) {
-        //esp_task_wdt_reset();
-
-        item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
-        if (item != NULL) {
-            if (!uploadFile.write(item, item_size)) {
-                bytesNok += item_size;
-            } else {
-                bytesOk += item_size;
-            }
-            vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
-        } else {
-            // No data in the buffer, check if all data arrived for the file
+        // check buffer is filled with enough data
+        size_t itemsFree = xRingbufferGetCurFreeSize(explorerFileUploadRingBuffer);
+        item_size = maxItems - itemsFree;
+        if (item_size < (maxItems / 2)) {
+            // not enough data in the buffer, check if all data arrived for the file
             uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
             if (uploadFileNotification == pdPASS) {
+                item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
+                if (item != NULL) {
+                    chunkCount++;
+                    if (!uploadFile.write(item, item_size)) {
+                        bytesNok += item_size;
+                    } else {
+                        bytesOk += item_size;
+                    }
+                    vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+                    vTaskDelay(portTICK_PERIOD_MS * 20);
+                }
                 uploadFile.close();
                 snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
                 Log_Println(Log_Buffer, LOGLEVEL_INFO);
-                snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu\n", bytesOk, bytesNok);
+                snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
                 Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
                 // done exit loop to terminate
                 break;
             }
-            vTaskDelay(portTICK_PERIOD_MS * 20);
+            vTaskDelay(portTICK_PERIOD_MS * 5);
+            continue;
         }
-        #ifdef SD_MMC_1BIT_MODE
-            vTaskDelay(portTICK_PERIOD_MS * 1);
-        #else
-            vTaskDelay(portTICK_PERIOD_MS * 6);
-        #endif
+
+        item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
+        if (item != NULL) {
+            chunkCount++;
+            if (!uploadFile.write(item, item_size)) {
+                bytesNok += item_size;
+                feedTheDog();
+            } else {
+                bytesOk += item_size;
+            }
+            vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+            feedTheDog();
+        }
     }
     // send signal to upload function to terminate
     xQueueSend(explorerFileUploadStatusQueue, &value, 0);
@@ -1142,7 +1178,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     if (!gPlayProperties.coverFileName) {
         // empty image:
-        // request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>"); 
+        // request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
         if (gPlayProperties.playMode == WEBSTREAM) {
             // no cover -> send placeholder icon for webstream (fa-soundcloud)
             snprintf(Log_Buffer, Log_BufferLength, "no cover image for webstream");
@@ -1153,7 +1189,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
             snprintf(Log_Buffer, Log_BufferLength, "no cover image for SD-card audio");
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
             request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d\=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg\>"));
-        }    
+        }
         return;
     }
 
@@ -1164,22 +1200,21 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     char mimeType[255];
     for (uint8_t i = 0u; i < 255; i++) {
         mimeType[i] = coverFile.read();
-        if (uint8_t(mimeType[i]) == 0) 
-            break;  
+        if (uint8_t(mimeType[i]) == 0)
+            break;
     }
     snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, gPlayProperties.coverFileName);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-  
+
     // skip image type (1 Byte)
     coverFile.read();
     // skip description (null terminated)
     for (uint8_t i = 0u; i < 255; i++) {
         if (uint8_t(coverFile.read()) == 0)
-            break;  
+            break;
     }
 
-    int imageSize = gPlayProperties.coverFileSize - coverFile.position();
-
+    int imageSize = gPlayProperties.coverFileSize;
     AsyncWebServerResponse *response = request->beginResponse(
         mimeType,
         imageSize,
@@ -1192,11 +1227,10 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
                     Log_Println("cover image serving finished, close file", LOGLEVEL_DEBUG);
             }
             // do not consume too much cpu time
-            vTaskDelay(portTICK_RATE_MS * 50u);  
+            vTaskDelay(portTICK_RATE_MS * 50u);
             return max(0, bytes); // return 0 even when no bytes were loaded
         }
     );
     response->addHeader("Cache Control","no-cache, must-revalidate");
     request->send(response);
-} 
-
+}

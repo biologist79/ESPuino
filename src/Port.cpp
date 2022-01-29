@@ -240,6 +240,61 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
         }
     }
 
+    // Some channels are configured as output before shutdown in order to avoid unwanted interrupts while ESP32 sleeps
+    void Port_MakeSomeChannelsOutputForShutdown(void) {
+        const uint8_t portBaseValueBitMask = 255;
+        const uint8_t portsToWrite = 2;
+        uint8_t OutputBitMaskAsPerPort[portsToWrite] = { portBaseValueBitMask, portBaseValueBitMask };   // 255 => all channels set to input; [0]: port0, [1]: port1
+
+        #ifdef HP_DETECT    // https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638/33
+            if (HP_DETECT >= 100 && HP_DETECT <= 107) {
+                OutputBitMaskAsPerPort[0] &= ~(1 << Port_ChannelToBit(HP_DETECT));
+                Serial.printf("HPD LO: %u\n", OutputBitMaskAsPerPort[0]);
+            } else if (HP_DETECT >= 108 && HP_DETECT <= 115) {
+                OutputBitMaskAsPerPort[1] &= ~(1 << Port_ChannelToBit(HP_DETECT));
+                Serial.printf("HPD HI: %u\n", OutputBitMaskAsPerPort[0]);
+            }
+        #endif
+
+        // There's no possibility to get current I/O-status from PCA9555. So we just re-set it again for OUTPUT-pins.
+        #ifdef GPIO_PA_EN
+            if (GPIO_PA_EN >= 100 && GPIO_PA_EN <= 107) {
+                OutputBitMaskAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
+                Serial.printf("PA LO: %u\n", OutputBitMaskAsPerPort[0]);
+            } else if (GPIO_PA_EN >= 108 && GPIO_PA_EN <= 115) {
+                OutputBitMaskAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
+                Serial.printf("PA HI: %u\n", OutputBitMaskAsPerPort[0]);
+            }
+        #endif
+
+        #ifdef GPIO_HP_EN
+            if (GPIO_HP_EN >= 100 && GPIO_HP_EN <= 107) {
+                OutputBitMaskAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
+                Serial.printf("HP LO: %u\n", OutputBitMaskAsPerPort[0]);
+            } else if (GPIO_HP_EN >= 108 && GPIO_HP_EN <= 115) {
+                OutputBitMaskAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
+                Serial.printf("HP HI: %u\n", OutputBitMaskAsPerPort[0]);
+            }
+        #endif
+        
+
+        // Only change port-config if necessary (at least bitmask changed from base-default for one port)
+        if ((OutputBitMaskAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskAsPerPort[1] != portBaseValueBitMask)) {
+            i2cBusTwo.beginTransmission(expanderI2cAddress);
+            i2cBusTwo.write(0x06);
+            for (uint8_t i=0; i<portsToWrite; i++) {
+                i2cBusTwo.write(OutputBitMaskAsPerPort[i]);
+            }
+            i2cBusTwo.endTransmission();
+
+            i2cBusTwo.beginTransmission(expanderI2cAddress);
+            i2cBusTwo.write(0x02);  // Pointer to configuration of output-channels
+            i2cBusTwo.write(0x00);  // Set all output-channels (port0) to low as per default (channels configured as input aren't affected by this)
+            i2cBusTwo.write(0x00);  // Set all output-channels (port1) to low as per default (channels configured as input aren't affected by this)
+            i2cBusTwo.endTransmission();
+        }
+    }
+
     // Reads input from port-expander and writes output into global array
     // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
     void Port_ExpanderHandler(void) {
@@ -270,6 +325,7 @@ void Port_Write(const uint8_t _channel, const bool _newState) {
 
     // Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
     void Port_Exit(void) {
+        Port_MakeSomeChannelsOutputForShutdown();
         i2cBusTwo.beginTransmission(expanderI2cAddress);
         for (uint8_t i = 0; i < 2; i++) {
             i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...

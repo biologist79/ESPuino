@@ -3,7 +3,7 @@
 //######################### INFOS ####################################
 /* This is a config-file for ESPuino complete with port-expander PCA9555.
    PCB: tba
-   Infos: tba
+   Infos: Uses ESP32-WROVER, port-expander PCA9555, amp + headphone-amp integrated
    Caveats: None
    Status: Test in progress...
 */
@@ -45,9 +45,10 @@
 
 // Rotary encoder
 #ifdef USEROTARY_ENABLE
-    #define ROTARYENCODER_CLK           35          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
-    #define ROTARYENCODER_DT            34
-    #define ROTARYENCODER_BUTTON        105
+    //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
+    #define ROTARYENCODER_CLK           35          // rotary encoder's CLK
+    #define ROTARYENCODER_DT            34          // rotary encoder's DT
+    #define ROTARYENCODER_BUTTON        105         // rotary encoder's button
 #endif
 
 // Amp enable (optional)

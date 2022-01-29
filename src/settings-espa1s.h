@@ -14,12 +14,21 @@
 
 
     //################## GPIO-configuration ##############################
-    // uSD-card-reader (via SPI - better use SD_MMC instead!)
-    #define SPISD_CS                        13          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+    #ifdef SD_MMC_1BIT_MODE
+        // uSD-card-reader (via SD-MMC 1Bit)
+        //
+        // SD_MMC uses fixed pins
+        //  MOSI    15
+        //  SCK     14
+        //  MISO    2
+    #else
+        // uSD-card-reader (via SPI)
+        #define SPISD_CS                    13          // GPIO for chip select (SD)
+        #ifndef SINGLE_SPI_ENABLE
+            #define SPISD_MOSI              15          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO               2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+        #endif
     #endif
 
     // RFID (via SPI; currently not supported!)
@@ -38,8 +47,8 @@
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        #define ext_IIC_CLK                 23          // i2c-SCL (clock) [14 pin-header]
-        #define ext_IIC_DATA                18          // i2c-SDA (data) [14 pin-header]
+        #define ext_IIC_CLK                 18          // i2c-SCL (clock) [14 pin-header]
+        #define ext_IIC_DATA                 5          // i2c-SDA (data) [14 pin-header]
     #endif
 
     // I2S (DAC)
@@ -56,7 +65,8 @@
 
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
-        #define ROTARYENCODER_CLK            5          // If you want to reverse encoder's direction, just switch GPIOs of CLK with DT (in software or hardware)
+        //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
+        #define ROTARYENCODER_CLK           5           // rotary encoder's CLK
         #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
         #define ROTARYENCODER_BUTTON         4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
