@@ -212,4 +212,6 @@
     const char rfidTagRemoved[] PROGMEM = "RFID-Karte wurde entfernt";
     const char rfidTagReapplied[] PROGMEM = "RFID-Karte erneut aufgelegt";
     const char ftpEnableTooLate[] PROGMEM = "FTP kann nur innerhalb der ersten 30s aktiviert werden. Kinderschutz :-)";
+    const char syncingViaNtp[] PROGMEM = "Synchronisiere Uhrzeit via NTP...";
+    const char sdInfo[] PROGMEM = "SD-Kartengröße / freier Speicherplatz";
 #endif
