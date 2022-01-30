@@ -153,6 +153,7 @@ static void Led_Task(void *parameter) {
         static uint8_t webstreamColor = 0;
         static unsigned long lastSwitchTimestamp = 0;
         static bool redrawProgress = false;
+        static bool pauseToggle = false;
         static uint8_t lastLedBrightness = Led_Brightness;
         static CRGB::HTMLColorCode idleColor;
         static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
@@ -591,8 +592,9 @@ static void Led_Task(void *parameter) {
                     // Single-LED: led indicates between gradient green (beginning) => red (end)
                     // Multiple-LED: growing number of leds indicate between gradient green (beginning) => red (end)
                     if (!gPlayProperties.isWebstream) {
-                        if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
+                        if (gPlayProperties.currentRelPos != lastPos || lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 200) || redrawProgress) {
                             redrawProgress = false;
+                            lastSwitchTimestamp = millis();
                             lastPos = gPlayProperties.currentRelPos;
                             FastLED.clear();
                             if (NUM_LEDS == 1) {
@@ -608,16 +610,26 @@ static void Led_Task(void *parameter) {
                                 }
                             }
                             if (gPlayProperties.pausePlay) {
+                                if (NUM_LEDS > 1) {
+                                    if (pauseToggle) {
+                                        ledPosWebstream = 1;
+                                        pauseToggle = false;
+                                    } else {
+                                        ledPosWebstream = 0;
+                                        pauseToggle = true;
+                                    }
+                                }
+
                                 generalColor = CRGB::Orange;
                                 if (gPlayProperties.currentSpeechActive) {
                                     generalColor = speechColor;
                                 }
 
-                                leds[Led_Address(0)] = generalColor;
+                                leds[Led_Address(0) + ledPosWebstream] = generalColor;
                                 if (NUM_LEDS > 1) {
-                                    leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = generalColor;
-                                    leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = generalColor;
-                                    leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = generalColor;
+                                    leds[(Led_Address(NUM_LEDS) / 4) % NUM_LEDS + ledPosWebstream] = generalColor;
+                                    leds[(Led_Address(NUM_LEDS) / 2) % NUM_LEDS + ledPosWebstream] = generalColor;
+                                    leds[(Led_Address(NUM_LEDS) / 4 * 3) % NUM_LEDS + ledPosWebstream] = generalColor;
                                 }
                                 break;
                             }
