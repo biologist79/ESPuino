@@ -64,6 +64,42 @@ sdcard_type_t SdCard_GetType(void) {
         return cardType;
 }
 
+uint64_t SdCard_GetSize() {
+    #ifdef SD_MMC_1BIT_MODE
+        return SD_MMC.cardSize();
+    #else
+        return SD_MMC.cardSize();
+    #endif
+}
+
+uint64_t SdCard_GetFreeSize(){
+    #ifdef SD_MMC_1BIT_MODE
+        return SD_MMC.cardSize() - SD_MMC.usedBytes();
+    #else
+        return SD_MMC.cardSize();
+    #endif
+}
+
+void SdCard_PrintInfo(){
+    // show SD card type
+    sdcard_type_t cardType = SdCard_GetType();
+    Serial.print(F("SD card type: "));
+    if (cardType == CARD_MMC) {
+        Serial.println(F("MMC"));
+    } else if (cardType == CARD_SD) {
+        Serial.println(F("SDSC"));
+    } else if (cardType == CARD_SDHC) {
+        Serial.println(F("SDHC"));
+    } else {
+        Serial.println(F("UNKNOWN"));
+    }
+    // show SD card size / free space 
+    uint64_t cardSize = SdCard_GetSize() / (1024 * 1024);
+    uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);;
+    Serial.printf("SD card size / free space: %llu MB / %llu MB\n", cardSize, freeSize);
+}
+
+
 // Check if file-type is correct
 bool fileValid(const char *_fileItem) {
     const char ch = '/';

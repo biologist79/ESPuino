@@ -202,23 +202,12 @@ void setup() {
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.print(F(" Rfid-controlled musicplayer\n\n"));
     Serial.printf("%s\n\n", softwareRevision);
-    Serial.println("ESP-IDF version: " + String(esp_get_idf_version()));
+    Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
     printWakeUpReason();
-
-    // show SD card type
-    sdcard_type_t cardType = SdCard_GetType();
-    Serial.print(F("SD card type: "));
-    if (cardType == CARD_MMC) {
-        Serial.println(F("MMC"));
-    } else if (cardType == CARD_SD) {
-        Serial.println(F("SDSC"));
-    } else if (cardType == CARD_SDHC) {
-        Serial.println(F("SDHC"));
-    } else {
-        Serial.println(F("UNKNOWN"));
-    }
+	// print SD card info
+    SdCard_PrintInfo();
 
     Ftp_Init();
     Mqtt_Init();
