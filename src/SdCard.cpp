@@ -68,7 +68,7 @@ uint64_t SdCard_GetSize() {
     #ifdef SD_MMC_1BIT_MODE
         return SD_MMC.cardSize();
     #else
-        return SD_MMC.cardSize();
+        return SD.cardSize();
     #endif
 }
 
@@ -76,7 +76,7 @@ uint64_t SdCard_GetFreeSize(){
     #ifdef SD_MMC_1BIT_MODE
         return SD_MMC.cardSize() - SD_MMC.usedBytes();
     #else
-        return SD_MMC.cardSize();
+        return SD.cardSize() - SD.usedBytes();
     #endif
 }
 
