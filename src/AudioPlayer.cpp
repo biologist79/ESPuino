@@ -645,7 +645,16 @@ void AudioPlayer_Task(void *parameter) {
                     snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     Web_SendWebsocketData(0, 30);
                     #ifdef MQTT_ENABLE
-                        publishMqtt((char *) FPSTR(topicTrackState), buf, false);
+                        static char *utf8Buffer = NULL;
+                        if (utf8Buffer == NULL) {   // Only allocate once from heap
+                            utf8Buffer = (char *) x_malloc(sizeof(char) * 255);
+                        }
+                        if (utf8Buffer != NULL) {
+                            convertAsciiToUtf8(buf, utf8Buffer);
+                            publishMqtt((char *) FPSTR(topicTrackState), utf8Buffer, false);
+                        } else {
+                            publishMqtt((char *) FPSTR(topicTrackState), buf, false);   // If unable to allocate heap use ascii instead of utf8
+                        }
                     #endif
                 }
                 #if (LANGUAGE == DE)
