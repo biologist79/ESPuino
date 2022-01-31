@@ -48,7 +48,6 @@
     //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
     #define ROTARYENCODER_CLK           35          // rotary encoder's CLK
     #define ROTARYENCODER_DT            34          // rotary encoder's DT
-    #define ROTARYENCODER_BUTTON        105         // rotary encoder's button
 #endif
 
 // Amp enable (optional)
@@ -59,6 +58,7 @@
 #define NEXT_BUTTON                     102         // Button 0: GPIO to detect next
 #define PREVIOUS_BUTTON                 103         // Button 1: GPIO to detect previous
 #define PAUSEPLAY_BUTTON                100         // Button 2: GPIO to detect pause/play
+#define ROTARYENCODER_BUTTON            105         // rotary encoder's button
 #define BUTTON_4                        104         // Button 4: unnamed optional button
 #define BUTTON_5                        101         // Button 5: unnamed optional button
 

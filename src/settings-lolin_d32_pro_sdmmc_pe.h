@@ -57,7 +57,6 @@
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
         #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
         #define ROTARYENCODER_DT            39          // 39 = 'VN'; rotary encoder's DT
-        #define ROTARYENCODER_BUTTON        103         // Set to 99 to disable the button; connected to port-expander
     #endif
 
     // Amp enable (optional)
@@ -67,6 +66,7 @@
     #define NEXT_BUTTON                     102         // Next-Button: connected to port-expander
     #define PREVIOUS_BUTTON                 100         // Prev-Button: connected to port-expander
     #define PAUSEPLAY_BUTTON                101         // Pplay-Button: connected to port-expander
+    #define ROTARYENCODER_BUTTON            103         // Set to 99 to disable the button; connected to port-expander
     #define BUTTON_4                        104         // Button 4: connected to port-expander
     #define BUTTON_5                        105         // Button 5: connected to port-expander
 

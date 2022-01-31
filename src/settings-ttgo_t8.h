@@ -52,7 +52,6 @@
     //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
     #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
     #define ROTARYENCODER_DT            33          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-    #define ROTARYENCODER_BUTTON        32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
 #endif
 
 // Amp enable (optional)
@@ -63,6 +62,7 @@
 #define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
 #define PREVIOUS_BUTTON                 36          // Button 1: GPIO to detect previous
 #define PAUSEPLAY_BUTTON                39          // Button 2: GPIO to detect pause/play
+#define ROTARYENCODER_BUTTON            32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
 #define BUTTON_4                        99          // Button 4: unnamed optional button
 #define BUTTON_5                        99          // Button 5: unnamed optional button
 
