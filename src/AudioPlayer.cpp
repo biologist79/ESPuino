@@ -811,7 +811,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     gPlayProperties.startAtFilePos = _lastPlayPos;
     gPlayProperties.currentTrackNumber = _trackLastPlayed;
     char **musicFiles;
-    gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
 
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicLedBrightnessState), 0, false);
@@ -828,19 +827,18 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
     #endif
 
+    // Catch if error occured (e.g. file not found)
     if (musicFiles == NULL) {
         Log_Println((char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
         System_IndicateError();
-        if (!gPlayProperties.pausePlay) {
+        if (gPlayProperties.playMode != NO_PLAYLIST) {
             AudioPlayer_TrackControlToQueueSender(STOP);
-            while (!gPlayProperties.pausePlay) {
-                vTaskDelay(portTICK_RATE_MS * 10u);
-            }
-        } else {
-            gPlayProperties.playMode = NO_PLAYLIST;
         }
         return;
-    } else if (!strcmp(*(musicFiles - 1), "0")) {
+    }
+
+    gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
+    if (!strcmp(*(musicFiles - 1), "0")) {
         Log_Println((char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
         System_IndicateError();
         if (!gPlayProperties.pausePlay) {
