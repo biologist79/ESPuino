@@ -320,8 +320,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option value=\"172\">Nächster Titel</option>\
                                 <option value=\"173\">Erster Titel</option>\
                                 <option value=\"174\">Letzter Titel</option>\
-                                <option value=\"180\">Springe vorwärts</option>\
-                                <option value=\"181\">Springe rückwärts</option>\
+                                <option value=\"180\">Springe vorwärts (n Sekunden)</option>\
+                                <option value=\"181\">Springe rückwärts (n Sekunden)</option>\
                             </select>\
                         </div>\
                     </div>\
