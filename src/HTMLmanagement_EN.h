@@ -284,6 +284,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                             <select class=\"form-control\" id=\"modId\" name=\"modId\">\
                                 <option class=\"placeholder\" disabled selected value=\"\">Select modification</option>\
                                 <option value=\"100\">Keylock</option>\
+                                <option value=\"179\">Schlafe immediately</option>\
                                 <option value=\"101\">Sleep after 15 minutes</option>\
                                 <option value=\"102\">Sleep after 30 minutes</option>\
                                 <option value=\"103\">Sleep after 1 hour</option>\
@@ -298,6 +299,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option value=\"140\">Toggle Bluetooth</option>\
                                 <option value=\"150\">Enable FTP</option>\
                                 <option value=\"0\">Remove assignment</option>\
+                                <option value=\"170\">Toggle Play/Pause</option>\
+                                <option value=\"171\">Previous track</option>\
+                                <option value=\"172\">Next track</option>\
+                                <option value=\"173\">First track</option>\
+                                <option value=\"174\">Last track</option>\
+                                <option value=\"180\">Seek forwards (n seconds)</option>\
+                                <option value=\"181\">Seek backwards (n seconds)</option>\
                             </select>\
                         </div>\
                     </div>\
