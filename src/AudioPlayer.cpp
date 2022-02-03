@@ -407,9 +407,13 @@ void AudioPlayer_Task(void *parameter) {
                             audio->stopSong();
                         }
                     } else {
-                        Log_Println((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
                         trackCommand = 0;
-                        System_IndicateError();
+                        if (gPlayProperties.repeatPlaylist) {   // In loop-mode jump to first track if end was reached
+                            AudioPlayer_TrackControlToQueueSender(FIRSTTRACK);
+                        } else {
+                            Log_Println((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
+                            System_IndicateError();
+                        }
                         continue;
                     }
                     trackCommand = 0;
@@ -481,21 +485,15 @@ void AudioPlayer_Task(void *parameter) {
                         audio->pauseResume();
                         gPlayProperties.pausePlay = false;
                     }
-                    if (gPlayProperties.currentTrackNumber > 0) {
-                        gPlayProperties.currentTrackNumber = 0;
-                        if (gPlayProperties.saveLastPlayPosition) {
-                            AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-                            Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
-                        }
-                        Log_Println((char *) FPSTR(cmndFirstTrack), LOGLEVEL_INFO);
-                        if (!gPlayProperties.playlistFinished) {
-                            audio->stopSong();
-                        }
-                    } else {
-                        Log_Println((char *) FPSTR(firstTrackAlreadyActive), LOGLEVEL_NOTICE);
-                        System_IndicateError();
-                        trackCommand = 0;
-                        continue;
+
+                    gPlayProperties.currentTrackNumber = 0;
+                    if (gPlayProperties.saveLastPlayPosition) {
+                        AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+                        Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+                    }
+                    Log_Println((char *) FPSTR(cmndFirstTrack), LOGLEVEL_INFO);
+                    if (!gPlayProperties.playlistFinished) {
+                        audio->stopSong();
                     }
                     trackCommand = 0;
                     break;
@@ -890,6 +888,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
         case SINGLE_TRACK_LOOP: {
             gPlayProperties.repeatCurrentTrack = true;
+            gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
             #ifdef MQTT_ENABLE
                 publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
