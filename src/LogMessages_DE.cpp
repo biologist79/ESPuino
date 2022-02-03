@@ -45,6 +45,7 @@
     const char cmndLastTrack[] PROGMEM = "Kommando: Letzter Titel von Playlist";
     const char cmndDoesNotExist[] PROGMEM = "Dieses Kommando existiert nicht.";
     const char lastTrackAlreadyActive[] PROGMEM = "Es wird bereits der letzte Track gespielt.";
+    const char firstTrackAlreadyActive[] PROGMEM = "Es wird bereits der erste Track gespielt.";
     const char trackStartAudiobook[] PROGMEM = "Titel wird im Hörspielmodus von vorne gespielt.";
     const char trackStart[] PROGMEM = "Titel wird von vorne gespielt.";
     const char trackChangeWebstream[] PROGMEM = "Im Webradio-Modus kann nicht an den Anfang gesprungen werden.";

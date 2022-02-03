@@ -45,6 +45,7 @@
     const char cmndLastTrack[] PROGMEM = "Command: last track of playlist";
     const char cmndDoesNotExist[] PROGMEM = "Command requested does not exist.";
     const char lastTrackAlreadyActive[] PROGMEM = "Already playing last track.";
+    const char firstTrackAlreadyActive[] PROGMEM = "Already playing first track.";
     const char trackStartAudiobook[] PROGMEM = "Starting track in playmode from the very beginning.";
     const char trackStart[] PROGMEM = "Starting track from the very beginning.";
     const char trackChangeWebstream[] PROGMEM = "Playing from the very beginning is not possible while webradio-mode is active.";

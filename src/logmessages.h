@@ -41,6 +41,7 @@ extern const char cmndFirstTrack[];
 extern const char cmndLastTrack[];
 extern const char cmndDoesNotExist[];
 extern const char lastTrackAlreadyActive[];
+extern const char firstTrackAlreadyActive[];
 extern const char trackStartAudiobook[];
 extern const char trackStart[];
 extern const char trackChangeWebstream[];
