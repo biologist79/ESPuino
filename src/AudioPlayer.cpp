@@ -375,9 +375,9 @@ void AudioPlayer_Task(void *parameter) {
                     trackCommand = 0;
                     Log_Println((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
                     if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-                        snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(trackPausedAtPos), audio->getFilePos());
+                        snprintf(Log_Buffer, Log_BufferLength, "%s: %u (%u)", (char *) FPSTR(trackPausedAtPos), audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
                         Log_Println(Log_Buffer, LOGLEVEL_INFO);
-                        AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+                        AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
                     }
                     gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
                     Web_SendWebsocketData(0, 30);
@@ -734,9 +734,11 @@ void AudioPlayer_Task(void *parameter) {
 
         // Calculate relative position in file (for neopixel) for SD-card-mode
         if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
-            double fp = (double)audio->getFilePos() / (double)audio->getFileSize();
-            if (millis() % 100 == 0) {
-                gPlayProperties.currentRelPos = fp * 100;
+            if (millis() % 20 == 0) {   // Keep it simple
+                if (!gPlayProperties.pausePlay) {   // To progress necessary when paused
+                    double fp = (double)(audio->getFilePos() - audio->inBufferFilled()) / (double)audio->getFileSize();
+                    gPlayProperties.currentRelPos = fp * 100;
+                }
             }
         } else {
             gPlayProperties.currentRelPos = 0;
