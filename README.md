@@ -1,41 +1,32 @@
 # ESPuino - rfid-based musiccontroller based on ESP32 with I2S-DAC-support
 
-News:
-I started this project back in october 2019 and never expected it to become that large. The project grew and grew - so did main.cpp. So it was about time to have it split into modules. This was done in march/april. After spending some time on tests, improvements and implementing new features, refactoring-branch will is NOW the new master whereas the previous master a new branch named [old](https://github.com/biologist79/ESPuino/tree/old). It will be kept as reference but won't by maintained anymore. Please be advised that moving to refactoring-branch will re-arrange ESP32's partition. All things to know are described [here](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510) in german language. Development of the new master is documented [here](https://forum.espuino.de/t/refactoring/415). Have fun and don't hesitate to contact me in case of problems/questions.
-
 ## Forum
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
 * DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Build status
 ![build workflow](https://github.com/biologist79/ESPuino/actions/workflows/build.yml/badge.svg)
 
-## IMPORTANT!!!
-* Partition-layout for ESP32 is changed along with this branch. This step was necessary in order to resize (enlarge) the memory-region where especially the assignments for the RFID-tags are saved. As all permanent settings (e.g. WiFi-settings) are saved there too, it's necessary to re-enter WiFi-credentials after update. But the most important thing is to recover the assignments for the RFID-tags. Please consult my [migration-document](https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510).
 ## Changelog
 Last three events:
+* 29.01.2022: Directive `INVERT_POWER` can now be used it invert power-GPIO. And port-expander can now be used for power.
 * 13.11.2021: Command `CMD_TELL_IP_ADDRESS` can now be assigned to buttons in order to get information about the currently used IP-address via speech.
 * 28.10.2021: Added feature `SAVE_PLAYPOS_WHEN_RFID_CHANGE`. When enabled last playposition for audiobook is saved when new RFID-tag is applied. Without having this feature enabled, it's necessary to press pause first, in order to do this manually.
-* 27.10.2021: Added feature `SAVE_PLAYPOS_BEFORE_SHUTDOWN`. When enabled last playposition for audiobook is saved when shutdown is initiated. Without having this feature enabled, it's necessary to press pause first, in order to do this manually.
+
 ## Known bugs
 * Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
-* For ESPuinos making use of SPI for SD (instead of SD_MMC), there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. I'm about to [investigate...](https://forum.espuino.de/t/probleme-beim-webtransfer/542)
+* For ESPuinos making use of SPI for SD, there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Doesn't seem to be fixable. Solution: use SD_MMC instead.
 ## ESPuino - what's that?
 The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
 
-The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base. Having said this mp3-decoding is done in software with a dedicated µSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). Hopefully, not only in theory, other DACs that support I2S can be used as well.
+The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base. Having said this mp3-decoding is done in software with a dedicated µSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb #1](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) and [headphone-pcb #2](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-uda1334-pj306b/705). Hopefully, not only in theory, other DACs that support I2S can be used as well.
 
 ## Hardware-setup
-The heart of my project is an ESP32 on a [Wemos Lolin32 development-board](https://www.ebay.de/itm/4MB-Flash-WEMOS-Lolin32-V1-0-0-WIFI-Bluetooth-Card-Based-ESP-32-ESP-WROOM-32/162716855489). If ordered in China (Aliexpress, eBay e.g.) it's pretty cheap (around 4€ => ok meanwhile price has doubled...) but even in Europe it's affordable. Make sure to install the drivers for the USB/Serial-chip (CP2102 e.g.). But probably it's better to use its big brother (which has battery-measurement, µSD-slot, PSRAM already included): [Wemos Lolin D32 pro](https://de.aliexpress.com/item/32883116057.html).
-* [MAX98357A (like Adafruit's)](https://de.aliexpress.com/item/32999952454.html)
-* [µSD-card-reader; 3.3V only; supports SPI + SD-MMC](https://www.ebay.de/itm/183106778276) or [cheaper](https://de.aliexpress.com/item/4000899753727.html)
-* [RFID-reader RC-522](https://www.amazon.de/AZDelivery-Reader-Arduino-Raspberry-gratis/dp/B074S8MRQ7)
-* [RFID-reader PN5180](https://de.aliexpress.com/item/4001278551831.html)
-* [RFID-tags](https://www.amazon.de/AZDelivery-Keycard-56MHz-Schlüsselkarte-Karte/dp/B07TVJPTM7)
-* [Neopixel-ring](https://de.aliexpress.com/item/32673883645.html)
-* [Rotary Encoder](https://de.aliexpress.com/item/33041814942.html)
-* [Buttons](https://de.aliexpress.com/item/32896285438.html)
-* [Speaker](https://www.visaton.de/de/produkte/chassiszubehoer/breitband-systeme/fr-7-4-ohm)
-* µSD-card: doesn't have to be a super-fast one; µC is limiting the throughput. Tested 32GB without any problems.
+Several plattforms are available:
+* [Lolin D32 pro + PN5180/RC522 + port-expander (SMD)](https://forum.espuino.de/t/espuino-minid32pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+* [Lolin32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
+* [Lolin D32 pro + SD-SPI + RC522 (obsolete) (THT)](https://forum.espuino.de/t/lolin32-d32-pro-mit-rc522-als-rfid-leser/317)
+* [NodeMCU ESP32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
+* And some more... please have a look [here](https://forum.espuino.de/c/hardware/pcbs/11).
 
 ## Getting Started
 * [Much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
@@ -93,126 +84,6 @@ That's why my design's focus is on 3.3 V. If you want to use 5 V - do so, but be
 
 ## Wiring (general)
 I really really recommend to solder all the stuff onto a PCB as wiring the components with jumperwires on a breadboard can lead to many problems. Especially for the interconnect between µC and µSD-card-reader make sure to use short wires (like 10cm or so)! So be aware of this!
-Have a look at the [PCB-folder](https://github.com/biologist79/ESPuino/tree/master/PCBs) and the [forum](https://forum.espuino.de/c/hardware/pcbs/11). I provided PCBs for a few types of develboards (and others will follow...).
-Important: you can easily connect another I2S-DACs by just connecting them in parallel to the I2S-pins (DIN, BCLK, LRC). This is true for example if you plan to integrate a [line/headphone-pcb](https://www.adafruit.com/product/3678). In general, this runs fine. But unfortunately especially this board lacks of a headphone jack, that takes note if a plug is inserted or not. Best way is to use a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin that is pulled to GND, if there's no plug and vice versa. Using for example a MOSFET-circuit, this GND-signal can be inverted in a way, that MAX98357.SD is pulled down to GND if there's a plug. Doing that will mute MAX98537a and so turn off the speaker immediately if there's a plug and vice versa. Have a look at the PCB-folder in order to view the detailed solution. Here's an example for such a [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) that makes use of GND.<br />
-
-
-## Wiring (2 SPI-instances: RC522 + SPI-SD + 3 buttons + rotary-encoder)
-Uses two SPI-instances. The first one for the RFID-reader and the second for SD-card-reader. This is also the [setup, I personally use primarily](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32).<br />
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
-| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | SD-reader             | GND    |                                                              |
-| 15            | SD-reader             | CS     |                                                              |
-| 13            | SD-reader             | MOSI   |                                                              |
-| 16            | SD-reader             | MISO   |                                                              |
-| 14            | SD-reader             | SCK    |                                                              |
-| 3.3 V         | RFID-reader           | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | RFID-reader           | GND    |                                                              |
-| 21            | RFID-reader           | CS/SDA |                                                              |
-| 23            | RFID-reader           | MOSI   |                                                              |
-| 19            | RFID-reader           | MISO   |                                                              |
-| 18            | RFID-reader           | SCK    |                                                              |
-| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | MAX98357              | GND    |                                                              |
-| 25            | MAX98357              | DIN    |                                                              |
-| 27            | MAX98357              | BCLK   |                                                              |
-| 26            | MAX98357              | LRC    |                                                              |
-| ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
-| 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
-| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
-| 32            | Rotary encoder        | BUTTON |                                                              |
-| 3.3 V         | Rotary encoder        | +      |                                                              |
-| GND           | Rotary encoder        | GND    |                                                              |
-| 4             | Button (next)         |        |                                                              |
-| GND           | Button (next)         |        |                                                              |
-| 2             | Button (previous)     |        |                                                              |
-| GND           | Button (previous)     |        |                                                              |
-| 5             | Button (pause/play)   |        |                                                              |
-| GND           | Button (pause/play)   |        |                                                              |
-| 3.3 V         | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | Neopixel              | G      |                                                              |
-| 12            | Neopixel              | DI     |                                                              |
-| 17            | N-channel Mosfet      | Gate   |                                                              |
-| 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
-| 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
-
-
-Optionally, GPIO 17 can be used to drive a Mosfet-circuit in order to switch off peripherals (SD, Neopixel, RFID and MAX98357a) if ESP32 is in deepsleep. Please refer the schematics for my [Lolin32-PCB](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino-Lolin32-Schematics.pdf) for further informations. If you need further informations on transistor-circuits visit this [website](https://dl6gl.de/schalten-mit-transistoren.html). <br />
-In general I recommend using a [µSD-card-reader](https://www.ebay.de/itm/183106778276) that can be run solely with 3.3V (doesn't have a voltage-regulator - don't use it with 5V!).
-
-## Wiring (SD-card in 1 Bit SD-MMC mode) different to above
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
-| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| --            | SD-reader             | CS     | no CS required                                               |
-| 15            | SD-reader             | MOSI   |                                                              |
-| 2             | SD-reader             | MISO   | make sure there's no [hardware-pullup](https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Pullup-removal.jpg) for MISO |
-| 14            | SD-reader             | SCK    |                                                              |
-
-Make sure to enable `SD_MMC_1BIT_MODE` if you want to use this feature. Don't(!) enable `SINGLE_SPI_ENABLE`. SD-MMC-mode requires these fixed PINs listed above. You can find a good comparison of different SD-card-modes here: (https://www.instructables.com/Select-SD-Interface-for-ESP32/).
-Advice: Double check that above PINs are not used elsewhere (e.g. GPIO2 is used as PREVIOUS_BUTTON as per default in settings.h).
-
-## Wiring (1 SPI-instance: RC522 + SD + 3 buttons + rotary-encoder) [EXPERIMENTAL, maybe not working!]
-Basically the same as using 2 SPI-instances but...
-In this case RFID-reader + SD-reader share SPI's SCK, MISO and MOSI. But make sure to use different CS-pins. Have to admit I had problems to get this running. Seems to be connected properly, but nothing happens when an RFID-tag is applied. Maybe anybody else wants to point out :-)
-
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                      |
-| ------------- | --------------------- | ------ | ------------------------------------------------------------ |
-| 3.3 (5) V     | SD-reader             | VCC    | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | SD-reader             | GND    |                                                              |
-| 15            | SD-reader             | CS     | Don't share with RFID!                                       |
-| 3.3 V         | RFID-reader           | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | RFID-reader           | GND    |                                                              |
-| 21            | RFID-reader           | CS/SDA | Don't share with SD!                                         |
-| 23            | RFID+SD-reader        | MOSI   |                                                              |
-| 19            | RFID+SD-reader        | MISO   |                                                              |
-| 18            | RFID+SD-reader        | SCK    |                                                              |
-| 5 / 3.3 V     | MAX98357              | VIN    | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | MAX98357              | GND    |                                                              |
-| 25            | MAX98357              | DIN    |                                                              |
-| 27            | MAX98357              | BCLK   |                                                              |
-| 26            | MAX98357              | LRC    |                                                              |
-| ---           | MAX98357              | SD     | Info: if pulled down to GND amp will turn off                |
-| 34            | Rotary encoder        | CLK    | Change CLK with DT if you want to change the direction of RE |
-| 35            | Rotary encoder        | DT     | Change CLK with DT if you want to change the direction of RE |
-| 32            | Rotary encoder        | BUTTON |                                                              |
-| 3.3 V         | Rotary encoder        | +      |                                                              |
-| GND           | Rotary encoder        | GND    |                                                              |
-| 4             | Button (next)         |        |                                                              |
-| GND           | Button (next)         |        |                                                              |
-| 2             | Button (previous)     |        |                                                              |
-| GND           | Button (previous)     |        |                                                              |
-| 5             | Button (pause/play)   |        |                                                              |
-| GND           | Button (pause/play)   |        |                                                              |
-| 5 / 3.3 V     | Neopixel              | V      | Connect to p-channel MOSFET for power-saving when µC is off  |
-| GND           | Neopixel              | G      |                                                              |
-| 12            | Neopixel              | DI     |                                                              |
-| 17            | N-channel Mosfet      | Gate   |                                                              |
-| 33            | Voltage-divider / BAT |        | Optional: voltage-divider to monitor battery-voltage         |
-| 22            | Headphone jack        |        | Optional: if pulled to ground, headphone-volume is set       |
-
-
-## Wiring (PN5180 instead of MFRC522) different to above
-PN5180-reader needs at least two more GPIOs: RESET and BUSY. Double check pin-conflicts! `RFID_READER_TYPE_PN5180` needs to be enabled to use this feature. Make sure to disable `RFID_READER_TYPE_MFRC522` if doing so!
-You can enable low power card-detection with `PN5180_ENABLE_LPCD`, but this needs another GPIO for IRQ. With low power card detection (LPCD) you can wake-up the ESP32 from deep-sleep just by applying a card to the reader. But: you need a PN5180-firmware >= 4.0 to use this feature. Most china-boards come with an older firmware, so be advised to flash them to latest firmware using this [project](https://github.com/abidxraihan/PN5180_Updater_ESP32). There's a PCB available for PN5180: [Lolin32 + SD_MMC + PN5180](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32%20SD_MMC%20PN5180).
-
-| ESP32 (GPIO)  | Hardware              | Pin    | Comment                                                           |
-| ------------- | --------------------- | ------ | ----------------------------------------------------------------- |
-| 3.3 V         | PN5180 RFID-reader    | 3.3V   | Connect to p-channel MOSFET for power-saving when µC is off       |
-| 3.3 V         |                       | 3.3V   | For low power card detection mode (LPCD) connect directly to 3.3V |
-| 5 / 3.3 V     | PN5180 RFID-reader    | 5V     | Don't forget to connect this pin the same way as 3.3V             |
-| GND           | PN5180 RFID-reader    | GND    |                                                                   |
-| 21            | PN5180 RFID-reader    | CS/SDA | Same as MFRC522. Don't share with SD!                             |
-| 23            | PN5180 RFID-reader    | MOSI   | Same as MFRC522                                                   |
-| 19            | PN5180 RFID-reader    | MISO   | Same as MFRC522                                                   |
-| 18            | PN5180 RFID-reader    | SCK    | Same as MFRC522                                                   |
-| 16            | PN5180 RFID-reader    | BUSY   | be aware of SD MISO if running in SPI mode                        |
-| 22            | PN5180 RFID-reader    | RST    | be aware of Headphone jack PIN                                    |
-| 39            | PN5180 RFID-reader    | IRQ    | optional, used for low power card detection (LPCD)                |
-
-## Wiring (custom) / different pinout
-When using a develboard with SD-card-reader already integrated (Lolin D32 Pro, several TTGO-boards), the pinouts described above my not fit. Feel free to change them according your needs. Additionaly some boards may use one or some of the GPIOs I used for their internal purposes and that reason for are maybe not exposed via pin-headers. However, having them exposed doesn't mean they can be used without limits. This is because some GPIOs have to be logical LOW or HIGH at start/boot for example and this is probably not the case when connecting stuff to it. Feel free to adjust the GPIOs proposed by me (but be adviced it could take a while to get it running). If you encounter problems please refer the board's manual first. <br />
-[Here](https://github.com/biologist79/ESPuino/tree/master/Hardware-Plaforms/ESP32-A1S-Audiokit) I described a solution for a board with many GPIOs used internally and a very limited number of GPIOs exposed. That's why I had to use different SPI-GPIOs for RFID as well. ESPuino supports this board and there's a [discussion](https://forum.espuino.de/t/esp32-audio-kit-esp32-a1s/106).
 
 ## WiFi
 WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled. There are two ways to do that:
