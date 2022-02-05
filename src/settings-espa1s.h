@@ -68,13 +68,13 @@
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
         #define ROTARYENCODER_CLK           5           // rotary encoder's CLK
         #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-        #define ROTARYENCODER_BUTTON         4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                 99          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
+    #define ROTARYENCODER_BUTTON             4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
@@ -91,6 +91,9 @@
 
     // Power-control
     #define POWER                           19          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #ifdef POWER
+        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
+    #endif
 
     // (optional) Neopixel
     #if defined(NEOPIXEL_ENABLE)

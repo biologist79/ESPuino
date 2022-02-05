@@ -363,7 +363,7 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }   
+                    }
                     Web_SendWebsocketData(0, 30);
                     // delete cover image
 					gPlayProperties.coverFileName = NULL;
@@ -375,9 +375,9 @@ void AudioPlayer_Task(void *parameter) {
                     trackCommand = 0;
                     Log_Println((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
                     if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-                        snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(trackPausedAtPos), audio->getFilePos());
+                        snprintf(Log_Buffer, Log_BufferLength, "%s: %u (%u)", (char *) FPSTR(trackPausedAtPos), audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
                         Log_Println(Log_Buffer, LOGLEVEL_INFO);
-                        AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+                        AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
                     }
                     gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
                     Web_SendWebsocketData(0, 30);
@@ -458,7 +458,7 @@ void AudioPlayer_Task(void *parameter) {
                         if (gPlayProperties.title) {
                             free(gPlayProperties.title);
                             gPlayProperties.title = NULL;
-                        }   
+                        }
                         // delete cover image
 						gPlayProperties.coverFileName = NULL;
                         Web_SendWebsocketData(0, 40);
@@ -598,7 +598,7 @@ void AudioPlayer_Task(void *parameter) {
                 if (gPlayProperties.title) {
                     free(gPlayProperties.title);
                     gPlayProperties.title = NULL;
-                }    
+                }
                 // delete cover image
                 gPlayProperties.coverFileName = NULL;
                 Web_SendWebsocketData(0, 40);
@@ -617,7 +617,7 @@ void AudioPlayer_Task(void *parameter) {
                     if (gPlayProperties.title) {
                         free(gPlayProperties.title);
                         gPlayProperties.title = NULL;
-                    }    
+                    }
                     // delete cover image
                     gPlayProperties.coverFileName = NULL;
                     Web_SendWebsocketData(0, 40);
@@ -645,7 +645,16 @@ void AudioPlayer_Task(void *parameter) {
                     snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     Web_SendWebsocketData(0, 30);
                     #ifdef MQTT_ENABLE
-                        publishMqtt((char *) FPSTR(topicTrackState), buf, false);
+                        static char *utf8Buffer = NULL;
+                        if (utf8Buffer == NULL) {   // Only allocate once from heap
+                            utf8Buffer = (char *) x_malloc(sizeof(char) * 255);
+                        }
+                        if (utf8Buffer != NULL) {
+                            convertAsciiToUtf8(buf, utf8Buffer);
+                            publishMqtt((char *) FPSTR(topicTrackState), utf8Buffer, false);
+                        } else {
+                            publishMqtt((char *) FPSTR(topicTrackState), buf, false);   // If unable to allocate heap use ascii instead of utf8
+                        }
                     #endif
                 }
                 #if (LANGUAGE == DE)
@@ -725,9 +734,11 @@ void AudioPlayer_Task(void *parameter) {
 
         // Calculate relative position in file (for neopixel) for SD-card-mode
         if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
-            double fp = (double)audio->getFilePos() / (double)audio->getFileSize();
-            if (millis() % 100 == 0) {
-                gPlayProperties.currentRelPos = fp * 100;
+            if (millis() % 20 == 0) {   // Keep it simple
+                if (!gPlayProperties.pausePlay) {   // To progress necessary when paused
+                    double fp = (double)(audio->getFilePos() - audio->inBufferFilled()) / (double)audio->getFileSize();
+                    gPlayProperties.currentRelPos = fp * 100;
+                }
             }
         } else {
             gPlayProperties.currentRelPos = 0;
@@ -811,7 +822,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     gPlayProperties.startAtFilePos = _lastPlayPos;
     gPlayProperties.currentTrackNumber = _trackLastPlayed;
     char **musicFiles;
-    gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
 
     #ifdef MQTT_ENABLE
         publishMqtt((char *) FPSTR(topicLedBrightnessState), 0, false);
@@ -828,19 +838,18 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
     #endif
 
+    // Catch if error occured (e.g. file not found)
     if (musicFiles == NULL) {
         Log_Println((char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
         System_IndicateError();
-        if (!gPlayProperties.pausePlay) {
+        if (gPlayProperties.playMode != NO_PLAYLIST) {
             AudioPlayer_TrackControlToQueueSender(STOP);
-            while (!gPlayProperties.pausePlay) {
-                vTaskDelay(portTICK_RATE_MS * 10u);
-            }
-        } else {
-            gPlayProperties.playMode = NO_PLAYLIST;
         }
         return;
-    } else if (!strcmp(*(musicFiles - 1), "0")) {
+    }
+
+    gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
+    if (!strcmp(*(musicFiles - 1), "0")) {
         Log_Println((char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
         System_IndicateError();
         if (!gPlayProperties.pausePlay) {
@@ -1035,6 +1044,15 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
     Log_Println(prefBuf, LOGLEVEL_INFO);
     Led_SetPause(false);
     return gPrefsRfid.putString(_rfidCardId, prefBuf);
+
+    // Examples for serialized RFID-actions that are stored in NVS
+    // #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
+    // Please note: There's no need to do this manually (unless you want to)
+    /*gPrefsRfid.putString("215123125075", "#/mp3/Kinderlieder#0#6#0");
+    gPrefsRfid.putString("169239075184", "#http://radio.koennmer.net/evosonic.mp3#0#8#0");
+    gPrefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
+    gPrefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
+    gPrefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
 }
 
 // Adds webstream to playlist; same like SdCard_ReturnPlaylist() but always only one entry
@@ -1104,11 +1122,11 @@ void audio_id3data(const char *info) { //id3 metadata
         // copy title
         if (!gPlayProperties.title) {
             gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-        }  
+        }
         strncpy(gPlayProperties.title, info + 6, 255);
         // notify web ui
         Web_SendWebsocketData(0, 30);
-    }    
+    }
 }
 
 void audio_eof_mp3(const char *info) { //end of file
@@ -1170,10 +1188,10 @@ void audio_lasthost(const char *info) { //stream URL played
 }
 
 // id3 tag: save cover image
-void audio_id3image(File& file, const size_t pos, const size_t size) { 
+void audio_id3image(File& file, const size_t pos, const size_t size) {
     // save cover image file and position/size for later use
-    gPlayProperties.coverFileName = (char *)(file.name()); 
-    gPlayProperties.coverFilePos = pos;                         
+    gPlayProperties.coverFileName = (char *)(file.name());
+    gPlayProperties.coverFilePos = pos;
     gPlayProperties.coverFileSize = size;
     // websocket notify cover image has changed
     Web_SendWebsocketData(0, 40);

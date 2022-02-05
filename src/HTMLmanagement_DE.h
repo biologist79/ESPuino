@@ -1,4 +1,4 @@
-static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
+static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html lang=\"de\">\
 <head>\
     <title>ESPuino-Konfiguration</title>\
@@ -300,6 +300,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
                             <select class=\"form-control\" id=\"modId\" name=\"modId\">\
                                 <option class=\"placeholder\" disabled selected value=\"\">Modifikation auswählen</option>\
                                 <option value=\"100\">Tastensperre</option>\
+                                <option value=\"179\">Schlafe sofort</option>\
                                 <option value=\"101\">Schlafen nach 15 Minuten</option>\
                                 <option value=\"102\">Schlafen nach 30 Minuten</option>\
                                 <option value=\"103\">Schlafen nach 1 Stunde</option>\
@@ -314,6 +315,13 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
                                 <option value=\"140\">Aktiviere/deaktiviere Bluetooth</option>\
                                 <option value=\"150\">Aktiviere FTP</option>\
                                 <option value=\"0\">Lösche Zuordnung</option>\
+                                <option value=\"170\">Play/Pause</option>\
+                                <option value=\"171\">Vorheriger Titel</option>\
+                                <option value=\"172\">Nächster Titel</option>\
+                                <option value=\"173\">Erster Titel</option>\
+                                <option value=\"174\">Letzter Titel</option>\
+                                <option value=\"180\">Springe vorwärts (n Sekunden)</option>\
+                                <option value=\"181\">Springe rückwärts (n Sekunden)</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -918,12 +926,12 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 							action: function(x) {\
 								var playMode = 1;\
                                 if (node.data.directory) {\
-                                    playMode = 5; \
+                                    playMode = 5;\
                                 } else {\
                                     if ((/\\.(m3u|M3U)$/i).test(node.data.path)) {\
                                         playMode = 11;\
                                     }\
-                                }                                \
+                                }\
 								postData(\"/exploreraudio?path=\" + node.data.path + \"&playmode=\" + playMode);\
 							}\
 						};\
@@ -996,7 +1004,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
 \
     var socket = undefined;\
     var tm;\
-    var volumeSlider = new Slider(\"#setVolume\"); \
+    var volumeSlider = new Slider(\"#setVolume\");\
     document.getElementById('setVolume').remove();\
 \
     function connect() {\
@@ -1036,10 +1044,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
                   pong();\
               }\
             } if (\"volume\" in socketMsg) {\
-                volumeSlider.setValue(parseInt(socketMsg.volume));        \
+                volumeSlider.setValue(parseInt(socketMsg.volume));\
             } if (\"trackinfo\" in socketMsg) {\
                 document.getElementById('track').innerHTML = socketMsg.trackinfo.name;\
-                \
+\
                 var btnTrackPlayPause = document.getElementById('nav-btn-play');\
                 if (socketMsg.trackinfo.pausePlay) {\
                     btnTrackPlayPause.innerHTML = '<i id=\"ico-play-pause\" class=\"fas fa-lg fa-play\")></i>';\
@@ -1067,7 +1075,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html> \
                 }\
             } if (\"coverimg\" in socketMsg) {\
                 document.getElementById('coverimg').src = \"/cover?\" + new Date().getTime();\
-          }  \
+          }\
       };\
     }\
 \

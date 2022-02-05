@@ -26,12 +26,10 @@ bool gButtonInitComplete = false;
 #elif (PAUSEPLAY_BUTTON >= 100 && PAUSEPLAY_BUTTON <= 115)
     #define EXPANDER_2_ENABLE
 #endif
-#ifdef USEROTARY_ENABLE
-    #if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= 39)
-        #define BUTTON_3_ENABLE
-    #elif (ROTARYENCODER_BUTTON >= 100 && ROTARYENCODER_BUTTON <= 115)
-        #define EXPANDER_3_ENABLE
-    #endif
+#if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= 39)
+    #define BUTTON_3_ENABLE
+#elif (ROTARYENCODER_BUTTON >= 100 && ROTARYENCODER_BUTTON <= 115)
+    #define EXPANDER_3_ENABLE
 #endif
 #if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
     #define BUTTON_4_ENABLE
@@ -57,7 +55,7 @@ static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
-    #if (WAKEUP_BUTTON <= 39)
+    #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= 39)
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0);
     #endif
 
@@ -96,22 +94,34 @@ void Button_Init() {
 
     // Activate internal pullups for all enabled buttons
     #ifdef BUTTON_0_ENABLE
-        pinMode(NEXT_BUTTON, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(NEXT_BUTTON, INPUT_PULLUP);
+        #endif
     #endif
     #ifdef BUTTON_1_ENABLE
-        pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);     // Don't call for port-expander
+        #endif
     #endif
     #ifdef BUTTON_2_ENABLE
-        pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
+        #endif
     #endif
     #ifdef BUTTON_3_ENABLE
-        pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
+        #endif
     #endif
     #ifdef BUTTON_4_ENABLE
-        pinMode(BUTTON_4, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(BUTTON_4, INPUT_PULLUP);
+        #endif
     #endif
     #ifdef BUTTON_5_ENABLE
-        pinMode(BUTTON_5, INPUT_PULLUP);
+        #if (POWER >= 0 && POWER <= 39)
+            pinMode(BUTTON_5, INPUT_PULLUP);
+        #endif
     #endif
 
     // Create 1000Hz-HW-Timer (currently only used for buttons)
