@@ -95,7 +95,14 @@ void Wlan_Cyclic(void) {
                 snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
             #endif
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-        } else { // Starts AP if WiFi-connect wasn't successful
+            // get current time and date
+            Log_Println((char *) FPSTR(syncingViaNtp), LOGLEVEL_NOTICE);
+            // timezone: Berlin
+            long gmtOffset_sec = 3600;
+            int daylightOffset_sec = 3600;
+	        configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
+            } else {
+			// Starts AP if WiFi-connect wasn't successful
             accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
 
