@@ -25,7 +25,6 @@ typedef struct { // Bit field
     bool tellIpAddress:                 1;      // If true current IP-address is spoken
     bool currentSpeechActive:           1;      // If speech-play is active
     bool lastSpeechActive:              1;      // If speech-play was active
-    char *coverFileName;                        // current coverfile
     size_t coverFilePos;                        // current cover file position
     size_t coverFileSize;                       // current cover file size
 } playProps;
