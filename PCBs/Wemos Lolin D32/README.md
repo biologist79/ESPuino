@@ -1,5 +1,7 @@
 # ESPuino-PCB based on Wemos' Lolin D32
 
+## IMPORTANT
+It's not recommended to use this one anymore for new ESPuinos as there's a bug with file-writings being interrupted with SD via SPI (reason unknown). I'll update the design in order to make use of SD_MMC.
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 53 x 81mm
