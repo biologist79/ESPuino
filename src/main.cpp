@@ -100,32 +100,6 @@
     }
 #endif
 
-// Print the wake-up reason why ESP32 is awake now
-void printWakeUpReason() {
-    esp_sleep_wakeup_cause_t wakeup_reason;
-    wakeup_reason = esp_sleep_get_wakeup_cause();
-
-    switch (wakeup_reason) {
-        case ESP_SLEEP_WAKEUP_EXT0:
-            Serial.println(F("Wakeup caused by push button"));
-            break;
-        case ESP_SLEEP_WAKEUP_EXT1:
-            Serial.println(F("Wakeup caused by low power card detection"));
-            break;
-        case ESP_SLEEP_WAKEUP_TIMER:
-            Serial.println(F("Wakeup caused by timer"));
-            break;
-        case ESP_SLEEP_WAKEUP_TOUCHPAD:
-            Serial.println(F("Wakeup caused by touchpad"));
-            break;
-        case ESP_SLEEP_WAKEUP_ULP:
-            Serial.println(F("Wakeup caused by ULP program"));
-            break;
-        default:
-            Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
-            break;
-    }
-}
 
 void setup() {
     Log_Init();
@@ -205,7 +179,7 @@ void setup() {
     Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
-    printWakeUpReason();
+    System_ShowWakeUpReason();
 	// print SD card info
     SdCard_PrintInfo();
 

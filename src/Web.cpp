@@ -25,6 +25,7 @@
 #include "Wlan.h"
 #include "revision.h"
 
+
 // Only enable measurements if valid GPIO is used
 #ifdef MEASURE_BATTERY_VOLTAGE
     #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
@@ -168,39 +169,36 @@ void webserverStart(void) {
             request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
         });
 
-        // heap/psram-info
+        // software/wifi/heap/psram-info
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+                String info = "ESPuino " + (String) softwareRevision;
+                info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
                 #if (LANGUAGE == DE)
-                    String info = "Freier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
+                    info += "Freier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
                     info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
                     if (Wlan_IsConnected()) {
+                        IPAddress myIP = WiFi.localIP();
+                        info += "\nAktuelle IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
                         info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
-                    info += "\nESP-IDF-version (major): ";
-                    info += ESP_IDF_VERSION_MAJOR;
-                    info += "\nESP-IDF-version (minor): ";
-                    info += ESP_IDF_VERSION_MINOR;
                 #else
-                    String info = "Free heap: " + String(ESP.getFreeHeap()) + " bytes";
+                    info += "Free heap: " + String(ESP.getFreeHeap()) + " bytes";
                     info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
                     if (Wlan_IsConnected()) {
+                        IPAddress myIP = WiFi.localIP();
+                        info += "\nCurrent IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
                         info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
-                    info += "ESP-IDF major: ";
-                    info += ESP_IDF_VERSION_MAJOR;
-                    info += "\nESP-IDF minor: ";
-                    info += ESP_IDF_VERSION_MINOR;
                 #endif
                 #ifdef ENABLE_BATTERY_MEASUREMENTS
                     snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
                     info += (String) Log_Buffer;
                 #endif
-                info += "\n" + (String) softwareRevision;
                 request->send_P(200, "text/plain", info.c_str());
             });
 
@@ -576,6 +574,9 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         object["rfidId"] = gCurrentRfidTagId;
     } else if (code == 20) {
         object["pong"] = "pong";
+        object["rssi"] = Wlan_GetRssi();
+        // todo: battery percent + loading status +++
+        //object["battery"] = Battery_GetVoltage();
     } else if (code == 30) {
         JsonObject entry = object.createNestedObject("trackinfo");
         entry["pausePlay"] = gPlayProperties.pausePlay;
@@ -1176,7 +1177,8 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 
 // handle album cover image request
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
-    if (!gPlayProperties.coverFileName) {
+     
+    if (!gPlayProperties.coverFilePos) {
         // empty image:
         // request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
         if (gPlayProperties.playMode == WEBSTREAM) {
@@ -1187,13 +1189,15 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
         } else {
             // no cover -> send placeholder icon for playing music from SD-card (fa-music)
             snprintf(Log_Buffer, Log_BufferLength, "no cover image for SD-card audio");
-            Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
             request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d\=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg\>"));
         }
         return;
     }
+    char *coverFileName = *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber); 
+    Serial.println(coverFileName);
 
-    File coverFile = gFSystem.open(gPlayProperties.coverFileName, FILE_READ);
+    File coverFile = gFSystem.open(coverFileName, FILE_READ);
     // seek to start position, skip 1 byte encoding
     coverFile.seek(gPlayProperties.coverFilePos + 1);
     // mime-type (null terminated)
@@ -1203,7 +1207,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
         if (uint8_t(mimeType[i]) == 0)
             break;
     }
-    snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, gPlayProperties.coverFileName);
+    snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, coverFileName);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
     // skip image type (1 Byte)
@@ -1215,22 +1219,22 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     }
 
     int imageSize = gPlayProperties.coverFileSize;
-    AsyncWebServerResponse *response = request->beginResponse(
-        mimeType,
-        imageSize,
-        [coverFile](uint8_t *buffer, size_t maxLen, size_t total) -> size_t {
-            File file = coverFile; // local copy of file pointer
-            int bytes = file.read(buffer, maxLen);
-            // close file at the end
-            if (!file.available()) {
-                file.close();
-                    Log_Println("cover image serving finished, close file", LOGLEVEL_DEBUG);
-            }
-            // do not consume too much cpu time
-            vTaskDelay(portTICK_RATE_MS * 50u);
-            return max(0, bytes); // return 0 even when no bytes were loaded
+    AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile,imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+
+        if (maxLen > 1024) {
+            maxLen = 1024;
         }
-    );
+    
+        File file = coverFile; // local copy of file pointer
+        size_t leftToWrite = imageSize - index;
+        if(! leftToWrite) {
+            return 0;//end of transfer
+        }
+        size_t willWrite = (leftToWrite > maxLen)?maxLen:leftToWrite;
+        file.read(buffer, willWrite);
+        index += willWrite;
+        return willWrite;
+    });
     response->addHeader("Cache Control","no-cache, must-revalidate");
     request->send(response);
 }
