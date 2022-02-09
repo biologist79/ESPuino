@@ -176,6 +176,7 @@
     }
 
     void Rfid_Exit(void) {
+	     mfrc522.PCD_SoftPowerDown();
     }
 
     void Rfid_WakeupCheck(void) {
