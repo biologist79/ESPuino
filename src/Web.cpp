@@ -175,7 +175,7 @@ void webserverStart(void) {
                 String info = "ESPuino " + (String) softwareRevision;
                 info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
                 #if (LANGUAGE == DE)
-                    info += "Freier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
+                    info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
                     info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
                     info += "\nFreier PSRAM: ";
                     info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
@@ -185,7 +185,7 @@ void webserverStart(void) {
                         info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
                 #else
-                    info += "Free heap: " + String(ESP.getFreeHeap()) + " bytes";
+                    info += "\nFree heap: " + String(ESP.getFreeHeap()) + " bytes";
                     info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
                     info += "\nFree PSRAM: ";
                     info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());

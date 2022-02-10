@@ -35,22 +35,13 @@ void Port_Init(void) {
     #ifdef PORT_EXPANDER_ENABLE
         Port_Test();
         Port_WriteInitMaskForOutputChannels();
+        Port_ExpanderHandler();
     #endif
 
     #ifdef PE_INTERRUPT_PIN_ENABLE
         pinMode(PE_INTERRUPT_PIN, INPUT_PULLUP);
         attachInterrupt(PE_INTERRUPT_PIN, PORT_ExpanderISR, FALLING);
         Log_Println(portExpanderInterruptEnabled, LOGLEVEL_NOTICE);
-    #endif
-
-    // If automatic HP-detection is not used...
-    #ifndef HEADPHONE_ADJUST_ENABLE
-        #ifdef GPIO_PA_EN
-            Port_Write(GPIO_PA_EN, true, true);       // ...but it's necessary to enable loudspeaker amp...
-        #endif
-        #ifdef GPIO_HP_EN
-            Port_Write(GPIO_HP_EN, true, true);      // ...or headphones-amp
-        #endif
     #endif
 }
 
@@ -81,37 +72,36 @@ bool Port_Read(const uint8_t _channel) {
     }
 }
 
-// Wrapper-function to reverse detection of connected headphones.
-// Normally headphones are supposed to be plugged in if a given GPIO/channel is LOW/false.
-bool Port_Detect_Mode_HP(bool _state) {
-    #ifndef DETECT_HP_ON_HIGH
-        return _state;
-    #else
-        return !_state;
-    #endif
-}
-
 // Configures OUTPUT-mode for GPIOs (non port-expander)
 // Output-mode for port-channels is done via Port_WriteInitMaskForOutputChannels()
 void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGpio) {
-    if (_initGpio) {
-        switch (_channel) {
-            case 0 ... 39: { // GPIO
-                pinMode(_channel, OUTPUT);
-                Port_Write(_channel, _newState);
-                break;
-            }
-
-            default: {
-                Port_Write(_channel, _newState);
-                break;
+    #ifdef GPIO_PA_EN
+        if (_channel == GPIO_PA_EN) {
+            if (_newState) {
+                Log_Println((char *) FPSTR(paOn), LOGLEVEL_NOTICE);
+            } else {
+                Log_Println((char *) FPSTR(paOff), LOGLEVEL_NOTICE);
             }
         }
-    }
-}
+    #endif
 
-// Wrapper: writes to GPIOs (via digitalWrite()) or to port-expander (if enabled)
-void Port_Write(const uint8_t _channel, const bool _newState) {
+    #ifdef GPIO_HP_EN
+        if (_channel == GPIO_HP_EN) {
+            if (_newState) {
+                Log_Println((char *) FPSTR(hpOn), LOGLEVEL_NOTICE);
+            } else {
+                Log_Println((char *) FPSTR(hpOff), LOGLEVEL_NOTICE);
+            }
+        }
+    #endif
+    
+    // Make init only for GPIO but not for PE (because PE is already done earlier)
+    if (_initGpio) {
+        if (_channel >= 0 && _channel <= 39) {
+            pinMode(_channel, OUTPUT);
+        }
+    }
+
     switch (_channel) {
         case 0 ... 39: { // GPIO
             digitalWrite(_channel, _newState);

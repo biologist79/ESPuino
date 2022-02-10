@@ -210,3 +210,7 @@ extern const char unableToTellIpAddress[];
 extern const char ftpEnableTooLate[];
 extern const char syncingViaNtp[];
 extern const char sdInfo[];
+extern const char paOn[];
+extern const char paOff[];
+extern const char hpOn[];
+extern const char hpOff[];

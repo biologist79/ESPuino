@@ -214,4 +214,8 @@
     const char ftpEnableTooLate[] PROGMEM = "FTP kann nur innerhalb der ersten 30s aktiviert werden. Kinderschutz :-)";
     const char syncingViaNtp[] PROGMEM = "Synchronisiere Uhrzeit via NTP...";
     const char sdInfo[] PROGMEM = "SD-Kartengröße / freier Speicherplatz";
+    const char paOn[] PROGMEM = "Lautsprecher eingeschaltet";
+    const char paOff[] PROGMEM = "Lautsprecher ausgeschaltet";
+    const char hpOn[] PROGMEM = "Kopfhörer eingeschaltet";
+    const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
 #endif

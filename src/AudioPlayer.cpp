@@ -83,8 +83,10 @@ void AudioPlayer_Init(void) {
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
-        pinMode(HP_DETECT, INPUT_PULLUP);
-        AudioPlayer_HeadphoneLastDetectionState = Port_Detect_Mode_HP(Port_Read(HP_DETECT));
+        #if (HP_DETECT >= 0 && HP_DETECT <= 39)
+            pinMode(HP_DETECT, INPUT_PULLUP);
+        #endif
+        AudioPlayer_HeadphoneLastDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
         // Get maximum volume for headphone from NVS
         uint32_t nvsAudioPlayer_MaxVolumeHeadphone = gPrefsSettings.getUInt("maxVolumeHp", 0);
@@ -98,7 +100,7 @@ void AudioPlayer_Init(void) {
         }
     #endif
     // Adjust volume depending on headphone is connected and volume-adjustment is enabled
-    AudioPlayer_SetupVolume();
+    AudioPlayer_SetupVolumeAndAmps();
 
     // clear cover image
     gPlayProperties.coverFilePos = 0;
@@ -118,6 +120,16 @@ void AudioPlayer_Init(void) {
 
 void AudioPlayer_Cyclic(void) {
     AudioPlayer_HeadphoneVolumeManager();
+}
+
+// Wrapper-function to reverse detection of connected headphones.
+// Normally headphones are supposed to be plugged in if a given GPIO/channel is LOW/false.
+bool Audio_Detect_Mode_HP(bool _state) {
+    #ifndef DETECT_HP_ON_HIGH
+        return _state;
+    #else
+        return !_state;
+    #endif
 }
 
 uint8_t AudioPlayer_GetCurrentVolume(void) {
@@ -161,29 +173,30 @@ void AudioPlayer_SetInitVolume(uint8_t value) {
 }
 
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
-void AudioPlayer_SetupVolume(void) {
+// Enable/disable PA/HP-amps initially
+void AudioPlayer_SetupVolumeAndAmps(void) {
+    #ifdef PLAY_MONO_SPEAKER
+        gPlayProperties.newPlayMono = true;
+    #else
+        gPlayProperties.newPlayMono = false;
+    #endif
+
     #ifndef HEADPHONE_ADJUST_ENABLE
         AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
-        return;
+            // If automatic HP-detection is not used, we enabled both (PA / HP) if defined
+        #ifdef GPIO_PA_EN
+            Port_Write(GPIO_PA_EN, true, true);
+        #endif
+        #ifdef GPIO_HP_EN
+            Port_Write(GPIO_HP_EN, true, true);
+        #endif
     #else
-        if (Port_Detect_Mode_HP(Port_Read(HP_DETECT))) {
+        if (Audio_Detect_Mode_HP(Port_Read(HP_DETECT))) {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
-            #ifdef PLAY_MONO_SPEAKER
-                gPlayProperties.newPlayMono = true;
-            #else
-                gPlayProperties.newPlayMono = false;
-            #endif
-
             #ifdef GPIO_PA_EN
-                while (millis() < 500) {
-                    delay(10);  // Wait a bit in order to avoid ugly noises when enabling amp
-                }
                 Port_Write(GPIO_PA_EN, true, true);
             #endif
             #ifdef GPIO_HP_EN
-                while (millis() < 500) {
-                    delay(10);  // Wait a bit in order to avoid ugly noises when enabling amp
-                }
                 Port_Write(GPIO_HP_EN, false, true);
             #endif
         } else {
@@ -205,7 +218,7 @@ void AudioPlayer_SetupVolume(void) {
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
     #ifdef HEADPHONE_ADJUST_ENABLE
-        bool currentHeadPhoneDetectionState = Port_Detect_Mode_HP(Port_Read(HP_DETECT));
+        bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
         if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
             if (currentHeadPhoneDetectionState) {
@@ -217,10 +230,10 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
                 #endif
 
                 #ifdef GPIO_PA_EN
-                    Port_Write(GPIO_PA_EN, true);
+                    Port_Write(GPIO_PA_EN, true, false);
                 #endif
                 #ifdef GPIO_HP_EN
-                    Port_Write(GPIO_HP_EN, false);
+                    Port_Write(GPIO_HP_EN, false, false);
                 #endif
             } else {
                 AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
@@ -230,10 +243,10 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
                 }
 
                 #ifdef GPIO_PA_EN
-                    Port_Write(GPIO_PA_EN, false);
+                    Port_Write(GPIO_PA_EN, false, false);
                 #endif
                 #ifdef GPIO_HP_EN
-                    Port_Write(GPIO_HP_EN, true);
+                    Port_Write(GPIO_HP_EN, true, false);
                 #endif
             }
             AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;

@@ -214,4 +214,8 @@
     const char ftpEnableTooLate[] PROGMEM = "FTP can only be enabled within the first 30s after ESPuino-start. Child-protection :-)";
     const char syncingViaNtp[] PROGMEM = "Getting current time via NTP...";
     const char sdInfo[] PROGMEM = "SD card size / free space";
+    const char paOn[] PROGMEM = "Loudspeaker on";
+    const char paOff[] PROGMEM = "Loudspeaker off";
+    const char hpOn[] PROGMEM = "Headphones on";
+    const char hpOff[] PROGMEM = "Headphones off";
 #endif
