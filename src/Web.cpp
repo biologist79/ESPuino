@@ -583,7 +583,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
         entry["numberOfTracks"] = gPlayProperties.numberOfTracks;
         entry["volume"] = AudioPlayer_GetCurrentVolume();
-        if (gPlayProperties.title)  {
+        if (gPlayProperties.title != NULL && strcmp(gPlayProperties.title, "") != 0) {
             // show current audio title from id3 metadata
             if (gPlayProperties.numberOfTracks > 1) {
                 snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, gPlayProperties.title);
@@ -593,7 +593,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
             char utf8Buffer[200];
             convertAsciiToUtf8(Log_Buffer, utf8Buffer);
             entry["name"] = utf8Buffer;
-        } else  if (gPlayProperties.playMode == NO_PLAYLIST) {
+        } else if (gPlayProperties.playMode == NO_PLAYLIST) {
             // no active playlist
             entry["name"] = (char *)FPSTR (noPlaylist);
         } else {

@@ -172,6 +172,23 @@ void AudioPlayer_SetInitVolume(uint8_t value) {
     AudioPlayer_InitVolume = value;
 }
 
+// Allocates space for title of current track only once and keeps char* in order to avoid heap-fragmentation.
+char* Audio_handleTitle(bool clearTitle) {
+    static char* _title = NULL;
+    
+    if (_title == NULL) {
+        _title = (char *) x_malloc(sizeof(char) * 255);
+    }
+
+    if (clearTitle) {
+        if (_title != NULL) {
+            strcpy(_title, "");
+        }
+    }
+    
+    return _title;
+}
+
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
 // Enable/disable PA/HP-amps initially
 void AudioPlayer_SetupVolumeAndAmps(void) {
@@ -376,10 +393,7 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
                     // delete title
-                    if (gPlayProperties.title) {
-                        free(gPlayProperties.title);
-                        gPlayProperties.title = NULL;
-                    }
+                    Audio_handleTitle(true);
                     Web_SendWebsocketData(0, 30);
                     // clear cover image
                     gPlayProperties.coverFilePos = 0;
@@ -480,10 +494,7 @@ void AudioPlayer_Task(void *parameter) {
                         audio->stopSong();
                         Led_Indicate(LedIndicatorType::Rewind);
                         // delete title
-                        if (gPlayProperties.title) {
-                            free(gPlayProperties.title);
-                            gPlayProperties.title = NULL;
-                        }
+                        Audio_handleTitle(true);
                         // clear cover image
                         gPlayProperties.coverFilePos = 0;
                         Web_SendWebsocketData(0, 40);
@@ -575,7 +586,10 @@ void AudioPlayer_Task(void *parameter) {
                     #endif
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
+                    Audio_handleTitle(true);
                     Web_SendWebsocketData(0, 30);
+                    gPlayProperties.coverFilePos = 0;
+                    Web_SendWebsocketData(0, 40);
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                     #endif
@@ -610,10 +624,7 @@ void AudioPlayer_Task(void *parameter) {
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
                 // delete title
-                if (gPlayProperties.title) {
-                    free(gPlayProperties.title);
-                    gPlayProperties.title = NULL;
-                }
+                Audio_handleTitle(true);
                 // clear cover image
                 gPlayProperties.coverFilePos = 0;
                 Web_SendWebsocketData(0, 40);
@@ -629,10 +640,7 @@ void AudioPlayer_Task(void *parameter) {
                     continue;
                 } else {
                     // delete title
-                    if (gPlayProperties.title) {
-                        free(gPlayProperties.title);
-                        gPlayProperties.title = NULL;
-                    }
+                    Audio_handleTitle(true);
                     // clear cover image
                     gPlayProperties.coverFilePos = 0;
                     Web_SendWebsocketData(0, 40);
@@ -1137,11 +1145,13 @@ void audio_id3data(const char *info) { //id3 metadata
     if (startsWith((char *)info, "Title:")) {
         // copy title
         if (!gPlayProperties.title) {
-            gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
+            gPlayProperties.title = Audio_handleTitle(false);
         }
-        strncpy(gPlayProperties.title, info + 6, 255);
-        // notify web ui
-        Web_SendWebsocketData(0, 30);
+        if (gPlayProperties.title != NULL) {
+            strncpy(gPlayProperties.title, info + 6, 255);
+            // notify web ui
+            Web_SendWebsocketData(0, 30);
+        }
     }
 }
 
@@ -1161,26 +1171,29 @@ void audio_showstation(const char *info) {
     #endif
     // copy title
     if (!gPlayProperties.title) {
-        gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-    };
-    strncpy(gPlayProperties.title, info + 6, 255);
-    // notify web ui
-    Web_SendWebsocketData(0, 30);
+        gPlayProperties.title = Audio_handleTitle(false);
+    }
+    if (gPlayProperties.title != NULL) {
+        strncpy(gPlayProperties.title, info + 6, 255);
+        // notify web ui
+        Web_SendWebsocketData(0, 30);
+    }
 }
 
-void audio_showstreamtitle(const char *info)
-{
+void audio_showstreamtitle(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "streamtitle : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
     if (startsWith((char *)info, "Title:")) {
         // copy title
         if (!gPlayProperties.title) {
-            gPlayProperties.title = (char *) x_malloc(sizeof(char) * 255);
-        };
-        strncpy(gPlayProperties.title, info + 6, 255);
-        // notify web ui
-        Web_SendWebsocketData(0, 30);
-    };
+            gPlayProperties.title = Audio_handleTitle(false);
+        }
+        if (gPlayProperties.title != NULL) {
+            strncpy(gPlayProperties.title, info + 6, 255);
+            // notify web ui
+            Web_SendWebsocketData(0, 30);
+        }
+    }
 }
 
 void audio_bitrate(const char *info) {
