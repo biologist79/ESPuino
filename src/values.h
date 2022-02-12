@@ -6,6 +6,7 @@
     #define OPMODE_BLUETOOTH                1           // Bluetooth mode. WiFi is deactivated. Music from SD and webstreams can't be played.
 
     // Track-Control
+    #define NO_ACTION                       0           // Dummy to unset track-control-command
     #define STOP                            1           // Stop play
     #define PLAY                            2           // Start play (currently not used)
     #define PAUSEPLAY                       3           // Pause/play

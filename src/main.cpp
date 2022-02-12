@@ -120,9 +120,8 @@ void setup() {
         Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
-    #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first
-        Port_Init();
-    #endif
+    // Needs i2c first if port-expander is used
+    Port_Init();
 
     // If port-expander is used, port_init has to be called first, as power can be (possibly) done by port-expander
     Power_Init();
@@ -138,13 +137,9 @@ void setup() {
     memset(&gPlayProperties, 0, sizeof(gPlayProperties));
     gPlayProperties.playlistFinished = true;
 
-    #ifdef PLAY_MONO_SPEAKER
-        gPlayProperties.newPlayMono = true;
-        gPlayProperties.currentPlayMono = true;
-    #endif
-
     Led_Init();
 
+    // Only used for ESP32-A1S-Audiokit
     #if (HAL == 2)
         i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
@@ -156,12 +151,6 @@ void setup() {
 
         pinMode(22, OUTPUT);
         digitalWrite(22, HIGH);
-
-        #if (GPIO_PA_EN >= 0 && GPIO_PA_EN <= 39)
-            pinMode(GPIO_PA_EN, OUTPUT);
-            digitalWrite(GPIO_PA_EN, HIGH);
-        #endif
-        Serial.println(F("Built-in amplifier enabled\n"));
     #endif
 
     // Needs power first
