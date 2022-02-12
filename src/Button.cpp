@@ -92,36 +92,24 @@ void Button_Init() {
         #endif
     #endif
 
-    // Activate internal pullups for all enabled buttons
+    // Activate internal pullups for all enabled buttons connected to GPIOs
     #ifdef BUTTON_0_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(NEXT_BUTTON, INPUT_PULLUP);
-        #endif
+        pinMode(NEXT_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_1_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);     // Don't call for port-expander
-        #endif
+        pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_2_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
-        #endif
+        pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_3_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
-        #endif
+        pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_4_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(BUTTON_4, INPUT_PULLUP);
-        #endif
+        pinMode(BUTTON_4, INPUT_PULLUP);
     #endif
     #ifdef BUTTON_5_ENABLE
-        #if (POWER >= 0 && POWER <= 39)
-            pinMode(BUTTON_5, INPUT_PULLUP);
-        #endif
+        pinMode(BUTTON_5, INPUT_PULLUP);
     #endif
 
     // Create 1000Hz-HW-Timer (currently only used for buttons)
