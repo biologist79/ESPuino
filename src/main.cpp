@@ -151,6 +151,7 @@ void setup() {
 
         pinMode(22, OUTPUT);
         digitalWrite(22, HIGH);
+        ac.SetVolumeHeadphone(80);
     #endif
 
     // Needs power first
@@ -175,7 +176,9 @@ void setup() {
     Ftp_Init();
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
-        Rfid_Init();
+        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+            Rfid_Init();
+        #endif
     #endif
     RotaryEncoder_Init();
     Wlan_Init();
@@ -203,8 +206,6 @@ void setup() {
 }
 
 void loop() {
-    Rfid_Cyclic();
-
     if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
         Bluetooth_Cyclic();
     } else {

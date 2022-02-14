@@ -14,13 +14,8 @@
 
 
     //################## GPIO-configuration ##############################
-    // uSD-card-reader (via SPI - better use SD_MMC instead!)
-    #define SPISD_CS                        13          // GPIO for chip select (SD)
-    #ifndef SINGLE_SPI_ENABLE
-        #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
-        #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-        #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
-    #endif
+    // SD
+    // Make sure to enable SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
 
     // RFID (via SPI; currently not supported!)
     #if defined(RFID_READER_TYPE_MFRC522_SPI)
@@ -65,7 +60,7 @@
     #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                 99          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                36          // Button 2: GPIO to detect pause/play
-    #define ROTARYENCODER_BUTTON             4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
+    #define ROTARYENCODER_BUTTON            99          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 

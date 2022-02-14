@@ -233,7 +233,9 @@ void System_DeepSleepManager(void) {
         // switch off power
         Power_PeripheralOff();
         delay(200);
-        Rfid_Exit();
+        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+            Rfid_Exit();
+        #endif
         #ifdef PORT_EXPANDER_ENABLE
             Port_Exit();
         #endif
