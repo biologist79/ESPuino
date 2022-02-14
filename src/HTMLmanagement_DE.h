@@ -921,6 +921,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 				\"core\" : {\
 						\"check_callback\" : true,\
 						'force_text' : true,\
+                        'strings' : { \"Loading ...\" : \"wird geladen...\" },\
 						\"themes\" : { \"stripes\" : true },\
 						'data' : {	text: '/',\
 									state: {\
@@ -1019,7 +1020,24 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 							}\
 						};\
 \
-					   return items;\
+						/* Download */\
+                        if (!node.data.directory) {\
+						    items.download = {\
+							    label: \"Download\",\
+							    action: function(x) {\
+								    uri = \"/explorerdownload?path=\" + encodeURIComponent(node.data.path);\
+                                    console.log(\"download file: \" + node.data.path);\
+                                    var anchor = document.createElement('a');\
+                                    anchor.href = uri;\
+                                    anchor.target = '_blank';\
+                                    anchor.download = node.data.path;\
+                                    anchor.click();\
+                                    document.body.removeChild(document.body.lastElementChild);\
+							    }\
+						    }\
+                        };\
+\
+                        return items;\
 					}\
 				}\
 			});\
