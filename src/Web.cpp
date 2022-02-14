@@ -67,6 +67,7 @@ static void handleUpload(AsyncWebServerRequest *request, String filename, size_t
 static void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 static void explorerHandleFileStorageTask(void *parameter);
 static void explorerHandleListRequest(AsyncWebServerRequest *request);
+static void explorerHandleDownloadRequest(AsyncWebServerRequest *request);
 static void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
 static void explorerHandleCreateRequest(AsyncWebServerRequest *request);
 static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
@@ -260,6 +261,7 @@ void webserverStart(void) {
             Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile));
         });
 
+
         // Fileexplorer (realtime)
         wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
 
@@ -268,6 +270,8 @@ void webserverStart(void) {
                 request->send(200);
             },
             explorerHandleFileUpload);
+
+        wServer.on("/explorerdownload", HTTP_GET, explorerHandleDownloadRequest);
 
         wServer.on("/explorer", HTTP_DELETE, explorerHandleDeleteRequest);
 
@@ -808,6 +812,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
+    uint32_t listStartTimestamp = millis();
     //DynamicJsonDocument jsonBuffer(8192);
     #ifdef BOARD_HAS_PSRAM
         SpiRamJsonDocument jsonBuffer(65636);
@@ -853,17 +858,23 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
             entry["name"] = fileName;
             entry["dir"].set(file.isDirectory());
         }
+        file.close();
         file = root.openNextFile();
 
-        // If playback is active this can (at least sometimes) prevent scattering
+        
         if (!gPlayProperties.pausePlay) {
-            vTaskDelay(portTICK_PERIOD_MS * 5);
+            // time critical, avoid delay with many files on SD-card!
+            feedTheDog(); 
         } else {
-            vTaskDelay(portTICK_PERIOD_MS * 1);
+            // If playback is active this can (at least sometimes) prevent scattering
+            vTaskDelay(portTICK_PERIOD_MS * 5);
         }
     }
+    root.close();
 
     serializeJson(obj, serializedJsonString);
+    snprintf(Log_Buffer, Log_BufferLength, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
+    Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -903,6 +914,61 @@ void Web_DeleteCachefile(const char *fileOrDirectory) {
         }
     }
 }
+
+// Handles download request of a file 
+// requires a GET parameter path to the file 
+void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
+    File file;
+    AsyncWebParameter *param;
+    char filePath[MAX_FILEPATH_LENTGH];
+    // check has path param
+    if (!request->hasParam("path")) {
+        Log_Println("DOWNLOAD: No path variable set", LOGLEVEL_ERROR);
+        request->send(404);
+        return;
+    } 
+    // check file exists on SD card
+    param = request->getParam("path");
+    convertUtf8ToAscii(param->value(), filePath);
+    if (!gFSystem.exists(filePath)) {
+        snprintf(Log_Buffer, Log_BufferLength, "DOWNLOAD:  File not found on SD card: %s", param->value().c_str());
+        Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+        request->send(404);
+        return;
+    } 
+    // check is file and not a directory
+    file = gFSystem.open(filePath);
+    if (file.isDirectory()) {
+        snprintf(Log_Buffer, Log_BufferLength, "DOWNLOAD:  Cannot download a directory %s", param->value().c_str());
+        Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+        request->send(404);
+        file.close();
+        return;
+    } 
+
+    // ready to serve the file for download. 
+    String dataType = "application/octet-stream";
+    struct fileBlk {
+        File dataFile;
+    };
+    fileBlk *fileObj = new fileBlk;
+    fileObj->dataFile = file;
+    request->_tempObject = (void*)fileObj;
+    
+    AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
+        fileBlk *fileObj = (fileBlk*)request->_tempObject;
+        size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
+        if((index + thisSize) >= fileObj->dataFile.size()){
+            fileObj->dataFile.close();
+            request->_tempObject = NULL;
+            delete fileObj;
+        }
+        return thisSize;
+    });
+    String filename = String(param->value().c_str());
+    response->addHeader("Content-Disposition","attachment; filename=\"" + filename + "\"");
+    request->send(response);
+}   
 
 // Handles delete request of a file or directory
 // requires a GET parameter path to the file or directory
