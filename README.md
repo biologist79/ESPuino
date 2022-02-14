@@ -280,3 +280,4 @@ Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-
 | topicLedBrightnessState | 0 - 255         | Sends brightness of Neopixel                                                   |
 | topicBatteryVoltage     | float           | Voltage (e.g. 3.81)                                                            |
 | topicWiFiRssiState      | int             | Numeric WiFi signal-strength (dBm)                                             |
+| State/ESPuino/SoftwareRevision | String   | Software-revision                                                              |

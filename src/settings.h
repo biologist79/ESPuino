@@ -1,9 +1,9 @@
 #ifndef __ESPUINO_SETTINGS_H__
-#define __ESPUINO_SETTINGS_H__
-    #include "Arduino.h"
-    #include "values.h"
+    #define __ESPUINO_SETTINGS_H__
+        #include "Arduino.h"
+        #include "values.h"
 #if __has_include("settings-override.h")
-#include "settings-override.h"
+    #include "settings-override.h"
 #else
     //######################### INFOS ####################################
     // This is the general configfile for ESPuino-configuration.
@@ -222,6 +222,7 @@
         constexpr const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
         constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
         constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
+        constexpr const char topicSRevisionState[] PROGMEM = "State/ESPuino/SoftwareRevision";
         #ifdef MEASURE_BATTERY_VOLTAGE
             constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
         #endif
@@ -241,13 +242,15 @@
     #elif (HAL == 6)
         #include "settings-complete.h"                      // Contains all user-relevant settings for ESPuino complete
     #elif (HAL == 7)
-        #include "settings-lolin_d32_pro_sdmmc_pe.h"        // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638)
+        #include "settings-lolin_d32_pro_sdmmc_pe.h"        // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
     #elif (HAL == 8)
         #include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
+    #elif (HAL == 9)
+        #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
     #elif (HAL == 99)
         #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
     #endif
 
     //#define ENABLE_ESPUINO_DEBUG                            // Needs modification of platformio.ini (https://forum.espuino.de/t/rfid-mit-oder-ohne-task/353/21); better don't enable unless you know what you're doing :-)
-#endif //settings_override
+    #endif //settings_override
 #endif
