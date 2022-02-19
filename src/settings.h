@@ -183,11 +183,20 @@
         #define COLOR_ORDER                 GRB
     #endif
 
-    // (optional) Default-voltages for battery-monitoring via Neopixel
-    constexpr float s_warningLowVoltage = 3.4;                      // If battery-voltage is >= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-    constexpr uint8_t s_voltageCheckInterval = 10;                  // How of battery-voltage is measured (in minutes) (can be changed via GUI!)
-    constexpr float s_voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
-    constexpr float s_voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
+    #if defined(MEASURE_BATTERY_VOLTAGE) || defined(MEASURE_BATTERY_OTHER) // placeholder
+        #define BATTERY_MEASURE_ENABLE                 // Don't change. Set automatically if any method of battery monitoring is selected.
+        constexpr uint8_t s_batteryCheckInterval = 10; // How often battery is measured (in minutes) (can be changed via GUI!)
+
+        #define SHUTDOWN_ON_BAT_CRITICAL               // Whether to turn off on critical battery level
+    #endif
+
+    #ifdef MEASURE_BATTERY_VOLTAGE
+        // (optional) Default-voltages for battery-monitoring via Neopixel
+        constexpr float s_warningLowVoltage = 3.4;                      // If battery-voltage is <= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
+        constexpr float s_warningCriticalVoltage = 3.1;                 // If battery-voltage is <= this value, assume battery near-empty. Set to 0V to disable.
+        constexpr float s_voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
+        constexpr float s_voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
+    #endif
 
     // (optinal) Headphone-detection (leave unchanged if in doubts...)
     #ifdef HEADPHONE_ADJUST_ENABLE
@@ -223,8 +232,9 @@
         constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
         constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
         constexpr const char topicSRevisionState[] PROGMEM = "State/ESPuino/SoftwareRevision";
-        #ifdef MEASURE_BATTERY_VOLTAGE
+        #ifdef BATTERY_MEASURE_ENABLE
             constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
+            constexpr const char topicBatterySOC[] PROGMEM     = "State/ESPuino/Battery";
         #endif
     #endif
 
