@@ -32,17 +32,16 @@ Several plattforms are available:
 * [Much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
 * I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
 * Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html). Step-by-step-manual is available [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
-* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here](https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository).
+* Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here](https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository) and [here](https://forum.espuino.de/t/espuino-in-platformio-anlegen-und-mit-git-aktuell-halten/891).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
-* There's a file called `platformio.ini`, that contains the configuration for different develboards (e.g. env:lolin32). Platformio supports hundrets of boards out of the box. So probably you need to change/extend that configuration-file. Guess Lolin32 is described in platformio.ini but you need Lolin D32, then lookup Platformio's [documentation](https://docs.platformio.org/en/latest/boards/espressif32/lolin_d32.html) to know what to change.
-* Depending on your operating system (Windows, Mac OS, Linux), you'll probably need to change `upload_port`and `monitor_port` as well.
+* Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_op). 
 * Edit `src/settings.h` according your needs.
-* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32.h` for Lolin D32). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
+* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
 * Connect your develboard via USB, click the alien-head to the left, choose the project-task that matches your desired HAL and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware. Depending on your develboard it might me necessary to push a button in order to allow ESP32 to enter flashmode (not necessary für Lolin32, D32 und D32 pro).
-* Now have a look at the serial-output at the bottom of Visual Studio Code's windows. At the first run there might appear a few error-messages (related to missing entries in NVS). Don't worry, this is just normal. However, make sure SD is running as this is mandatory!
+* Now have a look at the serial-output at the bottom of Visual Studio Code's window. At the first run there might appear a few error-messages (related to missing entries in NVS). Don't worry, this is just normal. However, make sure SD is running as this is mandatory!
 * If everything ran fine, at the first run, ESPuino should open an access-point with the name "ESPuino". Join this WiFi with your computer (or mobile) and enter `http://192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart ESPuino. Hint: I tried to connect this access-point via Android mobile. Basically that's no problem, but as my mobile detected there'd be no internet-connection, it kept LTE-connection open and prevented me from connecting to `http://192.168.4.1`. So if in doubts better use a computer.
-* After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console of Visual Studio Code. You can call ESPuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `espuino` as hostname, you can use `http://espuino.local` for webgui and FTP.
+* After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console. You can call ESPuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `espuino` as hostname, you can use `http://espuino.local` for webgui and FTP.
 * Via FTP and webGUI you can upload data (but don't expect it to be super fast).
 * FTP needs to be activated after boot if you need it! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't necessary.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
@@ -193,8 +192,8 @@ Please note: some Neopixels use a reversed addressing which leads to the 'proble
 counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.
 
 ### Buttons
-Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change button-number and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
-Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using GPIO >= 35 make sure to add a external pullup-resistor (10 k).
+Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change button-number (up to 5) and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
+Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using GPIO >= 34 make sure to add a external pullup-resistor (10 k).
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
 * previous (long): first track of playlist
 * next (short): next track of playlist
@@ -222,7 +221,8 @@ This mode is different from the others because the last playposition is saved. P
 * pause was pressed.
 * track is over.
 * playlist is over (playposition is set back to the first track and file-position 0).
-* Please note: last playposition is not saved when applying a new RFID-tag. This is intended because otherwise you wouldn't have a possibility to not save it. If you want to save the playposition: press pause first.
+* As per default last playposition is not saved when applying a new RFID-tag. You can enable this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE`. 
+* As per default last playposition is not saved when doing shutdown. You can enable this using `SAVE_PLAYPOS_BEFORE_SHUTDOWN`. 
 
 ### FTP (optional)
 * FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` or use a modification-card to to activate it! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to save heap-memory when FTP isn't needed.
@@ -231,8 +231,8 @@ This mode is different from the others because the last playposition is saved. P
 * Make sure to set the max. number of parallel connections to ONE in your FTP-client and the charset to CP437. CP437 is important if you want to use german umlauts (öäüß).
 * Secured FTP is not available. So make sure to disable SSL/TLS.
 * Software: my recommendation is [Filezilla](https://filezilla-project.org/) as it's free and available for multiple platforms.
-* Don't expect a super fast data-transfer; it's around 185 kB/s (SPI-mode) and 310 kB/s (MMC-mode).
-* Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing a FTP-transfer.
+* Don't expect a super fast data-transfer; it's around 185 kB/s (SPI-mode) and 310-360 kB/s (MMC-mode).
+* Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing file-transfers.
 
 ### Energy saving
 As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless ESPuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
