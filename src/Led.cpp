@@ -332,6 +332,7 @@ static void Led_Task(void *parameter) {
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
                 LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
                 float batteryLevel = Battery_EstimateLevel();
+                Serial.println(batteryLevel);
                 bool batteryLow = Battery_IsLow();
                 bool batteryCritical = Battery_IsCritical();
 
@@ -350,7 +351,7 @@ static void Led_Task(void *parameter) {
                         }
                         FastLED.show();
                     } else {
-                        uint8_t numLedsToLight = batteryLevel/100.0f * NUM_LEDS;
+                        uint8_t numLedsToLight = batteryLevel * NUM_LEDS;
                         if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
                             numLedsToLight = NUM_LEDS;
                         }
