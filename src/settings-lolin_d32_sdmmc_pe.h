@@ -76,7 +76,7 @@
     #endif
 
     // I2C-configuration (necessary for PCA9555)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #ifdef I2C_2_ENABLE
         #define ext_IIC_CLK                 4           // i2c-SCL (clock)
         #define ext_IIC_DATA                13          // i2c-SDA (data)
     #endif
