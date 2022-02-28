@@ -118,8 +118,8 @@
             snprintf(vstr, 6, "%.2f", voltage);
             publishMqtt((char *)FPSTR(topicBatteryVoltage), vstr, false);
 
-            float soc = Battery_EstimateLevel();
-            snprintf(vstr, 6, "%.2f", voltage);
+            float soc = Battery_EstimateLevel() * 100;
+            snprintf(vstr, 6, "%.2f", soc);
             publishMqtt((char *)FPSTR(topicBatterySOC), vstr, false);
         #endif
     }
@@ -129,7 +129,7 @@
         snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *)FPSTR(currentVoltageMsg), voltage);
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
-        float soc = Battery_EstimateLevel();
+        float soc = Battery_EstimateLevel() * 100;
         snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f %%", (char *)FPSTR(currentChargeMsg), soc);
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
