@@ -26,7 +26,7 @@
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 
         // if power was lost, restore model params
-        if (por)  {
+        if (por) {
             // TODO i18n necessary?
             Log_Println("Battery detected power loss - loading fuel gauge parameters.", LOGLEVEL_NOTICE);
             uint16_t rComp0 = gPrefsSettings.getUShort("rComp0", 0xFFFF);
@@ -47,12 +47,10 @@
             if ((rComp0 & tempCo & fullCapRep & fullCapNom) != 0xFFFF) {
                 Log_Println("Successfully loaded fuel gauge parameters.", LOGLEVEL_NOTICE);
                 sensor.restoreLearnedParameters(rComp0, tempCo, fullCapRep, cycles, fullCapNom);
-            }
-            else {
+            } else {
                 Log_Println("Failed loading fuel gauge parameters.", LOGLEVEL_NOTICE);
             }
-        }
-        else {
+        } else {
             Log_Println("Battery continuing normal operation", LOGLEVEL_DEBUG);
         }
 
@@ -75,8 +73,7 @@
             batteryLow = vBatteryLow;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f %%", (char *)FPSTR(batteryLowFromNVS), batteryLow);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        }
-        else {
+        } else {
             gPrefsSettings.putFloat("batteryLow", batteryLow);
         }
 
@@ -85,8 +82,7 @@
             batteryCritical = vBatteryCritical;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f %%", (char *)FPSTR(batteryCriticalFromNVS), batteryCritical);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        }
-        else {
+        } else {
             gPrefsSettings.putFloat("batteryCritical", batteryCritical);
         }
     }
