@@ -32,7 +32,7 @@
     #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #ifdef I2C_2_ENABLE
         #define ext_IIC_CLK                 23          // i2c-SCL (clock) [14 pin-header]
         #define ext_IIC_DATA                18          // i2c-SDA (data) [14 pin-header]
     #endif

@@ -197,6 +197,11 @@
         constexpr float s_voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
     #endif
 
+    // enable I2C if necessary
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+        #define I2C_2_ENABLE
+    #endif
+
     // (optinal) Headphone-detection (leave unchanged if in doubts...)
     #ifdef HEADPHONE_ADJUST_ENABLE
         constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
