@@ -26,13 +26,6 @@
 #include "revision.h"
 
 
-// Only enable measurements if valid GPIO is used
-#ifdef MEASURE_BATTERY_VOLTAGE
-    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
-        #define ENABLE_BATTERY_MEASUREMENTS
-    #endif
-#endif
-
 #if (LANGUAGE == DE)
     #include "HTMLaccesspoint_DE.h"
     #include "HTMLmanagement_DE.h"
@@ -196,8 +189,10 @@ void webserverStart(void) {
                         info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
                     }
                 #endif
-                #ifdef ENABLE_BATTERY_MEASUREMENTS
+                #ifdef BATTERY_MEASURE_ENABLE
                     snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
+                    info += (String) Log_Buffer;
+                    snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f %%", (char *)FPSTR(currentChargeMsg), Battery_EstimateLevel() * 100);
                     info += (String) Log_Buffer;
                 #endif
                 request->send_P(200, "text/plain", info.c_str());
@@ -346,14 +341,24 @@ String templateProcessor(const String &templ) {
         return String(gPrefsSettings.getUInt("maxVolumeSp", 0));
     } else if (templ == "MAX_VOLUME_HEADPHONE") {
         return String(gPrefsSettings.getUInt("maxVolumeHp", 0));
-    } else if (templ == "WARNING_LOW_VOLTAGE") {
-        return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
-    } else if (templ == "VOLTAGE_INDICATOR_LOW") {
-        return String(gPrefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
-    } else if (templ == "VOLTAGE_INDICATOR_HIGH") {
-        return String(gPrefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
-    } else if (templ == "VOLTAGE_CHECK_INTERVAL") {
-        return String(gPrefsSettings.getUInt("vCheckIntv", voltageCheckInterval));
+#ifdef BATTERY_MEASURE_ENABLE
+    #ifdef MEASURE_BATTERY_VOLTAGE
+        } else if (templ == "WARNING_LOW_VOLTAGE") {
+            return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
+        } else if (templ == "VOLTAGE_INDICATOR_LOW") {
+            return String(gPrefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
+        } else if (templ == "VOLTAGE_INDICATOR_HIGH") {
+            return String(gPrefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
+    #endif
+    #ifdef MEASURE_BATTERY_OTHER // placeholder
+        } else if (templ == "todo") {
+            return "todo";
+    #endif
+    } else if (templ == "BATTERY_CHECK_INTERVAL") {
+        return String(gPrefsSettings.getUInt("vCheckIntv", batteryCheckInterval));
+#else
+    // TODO: hide battery config
+#endif
     } else if (templ == "MQTT_SERVER") {
         return gPrefsSettings.getString("mqttServer", "-1");
     } else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled

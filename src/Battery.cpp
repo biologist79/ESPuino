@@ -5,100 +5,69 @@
 #include "Mqtt.h"
 #include "Led.h"
 #include "System.h"
+#include "Power.h"
+#include "Rfid.h"
 
-constexpr uint16_t maxAnalogValue = 4095u; // Highest value given by analogRead(); don't change!
+#ifdef BATTERY_MEASURE_ENABLE
+    uint8_t batteryCheckInterval = s_batteryCheckInterval;
 
-float warningLowVoltage = s_warningLowVoltage;
-uint8_t voltageCheckInterval = s_voltageCheckInterval;
-float voltageIndicatorLow = s_voltageIndicatorLow;
-float voltageIndicatorHigh = s_voltageIndicatorHigh;
-
-// Only enable measurements if valid GPIO is used
-#ifdef MEASURE_BATTERY_VOLTAGE
-    #if (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
-        #define ENABLE_BATTERY_MEASUREMENTS
-    #endif
-#endif
-
-void Battery_Init() {
-    #ifdef ENABLE_BATTERY_MEASUREMENTS
-        // Get voltages from NVS for Neopixel
-        float vLowIndicator = gPrefsSettings.getFloat("vIndicatorLow", 999.99);
-        if (vLowIndicator <= 999) {
-            voltageIndicatorLow = vLowIndicator;
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorLowFromNVS), vLowIndicator);
-            Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        } else { // preseed if not set
-            gPrefsSettings.putFloat("vIndicatorLow", voltageIndicatorLow);
-        }
-
-        float vHighIndicator = gPrefsSettings.getFloat("vIndicatorHigh", 999.99);
-        if (vHighIndicator <= 999) {
-            voltageIndicatorHigh = vHighIndicator;
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(voltageIndicatorHighFromNVS), vHighIndicator);
-            Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        } else {
-            gPrefsSettings.putFloat("vIndicatorHigh", voltageIndicatorHigh);
-        }
-
-        float vLowWarning = gPrefsSettings.getFloat("wLowVoltage", 999.99);
-        if (vLowWarning <= 999) {
-            warningLowVoltage = vLowWarning;
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(warningLowVoltageFromNVS), vLowWarning);
-            Log_Println(Log_Buffer, LOGLEVEL_INFO);
-        } else {
-            gPrefsSettings.putFloat("wLowVoltage", warningLowVoltage);
-        }
-
+    void Battery_Init(void) {
         uint32_t vInterval = gPrefsSettings.getUInt("vCheckIntv", 17777);
         if (vInterval != 17777) {
-            voltageCheckInterval = vInterval;
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %u Minuten", (char *) FPSTR(voltageCheckIntervalFromNVS), vInterval);
+            batteryCheckInterval = vInterval;
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %u Minuten", (char *)FPSTR(batteryCheckIntervalFromNVS), vInterval);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         } else {
-            gPrefsSettings.putUInt("vCheckIntv", voltageCheckInterval);
+            gPrefsSettings.putUInt("vCheckIntv", batteryCheckInterval);
         }
-    #endif
-}
 
-// The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
-float Battery_GetVoltage(void) {
-    #ifdef ENABLE_BATTERY_MEASUREMENTS
-        float factor = 1 / ((float) rdiv2 / (rdiv2 + rdiv1));
-        float averagedAnalogValue = 0;
-        uint8_t i;
-        for (i = 0; i <= 19; i++) {
-            averagedAnalogValue += (float) analogRead(VOLTAGE_READ_PIN);
-        }
-        averagedAnalogValue /= 20.0;
-        return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
-    #else
-        return 3.3;         // Dummy-value
-    #endif
-}
+        Battery_InitInner();
 
-// Measures voltage of a battery as per interval or after bootup (after allowing a few seconds to settle down)
-void Battery_Cyclic(void) {
-    #ifdef ENABLE_BATTERY_MEASUREMENTS
-        static uint32_t lastVoltageCheckTimestamp = 0;
+        #ifdef SHUTDOWN_ON_BAT_CRITICAL
+            if (Battery_IsCritical()) {
+                Battery_LogStatus();
 
-        if ((millis() - lastVoltageCheckTimestamp >= voltageCheckInterval * 60000) || (!lastVoltageCheckTimestamp && millis() >= 10000)) {
+                Log_Println((char *)FPSTR(batteryCriticalMsg), LOGLEVEL_NOTICE);
+
+                // Power down and enter deepsleep
+                Power_PeripheralOff();
+                delay(200);
+                #ifdef PN5180_ENABLE_LPCD
+                    Rfid_Exit();
+                #endif
+                delay(1000);
+                esp_deep_sleep_start();
+            }
+        #endif
+
+    }
+
+    // Measures battery as per interval or after bootup (after allowing a few seconds to settle down)
+    void Battery_Cyclic(void) {
+        static uint32_t lastBatteryCheckTimestamp = 0;
+        if ((millis() - lastBatteryCheckTimestamp >= batteryCheckInterval * 60000) || (!lastBatteryCheckTimestamp && millis() >= 10000)) {
             float voltage = Battery_GetVoltage();
 
-            if (voltage <= warningLowVoltage) {
-                snprintf(Log_Buffer, Log_BufferLength, "%s: (%.2f V)", (char *) FPSTR(voltageTooLow), voltage);
-                Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+            Battery_CyclicInner();
+            Battery_PublishMQTT();
+            Battery_LogStatus();
+
+            if (Battery_IsLow()) {
+                Log_Println((char *)FPSTR(batteryLowMsg), LOGLEVEL_ERROR);
                 Led_Indicate(LedIndicatorType::VoltageWarning);
             }
 
-            #ifdef MQTT_ENABLE
-                char vstr[6];
-                snprintf(vstr, 6, "%.2f", voltage);
-                publishMqtt((char *) FPSTR(topicBatteryVoltage), vstr, false);
+            #ifdef SHUTDOWN_ON_BAT_CRITICAL
+                if (Battery_IsCritical()) {
+                    Log_Println((char *)FPSTR(batteryCriticalMsg), LOGLEVEL_ERROR);
+                    System_RequestSleep();
+                }
             #endif
-            snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *) FPSTR(currentVoltageMsg), voltage);
-            Log_Println(Log_Buffer, LOGLEVEL_INFO);
-            lastVoltageCheckTimestamp = millis();
+
+            lastBatteryCheckTimestamp = millis();
         }
-    #endif
-}
+    }
+#else // Battery Measure disabled, add dummy methods
+    void Battery_Cyclic(void) {}
+    void Battery_Init(void) {}
+#endif
