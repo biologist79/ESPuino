@@ -243,7 +243,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <div class=\"input-group\">\
                             <span class=\"form-control\" id=\"uploaded_file_text\"></span>\
                             <span class=\"input-group-btn\">\
-                                <span class=\"btn btn-secondary\" onclick=\"$(this).parent().find('input[type=file]').click();\">Browse</span>\
+                                <span class=\"btn btn-secondary\" onclick=\"let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();\">Dateien</span>\
+                                <span class=\"btn btn-secondary\" onclick=\"let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();\">Ordner</span>\
                                 <span class=\"btn btn-primary\" onclick=\"$(this).parent().find('input[type=file]').submit();\">Upload</span>\
                                 <input name=\"uploaded_file\" id =\"uploaded_file\" onchange=\"$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());\" style=\"display: none;\" type=\"file\" multiple>\
                             </span>\

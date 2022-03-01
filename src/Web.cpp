@@ -672,6 +672,22 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
     }
 }
 
+void explorerCreateParentDirectories(const char* filePath) {
+    char tmpPath[MAX_FILEPATH_LENTGH];
+    char *rest;
+
+    rest = strchr(filePath, '/');
+    while (rest) {
+        if (rest-filePath != 0){
+            memcpy(tmpPath, filePath, rest-filePath);
+            tmpPath[rest-filePath] = '\0';
+            printf("creating dir \"%s\"\n", tmpPath);
+            gFSystem.mkdir(tmpPath);
+        }
+        rest = strchr(rest+1, '/');
+    }
+}
+
 // Handles file upload request from the explorer
 // requires a GET parameter path, as directory path to the file
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
@@ -694,6 +710,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
         Log_Println(Log_Buffer, LOGLEVEL_INFO);
         Web_DeleteCachefile(utf8FilePath.c_str());
+
+        // Create Parent directories
+        explorerCreateParentDirectories(utf8FilePath.c_str());
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
