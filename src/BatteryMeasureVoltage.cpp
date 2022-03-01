@@ -90,7 +90,8 @@
         float currentVoltage = Battery_GetVoltage();
         float vDiffIndicatorRange = voltageIndicatorHigh - voltageIndicatorLow;
         float vDiffCurrent = currentVoltage - voltageIndicatorLow;
-        return (vDiffCurrent / vDiffIndicatorRange);
+        float estimatedLevel = vDiffCurrent / vDiffIndicatorRange;
+        return (estimatedLevel > 1) ? 1.0F : estimatedLevel;      // Don't return value > 1.0
     }
 
     bool Battery_IsLow(void) {
