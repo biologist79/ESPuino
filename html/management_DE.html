@@ -243,8 +243,9 @@
                         <div class="input-group">
                             <span class="form-control" id="uploaded_file_text"></span>
                             <span class="input-group-btn">
-                                <span class="btn btn-secondary" onclick="$(this).parent().find('input[type=file]').click();">Browse</span>
-                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();">Upload</span>
+                                <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" title="Eine oder mehrere Datei(en) hochladen">Dateien</span>
+                                <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" title="Einen Ordner samt Inhalt (und allen Unterordnern) hochladen">Ordner</span>
+                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" title="Upload starten">Upload</span>
                                 <input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
                             </span>
                         </div>
