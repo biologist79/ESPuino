@@ -332,7 +332,6 @@ static void Led_Task(void *parameter) {
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
                 LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
                 float batteryLevel = Battery_EstimateLevel();
-                Serial.println(batteryLevel);
                 bool batteryLow = Battery_IsLow();
                 bool batteryCritical = Battery_IsCritical();
 
