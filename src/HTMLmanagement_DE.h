@@ -489,7 +489,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"voltageCheckInterval\">Zeitabstand der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
-                                   data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
+                                   data-slider-value=\"%BATTERY_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%BATTERY_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
                     </div>\
 \
                     </fieldset>\
