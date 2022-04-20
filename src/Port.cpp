@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Wire.h>
+#include "i2c.h"
 #include "settings.h"
 #include "Port.h"
 #include "Log.h"
@@ -14,8 +14,6 @@
 // 115 => port 1 channel/bit 7
 
 #ifdef PORT_EXPANDER_ENABLE
-    extern TwoWire i2cBusTwo;
-
     uint8_t Port_ExpanderPortsInputChannelStatus[2];
     static uint8_t Port_ExpanderPortsOutputChannelStatus[2] = {255, 255};          // Stores current configuration of output-channels locally
     void Port_ExpanderHandler(void);

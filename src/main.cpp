@@ -1,8 +1,8 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 #include <Arduino.h>
-#include <Wire.h>
 #include "settings.h" // Contains all user-relevant settings (general)
 
+#include "i2c.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Bluetooth.h"
@@ -34,17 +34,6 @@
 #endif
 
 ////////////
-
-#if (HAL == 2)
-    #include "AC101.h"
-    static TwoWire i2cBusOne = TwoWire(0);
-    static AC101 ac(&i2cBusOne);
-#endif
-
-// I2C
-#ifdef I2C_2_ENABLE
-    TwoWire i2cBusTwo = TwoWire(1);
-#endif
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     // If a problem occurs, remembering last rfid can lead into a boot loop that's hard to escape of.
@@ -113,13 +102,9 @@ void setup() {
 
     System_Init();
 
-    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #ifdef I2C_2_ENABLE
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
-        delay(50);
-        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
-
+    // I2C wird zentral behandelt
+    i2c_Init();
+    
     // Needs i2c first if port-expander is used
     Port_Init();
 
@@ -138,21 +123,6 @@ void setup() {
     gPlayProperties.playlistFinished = true;
 
     Led_Init();
-
-    // Only used for ESP32-A1S-Audiokit
-    #if (HAL == 2)
-        i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
-
-        while (not ac.begin()) {
-            Serial.println(F("AC101 Failed!"));
-            delay(1000);
-        }
-        Serial.println(F("AC101 via I2C - OK!"));
-
-        pinMode(22, OUTPUT);
-        digitalWrite(22, HIGH);
-        ac.SetVolumeHeadphone(80);
-    #endif
 
     // Needs power first
     SdCard_Init();
@@ -176,10 +146,10 @@ void setup() {
     Ftp_Init();
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
-        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-            Rfid_Init();
-        #endif
+        // only execute threadsafe when i2c is used
+        i2c_tsafe_execute(Rfid_Init,30);
     #endif
+
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();
@@ -190,19 +160,22 @@ void setup() {
 
     IrReceiver_Init();
     System_UpdateActivityTimer(); // initial set after boot
-    Led_Indicate(LedIndicatorType::BootComplete);
-
+    
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "PSRAM: %u bytes", ESP.getPsramSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+/*  Will be called Cyclic
     if (Wlan_IsConnected()) {
         snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     }
+*/
     System_ShowUpgradeWarning();
+    vTaskDelay(100);
+    Led_Indicate(LedIndicatorType::BootComplete);
 }
 
 void loop() {

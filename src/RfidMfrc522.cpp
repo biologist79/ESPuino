@@ -12,10 +12,9 @@
     #ifdef RFID_READER_TYPE_MFRC522_SPI
         #include <MFRC522.h>
     #endif
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        #include "Wire.h"
-    #endif
     #ifdef RFID_READER_TYPE_MFRC522_I2C
+		// Handling von I2C zentral
+		#include "i2c.h"
         #include <MFRC522_I2C.h>
     #endif
 
@@ -23,7 +22,6 @@
     static void Rfid_Task(void *parameter);
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
-        extern TwoWire i2cBusTwo;
         static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
     #endif
     #ifdef RFID_READER_TYPE_MFRC522_SPI
