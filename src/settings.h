@@ -55,8 +55,8 @@
     
 
     //################## select RFID reader ##############################
-    #define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
-    //#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
+    //#define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
+    #define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
     //#define RFID_READER_TYPE_PN5180       // use PN5180 via SPI
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
@@ -68,7 +68,7 @@
     #endif
 
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-        constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
+        constexpr uint8_t rfidGain = 0x04 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 
 
