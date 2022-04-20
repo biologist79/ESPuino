@@ -4,7 +4,7 @@
     <title>ESPuino-Settings</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/x-icon" href="https://espuino.de/espuino/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon">
     <link rel="stylesheet" href="https://espuino.de/espuino/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"/>
@@ -72,6 +72,13 @@
             position: relative;
         }
 
+        .coverimage-container {
+            width: 80%;
+            height:15%;
+            margin-left: 1em;
+            margin-right: 1em;
+        }
+
         .indexing-progress {
             width: 100%;
             height: 100%;
@@ -130,7 +137,7 @@
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
     <div class="col-md-12">
     <a class="float-left navbar-brand">
-        <img src="https://www.espuino.de/espuino/Espuino32.png"
+        <img src="/logo"
              width="35" height="35" class="d-inline-block align-top" alt=""/>
         ESPuino
     </a>
@@ -183,20 +190,23 @@
         <div class="container" id="navControl">
                 <div class="form-group col-md-12">
                     <legend>Control</legend>
+                    <div class="form-group col-md-12">
+                        <img src="/cover" class="coverimage-container" id="coverimg" alt="">
+                    </div>
                     <div class="buttons">
-                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(173)">
+                        <button type="button" class="btn btn-default btn-lg" id="nav-btn-first" onclick="sendControl(173)">
                             <span class="fas fa-fast-backward"></span>
                         </button>
-                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(171)">
+                        <button type="button" class="btn btn-default btn-lg" id="nav-btn-prev" onclick="sendControl(171)">
                             <span class="fas fa-backward"></span>
                         </button>
-                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(170)">
-                            <i class="fas fa-pause"></i>
+                        <button type="button" class="btn btn-default btn-lg" id="nav-btn-play" onclick="sendControl(170)">
+                            <i id="ico-play-pause" class="fas fa-lg fa-play"></i>
                         </button>
-                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(172)">
+                        <button type="button" class="btn btn-default btn-lg" id="nav-btn-next" onclick="sendControl(172)">
                             <span class="fas fa-forward"></span>
                         </button>
-                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(174)">
+                        <button type="button" class="btn btn-default btn-lg" id="nav-btn-last" onclick="sendControl(174)">
                             <span class="fas fa-fast-forward"></span>
                         </button>
                     </div>
@@ -204,8 +214,14 @@
                 <br>
                 <div class="form-group col-md-12">
                     <legend>Volume</legend>
-                        <i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-                            data-slider-value="%CURRENT_VOLUME%" value="%CURRENT_VOLUME%" onchange="sendVolume(this.value)">  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)">
+                            <span class="fas fa-volume-down"></span>
+                        </button>
+                        </i><input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
+                            data-slider-value="%CURRENT_VOLUME%" value="%CURRENT_VOLUME%" onchange="sendVolume(this.value)">
+                        <button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)">
+                            <span class="fas fa-volume-up"></span>
+                        </button>
                 </div>
                 <br/>
                 <div class="form-group col-md-12">
@@ -227,8 +243,9 @@
                         <div class="input-group">
                             <span class="form-control" id="uploaded_file_text"></span>
                             <span class="input-group-btn">
-                                <span class="btn btn-secondary" onclick="$(this).parent().find('input[type=file]').click();">Browse</span>
-                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();">Upload</span>
+                                <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" title="Upload one ore more files">Files</span>
+                                <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" title="Upload directory with all files and subdirectories">Directory</span>
+                                <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" title="Start Upload">Upload</span>
                                 <input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
                             </span>
                         </div>
@@ -472,7 +489,7 @@
                     <label for="voltageCheckInterval">Interval between measurements (in minutes)</label>
                         <div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
                             <input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
-                                   data-slider-value="%VOLTAGE_CHECK_INTERVAL%"  name="voltageCheckInterval" value="%VOLTAGE_CHECK_INTERVAL%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+                                   data-slider-value="%BATTERY_CHECK_INTERVAL%"  name="voltageCheckInterval" value="%BATTERY_CHECK_INTERVAL%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
                     </div>
 
                     </fieldset>
@@ -560,7 +577,6 @@
         "newestOnTop": false,
         "progressBar": false,
         "positionClass": "toast-top-right",
-        "preventDuplicates": false,
         "onclick": null,
         "showDuration": "300",
         "hideDuration": "1000",
@@ -583,14 +599,19 @@
             }).pop();
             if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|m4a|M4A)$/i).test(lastFolder)) {
                 data.instance.set_type(data.instance._model.data[key], 'audio');
+            } else 
+            if ((/\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(lastFolder)) {
+                data.instance.set_type(data.instance._model.data[key], 'image');
+                data.instance.disable_node(data.instance._model.data[key]);
             } else {
-                if (data.instance._model.data[key]['type'] == "file") {
+             if (data.instance._model.data[key]['type'] == "file") {
                     data.instance.disable_node(data.instance._model.data[key]);
                 }
             }
             data.instance.rename_node(data.instance._model.data[key], lastFolder);
         });
     }
+
 
     /* File Explorer functions begin*/
     var lastSelectedNodePath = "";
@@ -717,23 +738,64 @@
             contentType: false,
             processData:false,
 			xhr: function() {
+                var lastNow = new Date().getTime();
+                startTime = new Date().getTime();
+                var lastKBytes = 0;
+                bytesTotal = 0;
 				var xhr = new window.XMLHttpRequest();
 
 				xhr.upload.addEventListener("progress", function(evt) {
 				  if (evt.lengthComputable) {
+                    var now = new Date().getTime();  
+                    bytesTotal = evt.total;
 					var percentComplete = evt.loaded / evt.total;
 					percentComplete = parseInt(percentComplete * 100);
-                    console.log(percentComplete);
+                    kbytes = evt.loaded / 1024;
+                    var uploadedkBytes = kbytes - lastKBytes;
+                    var elapsed = (now - lastNow) / 1000;
+                    elapsed_total = (now - startTime) / 1000;
+                    var kbps = elapsed ? uploadedkBytes / elapsed : 0;
+                    lastKBytes = kbytes;
+                    lastNow = now;
+
+                    var seconds_elapsed =  (now - startTime) / 1000;
+                    var bytes_per_second =  seconds_elapsed ? evt.loaded / seconds_elapsed : 0;
+                    var Kbytes_per_second = bytes_per_second / 1024;
+                    var remaining_bytes =   evt.total - evt.loaded;                    
+                    var seconds_remaining = seconds_elapsed ? (remaining_bytes / bytes_per_second) : 'is being calculated..' ;
+
                     var percent = percentComplete + '%';
-                    $("#explorerUploadProgress").css('width', percent).text(percent);
+                    console.log("Percent: " + percent + ", " + Kbytes_per_second.toFixed(2) + " KB/s");
+                    var progressText = percent;
+                    if (seconds_remaining > 60) {
+                        progressText = progressText + ", " + (seconds_remaining / 60).toFixed(0) + " mins. remaining..";
+                    } else
+                    if (seconds_remaining <= 0) {
+                        progressText = progressText + " (" + Kbytes_per_second.toFixed(2) + " KB/s)";
+                    } else
+                     if (seconds_remaining < 2) {
+                        progressText = progressText + ", few secs. remaining..";
+                    } else {
+                        progressText = progressText + ", " + seconds_remaining.toFixed(0) + " secs. remaining..";
+                    }
+                    $("#explorerUploadProgress").css('width', percent).text(progressText);
 				  }
 				}, false);
 
 				return xhr;
 			},
 			success: function(data, textStatus, jqXHR) {
-                console.log("Upload success!");
-                $("#explorerUploadProgress").text("Upload success!");
+                var now = new Date().getTime();  
+                var elapsed_time = (now - startTime);
+                var seconds_elapsed =  elapsed_time / 1000;
+                var bytes_per_second =  seconds_elapsed ? bytesTotal / seconds_elapsed : 0;
+                var Kbytes_per_second = bytes_per_second / 1024 ;
+                var minutes = Math.floor(seconds_elapsed / 60);
+                var seconds = seconds_elapsed - (minutes * 60);
+                var timeText = minutes.toString().padStart(2, '0') + ':' + seconds.toFixed(0).toString().padStart(2, '0');
+                console.log("Upload success (" + timeText + ", " + Kbytes_per_second.toFixed(2) + " KB/s): " + textStatus);
+                var progressText = "Upload done (" + timeText + ", " + Kbytes_per_second.toFixed(2) + "  KB/s).";
+                $("#explorerUploadProgress").text(progressText);
                 document.getElementById('uploaded_file').value = '';
                 document.getElementById('uploaded_file_text').innerHTML = '';
 
@@ -742,11 +804,14 @@
 					deleteChildrenNodes(sel);
 					addFileDirectory(sel, data);
 					ref.open_node(sel);
-
-
 				});
 
-			}
+			},
+            error: function(request, status, error) {
+                console.log("Upload ERROR!");
+                $("#explorerUploadProgress").text("Upload-error: " + status);
+                toastr.error("Upload-error: " + status);
+            }
         });
 	});
 
@@ -828,8 +893,10 @@
 
 		if(data.dir) {
 			type = "folder";
-		} else if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC)$/i).test(data.name)) {
+		} else if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|m4a|M4A|flac|FLAC)$/i).test(data.name)) {
 			type = "audio";
+		} else if ((/\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(data.name)) {
+			type = "image";
 		} else {
 			type = "file";
 		}
@@ -855,6 +922,7 @@
 				"core" : {
 						"check_callback" : true,
 						'force_text' : true,
+                        'strings' : { "Loading ..." : "is being loaded..." },
 						"themes" : { "stripes" : true },
 						'data' : {	text: '/',
 									state: {
@@ -876,6 +944,9 @@
 						},
 						'audio': {
 							'icon': "fa fa-file-audio"
+						},
+						'image': {
+							'icon': "fa fa-file-image"
 						},
 						'default': {
 							'icon': "fa fa-folder"
@@ -908,7 +979,14 @@
 						items.play = {
 							label: "Play",
 							action: function(x) {
-								var playMode = node.data.directory?"5":"1";
+								var playMode = 1;
+                                if (node.data.directory) {
+                                    playMode = 5;
+                                } else {
+                                    if ((/\.(m3u|M3U)$/i).test(node.data.path)) {
+                                        playMode = 11;
+                                    }
+                                }
 								postData("/exploreraudio?path=" + node.data.path + "&playmode=" + playMode);
 							}
 						};
@@ -943,7 +1021,24 @@
 							}
 						};
 
-					   return items;
+						/* Download */
+                        if (!node.data.directory) {
+						    items.download = {
+							    label: "Download",
+							    action: function(x) {
+								    uri = "/explorerdownload?path=" + encodeURIComponent(node.data.path);
+                                    console.log("download file: " + node.data.path);
+                                    var anchor = document.createElement('a');
+                                    anchor.href = uri;
+                                    anchor.target = '_blank';
+                                    anchor.download = node.data.path;
+                                    anchor.click();
+                                    document.body.removeChild(document.body.lastElementChild);
+							    }
+						    }
+                        };
+
+                        return items;
 					}
 				}
 			});
@@ -981,6 +1076,8 @@
 
     var socket = undefined;
     var tm;
+    var volumeSlider = new Slider("#setVolume");
+    document.getElementById('setVolume').remove();
 
     function connect() {
         socket = new WebSocket("ws://" + host + "/ws");
@@ -988,6 +1085,7 @@
         socket.onopen = function () {
             setInterval(ping, 15000);
             getTrack();
+            getCoverimage();
         };
 
         socket.onclose = function (e) {
@@ -1014,14 +1112,45 @@
                   toastr.success("Action performed successfully." );
               }
           } if ("pong" in socketMsg) {
-              if (socketMsg.pong == 'pong') {
+            if (socketMsg.pong == 'pong') {
                   pong();
               }
-            } if ("track" in socketMsg) {
-                document.getElementById('track').innerHTML = socketMsg.track;
+            } if ("volume" in socketMsg) {
+                volumeSlider.setValue(parseInt(socketMsg.volume));
+            } if ("trackinfo" in socketMsg) {
+                document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
+
+                var btnTrackPlayPause = document.getElementById('nav-btn-play');
+                if (socketMsg.trackinfo.pausePlay) {
+                    btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
+                } else {
+                    btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-pause"></i>';
+                }
+
+                var btnTrackFirst = document.getElementById('nav-btn-first');
+                var btnTrackPrev = document.getElementById('nav-btn-prev');
+                if (socketMsg.trackinfo.currentTrackNumber <= 1) {
+                    btnTrackFirst.classList.add("disabled");
+                    btnTrackPrev.classList.add("disabled");
+                } else {
+                    btnTrackFirst.classList.remove("disabled");
+                    btnTrackPrev.classList.remove("disabled");
+                }
+                var btnTrackLast = document.getElementById('nav-btn-last');
+                var btnTrackNext = document.getElementById('nav-btn-next');
+                if (socketMsg.trackinfo.currentTrackNumber >= socketMsg.trackinfo.numberOfTracks) {
+                    btnTrackLast.classList.add("disabled");
+                    btnTrackNext.classList.add("disabled");
+                } else {
+                    btnTrackLast.classList.remove("disabled");
+                    btnTrackNext.classList.remove("disabled");
+                }
+            } if ("coverimg" in socketMsg) {
+                document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
           }
       };
     }
+
 
     function ping() {
         var myObj = {
@@ -1042,13 +1171,24 @@
 
     function getTrack() {
         var myObj = {
-            "getTrack": {
-                getTrack: 'getTrack'
+            "trackinfo": {
+                trackinfo: 'trackinfo'
             }
         };
         var myJSON = JSON.stringify(myObj);
         socket.send(myJSON);
     }
+
+    function getCoverimage() {
+        var myObj = {
+            "coverimg": {
+                coverimg: 'coverimg'
+            }
+        };
+        var myJSON = JSON.stringify(myObj);
+        socket.send(myJSON);
+    }
+
 
     function genSettings(clickedId) {
         lastIdclicked = clickedId;
@@ -1181,7 +1321,6 @@
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
-
     });
 </script>
 </body>

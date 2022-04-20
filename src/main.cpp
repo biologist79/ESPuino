@@ -42,7 +42,7 @@
 #endif
 
 // I2C
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+#ifdef I2C_2_ENABLE
     TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
@@ -100,32 +100,6 @@
     }
 #endif
 
-// Print the wake-up reason why ESP32 is awake now
-void printWakeUpReason() {
-    esp_sleep_wakeup_cause_t wakeup_reason;
-    wakeup_reason = esp_sleep_get_wakeup_cause();
-
-    switch (wakeup_reason) {
-        case ESP_SLEEP_WAKEUP_EXT0:
-            Serial.println(F("Wakeup caused by push button"));
-            break;
-        case ESP_SLEEP_WAKEUP_EXT1:
-            Serial.println(F("Wakeup caused by low power card detection"));
-            break;
-        case ESP_SLEEP_WAKEUP_TIMER:
-            Serial.println(F("Wakeup caused by timer"));
-            break;
-        case ESP_SLEEP_WAKEUP_TOUCHPAD:
-            Serial.println(F("Wakeup caused by touchpad"));
-            break;
-        case ESP_SLEEP_WAKEUP_ULP:
-            Serial.println(F("Wakeup caused by ULP program"));
-            break;
-        default:
-            Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
-            break;
-    }
-}
 
 void setup() {
     Log_Init();
@@ -140,15 +114,14 @@ void setup() {
     System_Init();
 
     // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #ifdef I2C_2_ENABLE
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
         delay(50);
         Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
     #endif
 
-    #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first
-        Port_Init();
-    #endif
+    // Needs i2c first if port-expander is used
+    Port_Init();
 
     // If port-expander is used, port_init has to be called first, as power can be (possibly) done by port-expander
     Power_Init();
@@ -164,13 +137,9 @@ void setup() {
     memset(&gPlayProperties, 0, sizeof(gPlayProperties));
     gPlayProperties.playlistFinished = true;
 
-    #ifdef PLAY_MONO_SPEAKER
-        gPlayProperties.newPlayMono = true;
-        gPlayProperties.currentPlayMono = true;
-    #endif
-
     Led_Init();
 
+    // Only used for ESP32-A1S-Audiokit
     #if (HAL == 2)
         i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
@@ -182,12 +151,7 @@ void setup() {
 
         pinMode(22, OUTPUT);
         digitalWrite(22, HIGH);
-
-        #if (GPIO_PA_EN >= 0 && GPIO_PA_EN <= 39)
-            pinMode(GPIO_PA_EN, OUTPUT);
-            digitalWrite(GPIO_PA_EN, HIGH);
-        #endif
-        Serial.println(F("Built-in amplifier enabled\n"));
+        ac.SetVolumeHeadphone(80);
     #endif
 
     // Needs power first
@@ -205,14 +169,16 @@ void setup() {
     Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
-    printWakeUpReason();
+    System_ShowWakeUpReason();
 	// print SD card info
     SdCard_PrintInfo();
 
     Ftp_Init();
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
-        Rfid_Init();
+        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+            Rfid_Init();
+        #endif
     #endif
     RotaryEncoder_Init();
     Wlan_Init();
@@ -240,8 +206,6 @@ void setup() {
 }
 
 void loop() {
-    Rfid_Cyclic();
-
     if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
         Bluetooth_Cyclic();
     } else {

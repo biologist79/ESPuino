@@ -4,7 +4,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
     <title>ESPuino-Konfiguration</title>\
     <meta charset=\"utf-8\">\
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"https://espuino.de/espuino/favicon.ico\">\
+    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"/favicon\">\
     <link rel=\"stylesheet\" href=\"https://espuino.de/espuino/css/bootstrap.min.css\">\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css\"/>\
     <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css\"/>\
@@ -137,7 +137,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 <nav class=\"navbar navbar-expand-sm bg-primary navbar-dark\">\
     <div class=\"col-md-12\">\
     <a class=\"float-left navbar-brand\">\
-        <img src=\"https://www.espuino.de/espuino/Espuino32.png\"\
+        <img src=\"/logo\"\
              width=\"35\" height=\"35\" class=\"d-inline-block align-top\" alt=\"\"/>\
         ESPuino\
     </a>\
@@ -191,7 +191,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                 <div class=\"form-group col-md-12\">\
                     <legend>Steuerung</legend>\
                     <div class=\"form-group col-md-12\">\
-                        <img src=\"/cover\" class=\"coverimage-container\" id=\"coverimg\">\
+                        <img src=\"/cover\" class=\"coverimage-container\" id=\"coverimg\" alt=\"\">\
                     </div>\
                     <div class=\"buttons\">\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-first\" onclick=\"sendControl(173)\">\
@@ -201,7 +201,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                             <span class=\"fas fa-backward\"></span>\
                         </button>\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-play\" onclick=\"sendControl(170)\">\
-                            <i id=\"ico-play-pause\" class='fas fa-lg fa-play')></i>\
+                            <i id=\"ico-play-pause\" class=\"fas fa-lg fa-play\"></i>\
                         </button>\
                         <button type=\"button\" class=\"btn btn-default btn-lg\" id=\"nav-btn-next\" onclick=\"sendControl(172)\">\
                             <span class=\"fas fa-forward\"></span>\
@@ -243,8 +243,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                         <div class=\"input-group\">\
                             <span class=\"form-control\" id=\"uploaded_file_text\"></span>\
                             <span class=\"input-group-btn\">\
-                                <span class=\"btn btn-secondary\" onclick=\"$(this).parent().find('input[type=file]').click();\">Browse</span>\
-                                <span class=\"btn btn-primary\" onclick=\"$(this).parent().find('input[type=file]').submit();\">Upload</span>\
+                                <span class=\"btn btn-secondary\" onclick=\"let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();\" title=\"Eine oder mehrere Datei(en) hochladen\">Dateien</span>\
+                                <span class=\"btn btn-secondary\" onclick=\"let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();\" title=\"Einen Ordner samt Inhalt (und allen Unterordnern) hochladen\">Ordner</span>\
+                                <span class=\"btn btn-primary\" onclick=\"$(this).parent().find('input[type=file]').submit();\" title=\"Upload starten\">Upload</span>\
                                 <input name=\"uploaded_file\" id =\"uploaded_file\" onchange=\"$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());\" style=\"display: none;\" type=\"file\" multiple>\
                             </span>\
                         </div>\
@@ -488,7 +489,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     <label for=\"voltageCheckInterval\">Zeitabstand der Messung (in Minuten)</label>\
                         <div class=\"text-center\"><i class=\"fas fa-hourglass-start fa-2x .icon-pos\"></i>\
                             <input data-provide=\"slider\" data-slider-min=\"1\" data-slider-max=\"60\" type=\"number\" min=\"1\" max=\"60\" class=\"form-control\" id=\"voltageCheckInterval\"\
-                                   data-slider-value=\"%VOLTAGE_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%VOLTAGE_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
+                                   data-slider-value=\"%BATTERY_CHECK_INTERVAL%\"  name=\"voltageCheckInterval\" value=\"%BATTERY_CHECK_INTERVAL%\" required><i class=\"fas fa-hourglass-end fa-2x .icon-pos\"></i>\
                     </div>\
 \
                     </fieldset>\
@@ -576,7 +577,6 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         \"newestOnTop\": false,\
         \"progressBar\": false,\
         \"positionClass\": \"toast-top-right\",\
-        \"preventDuplicates\": false,\
         \"onclick\": null,\
         \"showDuration\": \"300\",\
         \"hideDuration\": \"1000\",\
@@ -599,14 +599,19 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             }).pop();\
             if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|m4a|M4A)$/i).test(lastFolder)) {\
                 data.instance.set_type(data.instance._model.data[key], 'audio');\
+            } else \
+            if ((/\\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(lastFolder)) {\
+                data.instance.set_type(data.instance._model.data[key], 'image');\
+                data.instance.disable_node(data.instance._model.data[key]);\
             } else {\
-                if (data.instance._model.data[key]['type'] == \"file\") {\
+             if (data.instance._model.data[key]['type'] == \"file\") {\
                     data.instance.disable_node(data.instance._model.data[key]);\
                 }\
             }\
             data.instance.rename_node(data.instance._model.data[key], lastFolder);\
         });\
     }\
+\
 \
     /* File Explorer functions begin*/\
     var lastSelectedNodePath = \"\";\
@@ -733,23 +738,64 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
             contentType: false,\
             processData:false,\
 			xhr: function() {\
+                var lastNow = new Date().getTime();\
+                startTime = new Date().getTime();\
+                var lastKBytes = 0;\
+                bytesTotal = 0;\
 				var xhr = new window.XMLHttpRequest();\
 \
 				xhr.upload.addEventListener(\"progress\", function(evt) {\
 				  if (evt.lengthComputable) {\
+                    var now = new Date().getTime();  \
+                    bytesTotal = evt.total;\
 					var percentComplete = evt.loaded / evt.total;\
 					percentComplete = parseInt(percentComplete * 100);\
-                    console.log(percentComplete);\
+                    kbytes = evt.loaded / 1024;\
+                    var uploadedkBytes = kbytes - lastKBytes;\
+                    var elapsed = (now - lastNow) / 1000;\
+                    elapsed_total = (now - startTime) / 1000;\
+                    var kbps = elapsed ? uploadedkBytes / elapsed : 0;\
+                    lastKBytes = kbytes;\
+                    lastNow = now;\
+\
+                    var seconds_elapsed =  (now - startTime) / 1000;\
+                    var bytes_per_second =  seconds_elapsed ? evt.loaded / seconds_elapsed : 0;\
+                    var Kbytes_per_second = bytes_per_second / 1024;\
+                    var remaining_bytes =   evt.total - evt.loaded;                    \
+                    var seconds_remaining = seconds_elapsed ? (remaining_bytes / bytes_per_second) : 'wird berechnet..' ;\
+\
                     var percent = percentComplete + '%';\
-                    $(\"#explorerUploadProgress\").css('width', percent).text(percent);\
+                    console.log(\"Percent: \" + percent + \", \" + Kbytes_per_second.toFixed(2) + \" KB/s\");\
+                    var progressText = percent;\
+                    if (seconds_remaining > 60) {\
+                        progressText = progressText + \", \" + (seconds_remaining / 60).toFixed(0) + \" Min. verbleibend..\";\
+                    } else\
+                    if (seconds_remaining <= 0) {\
+                        progressText = progressText + \" (\" + Kbytes_per_second.toFixed(2) + \" KB/s)\";\
+                    } else\
+                     if (seconds_remaining < 2) {\
+                        progressText = progressText + \", wenige Sek. verbleibend..\";\
+                    } else {\
+                        progressText = progressText + \", \" + seconds_remaining.toFixed(0) + \" Sek. verbleibend..\";\
+                    }\
+                    $(\"#explorerUploadProgress\").css('width', percent).text(progressText);\
 				  }\
 				}, false);\
 \
 				return xhr;\
 			},\
 			success: function(data, textStatus, jqXHR) {\
-                console.log(\"Upload success!\");\
-                $(\"#explorerUploadProgress\").text(\"Upload success!\");\
+                var now = new Date().getTime();  \
+                var elapsed_time = (now - startTime);\
+                var seconds_elapsed =  elapsed_time / 1000;\
+                var bytes_per_second =  seconds_elapsed ? bytesTotal / seconds_elapsed : 0;\
+                var Kbytes_per_second = bytes_per_second / 1024 ;\
+                var minutes = Math.floor(seconds_elapsed / 60);\
+                var seconds = seconds_elapsed - (minutes * 60);\
+                var timeText = minutes.toString().padStart(2, '0') + ':' + seconds.toFixed(0).toString().padStart(2, '0');\
+                console.log(\"Upload success (\" + timeText + \", \" + Kbytes_per_second.toFixed(2) + \" KB/s): \" + textStatus);\
+                var progressText = \"Upload abgeschlossen (\" + timeText + \", \" + Kbytes_per_second.toFixed(2) + \"  KB/s).\";\
+                $(\"#explorerUploadProgress\").text(progressText);\
                 document.getElementById('uploaded_file').value = '';\
                 document.getElementById('uploaded_file_text').innerHTML = '';\
 \
@@ -758,11 +804,14 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 					deleteChildrenNodes(sel);\
 					addFileDirectory(sel, data);\
 					ref.open_node(sel);\
-\
-\
 				});\
 \
-			}\
+			},\
+            error: function(request, status, error) {\
+                console.log(\"Upload ERROR!\");\
+                $(\"#explorerUploadProgress\").text(\"Upload-Fehler: \" + status);\
+                toastr.error(\"Upload-Fehler: \" + status);\
+            }\
         });\
 	});\
 \
@@ -846,6 +895,8 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 			type = \"folder\";\
 		} else if ((/\\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|m4a|M4A|flac|FLAC)$/i).test(data.name)) {\
 			type = \"audio\";\
+		} else if ((/\\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(data.name)) {\
+			type = \"image\";\
 		} else {\
 			type = \"file\";\
 		}\
@@ -871,6 +922,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 				\"core\" : {\
 						\"check_callback\" : true,\
 						'force_text' : true,\
+                        'strings' : { \"Loading ...\" : \"wird geladen...\" },\
 						\"themes\" : { \"stripes\" : true },\
 						'data' : {	text: '/',\
 									state: {\
@@ -892,6 +944,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 						},\
 						'audio': {\
 							'icon': \"fa fa-file-audio\"\
+						},\
+						'image': {\
+							'icon': \"fa fa-file-image\"\
 						},\
 						'default': {\
 							'icon': \"fa fa-folder\"\
@@ -966,7 +1021,24 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 							}\
 						};\
 \
-					   return items;\
+						/* Download */\
+                        if (!node.data.directory) {\
+						    items.download = {\
+							    label: \"Download\",\
+							    action: function(x) {\
+								    uri = \"/explorerdownload?path=\" + encodeURIComponent(node.data.path);\
+                                    console.log(\"download file: \" + node.data.path);\
+                                    var anchor = document.createElement('a');\
+                                    anchor.href = uri;\
+                                    anchor.target = '_blank';\
+                                    anchor.download = node.data.path;\
+                                    anchor.click();\
+                                    document.body.removeChild(document.body.lastElementChild);\
+							    }\
+						    }\
+                        };\
+\
+                        return items;\
 					}\
 				}\
 			});\
@@ -1040,7 +1112,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                   toastr.success(\"Aktion erfolgreich ausgeführt.\" );\
               }\
           } if (\"pong\" in socketMsg) {\
-              if (socketMsg.pong == 'pong') {\
+            if (socketMsg.pong == 'pong') {\
                   pong();\
               }\
             } if (\"volume\" in socketMsg) {\
@@ -1050,9 +1122,9 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
 \
                 var btnTrackPlayPause = document.getElementById('nav-btn-play');\
                 if (socketMsg.trackinfo.pausePlay) {\
-                    btnTrackPlayPause.innerHTML = '<i id=\"ico-play-pause\" class=\"fas fa-lg fa-play\")></i>';\
+                    btnTrackPlayPause.innerHTML = '<i id=\"ico-play-pause\" class=\"fas fa-lg fa-play\"></i>';\
                 } else {\
-                    btnTrackPlayPause.innerHTML = '<i id=\"ico-play-pause\" class=\"fas fa-lg fa-pause\")></i>';\
+                    btnTrackPlayPause.innerHTML = '<i id=\"ico-play-pause\" class=\"fas fa-lg fa-pause\"></i>';\
                 }\
 \
                 var btnTrackFirst = document.getElementById('nav-btn-first');\

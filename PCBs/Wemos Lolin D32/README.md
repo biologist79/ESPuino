@@ -1,5 +1,7 @@
 # ESPuino-PCB based on Wemos' Lolin D32
 
+## IMPORTANT
+It's not recommended to use this one anymore for new ESPuinos as there's a bug with file-writings being interrupted with SD via SPI (reason unknown). Please use [this one](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866) instead. Initially designed for D32 pro, but can be used for D32 as well. Please be aware that IO16 + IO17 are not used by this PCB.
 ## Features
 * Fits Wemos Lolin D32 (not Lolin32, Lolin D32 pro or Lolin 32 lite!)
 * Outer diameter: 53 x 81mm

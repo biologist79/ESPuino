@@ -9,6 +9,7 @@
 #include "System.h"
 #include "Queues.h"
 #include "Wlan.h"
+#include "revision.h"
 
 #ifdef MQTT_ENABLE
     #define MQTT_SOCKET_TIMEOUT 1 // https://github.com/knolleary/pubsubclient/issues/403
@@ -275,6 +276,11 @@ bool Mqtt_Reconnect() {
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                 publishMqtt((char *) FPSTR(topicRepeatModeState), 0, false);
                 publishMqtt((char *) FPSTR(topicCurrentIPv4IP), Wlan_GetIpAddress().c_str(), false);
+
+                char revBuf[12];
+                strncpy(revBuf, softwareRevision+19, sizeof(revBuf)-1);
+                revBuf[sizeof(revBuf)-1] = '\0';
+                publishMqtt((char *) FPSTR(topicSRevisionState), revBuf, false);
 
                 return Mqtt_PubSubClient.connected();
             } else {

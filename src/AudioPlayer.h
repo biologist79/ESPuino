@@ -25,7 +25,6 @@ typedef struct { // Bit field
     bool tellIpAddress:                 1;      // If true current IP-address is spoken
     bool currentSpeechActive:           1;      // If speech-play is active
     bool lastSpeechActive:              1;      // If speech-play was active
-    char *coverFileName;                        // current coverfile
     size_t coverFilePos;                        // current cover file position
     size_t coverFileSize;                       // current cover file size
 } playProps;
@@ -49,4 +48,6 @@ uint8_t AudioPlayer_GetMinVolume(void);
 void AudioPlayer_SetMinVolume(uint8_t value);
 uint8_t AudioPlayer_GetInitVolume(void);
 void AudioPlayer_SetInitVolume(uint8_t value);
-void AudioPlayer_SetupVolume(void);
+void AudioPlayer_SetupVolumeAndAmps(void);
+bool Audio_Detect_Mode_HP(bool _state);
+char* Audio_handleTitle(bool clearTitle);
