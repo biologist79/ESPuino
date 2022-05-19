@@ -712,7 +712,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         Web_DeleteCachefile(utf8FilePath.c_str());
 
         // Create Parent directories
-        explorerCreateParentDirectories(utf8FilePath.c_str());
+        explorerCreateParentDirectories(filePath);
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
