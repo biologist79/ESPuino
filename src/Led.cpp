@@ -365,6 +365,7 @@ static void Led_Task(void *parameter) {
                             FastLED.show();
                             vTaskDelay(portTICK_RATE_MS * 20);
                         }
+                        FastLED.show();
                     }
 
                     for (uint8_t i = 0; i <= 100; i++) {
