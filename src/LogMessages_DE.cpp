@@ -225,4 +225,5 @@
     const char paOff[] PROGMEM = "Lautsprecher ausgeschaltet";
     const char hpOn[] PROGMEM = "Kopfhörer eingeschaltet";
     const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
+    const char webTxCanceled[] PROGMEM = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
 #endif
