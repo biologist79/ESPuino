@@ -44,13 +44,13 @@
             gPrefsSettings.putFloat("wLowVoltage", warningLowVoltage);
         }
 
-        float vCriticalWarning = gPrefsSettings.getFloat("wCriticalVoltage", 999.99);
+        float vCriticalWarning = gPrefsSettings.getFloat("wCritVoltage", 999.99);
         if (vCriticalWarning <= 999) {
             warningCriticalVoltage = vCriticalWarning;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *)FPSTR(warningCriticalVoltageFromNVS), vCriticalWarning);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         } else {
-            gPrefsSettings.putFloat("wCriticalVoltage", warningCriticalVoltage);
+            gPrefsSettings.putFloat("wCritVoltage", warningCriticalVoltage);
         }
     }
 
