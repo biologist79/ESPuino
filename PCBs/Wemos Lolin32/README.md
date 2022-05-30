@@ -1,7 +1,7 @@
 # ESPuino-PCB based on Wemos' Lolin32
 
 ## IMPORTANT
-It's not recommended to use this one anymore as there's a bug with file-writings being interrupted with SD via SPI (reason unknown). Please use [the one with SD_MMC instead](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32%20SD_MMC%20PN5180).
+It's not recommended to use this one anymore as there's a bug with file-writings being interrupted with SD via SPI (reason unknown). Please use [the one with SD_MMC instead](https://github.com/biologist79/ESPuino/tree/master/PCBs/Wemos%20Lolin32%20SD_MMC%20PN5180) or [this one](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866).
 
 ## Introduction
 After I've been asked many times to provide a PCB, I finally did so :-) It makes use of Wemos' Lolin32 which is the predecessor of Lolin D32. D32's advantage over Lolin32 is especially, that a voltage-divider for measuring battery's voltage is already integrated (fixed-wired to GPIO 35). However, as I wasn't aware of that when buying Lolin32 and because of now, that multiple Lolin32 are here on my desk, my reasonable intention was to use them. So things would have been a bit easier with D32 but in the end it works the same way with Lolin32. As per rev2 of the PCB, I added a 10 uF-capacitor to smoothen the battery-measurement. Ii's optional but be advised values measured are a bit more volatile without capacitor-stabilization.
