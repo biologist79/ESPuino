@@ -91,6 +91,9 @@
         float vDiffIndicatorRange = voltageIndicatorHigh - voltageIndicatorLow;
         float vDiffCurrent = currentVoltage - voltageIndicatorLow;
         float estimatedLevel = vDiffCurrent / vDiffIndicatorRange;
+        if (estimatedLevel < 0) {   // Don't return value < 0.0
+            return 0.0F;
+        }
         return (estimatedLevel > 1) ? 1.0F : estimatedLevel;      // Don't return value > 1.0
     }
 

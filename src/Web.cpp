@@ -458,8 +458,9 @@ bool processJsonRequest(char *_serialJson) {
             gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
             gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
             gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-            return false;
+                return false;
         }
+        Battery_Init();
     } else if (doc.containsKey("ftp")) {
         const char *_ftpUser = doc["ftp"]["ftpUser"];
         const char *_ftpPwd = doc["ftp"]["ftpPwd"];
