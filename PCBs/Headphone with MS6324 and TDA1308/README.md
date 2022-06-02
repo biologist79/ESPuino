@@ -1,0 +1,3 @@
+# Headphone-PCB
+This is a pcb, that was developed by myself. It makes use of a DAC named 'MS6324' with a TDA1308 as amp. It's described in detail with pictures [here](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099). Please contact me via my forum in case you need one fully soldered and ready-to-use or as assembly kit (to be soldered by yourself). 
+It's compatible with all PCBs carrying a IDC-connector with 6 pins.

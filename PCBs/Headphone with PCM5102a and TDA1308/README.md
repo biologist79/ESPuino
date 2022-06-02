@@ -6,3 +6,6 @@ Please note: the files in my GitHub-repository may be outdated regarding this PC
 
 ## Disclaimer
 PCB-circuit is provided 'as is' without warranty. As previously stated it was kindly provided by a user and I only can give limited support to it. However: it runs fine without any problems in my ESPuinos.
+
+## Note
+Do you need a headphone-PCB that is ready to use? No problem! There's an [alternative](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099) available that's 100% compatible with the one described above and already fully soldered. Please contact me via my forum in case you need such one (or more, hehe).

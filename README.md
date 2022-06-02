@@ -13,29 +13,28 @@ Last three events:
 * 13.11.2021: Command `CMD_TELL_IP_ADDRESS` can now be assigned to buttons in order to get information about the currently used IP-address via speech.
 
 ## Known bugs
-* Some webstreams don't run. Guess it's a combination of saturated connection-pool and lack of heap-memory. Works probably better if ESP32-WROVER (e.g. Lolin D32 pro) is used, as this chip has PSRAM. Advice: Don't enable modules (e.g. MQTT) if you don't need them as this could save memory (and trouble).
-* For ESPuinos making use of SPI for SD, there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Doesn't seem to be fixable. Solution: use SD_MMC instead.
+* For ESPuinos making use of SPI for SD, there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Doesn't seem to be fixable. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
 ## ESPuino - what's that?
-The basic idea of ESPuino is to provide a way, to use the Arduino-platform for a music-control-concept that supports locally stored music-files without DRM-restrictions. This basically means that RFID-tags are used to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play. Place another RFID-object on it and anything else is played. Simple as that.
+The basic idea of ESPuino is to use RFID-tags to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play stuff from SD or webradio. Place another RFID-object on it and anything else is played. Simple as that.
 
-The core of my implementation is based on the popular [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Having WiFi-support out-of-the-box makes it possible to provide further features like an integrated FTP-server (to feed the player with music), smarthome-integration via MQTT, webradio and administration via webgui. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base. Having said this mp3-decoding is done in software with a dedicated µSD-card-slot and music-output is done via I2S-protocol. I did all my tests on [Adafruit's MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678) and [headphone-pcb #1](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) and [headphone-pcb #2](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-uda1334-pj306b/705). Hopefully, not only in theory, other DACs that support I2S can be used as well.
+This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). 
 
 ## Hardware-setup
-Several plattforms are available:
-* [Lolin D32 pro + PN5180/RC522 + port-expander (SMD)](https://forum.espuino.de/t/espuino-minid32pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+You can start on a breadboard with jumper wires but I strongly recommend to start right away with a [PCB](https://en.wikipedia.org/wiki/Printed_circuit_board) that's designed to ESPuino. Several PCBs are available. Please click on the links below for more informations and pictures.
+* [Lolin D32 / Lolin D32 pro + PN5180/RC522 + port-expander (SMD)](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
 * [Lolin32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
-* [Lolin D32 pro + SD-SPI + RC522 (obsolete) (THT)](https://forum.espuino.de/t/lolin32-d32-pro-mit-rc522-als-rfid-leser/317)
 * [NodeMCU ESP32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
 * And some more... please have a look [here](https://forum.espuino.de/c/hardware/pcbs/11).
+* All of these platforms are compatible with [headphone-pcb #1](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [headphone-pcb #2](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-uda1334-pj306b/705) and [headphone-pcb #3](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308).
 
 ## Getting Started
-* [Much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
-* I recommend to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/). This is a popular and powerful IDE that gives you the ability to install tons of (well-supported) plugins.
+* [Much much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
+* You need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
 * Install [Platformio Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio Code](https://code.visualstudio.com/) and make sure to have a look at the [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html). Step-by-step-manual is available [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
 * Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here](https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository) and [here](https://forum.espuino.de/t/espuino-in-platformio-anlegen-und-mit-git-aktuell-halten/891).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
-* Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_op). 
+* Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_pe). 
 * Edit `src/settings.h` according your needs.
 * Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
 * Connect your develboard via USB, click the alien-head to the left, choose the project-task that matches your desired HAL and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware. Depending on your develboard it might me necessary to push a button in order to allow ESP32 to enter flashmode (not necessary für Lolin32, D32 und D32 pro).
@@ -46,49 +45,31 @@ Several plattforms are available:
 * FTP needs to be activated after boot if you need it! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't necessary.
 * Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
 
-## Prerequisites / tipps
-* [Much much documentation in german language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
-* Open settings.h
-* Choose if optional modules (e.g. MQTT, FTP, Neopixel) should be compiled/enabled.
-* Make sure to edit/review button-layout. Default-design is three buttons and a rotary-encoder. All actions available are listed in `src/values.h` (values with numbers >= 100).
-* For debugging-purposes serialDebug can be set to ERROR, NOTICE, INFO or DEBUG. I usually have DEBUG set.
-* If Neopixel enabled: set NUM_LEDS to the LED-number of your Neopixel-ring and define the Neopixel-type using `#define CHIPSET`
-* Open board-specific config-file and edit according your needs.
-* If you want to monitor battery's voltage, make sure to enable `MEASURE_BATTERY_VOLTAGE`. Use a voltage-divider as voltage of a LiPo is way too high for ESP32 (only 3.3V supported!). For my tests I connected VBat with a serial connection of 130k + 130k resistors (VBat(+)--130k--X--130k--VBat(-)). X is the measure-point where to connect the GPIO to. If using Lolin D32 or Lolin D32 pro, make sure to leave both resistor-values unchanged at 100k - voltage-divider is already integrated there. Same goes for GPIO: leave unchanged at 35.
-Please note: via GUI upper and lower voltage cut-offs for visualisation of battery-voltage (Neopixel) is available. Additional GUI-configurable values are interval (in minutes) for checking battery voltage and the cut off-voltage below whose a warning is shown via Neopixel.
-* If you're using a headphone-pcb with a [headphone jack](https://www.conrad.de/de/p/cliff-fcr1295-klinken-steckverbinder-3-5-mm-buchse-einbau-horizontal-polzahl-3-stereo-schwarz-1-st-705830.html) that has a pin to indicate if there's a plug, you can use this signal along with the feature `HEADPHONE_ADJUST_ENABLE` to limit the maximum headphone-voltage automatically. As per default you have to invert this signal (with a P-channel MOSFET) and connect it e.g. to GPIO22.
-* Enabling `SHUTDOWN_IF_SD_BOOT_FAILS` is really recommended if you run your ESPuino in battery-mode without having a restart-button exposed to the outside of ESPuino's enclosure. Because otherwise there's no way to restart your ESPuino and the error-state will remain until battery is empty (or you open the enclosure, hehe).
-* Enabling `PLAY_LAST_RFID_AFTER_REBOOT` will tell ESPuino to remember the last RFID-tag played after next reboot. So rebooting ESPuino will end up in autoplay.
-
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
-Having SD working is mandatory! However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit).<br />
-Advantages SD-MMC (1 bit) over SPI:
-* Needs only three GPIOs (instead of four)
-* It's faster. FTP-upload: 298 kiB vs 178 kiB. HTTP-upload: 350 kiB vs 184 kiB. (tested with filesize of 70.7 MiB.<br />
-So why using SPI if SD-MMC seems to be better? The primary problem of SD-MMC is: you cannot choose different GPIOs. That doesn't sound bad but this can (depending on the µSD-card-reader-module) be a problem because maybe GPIO2 is pulled HIGH to 3.3V by a 10k-resistor. For example this is the case when using the reader-module named above in hardware-setup. It's a problem because if GPIO2 is pulled high at boot, ESP32 doesn't enter flash-mode (so you cannot flash new firmwares). As soon as flash-mode is entered, it's no longer a problem. However, this behaviour can be an issue if ESP32 is deeply "burried" in ESPuino's enclosure and you want to update its firmware. But fortunately there's a way to bypass this problem: remove the [pullup-resistor shown in the picture](https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Pullup-removal.jpg). It can be removed safely because if MMC-mode is set because pullup is done in software using `pinMode(2, INPUT_PULLUP);`. So it's not really a problem but you have to take note of that!
+Having SD working is mandatory, ESPuino doesn't start without working SD! However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit). Advice: don't use SPI as there's a bug often leading to broken files due to interrupted file-transfers. Beside of that, SDMMC is still twice as fast as SPI and needs one GPIO less.
 
-## RFID: RC522 or PN5180?
-RC522 is so to say the ESPuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake-up the board with the card. Disadvantages: it's more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V make sure to connect PN5180 to +5V AND 3.3V. Sounds weird but it's necessary.
+## Which RFID-reader: RC522 or PN5180?
+RC522 is so to say the ESPuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake-up the board with the card (after flashing PN5180 with a new firmware). Disadvantages: it's more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V only make sure to connect these 3.3V to PN5180's 5V AND 3.3V. Sounds weird but it's necessary.
 
 ## 3.3 or 5V?
-* Why 3.3V? Because: if you plan to use battery-mode with a LiPo, there's no 5 V available (unless USB is connected).
-That's why my design's focus is on 3.3 V. If you want to use 5 V - do so, but be advised it's not compatible with LiPo-battery-mode. The Mosfet-circuit for saving power in deepsleep (see [Lolin32-schematics](https://github.com/biologist79/ESPuino/blob/master/PCBs/Wemos%20Lolin32/Pictures/Tonuino%20V2-Schematics.pdf) as reference) works as well for 5 V.
+ESP32 runs at 3.3 V only. But what about the periphery?
+* 3.3V! Because: if you plan to use battery-mode with LiPo/LiFePO4, there's no 5 V available (unless USB is connected or you make use of a boost-converter).
+That's why my design's focus is on 3.3 V only. If you want to use 5 V - do so, but be advised it's not compatible with battery-mode.
 * MAX98357a: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in my opinion).
 * Neopixel: specification says it needs 5 V but runs at 3.3 V as well.
-* RC522: needs 3.3 V (don't power with 5 V!)
-* PN5180: at 3.3 V make sure to connect both 5 V and 3.3 V-pins to 3.3 V.
+* RC522: needs 3.3 V (don't ever power with 5 V!)
+* PN5180: at 3.3 V make sure to connect both 5 V and 3.3 V-pins to 3.3 V. If 5 V is available all the time: connect 5 V to 5 V and 3.3 V to 3.3 V.
 * SD: needs 3.3 V but if voltage-regulator is onboard, it can be connected to 5 V as well
-* Rotary encoder: 3.3 V (don't power with 5 V! Encoder doens't care if connected to 3.3 or 5 V, but GPIOs of ESP32 do!)
+* Rotary encoder: 3.3 V (don't power with 5 V! Encoder doesn't care if connected to 3.3 or 5 V, but GPIOs of ESP32 do!)
 
 
 ## Wiring (general)
 I really really recommend to solder all the stuff onto a PCB as wiring the components with jumperwires on a breadboard can lead to many problems. Especially for the interconnect between µC and µSD-card-reader make sure to use short wires (like 10cm or so)! So be aware of this!
 
 ## WiFi
-WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled. There are two ways to do that:
+WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled (and ESPuino remembers this state after the next restart. There are two ways to (re-)enable/disable WiFi:
 * Use a special modification-card that can be configured via webgui
-* Assign action `CMD_TOGGLE_WIFI_STATUS` to a button (or multi-button). Default: press previous + next-button in parallel shortly. Now release both.
-This toggles the current WiFi-status: if it's currently enabled, it will be disabled instantly and vice versa. Please note: this WiFi-status will remain until you change it again, which means, that ESPuino will remember this state after the next reboot. Having Wifi enabled is indicated in idle-mode (no playlist active) with four *white* slow rotating LEDs whereas disabled WiFi is represented by those ones coloured *green*. Bluetooth-mode is indicated by *blue* LEDs.
+* Assign action `CMD_TOGGLE_WIFI_STATUS` to a button (or multi-button). This toggles the current WiFi-status.
 
 ## Bluetooth
 ESPuino can be used as bluetooth-sink (a2dp). This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. Activated bluetooth is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and Mac OS: worked 100% flawless. Please note: due to memory-restrictions it's not possible to run Bluetooth in parallel with WiFi.
@@ -99,11 +80,11 @@ There might be situations where you run out of GPIOs. To address this, port-expa
 ## After ESPuino is connected to your WiFi
 After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can:
 * configure WiFi
-* make binding between RFID-tag, file/directory/URL and playMode
+* make bindings between RFID-tag, file/directory/URL and playMode
 * make bindings between RFID-tag and a modification-type
 * configure MQTT (if enabled)
 * configure FTP (if enabled)
-* configure nitial volume, maximum volume (speaker / headphone), brightness of Neopixel (nightmode / default) and inactivity-time
+* configure initial volume, maximum volume (speaker / headphone), brightness of Neopixel (nightmode / default) and inactivity-time
 * view logs / status / current track
 * control player
 * upload audiofiles (called webtransfer)
@@ -239,9 +220,6 @@ As already described in the modify-section, there are different sleepmodes avail
 
 ### MQTT (optional)
 Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT (excepting toggling WiFi-status as this doesn't make sense). All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to "encapsulate" MQTT into a nice GUI, that's accessible via APP + web. I [described](https://github.com/biologist79/ESPuino/tree/master/openHAB) a sample-config for openHAB2. However, meanwhile openHAB3 is available and all the stuff described can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend some time to get familiar with it.
-
-### Supported file/stream-types
-Please refer [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S), as this is the library I used for music-decoding. Make sure to update especially this library regularly as it's development is still in progress.
 
 ### Backups
 As all assignments between RFID-IDs and actions (playmode, file to play...) is saved in ESP's NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes into play. So every time you change or add a new assignment between a RFID-tag and an action via GUI, a backup-file is saved on the µSD-card. The file's name can be changed via `backupFile`. So better don't delete it! Using the webgui you can use the upload-form to import such a file.

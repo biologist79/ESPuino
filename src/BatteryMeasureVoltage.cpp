@@ -44,13 +44,13 @@
             gPrefsSettings.putFloat("wLowVoltage", warningLowVoltage);
         }
 
-        float vCriticalWarning = gPrefsSettings.getFloat("wCriticalVoltage", 999.99);
+        float vCriticalWarning = gPrefsSettings.getFloat("wCritVoltage", 999.99);
         if (vCriticalWarning <= 999) {
             warningCriticalVoltage = vCriticalWarning;
             snprintf(Log_Buffer, Log_BufferLength, "%s: %.2f V", (char *)FPSTR(warningCriticalVoltageFromNVS), vCriticalWarning);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
         } else {
-            gPrefsSettings.putFloat("wCriticalVoltage", warningCriticalVoltage);
+            gPrefsSettings.putFloat("wCritVoltage", warningCriticalVoltage);
         }
     }
 
@@ -91,6 +91,9 @@
         float vDiffIndicatorRange = voltageIndicatorHigh - voltageIndicatorLow;
         float vDiffCurrent = currentVoltage - voltageIndicatorLow;
         float estimatedLevel = vDiffCurrent / vDiffIndicatorRange;
+        if (estimatedLevel < 0) {   // Don't return value < 0.0
+            return 0.0F;
+        }
         return (estimatedLevel > 1) ? 1.0F : estimatedLevel;      // Don't return value > 1.0
     }
 

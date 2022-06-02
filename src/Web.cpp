@@ -458,8 +458,9 @@ bool processJsonRequest(char *_serialJson) {
             gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
             gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
             gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-            return false;
+                return false;
         }
+        Battery_Init();
     } else if (doc.containsKey("ftp")) {
         const char *_ftpUser = doc["ftp"]["ftpUser"];
         const char *_ftpPwd = doc["ftp"]["ftpPwd"];
@@ -712,7 +713,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
         Web_DeleteCachefile(utf8FilePath.c_str());
 
         // Create Parent directories
-        explorerCreateParentDirectories(utf8FilePath.c_str());
+        explorerCreateParentDirectories(filePath);
 
         // Create Ringbuffer for upload
         if (explorerFileUploadRingBuffer == NULL) {
@@ -779,6 +780,8 @@ void explorerHandleFileStorageTask(void *parameter) {
     uint32_t transferStartTimestamp = millis();
     uint8_t *item;
     uint8_t value = 0;
+    uint32_t lastUpdateTimestamp = millis();
+    uint32_t maxUploadDelay = 20;    // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
     BaseType_t uploadFileNotification;
     uint32_t uploadFileNotificationValue;
@@ -804,12 +807,19 @@ void explorerHandleFileStorageTask(void *parameter) {
                     vTaskDelay(portTICK_PERIOD_MS * 20);
                 }
                 uploadFile.close();
-                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+                snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kiB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
                 Log_Println(Log_Buffer, LOGLEVEL_INFO);
                 snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
                 Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
                 // done exit loop to terminate
                 break;
+            }
+            
+            if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
+                snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(webTxCanceled));
+                Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+                vTaskDelete(NULL);
+                return;
             }
             vTaskDelay(portTICK_PERIOD_MS * 5);
             continue;
@@ -826,6 +836,7 @@ void explorerHandleFileStorageTask(void *parameter) {
             }
             vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
             feedTheDog();
+            lastUpdateTimestamp = millis();
         }
     }
     // send signal to upload function to terminate
