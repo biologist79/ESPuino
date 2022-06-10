@@ -132,7 +132,7 @@ uint8_t Led_Address(uint8_t number) {
 static void Led_Task(void *parameter) {
     #ifdef NEOPIXEL_ENABLE
         static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
-        static uint8_t lastPos = gPlayProperties.currentRelPos;
+        static double lastPos = gPlayProperties.currentRelPos;
         static bool lastPlayState = false;
         static bool lastLockState = false;
         static bool ledBusyShown = false;
@@ -589,7 +589,7 @@ static void Led_Task(void *parameter) {
                             lastPos = gPlayProperties.currentRelPos;
                             FastLED.clear();
                             if (NUM_LEDS == 1) {
-                                leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * (double)gPlayProperties.currentRelPos));
+                                leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
                             } else {
                                 uint8_t numLedsToLight = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
                                 for (uint8_t led = 0; led < numLedsToLight; led++) {
