@@ -362,6 +362,11 @@ void Cmd_Action(const uint16_t mod) {
             break;
         }
 
+        case CMD_STOP: {
+            AudioPlayer_TrackControlToQueueSender(STOP);
+            break;
+        }
+
         #ifdef ENABLE_ESPUINO_DEBUG
             case PRINT_TASK_STATS: {
                 System_esp_print_tasks();
