@@ -220,6 +220,10 @@ void webserverStart(void) {
                 #endif
 
                 if (!index) {
+                    if (!gPlayProperties.pausePlay) {   // Pause playback as it sounds ugly when OTA starts
+                        Cmd_Action(CMD_PLAYPAUSE);  // Pause first to possibly to save last playposition (if necessary)
+                        Cmd_Action(CMD_STOP);
+                    }
                     Update.begin();
                     Log_Println((char *) FPSTR(fwStart), LOGLEVEL_NOTICE);
                 }

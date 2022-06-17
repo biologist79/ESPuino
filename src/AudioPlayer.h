@@ -9,7 +9,7 @@ typedef struct { // Bit field
     uint16_t currentTrackNumber:        9;      // Current tracknumber
     uint16_t numberOfTracks:            9;      // Number of tracks in playlist
     unsigned long startAtFilePos;               // Offset to start play (in bytes)
-    uint8_t currentRelPos:              7;      // Current relative playPosition (in %)
+    double currentRelPos;                       // Current relative playPosition (in %)
     bool sleepAfterCurrentTrack:        1;      // If uC should go to sleep after current track
     bool sleepAfterPlaylist:            1;      // If uC should go to sleep after whole playlist
     bool saveLastPlayPosition:          1;      // If playposition/current track should be saved (for AUDIOBOOK)

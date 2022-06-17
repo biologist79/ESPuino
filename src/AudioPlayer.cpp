@@ -759,8 +759,7 @@ void AudioPlayer_Task(void *parameter) {
         if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
             if (millis() % 20 == 0) {   // Keep it simple
                 if (!gPlayProperties.pausePlay) {   // To progress necessary when paused
-                    double fp = (double)(audio->getFilePos() - audio->inBufferFilled()) / (double)audio->getFileSize();
-                    gPlayProperties.currentRelPos = fp * 100;
+                    gPlayProperties.currentRelPos = ((double)(audio->getFilePos() - audio->inBufferFilled()) / (double)audio->getFileSize()) * 100;
                 }
             }
         } else {
