@@ -26,7 +26,6 @@
 	bool checkRun = true;
     static void Rfid_Task(void *parameter);
 	void scanRFID();
-//	void stopScan();
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
         static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
@@ -39,8 +38,10 @@
             mfrc522.PCD_Init();
             mfrc522.PCD_SetAntennaGain(rfidGain);
 	}
+#endif
 
     void Rfid_Init(void) {
+	#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
         #ifdef RFID_READER_TYPE_MFRC522_SPI
             SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
             SPI.setFrequency(1000000);
@@ -49,7 +50,7 @@
         // Init RC522 Card-Reader
         #if defined(RFID_READER_TYPE_MFRC522_I2C) 
             i2c_tsafe_execute(Rfid_Init_func,3);
-		#elif RFID_READER_TYPE_MFRC522_SPI
+		#elif defined(RFID_READER_TYPE_MFRC522_SPI)
         	Rfid_Init_func();
 		#endif
             delay(10);
@@ -69,6 +70,7 @@
         #endif
     }
 
+#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
 	void Rfid_Task(void *parameter) {
 		TickType_t xLastWakeTime;
 		const TickType_t xFrequency = RFID_SCAN_INTERVAL;
@@ -86,7 +88,7 @@
 //			Rfid_LastRfidCheckTimestamp = millis();
         #if defined(RFID_READER_TYPE_MFRC522_I2C) 
             i2c_tsafe_execute(scanRFID,3);
-		#elif RFID_READER_TYPE_MFRC522_SPI
+		#elif defined(RFID_READER_TYPE_MFRC522_SPI)
         	scanRFID();
 		#endif
 
@@ -156,34 +158,28 @@
 		uint8_t control = 0x00;
 		cardAppliedCurrentRun = false;
 		cardRemovedCurrentRun = false;
-//		Serial.println("RFID Scan: ");
 		checkRun = !checkRun;
 
 		if (!cardApplied) {
-//		Serial.println("  card not applied");
 			mfrc522.PICC_HaltA();
 			mfrc522.PCD_StopCrypto1();
 			if (mfrc522.PICC_IsNewCardPresent()) {
 				if (mfrc522.PICC_ReadCardSerial()) {
 				cardAppliedCurrentRun = true;
 				cardApplied = true;
-//			Serial.println("     card found");
 				}
 			}
 			mfrc522.PICC_HaltA();
 		}
 		else if (checkRun) {		// Card Applied -> Check only every second run
-//		Serial.println("  Check for card applied");
 			while (1) {
 			for (uint8_t i=0u; i<4; i++) {
 				if (! PICC_CardPresent()) {
-//					Serial.println("     card no longer present");
 					control += 0x5;
 					}
 				control += 0x1;
 				delay(5);
 				}
-//			Serial.print("  Control is: ");
 			Serial.println(control);
 			if (control <20 ) {
 				// Card still present
@@ -207,20 +203,15 @@
 
 	}
 
-/*	void stopScan() {
-		mfrc522.PICC_HaltA();
-		mfrc522.PCD_StopCrypto1();
-	}
-
-    void Rfid_Cyclic(void) {
+/*    void Rfid_Cyclic(void) {
         // Not necessary as cyclic stuff performed by task Rfid_Task()
     }
 */
+#endif
+
     void Rfid_Exit(void) {
 		mfrc522.PCD_WriteRegister(mfrc522.CommandReg, mfrc522.PCD_NoCmdChange | 0x10);
     }
 
     void Rfid_WakeupCheck(void) {
     }
-
-#endif
