@@ -298,7 +298,7 @@ void AudioPlayer_Task(void *parameter) {
 
     uint8_t settleCount = 0;
     audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-    audio->setVolume(AudioPlayer_GetInitVolume());
+    audio->setVolume(AudioPlayer_CurrentVolume);
     audio->forceMono(gPlayProperties.currentPlayMono);
     if (gPlayProperties.currentPlayMono) {
         audio->setTone(3, 0, 0);
