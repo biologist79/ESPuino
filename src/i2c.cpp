@@ -15,6 +15,8 @@ void (*execFunction)(void);
 
 #ifdef I2C_2_ENABLE
     extern TwoWire i2cBusTwo = TwoWire(1);
+    extern uint i2cOnCore = 0;
+
 #endif
 
 void i2c_Init() {
@@ -70,7 +72,7 @@ void i2c_clear_lines(int PIN_SDA, int PIN_SCL) {
     }   
 }
 
-void i2c_tsafe_execute(void (*execFunction)(void), int waitTicks = 15) {
+void i2c_tsafe_execute(void (*execFunction)(void), uint waitTicks = 15) {
   /* See if semaphore is initialized */
   if(xSemaphore_I2C != NULL) {
         /* See if we can obtain the semaphore.  If the semaphore is not
