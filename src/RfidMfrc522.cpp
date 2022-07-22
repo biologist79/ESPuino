@@ -49,7 +49,7 @@
 
         // Init RC522 Card-Reader
         #if defined(RFID_READER_TYPE_MFRC522_I2C) 
-            i2c_tsafe_execute(Rfid_Init_func,3);
+            i2c_tsafe_execute(Rfid_Init_func,30);
 		#elif defined(RFID_READER_TYPE_MFRC522_SPI)
         	Rfid_Init_func();
 		#endif
@@ -63,7 +63,7 @@
                 NULL,                   /* Task input parameter */
                 1 | portPRIVILEGE_BIT,  /* Priority of the task */
                 NULL,                   /* Task handle. */
-                0          /* Core where the task should run */
+                i2cOnCore          /* Core where the task should run */
             );
 
             Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
@@ -180,7 +180,6 @@
 				control += 0x1;
 				delay(5);
 				}
-			Serial.println(control);
 			if (control <20 ) {
 				// Card still present
 				break;
