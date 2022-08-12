@@ -2,6 +2,7 @@ static const char accesspoint_HTML[] PROGMEM = "<!DOCTYPE html>\
 <html>\
     <head>\
         <title>WLAN-Einrichtung</title>\
+        <meta charset=\"utf-8\">\
         <style>\
             input {\
                 width: 90%%;\
