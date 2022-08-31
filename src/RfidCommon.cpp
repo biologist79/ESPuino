@@ -12,7 +12,10 @@
 #include "Web.h"
 
 unsigned long Rfid_LastRfidCheckTimestamp = 0;
-char *gCurrentRfidTagId = NULL;
+char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+    char gOldRfidTagId[cardIdStringSize] = "X";     // Init with crap
+#endif
 
 // Tries to lookup RFID-tag-string in NVS and extracts parameter from it if found
 void Rfid_PreferenceLookupHandler(void) {
@@ -27,8 +30,7 @@ void Rfid_PreferenceLookupHandler(void) {
         rfidStatus = xQueueReceive(gRfidCardQueue, &rfidTagId, 0);
         if (rfidStatus == pdPASS) {
             System_UpdateActivityTimer();
-            free(gCurrentRfidTagId);
-            gCurrentRfidTagId = x_strdup(rfidTagId);
+            strncpy(gCurrentRfidTagId, rfidTagId, cardIdStringSize-1);
             snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(rfidTagReceived), gCurrentRfidTagId);
             Web_SendWebsocketData(0, 10); // Push new rfidTagId to all websocket-clients
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -36,7 +38,10 @@ void Rfid_PreferenceLookupHandler(void) {
             String s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
             if (!s.compareTo("-1")) {
                 Log_Println((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
-                System_IndicateError();
+                //System_IndicateError();       // Enable to have shown error @neopixel every time
+                #ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+                    strncpy(gOldRfidTagId, gCurrentRfidTagId, cardIdStringSize-1);      // Even if not found in NVS: accept it as card last applied
+                #endif
                 return;
             }
 
@@ -66,6 +71,16 @@ void Rfid_PreferenceLookupHandler(void) {
                     // Modification-cards can change some settings (e.g. introducing track-looping or sleep after track/playlist).
                     Cmd_Action(_playMode);
                 } else {
+                    #ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE     
+                        if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
+                            snprintf(Log_Buffer, Log_BufferLength, "%s (%s)", (char *) FPSTR(dontAccepctSameRfid), gCurrentRfidTagId);
+                            Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+                            System_IndicateError();
+                            return;
+                        } else {
+                            strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+                        }
+                    #endif
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicRfidState), gCurrentRfidTagId, false);
                     #endif
