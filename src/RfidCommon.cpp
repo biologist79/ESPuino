@@ -38,7 +38,7 @@ void Rfid_PreferenceLookupHandler(void) {
             String s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
             if (!s.compareTo("-1")) {
                 Log_Println((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
-                //System_IndicateError();       // Enable to have shown error @neopixel every time
+                System_IndicateError();
                 #ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
                     strncpy(gOldRfidTagId, gCurrentRfidTagId, cardIdStringSize-1);      // Even if not found in NVS: accept it as card last applied
                 #endif
@@ -75,7 +75,7 @@ void Rfid_PreferenceLookupHandler(void) {
                         if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
                             snprintf(Log_Buffer, Log_BufferLength, "%s (%s)", (char *) FPSTR(dontAccepctSameRfid), gCurrentRfidTagId);
                             Log_Println(Log_Buffer, LOGLEVEL_ERROR);
-                            System_IndicateError();
+                            //System_IndicateError(); // Enable to have shown error @neopixel every time
                             return;
                         } else {
                             strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
