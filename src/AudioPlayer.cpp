@@ -924,6 +924,18 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             break;
         }
 
+        case SINGLE_TRACK_OF_DIR_RANDOM: {
+            gPlayProperties.sleepAfterCurrentTrack = true;
+            Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
+            AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+            #ifdef MQTT_ENABLE
+                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
+            #endif
+            xQueueSend(gTrackQueue, &(musicFiles), 0);
+            break;
+        }
+
         case AUDIOBOOK: { // Tracks need to be alph. sorted!
             gPlayProperties.saveLastPlayPosition = true;
             Log_Println((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);

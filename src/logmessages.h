@@ -62,6 +62,7 @@ extern const char errorOccured[];
 extern const char noMp3FilesInDir[];
 extern const char modeSingleTrack[];
 extern const char modeSingleTrackLoop[];
+extern const char modeSingleTrackRandom[];
 extern const char modeSingleAudiobook[];
 extern const char modeSingleAudiobookLoop[];
 extern const char modeAllTrackAlphSorted[];
