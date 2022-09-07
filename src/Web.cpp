@@ -892,9 +892,17 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
     while (file) {
         // ignore hidden folders, e.g. MacOS spotlight files
-        if (!startsWith(file.name(), (char *)"/.")) {
+        #if ESP_ARDUINO_VERSION_MAJOR >= 2
+        if (!startsWith( file.path() , (char *)"/.")) {
+        #else 
+        if (!startsWith( file.name() , (char *)"/.")) {
+        #endif
             JsonObject entry = obj.createNestedObject();
-            convertAsciiToUtf8(file.name(), filePath);
+            #if ESP_ARDUINO_VERSION_MAJOR >= 2
+                convertAsciiToUtf8(file.path(), filePath);
+            #else 
+                convertAsciiToUtf8(file.name(), filePath);
+            #endif            
             std::string path = filePath;
             std::string fileName = path.substr(path.find_last_of("/") + 1);
 
