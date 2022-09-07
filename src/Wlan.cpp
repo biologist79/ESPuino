@@ -52,6 +52,14 @@ void Wlan_Cyclic(void) {
         const char *_ssid = strSSID.c_str();
         const char *_pwd = strPassword.c_str();
 
+		// The use of dynamic allocation is recommended to save memory and reduce resources usage. 
+		// However, the dynamic performs slightly slower than the static allocation. 
+		// Use static allocation if you want to have more performance and if your application is multi-tasking.
+        // Arduiono 2.0.x only, outcomment to use static buffers
+		//WiFi.useStaticBuffers(true); 
+        
+		// set to station mode
+		WiFi.mode(WIFI_STA);
         // Get (optional) hostname-configration from NVS
         String hostname = gPrefsSettings.getString("Hostname", "-1");
         if (hostname.compareTo("-1")) {
@@ -73,16 +81,20 @@ void Wlan_Cyclic(void) {
             }
         #endif
 
+
+
         // Try to join local WiFi. If not successful, an access-point is opened
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount = 0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 12) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 20) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount >= 4 && WiFi.status() == WL_CONNECT_FAILED) {
+            if (tryCount == 10 && WiFi.status() != WL_CONNECTED) {
+                Serial.println("Wifi cannot connect within 5 seconds, try again..");
+                WiFi.disconnect(true, true);
                 WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection sometimes fails)
             }
         }

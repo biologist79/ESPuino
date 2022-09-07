@@ -254,7 +254,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
                 return NULL;
             }
             Log_Println((char *) FPSTR(fileModeDetected), LOGLEVEL_INFO);
-            strncpy(fileNameBuf, (char *) fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+            #if ESP_ARDUINO_VERSION_MAJOR >= 2
+                strncpy(fileNameBuf, (char *) fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+            #else
+                strncpy(fileNameBuf, (char *) fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+            #endif
             if (fileValid(fileNameBuf)) {
                 files = (char **) x_malloc(sizeof(char *) * 2);
                 files[1] = x_strdup(fileNameBuf);
@@ -285,7 +289,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
             if (fileItem.isDirectory()) {
                 continue;
             } else {
-                strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+                #if ESP_ARDUINO_VERSION_MAJOR >= 2
+                    strncpy(fileNameBuf, (char *) fileItem.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+                #else
+                    strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+                #endif
 
                 // Don't support filenames that start with "." and only allow .mp3
                 if (fileValid(fileNameBuf)) {
