@@ -937,7 +937,11 @@ bool explorerDeleteDirectory(File dir) {
         if (file.isDirectory()) {
             explorerDeleteDirectory(file);
         } else {
-            gFSystem.remove(file.name());
+            #if ESP_ARDUINO_VERSION_MAJOR >= 2
+                gFSystem.remove(file.path());
+            #else
+                gFSystem.remove(file.name());
+            #endif
         }
 
         file = dir.openNextFile();
@@ -945,7 +949,11 @@ bool explorerDeleteDirectory(File dir) {
         esp_task_wdt_reset();
     }
 
-    return gFSystem.rmdir(dir.name());
+    #if ESP_ARDUINO_VERSION_MAJOR >= 2
+        return gFSystem.rmdir(dir.path());
+    #else
+        return gFSystem.rmdir(dir.name());
+    #endif
 }
 
 // Handles delete-requests for cachefiles.
