@@ -19,7 +19,7 @@
     #define NO_PLAYLIST                     0           // If no playlist is active
     #define SINGLE_TRACK                    1           // Play a single track
     #define SINGLE_TRACK_LOOP               2           // Play a single track in infinite-loop
-    #define SINGLE_TRACK_OF_DIR_RANDOM      12          // Play a single track in infinite-loop
+    #define SINGLE_TRACK_OF_DIR_RANDOM      12          // Play a single track of a directory and fall asleep subsequently
     #define AUDIOBOOK                       3           // Single track, can save last play-position
     #define AUDIOBOOK_LOOP                  4           // Single track as infinite-loop, can save last play-position
     #define ALL_TRACKS_OF_DIR_SORTED        5           // Play all files of a directory (alph. sorted)

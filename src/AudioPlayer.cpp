@@ -926,6 +926,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
         case SINGLE_TRACK_OF_DIR_RANDOM: {
             gPlayProperties.sleepAfterCurrentTrack = true;
+            gPlayProperties.playUntilTrackNumber = 0;
+            gPlayProperties.numberOfTracks = 1; // Limit number to 1 even there are more entries in the playlist
+            Led_ResetToNightBrightness();
             Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
             #ifdef MQTT_ENABLE
