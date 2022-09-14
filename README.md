@@ -8,9 +8,9 @@
 
 ## Changelog
 Last three events:
+* 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
 * 31.08.2022: Directive `DONT_ACCEPT_SAME_RFID_TWICE` added. Blocks unwanted reapplies of the same rfid-tag (in case it's not a modification-card or rfid-tag is unknown in NVS).
 * 28.02.2022: Directive `MEASURE_BATTERY_MAX17055` added. Provides support for [MAX17055](https://www.maximintegrated.com/en/products/power/battery-management/MAX17055.html).
-* 29.01.2022: Directive `INVERT_POWER` can now be used it invert power-GPIO. And port-expander can now be used for power.
 
 ## Known bugs
 * For ESPuinos making use of SPI for SD, there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Doesn't seem to be fixable. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
@@ -124,16 +124,17 @@ Please note: as you apply a RFID-tag to the RFID-reader, the corresponding ID is
 ## Interacting with ESPuino
 ### Playmodes
 It's not just simply playing music; different playmodes are supported:
-* `single track` => plays one track one time
-* `single track (loop)` => plays one track forever
-* `audiobook `=> single file or playlist/folder; last play-position (file and playlist) is saved (when pushing pause or moving to another track) and re-used next time
-* `audiobook` (loop) => same as audiobook but loops forever
-* `folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder one time
-* `folder/playlist (random order)` => plays all tracks in random order from a folder one time
-* `folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
-* `folder/playlist (random order)` => plays all tracks in random order from a folder forever
-* `webradio` => always only one "track": plays a webstream
-* `list (files from SD and/or webstreams) from local .m3u-File` => can be one or more files / webradio-stations with local .m3u as sourcefile
+* `Single track` => plays one track one time
+* `Single track (loop)` => plays one track forever
+* `Single track of a directory (random). Followed by sleep` => picks and plays one single track out of a directory and falls asleep subsequently. Neopixel gets dimmed.
+* `Audiobook`=> single file or playlist/folder; last play-position (file and playlist) is saved (when pushing pause or moving to another track) and re-used next time
+* `Audiobook (loop)` => same as audiobook but loops forever
+* `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder one time
+* `Folder/playlist (random order)` => plays all tracks in random order from a folder one time
+* `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
+* `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
+* `Webradio` => always only one "track": plays a webstream
+* `List (files from SD and/or webstreams) from local .m3u-File` => can be one or more files / webradio-stations with local .m3u as sourcefile
 
 ### Modification RFID-tags
 There are special RFID-tags, that don't start music by themself but can modify things. If applied a second time, it's previous action/modification will be reversed. Please note: all sleep-modes do dimming (Neopixel) automatically because it's supposed to be used in the evening when going to bed. Well, at least that's my children's indication :-) So first make sure to start the music then use a modification-card in order to apply your desired modification:

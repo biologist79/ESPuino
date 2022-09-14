@@ -286,6 +286,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option class=\"placeholder\" disabled selected value=\"\">Select mode</option>\
                                 <option class=\"option-file\" value=\"1\">Single track</option>\
                                 <option class=\"option-file\" value=\"2\">Single track (loop)</option>\
+                                <option class=\"option-folder\" value=\"12\">Single track of a directory (random). Followed by sleep.</option>\
                                 <option class=\"option-file-and-folder\" value=\"3\">Audiobook</option>\
                                 <option class=\"option-file-and-folder\" value=\"4\">Audiobook (loop)</option>\
                                 <option class=\"option-folder\" value=\"5\">All tracks of a directory (sorted alph.)</option>\

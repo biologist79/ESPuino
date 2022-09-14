@@ -66,6 +66,7 @@
     const char noMp3FilesInDir[] PROGMEM = "Directory does not contain mp3-files.";
     const char modeSingleTrack[] PROGMEM = "Mode: Single track";
     const char modeSingleTrackLoop[] PROGMEM = "Mode: single track as infinite loop";
+    const char modeSingleTrackRandom[] PROGMEM = "Mode: single track (random) of directory";
     const char modeSingleAudiobook[] PROGMEM = "Mode: audiobook";
     const char modeSingleAudiobookLoop[] PROGMEM = "Mode: audiobook as infinite loop";
     const char modeAllTrackAlphSorted[] PROGMEM = "Mode: all tracks (in alph. order) of directory";
