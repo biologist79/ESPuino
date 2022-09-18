@@ -228,4 +228,5 @@
     const char hpOn[] PROGMEM = "Kopfhörer eingeschaltet";
     const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
     const char webTxCanceled[] PROGMEM = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
+    const char cantConnectToWifi[] PROGMEM = "Verbindung zum WLAN nicht möglich. Nächster Versuch...";
 #endif

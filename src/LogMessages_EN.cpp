@@ -227,5 +227,5 @@
     const char paOff[] PROGMEM = "Loudspeaker off";
     const char hpOn[] PROGMEM = "Headphones on";
     const char hpOff[] PROGMEM = "Headphones off";
-    const char webTxCanceled[] PROGMEM = "Webtransfer canceled due to inactivity.";
+    const char cantConnectToWifi[] PROGMEM = "Can't connect to wifi. Trying again...";
 #endif
