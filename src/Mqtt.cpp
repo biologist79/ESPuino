@@ -289,6 +289,8 @@ bool Mqtt_Reconnect() {
             }
         }
         return false;
+    #else
+        return false;
     #endif
 }
 

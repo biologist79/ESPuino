@@ -172,7 +172,10 @@
 
     // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
     constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-    constexpr const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    
+	// Bluetooth
+	constexpr const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name)
 
     // Where to store the backup-file for NVS-records
     constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done

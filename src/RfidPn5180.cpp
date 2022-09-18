@@ -150,7 +150,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                     // Reset to dummy-value if no card is there
                     // Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
                     // lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-                    if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 800)) {
+                    if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 1000)) {
                         lastTimeDetected14443 = 0;
                         #ifdef PAUSE_WHEN_RFID_REMOVED
                             cardAppliedCurrentRun = false;
@@ -204,7 +204,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             }
 
             #ifdef PAUSE_WHEN_RFID_REMOVED
-                if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {   // Card removed => pause
+                if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {   // Card removed => pause
                     AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
                     Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
                 }
@@ -255,7 +255,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                         xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
                     } else {
                         // If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
-                        if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
+                        if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
                             AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead
                             Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
                         }

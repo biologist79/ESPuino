@@ -3,7 +3,8 @@
 
     // Operation Mode
     #define OPMODE_NORMAL                   0           // Normal mode
-    #define OPMODE_BLUETOOTH                1           // Bluetooth mode. WiFi is deactivated. Music from SD and webstreams can't be played.
+    #define OPMODE_BLUETOOTH_SINK           1           // Bluetooth sink mode. Player acts as as bluetooth speaker. WiFi is deactivated. Music from SD and webstreams can't be played.
+    #define OPMODE_BLUETOOTH_SOURCE         2           // Bluetooth sourcemode. Player sennds audio to bluetooth speaker/headset. WiFi is deactivated. Music from SD and webstreams can't be played.
 
     // Track-Control
     #define NO_ACTION                       0           // Dummy to unset track-control-command
@@ -45,7 +46,8 @@
     #define CMD_REPEAT_TRACK                111         // Changes active playmode to endless-loop (for a single track)
     #define CMD_DIMM_LEDS_NIGHTMODE         120         // Changes LED-brightness
     #define CMD_TOGGLE_WIFI_STATUS          130         // Toggles WiFi-status
-    #define CMD_TOGGLE_BLUETOOTH_MODE       140         // Toggles Normal/Bluetooth Mode
+    #define CMD_TOGGLE_BLUETOOTH_SINK_MODE  140         // Toggles Normal/Bluetooth sink Mode 
+    #define CMD_TOGGLE_BLUETOOTH_SOURCE_MODE 141        // Toggles Normal/Bluetooth source Mode 
     #define CMD_ENABLE_FTP_SERVER           150         // Enables FTP-server
     #define CMD_TELL_IP_ADDRESS             151         // Command: ESPuino announces its IP-address via speech
 

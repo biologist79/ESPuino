@@ -17,6 +17,7 @@
 #include "System.h"
 #include "Wlan.h"
 #include "Web.h"
+#include "Bluetooth.h"
 
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
@@ -105,7 +106,8 @@ void AudioPlayer_Init(void) {
     // clear cover image
     gPlayProperties.coverFilePos = 0;
 
-    if (System_GetOperationMode() == OPMODE_NORMAL) {       // Don't start audio-task in BT-mode!
+    // Don't start audio-task in BT-speaker mode!
+    if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {       
         xTaskCreatePinnedToCore(
             AudioPlayer_Task,      /* Function to implement the task */
             "mp3play",             /* Name of the task */
@@ -310,10 +312,12 @@ void AudioPlayer_Task(void *parameter) {
     bool audioReturnCode;
 
     for (;;) {
-        /*if (cnt123++ % 100 == 0) {
+        /*
+        if (cnt123++ % 100 == 0) {
             snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
             Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-        }*/
+        }
+        */
         if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
             snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -1241,4 +1245,10 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
 
 void audio_eof_speech(const char *info){
     gPlayProperties.currentSpeechActive = false;
+}
+
+
+// process audio sample extern (for bluetooth source)
+void audio_process_i2s(uint32_t* sample, bool *continueI2S){
+    *continueI2S = !Bluetooth_Source_SendAudioData(sample);
 }

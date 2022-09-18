@@ -390,6 +390,8 @@ String templateProcessor(const String &templ) {
         return String(mqttServerLength - 1);
     } else if (templ == "MQTT_PORT") {
         return String(gMqttPort);
+    } else if (templ == "BT_SOURCE_NAME") {
+        return gPrefsSettings.getString("btDeviceName", "");
     } else if (templ == "IPv4") {
         IPAddress myIP = WiFi.localIP();
         snprintf(Log_Buffer, Log_BufferLength, "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -578,6 +580,8 @@ bool processJsonRequest(char *_serialJson) {
 
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
+    if (!webserverStarted) 
+        return;
     char *jBuf = (char *) x_calloc(255, sizeof(char));
 
     const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 200;

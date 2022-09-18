@@ -9,6 +9,7 @@
 #include "Log.h"
 #include "System.h"
 #include "Wlan.h"
+#include "Bluetooth.h"
 
 #ifdef NEOPIXEL_ENABLE
     #include <FastLED.h>
@@ -485,8 +486,15 @@ static void Led_Task(void *parameter) {
 
         switch (gPlayProperties.playMode) {
             case NO_PLAYLIST: // If no playlist is active (idle)
-                if (System_GetOperationMode() == OPMODE_BLUETOOTH) {
+                if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
                     idleColor = CRGB::Blue;
+                } else 
+                if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+                    if (Bluetooth_Source_Connected()) {
+                            idleColor = CRGB::Blue;
+                        } else {
+                            idleColor = CRGB::BlueViolet;
+                        }     
                 } else {
                     if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
                         idleColor = speechColor;

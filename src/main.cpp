@@ -82,7 +82,7 @@
     // Get last RFID-tag applied from NVS
     void recoverLastRfidPlayedFromNvs(void) {
         if (recoverLastRfid) {
-            if (System_GetOperationMode() == OPMODE_BLUETOOTH) { // Don't recover if BT-mode is desired
+            if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
                 recoverLastRfid = false;
                 return;
             }
@@ -206,9 +206,16 @@ void setup() {
 }
 
 void loop() {
-    if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
+    if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+        // bluetooth speaker mode
         Bluetooth_Cyclic();
+    } else 
+    if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+        // bluetooth headset mode
+        Bluetooth_Cyclic();
+        RotaryEncoder_Cyclic();
     } else {
+        // normal mode
         Wlan_Cyclic();
         Web_Cyclic();
         Ftp_Cyclic();
