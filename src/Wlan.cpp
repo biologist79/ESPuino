@@ -87,13 +87,14 @@ void Wlan_Cyclic(void) {
         WiFi.begin(_ssid, _pwd);
 
         uint8_t tryCount = 0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 20) {
+        while (WiFi.status() != WL_CONNECTED && tryCount <= 16) {
             delay(500);
             Serial.print(F("."));
             tryCount++;
             wifiCheckLastTimestamp = millis();
-            if (tryCount == 10 && WiFi.status() != WL_CONNECTED) {
-                Serial.println("Wifi cannot connect within 5 seconds, try again..");
+            if (tryCount == 8 && WiFi.status() != WL_CONNECTED) {
+                snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(cantConnectToWifi));
+                Log_Println(Log_Buffer, LOGLEVEL_ERROR);
                 WiFi.disconnect(true, true);
                 WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection sometimes fails)
             }
@@ -114,8 +115,8 @@ void Wlan_Cyclic(void) {
             int daylightOffset_sec = 3600;
 	        configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
             } else {
-			// Starts AP if WiFi-connect wasn't successful
-            accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+                // Starts AP if WiFi-connect wasn't successful
+                accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
         }
 
         #ifdef MDNS_ENABLE

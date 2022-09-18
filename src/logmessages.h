@@ -224,3 +224,4 @@ extern const char paOff[];
 extern const char hpOn[];
 extern const char hpOff[];
 extern const char webTxCanceled[];
+extern const char cantConnectToWifi[];
