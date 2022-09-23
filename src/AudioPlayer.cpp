@@ -789,8 +789,11 @@ void AudioPlayer_Task(void *parameter) {
                 settleCount = 0;
             }
         }
-
-        vTaskDelay(portTICK_PERIOD_MS * 1);
+        if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && audio->isRunning()) {
+            // do not delay here, audio task is time critical in BT-Source mode
+        } else {
+            vTaskDelay(portTICK_PERIOD_MS * 1);
+        }
         //esp_task_wdt_reset(); // Don't forget to feed the dog!
     }
     vTaskDelete(NULL);

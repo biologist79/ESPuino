@@ -611,6 +611,9 @@ static void Led_Task(void *parameter) {
                             }
                             if (gPlayProperties.pausePlay) {
                                 generalColor = CRGB::Orange;
+                                if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+                                    generalColor = CRGB::Blue;
+                                } else
                                 if (gPlayProperties.currentSpeechActive) {
                                     generalColor = speechColor;
                                 }
