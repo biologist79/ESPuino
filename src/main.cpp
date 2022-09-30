@@ -33,6 +33,8 @@
     uint32_t bootCount = 0;
 #endif
 
+
+
 ////////////
 
 #if (HAL == 2)
