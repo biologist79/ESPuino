@@ -101,7 +101,6 @@ int32_t get_data_channels(Frame *frame, int32_t channel_len) {
     #endif 
     if (len < (channel_len * 4)) {
         // Serial.println("Bluetooth source => not enough data");
-        vTaskDelay(10);
         return 0;
     };
     size_t sampleSize = 0;
