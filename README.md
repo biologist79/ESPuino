@@ -8,6 +8,7 @@
 
 ## Changelog
 Last three events:
+* 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
 * 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
 * 31.08.2022: Directive `DONT_ACCEPT_SAME_RFID_TWICE` added. Blocks unwanted reapplies of the same rfid-tag (in case it's not a modification-card or rfid-tag is unknown in NVS).
 * 28.02.2022: Directive `MEASURE_BATTERY_MAX17055` added. Provides support for [MAX17055](https://www.maximintegrated.com/en/products/power/battery-management/MAX17055.html).
@@ -150,7 +151,8 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * playlist in loop-mode
 * track und playlist loop-mode can both be activated at the same time, but unless track-loop isn't deactivated, playlist-loop won't be effective
 * Toggle WiFi (enable/disable) => disabling WiFi while webstream is active will stop a running webstream instantly!
-* Toggle Bluetooth (enable/disable) => restarts ESPuino immediately
+* Toggle Bluetooth sink (enable/disable) => restarts ESPuino immediately. In this mode you can stream to your ESPuino via BT.
+* Toggle Bluetooth source (enable/disable) => restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device.
 
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
