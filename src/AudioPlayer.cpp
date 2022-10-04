@@ -1034,19 +1034,13 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             break;
         }
 
-        case LOCAL_M3U: { // Can be one or more webradio-station(s)
+        case LOCAL_M3U: { // Can be one or multiple SD-files or webradio-stations; or a mix of both
             Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
-            if (Wlan_IsConnected()) {
-                xQueueSend(gTrackQueue, &(musicFiles), 0);
-                #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-                #endif
-            } else {
-                Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
-                System_IndicateError();
-                gPlayProperties.playMode = NO_PLAYLIST;
-            }
+            xQueueSend(gTrackQueue, &(musicFiles), 0);
+            #ifdef MQTT_ENABLE
+                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
+            #endif
             break;
         }
 
