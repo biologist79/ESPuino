@@ -14,14 +14,14 @@ Last three events:
 * 28.02.2022: Directive `MEASURE_BATTERY_MAX17055` added. Provides support for [MAX17055](https://www.maximintegrated.com/en/products/power/battery-management/MAX17055.html).
 
 ## Known bugs
-* For ESPuinos making use of SPI for SD, there's currently a problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Doesn't seem to be fixable. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
+* For ESPuinos making use of SPI to connect SD, there's an unsolved problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
 ## ESPuino - what's that?
 The basic idea of ESPuino is to use RFID-tags to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play stuff from SD or webradio. Place another RFID-object on it and anything else is played. Simple as that.
 
-This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). 
+This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). Especially this is true for [ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino). 
 
 ## Hardware-setup
-You can start on a breadboard with jumper wires but I strongly recommend to start right away with a [PCB](https://en.wikipedia.org/wiki/Printed_circuit_board) that's designed to ESPuino. Several PCBs are available. Please click on the links below for more informations and pictures.
+You can start on a breadboard with jumper wires but I strongly recommend to start right away with a PCB like [ESPuino-mini](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866). Several PCBs are available. Please click on the links below for more informations and pictures.
 * [Lolin D32 / Lolin D32 pro + PN5180/RC522 + port-expander (SMD)](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
 * [Lolin32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
 * [NodeMCU ESP32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
@@ -47,15 +47,15 @@ You can start on a breadboard with jumper wires but I strongly recommend to star
 * Via webbrowser you can configure various settings and pair RFID-tags with actions. If MQTT/FTP-support was not compiled, their config-tabs won't appear.
 
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
-Having SD working is mandatory, ESPuino doesn't start without working SD! However, there are two modes available to access SD-cards: SPI and SD-MMC (1 bit). Advice: don't use SPI as there's a bug often leading to broken files due to interrupted file-transfers. Beside of that, SDMMC is still twice as fast as SPI and needs one GPIO less.
+Having SD working is mandatory, ESPuino doesn't start without working SD! However, there are two modes available to connect SD-cards: SPI and SDMMC (1 bit). Advice: don't use SPI as there's a bug that often leading to broken files due to interrupted file-transfers. Beside of that, SDMMC is still twice as fast as SPI and needs one GPIO less.
 
 ## Which RFID-reader: RC522 or PN5180?
-RC522 is so to say the ESPuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake-up the board with the card (after flashing PN5180 with a new firmware). Disadvantages: it's more expensive and needs more GPIOs (6/7 instead of 4). Refer PN5180's wire-section below for further informations. Hint: if using 3.3V only make sure to connect these 3.3V to PN5180's 5V AND 3.3V. Sounds weird but it's necessary.
+RC522 is so to say the ESPuino-standard. It's cheap and works, but RFID-tag has to be placed near the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake up ESPuino with the a ISO-14443 card (after flashing PN5180 with a new firmware). This feature is called LPCD. Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4). In my opinion it's worth it! Refer PN5180's wire-section below for further informations. Hint: if using 3.3V only make sure to connect these 3.3V to PN5180's 5V AND 3.3V. Sounds weird but it's necessary.
 
 ## 3.3 or 5V?
 ESP32 runs at 3.3 V only. But what about the periphery?
 * 3.3V! Because: if you plan to use battery-mode with LiPo/LiFePO4, there's no 5 V available (unless USB is connected or you make use of a boost-converter).
-That's why my design's focus is on 3.3 V only. If you want to use 5 V - do so, but be advised it's not compatible with battery-mode.
+That's why my focus is on 3.3 V only. If you want to use 5 V instead - do so, but be advised it might not be compatible with battery-mode.
 * MAX98357a: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in my opinion).
 * Neopixel: specification says it needs 5 V but runs at 3.3 V as well.
 * RC522: needs 3.3 V (don't ever power with 5 V!)
@@ -63,25 +63,21 @@ That's why my design's focus is on 3.3 V only. If you want to use 5 V - do so, b
 * SD: needs 3.3 V but if voltage-regulator is onboard, it can be connected to 5 V as well
 * Rotary encoder: 3.3 V (don't power with 5 V! Encoder doesn't care if connected to 3.3 or 5 V, but GPIOs of ESP32 do!)
 
-
-## Wiring (general)
-I really really recommend to solder all the stuff onto a PCB as wiring the components with jumperwires on a breadboard can lead to many problems. Especially for the interconnect between µC and µSD-card-reader make sure to use short wires (like 10cm or so)! So be aware of this!
-
 ## WiFi
-WiFi is mandatory for webgui, FTP and MQTT. However, WiFi can be temporarily or permanently disabled (and ESPuino remembers this state after the next restart. There are two ways to (re-)enable/disable WiFi:
-* Use a special modification-card that can be configured via webgui
+WiFi is mandatory for webgui, FTP, MQTT and webradio. However, WiFi can be temporarily or permanently disabled (and ESPuino remembers this state after the next restart. There are two ways to (re-)enable/disable WiFi:
+* Use a special [modification-card](https://forum.espuino.de/t/was-sind-modifikationskarten/37) that can be configured via webgui.
 * Assign action `CMD_TOGGLE_WIFI_STATUS` to a button (or multi-button). This toggles the current WiFi-status.
 
 ## Bluetooth
-ESPuino can be used as bluetooth-sink (a2dp-sink). This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. Activated bluetooth is indicated by four slow rotating *blue* LEDs. Now you can stream to your ESPuino e.g. with your mobile device. Tested this with Android 8 and Mac OS: worked 100% flawless. Please note: due to memory-restrictions it's not possible to run Bluetooth in parallel with WiFi.
+ESPuino can be used as bluetooth-sink (a2dp-sink). In this mode you can stream (e.g. from a mobile device) via bluetooth audio to your espuino. This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Activated bluetooth is indicated by four slow rotating *blue* LEDs. Please note: due to memory-restrictions it's not possible to run bluetooth in parallel with WiFi. This finally means that you cannot access webgui while this mode is enabled.
 
-ESPuino can be used to stream audio to a bluetooth headset (a2dp-source). This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_SOURCE_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Two modes are available which are toggled in between: "normal" and "bluetooth". Normal means: SD + WiFi are available whereas in mode "bluetooth" only bluetooth-support can be provided. Activated bluetooth is indicated by four slow rotating *blue-violet* LEDs. After the bleutooth headset is connected the LEDs turn to blue. Now the audio is streamed to a bluetooth headset. 
+ESPuino can also be used to stream audio (a2dp-source) to a bluetooth headset or external bluetooth speakers. This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_SOURCE_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Activated bluetooth is indicated by four slow rotating *blue-violet* LEDs. After the bluetooth headset is connected LEDs turn to blue. Please note: due to memory-restrictions it's not possible to run bluetooth in parallel with WiFi. This finally means that you cannot stream webradio via bluetooth or access webgui while this mode is enabled.
 
 ## Port-expander
 There might be situations where you run out of GPIOs. To address this, port-expander [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend number of input-channels (output-mode is only supported in special cases). This port-expander provides 2 ports with 8 channels each - so 16 channels in total. To activate PCA9555 you need to enable `PORT_EXPANDER_ENABLE`. Like GPIOs in your develboard-specific settings-file, you can assign numbers. Range is 100->115 where 100: port 0 channel 0 -> 107: port 0 channel 7; 108: port 1 channel 0 -> 115: port 1 channel 7. Via `expanderI2cAddress` port-expander's I2C-address can be changed. It's `0x20` if all A0, A1, A2 are wired to GND.<br />
 
 ## After ESPuino is connected to your WiFi
-After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI, you can:
+After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI you can:
 * configure WiFi
 * make bindings between RFID-tag, file/directory/URL and playMode
 * make bindings between RFID-tag and a modification-type
