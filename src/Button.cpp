@@ -11,32 +11,32 @@ bool gButtonInitComplete = false;
 // Only enable those buttons that are not disabled (99 or >115)
 // 0 -> 39: GPIOs
 // 100 -> 115: Port-expander
-#if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= 39)
+#if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= MAX_GPIO)
     #define BUTTON_0_ENABLE
 #elif (NEXT_BUTTON >= 100 && NEXT_BUTTON <= 115)
     #define EXPANDER_0_ENABLE
 #endif
-#if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= 39)
+#if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= MAX_GPIO)
     #define BUTTON_1_ENABLE
 #elif (PREVIOUS_BUTTON >= 100 && PREVIOUS_BUTTON <= 115)
     #define EXPANDER_1_ENABLE
 #endif
-#if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= 39)
+#if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= MAX_GPIO)
     #define BUTTON_2_ENABLE
 #elif (PAUSEPLAY_BUTTON >= 100 && PAUSEPLAY_BUTTON <= 115)
     #define EXPANDER_2_ENABLE
 #endif
-#if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= 39)
+#if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= MAX_GPIO)
     #define BUTTON_3_ENABLE
 #elif (ROTARYENCODER_BUTTON >= 100 && ROTARYENCODER_BUTTON <= 115)
     #define EXPANDER_3_ENABLE
 #endif
-#if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
+#if (BUTTON_4 >= 0 && BUTTON_4 <= MAX_GPIO)
     #define BUTTON_4_ENABLE
 #elif (BUTTON_4 >= 100 && BUTTON_4 <= 115)
     #define EXPANDER_4_ENABLE
 #endif
-#if (BUTTON_5 >= 0 && BUTTON_5 <= 39)
+#if (BUTTON_5 >= 0 && BUTTON_5 <= MAX_GPIO)
     #define BUTTON_5_ENABLE
 #elif (BUTTON_5 >= 100 && BUTTON_5 <= 115)
     #define EXPANDER_5_ENABLE
@@ -55,7 +55,7 @@ static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
-    #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= 39)
+    #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0);
     #endif
 

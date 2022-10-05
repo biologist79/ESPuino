@@ -6,7 +6,7 @@
 
 
 void Power_Init(void) {
-    #if (POWER >= 0 && POWER <= 39)
+    #if (POWER >= 0 && POWER <= MAX_GPIO)
         pinMode(POWER, OUTPUT);     // Only necessary for GPIO. For port-expander it's done (previously) via Port_init()
     #endif
 }

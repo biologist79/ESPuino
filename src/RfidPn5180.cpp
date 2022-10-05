@@ -60,7 +60,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             gpio_deep_sleep_hold_dis();
             gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
             gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-            #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
+            #if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
                 pinMode(RFID_IRQ, INPUT);       // Not necessary for port-expander as for pca9555 all pins are configured as input per default
             #endif
         #endif
@@ -322,7 +322,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             if (nfc.switchToLPCD(wakeupCounterInMs)) {
                 Serial.println(F("switch to low power card detection: success"));
                 // configure wakeup pin for deep-sleep wake-up, use ext1
-                #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
+                #if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
                     esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
                 #endif
                 // freeze pin states in deep sleep
@@ -342,7 +342,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
             gpio_deep_sleep_hold_dis();
             gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
             gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-            #if (RFID_IRQ >= 0 && RFID_IRQ <= 39)
+            #if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
                 pinMode(RFID_IRQ, INPUT);
             #endif
             static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);

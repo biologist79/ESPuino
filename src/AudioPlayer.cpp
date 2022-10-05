@@ -84,7 +84,7 @@ void AudioPlayer_Init(void) {
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
-        #if (HP_DETECT >= 0 && HP_DETECT <= 39)
+        #if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
             pinMode(HP_DETECT, INPUT_PULLUP);
         #endif
         AudioPlayer_HeadphoneLastDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
