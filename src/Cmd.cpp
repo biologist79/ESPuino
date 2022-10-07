@@ -15,6 +15,18 @@ void Cmd_Action(const uint16_t mod) {
     switch (mod) {
         case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
             System_ToggleLockControls();
+            if (System_AreControlsLocked()) {
+                Log_Println((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
+                #endif
+            } else {
+                Log_Println((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
+                #endif
+            }
+            System_IndicateOk();
             break;
         }
 
