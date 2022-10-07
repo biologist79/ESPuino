@@ -364,6 +364,8 @@ String templateProcessor(const String &templ) {
 #else
     // TODO: hide battery config
 #endif
+    } else if (templ == "MQTT_CLIENTID") {
+        return gPrefsSettings.getString("mqttClientId", "-1");
     } else if (templ == "MQTT_SERVER") {
         return gPrefsSettings.getString("mqttServer", "-1");
     } else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
@@ -386,6 +388,8 @@ String templateProcessor(const String &templ) {
         return String(mqttUserLength - 1);
     } else if (templ == "MQTT_PWD_LENGTH") {
         return String(mqttPasswordLength - 1);
+    } else if (templ == "MQTT_CLIENTID_LENGTH") {
+        return String(mqttClientIdLength - 1);
     } else if (templ == "MQTT_SERVER_LENGTH") {
         return String(mqttServerLength - 1);
     } else if (templ == "MQTT_PORT") {
@@ -486,15 +490,14 @@ bool processJsonRequest(char *_serialJson) {
         }
     } else if (doc.containsKey("mqtt")) {
         uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
+        const char *_mqttClientId = object["mqtt"]["mqttClientId"];
         const char *_mqttServer = object["mqtt"]["mqttServer"];
-        gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-        gPrefsSettings.putString("mqttServer", (String)_mqttServer);
         const char *_mqttUser = doc["mqtt"]["mqttUser"];
         const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
         uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
 
         gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-        gPrefsSettings.putString("mqttServer", (String)_mqttServer);
+        gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
         gPrefsSettings.putString("mqttServer", (String)_mqttServer);
         gPrefsSettings.putString("mqttUser", (String)_mqttUser);
         gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);

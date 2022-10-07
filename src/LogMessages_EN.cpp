@@ -136,6 +136,8 @@
     const char wroteMqttFlagToNvs[] PROGMEM = "Stored MQTT-flag to NVS.";
     const char restoredMqttActiveFromNvs[] PROGMEM = "Restored MQTT-flag (enabled) from NVS";
     const char restoredMqttDeactiveFromNvs[] PROGMEM = "Restored MQTT-flag (disabled) from NVS";
+    const char wroteMqttClientIdToNvs[] PROGMEM = "Stored MQTT-clientid to NVS.";
+    const char restoredMqttClientIdFromNvs[] PROGMEM = "Restored MQTT-clientid from NVS";
     const char wroteMqttServerToNvs[] PROGMEM = "Stored MQTT-server to NVS.";
     const char restoredMqttServerFromNvs[] PROGMEM = "Restored MQTT-Server from NVS";
     const char wroteMqttUserToNvs[] PROGMEM = "Stored MQTT-user to NVS.";
