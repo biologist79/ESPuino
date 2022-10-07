@@ -133,19 +133,6 @@ void System_SetLockControls(bool value) {
 
 void System_ToggleLockControls(void) {
     System_LockControls = !System_LockControls;
-
-    if (System_LockControls) {
-        Log_Println((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
-        #ifdef MQTT_ENABLE
-            publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
-        #endif
-        System_IndicateOk();
-    } else {
-        Log_Println((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
-        #ifdef MQTT_ENABLE
-            publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
-        #endif
-    }
 }
 
 bool System_AreControlsLocked(void) {
