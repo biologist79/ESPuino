@@ -245,16 +245,19 @@ bool Mqtt_Reconnect() {
                 // LED-brightness
                 Mqtt_PubSubClient.subscribe((char *) FPSTR(topicLedBrightnessCmnd));
 
-                // Publish some stuff
+                // Publish current state
                 publishMqtt((char *) FPSTR(topicState), "Online", false);
                 publishMqtt((char *) FPSTR(topicTrackState), "---", false);
                 publishMqtt((char *) FPSTR(topicLoudnessState), AudioPlayer_GetCurrentVolume(), false);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimerTimeStamp(), false);
-                publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
+                publishMqtt((char *) FPSTR(topicLockControlsState), System_AreControlsLocked(), false);
                 publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), 0, false);
                 publishMqtt((char *) FPSTR(topicCurrentIPv4IP), Wlan_GetIpAddress().c_str(), false);
+
+                char rBuf[2];
+                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
+                publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
 
                 char revBuf[12];
                 strncpy(revBuf, softwareRevision+19, sizeof(revBuf)-1);
