@@ -16,8 +16,6 @@
     #include <PubSubClient.h>
 #endif
 
-constexpr uint8_t stillOnlineInterval = 60u; // Interval 'I'm still alive' is sent via MQTT (in seconds)
-
 // MQTT-helper
 #ifdef MQTT_ENABLE
     static WiFiClient Mqtt_WifiClient;
@@ -35,7 +33,6 @@ static bool Mqtt_Enabled = true;
 
 static void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length);
 static bool Mqtt_Reconnect(void);
-static void Mqtt_PostHeartbeatViaMqtt(void);
 static void Mqtt_PostWiFiRssi(void);
 
 void Mqtt_Init() {
@@ -115,7 +112,6 @@ void Mqtt_Cyclic(void) {
         if (Mqtt_Enabled && Wlan_IsConnected()) {
             Mqtt_Reconnect();
             Mqtt_PubSubClient.loop();
-            Mqtt_PostHeartbeatViaMqtt();
             Mqtt_PostWiFiRssi();
         }
     #endif
@@ -190,23 +186,6 @@ void Mqtt_PostWiFiRssi(void) {
     #endif
 }
 
-/* Cyclic posting via MQTT that ESP is still alive. Use case: when ESPuino is switched off, it will post via
-   MQTT it's gonna be offline now. But when unplugging ESPuino e.g. openHAB doesn't know ESPuino is offline.
-   One way to recognize this is to determine, when a topic has been updated for the last time. So by
-   telling openHAB connection is timed out after 2mins for instance, this is the right topic to check for.  */
-void Mqtt_PostHeartbeatViaMqtt(void) {
-    #ifdef MQTT_ENABLE
-        static unsigned long lastOnlineTimestamp = 0u;
-
-        if (millis() - lastOnlineTimestamp >= stillOnlineInterval * 1000) {
-            lastOnlineTimestamp = millis();
-            if (publishMqtt((char *) FPSTR(topicState), "Online", false)) {
-                Log_Println((char *) FPSTR(stillOnlineMqtt), LOGLEVEL_DEBUG);
-            }
-        }
-    #endif
-}
-
 /* Connects/reconnects to MQTT-Broker unless connection is not already available.
     Manages MQTT-subscriptions.
 */
@@ -235,7 +214,7 @@ bool Mqtt_Reconnect() {
                 }
             } else {
                 Log_Println((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser.c_str(), gMqttPassword.c_str())) {
+                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser.c_str(), gMqttPassword.c_str(), (char *) FPSTR(topicState), 0, false, "Offline")) {
                     connect = true;
                 }
             }
