@@ -23,6 +23,7 @@
 #endif
 
 // Please note: all of them are defaults that can be changed later via GUI
+String gMqttClientId = DEVICE_HOSTNAME; // ClientId for the MQTT-server, must be server wide unique (if not found in NVS this one will be taken)
 String gMqttServer = "192.168.2.43";    // IP-address of MQTT-server (if not found in NVS this one will be taken)
 String gMqttUser = "mqtt-user";         // MQTT-user
 String gMqttPassword = "mqtt-password"; // MQTT-password
@@ -54,6 +55,17 @@ void Mqtt_Init() {
                 snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
                 Log_Println(Log_Buffer, LOGLEVEL_INFO);
                 break;
+        }
+
+        // Get MQTT-clientid from NVS
+        String nvsMqttClientId = gPrefsSettings.getString("mqttClientId", "-1");
+        if (!nvsMqttClientId.compareTo("-1")) {
+            gPrefsSettings.putString("mqttClientId", gMqttClientId);
+            Log_Println((char *) FPSTR(wroteMqttClientIdToNvs), LOGLEVEL_ERROR);
+        } else {
+            gMqttClientId = nvsMqttClientId;
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttClientIdFromNvs), nvsMqttClientId.c_str());
+            Log_Println(Log_Buffer, LOGLEVEL_INFO);
         }
 
         // Get MQTT-server from NVS
@@ -209,12 +221,12 @@ bool Mqtt_Reconnect() {
             // Try to connect to MQTT-server. If username AND password are set, they'll be used
             if ((gMqttUser.length() < 1u) || (gMqttPassword.length()) < 1u) {
                 Log_Println((char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME)) {
+                if (Mqtt_PubSubClient.connect(gMqttClientId.c_str())) {
                     connect = true;
                 }
             } else {
                 Log_Println((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser.c_str(), gMqttPassword.c_str(), (char *) FPSTR(topicState), 0, false, "Offline")) {
+                if (Mqtt_PubSubClient.connect(gMqttClientId.c_str(), gMqttUser.c_str(), gMqttPassword.c_str(), (char *) FPSTR(topicState), 0, false, "Offline")) {
                     connect = true;
                 }
             }

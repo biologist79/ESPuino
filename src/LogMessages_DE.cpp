@@ -136,6 +136,8 @@
     const char wroteMqttFlagToNvs[] PROGMEM = "MQTT-Flag wurde ins NVS geschrieben.";
     const char restoredMqttActiveFromNvs[] PROGMEM = "MQTT-Flag (aktiviert) wurde aus NVS geladen";
     const char restoredMqttDeactiveFromNvs[] PROGMEM = "MQTT-Flag (deaktiviert) wurde aus NVS geladen";
+    const char wroteMqttClientIdToNvs[] PROGMEM = "MQTT-ClientId wurde ins NVS geschrieben.";
+    const char restoredMqttClientIdFromNvs[] PROGMEM = "MQTT-ClientId wurde aus NVS geladen";
     const char wroteMqttServerToNvs[] PROGMEM = "MQTT-Server wurde ins NVS geschrieben.";
     const char restoredMqttServerFromNvs[] PROGMEM = "MQTT-Server wurde aus NVS geladen";
     const char wroteMqttUserToNvs[] PROGMEM = "MQTT-User wurde ins NVS geschrieben.";

@@ -6,6 +6,7 @@
 #endif
 // MQTT-configuration
 // Please note: all lengths will be published n-1 as maxlength to GUI
+constexpr uint8_t mqttClientIdLength = 16u;
 constexpr uint8_t mqttServerLength = 32u;
 constexpr uint8_t mqttUserLength = 16u;
 constexpr uint8_t mqttPasswordLength = 16u;
