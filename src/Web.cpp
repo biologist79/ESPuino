@@ -168,6 +168,7 @@ void webserverStart(void) {
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
                 String info = "ESPuino " + (String) softwareRevision;
+                info += "\nESPuino " + (String) gitRevision;
                 info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
                 #if (LANGUAGE == DE)
                     info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
