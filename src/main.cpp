@@ -165,7 +165,7 @@ void setup() {
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.print(F(" Rfid-controlled musicplayer\n\n"));
-    Serial.printf("%s\n\n", softwareRevision);
+    Serial.printf("%s\n%s\n\n", softwareRevision, gitRevision);
     Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
