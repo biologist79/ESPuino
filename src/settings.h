@@ -64,6 +64,9 @@
     //#define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
     //#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
     //#define RFID_READER_TYPE_PN5180       // use PN5180 via SPI
+    //#define RFID_READER_TYPE_PN532_I2C
+    //#define RFID_READER_TYPE_PN532_SPI
+
 
     #ifdef RFID_READER_TYPE_MFRC522_I2C
         #define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
@@ -212,7 +215,7 @@
     #endif
 
     // enable I2C if necessary
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(DAC_ES8388) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(DAC_ES8388) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055) || defined(RFID_READER_TYPE_PN532_I2C)
         #define I2C_2_ENABLE
     #endif
 
