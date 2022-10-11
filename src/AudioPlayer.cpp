@@ -46,6 +46,7 @@ static int AudioPlayer_ArrSortHelper(const void *a, const void *b);
 static void AudioPlayer_SortPlaylist(const char **arr, int n);
 static void AudioPlayer_SortPlaylist(char *str[], const uint32_t count);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
     #ifndef USE_LAST_VOLUME_AFTER_REBOOT
@@ -399,9 +400,7 @@ void AudioPlayer_Task(void *parameter) {
                     // delete title
                     Audio_handleTitle(true);
                     Web_SendWebsocketData(0, 30);
-                    // clear cover image
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
+                    AudioPlayer_ClearCover();
                     continue;
 
                 case PAUSEPLAY:
@@ -499,9 +498,7 @@ void AudioPlayer_Task(void *parameter) {
                         Led_Indicate(LedIndicatorType::Rewind);
                         // delete title
                         Audio_handleTitle(true);
-                        // clear cover image
-                        gPlayProperties.coverFilePos = 0;
-                        Web_SendWebsocketData(0, 40);
+                        AudioPlayer_ClearCover();
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
                         if (!audioReturnCode) {
@@ -592,8 +589,7 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.playMode = NO_PLAYLIST;
                     Audio_handleTitle(true);
                     Web_SendWebsocketData(0, 30);
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
+                    AudioPlayer_ClearCover();
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                     #endif
@@ -629,12 +625,12 @@ void AudioPlayer_Task(void *parameter) {
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
                 // delete title
                 Audio_handleTitle(true);
-                // clear cover image
-                gPlayProperties.coverFilePos = 0;
-                Web_SendWebsocketData(0, 40);
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
                 Web_SendWebsocketData(0, 30);
+                // AudioPlayer_ClearCover() publishes an MQTT message. This must happen after audio->connecttohost() otherwise a broken MQTT package
+                // gets sent out and the MQTT connection is reset. This seems to be a race condition in one of the libs.
+                AudioPlayer_ClearCover();
             } else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
                 // Files from SD
                 if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -645,9 +641,7 @@ void AudioPlayer_Task(void *parameter) {
                 } else {
                     // delete title
                     Audio_handleTitle(true);
-                    // clear cover image
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
+                    AudioPlayer_ClearCover();
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
                 }
@@ -1147,6 +1141,16 @@ void AudioPlayer_SortPlaylist(const char **arr, int n) {
     qsort(arr, n, sizeof(const char *), AudioPlayer_ArrSortHelper);
 }
 
+// Clear cover send notification
+void AudioPlayer_ClearCover(void) {
+    gPlayProperties.coverFilePos = 0;
+    // websocket and mqtt notify cover image has changed
+    Web_SendWebsocketData(0, 40);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+    #endif
+}
+
 // Some mp3-lib-stuff (slightly changed from default)
 void audio_info(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "info        : %s", info);
@@ -1236,8 +1240,11 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
     // save cover image position and size for later use
     gPlayProperties.coverFilePos = pos;
     gPlayProperties.coverFileSize = size;
-    // websocket notify cover image has changed
+    // websocket and mqtt notify cover image has changed
     Web_SendWebsocketData(0, 40);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+    #endif
 }
 
 void audio_eof_speech(const char *info){

@@ -260,6 +260,7 @@ bool Mqtt_Reconnect() {
                 // Publish current state
                 publishMqtt((char *) FPSTR(topicState), "Online", false);
                 publishMqtt((char *) FPSTR(topicTrackState), "---", false);
+                publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
                 publishMqtt((char *) FPSTR(topicLoudnessState), AudioPlayer_GetCurrentVolume(), false);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimerTimeStamp(), false);
                 publishMqtt((char *) FPSTR(topicLockControlsState), System_AreControlsLocked(), false);

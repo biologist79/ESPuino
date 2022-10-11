@@ -234,6 +234,7 @@
         constexpr const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
         constexpr const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
         constexpr const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
+        constexpr const char topicCoverChangedState[] PROGMEM = "State/ESPuino/CoverChanged";
         constexpr const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
         constexpr const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
         constexpr const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
