@@ -393,7 +393,9 @@ String templateProcessor(const String &templ) {
     } else if (templ == "MQTT_SERVER_LENGTH") {
         return String(mqttServerLength - 1);
     } else if (templ == "MQTT_PORT") {
+#ifdef MQTT_ENABLE
         return String(gMqttPort);
+#endif
     } else if (templ == "BT_SOURCE_NAME") {
         return gPrefsSettings.getString("btDeviceName", "");
     } else if (templ == "IPv4") {
