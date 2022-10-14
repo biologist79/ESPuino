@@ -1,6 +1,5 @@
 #pragma once
 
-extern const char stillOnlineMqtt[];
 extern const char tryConnectMqttS[];
 extern const char mqttOk[];
 extern const char sleepTimerEOP[];

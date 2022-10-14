@@ -4,7 +4,6 @@
 #if (LANGUAGE == DE)
     #include "Log.h"
 
-    const char stillOnlineMqtt[] PROGMEM = "MQTT: Bin noch online.";
     const char tryConnectMqttS[] PROGMEM = "Versuche Verbindung zu MQTT-Broker aufzubauen";
     const char mqttOk[] PROGMEM = "MQTT-Session aufgebaut.";
     const char sleepTimerEOP[] PROGMEM = "Sleep-Timer: Nach dem letzten Track der Playlist.";
