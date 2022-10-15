@@ -30,12 +30,13 @@
         static PN532_I2C pn532_i2c(i2cBusTwo);
         static PN532 nfc(pn532_i2c);
     #endif
-    #ifdef RFID_READER_TYPE_MFRC522_SPI
-        static MFRC522 mfrc522(RFID_CS, RST_PIN);
+    #ifdef RFID_READER_TYPE_PN532_SPI
+        static PN532_SPI pn532spi(SPI, RFID_CS);
+        static PN532 nfc(pn532_spi);
     #endif
 
     void Rfid_Init(void) {
-        #ifdef RFID_READER_TYPE_MFRC522_SPI
+        #ifdef RFID_READER_TYPE_PN532_SPI
             SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
             SPI.setFrequency(1000000);
         #endif
@@ -51,8 +52,12 @@
                 while (1); // Halt
             }
 
-            nfc.SAMConfig();
+            Serial.print("Found chip PN5"); Serial.println((versiondata>>24) & 0xFF, HEX); 
+            Serial.print("Firmware ver. "); Serial.print((versiondata>>16) & 0xFF, DEC); 
+            Serial.print('.'); Serial.println((versiondata>>8) & 0xFF, DEC);
 
+            nfc.SAMConfig();
+            
             delay(50);
             Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 
@@ -69,9 +74,13 @@
     }
 
 	void Rfid_Task(void *parameter) {
-		uint8_t control = 0x00;
         uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-        uint8_t uidLength;      
+        uint8_t uidLength; 
+
+        #ifdef PAUSE_WHEN_RFID_REMOVED
+            byte lastValidcardId[cardIdSize];
+            bool cardAppliedLastRun = false;
+        #endif    
 
         for (;;) {
 			if (RFID_SCAN_INTERVAL/2 >= 20) {
@@ -81,11 +90,11 @@
             }
 			byte cardId[cardIdSize];
 			String cardIdString;
+
 			#ifdef PAUSE_WHEN_RFID_REMOVED
-				byte lastValidcardId[cardIdSize];
-				bool cardAppliedCurrentRun = false;
 				bool sameCardReapplied = false;
 			#endif
+
 			if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
                 //snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
                 //Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
@@ -96,15 +105,23 @@
                 boolean success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
 
                 if (!success) {
+                    #ifdef PAUSE_WHEN_RFID_REMOVED
+                        if (cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {   // Card removed => pause
+                            AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+                            Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+                        }
+
+                        cardAppliedLastRun = false;
+                    #endif
 					continue;
 				}
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
-                    cardAppliedCurrentRun = true;
+                    cardAppliedLastRun = true;
                 #endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
-					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
+					if (memcmp((const void *)lastValidcardId, (const void *)uid, cardIdSize) == 0) {
 						sameCardReapplied = true;
 					}
 				#endif
@@ -130,7 +147,7 @@
 							AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead (but not for BT)
 						}
 					}
-					memcpy(lastValidcardId, mfrc522.uid.uidByte, cardIdSize);
+					memcpy(lastValidcardId, uid, cardIdSize);
 				#else
 					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);        // If PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
 				#endif
