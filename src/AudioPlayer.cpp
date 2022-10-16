@@ -18,11 +18,6 @@
 #include "Wlan.h"
 #include "Web.h"
 
-#ifdef DAC_ES8388
-    #include "Wire.h"
-    #include "ES8388.h"  // https://github.com/maditnerd/es8388
-#endif // ES8388
-
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
 #define AUDIOPLAYER_VOLUME_INIT 3u
@@ -51,26 +46,7 @@ static void AudioPlayer_SortPlaylist(const char **arr, int n);
 static void AudioPlayer_SortPlaylist(char *str[], const uint32_t count);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 
-#ifdef DAC_ES8388
-static ES8388 es;
-#endif // ES8388
-
 void AudioPlayer_Init(void) {
-    #ifdef DAC_ES8388
-    extern TwoWire i2cBusTwo;
-    while (not es.begin(&i2cBusTwo))
-    {
-        snprintf(Log_Buffer, Log_BufferLength, "%s", "ES8388 failure");
-        Log_Println(Log_Buffer, LOGLEVEL_ERROR);
-        delay(1000);
-    }
-    snprintf(Log_Buffer, Log_BufferLength, "%s", "ES8388 OK");
-    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-
-    es.SetVolumeSpeaker(100);
-    es.SetVolumeHeadphone(100);
-    #endif
-
     #ifndef USE_LAST_VOLUME_AFTER_REBOOT
         // Get initial volume from NVS
         uint32_t nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
@@ -230,12 +206,6 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
         #ifdef GPIO_PA_EN
             Port_Write(GPIO_PA_EN, true, true);
         #endif
-
-        #ifdef DAC_ES8388
-            es.mute(ES8388::ES_OUT1, true);
-            es.mute(ES8388::ES_OUT2, true);
-        #endif
-
         #ifdef GPIO_HP_EN
             Port_Write(GPIO_HP_EN, true, true);
         #endif
@@ -244,16 +214,9 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
             #ifdef GPIO_PA_EN
                 Port_Write(GPIO_PA_EN, true, true);
-                
             #endif
-
             #ifdef GPIO_HP_EN
                 Port_Write(GPIO_HP_EN, false, true);
-            #endif
-
-            #ifdef DAC_ES8388
-                es.mute(ES8388::ES_OUT1, false);
-                es.mute(ES8388::ES_OUT2, true);
             #endif
         } else {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone; // 0 if headphone is connected (put to GND)
@@ -262,14 +225,8 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
             #ifdef GPIO_PA_EN
                 Port_Write(GPIO_PA_EN, false, true);
             #endif
-
             #ifdef GPIO_HP_EN
                 Port_Write(GPIO_HP_EN, true, true);
-            #endif
-
-            #ifdef DAC_ES8388
-                es.mute(ES8388::ES_OUT1, true);
-                es.mute(ES8388::ES_OUT2, false);
             #endif
         }
         snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(maxVolumeSet), AudioPlayer_MaxVolume);
@@ -297,11 +254,6 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
                 #ifdef GPIO_HP_EN
                     Port_Write(GPIO_HP_EN, false, false);
                 #endif
-
-                #ifdef DAC_ES8388
-                    es.mute(ES8388::ES_OUT1, false);
-                    es.mute(ES8388::ES_OUT2, true);
-                #endif
             } else {
                 AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
                 gPlayProperties.newPlayMono = false; // Always stereo for headphones
@@ -314,11 +266,6 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
                 #endif
                 #ifdef GPIO_HP_EN
                     Port_Write(GPIO_HP_EN, true, false);
-                #endif
-
-                #ifdef DAC_ES8388
-                    es.mute(ES8388::ES_OUT1, true);
-                    es.mute(ES8388::ES_OUT2, false);
                 #endif
             }
             AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;
