@@ -1333,14 +1333,16 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     Serial.println(coverFileName);
 
     File coverFile = gFSystem.open(coverFileName, FILE_READ);
-    // seek to start position, skip 1 byte encoding
-    coverFile.seek(gPlayProperties.coverFilePos + 1);
+    // seek to start position
+    coverFile.seek(gPlayProperties.coverFilePos);
+    uint8_t encoding = coverFile.read();
     // mime-type (null terminated)
     char mimeType[255];
     for (uint8_t i = 0u; i < 255; i++) {
         mimeType[i] = coverFile.read();
-        if (uint8_t(mimeType[i]) == 0)
+        if (uint8_t(mimeType[i]) == 0) {
             break;
+        }
     }
     snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, coverFileName);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
@@ -1349,8 +1351,13 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     coverFile.read();
     // skip description (null terminated)
     for (uint8_t i = 0u; i < 255; i++) {
-        if (uint8_t(coverFile.read()) == 0)
+        if (uint8_t(coverFile.read()) == 0) {
             break;
+        }
+    }
+    // UTF-16 and UTF-16BE are terminated with an extra 0
+    if (encoding == 1 || encoding == 2) {
+        coverFile.read();
     }
 
     int imageSize = gPlayProperties.coverFileSize;
