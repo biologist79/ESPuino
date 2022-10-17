@@ -226,3 +226,5 @@ extern const char hpOn[];
 extern const char hpOff[];
 extern const char webTxCanceled[];
 extern const char cantConnectToWifi[];
+extern const char tryToPickRandomDir[];
+extern const char pickedRandomDir[];

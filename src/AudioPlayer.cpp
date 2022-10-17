@@ -858,7 +858,16 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     #endif
 
     if (_playMode != WEBSTREAM) {
-        musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
+        if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
+            filename = SdCard_pickRandomSubdirectory(filename);     // *filename (input): target-directory  //   *filename (output): random subdirectory
+            if (filename == NULL) {  // If error occured while extracting random subdirectory
+                musicFiles = NULL;
+            } else {
+                musicFiles = SdCard_ReturnPlaylist(filename, _playMode);    // Provide random subdirectory in order to enter regular playlist-generation
+            }
+        } else {
+            musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
+        }
     } else {
         musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
     }
@@ -971,7 +980,8 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             break;
         }
 
-        case ALL_TRACKS_OF_DIR_SORTED: {
+        case ALL_TRACKS_OF_DIR_SORTED: 
+        case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
             snprintf(Log_Buffer, Log_BufferLength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));

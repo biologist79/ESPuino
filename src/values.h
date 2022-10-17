@@ -17,19 +17,20 @@
     #define LASTTRACK                       7           // Last track of playlist
 
     // Playmodes
-    #define NO_PLAYLIST                     0           // If no playlist is active
-    #define SINGLE_TRACK                    1           // Play a single track
-    #define SINGLE_TRACK_LOOP               2           // Play a single track in infinite-loop
-    #define SINGLE_TRACK_OF_DIR_RANDOM      12          // Play a single track of a directory and fall asleep subsequently
-    #define AUDIOBOOK                       3           // Single track, can save last play-position
-    #define AUDIOBOOK_LOOP                  4           // Single track as infinite-loop, can save last play-position
-    #define ALL_TRACKS_OF_DIR_SORTED        5           // Play all files of a directory (alph. sorted)
-    #define ALL_TRACKS_OF_DIR_RANDOM        6           // Play all files of a directory (randomized)
-    #define ALL_TRACKS_OF_DIR_SORTED_LOOP   7           // Play all files of a directory (alph. sorted) in infinite-loop
-    #define ALL_TRACKS_OF_DIR_RANDOM_LOOP   9           // Play all files of a directory (randomized) in infinite-loop
-    #define WEBSTREAM                       8           // Play webradio-stream
-    #define LOCAL_M3U                       11          // Plays items (webstream or files) with addresses/paths from a local m3u-file
-    #define BUSY                            10          // Used if playlist is created
+    #define NO_PLAYLIST                      0          // If no playlist is active
+    #define SINGLE_TRACK                     1          // Play a single track
+    #define SINGLE_TRACK_LOOP                2          // Play a single track in infinite-loop
+    #define SINGLE_TRACK_OF_DIR_RANDOM       12         // Play a single track of a directory and fall asleep subsequently
+    #define AUDIOBOOK                        3          // Single track, can save last play-position
+    #define AUDIOBOOK_LOOP                   4          // Single track as infinite-loop, can save last play-position
+    #define ALL_TRACKS_OF_DIR_SORTED         5          // Play all files of a directory (alph. sorted)
+    #define ALL_TRACKS_OF_DIR_RANDOM         6          // Play all files of a directory (randomized)
+    #define ALL_TRACKS_OF_DIR_SORTED_LOOP    7          // Play all files of a directory (alph. sorted) in infinite-loop
+    #define ALL_TRACKS_OF_DIR_RANDOM_LOOP    9          // Play all files of a directory (randomized) in infinite-loop
+    #define RANDOM_SUBDIRECTORY_OF_DIRECTORY 13         // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_SORTED
+    #define WEBSTREAM                        8          // Play webradio-stream
+    #define LOCAL_M3U                        11         // Plays items (webstream or files) with addresses/paths from a local m3u-file
+    #define BUSY                             10         // Used if playlist is created
 
 
     // RFID-modifcation-types

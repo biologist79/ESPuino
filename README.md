@@ -8,10 +8,10 @@
 
 ## Changelog
 Last three events:
+* 18.10.2022: New playmode: pick random subdirectory of a given directory and play it's content alphabetic ordered
 * 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
 * 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
 * 31.08.2022: Directive `DONT_ACCEPT_SAME_RFID_TWICE` added. Blocks unwanted reapplies of the same rfid-tag (in case it's not a modification-card or rfid-tag is unknown in NVS).
-* 28.02.2022: Directive `MEASURE_BATTERY_MAX17055` added. Provides support for [MAX17055](https://www.maximintegrated.com/en/products/power/battery-management/MAX17055.html).
 
 ## Known bugs
 * For ESPuinos making use of SPI to connect SD, there's an unsolved problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
@@ -132,6 +132,7 @@ It's not just simply playing music; different playmodes are supported:
 * `Folder/playlist (random order)` => plays all tracks in random order from a folder one time
 * `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
 * `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
+* `All tracks of a random subdirectory (sorted alph.)` => plays of tracks in alph. order of a randomly picked subdirectory of a given directory
 * `Webradio` => always only one "track": plays a webstream
 * `List (files from SD and/or webstreams) from local .m3u-File` => can be one or more files / webradio-stations with local .m3u as sourcefile
 

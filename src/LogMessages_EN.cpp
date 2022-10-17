@@ -229,4 +229,6 @@
     const char hpOn[] PROGMEM = "Headphones on";
     const char hpOff[] PROGMEM = "Headphones off";
     const char cantConnectToWifi[] PROGMEM = "Can't connect to wifi. Trying again...";
+    const char tryToPickRandomDir[] PROGMEM = "Try to pick randon subdirectory out of";
+    const char pickedRandomDir[] PROGMEM = "Randomly picked subdirectory";
 #endif

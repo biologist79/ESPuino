@@ -230,4 +230,6 @@
     const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
     const char webTxCanceled[] PROGMEM = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
     const char cantConnectToWifi[] PROGMEM = "Verbindung zum WLAN nicht möglich. Nächster Versuch...";
+    const char tryToPickRandomDir[] PROGMEM = "Versuche ein zufälliges Unterzeichnis zu finden aus";
+    const char pickedRandomDir[] PROGMEM = "Zufällig ausgewähltes Unterverzeichnis";
 #endif

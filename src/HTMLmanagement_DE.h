@@ -293,6 +293,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                                 <option class=\"option-folder\" value=\"6\">Alle Titel eines Verzeichnis (zufällig)</option>\
                                 <option class=\"option-folder\" value=\"7\">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>\
                                 <option class=\"option-folder\" value=\"9\">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>\
+                                <option class=\"option-folder\" value=\"13\">Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)</option>\
                                 <option class=\"option-stream\" value=\"8\">Webradio</option>\
                                 <option class=\"option-stream\" value=\"11\">Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei</option>\
                             </select>\
@@ -1248,7 +1249,6 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         var myObj = {\
             \"mqtt\": {\
                 mqttEnable: val,\
-                mqttClientId: document.getElementById('mqttClientId').value,\
                 mqttServer: document.getElementById('mqttServer').value,\
                 mqttUser: document.getElementById('mqttUser').value,\
                 mqttPwd: document.getElementById('mqttPwd').value,\
