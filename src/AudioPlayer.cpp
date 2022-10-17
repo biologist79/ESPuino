@@ -104,7 +104,8 @@ void AudioPlayer_Init(void) {
     // Adjust volume depending on headphone is connected and volume-adjustment is enabled
     AudioPlayer_SetupVolumeAndAmps();
 
-    // clear cover image
+    // clear title and cover image
+    gPlayProperties.title = NULL;
     gPlayProperties.coverFilePos = 0;
 
     // Don't start audio-task in BT-speaker mode!
@@ -175,21 +176,27 @@ void AudioPlayer_SetInitVolume(uint8_t value) {
     AudioPlayer_InitVolume = value;
 }
 
-// Allocates space for title of current track only once and keeps char* in order to avoid heap-fragmentation.
-char* Audio_handleTitle(bool clearTitle) {
+void Audio_setTitle(const char *format, ...)
+{
+    // Allocates space for title of current track only once and keeps char* in order to avoid heap-fragmentation.
     static char* _title = NULL;
-    
     if (_title == NULL) {
         _title = (char *) x_malloc(sizeof(char) * 255);
-    }
-
-    if (clearTitle) {
-        if (_title != NULL) {
-            strcpy(_title, "");
-        }
+        gPlayProperties.title = _title;
     }
     
-    return _title;
+    char buf[256];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf)/sizeof(buf[0]), format, args);
+    va_end(args);
+    convertAsciiToUtf8(buf, gPlayProperties.title);
+
+    // notify web ui and mqtt
+    Web_SendWebsocketData(0, 30);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicTrackState), gPlayProperties.title, false);
+    #endif
 }
 
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
@@ -397,9 +404,7 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.pausePlay = true;
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
-                    // delete title
-                    Audio_handleTitle(true);
-                    Web_SendWebsocketData(0, 30);
+                    Audio_setTitle((char *)FPSTR (noPlaylist));
                     AudioPlayer_ClearCover();
                     continue;
 
@@ -496,8 +501,11 @@ void AudioPlayer_Task(void *parameter) {
                         }
                         audio->stopSong();
                         Led_Indicate(LedIndicatorType::Rewind);
-                        // delete title
-                        Audio_handleTitle(true);
+                        if (gPlayProperties.numberOfTracks > 1) {
+                            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                        } else {
+                            Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                        };
                         AudioPlayer_ClearCover();
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
@@ -578,17 +586,9 @@ void AudioPlayer_Task(void *parameter) {
                         // Set back to first track
                         AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
                     }
-                    #ifdef MQTT_ENABLE
-                        #if (LANGUAGE == DE)
-                            publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
-                        #else
-                            publishMqtt((char *) FPSTR(topicTrackState), "<End>", false);
-                        #endif
-                    #endif
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
-                    Audio_handleTitle(true);
-                    Web_SendWebsocketData(0, 30);
+                    Audio_setTitle((char *)FPSTR (noPlaylist));
                     AudioPlayer_ClearCover();
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
@@ -623,11 +623,9 @@ void AudioPlayer_Task(void *parameter) {
             audioReturnCode = false;
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-                // delete title
-                Audio_handleTitle(true);
+                Audio_setTitle("Webstream");
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
-                Web_SendWebsocketData(0, 30);
                 // AudioPlayer_ClearCover() publishes an MQTT message. This must happen after audio->connecttohost() otherwise a broken MQTT package
                 // gets sent out and the MQTT connection is reset. This seems to be a race condition in one of the libs.
                 AudioPlayer_ClearCover();
@@ -639,8 +637,11 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.trackFinished = true;
                     continue;
                 } else {
-                    // delete title
-                    Audio_handleTitle(true);
+                    if (gPlayProperties.numberOfTracks > 1) {
+                        Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    } else {
+                        Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    };
                     AudioPlayer_ClearCover();
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
@@ -1172,15 +1173,11 @@ void audio_id3data(const char *info) { //id3 metadata
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
     // get title
     if (startsWith((char *)info, "Title:")) {
-        // copy title
-        if (!gPlayProperties.title) {
-            gPlayProperties.title = Audio_handleTitle(false);
-        }
-        if (gPlayProperties.title != NULL) {
-            strncpy(gPlayProperties.title, info + 6, 255);
-            // notify web ui
-            Web_SendWebsocketData(0, 30);
-        }
+        if (gPlayProperties.numberOfTracks > 1) {
+            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info + 6);
+        } else {
+            Audio_setTitle("%s", info + 6);
+        };
     }
 }
 
@@ -1193,35 +1190,14 @@ void audio_eof_mp3(const char *info) { //end of file
 void audio_showstation(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "station     : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-    char buf[255];
-    snprintf(buf, sizeof(buf) / sizeof(buf[0]), "Webradio: %s", info);
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicTrackState), buf, false);
-    #endif
-    // copy title
-    if (!gPlayProperties.title) {
-        gPlayProperties.title = Audio_handleTitle(false);
-    }
-    if (gPlayProperties.title != NULL) {
-        strncpy(gPlayProperties.title, info + 6, 255);
-        // notify web ui
-        Web_SendWebsocketData(0, 30);
-    }
+    Audio_setTitle("Webradio: %s", info);
 }
 
 void audio_showstreamtitle(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "streamtitle : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
-    if (startsWith((char *)info, "Title:")) {
-        // copy title
-        if (!gPlayProperties.title) {
-            gPlayProperties.title = Audio_handleTitle(false);
-        }
-        if (gPlayProperties.title != NULL) {
-            strncpy(gPlayProperties.title, info + 6, 255);
-            // notify web ui
-            Web_SendWebsocketData(0, 30);
-        }
+    if (strcmp(info, "")) {
+        Audio_setTitle("%s (%s)", gPlayProperties.title, info);
     }
 }
 
