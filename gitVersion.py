@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python3
 
 """PlatformIO script to generate a gitversion.h file and adds its path to
    CPPPATH.

@@ -1,12 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 Use this script for creating PROGMEM header files from html files.
 """
+
 from pathlib import Path
 
-SRC_DIR = Path("src")
+Import("env")  # pylint: disable=undefined-variable
+
+OUTPUT_DIR = (
+    Path(env.subst("$BUILD_DIR")) / "generated"
+)  # pylint: disable=undefined-variable
 HTML_DIR = Path("html")
 HTML_FILES = [
     Path("management_DE.html"),
@@ -48,9 +52,8 @@ class HtmlHeaderProcessor:
         for html_file in HTML_FILES:
             print(f"  {HTML_DIR / html_file}")
             cls._process_header_file(
-                HTML_DIR / html_file, SRC_DIR / f"HTML{html_file.stem}.h"
+                HTML_DIR / html_file, OUTPUT_DIR / f"HTML{html_file.stem}.h"
             )
 
 
-if __name__ in ["__main__", "SCons.Script"]:
-    HtmlHeaderProcessor().process()
+HtmlHeaderProcessor().process()
