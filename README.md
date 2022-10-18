@@ -11,7 +11,6 @@ Last three events:
 * 18.10.2022: New playmode: pick random subdirectory of a given directory and play it's content alphabetic ordered
 * 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
 * 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
-* 31.08.2022: Directive `DONT_ACCEPT_SAME_RFID_TWICE` added. Blocks unwanted reapplies of the same rfid-tag (in case it's not a modification-card or rfid-tag is unknown in NVS).
 
 ## Known bugs
 * For ESPuinos making use of SPI to connect SD, there's an unsolved problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).

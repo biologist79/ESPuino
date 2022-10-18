@@ -352,7 +352,10 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
                     </label>\
                 </div>\
                 <div class=\"form-group my-2 col-md-12\">\
-                    <label for=\"mqttServer\">MQTT-server</label>\
+                    <label for=\"mqttClientId\">MQTT-ClientId</label>\
+                    <input type=\"text\" class=\"form-control\" id=\"mqttClientId\" minlength=\"7\" maxlength=\"%MQTT_CLIENTID_LENGTH%\"\
+                           placeholder=\"z.B. ESPuino\" name=\"mqttClientId\" value=\"%MQTT_CLIENTID%\">\
+                    <label for=\"mqttServer\">MQTT-server</label> \
                     <input type=\"text\" class=\"form-control\" id=\"mqttServer\" minlength=\"7\" maxlength=\"%MQTT_SERVER_LENGTH%\"\
                            placeholder=\"z.B. 192.168.2.89\" name=\"mqttServer\" value=\"%MQTT_SERVER%\">\
                     <label for=\"mqttUser\">MQTT-username (optional):</label>\
@@ -1245,6 +1248,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         var myObj = {\
             \"mqtt\": {\
                 mqttEnable: val,\
+                mqttClientId: document.getElementById('mqttClientId').value,\
                 mqttServer: document.getElementById('mqttServer').value,\
                 mqttUser: document.getElementById('mqttUser').value,\
                 mqttPwd: document.getElementById('mqttPwd').value,\

@@ -1249,6 +1249,7 @@ static const char management_HTML[] PROGMEM = "<!DOCTYPE html>\
         var myObj = {\
             \"mqtt\": {\
                 mqttEnable: val,\
+                mqttClientId: document.getElementById('mqttClientId').value,\
                 mqttServer: document.getElementById('mqttServer').value,\
                 mqttUser: document.getElementById('mqttUser').value,\
                 mqttPwd: document.getElementById('mqttPwd').value,\
