@@ -30,19 +30,25 @@ def git_revision():
     """Returns Git revision or unknown."""
     try:
         return subprocess.check_output(
-            ["git", "describe", "--always", "--dirty"], text=True
+            ["git", "describe", "--always", "--dirty"],
+            text=True,
+            stderr=subprocess.PIPE,
         ).strip()
-    except (subprocess.CalledProcessError, OSError):
+    except (subprocess.CalledProcessError, OSError) as err:
+        print(
+            f"  Warning: Setting Git revision to 'unknown': {err.stderr.split(':', 1)[1].strip()}"
+        )
         return "unknown"
 
 
 def generate():
     """Generates header file."""
+    print("GENERATING GIT REVISION HEADER FILE")
+    gitrev = git_revision()
+    print(f'  "{gitrev}" -> {OUTPUT_PATH}')
     OUTPUT_PATH.parent.mkdir(exist_ok=True, parents=True)
     with OUTPUT_PATH.open("w") as output_file:
-        output_file.write(
-            TEMPLATE.format(git_revision=git_revision())
-        )
+        output_file.write(TEMPLATE.format(git_revision=gitrev))
 
 
 generate()
