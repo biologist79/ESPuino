@@ -18,6 +18,7 @@
 #include "Wlan.h"
 #include "Web.h"
 #include "Bluetooth.h"
+#include "Cmd.h"
 
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
@@ -388,11 +389,13 @@ void AudioPlayer_Task(void *parameter) {
                 }
             }
 
-            if (gPlayProperties.playlistFinished && trackCommand != 0) {
-                Log_Println((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
-                trackCommand = NO_ACTION;
-                System_IndicateError();
-                continue;
+            if (gPlayProperties.playlistFinished && trackCommand != NO_ACTION) {
+                if (gPlayProperties.playMode != BUSY ) {    // Prevents from staying in mode BUSY forever when error occured (e.g. directory empty that should be played)
+                    Log_Println((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
+                    trackCommand = NO_ACTION;
+                    System_IndicateError();
+                    continue;
+                }
             }
             /* Check if track-control was called
                (stop, start, next track, prev. track, last track, first track...) */
@@ -890,9 +893,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             while (!gPlayProperties.pausePlay) {
                 vTaskDelay(portTICK_RATE_MS * 10u);
             }
-        } else {
-            gPlayProperties.playMode = NO_PLAYLIST;
         }
+        
+        gPlayProperties.playMode = NO_PLAYLIST;
         free(filename);
         return;
     }
