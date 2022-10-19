@@ -11,7 +11,7 @@ Import("env")  # pylint: disable=undefined-variable
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
 )  # pylint: disable=undefined-variable
-HTML_DIR = Path("html")
+HTML_DIR = Path("html").absolute()
 HTML_FILES = [
     Path("management_DE.html"),
     Path("management_EN.html"),
@@ -50,10 +50,9 @@ class HtmlHeaderProcessor:
     def process(cls):
         print("GENERATING HTML HEADER FILES")
         for html_file in HTML_FILES:
-            print(f"  {HTML_DIR / html_file}")
-            cls._process_header_file(
-                HTML_DIR / html_file, OUTPUT_DIR / f"HTML{html_file.stem}.h"
-            )
+            header_file = f"HTML{html_file.stem}.h"
+            print(f"  {HTML_DIR / html_file} -> {OUTPUT_DIR / header_file}")
+            cls._process_header_file(HTML_DIR / html_file, OUTPUT_DIR / header_file)
 
 
 HtmlHeaderProcessor().process()
