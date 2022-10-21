@@ -432,10 +432,8 @@ void AudioPlayer_Task(void *parameter) {
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
                         gPlayProperties.repeatCurrentTrack = false;
-                        char rBuf[2];
-                        snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                         #endif
                     }
                     // Allow next track if current track played in playlist isn't the last track. 
@@ -469,10 +467,8 @@ void AudioPlayer_Task(void *parameter) {
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
                         gPlayProperties.repeatCurrentTrack = false;
-                        char rBuf[2];
-                        snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                         #endif
                     }
                     if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
