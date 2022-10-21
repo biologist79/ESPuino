@@ -266,10 +266,7 @@ bool Mqtt_Reconnect() {
                 publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
                 publishMqtt((char *) FPSTR(topicCurrentIPv4IP), Wlan_GetIpAddress().c_str(), false);
-
-                char rBuf[2];
-                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
 
                 char revBuf[12];
                 strncpy(revBuf, softwareRevision+19, sizeof(revBuf)-1);
@@ -399,13 +396,11 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
         // Check if playmode should be adjusted
         else if (strcmp_P(topic, topicRepeatModeCmnd) == 0) {
-            char rBuf[2];
             uint8_t repeatMode = strtoul(receivedString, NULL, 10);
             Serial.printf("Repeat: %d", repeatMode);
             if (gPlayProperties.playMode != NO_PLAYLIST) {
                 if (gPlayProperties.playMode == NO_PLAYLIST) {
-                    snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                     Log_Println((char *) FPSTR(noPlaylistNotAllowedMqtt), LOGLEVEL_ERROR);
                     System_IndicateError();
                 } else {
@@ -413,8 +408,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case NO_REPEAT:
                             gPlayProperties.repeatCurrentTrack = false;
                             gPlayProperties.repeatPlaylist = false;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatNone), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -422,8 +416,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case TRACK:
                             gPlayProperties.repeatCurrentTrack = true;
                             gPlayProperties.repeatPlaylist = false;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatTrack), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -431,8 +424,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case PLAYLIST:
                             gPlayProperties.repeatCurrentTrack = false;
                             gPlayProperties.repeatPlaylist = true;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatPlaylist), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -440,16 +432,14 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case TRACK_N_PLAYLIST:
                             gPlayProperties.repeatCurrentTrack = true;
                             gPlayProperties.repeatPlaylist = true;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatTracknPlaylist), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
 
                         default:
                             System_IndicateError();
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             break;
                     }
                 }

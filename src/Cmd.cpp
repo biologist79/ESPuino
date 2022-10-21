@@ -198,10 +198,8 @@ void Cmd_Action(const uint16_t mod) {
                     Log_Println((char *) FPSTR(modificatorPlaylistLoopActive), LOGLEVEL_NOTICE);
                 }
                 gPlayProperties.repeatPlaylist = !gPlayProperties.repeatPlaylist;
-                char rBuf[2];
-                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                 #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                 #endif
                 System_IndicateOk();
             }
@@ -219,10 +217,8 @@ void Cmd_Action(const uint16_t mod) {
                     Log_Println((char *) FPSTR(modificatorTrackActive), LOGLEVEL_NOTICE);
                 }
                 gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
-                char rBuf[2];
-                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                 #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                 #endif
                 System_IndicateOk();
             }
