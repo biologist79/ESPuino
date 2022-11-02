@@ -26,6 +26,11 @@
 #include "revision.h"
 #include "Power.h"
 
+// avoid PSRAM check while wake-up from deepsleep
+bool testSPIRAM(void) { 
+    return true; 
+}
+
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
     bool recoverBootCount = true;
