@@ -13,7 +13,7 @@ Last three events:
 * 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
 
 ## Known bugs
-* For ESPuinos making use of SPI to connect SD, there's an unsolved problem that sometimes leads to incomplete file-transfers via webtransfer or FTP. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
+* For ESPuinos making use of SPI to connect SD, there's an unsolved problem that occasionally leads to incomplete file-transfers via webtransfer or FTP-transger. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
 ## ESPuino - what's that?
 The basic idea of ESPuino is to use RFID-tags to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play stuff from SD or webradio. Place another RFID-object on it and anything else is played. Simple as that.
 
@@ -154,7 +154,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
 * While booting: every second LED (rotating orange)
 * Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available or `SHUTDOWN_IF_SD_BOOT_FAILS` is active)
-* IDLE: four LEDs slow rotating (white if WiFi enabled; green if WiFi disabled)
+* IDLE: four LEDs slow rotating (white if WiFi connected; green if WiFi disabled or ESPuino is about to connect to WiFi)
 * BLUETOOTH: four LEDs slow rotating coloured blue
 * ERROR: all LEDs flashing red (1x) if an action was not accepted
 * OK: all LEDs flashing green (1x) if an action was accepted
@@ -217,7 +217,7 @@ This mode is different from the others because the last playposition is saved. P
 * Please note: if music is played in parallel, this rate decrases dramatically! So better stop playback when doing file-transfers.
 
 ### Energy saving
-As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put into deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless ESPuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
+As already described in the modify-section, there are different sleepmodes available. Additionaly µC will be put to deepsleep after 10 minutes of inactivity (configurable my maxInactivityTime) unless ESPuino doesn't play music, has a FTP-client connected and any input via buttons. Every button-interaction resets the counter.
 
 ### MQTT (optional)
 Everything that can be controlled via RFID-tags and buttons, can also be controlled via MQTT (excepting toggling WiFi-status as this doesn't make sense). All manual interactions (buttons, RFID-tags) are also sent to MQTT in parallel, so everything is always in-sync (unless Wifi/MQTT-connection is broken). In my home-setup I'm using [openHAB](https://www.openhab.org/) to "encapsulate" MQTT into a nice GUI, that's accessible via APP + web. I [described](https://github.com/biologist79/ESPuino/tree/master/openHAB) a sample-config for openHAB2. However, meanwhile openHAB3 is available and all the stuff described can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend some time to get familiar with it.
@@ -235,13 +235,12 @@ Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-
 | topic-variable          | range           | meaning                                                                        |
 | ----------------------- | --------------- | ------------------------------------------------------------------------------ |
 | topicSleepCmnd          | 0 or OFF        | Power off ESPuino immediately                                                  |
-| topicSleepState         | ON or OFF       | Sends ESPuino's current/last state                                             |
+| topicSleepState         | ON or OFF       | Sends ESPuino's last state                                                     |
 | topicRfidCmnd           | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
 | topicRfidState          | 12 digits       | ID of current RFID-tag (if not a modification-card)                            |
 | topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3" |
 | topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last |
-| topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance        |
-|                         |                 | reasons the application should load the image only if it's visible to the user |
+| topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
 | topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                |
 | topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                               |
 | topicSleepTimerCmnd     | EOP             | Power off after end to playlist                                                |
