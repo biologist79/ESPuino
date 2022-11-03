@@ -505,12 +505,6 @@ void AudioPlayer_Task(void *parameter) {
                         }
                         audio->stopSong();
                         Led_Indicate(LedIndicatorType::Rewind);
-                        if (gPlayProperties.numberOfTracks > 1) {
-                            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                        } else {
-                            Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                        };
-                        AudioPlayer_ClearCover();
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
                         if (!audioReturnCode) {
@@ -637,12 +631,6 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.trackFinished = true;
                     continue;
                 } else {
-                    if (gPlayProperties.numberOfTracks > 1) {
-                        Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                    } else {
-                        Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                    };
-                    AudioPlayer_ClearCover();
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
                 }
@@ -662,23 +650,20 @@ void AudioPlayer_Task(void *parameter) {
                     snprintf(Log_Buffer, Log_BufferLength, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
                     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 }
-                if (!gPlayProperties.isWebstream) {         // Is done via audio_showstation()
-                    char buf[255];
-                    snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                    Web_SendWebsocketData(0, 30);
-                    #ifdef MQTT_ENABLE
-                        static char *utf8Buffer = NULL;
-                        if (utf8Buffer == NULL) {   // Only allocate once from heap
-                            utf8Buffer = (char *) x_malloc(sizeof(char) * 255);
-                        }
-                        if (utf8Buffer != NULL) {
-                            convertAsciiToUtf8(buf, utf8Buffer);
-                            publishMqtt((char *) FPSTR(topicTrackState), utf8Buffer, false);
-                        } else {
-                            publishMqtt((char *) FPSTR(topicTrackState), buf, false);   // If unable to allocate heap use ascii instead of utf8
-                        }
-                    #endif
+                if (gPlayProperties.isWebstream) {
+                    if (gPlayProperties.numberOfTracks > 1) {
+                        Audio_setTitle("(%u/%u): Webradio", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks);
+                    } else {
+                        Audio_setTitle("Webradio");
+                    }
+                } else {
+                    if (gPlayProperties.numberOfTracks > 1) {
+                        Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    } else {
+                        Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    }
                 }
+                AudioPlayer_ClearCover();
                 #if (LANGUAGE == DE)
                     snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
                 #else
@@ -1124,7 +1109,7 @@ void audio_id3data(const char *info) { //id3 metadata
             Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info + 6);
         } else {
             Audio_setTitle("%s", info + 6);
-        };
+        }
     }
 }
 
@@ -1137,7 +1122,11 @@ void audio_eof_mp3(const char *info) { //end of file
 void audio_showstation(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "station     : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-    Audio_setTitle("Webradio: %s", info);
+    if (gPlayProperties.numberOfTracks > 1) {
+        Audio_setTitle("(%u/%u): Webradio: %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info);
+    } else {
+        Audio_setTitle("Webradio: %s", info);
+    }
 }
 
 void audio_showstreamtitle(const char *info) {
