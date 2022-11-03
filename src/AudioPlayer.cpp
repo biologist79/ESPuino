@@ -358,6 +358,11 @@ void AudioPlayer_Task(void *parameter) {
                 Serial.print(F("Free heap: "));
                 Serial.println(ESP.getFreeHeap());
 
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+                #endif
+
                 // If we're in audiobook-mode and apply a modification-card, we don't
                 // want to save lastPlayPosition for the mod-card but for the card that holds the playlist
                 if (gCurrentRfidTagId != NULL) {
@@ -622,12 +627,8 @@ void AudioPlayer_Task(void *parameter) {
             audioReturnCode = false;
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-                Audio_setTitle("Webstream");
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
-                // AudioPlayer_ClearCover() publishes an MQTT message. This must happen after audio->connecttohost() otherwise a broken MQTT package
-                // gets sent out and the MQTT connection is reset. This seems to be a race condition in one of the libs.
-                AudioPlayer_ClearCover();
             } else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
                 // Files from SD
                 if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -846,11 +847,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     gPlayProperties.currentTrackNumber = _trackLastPlayed;
     char **musicFiles;
 
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicLedBrightnessState), 0, false);
-        publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-    #endif
-
     if (_playMode != WEBSTREAM) {
         if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
             filename = SdCard_pickRandomSubdirectory(filename);     // *filename (input): target-directory  //   *filename (output): random subdirectory
@@ -865,10 +861,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     } else {
         musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
     }
-
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-    #endif
 
     // Catch if error occured (e.g. file not found)
     if (musicFiles == NULL) {
@@ -914,10 +906,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     switch (gPlayProperties.playMode) {
         case SINGLE_TRACK: {
             Log_Println((char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -926,10 +914,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatCurrentTrack = true;
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), TRACK, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -941,10 +925,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             Led_ResetToNightBrightness();
             Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -952,10 +932,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         case AUDIOBOOK: { // Tracks need to be alph. sorted!
             gPlayProperties.saveLastPlayPosition = true;
             Log_Println((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
@@ -965,10 +941,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             gPlayProperties.saveLastPlayPosition = true;
             Log_Println((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
@@ -979,10 +951,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             snprintf(Log_Buffer, Log_BufferLength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -990,10 +958,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         case ALL_TRACKS_OF_DIR_RANDOM: {
             Log_Println((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -1002,10 +966,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -1014,10 +974,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -1026,10 +982,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
             if (Wlan_IsConnected()) {
                 xQueueSend(gTrackQueue, &(musicFiles), 0);
-                #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-                #endif
             } else {
                 Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
                 System_IndicateError();
@@ -1041,10 +993,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         case LOCAL_M3U: { // Can be one or multiple SD-files or webradio-stations; or a mix of both
             Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
             xQueueSend(gTrackQueue, &(musicFiles), 0);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             break;
         }
 
