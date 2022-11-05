@@ -244,7 +244,6 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
             #ifdef GPIO_PA_EN
                 Port_Write(GPIO_PA_EN, true, true);
-                
             #endif
 
             #ifdef GPIO_HP_EN
