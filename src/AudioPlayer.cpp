@@ -232,7 +232,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
         #endif
 
         #ifdef DAC_ES8388
-            es.mute(ES8388::ES_OUT1, true);
+            es.mute(ES8388::ES_OUT1, false);
             es.mute(ES8388::ES_OUT2, true);
         #endif
 
