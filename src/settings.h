@@ -111,7 +111,7 @@
         If you don't want to assign an action or you don't use a given button: CMD_NOTHING has to be set
     */
     // *****BUTTON*****        *****ACTION*****
-    #define BUTTON_0_SHORT    CMD_TELL_IP_ADDRESS
+    #define BUTTON_0_SHORT    CMD_NEXTTRACK
     #define BUTTON_1_SHORT    CMD_PREVTRACK
     #define BUTTON_2_SHORT    CMD_PLAYPAUSE
     #define BUTTON_3_SHORT    CMD_MEASUREBATTERY
