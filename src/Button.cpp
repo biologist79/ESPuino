@@ -11,32 +11,32 @@ bool gButtonInitComplete = false;
 // Only enable those buttons that are not disabled (99 or >115)
 // 0 -> 39: GPIOs
 // 100 -> 115: Port-expander
-#if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= 39)
+#if (NEXT_BUTTON >= 0 && NEXT_BUTTON <= MAX_GPIO)
     #define BUTTON_0_ENABLE
 #elif (NEXT_BUTTON >= 100 && NEXT_BUTTON <= 115)
     #define EXPANDER_0_ENABLE
 #endif
-#if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= 39)
+#if (PREVIOUS_BUTTON >= 0 && PREVIOUS_BUTTON <= MAX_GPIO)
     #define BUTTON_1_ENABLE
 #elif (PREVIOUS_BUTTON >= 100 && PREVIOUS_BUTTON <= 115)
     #define EXPANDER_1_ENABLE
 #endif
-#if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= 39)
+#if (PAUSEPLAY_BUTTON >= 0 && PAUSEPLAY_BUTTON <= MAX_GPIO)
     #define BUTTON_2_ENABLE
 #elif (PAUSEPLAY_BUTTON >= 100 && PAUSEPLAY_BUTTON <= 115)
     #define EXPANDER_2_ENABLE
 #endif
-#if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= 39)
+#if (ROTARYENCODER_BUTTON >= 0 && ROTARYENCODER_BUTTON <= MAX_GPIO)
     #define BUTTON_3_ENABLE
 #elif (ROTARYENCODER_BUTTON >= 100 && ROTARYENCODER_BUTTON <= 115)
     #define EXPANDER_3_ENABLE
 #endif
-#if (BUTTON_4 >= 0 && BUTTON_4 <= 39)
+#if (BUTTON_4 >= 0 && BUTTON_4 <= MAX_GPIO)
     #define BUTTON_4_ENABLE
 #elif (BUTTON_4 >= 100 && BUTTON_4 <= 115)
     #define EXPANDER_4_ENABLE
 #endif
-#if (BUTTON_5 >= 0 && BUTTON_5 <= 39)
+#if (BUTTON_5 >= 0 && BUTTON_5 <= MAX_GPIO)
     #define BUTTON_5_ENABLE
 #elif (BUTTON_5 >= 100 && BUTTON_5 <= 115)
     #define EXPANDER_5_ENABLE
@@ -44,6 +44,8 @@ bool gButtonInitComplete = false;
 
 t_button gButtons[7];         // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
+uint16_t gLongPressTime = 0;
+
 #ifdef PORT_EXPANDER_ENABLE
     extern bool Port_AllowReadFromPortExpander;
 #endif
@@ -55,7 +57,7 @@ static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
-    #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= 39)
+    #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0);
     #endif
 
@@ -238,73 +240,69 @@ void Button_DoButtonActions(void) {
         gButtons[5].isPressed = false;
         Cmd_Action(BUTTON_MULTI_45);
     } else {
-        for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {
+        for (uint8_t i = 0; i <= 5; i++) {
             if (gButtons[i].isPressed) {
+                uint8_t Cmd_Short = 0;
+                uint8_t Cmd_Long = 0;
+
+                switch (i) { // Long-press-actions
+                    case 0:
+                        Cmd_Short = BUTTON_0_SHORT;
+                        Cmd_Long = BUTTON_0_LONG;
+                        break;
+
+                    case 1:
+                        Cmd_Short = BUTTON_1_SHORT;
+                        Cmd_Long = BUTTON_1_LONG;
+                        break;
+
+                    case 2:
+                        Cmd_Short = BUTTON_2_SHORT;
+                        Cmd_Long = BUTTON_2_LONG;
+                        break;
+
+                    case 3:
+                        Cmd_Short = BUTTON_3_SHORT;
+                        Cmd_Long = BUTTON_3_LONG;
+                        break;
+
+                    case 4:
+                        Cmd_Short = BUTTON_4_SHORT;
+                        Cmd_Long = BUTTON_4_LONG;
+                        break;
+
+                    case 5:
+                        Cmd_Short = BUTTON_5_SHORT;
+                        Cmd_Long = BUTTON_5_LONG;
+                        break;
+                }
+                
                 if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) {
-                    if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp >= intervalToLongPress) {
-                        switch (i) { // Long-press-actions
-                            case 0:
-                                Cmd_Action(BUTTON_0_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 1:
-                                Cmd_Action(BUTTON_1_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 2:
-                                Cmd_Action(BUTTON_2_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 3:
-                                Cmd_Action(BUTTON_3_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 4:
-                                Cmd_Action(BUTTON_4_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 5:
-                                Cmd_Action(BUTTON_5_LONG);
-                                gButtons[i].isPressed = false;
-                                break;
-                        }
+                    if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < intervalToLongPress) {
+                        Cmd_Action(Cmd_Short);
                     } else {
-                        switch (i) { // Short-press-actions
-                            case 0:
-                                Cmd_Action(BUTTON_0_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 1:
-                                Cmd_Action(BUTTON_1_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 2:
-                                Cmd_Action(BUTTON_2_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 3:
-                                Cmd_Action(BUTTON_3_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 4:
-                                Cmd_Action(BUTTON_4_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
-
-                            case 5:
-                                Cmd_Action(BUTTON_5_SHORT);
-                                gButtons[i].isPressed = false;
-                                break;
+                        // if not volume buttons than start action after button release
+                        if (Cmd_Long != CMD_VOLUMEUP && Cmd_Long != CMD_VOLUMEDOWN) {
+                            Cmd_Action(Cmd_Long);
                         }
+                    }
+
+                    gButtons[i].isPressed = false;
+                } else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
+                    unsigned long currentTimestamp = millis();
+
+                    // only start action if intervalToLongPress has been reached
+                    if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
+
+                        // calculate remainder 
+                        uint16_t remainder = (currentTimestamp - gButtons[i].lastPressedTimestamp) % intervalToLongPress;
+
+                        // trigger action if remainder rolled over
+                        if (remainder < gLongPressTime) {
+                            Cmd_Action(Cmd_Long);
+                        }
+
+                        gLongPressTime = remainder;
                     }
                 }
             }

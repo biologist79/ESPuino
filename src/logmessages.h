@@ -1,6 +1,5 @@
 #pragma once
 
-extern const char stillOnlineMqtt[];
 extern const char tryConnectMqttS[];
 extern const char mqttOk[];
 extern const char sleepTimerEOP[];
@@ -133,6 +132,8 @@ extern const char maxVolumeSet[];
 extern const char wroteMqttFlagToNvs[];
 extern const char restoredMqttActiveFromNvs[];
 extern const char restoredMqttDeactiveFromNvs[];
+extern const char wroteMqttClientIdToNvs[];
+extern const char restoredMqttClientIdFromNvs[];
 extern const char wroteMqttServerToNvs[];
 extern const char restoredMqttServerFromNvs[];
 extern const char wroteMqttUserToNvs[];
@@ -225,3 +226,5 @@ extern const char hpOn[];
 extern const char hpOff[];
 extern const char webTxCanceled[];
 extern const char cantConnectToWifi[];
+extern const char tryToPickRandomDir[];
+extern const char pickedRandomDir[];

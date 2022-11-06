@@ -168,6 +168,7 @@ void webserverStart(void) {
         wServer.on(
             "/info", HTTP_GET, [](AsyncWebServerRequest *request) {
                 String info = "ESPuino " + (String) softwareRevision;
+                info += "\nESPuino " + (String) gitRevision;
                 info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
                 #if (LANGUAGE == DE)
                     info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
@@ -364,6 +365,8 @@ String templateProcessor(const String &templ) {
 #else
     // TODO: hide battery config
 #endif
+    } else if (templ == "MQTT_CLIENTID") {
+        return gPrefsSettings.getString("mqttClientId", "-1");
     } else if (templ == "MQTT_SERVER") {
         return gPrefsSettings.getString("mqttServer", "-1");
     } else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
@@ -386,10 +389,16 @@ String templateProcessor(const String &templ) {
         return String(mqttUserLength - 1);
     } else if (templ == "MQTT_PWD_LENGTH") {
         return String(mqttPasswordLength - 1);
+    } else if (templ == "MQTT_CLIENTID_LENGTH") {
+        return String(mqttClientIdLength - 1);
     } else if (templ == "MQTT_SERVER_LENGTH") {
         return String(mqttServerLength - 1);
     } else if (templ == "MQTT_PORT") {
+#ifdef MQTT_ENABLE
         return String(gMqttPort);
+#endif
+    } else if (templ == "BT_SOURCE_NAME") {
+        return gPrefsSettings.getString("btDeviceName", "");
     } else if (templ == "IPv4") {
         IPAddress myIP = WiFi.localIP();
         snprintf(Log_Buffer, Log_BufferLength, "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -484,15 +493,14 @@ bool processJsonRequest(char *_serialJson) {
         }
     } else if (doc.containsKey("mqtt")) {
         uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
+        const char *_mqttClientId = object["mqtt"]["mqttClientId"];
         const char *_mqttServer = object["mqtt"]["mqttServer"];
-        gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-        gPrefsSettings.putString("mqttServer", (String)_mqttServer);
         const char *_mqttUser = doc["mqtt"]["mqttUser"];
         const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
         uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
 
         gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-        gPrefsSettings.putString("mqttServer", (String)_mqttServer);
+        gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
         gPrefsSettings.putString("mqttServer", (String)_mqttServer);
         gPrefsSettings.putString("mqttUser", (String)_mqttUser);
         gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);
@@ -578,6 +586,8 @@ bool processJsonRequest(char *_serialJson) {
 
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
+    if (!webserverStarted) 
+        return;
     char *jBuf = (char *) x_calloc(255, sizeof(char));
 
     const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 200;
@@ -601,26 +611,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
         entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
         entry["numberOfTracks"] = gPlayProperties.numberOfTracks;
         entry["volume"] = AudioPlayer_GetCurrentVolume();
-        if (gPlayProperties.title != NULL && strcmp(gPlayProperties.title, "") != 0) {
-            // show current audio title from id3 metadata
-            if (gPlayProperties.numberOfTracks > 1) {
-                snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, gPlayProperties.title);
-            } else {
-                snprintf(Log_Buffer, Log_BufferLength, "%s", gPlayProperties.title);
-            };
-            char utf8Buffer[200];
-            convertAsciiToUtf8(Log_Buffer, utf8Buffer);
-            entry["name"] = utf8Buffer;
-        } else if (gPlayProperties.playMode == NO_PLAYLIST) {
-            // no active playlist
-            entry["name"] = (char *)FPSTR (noPlaylist);
-        } else {
-            // show current playlist item
-            snprintf(Log_Buffer, Log_BufferLength, "(%u / %u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-            char utf8Buffer[200];
-            convertAsciiToUtf8(Log_Buffer, utf8Buffer);
-            entry["name"] = utf8Buffer;
-        }
+        entry["name"] = gPlayProperties.title;
     } else if (code == 40) {
         object["coverimg"] = "coverimg";
     } else if (code == 50) {
@@ -1323,14 +1314,16 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     Serial.println(coverFileName);
 
     File coverFile = gFSystem.open(coverFileName, FILE_READ);
-    // seek to start position, skip 1 byte encoding
-    coverFile.seek(gPlayProperties.coverFilePos + 1);
+    // seek to start position
+    coverFile.seek(gPlayProperties.coverFilePos);
+    uint8_t encoding = coverFile.read();
     // mime-type (null terminated)
     char mimeType[255];
     for (uint8_t i = 0u; i < 255; i++) {
         mimeType[i] = coverFile.read();
-        if (uint8_t(mimeType[i]) == 0)
+        if (uint8_t(mimeType[i]) == 0) {
             break;
+        }
     }
     snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, coverFileName);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
@@ -1339,8 +1332,13 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
     coverFile.read();
     // skip description (null terminated)
     for (uint8_t i = 0u; i < 255; i++) {
-        if (uint8_t(coverFile.read()) == 0)
+        if (uint8_t(coverFile.read()) == 0) {
             break;
+        }
+    }
+    // UTF-16 and UTF-16BE are terminated with an extra 0
+    if (encoding == 1 || encoding == 2) {
+        coverFile.read();
     }
 
     int imageSize = gPlayProperties.coverFileSize;

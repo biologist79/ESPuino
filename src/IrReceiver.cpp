@@ -97,11 +97,12 @@ void IrReceiver_Cyclic() {
                 }
                 case RC_BLUETOOTH: {
                     if (rcActionOk) {
-                        Cmd_Action(CMD_TOGGLE_BLUETOOTH_MODE);
-                        Serial.println(F("RC: Bluetooth"));
+                        Cmd_Action(CMD_TOGGLE_BLUETOOTH_SINK_MODE);
+                        Serial.println(F("RC: Bluetooth sink"));
                     }
                     break;
                 }
+                // +++ todo: bluetooth source mode +++
                 case RC_FTP: {
                     if (rcActionOk) {
                         Cmd_Action(CMD_ENABLE_FTP_SERVER);
