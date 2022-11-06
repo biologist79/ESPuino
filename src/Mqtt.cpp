@@ -16,26 +16,23 @@
     #include <PubSubClient.h>
 #endif
 
-constexpr uint8_t stillOnlineInterval = 60u; // Interval 'I'm still alive' is sent via MQTT (in seconds)
-
 // MQTT-helper
 #ifdef MQTT_ENABLE
     static WiFiClient Mqtt_WifiClient;
     static PubSubClient Mqtt_PubSubClient(Mqtt_WifiClient);
+    // Please note: all of them are defaults that can be changed later via GUI
+    String gMqttClientId = DEVICE_HOSTNAME; // ClientId for the MQTT-server, must be server wide unique (if not found in NVS this one will be taken)
+    String gMqttServer = "192.168.2.43";    // IP-address of MQTT-server (if not found in NVS this one will be taken)
+    String gMqttUser = "mqtt-user";         // MQTT-user
+    String gMqttPassword = "mqtt-password"; // MQTT-password
+    uint16_t gMqttPort = 1883;              // MQTT-Port
 #endif
-
-// Please note: all of them are defaults that can be changed later via GUI
-String gMqttServer = "192.168.2.43";    // IP-address of MQTT-server (if not found in NVS this one will be taken)
-String gMqttUser = "mqtt-user";         // MQTT-user
-String gMqttPassword = "mqtt-password"; // MQTT-password
-uint16_t gMqttPort = 1883;              // MQTT-Port
 
 // MQTT
 static bool Mqtt_Enabled = true;
 
 static void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length);
 static bool Mqtt_Reconnect(void);
-static void Mqtt_PostHeartbeatViaMqtt(void);
 static void Mqtt_PostWiFiRssi(void);
 
 void Mqtt_Init() {
@@ -57,6 +54,17 @@ void Mqtt_Init() {
                 snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
                 Log_Println(Log_Buffer, LOGLEVEL_INFO);
                 break;
+        }
+
+        // Get MQTT-clientid from NVS
+        String nvsMqttClientId = gPrefsSettings.getString("mqttClientId", "-1");
+        if (!nvsMqttClientId.compareTo("-1")) {
+            gPrefsSettings.putString("mqttClientId", gMqttClientId);
+            Log_Println((char *) FPSTR(wroteMqttClientIdToNvs), LOGLEVEL_ERROR);
+        } else {
+            gMqttClientId = nvsMqttClientId;
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttClientIdFromNvs), nvsMqttClientId.c_str());
+            Log_Println(Log_Buffer, LOGLEVEL_INFO);
         }
 
         // Get MQTT-server from NVS
@@ -115,7 +123,6 @@ void Mqtt_Cyclic(void) {
         if (Mqtt_Enabled && Wlan_IsConnected()) {
             Mqtt_Reconnect();
             Mqtt_PubSubClient.loop();
-            Mqtt_PostHeartbeatViaMqtt();
             Mqtt_PostWiFiRssi();
         }
     #endif
@@ -190,23 +197,6 @@ void Mqtt_PostWiFiRssi(void) {
     #endif
 }
 
-/* Cyclic posting via MQTT that ESP is still alive. Use case: when ESPuino is switched off, it will post via
-   MQTT it's gonna be offline now. But when unplugging ESPuino e.g. openHAB doesn't know ESPuino is offline.
-   One way to recognize this is to determine, when a topic has been updated for the last time. So by
-   telling openHAB connection is timed out after 2mins for instance, this is the right topic to check for.  */
-void Mqtt_PostHeartbeatViaMqtt(void) {
-    #ifdef MQTT_ENABLE
-        static unsigned long lastOnlineTimestamp = 0u;
-
-        if (millis() - lastOnlineTimestamp >= stillOnlineInterval * 1000) {
-            lastOnlineTimestamp = millis();
-            if (publishMqtt((char *) FPSTR(topicState), "Online", false)) {
-                Log_Println((char *) FPSTR(stillOnlineMqtt), LOGLEVEL_DEBUG);
-            }
-        }
-    #endif
-}
-
 /* Connects/reconnects to MQTT-Broker unless connection is not already available.
     Manages MQTT-subscriptions.
 */
@@ -230,12 +220,12 @@ bool Mqtt_Reconnect() {
             // Try to connect to MQTT-server. If username AND password are set, they'll be used
             if ((gMqttUser.length() < 1u) || (gMqttPassword.length()) < 1u) {
                 Log_Println((char *) FPSTR(mqttWithoutPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME)) {
+                if (Mqtt_PubSubClient.connect(gMqttClientId.c_str())) {
                     connect = true;
                 }
             } else {
                 Log_Println((char *) FPSTR(mqttWithPwd), LOGLEVEL_NOTICE);
-                if (Mqtt_PubSubClient.connect(DEVICE_HOSTNAME, gMqttUser.c_str(), gMqttPassword.c_str())) {
+                if (Mqtt_PubSubClient.connect(gMqttClientId.c_str(), gMqttUser.c_str(), gMqttPassword.c_str(), (char *) FPSTR(topicState), 0, false, "Offline")) {
                     connect = true;
                 }
             }
@@ -266,16 +256,17 @@ bool Mqtt_Reconnect() {
                 // LED-brightness
                 Mqtt_PubSubClient.subscribe((char *) FPSTR(topicLedBrightnessCmnd));
 
-                // Publish some stuff
+                // Publish current state
                 publishMqtt((char *) FPSTR(topicState), "Online", false);
-                publishMqtt((char *) FPSTR(topicTrackState), "---", false);
+                publishMqtt((char *) FPSTR(topicTrackState), gPlayProperties.title, false);
+                publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
                 publishMqtt((char *) FPSTR(topicLoudnessState), AudioPlayer_GetCurrentVolume(), false);
                 publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimerTimeStamp(), false);
-                publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
+                publishMqtt((char *) FPSTR(topicLockControlsState), System_AreControlsLocked(), false);
                 publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                 publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), 0, false);
                 publishMqtt((char *) FPSTR(topicCurrentIPv4IP), Wlan_GetIpAddress().c_str(), false);
+                publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
 
                 char revBuf[12];
                 strncpy(revBuf, softwareRevision+19, sizeof(revBuf)-1);
@@ -288,6 +279,8 @@ bool Mqtt_Reconnect() {
                 Log_Println(Log_Buffer, LOGLEVEL_ERROR);
             }
         }
+        return false;
+    #else
         return false;
     #endif
 }
@@ -391,23 +384,23 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
             if (strcmp(receivedString, "OFF") == 0) {
                 System_SetLockControls(false);
                 Log_Println((char *) FPSTR(allowButtons), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
                 System_IndicateOk();
             } else if (strcmp(receivedString, "ON") == 0) {
                 System_SetLockControls(true);
                 Log_Println((char *) FPSTR(lockButtons), LOGLEVEL_NOTICE);
+                publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
                 System_IndicateOk();
             }
         }
 
         // Check if playmode should be adjusted
         else if (strcmp_P(topic, topicRepeatModeCmnd) == 0) {
-            char rBuf[2];
             uint8_t repeatMode = strtoul(receivedString, NULL, 10);
             Serial.printf("Repeat: %d", repeatMode);
             if (gPlayProperties.playMode != NO_PLAYLIST) {
                 if (gPlayProperties.playMode == NO_PLAYLIST) {
-                    snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                     Log_Println((char *) FPSTR(noPlaylistNotAllowedMqtt), LOGLEVEL_ERROR);
                     System_IndicateError();
                 } else {
@@ -415,8 +408,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case NO_REPEAT:
                             gPlayProperties.repeatCurrentTrack = false;
                             gPlayProperties.repeatPlaylist = false;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatNone), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -424,8 +416,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case TRACK:
                             gPlayProperties.repeatCurrentTrack = true;
                             gPlayProperties.repeatPlaylist = false;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatTrack), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -433,8 +424,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case PLAYLIST:
                             gPlayProperties.repeatCurrentTrack = false;
                             gPlayProperties.repeatPlaylist = true;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatPlaylist), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
@@ -442,16 +432,14 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
                         case TRACK_N_PLAYLIST:
                             gPlayProperties.repeatCurrentTrack = true;
                             gPlayProperties.repeatPlaylist = true;
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             Log_Println((char *) FPSTR(modeRepeatTracknPlaylist), LOGLEVEL_INFO);
                             System_IndicateOk();
                             break;
 
                         default:
                             System_IndicateError();
-                            snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                             break;
                     }
                 }

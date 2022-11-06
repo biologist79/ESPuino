@@ -1,4 +1,5 @@
 #ifndef __REVISION_H__
     #define __REVISION_H__
-    constexpr const char softwareRevision[] PROGMEM = "Software-revision: 20220918-1";
+    #include "gitrevision.h"
+    constexpr const char softwareRevision[] PROGMEM = "Software-revision: 20221106-1";
 #endif

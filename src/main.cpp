@@ -26,6 +26,11 @@
 #include "revision.h"
 #include "Power.h"
 
+// avoid PSRAM check while wake-up from deepsleep
+bool testSPIRAM(void) { 
+    return true; 
+}
+
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
     bool recoverBootCount = true;
@@ -82,7 +87,7 @@
     // Get last RFID-tag applied from NVS
     void recoverLastRfidPlayedFromNvs(void) {
         if (recoverLastRfid) {
-            if (System_GetOperationMode() == OPMODE_BLUETOOTH) { // Don't recover if BT-mode is desired
+            if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
                 recoverLastRfid = false;
                 return;
             }
@@ -165,7 +170,7 @@ void setup() {
     Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
     Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
     Serial.print(F(" Rfid-controlled musicplayer\n\n"));
-    Serial.printf("%s\n\n", softwareRevision);
+    Serial.printf("%s\n%s\n\n", softwareRevision, gitRevision);
     Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
@@ -206,9 +211,16 @@ void setup() {
 }
 
 void loop() {
-    if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
+    if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+        // bluetooth speaker mode
         Bluetooth_Cyclic();
+    } else 
+    if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+        // bluetooth headset mode
+        Bluetooth_Cyclic();
+        RotaryEncoder_Cyclic();
     } else {
+        // normal mode
         Wlan_Cyclic();
         Web_Cyclic();
         Ftp_Cyclic();

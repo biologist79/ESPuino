@@ -117,6 +117,97 @@ bool fileValid(const char *_fileItem) {
             endsWith(_fileItem, ".asx") || endsWith(_fileItem, ".ASX"));
 }
 
+
+// Takes a directory as input and returns a random subdirectory from it
+char *SdCard_pickRandomSubdirectory(char *_directory) {
+    // Look if file/folder requested really exists. If not => break.
+    File directory = gFSystem.open(_directory);
+    if (!directory) {
+        Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
+        return NULL;
+    }
+    snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(tryToPickRandomDir), _directory);
+    Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+    
+    static uint8_t allocCount = 1;
+    uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
+    uint16_t directoryCount = 0;
+    char *buffer = _directory;  // input char* is reused as it's content no longer needed
+    char *subdirectoryList = (char *) x_calloc(allocSize, sizeof(char));
+    
+    if (subdirectoryList == NULL) {
+        Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+        System_IndicateError();
+        return NULL;
+    }
+
+    // Create linear list of subdirectories with #-delimiters
+    while (true) {
+        File fileItem = directory.openNextFile();
+        if (!fileItem) {
+            break;
+        }
+        if (!fileItem.isDirectory()) {
+            continue;
+        } else {
+            #if ESP_ARDUINO_VERSION_MAJOR >= 2
+                strncpy(buffer, (char *) fileItem.path(), 255);
+            #else
+                strncpy(buffer, (char *) fileItem.name(), 255);
+            #endif
+
+            /*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), buffer);
+            Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
+            if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
+                subdirectoryList = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
+                Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
+                if (subdirectoryList == NULL) {
+                    Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+                    System_IndicateError();
+                    return NULL;
+                }
+            }
+            strcat(subdirectoryList, stringDelimiter);
+            strcat(subdirectoryList, buffer);
+            directoryCount++;
+        }
+    }
+    strcat(subdirectoryList, stringDelimiter);
+
+    if (!directoryCount) {
+        free(subdirectoryList);
+        return NULL;
+    }
+
+    uint16_t randomNumber = random(directoryCount) + 1;     // Create random-number with max = subdirectory-count
+    uint16_t delimiterFoundCount = 0;
+    uint32_t a=0;
+    uint8_t b=0;
+
+    // Walk through subdirectory-array and extract randomized subdirectory
+    while (subdirectoryList[a] != '\0') {
+        if (subdirectoryList[a] == '#') {
+            delimiterFoundCount++;
+        } else {
+            if (delimiterFoundCount == randomNumber) {  // Pick subdirectory of linear char* according to random number
+                buffer[b++] = subdirectoryList[a];
+            }
+        }
+        if (delimiterFoundCount > randomNumber || (b == 254)) {  // It's over when next delimiter is found or buffer is full
+            buffer[b] = '\0';
+            free(subdirectoryList);
+            snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(pickedRandomDir), _directory);
+            Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+            return buffer;  // Full path of random subdirectory
+        }
+        a++;
+    }
+
+    free(subdirectoryList);
+    return NULL;
+}
+
+
 /* Puts SD-file(s) or directory into a playlist
     First element of array always contains the number of payload-items. */
 char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
@@ -195,10 +286,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
         if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() >= 0) {
             enablePlaylistFromM3u = true;
             uint16_t allocCount = 1;
-            uint16_t allocSize = 1024;
-            if (psramInit()) {
-                allocSize = 65535; // There's enough PSRAM. So we don't have to care...
-            }
+            uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
 
             serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
             if (serializedPlaylist == NULL) {

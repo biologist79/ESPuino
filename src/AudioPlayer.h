@@ -50,4 +50,4 @@ uint8_t AudioPlayer_GetInitVolume(void);
 void AudioPlayer_SetInitVolume(uint8_t value);
 void AudioPlayer_SetupVolumeAndAmps(void);
 bool Audio_Detect_Mode_HP(bool _state);
-char* Audio_handleTitle(bool clearTitle);
+void Audio_setTitle(const char *format, ...);

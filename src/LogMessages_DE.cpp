@@ -4,7 +4,6 @@
 #if (LANGUAGE == DE)
     #include "Log.h"
 
-    const char stillOnlineMqtt[] PROGMEM = "MQTT: Bin noch online.";
     const char tryConnectMqttS[] PROGMEM = "Versuche Verbindung zu MQTT-Broker aufzubauen";
     const char mqttOk[] PROGMEM = "MQTT-Session aufgebaut.";
     const char sleepTimerEOP[] PROGMEM = "Sleep-Timer: Nach dem letzten Track der Playlist.";
@@ -137,6 +136,8 @@
     const char wroteMqttFlagToNvs[] PROGMEM = "MQTT-Flag wurde ins NVS geschrieben.";
     const char restoredMqttActiveFromNvs[] PROGMEM = "MQTT-Flag (aktiviert) wurde aus NVS geladen";
     const char restoredMqttDeactiveFromNvs[] PROGMEM = "MQTT-Flag (deaktiviert) wurde aus NVS geladen";
+    const char wroteMqttClientIdToNvs[] PROGMEM = "MQTT-ClientId wurde ins NVS geschrieben.";
+    const char restoredMqttClientIdFromNvs[] PROGMEM = "MQTT-ClientId wurde aus NVS geladen";
     const char wroteMqttServerToNvs[] PROGMEM = "MQTT-Server wurde ins NVS geschrieben.";
     const char restoredMqttServerFromNvs[] PROGMEM = "MQTT-Server wurde aus NVS geladen";
     const char wroteMqttUserToNvs[] PROGMEM = "MQTT-User wurde ins NVS geschrieben.";
@@ -229,4 +230,6 @@
     const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
     const char webTxCanceled[] PROGMEM = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
     const char cantConnectToWifi[] PROGMEM = "Verbindung zum WLAN nicht möglich. Nächster Versuch...";
+    const char tryToPickRandomDir[] PROGMEM = "Versuche ein zufälliges Unterzeichnis zu finden aus";
+    const char pickedRandomDir[] PROGMEM = "Zufällig ausgewähltes Unterverzeichnis";
 #endif

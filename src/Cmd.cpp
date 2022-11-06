@@ -15,6 +15,18 @@ void Cmd_Action(const uint16_t mod) {
     switch (mod) {
         case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
             System_ToggleLockControls();
+            if (System_AreControlsLocked()) {
+                Log_Println((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
+                #endif
+            } else {
+                Log_Println((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
+                #endif
+            }
+            System_IndicateOk();
             break;
         }
 
@@ -186,10 +198,8 @@ void Cmd_Action(const uint16_t mod) {
                     Log_Println((char *) FPSTR(modificatorPlaylistLoopActive), LOGLEVEL_NOTICE);
                 }
                 gPlayProperties.repeatPlaylist = !gPlayProperties.repeatPlaylist;
-                char rBuf[2];
-                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                 #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                 #endif
                 System_IndicateOk();
             }
@@ -207,10 +217,8 @@ void Cmd_Action(const uint16_t mod) {
                     Log_Println((char *) FPSTR(modificatorTrackActive), LOGLEVEL_NOTICE);
                 }
                 gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
-                char rBuf[2];
-                snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                 #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                 #endif
                 System_IndicateOk();
             }
@@ -236,11 +244,23 @@ void Cmd_Action(const uint16_t mod) {
         }
 
         #ifdef BLUETOOTH_ENABLE
-            case CMD_TOGGLE_BLUETOOTH_MODE: {
+            case CMD_TOGGLE_BLUETOOTH_SINK_MODE: {
                 if (System_GetOperationModeFromNvs() == OPMODE_NORMAL) {
                     System_IndicateOk();
-                    System_SetOperationMode(OPMODE_BLUETOOTH);
-                } else if (System_GetOperationModeFromNvs() == OPMODE_BLUETOOTH) {
+                    System_SetOperationMode(OPMODE_BLUETOOTH_SINK);
+                } else if (System_GetOperationModeFromNvs() == OPMODE_BLUETOOTH_SINK) {
+                    System_IndicateOk();
+                    System_SetOperationMode(OPMODE_NORMAL);
+                } else {
+                    System_IndicateError();
+                }
+                break;
+            }
+            case CMD_TOGGLE_BLUETOOTH_SOURCE_MODE: {
+                if (System_GetOperationModeFromNvs() == OPMODE_NORMAL) {
+                    System_IndicateOk();
+                    System_SetOperationMode(OPMODE_BLUETOOTH_SOURCE);
+                } else if (System_GetOperationModeFromNvs() == OPMODE_BLUETOOTH_SOURCE) {
                     System_IndicateOk();
                     System_SetOperationMode(OPMODE_NORMAL);
                 } else {

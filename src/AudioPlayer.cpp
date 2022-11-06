@@ -17,6 +17,8 @@
 #include "System.h"
 #include "Wlan.h"
 #include "Web.h"
+#include "Bluetooth.h"
+#include "Cmd.h"
 
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
@@ -45,6 +47,7 @@ static int AudioPlayer_ArrSortHelper(const void *a, const void *b);
 static void AudioPlayer_SortPlaylist(const char **arr, int n);
 static void AudioPlayer_SortPlaylist(char *str[], const uint32_t count);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
     #ifndef USE_LAST_VOLUME_AFTER_REBOOT
@@ -83,7 +86,7 @@ void AudioPlayer_Init(void) {
     }
 
     #ifdef HEADPHONE_ADJUST_ENABLE
-        #if (HP_DETECT >= 0 && HP_DETECT <= 39)
+        #if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
             pinMode(HP_DETECT, INPUT_PULLUP);
         #endif
         AudioPlayer_HeadphoneLastDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
@@ -102,10 +105,12 @@ void AudioPlayer_Init(void) {
     // Adjust volume depending on headphone is connected and volume-adjustment is enabled
     AudioPlayer_SetupVolumeAndAmps();
 
-    // clear cover image
+    // clear title and cover image
+    gPlayProperties.title = NULL;
     gPlayProperties.coverFilePos = 0;
 
-    if (System_GetOperationMode() == OPMODE_NORMAL) {       // Don't start audio-task in BT-mode!
+    // Don't start audio-task in BT-speaker mode!
+    if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {       
         xTaskCreatePinnedToCore(
             AudioPlayer_Task,      /* Function to implement the task */
             "mp3play",             /* Name of the task */
@@ -172,21 +177,27 @@ void AudioPlayer_SetInitVolume(uint8_t value) {
     AudioPlayer_InitVolume = value;
 }
 
-// Allocates space for title of current track only once and keeps char* in order to avoid heap-fragmentation.
-char* Audio_handleTitle(bool clearTitle) {
+void Audio_setTitle(const char *format, ...)
+{
+    // Allocates space for title of current track only once and keeps char* in order to avoid heap-fragmentation.
     static char* _title = NULL;
-    
     if (_title == NULL) {
         _title = (char *) x_malloc(sizeof(char) * 255);
-    }
-
-    if (clearTitle) {
-        if (_title != NULL) {
-            strcpy(_title, "");
-        }
+        gPlayProperties.title = _title;
     }
     
-    return _title;
+    char buf[256];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf)/sizeof(buf[0]), format, args);
+    va_end(args);
+    convertAsciiToUtf8(buf, gPlayProperties.title);
+
+    // notify web ui and mqtt
+    Web_SendWebsocketData(0, 30);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicTrackState), gPlayProperties.title, false);
+    #endif
 }
 
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
@@ -310,10 +321,12 @@ void AudioPlayer_Task(void *parameter) {
     bool audioReturnCode;
 
     for (;;) {
-        /*if (cnt123++ % 100 == 0) {
+        /*
+        if (cnt123++ % 100 == 0) {
             snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
             Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-        }*/
+        }
+        */
         if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
             snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
             Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -344,6 +357,11 @@ void AudioPlayer_Task(void *parameter) {
                 Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 Serial.print(F("Free heap: "));
                 Serial.println(ESP.getFreeHeap());
+
+                #ifdef MQTT_ENABLE
+                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+                    publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+                #endif
 
                 // If we're in audiobook-mode and apply a modification-card, we don't
                 // want to save lastPlayPosition for the mod-card but for the card that holds the playlist
@@ -376,11 +394,13 @@ void AudioPlayer_Task(void *parameter) {
                 }
             }
 
-            if (gPlayProperties.playlistFinished && trackCommand != 0) {
-                Log_Println((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
-                trackCommand = NO_ACTION;
-                System_IndicateError();
-                continue;
+            if (gPlayProperties.playlistFinished && trackCommand != NO_ACTION) {
+                if (gPlayProperties.playMode != BUSY ) {    // Prevents from staying in mode BUSY forever when error occured (e.g. directory empty that should be played)
+                    Log_Println((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
+                    trackCommand = NO_ACTION;
+                    System_IndicateError();
+                    continue;
+                }
             }
             /* Check if track-control was called
                (stop, start, next track, prev. track, last track, first track...) */
@@ -392,12 +412,8 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.pausePlay = true;
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
-                    // delete title
-                    Audio_handleTitle(true);
-                    Web_SendWebsocketData(0, 30);
-                    // clear cover image
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
+                    Audio_setTitle((char *)FPSTR (noPlaylist));
+                    AudioPlayer_ClearCover();
                     continue;
 
                 case PAUSEPLAY:
@@ -421,10 +437,8 @@ void AudioPlayer_Task(void *parameter) {
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
                         gPlayProperties.repeatCurrentTrack = false;
-                        char rBuf[2];
-                        snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                         #endif
                     }
                     // Allow next track if current track played in playlist isn't the last track. 
@@ -458,10 +472,8 @@ void AudioPlayer_Task(void *parameter) {
                     }
                     if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
                         gPlayProperties.repeatCurrentTrack = false;
-                        char rBuf[2];
-                        snprintf(rBuf, 2, "%u", AudioPlayer_GetRepeatMode());
                         #ifdef MQTT_ENABLE
-                            publishMqtt((char *) FPSTR(topicRepeatModeState), rBuf, false);
+                            publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
                         #endif
                     }
                     if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
@@ -493,11 +505,6 @@ void AudioPlayer_Task(void *parameter) {
                         }
                         audio->stopSong();
                         Led_Indicate(LedIndicatorType::Rewind);
-                        // delete title
-                        Audio_handleTitle(true);
-                        // clear cover image
-                        gPlayProperties.coverFilePos = 0;
-                        Web_SendWebsocketData(0, 40);
                         audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                         // consider track as finished, when audio lib call was not successful
                         if (!audioReturnCode) {
@@ -577,19 +584,10 @@ void AudioPlayer_Task(void *parameter) {
                         // Set back to first track
                         AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
                     }
-                    #ifdef MQTT_ENABLE
-                        #if (LANGUAGE == DE)
-                            publishMqtt((char *) FPSTR(topicTrackState), "<Ende>", false);
-                        #else
-                            publishMqtt((char *) FPSTR(topicTrackState), "<End>", false);
-                        #endif
-                    #endif
                     gPlayProperties.playlistFinished = true;
                     gPlayProperties.playMode = NO_PLAYLIST;
-                    Audio_handleTitle(true);
-                    Web_SendWebsocketData(0, 30);
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
+                    Audio_setTitle((char *)FPSTR (noPlaylist));
+                    AudioPlayer_ClearCover();
                     #ifdef MQTT_ENABLE
                         publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
                     #endif
@@ -623,14 +621,8 @@ void AudioPlayer_Task(void *parameter) {
             audioReturnCode = false;
 
             if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-                // delete title
-                Audio_handleTitle(true);
-                // clear cover image
-                gPlayProperties.coverFilePos = 0;
-                Web_SendWebsocketData(0, 40);
                 audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                 gPlayProperties.playlistFinished = false;
-                Web_SendWebsocketData(0, 30);
             } else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
                 // Files from SD
                 if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -639,11 +631,6 @@ void AudioPlayer_Task(void *parameter) {
                     gPlayProperties.trackFinished = true;
                     continue;
                 } else {
-                    // delete title
-                    Audio_handleTitle(true);
-                    // clear cover image
-                    gPlayProperties.coverFilePos = 0;
-                    Web_SendWebsocketData(0, 40);
                     audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
                     // consider track as finished, when audio lib call was not successful
                 }
@@ -663,23 +650,20 @@ void AudioPlayer_Task(void *parameter) {
                     snprintf(Log_Buffer, Log_BufferLength, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
                     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
                 }
-                if (!gPlayProperties.isWebstream) {         // Is done via audio_showstation()
-                    char buf[255];
-                    snprintf(buf, sizeof(buf) / sizeof(buf[0]), "(%d/%d) %s", (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks, (const char *)*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-                    Web_SendWebsocketData(0, 30);
-                    #ifdef MQTT_ENABLE
-                        static char *utf8Buffer = NULL;
-                        if (utf8Buffer == NULL) {   // Only allocate once from heap
-                            utf8Buffer = (char *) x_malloc(sizeof(char) * 255);
-                        }
-                        if (utf8Buffer != NULL) {
-                            convertAsciiToUtf8(buf, utf8Buffer);
-                            publishMqtt((char *) FPSTR(topicTrackState), utf8Buffer, false);
-                        } else {
-                            publishMqtt((char *) FPSTR(topicTrackState), buf, false);   // If unable to allocate heap use ascii instead of utf8
-                        }
-                    #endif
+                if (gPlayProperties.isWebstream) {
+                    if (gPlayProperties.numberOfTracks > 1) {
+                        Audio_setTitle("(%u/%u): Webradio", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks);
+                    } else {
+                        Audio_setTitle("Webradio");
+                    }
+                } else {
+                    if (gPlayProperties.numberOfTracks > 1) {
+                        Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    } else {
+                        Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+                    }
                 }
+                AudioPlayer_ClearCover();
                 #if (LANGUAGE == DE)
                     snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
                 #else
@@ -785,8 +769,11 @@ void AudioPlayer_Task(void *parameter) {
                 settleCount = 0;
             }
         }
-
-        vTaskDelay(portTICK_PERIOD_MS * 1);
+        if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && audio->isRunning()) {
+            // do not delay here, audio task is time critical in BT-Source mode
+        } else {
+            vTaskDelay(portTICK_PERIOD_MS * 1);
+        }
         //esp_task_wdt_reset(); // Don't forget to feed the dog!
     }
     vTaskDelete(NULL);
@@ -845,20 +832,20 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     gPlayProperties.currentTrackNumber = _trackLastPlayed;
     char **musicFiles;
 
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicLedBrightnessState), 0, false);
-        publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-    #endif
-
     if (_playMode != WEBSTREAM) {
-        musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
+        if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
+            filename = SdCard_pickRandomSubdirectory(filename);     // *filename (input): target-directory  //   *filename (output): random subdirectory
+            if (filename == NULL) {  // If error occured while extracting random subdirectory
+                musicFiles = NULL;
+            } else {
+                musicFiles = SdCard_ReturnPlaylist(filename, _playMode);    // Provide random subdirectory in order to enter regular playlist-generation
+            }
+        } else {
+            musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
+        }
     } else {
         musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
     }
-
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-    #endif
 
     // Catch if error occured (e.g. file not found)
     if (musicFiles == NULL) {
@@ -879,9 +866,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             while (!gPlayProperties.pausePlay) {
                 vTaskDelay(portTICK_RATE_MS * 10u);
             }
-        } else {
-            gPlayProperties.playMode = NO_PLAYLIST;
         }
+        
+        gPlayProperties.playMode = NO_PLAYLIST;
         free(filename);
         return;
     }
@@ -904,10 +891,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
     switch (gPlayProperties.playMode) {
         case SINGLE_TRACK: {
             Log_Println((char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -916,10 +899,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatCurrentTrack = true;
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), TRACK, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -931,10 +910,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             Led_ResetToNightBrightness();
             Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -942,10 +917,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         case AUDIOBOOK: { // Tracks need to be alph. sorted!
             gPlayProperties.saveLastPlayPosition = true;
             Log_Println((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
@@ -955,23 +926,16 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             gPlayProperties.saveLastPlayPosition = true;
             Log_Println((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
 
-        case ALL_TRACKS_OF_DIR_SORTED: {
+        case ALL_TRACKS_OF_DIR_SORTED: 
+        case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
             snprintf(Log_Buffer, Log_BufferLength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -979,10 +943,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
         case ALL_TRACKS_OF_DIR_RANDOM: {
             Log_Println((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -991,10 +951,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -1003,10 +959,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             gPlayProperties.repeatPlaylist = true;
             Log_Println((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
             AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
-            #ifdef MQTT_ENABLE
-                publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                publishMqtt((char *) FPSTR(topicRepeatModeState), PLAYLIST, false);
-            #endif
             xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
@@ -1015,10 +967,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
             if (Wlan_IsConnected()) {
                 xQueueSend(gTrackQueue, &(musicFiles), 0);
-                #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-                #endif
             } else {
                 Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
                 System_IndicateError();
@@ -1027,19 +975,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
             break;
         }
 
-        case LOCAL_M3U: { // Can be one or more webradio-station(s)
+        case LOCAL_M3U: { // Can be one or multiple SD-files or webradio-stations; or a mix of both
             Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
-            if (Wlan_IsConnected()) {
-                xQueueSend(gTrackQueue, &(musicFiles), 0);
-                #ifdef MQTT_ENABLE
-                    publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-                    publishMqtt((char *) FPSTR(topicRepeatModeState), NO_REPEAT, false);
-                #endif
-            } else {
-                Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
-                System_IndicateError();
-                gPlayProperties.playMode = NO_PLAYLIST;
-            }
+            xQueueSend(gTrackQueue, &(musicFiles), 0);
             break;
         }
 
@@ -1146,6 +1084,16 @@ void AudioPlayer_SortPlaylist(const char **arr, int n) {
     qsort(arr, n, sizeof(const char *), AudioPlayer_ArrSortHelper);
 }
 
+// Clear cover send notification
+void AudioPlayer_ClearCover(void) {
+    gPlayProperties.coverFilePos = 0;
+    // websocket and mqtt notify cover image has changed
+    Web_SendWebsocketData(0, 40);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+    #endif
+}
+
 // Some mp3-lib-stuff (slightly changed from default)
 void audio_info(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "info        : %s", info);
@@ -1157,14 +1105,10 @@ void audio_id3data(const char *info) { //id3 metadata
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
     // get title
     if (startsWith((char *)info, "Title:")) {
-        // copy title
-        if (!gPlayProperties.title) {
-            gPlayProperties.title = Audio_handleTitle(false);
-        }
-        if (gPlayProperties.title != NULL) {
-            strncpy(gPlayProperties.title, info + 6, 255);
-            // notify web ui
-            Web_SendWebsocketData(0, 30);
+        if (gPlayProperties.numberOfTracks > 1) {
+            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info + 6);
+        } else {
+            Audio_setTitle("%s", info + 6);
         }
     }
 }
@@ -1178,35 +1122,18 @@ void audio_eof_mp3(const char *info) { //end of file
 void audio_showstation(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "station     : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-    char buf[255];
-    snprintf(buf, sizeof(buf) / sizeof(buf[0]), "Webradio: %s", info);
-    #ifdef MQTT_ENABLE
-        publishMqtt((char *) FPSTR(topicTrackState), buf, false);
-    #endif
-    // copy title
-    if (!gPlayProperties.title) {
-        gPlayProperties.title = Audio_handleTitle(false);
-    }
-    if (gPlayProperties.title != NULL) {
-        strncpy(gPlayProperties.title, info + 6, 255);
-        // notify web ui
-        Web_SendWebsocketData(0, 30);
+    if (gPlayProperties.numberOfTracks > 1) {
+        Audio_setTitle("(%u/%u): Webradio: %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info);
+    } else {
+        Audio_setTitle("Webradio: %s", info);
     }
 }
 
 void audio_showstreamtitle(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "streamtitle : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
-    if (startsWith((char *)info, "Title:")) {
-        // copy title
-        if (!gPlayProperties.title) {
-            gPlayProperties.title = Audio_handleTitle(false);
-        }
-        if (gPlayProperties.title != NULL) {
-            strncpy(gPlayProperties.title, info + 6, 255);
-            // notify web ui
-            Web_SendWebsocketData(0, 30);
-        }
+    if (strcmp(info, "")) {
+        Audio_setTitle("%s (%s)", gPlayProperties.title, info);
     }
 }
 
@@ -1235,10 +1162,19 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
     // save cover image position and size for later use
     gPlayProperties.coverFilePos = pos;
     gPlayProperties.coverFileSize = size;
-    // websocket notify cover image has changed
+    // websocket and mqtt notify cover image has changed
     Web_SendWebsocketData(0, 40);
+    #ifdef MQTT_ENABLE
+        publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+    #endif
 }
 
 void audio_eof_speech(const char *info){
     gPlayProperties.currentSpeechActive = false;
+}
+
+
+// process audio sample extern (for bluetooth source)
+void audio_process_i2s(uint32_t* sample, bool *continueI2S){
+    *continueI2S = !Bluetooth_Source_SendAudioData(sample);
 }

@@ -286,7 +286,6 @@
                                 <option class="placeholder" disabled selected value="">Modus auswählen</option>
                                 <option class="option-file" value="1">Einzelner Titel</option>
                                 <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
-                                <option class="option-file" value="2">Einzelner Titel (Endlosschleife)</option>
                                 <option class="option-folder" value="12">Einzelner Titel eines Verzeichnis (zufällig). Danach schlafen.</option>
                                 <option class="option-file-and-folder" value="3">Hörbuch</option>
                                 <option class="option-file-and-folder" value="4">Hörbuch (Endlosschleife)</option>
@@ -294,6 +293,7 @@
                                 <option class="option-folder" value="6">Alle Titel eines Verzeichnis (zufällig)</option>
                                 <option class="option-folder" value="7">Alle Titel eines Verzeichnis (sortiert, Endlosschleife)</option>
                                 <option class="option-folder" value="9">Alle Titel eines Verzeichnis (zufällig, Endlosschleife)</option>
+                                <option class="option-folder" value="13">Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)</option>
                                 <option class="option-stream" value="8">Webradio</option>
                                 <option class="option-stream" value="11">Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei</option>
                             </select>
@@ -315,7 +315,8 @@
                                 <option value="111">Wiederhole Titel (endlos)</option>
                                 <option value="120">Dimme LEDs (Nachtmodus)</option>
                                 <option value="130">Aktiviere/deaktive WLAN</option>
-                                <option value="140">Aktiviere/deaktiviere Bluetooth</option>
+                                <option value="140">Bluetooth Lautsprecher aktivieren/deaktivieren</option>
+                                <option value="141">Bluetooth Kopfhörer aktivieren/deaktivieren</option>
                                 <option value="150">Aktiviere FTP</option>
                                 <option value="0">Lösche Zuordnung</option>
                                 <option value="170">Play/Pause</option>
@@ -352,6 +353,9 @@
                     </label>
                 </div>
                 <div class="form-group my-2 col-md-12">
+                    <label for="mqttClientId">MQTT-ClientId</label>
+                    <input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="%MQTT_CLIENTID_LENGTH%"
+                           placeholder="z.B. ESPuino" name="mqttClientId" value="%MQTT_CLIENTID%">
                     <label for="mqttServer">MQTT-Server</label>
                     <input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
                            placeholder="z.B. 192.168.2.89" name="mqttServer" value="%MQTT_SERVER%">
@@ -1245,6 +1249,7 @@
         var myObj = {
             "mqtt": {
                 mqttEnable: val,
+                mqttClientId: document.getElementById('mqttClientId').value,
                 mqttServer: document.getElementById('mqttServer').value,
                 mqttUser: document.getElementById('mqttUser').value,
                 mqttPwd: document.getElementById('mqttPwd').value,

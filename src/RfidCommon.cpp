@@ -87,7 +87,7 @@ void Rfid_PreferenceLookupHandler(void) {
 
                     #ifdef BLUETOOTH_ENABLE
                         // if music rfid was read, go back to normal mode
-                        if (System_GetOperationMode() == OPMODE_BLUETOOTH) {
+                        if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
                             System_SetOperationMode(OPMODE_NORMAL);
                         }
                     #endif
