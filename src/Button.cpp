@@ -280,20 +280,19 @@ void Button_DoButtonActions(void) {
                 if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) {
                     if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < intervalToLongPress) {
                         Cmd_Action(Cmd_Short);
-                    }
-                    else {
+                    } else {
                         // if not volume buttons than start action after button release
-                        if(Cmd_Long != CMD_VOLUMEUP && Cmd_Long != CMD_VOLUMEDOWN)
+                        if (Cmd_Long != CMD_VOLUMEUP && Cmd_Long != CMD_VOLUMEDOWN) {
                             Cmd_Action(Cmd_Long);
+                        }
                     }
 
                     gButtons[i].isPressed = false;
-                }
-                else if(Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN){
+                } else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
                     unsigned long currentTimestamp = millis();
 
                     // only start action if intervalToLongPress has been reached
-                    if(currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
+                    if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
 
                         // calculate remainder 
                         uint16_t remainder = (currentTimestamp - gButtons[i].lastPressedTimestamp) % intervalToLongPress;

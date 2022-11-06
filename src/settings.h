@@ -122,8 +122,8 @@
     #define BUTTON_1_LONG     CMD_FIRSTTRACK
     #define BUTTON_2_LONG     CMD_PLAYPAUSE
     #define BUTTON_3_LONG     CMD_SLEEPMODE
-    #define BUTTON_4_LONG     CMD_NOTHING
-    #define BUTTON_5_LONG     CMD_NOTHING
+    #define BUTTON_4_LONG     CMD_VOLUMEUP
+    #define BUTTON_5_LONG     CMD_VOLUMEDOWN
 
     #define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
     #define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
@@ -156,7 +156,7 @@
 
     // Buttons (better leave unchanged if in doubts :-))
     constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
-    constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
+    constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
 
     // RFID-RC522
     #define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
