@@ -187,6 +187,7 @@
         #define NUM_LEDS                    24          // number of LEDs
         #define CHIPSET                     WS2812B     // type of Neopixel
         #define COLOR_ORDER                 GRB
+        //#define LED_OFFSET                0           // shifts the starting LED in the original direction of the neopixel ring
     #endif
 
     #if defined(MEASURE_BATTERY_VOLTAGE) || defined(MEASURE_BATTERY_MAX17055)
