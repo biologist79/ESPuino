@@ -232,4 +232,5 @@
     const char cantConnectToWifi[] PROGMEM = "Verbindung zum WLAN nicht möglich. Nächster Versuch...";
     const char tryToPickRandomDir[] PROGMEM = "Versuche ein zufälliges Unterzeichnis zu finden aus";
     const char pickedRandomDir[] PROGMEM = "Zufällig ausgewähltes Unterverzeichnis";
+    const char wrongWakeUpGpio[] PROGMEM = "Der gewählte GPIO ist nicht vom Typ RTC und unterstützt daher das Aufwecken des ESP32 nicht!";
 #endif

@@ -232,4 +232,5 @@
     const char cantConnectToWifi[] PROGMEM = "Can't connect to wifi. Trying again...";
     const char tryToPickRandomDir[] PROGMEM = "Try to pick randon subdirectory out of";
     const char pickedRandomDir[] PROGMEM = "Randomly picked subdirectory";
+    const char wrongWakeUpGpio[] PROGMEM = "GPIO choosen as wakeup-pin isn't of type RTC and that reason for can't wake up ESP32!";
 #endif

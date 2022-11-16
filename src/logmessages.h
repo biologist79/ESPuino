@@ -228,3 +228,4 @@ extern const char webTxCanceled[];
 extern const char cantConnectToWifi[];
 extern const char tryToPickRandomDir[];
 extern const char pickedRandomDir[];
+extern const char wrongWakeUpGpio[];
