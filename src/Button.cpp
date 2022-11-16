@@ -58,7 +58,7 @@ static void Button_DoButtonActions(void);
 
 void Button_Init() {
     #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
-        if (ESP_OK != esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0)) {
+        if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0)) {
             snprintf(Log_Buffer, Log_BufferLength, "%s (GPIO: %u)", (char *) FPSTR(wrongWakeUpGpio), WAKEUP_BUTTON);
             Log_Println(Log_Buffer, LOGLEVEL_ERROR);
         }
