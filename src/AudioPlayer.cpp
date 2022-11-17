@@ -1122,10 +1122,12 @@ void audio_eof_mp3(const char *info) { //end of file
 void audio_showstation(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "station     : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-    if (gPlayProperties.numberOfTracks > 1) {
-        Audio_setTitle("(%u/%u): Webradio: %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info);
-    } else {
-        Audio_setTitle("Webradio: %s", info);
+    if (strcmp(info, "")) {
+        if (gPlayProperties.numberOfTracks > 1) {
+            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info);
+        } else {
+            Audio_setTitle("%s", info);
+        }
     }
 }
 
@@ -1133,7 +1135,11 @@ void audio_showstreamtitle(const char *info) {
     snprintf(Log_Buffer, Log_BufferLength, "streamtitle : %s", info);
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
     if (strcmp(info, "")) {
-        Audio_setTitle("%s (%s)", gPlayProperties.title, info);
+        if (gPlayProperties.numberOfTracks > 1) {
+            Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, info);
+        } else {
+            Audio_setTitle("%s", info);
+        }
     }
 }
 
