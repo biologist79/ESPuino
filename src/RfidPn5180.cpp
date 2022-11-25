@@ -123,7 +123,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
                 // show PN5180 reader version
                 uint8_t firmwareVersion[2];
                 nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-                Serial.print(F("Firmware version="));
+                Serial.print(F("PN5180 firmware version="));
                 Serial.print(firmwareVersion[1]);
                 Serial.print(".");
                 Serial.println(firmwareVersion[0]);
@@ -295,10 +295,11 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         #ifdef PN5180_ENABLE_LPCD
             static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
             nfc.begin();
+            nfc.reset();
             // show PN5180 reader version
             uint8_t firmwareVersion[2];
             nfc.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-            Serial.print(F("Firmware version="));
+            Serial.print(F("PN5180 firmware version="));
             Serial.print(firmwareVersion[1]);
             Serial.print(".");
             Serial.println(firmwareVersion[0]);
