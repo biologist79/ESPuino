@@ -295,7 +295,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
         #ifdef PN5180_ENABLE_LPCD
             static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
             nfc.begin();
-            nfc.reset();
+            nfc.reset(); 
             // show PN5180 reader version
             uint8_t firmwareVersion[2];
             nfc.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
