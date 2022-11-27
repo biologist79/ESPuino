@@ -217,6 +217,14 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
+		#ifdef BUTTONS_LED
+			if (BUTTONS_LED >= 100 && BUTTONS_LED <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
+			} else if (BUTTONS_LED >= 108 && BUTTONS_LED <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
+			}
+		#endif
+
 		// Only change port-config if necessary (at least bitmask changed from base-default for one port)
 		if ((OutputBitMaskInOutAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskInOutAsPerPort[1] != portBaseValueBitMask)) {
 			i2cBusTwo.beginTransmission(expanderI2cAddress);
@@ -281,6 +289,14 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 				#else
 					OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(POWER));
 				#endif
+			}
+		#endif
+
+		#ifdef BUTTONS_LED
+			if (BUTTONS_LED >= 100 && BUTTONS_LED <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
+			} else if (BUTTONS_LED >= 108 && BUTTONS_LED <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
 			}
 		#endif
 

@@ -81,18 +81,13 @@ void Cmd_Action(const uint16_t mod) {
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
 				#endif
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToInitialBrightness();
-				#endif
+				Led_ResetToInitialBrightness();
 			} else {
 				Log_Println((char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
 				#endif
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToNightBrightness();
-					Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-				#endif
+				Led_ResetToNightBrightness();
 			}
 			gPlayProperties.sleepAfterCurrentTrack = !gPlayProperties.sleepAfterCurrentTrack;
 			gPlayProperties.sleepAfterPlaylist = false;
@@ -116,16 +111,11 @@ void Cmd_Action(const uint16_t mod) {
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
 				#endif
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToInitialBrightness();
-				#endif
+				Led_ResetToInitialBrightness();
 				Log_Println((char *) FPSTR(modificatorSleepAtEOPd), LOGLEVEL_NOTICE);
 			} else {
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToNightBrightness();
-					Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-				#endif
-					Log_Println((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
+				Led_ResetToNightBrightness();
+				Log_Println((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
 				#endif
@@ -158,9 +148,7 @@ void Cmd_Action(const uint16_t mod) {
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
 				#endif
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToInitialBrightness();
-				#endif
+				Led_ResetToInitialBrightness();
 				Log_Println((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
 			} else {
 				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.numberOfTracks) { // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
@@ -174,9 +162,7 @@ void Cmd_Action(const uint16_t mod) {
 						publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
 					#endif
 				}
-				#ifdef NEOPIXEL_ENABLE
-					Led_ResetToNightBrightness();
-				#endif
+				Led_ResetToNightBrightness();
 				Log_Println((char *) FPSTR(sleepTimerEO5), LOGLEVEL_NOTICE);
 			}
 
@@ -230,9 +216,7 @@ void Cmd_Action(const uint16_t mod) {
 				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
 			#endif
 			Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
-			#ifdef NEOPIXEL_ENABLE
-				Led_ResetToNightBrightness();
-			#endif
+			Led_ResetToNightBrightness();
 			System_IndicateOk();
 			break;
 		}

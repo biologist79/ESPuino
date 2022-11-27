@@ -10,6 +10,7 @@
 #include "System.h"
 #include "Wlan.h"
 #include "Bluetooth.h"
+#include "Port.h"
 
 #ifdef NEOPIXEL_ENABLE
 	#include <FastLED.h>
@@ -104,12 +105,18 @@ void Led_ResetToInitialBrightness(void) {
 		Led_Brightness = Led_InitialBrightness;
 		Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
 	#endif
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, HIGH, false);
+	#endif
 }
 
 void Led_ResetToNightBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
 		Led_Brightness = Led_NightBrightness;
 		Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+	#endif
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, LOW, false);
 	#endif
 }
 
@@ -124,6 +131,9 @@ uint8_t Led_GetBrightness(void) {
 void Led_SetBrightness(uint8_t value) {
 	#ifdef NEOPIXEL_ENABLE
 		Led_Brightness = value;
+		#ifdef BUTTONS_LED
+			Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
+		#endif
 	#endif
 }
 
@@ -141,6 +151,12 @@ uint8_t Led_Address(uint8_t number) {
 		#else
 			return number;
 		#endif
+	#endif
+}
+
+void Led_SetButtonLedsEnabled(boolean value) {
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, value ? HIGH : LOW, false);
 	#endif
 }
 
