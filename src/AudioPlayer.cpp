@@ -19,6 +19,7 @@
 #include "Web.h"
 #include "Bluetooth.h"
 #include "Cmd.h"
+#include <Ticker.h>
 
 #define AUDIOPLAYER_VOLUME_MAX 21u
 #define AUDIOPLAYER_VOLUME_MIN 0u
@@ -26,6 +27,7 @@
 
 playProps gPlayProperties;
 //uint32_t cnt123 = 0;
+Ticker ticker;
 
 // Volume
 static uint8_t AudioPlayer_CurrentVolume = AUDIOPLAYER_VOLUME_INIT;
@@ -812,6 +814,17 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
     xQueueSend(gVolumeQueue, &_volume, 0);
 }
 
+struct cbData {
+    char _itemToPlay[255];
+    uint32_t _lastPlayPos;
+    uint32_t _playMode;
+    uint16_t _trackLastPlayed;
+} delayedCallData;
+
+void recall_TrackQueueDispatcher() {
+    AudioPlayer_TrackQueueDispatcher(delayedCallData._itemToPlay, delayedCallData._lastPlayPos, delayedCallData._playMode, delayedCallData._trackLastPlayed);
+}
+
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
@@ -965,6 +978,17 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
         case WEBSTREAM: { // This is always just one "track"
             Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
+
+            if(!Wlan_IsConnected() && millis() < 4000) {
+                Log_Println("Delay Webstream playback for 5 seconds to give WiFi the chance to connect.", LOGLEVEL_INFO);
+                strncpy(delayedCallData._itemToPlay, _itemToPlay, 255);
+                delayedCallData._lastPlayPos = _lastPlayPos;
+                delayedCallData._playMode = _playMode;
+                delayedCallData._trackLastPlayed = _trackLastPlayed;
+                ticker.once(5, recall_TrackQueueDispatcher);
+                break;
+            }
+
             if (Wlan_IsConnected()) {
                 xQueueSend(gTrackQueue, &(musicFiles), 0);
             } else {
