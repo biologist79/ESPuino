@@ -217,6 +217,12 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
         #ifdef GPIO_PA_EN
             Port_Write(GPIO_PA_EN, true, true);
         #endif
+        
+        #ifdef DAC_ES8388
+            es.mute(ES8388::ES_OUT1, false);
+            es.mute(ES8388::ES_OUT2, true);
+        #endif
+
         #ifdef GPIO_HP_EN
             Port_Write(GPIO_HP_EN, true, true);
         #endif
