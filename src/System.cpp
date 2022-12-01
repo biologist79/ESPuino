@@ -133,19 +133,6 @@ void System_SetLockControls(bool value) {
 
 void System_ToggleLockControls(void) {
     System_LockControls = !System_LockControls;
-
-    if (System_LockControls) {
-        Log_Println((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
-        #ifdef MQTT_ENABLE
-            publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
-        #endif
-        System_IndicateOk();
-    } else {
-        Log_Println((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
-        #ifdef MQTT_ENABLE
-            publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
-        #endif
-    }
 }
 
 bool System_AreControlsLocked(void) {
@@ -233,7 +220,7 @@ void System_DeepSleepManager(void) {
         // switch off power
         Power_PeripheralOff();
         delay(200);
-        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+        #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180) || defined(RFID_READER_TYPE_PN532_I2C) || defined(RFID_READER_TYPE_PN532_SPI)
             Rfid_Exit();
         #endif
         #ifdef PORT_EXPANDER_ENABLE

@@ -4,7 +4,6 @@
 #if (LANGUAGE == EN)
     #include "Log.h"
 
-    const char stillOnlineMqtt[] PROGMEM = "MQTT: still online.";
     const char tryConnectMqttS[] PROGMEM = "Trying to connect to MQTT-broker";
     const char mqttOk[] PROGMEM = "MQTT-connection established.";
     const char sleepTimerEOP[] PROGMEM = "Sleep-timer: after last track of playlist.";
@@ -137,6 +136,8 @@
     const char wroteMqttFlagToNvs[] PROGMEM = "Stored MQTT-flag to NVS.";
     const char restoredMqttActiveFromNvs[] PROGMEM = "Restored MQTT-flag (enabled) from NVS";
     const char restoredMqttDeactiveFromNvs[] PROGMEM = "Restored MQTT-flag (disabled) from NVS";
+    const char wroteMqttClientIdToNvs[] PROGMEM = "Stored MQTT-clientid to NVS.";
+    const char restoredMqttClientIdFromNvs[] PROGMEM = "Restored MQTT-clientid from NVS";
     const char wroteMqttServerToNvs[] PROGMEM = "Stored MQTT-server to NVS.";
     const char restoredMqttServerFromNvs[] PROGMEM = "Restored MQTT-Server from NVS";
     const char wroteMqttUserToNvs[] PROGMEM = "Stored MQTT-user to NVS.";
@@ -227,5 +228,8 @@
     const char paOff[] PROGMEM = "Loudspeaker off";
     const char hpOn[] PROGMEM = "Headphones on";
     const char hpOff[] PROGMEM = "Headphones off";
+    const char webTxCanceled[] PROGMEM = "Webtransfer canceled due to inactivity-timer.";
     const char cantConnectToWifi[] PROGMEM = "Can't connect to wifi. Trying again...";
+    const char tryToPickRandomDir[] PROGMEM = "Try to pick randon subdirectory out of";
+    const char pickedRandomDir[] PROGMEM = "Randomly picked subdirectory";
 #endif

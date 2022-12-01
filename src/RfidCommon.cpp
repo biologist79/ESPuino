@@ -19,7 +19,7 @@ char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it c
 
 // Tries to lookup RFID-tag-string in NVS and extracts parameter from it if found
 void Rfid_PreferenceLookupHandler(void) {
-    #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+    #if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180) || defined(RFID_READER_TYPE_PN532_I2C) || defined(RFID_READER_TYPE_PN532_SPI)
         BaseType_t rfidStatus;
         char rfidTagId[cardIdStringSize];
         char _file[255];
@@ -87,7 +87,7 @@ void Rfid_PreferenceLookupHandler(void) {
 
                     #ifdef BLUETOOTH_ENABLE
                         // if music rfid was read, go back to normal mode
-                        if (System_GetOperationMode() == OPMODE_BLUETOOTH) {
+                        if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
                             System_SetOperationMode(OPMODE_NORMAL);
                         }
                     #endif

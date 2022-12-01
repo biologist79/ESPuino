@@ -23,7 +23,7 @@
     void Port_WriteInitMaskForOutputChannels(void);
     void Port_Test(void);
 
-    #if (PE_INTERRUPT_PIN >= 0 && PE_INTERRUPT_PIN <= 39)
+    #if (PE_INTERRUPT_PIN >= 0 && PE_INTERRUPT_PIN <= MAX_GPIO)
         #define PE_INTERRUPT_PIN_ENABLE
         void IRAM_ATTR PORT_ExpanderISR(void);
         bool Port_AllowReadFromPortExpander = false;
@@ -55,7 +55,7 @@ void Port_Cyclic(void) {
 // Behaviour like digitalRead(): returns true if not pressed and false if pressed
 bool Port_Read(const uint8_t _channel) {
     switch (_channel) {
-        case 0 ... 39: // GPIO
+        case 0 ... MAX_GPIO: // GPIO
             return digitalRead(_channel);
 
         #ifdef PORT_EXPANDER_ENABLE
@@ -97,13 +97,13 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
     
     // Make init only for GPIO but not for PE (because PE is already done earlier)
     if (_initGpio) {
-        if (_channel >= 0 && _channel <= 39) {
+        if (_channel >= 0 && _channel <= MAX_GPIO) {
             pinMode(_channel, OUTPUT);
         }
     }
 
     switch (_channel) {
-        case 0 ... 39: { // GPIO
+        case 0 ... MAX_GPIO: { // GPIO
             digitalWrite(_channel, _newState);
             break;
         }

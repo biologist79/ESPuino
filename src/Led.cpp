@@ -9,6 +9,7 @@
 #include "Log.h"
 #include "System.h"
 #include "Wlan.h"
+#include "Bluetooth.h"
 
 #ifdef NEOPIXEL_ENABLE
     #include <FastLED.h>
@@ -485,21 +486,32 @@ static void Led_Task(void *parameter) {
 
         switch (gPlayProperties.playMode) {
             case NO_PLAYLIST: // If no playlist is active (idle)
-                if (System_GetOperationMode() == OPMODE_BLUETOOTH) {
-                    idleColor = CRGB::Blue;
-                } else {
-                    if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
-                        idleColor = speechColor;
-                    } else {
-                        if (Wlan_IsConnected()) {
-                            idleColor = CRGB::White;
-                        } else {
-                            idleColor = CRGB::Green;
-                        }
-                    }
-                }
                 if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
                     for (uint8_t i = 0; i < NUM_LEDS; i++) {
+                        if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+                            idleColor = CRGB::Blue;
+                        } else 
+                        if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+                            if (Bluetooth_Source_Connected()) {
+                                    idleColor = CRGB::Blue;
+                                } else {
+                                    idleColor = CRGB::BlueViolet;
+                                }     
+                        } else {
+                            if (Wlan_ConnectionTryInProgress()) {
+                                idleColor = CRGB::Orange;
+                            } else {
+                                if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
+                                    idleColor = speechColor;
+                                } else {
+                                    if (Wlan_IsConnected()) {
+                                        idleColor = CRGB::White;
+                                    } else {
+                                        idleColor = CRGB::Green;
+                                    }
+                                }
+                            }
+                        }
                         FastLED.clear();
                         if (Led_Address(i) == 0) { // White if Wifi is enabled and blue if not
                             leds[0] = idleColor;
@@ -603,6 +615,9 @@ static void Led_Task(void *parameter) {
                             }
                             if (gPlayProperties.pausePlay) {
                                 generalColor = CRGB::Orange;
+                                if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+                                    generalColor = CRGB::Blue;
+                                } else
                                 if (gPlayProperties.currentSpeechActive) {
                                     generalColor = speechColor;
                                 }

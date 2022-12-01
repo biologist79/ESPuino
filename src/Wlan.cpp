@@ -7,14 +7,17 @@
 #include "Log.h"
 #include "System.h"
 #include "Web.h"
+#include "MemX.h"
 
-// Don't change anything here unless you know what you're doing
 // HELPER //
-// WiFi
 unsigned long wifiCheckLastTimestamp = 0;
 bool wifiEnabled; // Current status if wifi is enabled
 uint32_t wifiStatusToggledTimestamp = 0;
 bool wifiNeedsRestart = false;
+uint8_t wifiConnectIteration = 0;
+bool wifiConnectionTryInProgress = false;
+bool wifiInit = true;
+uint32_t lastPrintRssiTimestamp = 0;
 
 // AP-WiFi
 IPAddress apIP(192, 168, 4, 1);        // Access-point's static IP
@@ -27,7 +30,10 @@ void writeWifiStatusToNVS(bool wifiStatus);
 bool Wlan_IsConnected(void);
 int8_t Wlan_GetRssi(void);
 
-uint32_t lastPrintRssiTimestamp = 0;
+// WiFi-credentials + hostname
+String hostname;
+char *_ssid;
+char *_pwd;
 
 void Wlan_Init(void) {
     wifiEnabled = getWifiEnableStatusFromNVS();
@@ -39,29 +45,40 @@ void Wlan_Cyclic(void) {
         return;
     }
 
-    if (!wifiCheckLastTimestamp || wifiNeedsRestart) {
+    if (wifiInit || wifiNeedsRestart) {
+        wifiConnectionTryInProgress = true;
+        bool wifiAccessIncomplete = false;
         // Get credentials from NVS
         String strSSID = gPrefsSettings.getString("SSID", "-1");
         if (!strSSID.compareTo("-1")) {
             Log_Println((char *) FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
-        }
+            wifiAccessIncomplete = true;
+        } 
         String strPassword = gPrefsSettings.getString("Password", "-1");
         if (!strPassword.compareTo("-1")) {
             Log_Println((char *) FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
+            wifiAccessIncomplete = true;
         }
-        const char *_ssid = strSSID.c_str();
-        const char *_pwd = strPassword.c_str();
+
+        if (wifiAccessIncomplete) {
+            accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+            wifiInit = false;
+            wifiConnectionTryInProgress = false;
+            return;
+        }
+        _ssid = x_strdup(strSSID.c_str());
+        _pwd = x_strdup(strPassword.c_str());
 
 		// The use of dynamic allocation is recommended to save memory and reduce resources usage. 
 		// However, the dynamic performs slightly slower than the static allocation. 
 		// Use static allocation if you want to have more performance and if your application is multi-tasking.
-        // Arduiono 2.0.x only, outcomment to use static buffers
+        // Arduino 2.0.x only, outcomment to use static buffers.
 		//WiFi.useStaticBuffers(true); 
         
 		// set to station mode
 		WiFi.mode(WIFI_STA);
-        // Get (optional) hostname-configration from NVS
-        String hostname = gPrefsSettings.getString("Hostname", "-1");
+        // Get (optional) hostname-configuration from NVS
+        hostname = gPrefsSettings.getString("Hostname", "-1");
         if (hostname.compareTo("-1")) {
             //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
             WiFi.setHostname(hostname.c_str());
@@ -71,7 +88,7 @@ void Wlan_Cyclic(void) {
             Log_Println((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
         }
 
-        // Add configration of static IP (if requested)
+        // Add configuration of static IP (if requested)
         #ifdef STATIC_IP_ENABLE
             snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(tryStaticIpConfig));
             Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
@@ -81,26 +98,42 @@ void Wlan_Cyclic(void) {
             }
         #endif
 
-
-
-        // Try to join local WiFi. If not successful, an access-point is opened
+        // Try to join local WiFi. If not successful, an access-point is opened.
         WiFi.begin(_ssid, _pwd);
+        #if (LANGUAGE == DE)
+            snprintf(Log_Buffer, Log_BufferLength, "Versuche mit WLAN '%s' zu verbinden...", _ssid);
+        #else
+            snprintf(Log_Buffer, Log_BufferLength, "Try to connect to WiFi with SSID '%s'...", _ssid);
+        #endif
+        Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+        wifiCheckLastTimestamp = millis();
+        wifiConnectIteration = 1;   // 1: First try; 2: Retry; 0: inactive
+        wifiInit = false;
+        wifiNeedsRestart = false;
+    }
 
-        uint8_t tryCount = 0;
-        while (WiFi.status() != WL_CONNECTED && tryCount <= 16) {
-            delay(500);
-            Serial.print(F("."));
-            tryCount++;
-            wifiCheckLastTimestamp = millis();
-            if (tryCount == 8 && WiFi.status() != WL_CONNECTED) {
-                snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(cantConnectToWifi));
-                Log_Println(Log_Buffer, LOGLEVEL_ERROR);
-                WiFi.disconnect(true, true);
-                WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection sometimes fails)
-            }
+    if (wifiConnectIteration > 0 && (millis() - wifiCheckLastTimestamp >= 500)) {
+        if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 1 && (millis() - wifiCheckLastTimestamp >= 4500)) {
+            snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(cantConnectToWifi));
+            Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+            WiFi.disconnect(true, true);
+            WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection fails every 2nd time)
+            wifiConnectIteration = 2;
+            return;
         }
 
+        if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 2 && (millis() - wifiCheckLastTimestamp >= 9000)) {
+            wifiConnectIteration = 0;
+            accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+            wifiConnectionTryInProgress = false;
+            free(_ssid);
+            free(_pwd);
+            return;
+        }
+        
         if (WiFi.status() == WL_CONNECTED) {
+            wifiConnectionTryInProgress = false;
+            wifiConnectIteration = 0;
             IPAddress myIP = WiFi.localIP();
             #if (LANGUAGE == DE)
                 snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -113,20 +146,16 @@ void Wlan_Cyclic(void) {
             // timezone: Berlin
             long gmtOffset_sec = 3600;
             int daylightOffset_sec = 3600;
-	        configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
-            } else {
-                // Starts AP if WiFi-connect wasn't successful
-                accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
-        }
-
-        #ifdef MDNS_ENABLE
-            // zero conf, make device available as <hostname>.local
-            if (MDNS.begin(hostname.c_str())) {
-                MDNS.addService("http", "tcp", 80);
-            }
-        #endif
-
-        wifiNeedsRestart = false;
+            configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
+            #ifdef MDNS_ENABLE
+                // zero conf, make device available as <hostname>.local
+                if (MDNS.begin(hostname.c_str())) {
+                    MDNS.addService("http", "tcp", 80);
+                }
+            #endif
+            free(_ssid);
+            free(_pwd);
+        }        
     }
 
     if (Wlan_IsConnected()) {
@@ -136,6 +165,10 @@ void Wlan_Cyclic(void) {
             Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
         }
     }
+}
+
+bool Wlan_ConnectionTryInProgress(void) {
+    return wifiConnectionTryInProgress;
 }
 
 void Wlan_ToggleEnable(void) {
