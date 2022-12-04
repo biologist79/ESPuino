@@ -23,100 +23,109 @@
 
 
 #ifdef BLUETOOTH_ENABLE
-// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
-void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
-	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-		snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => connection: %s", a2dp_sink->to_str(state));
-	} else {
-		snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => connection (free heap: %u bytes): %s", ESP.getFreeHeap(), a2dp_source->to_str(state));
+	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
+	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => connection state: %s", a2dp_sink->to_str(state));
+		} else {
+			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => connection state: %s", a2dp_source->to_str(state));
+		}
+		Log_Println(Log_Buffer, LOGLEVEL_INFO);
 	}
-	Log_Println(Log_Buffer, LOGLEVEL_INFO);
-}
 #endif
 
 
 #ifdef BLUETOOTH_ENABLE
 // for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
-void audio_state_changed(esp_a2d_audio_state_t state, void *ptr){
+void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-		snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => audio: %s", a2dp_sink->to_str(state));
-	} else {
-		snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => audio: %s", a2dp_source->to_str(state));
-	}
-	Log_Println(Log_Buffer, LOGLEVEL_INFO);
+        	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => audio state: %s", a2dp_sink->to_str(state));
+    	} else {
+        	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => audio state: %s", a2dp_source->to_str(state));
+    	}
+    	Log_Println(Log_Buffer, LOGLEVEL_INFO);
 }
 #endif
 
 #ifdef BLUETOOTH_ENABLE
-// handle Bluetooth AVRC metadata
-// https://docs.espressif.com/projects/esp-idf/en/release-v3.2/api-reference/bluetooth/esp_avrc.html
-void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
-	if (strlen((char *)text) == 0)
-		return;
-	switch (id) {
-		case ESP_AVRC_MD_ATTR_TITLE:
-			// title
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Title: %s", text);
-			break;
-		case ESP_AVRC_MD_ATTR_ARTIST:
-			// artists
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Artist: %s", text);
-			break;
-		case ESP_AVRC_MD_ATTR_ALBUM:
-			// album
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Album: %s", text);
-			break;
-		case ESP_AVRC_MD_ATTR_TRACK_NUM:
-			// current track number
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Track-No: %s", text);
-			break;
-		case ESP_AVRC_MD_ATTR_NUM_TRACKS:
-			// number of tracks in playlist
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Number of tracks: %s", text);
-			break;
-		case ESP_AVRC_MD_ATTR_GENRE:
-			// genre
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Genre: %s", text);
-			break;
-		default:
-			// unknown/unsupported metadata
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC metadata rsp: attribute id 0x%x, %s", id, text);
-			break;
+	// handle Bluetooth AVRC metadata
+	// https://docs.espressif.com/projects/esp-idf/en/release-v3.2/api-reference/bluetooth/esp_avrc.html
+	void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
+		if (strlen((char *)text) == 0)
+			return;
+		switch (id) {
+			case ESP_AVRC_MD_ATTR_TITLE:
+				// title
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Title: %s", text);
+				break;
+			case ESP_AVRC_MD_ATTR_ARTIST:
+				// artists
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Artist: %s", text);
+				break;
+			case ESP_AVRC_MD_ATTR_ALBUM:
+				// album
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Album: %s", text);
+				break;
+			case ESP_AVRC_MD_ATTR_TRACK_NUM:
+				// current track number
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Track-No: %s", text);
+				break;
+			case ESP_AVRC_MD_ATTR_NUM_TRACKS:
+				// number of tracks in playlist
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Number of tracks: %s", text);
+				break;
+			case ESP_AVRC_MD_ATTR_GENRE:
+				// genre
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Genre: %s", text);
+				break;
+			default:
+				// unknown/unsupported metadata
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC metadata rsp: attribute id 0x%x, %s", id, text);
+				break;
+		}
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	}
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-}
 #endif
 
 #ifdef BLUETOOTH_ENABLE
-// feed the A2DP source with audio data
-int32_t get_data_channels(Frame *frame, int32_t channel_len) {
-	if (channel_len < 0 || frame == NULL)
-		return 0;
-	// Receive data from ring buffer
-	size_t len{};
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
-	#else
-		vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, &len);
-	#endif
-	if (len < (channel_len * 4)) {
-		// Serial.println("Bluetooth source => not enough data");
-		return 0;
-	};
-	size_t sampleSize = 0;
-	uint8_t* sampleBuff;
-	sampleBuff = (uint8_t *)xRingbufferReceiveUpTo(audioSourceRingBuffer, &sampleSize, (portTickType)portMAX_DELAY, channel_len * 4);
-	if (sampleBuff != NULL) {
-		// fill the channel data
-		for (int sample = 0; sample < (channel_len); ++sample) {
-			frame[sample].channel1 = (sampleBuff[sample * 4 + 3] << 8) | sampleBuff[sample * 4 + 2];
-			frame[sample].channel2 = (sampleBuff[sample * 4 + 1] << 8) | sampleBuff[sample * 4];
+	// feed the A2DP source with audio data
+	int32_t get_data_channels(Frame *frame, int32_t channel_len) {
+		if (channel_len < 0 || frame == NULL)
+			return 0;
+		// Receive data from ring buffer
+		size_t len{};
+		#if ESP_ARDUINO_VERSION_MAJOR >= 2
+			vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
+		#else
+			vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, &len);
+		#endif
+		if (len < (channel_len * 4)) {
+			// Serial.println("Bluetooth source => not enough data");
+			return 0;
 		};
-		vRingbufferReturnItem(audioSourceRingBuffer, (void *)sampleBuff);
+		size_t sampleSize = 0;
+		uint8_t* sampleBuff;
+		sampleBuff = (uint8_t *)xRingbufferReceiveUpTo(audioSourceRingBuffer, &sampleSize, (portTickType)portMAX_DELAY, channel_len * 4);
+		if (sampleBuff != NULL) {
+			// fill the channel data
+			for (int sample = 0; sample < (channel_len); ++sample) {
+				frame[sample].channel1 = (sampleBuff[sample * 4 + 3] << 8) | sampleBuff[sample * 4 + 2];
+				frame[sample].channel2 = (sampleBuff[sample * 4 + 1] << 8) | sampleBuff[sample * 4];
+			};
+			vRingbufferReturnItem(audioSourceRingBuffer, (void *)sampleBuff);
+		};
+		return channel_len;
 	};
-	return channel_len;
-};
 #endif
+
+#ifdef BLUETOOTH_ENABLE
+	// callback which is notified on update Receiver RSSI
+	void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam){
+	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
+	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	}
+#endif
+
 
 void Bluetooth_VolumeChanged(int _newVolume) {
 	#ifdef BLUETOOTH_ENABLE
@@ -139,8 +148,8 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 
 void Bluetooth_Init(void) {
 	#ifdef BLUETOOTH_ENABLE
-		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-			// bluetooth in sink mode (player acts as a BT-Speaker)
+        	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+            		// bluetooth in sink mode (player acts as a BT-Speaker)
 			a2dp_sink = new BluetoothA2DPSink();
 			i2s_pin_config_t pin_config = {
 				.bck_io_num = I2S_BCLK,
@@ -153,6 +162,8 @@ void Bluetooth_Init(void) {
 				a2dp_sink->set_mono_downmix(true);
 			#endif
 			a2dp_sink->set_auto_reconnect(true);
+			a2dp_sink->set_rssi_active(true);
+			a2dp_sink->set_rssi_callback(rssi);
 			// start bluetooth sink
 			a2dp_sink->start((char *)FPSTR(nameBluetoothSinkDevice));
 			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink started, Device: %s", (char *)FPSTR(nameBluetoothSinkDevice));
@@ -162,12 +173,12 @@ void Bluetooth_Init(void) {
 			a2dp_sink->set_on_audio_state_changed(audio_state_changed);
 			a2dp_sink->set_avrc_metadata_callback(avrc_metadata_callback);
 			a2dp_sink->set_on_volumechange(Bluetooth_VolumeChanged);
-		} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+        	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
 			// create audio source ringbuffer on demand
 			audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
 			if (audioSourceRingBuffer == NULL)
 				Log_Println("cannot create audioSourceRingBuffer!", LOGLEVEL_ERROR);
-			// setup BT source
+			//  setup BT source
 			a2dp_source = new BluetoothA2DPSource();
 
 			//a2dp_source->set_auto_reconnect(false);   // auto reconnect
