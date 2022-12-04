@@ -26,9 +26,9 @@
 // for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
     if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => connection: %s", a2dp_sink->to_str(state));
+        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => connection state: %s", a2dp_sink->to_str(state));
     } else { 
-        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => connection (free heap: %u bytes): %s", ESP.getFreeHeap(), a2dp_source->to_str(state));
+        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => connection state: %s", a2dp_source->to_str(state));
     }
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 }
@@ -39,9 +39,9 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
 // for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 void audio_state_changed(esp_a2d_audio_state_t state, void *ptr){
     if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => audio: %s", a2dp_sink->to_str(state));
+        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => audio state: %s", a2dp_sink->to_str(state));
     } else {
-        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => audio: %s", a2dp_source->to_str(state));
+        snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => audio state: %s", a2dp_source->to_str(state));
     }
     Log_Println(Log_Buffer, LOGLEVEL_INFO);
 }
@@ -118,6 +118,15 @@ int32_t get_data_channels(Frame *frame, int32_t channel_len) {
 };
 #endif 
 
+#ifdef BLUETOOTH_ENABLE
+// callback which is notified on update Receiver RSSI 
+void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam){
+    snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
+    Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+}
+#endif 
+
+
 void Bluetooth_VolumeChanged(int _newVolume) {
     #ifdef BLUETOOTH_ENABLE
         snprintf(Log_Buffer, Log_BufferLength, "%s %d !", (char *) FPSTR("Bluetooth => volume changed: "), _newVolume);
@@ -153,6 +162,8 @@ void Bluetooth_Init(void) {
                 a2dp_sink->set_mono_downmix(true);
             #endif
             a2dp_sink->set_auto_reconnect(true);
+            a2dp_sink->set_rssi_active(true);
+            a2dp_sink->set_rssi_callback(rssi);            
             // start bluetooth sink
             a2dp_sink->start((char *)FPSTR(nameBluetoothSinkDevice)); 
             snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink started, Device: %s", (char *)FPSTR(nameBluetoothSinkDevice));
