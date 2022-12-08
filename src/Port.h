@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef CONFIG_IDF_TARGET_ESP32S3
-    #define MAX_GPIO 47
+	#define MAX_GPIO 47
 #else
-    #define MAX_GPIO 39
+	#define MAX_GPIO 39
 #endif
 
 void Port_Init(void);
