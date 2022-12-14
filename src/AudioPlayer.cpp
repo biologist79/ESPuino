@@ -70,8 +70,8 @@ void AudioPlayer_Init(void) {
     snprintf(Log_Buffer, Log_BufferLength, "%s", "ES8388 OK");
     Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
-    es.SetVolumeSpeaker(100);
-    es.SetVolumeHeadphone(100);
+    es.SetVolumeSpeaker(70);
+    es.SetVolumeHeadphone(70);
     #endif
 
     #ifndef USE_LAST_VOLUME_AFTER_REBOOT

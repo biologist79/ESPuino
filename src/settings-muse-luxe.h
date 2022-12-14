@@ -70,12 +70,12 @@
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
 
-    #define BUTTON_0_SHORT    CMD_NEXTTRACK
-    #define BUTTON_1_SHORT    CMD_PREVTRACK
+    #define BUTTON_0_SHORT    CMD_VOLUMEUP
+    #define BUTTON_1_SHORT    CMD_VOLUMEDOWN
     #define BUTTON_2_SHORT    CMD_PLAYPAUSE
 
-    #define BUTTON_0_LONG     CMD_VOLUMEUP
-    #define BUTTON_1_LONG     CMD_VOLUMEDOWN
+    #define BUTTON_0_LONG     CMD_NEXTTRACK
+    #define BUTTON_1_LONG     CMD_PREVTRACK
     
     #define BUTTON_MULTI_12   CMD_FIRSTTRACK
 
