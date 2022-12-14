@@ -149,10 +149,10 @@ void setup() {
 		i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
 		while (not ac.begin()) {
-			Serial.println(F("AC101 Failed!"));
+			Log_Println((char *) F("AC101 Failed!"), LOGLEVEL_ERROR);
 			delay(1000);
 		}
-		Serial.println(F("AC101 via I2C - OK!"));
+		Log_Println((char *) F("AC101 via I2C - OK!"), LOGLEVEL_NOTICE);
 
 		pinMode(22, OUTPUT);
 		digitalWrite(22, HIGH);
@@ -170,8 +170,14 @@ void setup() {
 	Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
 	Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
 	Serial.print(F(" Rfid-controlled musicplayer\n\n"));
-	Serial.printf("%s\n%s\n\n", softwareRevision, gitRevision);
-	Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
+
+	// Software-version
+	snprintf(Log_Buffer, Log_BufferLength, "%s", softwareRevision);
+	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	snprintf(Log_Buffer, Log_BufferLength, "%s", gitRevision);
+	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	snprintf(Log_Buffer, Log_BufferLength, "ESP-IDF version: %s", (char *) (ESP.getSdkVersion()));
+	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
 	// print wake-up reason
 	System_ShowWakeUpReason();

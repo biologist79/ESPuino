@@ -103,10 +103,10 @@
 					}
 				#endif
 
-				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE, true);
 				for (uint8_t i=0u; i < cardIdSize; i++) {
 					snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-					Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+					Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
 				}
 
 				for (uint8_t i=0u; i < cardIdSize; i++) {

@@ -18,7 +18,7 @@ extern char *Log_Buffer; // Buffer for all log-messages
 void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel);
 
 /* Wrapper-function for serial-logging (without newline) */
-void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel);
+void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTimestamp);
 
 void Log_Init(void);
 String Log_GetRingBuffer(void);

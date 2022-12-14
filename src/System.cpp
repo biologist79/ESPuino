@@ -226,7 +226,7 @@ void System_DeepSleepManager(void) {
 		#ifdef PORT_EXPANDER_ENABLE
 			Port_Exit();
 		#endif
-		Serial.println(F("deep-sleep, good night......."));
+		Log_Println((char *) F("deep-sleep, good night......."), LOGLEVEL_NOTICE);
 		esp_deep_sleep_start();
 	}
 }
@@ -250,22 +250,23 @@ void System_ShowWakeUpReason() {
 
 	switch (wakeup_reason) {
 		case ESP_SLEEP_WAKEUP_EXT0:
-			Serial.println(F("Wakeup caused by push button"));
+			Log_Println((char *) F("Wakeup caused by push-button"), LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_EXT1:
-			Serial.println(F("Wakeup caused by low power card detection"));
+			Log_Println((char *) F("Wakeup caused by low power card-detection"), LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_TIMER:
-			Serial.println(F("Wakeup caused by timer"));
+			Log_Println((char *) F("Wakeup caused by timer"), LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_TOUCHPAD:
-			Serial.println(F("Wakeup caused by touchpad"));
+			Log_Println((char *) F("Wakeup caused by touchpad"), LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_ULP:
-			Serial.println(F("Wakeup caused by ULP program"));
+			Log_Println((char *) F("Wakeup caused by ULP-program"), LOGLEVEL_NOTICE);
 			break;
 		default:
-			Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
+			snprintf(Log_Buffer, Log_BufferLength, "Wakeup was not caused by deepsleep: %d", wakeup_reason);
+			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 			break;
 	}
 }

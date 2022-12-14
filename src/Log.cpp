@@ -23,15 +23,30 @@ void Log_Init(void){
 */
 void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
+		uint32_t ctime = millis();
+		Serial.printf("[ %u ]  ", ctime);
 		Serial.println(_logBuffer);
+		Log_RingBuffer->print("[ ");
+		Log_RingBuffer->print(ctime);
+		Log_RingBuffer->print(" ]  ");
 		Log_RingBuffer->println(_logBuffer);
 	}
 }
 
 /* Wrapper-function for serial-logging (without newline) */
-void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel) {
+void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTimestamp) {
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
-		Serial.print(_logBuffer);
+		if (printTimestamp) {
+			uint32_t ctime = millis();
+			Serial.printf("[ %u ]  ", ctime);
+			Serial.print(_logBuffer);
+			Log_RingBuffer->print("[ ");
+			Log_RingBuffer->print(ctime);
+			Log_RingBuffer->print(" ]  ");
+		} else {
+			Serial.print(_logBuffer);
+
+		}
 		Log_RingBuffer->print(_logBuffer);
 	}
 }

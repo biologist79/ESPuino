@@ -123,10 +123,8 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				// show PN5180 reader version
 				uint8_t firmwareVersion[2];
 				nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-				Serial.print(F("PN5180 firmware version="));
-				Serial.print(firmwareVersion[1]);
-				Serial.print(".");
-				Serial.println(firmwareVersion[0]);
+				snprintf(Log_Buffer, Log_BufferLength, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
+				Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 
 				// activate RF field
 				delay(4u);
@@ -175,7 +173,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				uint8_t password[] = {0x01, 0x02, 0x03, 0x04};
 				ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
 				if (ISO15693_EC_OK == myrc) {
-					Serial.println(F("disabling privacy-mode successful"));
+					Log_Println((char *) F("disabling privacy-mode successful"), LOGLEVEL_NOTICE);
 				}
 			} else if (RFID_PN5180_NFC15693_STATE_GETINVENTORY == stateMachine) {
 				// try to read ISO15693 inventory
@@ -235,13 +233,13 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 					}
 				#endif
 
-				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE, true);
 				snprintf(Log_Buffer, Log_BufferLength, "(%s) ID: ", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
-				Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+				Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
 
 				for (uint8_t i = 0u; i < cardIdSize; i++) {
 					snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-					Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+					Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
 				}
 
 				for (uint8_t i = 0u; i < cardIdSize; i++) {
@@ -299,29 +297,28 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			// show PN5180 reader version
 			uint8_t firmwareVersion[2];
 			nfc.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			Serial.print(F("PN5180 firmware version="));
-			Serial.print(firmwareVersion[1]);
-			Serial.print(".");
-			Serial.println(firmwareVersion[0]);
+			snprintf(Log_Buffer, Log_BufferLength, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
+			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+
 			// check firmware version: PN5180 firmware < 4.0 has several bugs preventing the LPCD mode
 			// you can flash latest firmware with this project: https://github.com/abidxraihan/PN5180_Updater_ESP32
 			if (firmwareVersion[1] < 4) {
-				Serial.println(F("This PN5180 firmware does not work with LPCD! use firmware >= 4.0"));
+				Log_Println((char *) F("This PN5180 firmware does not work with LPCD! use firmware >= 4.0"), LOGLEVEL_ERROR);
 				return;
 			}
-			Serial.println(F("prepare low power card detection..."));
+			Log_Println((char *) F("prepare low power card detection..."), LOGLEVEL_NOTICE);
 			uint8_t irqConfig = 0b0000000; // Set IRQ active low + clear IRQ-register
 			nfc.writeEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
 			/*nfc.readEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
 			Serial.print(F("IRQ_PIN_CONFIG=0x"));
 			Serial.println(irqConfig, HEX);*/
 			nfc.prepareLPCD();
-			Serial.print(F("PN5180 IRQ PIN: "));
+			Log_Println((char *) F("PN5180 IRQ PIN: "), LOGLEVEL_NOTICE);
 			Serial.println(Port_Read(RFID_IRQ));
 			// turn on LPCD
 			uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 			if (nfc.switchToLPCD(wakeupCounterInMs)) {
-				Serial.println(F("switch to low power card detection: success"));
+				Log_Println((char *) F("switch to low power card detection: success"), LOGLEVEL_NOTICE);
 				// configure wakeup pin for deep-sleep wake-up, use ext1
 				#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
@@ -331,7 +328,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				gpio_hold_en(gpio_num_t(RFID_RST)); // RST
 				gpio_deep_sleep_hold_en();
 			} else {
-				Serial.println(F("switchToLPCD failed"));
+				Log_Println((char *) F("switchToLPCD failed"), LOGLEVEL_ERROR);
 			}
 		#endif
 	}
@@ -365,7 +362,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 					Log_Println((char *) FPSTR(wakeUpRfidNoIso14443), LOGLEVEL_ERROR);
 					esp_deep_sleep_start();
 				} else {
-					Serial.println(F("switchToLPCD failed"));
+					Log_Println((char *) F("switchToLPCD failed"), LOGLEVEL_ERROR);
 				}
 			}
 			nfc14443.end();

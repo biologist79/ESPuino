@@ -41,42 +41,42 @@ void IrReceiver_Cyclic() {
 				case RC_PLAY: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
-						Serial.println(F("RC: Play"));
+						Log_Println((char *) F("RC: Play"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_PAUSE: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
-						Serial.println(F("RC: Pause"));
+						Log_Println((char *) F("RC: Pause"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_NEXT: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_NEXTTRACK);
-						Serial.println(F("RC: Next"));
+						Log_Println((char *) F("RC: Next"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_PREVIOUS: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PREVTRACK);
-						Serial.println(F("RC: Previous"));
+						Log_Println((char *) F("RC: Previous"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_FIRST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_FIRSTTRACK);
-						Serial.println(F("RC: First"));
+						Log_Println((char *) F("RC: First"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_LAST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_LASTTRACK);
-						Serial.println(F("RC: Last"));
+						Log_Println((char *) F("RC: Last"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
@@ -91,14 +91,14 @@ void IrReceiver_Cyclic() {
 
 						uint8_t currentVolume = AudioPlayer_GetCurrentVolume();
 						xQueueSend(gVolumeQueue, &currentVolume, 0);
-						Serial.println(F("RC: Mute"));
+						Log_Println((char *) F("RC: Mute"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_BLUETOOTH: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_TOGGLE_BLUETOOTH_SINK_MODE);
-						Serial.println(F("RC: Bluetooth sink"));
+						Log_Println((char *) F("RC: Bluetooth sink"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
@@ -106,30 +106,30 @@ void IrReceiver_Cyclic() {
 				case RC_FTP: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_ENABLE_FTP_SERVER);
-						Serial.println(F("RC: FTP"));
+						Log_Println((char *) F("RC: FTP"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_SHUTDOWN: {
 					if (rcActionOk) {
 						System_RequestSleep();
-						Serial.println(F("RC: Shutdown"));
+						Log_Println((char *) F("RC: Shutdown"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_VOL_DOWN: {
 					Cmd_Action(CMD_VOLUMEDOWN);
-					Serial.println(F("RC: Volume down"));
+						Log_Println((char *) F("RC: Volume down"), LOGLEVEL_NOTICE);
 					break;
 				}
 				case RC_VOL_UP: {
 					Cmd_Action(CMD_VOLUMEUP);
-					Serial.println(F("RC: Volume up"));
+						Log_Println((char *) F("RC: Volume up"), LOGLEVEL_NOTICE);
 					break;
 				}
 				default: {
 					if (rcActionOk) {
-						Serial.println(F("RC: unknown"));
+						Log_Println((char *) F("RC: unknown"), LOGLEVEL_NOTICE);
 					}
 				}
 			}

@@ -94,9 +94,6 @@ void Web_Init(void) {
 
 	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
 		if (request->hasParam("ssid", true) && request->hasParam("pwd", true) && request->hasParam("hostname", true)) {
-			Serial.println(request->getParam("ssid", true)->value());
-			Serial.println(request->getParam("pwd", true)->value());
-			Serial.println(request->getParam("hostname", true)->value());
 			gPrefsSettings.putString("SSID", request->getParam("ssid", true)->value());
 			gPrefsSettings.putString("Password", request->getParam("pwd", true)->value());
 			gPrefsSettings.putString("Hostname", request->getParam("hostname", true)->value());
@@ -106,9 +103,9 @@ void Web_Init(void) {
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
 	#if (LANGUAGE == DE)
-		request->send(200, "text/html", "ESPuino wird neu gestartet...");
+		request->send(200, "text/html", (char *) F("ESPuino wird neu gestartet..."));
 	#else
-		request->send(200, "text/html", "ESPuino is being restarted...");
+		request->send(200, "text/html", (char *) F("ESPuino is being restarted..."));
 	#endif
 		Serial.flush();
 		ESP.restart();
@@ -116,9 +113,9 @@ void Web_Init(void) {
 
 	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
 	#if (LANGUAGE == DE)
-		request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
+		request->send(200, "text/html", (char *) F("ESPuino wird ausgeschaltet..."));
 	#else
-		request->send(200, "text/html", "ESPuino is being shutdown...");
+		request->send(200, "text/html", (char *) F("ESPuino is being shutdown..."));
 		#endif
 		System_RequestSleep();
 	});
@@ -231,7 +228,7 @@ void webserverStart(void) {
 				}
 
 				Update.write(data, len);
-				Serial.print(".");
+				Log_Print(".", LOGLEVEL_NOTICE, false);
 
 				if (final) {
 					Update.end(true);
@@ -287,7 +284,7 @@ void webserverStart(void) {
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
-			Serial.println("logo request");
+			Log_Println((char *) F("logo request"), LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/logo.png")) {
 				request->send(gFSystem, "/.html/logo.png", "image/png");
 				return;
@@ -300,7 +297,7 @@ void webserverStart(void) {
 		});
 		// ESPuino favicon
 		wServer.on("/favicon", HTTP_GET, [](AsyncWebServerRequest *request) {
-			Serial.println("favicon request");
+			Log_Println((char *) F("favicon request"), LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/favicon.ico")) {
 				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
 				return;
@@ -428,11 +425,13 @@ bool processJsonRequest(char *_serialJson) {
 
 	if (error) {
 		#if (LANGUAGE == DE)
-			Serial.print(F("deserializeJson() fehlgeschlagen: "));
+			snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) F("deserializeJson() fehlgeschlagen: "));
 		#else
-			Serial.print(F("deserializeJson() failed: "));
+			nprintf(Log_Buffer, Log_BufferLength, "%s", (char *) F("deserializeJson() failed: "));
 		#endif
-		Serial.println(error.c_str());
+		Log_Print(Log_Buffer, LOGLEVEL_ERROR, true);
+		snprintf(Log_Buffer, Log_BufferLength, "%s\n", error.c_str());
+		Log_Print(Log_Buffer, LOGLEVEL_ERROR, true);
 		return false;
 	}
 
@@ -537,8 +536,6 @@ bool processJsonRequest(char *_serialJson) {
 		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 			strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
 		#endif
-		Serial.println(_rfidIdAssinId);
-		Serial.println(rfidString);
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
@@ -634,24 +631,28 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 
 	if (type == WS_EVT_CONNECT) {
 		//client connected
-		Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] connect", server->url(), client->id());
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 		//client->printf("Hello Client %u :)", client->id());
 		//client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {
 		//client disconnected
-		Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
+		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] disconnect", server->url(), client->id());
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	} else if (type == WS_EVT_ERROR) {
 		//error was received from the other end
-		Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	} else if (type == WS_EVT_PONG) {
 		//pong message was received (in response to a ping request maybe)
-			Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len) ? (char *)data : "");
+		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	} else if (type == WS_EVT_DATA) {
 		//data packet
 		AwsFrameInfo *info = (AwsFrameInfo *)arg;
 		if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
 			//the whole message is in a single frame and we got all of it's data
-			Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+			//Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
 			if (processJsonRequest((char *)data)) {
 				if (data && (strncmp((char *)data, "getTrack", 8))) {   // Don't send back ok-feedback if track's name is requested in background
@@ -661,12 +662,12 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 
 			if (info->opcode == WS_TEXT) {
 				data[len] = 0;
-				Serial.printf("%s\n", (char *)data);
+				//Serial.printf("%s\n", (char *)data);
 			} else {
 				for (size_t i = 0; i < info->len; i++) {
 					Serial.printf("%02x ", data[i]);
 				}
-				Serial.printf("\n");
+				//Serial.printf("\n");
 			}
 		}
 	}
@@ -917,7 +918,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	serializeJson(obj, serializedJsonString);
 	snprintf(Log_Buffer, Log_BufferLength, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
 	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
 }
 
 bool explorerDeleteDirectory(File dir) {
@@ -973,7 +974,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	char filePath[MAX_FILEPATH_LENTGH];
 	// check has path param
 	if (!request->hasParam("path")) {
-		Log_Println("DOWNLOAD: No path variable set", LOGLEVEL_ERROR);
+		Log_Println((char *) F("DOWNLOAD: No path variable set"), LOGLEVEL_ERROR);
 		request->send(404);
 		return;
 	}
@@ -1016,7 +1017,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 		return thisSize;
 	});
 	String filename = String(param->value().c_str());
-	response->addHeader("Content-Disposition","attachment; filename=\"" + filename + "\"");
+	response->addHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
 	request->send(response);
 }
 
@@ -1054,7 +1055,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
 		}
 	} else {
-		Log_Println("DELETE: No path variable set", LOGLEVEL_ERROR);
+		Log_Println((char *) F("DELETE: No path variable set"), LOGLEVEL_ERROR);
 	}
 	request->send(200);
 	esp_task_wdt_reset();
@@ -1076,7 +1077,7 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
 		}
 	} else {
-		Log_Println("CREATE: No path variable set", LOGLEVEL_ERROR);
+		Log_Println((char *) F("CREATE: No path variable set"), LOGLEVEL_ERROR);
 	}
 	request->send(200);
 }
@@ -1108,7 +1109,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
 		}
 	} else {
-		Log_Println("RENAME: No path variable set", LOGLEVEL_ERROR);
+		Log_Println((char *) F("RENAME: No path variable set"), LOGLEVEL_ERROR);
 	}
 
 	request->send(200);
@@ -1131,7 +1132,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playMode = atoi(playModeString.c_str());
 		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
 	} else {
-		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
+		Log_Println((char *) F("AUDIO: No path variable set"), LOGLEVEL_ERROR);
 	}
 
 	request->send(200);
@@ -1258,7 +1259,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 									&buf,
 									sizeof(nvs_page));
 		if (result != ESP_OK) {
-			snprintf(Log_Buffer, Log_BufferLength, "Error reading NVS!");
+			snprintf(Log_Buffer, Log_BufferLength, (char *) F("Error reading NVS!"));
 			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
 			return false;
 		}
@@ -1299,19 +1300,19 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		// request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
 		if (gPlayProperties.playMode == WEBSTREAM) {
 			// no cover -> send placeholder icon for webstream (fa-soundcloud)
-			snprintf(Log_Buffer, Log_BufferLength, "no cover image for webstream");
+			snprintf(Log_Buffer, Log_BufferLength, (char *) F("no cover image for webstream"));
 			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>"));
 		} else {
 			// no cover -> send placeholder icon for playing music from SD-card (fa-music)
-			snprintf(Log_Buffer, Log_BufferLength, "no cover image for SD-card audio");
+			snprintf(Log_Buffer, Log_BufferLength, (char *) F("no cover image for SD-card audio"));
 			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>"));
 		}
 		return;
 	}
 	char *coverFileName = *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber);
-	Serial.println(coverFileName);
+	Log_Println(coverFileName, LOGLEVEL_DEBUG);
 
 	File coverFile = gFSystem.open(coverFileName, FILE_READ);
 	// seek to start position
@@ -1358,6 +1359,6 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		index += willWrite;
 		return willWrite;
 	});
-	response->addHeader("Cache Control","no-cache, must-revalidate");
+	response->addHeader("Cache Control", "no-cache, must-revalidate");
 	request->send(response);
 }

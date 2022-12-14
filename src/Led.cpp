@@ -333,8 +333,6 @@ static void Led_Task(void *parameter) {
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 				float batteryLevel = Battery_EstimateLevel();
-				bool batteryLow = Battery_IsLow();
-				bool batteryCritical = Battery_IsCritical();
 
 				if (batteryLevel < 0) { // If voltage is too low or no battery is connected
 					LED_INDICATOR_SET(LedIndicatorType::Error);

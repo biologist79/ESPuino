@@ -397,7 +397,8 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		// Check if playmode should be adjusted
 		else if (strcmp_P(topic, topicRepeatModeCmnd) == 0) {
 			uint8_t repeatMode = strtoul(receivedString, NULL, 10);
-			Serial.printf("Repeat: %d", repeatMode);
+			snprintf(Log_Buffer, Log_BufferLength, "Repeat: %d", repeatMode);
+			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 			if (gPlayProperties.playMode != NO_PLAYLIST) {
 				if (gPlayProperties.playMode == NO_PLAYLIST) {
 					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);

@@ -46,8 +46,6 @@
 	void Battery_Cyclic(void) {
 		static uint32_t lastBatteryCheckTimestamp = 0;
 		if ((millis() - lastBatteryCheckTimestamp >= batteryCheckInterval * 60000) || (!lastBatteryCheckTimestamp && millis() >= 10000)) {
-			float voltage = Battery_GetVoltage();
-
 			Battery_CyclicInner();
 			Battery_PublishMQTT();
 			Battery_LogStatus();

@@ -83,20 +83,20 @@ uint64_t SdCard_GetFreeSize() {
 void SdCard_PrintInfo() {
 	// show SD card type
 	sdcard_type_t cardType = SdCard_GetType();
-	Serial.print(F("SD card type: "));
+	Log_Print((char *) F("SD card type: "), LOGLEVEL_DEBUG, true );
 	if (cardType == CARD_MMC) {
-		Serial.println(F("MMC"));
+		Log_Println((char *) F("MMC"), LOGLEVEL_DEBUG);
 	} else if (cardType == CARD_SD) {
-		Serial.println(F("SDSC"));
+		Log_Println((char *) F("SDSC"), LOGLEVEL_DEBUG);
 	} else if (cardType == CARD_SDHC) {
-		Serial.println(F("SDHC"));
+		Log_Println((char *) F("SDHC"), LOGLEVEL_DEBUG);
 	} else {
-		Serial.println(F("UNKNOWN"));
+		Log_Println((char *) F("UNKNOWN"), LOGLEVEL_DEBUG);
 	}
 	// show SD card size / free space
 	uint64_t cardSize = SdCard_GetSize() / (1024 * 1024);
 	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);;
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %llu MB / %llu MB\n", (char *) FPSTR(sdInfo), cardSize, freeSize);
+	snprintf(Log_Buffer, Log_BufferLength, "%s: %llu MB / %llu MB", (char *) FPSTR(sdInfo), cardSize, freeSize);
 	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 }
 

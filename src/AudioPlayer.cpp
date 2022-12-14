@@ -355,8 +355,9 @@ void AudioPlayer_Task(void *parameter) {
 					snprintf(Log_Buffer, Log_BufferLength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
 				#endif
 				Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-				Serial.print(F("Free heap: "));
-				Serial.println(ESP.getFreeHeap());
+
+				snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) F("Free heap: "), ESP.getFreeHeap());
+				Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 
 				#ifdef MQTT_ENABLE
 					publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
@@ -1016,7 +1017,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 	#else
 		snprintf(Log_Buffer, Log_BufferLength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
 	#endif
-	Log_Print(Log_Buffer, LOGLEVEL_INFO);
+	Log_Print(Log_Buffer, LOGLEVEL_INFO, true);
 	Log_Println(prefBuf, LOGLEVEL_INFO);
 	Led_SetPause(false);
 	return gPrefsRfid.putString(_rfidCardId, prefBuf);
