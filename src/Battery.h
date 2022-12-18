@@ -3,11 +3,11 @@
 extern uint8_t batteryCheckInterval;
 
 #if defined(MEASURE_BATTERY_VOLTAGE)
-    extern float voltageIndicatorCritical;
-    extern float warningLowVoltage;
-    extern float warningCriticalVoltage;
-    extern float voltageIndicatorLow;
-    extern float voltageIndicatorHigh;
+	extern float voltageIndicatorCritical;
+	extern float warningLowVoltage;
+	extern float warningCriticalVoltage;
+	extern float voltageIndicatorLow;
+	extern float voltageIndicatorHigh;
 #endif
 
 void Battery_Init(void);
