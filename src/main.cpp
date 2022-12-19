@@ -105,6 +105,20 @@ bool testSPIRAM(void) {
 	}
 #endif
 
+// Get next RFID-tag if already set
+void loadNextRfid(void) {
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
+		return;
+	}
+	String rfidToPlay = gPrefsSettings.getString("lastRfid", "-1");
+	if (rfidToPlay.compareTo("-1")) { // rfid is != "-1"
+		char *nextRfid = x_strdup(rfidToPlay.c_str());
+		xQueueSend(gRfidCardQueue, nextRfid, 0);
+		snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), rfidToPlay.c_str());
+		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		gPrefsSettings.putString("lastRfid", "-1"); // reset this value
+	}
+}
 
 void setup() {
 	Log_Init();
@@ -244,6 +258,8 @@ void loop() {
 	#ifdef PLAY_LAST_RFID_AFTER_REBOOT
 		recoverBootCountFromNvs();
 		recoverLastRfidPlayedFromNvs();
+	#else
+		loadNextRfid();
 	#endif
 
 	IrReceiver_Cyclic();
