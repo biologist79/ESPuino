@@ -753,7 +753,9 @@ void AudioPlayer_Task(void *parameter) {
 
 		audio->loop();
 		if (gPlayProperties.playlistFinished || gPlayProperties.pausePlay) {
-			vTaskDelay(portTICK_PERIOD_MS * 10); // Waste some time if playlist is not active
+			if (!gPlayProperties.currentSpeechActive) {
+				vTaskDelay(portTICK_PERIOD_MS * 10); // Waste some time if playlist is not active
+			}
 		} else {
 			System_UpdateActivityTimer(); // Refresh if playlist is active so uC will not fall asleep due to reaching inactivity-time
 		}
