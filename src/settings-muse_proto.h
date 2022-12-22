@@ -1,10 +1,19 @@
-#ifndef __ESPUINO_SETTINGS_CUSTOM_H__
-#define __ESPUINO_SETTINGS_CUSTOM_H__
+#ifndef __ESPUINO_SETTINGS_MUSEPROTO_H__
+#define __ESPUINO_SETTINGS_MUSEPROTO_H__
     #include "Arduino.h"
 
     //######################### INFOS ####################################
-    /* This is not a develboard-specific config-file. It's intended for your own use.
-    It's been originally derived from lolin32, but just change it according your needs!
+    /* This is a device-specific settings file for the RASPIAUDIO Muse Proto
+     * offered by https://raspiaudio.com/produit/muse-proto and available at 
+     * multiple sources. It uses
+     * 
+     * * On-Board Neopixel (1 Pixel)
+     * * PN532 NFC Reader, using I2C, GPIOs 12 (CLK) and 32 (DATA)
+     * * KY-040 Rotary Encoder with on-board pull ups on GPIOs 36, 39 (Printed VP/VN)
+     * * Three buttons without pull ups on GPIOs 18, 19, 0
+     * * Batteries measured using the on-board battery controller
+     * * Using the on-board 3W output for externals speakers
+     * 
     */
 
     //################## GPIO-configuration ##############################
@@ -60,7 +69,6 @@
 
     // Amp enable (optional)
     #define GPIO_PA_EN                      21         // To enable amp for loudspeaker (GPIO or port-channel)
-    //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                      18         // Button 0: GPIO to detect next
@@ -76,7 +84,7 @@
         #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
     #endif
 
-    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
+    // I2C-configuration (necessary for RC522 or RC532 [only via i2c - not spi!] or port-expander)
     #ifdef I2C_2_ENABLE
         #define ext_IIC_CLK                12           // i2c-SCL (clock)
         #define ext_IIC_DATA               32           // i2c-SDA (data)
