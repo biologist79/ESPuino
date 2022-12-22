@@ -217,7 +217,6 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
         #ifdef GPIO_PA_EN
             Port_Write(GPIO_PA_EN, true, true);
         #endif
-
         #ifdef GPIO_HP_EN
             Port_Write(GPIO_HP_EN, true, true);
         #endif
@@ -226,13 +225,10 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
             #ifdef GPIO_PA_EN
                 Port_Write(GPIO_PA_EN, true, true);
-                
             #endif
-
             #ifdef GPIO_HP_EN
                 Port_Write(GPIO_HP_EN, false, true);
             #endif
-
         } else {
             AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone; // 0 if headphone is connected (put to GND)
             gPlayProperties.newPlayMono = false;                     // always stereo for headphones!
@@ -240,7 +236,6 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
             #ifdef GPIO_PA_EN
                 Port_Write(GPIO_PA_EN, false, true);
             #endif
-
             #ifdef GPIO_HP_EN
                 Port_Write(GPIO_HP_EN, true, true);
             #endif
