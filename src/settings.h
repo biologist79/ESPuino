@@ -19,10 +19,12 @@
     6: ESPuino complete                     => settings-complete.h
     7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
     8: AZDelivery ESP32 NodeMCU             => settings-azdelivery_sdmmc.h
+    9: Lolin D32 SDMMC Port-Expander        => settings-lolin_d32_sdmmc_pe.h
+    10: RASPIAUDIO Muse Proto               => settings-muse_proto.h
     99: custom                              => settings-custom.h
     more to come...
     */
-    #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
+    #ifndef HAL             // Will be set by platformio.ini. If using Arduino-IDE you have to set HAL according your needs!
         #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; ... 99 = custom
     #endif
 
@@ -278,7 +280,7 @@
     #elif (HAL == 8)
         #include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
     #elif (HAL == 9)
-        #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+        #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for Lolin D32 (non-pro) with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
     #elif (HAL == 10)
         #include "settings-muse_proto.h"                     // Pre-configured settings for Raspiaudio ESPMuse Proto Board with I2C RFID Reader (https://raspiaudio.com/produit/muse-proto)
     #elif (HAL == 99)
