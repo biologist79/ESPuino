@@ -54,8 +54,8 @@
     // Rotary encoder
     #ifdef USEROTARY_ENABLE
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
-        #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
-        #define ROTARYENCODER_DT            35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
+        #define ROTARYENCODER_CLK           36          // SENSOR-VP
+        #define ROTARYENCODER_DT            39          // SENSOR_VN
     #endif
 
     // Amp enable (optional)
@@ -63,21 +63,12 @@
     //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                      19         // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                  32          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
-    #define PAUSEPLAY_BUTTON                 12          // Button 2: GPIO to detect pause/play
+    #define NEXT_BUTTON                      18         // Button 0: GPIO to detect next
+    #define PREVIOUS_BUTTON                  19          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
+    #define PAUSEPLAY_BUTTON                 0          // Button 2: GPIO to detect pause/play
     #define ROTARYENCODER_BUTTON            99          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #define BUTTON_4                        99          // Button 4: unnamed optional button
     #define BUTTON_5                        99          // Button 5: unnamed optional button
-
-    #define BUTTON_0_SHORT    CMD_VOLUMEUP
-    #define BUTTON_1_SHORT    CMD_VOLUMEDOWN
-    #define BUTTON_2_SHORT    CMD_PLAYPAUSE
-
-    #define BUTTON_0_LONG     CMD_NEXTTRACK
-    #define BUTTON_1_LONG     CMD_PREVTRACK
-    
-    #define BUTTON_MULTI_12   CMD_FIRSTTRACK
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
@@ -87,8 +78,8 @@
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
     #ifdef I2C_2_ENABLE
-        #define ext_IIC_CLK                23           // i2c-SCL (clock)
-        #define ext_IIC_DATA               18           // i2c-SDA (data)
+        #define ext_IIC_CLK                12           // i2c-SCL (clock)
+        #define ext_IIC_DATA               32           // i2c-SDA (data)
     #endif
 
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
