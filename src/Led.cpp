@@ -160,6 +160,30 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	#endif
 }
 
+bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
+			     bool notificationShown, bool ledBusyShown,
+			     bool volumeChangeShown) {
+#ifdef BATTERY_MEASURE_ENABLE
+	if (gPlayProperties.pausePlay != lastPlayState ||
+	    System_AreControlsLocked() != lastLockState ||
+	    notificationShown || ledBusyShown || volumeChangeShown ||
+	    LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) ||
+	    LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) ||
+	    !gButtons[gShutdownButton].currentState ||
+	    System_IsSleepRequested()) {
+#else
+	if (gPlayProperties.pausePlay != lastPlayState ||
+	    System_AreControlsLocked() != lastLockState ||
+	    notificationShown || ledBusyShown || volumeChangeShown ||
+	    !gButtons[gShutdownButton].currentState ||
+	    System_IsSleepRequested()) {
+#endif
+		return true;
+	}
+
+	return false;
+}
+
 static void Led_Task(void *parameter) {
 	#ifdef NEOPIXEL_ENABLE
 		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
@@ -416,6 +440,7 @@ static void Led_Task(void *parameter) {
 			volumeChangeShown = true;
 			FastLED.clear();
 
+
 			if (NUM_LEDS == 1) {
 				leds[0].setHue((uint8_t)(85 - (90 * ((double)AudioPlayer_GetCurrentVolume() / (double)AudioPlayer_GetMaxVolumeSpeaker()))));
 			} else {
@@ -605,11 +630,9 @@ static void Led_Task(void *parameter) {
 
 			default: // If playlist is active (doesn't matter which type)
 				if (!gPlayProperties.playlistFinished) {
-					#ifdef BATTERY_MEASURE_ENABLE
-						if (gPlayProperties.pausePlay != lastPlayState || System_AreControlsLocked() != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-					#else
-						if (gPlayProperties.pausePlay != lastPlayState || System_AreControlsLocked() != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-					#endif
+					if (Led_NeedsProgressRedraw(lastPlayState, lastLockState,
+								    notificationShown, ledBusyShown,
+								    volumeChangeShown)) {
 						lastPlayState = gPlayProperties.pausePlay;
 						lastLockState = System_AreControlsLocked();
 						notificationShown = false;
