@@ -565,6 +565,10 @@ static void Led_Task(void *parameter) {
 			case NO_PLAYLIST: // If no playlist is active (idle)
 				if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
 					for (uint8_t i = 0; i < NUM_LEDS; i++) {
+						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
+							// skip idle pattern if volume has changed
+							break;
+						}
 						if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 							idleColor = CRGB::Blue;
 						} else
