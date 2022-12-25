@@ -38,6 +38,8 @@ bool testSPIRAM(void) {
 	uint32_t bootCount = 0;
 #endif
 
+bool recoverRfidFromBluetooth = true;
+
 ////////////
 
 #if (HAL == 2)
@@ -107,16 +109,24 @@ bool testSPIRAM(void) {
 
 // Get next RFID-tag if already set
 void loadNextRfid(void) {
-	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
-		return;
-	}
-	String rfidToPlay = gPrefsSettings.getString("lastRfid", "-1");
-	if (rfidToPlay.compareTo("-1")) { // rfid is != "-1"
-		char *nextRfid = x_strdup(rfidToPlay.c_str());
-		xQueueSend(gRfidCardQueue, nextRfid, 0);
-		snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), rfidToPlay.c_str());
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
-		gPrefsSettings.putString("lastRfid", "-1"); // reset this value
+	if (recoverRfidFromBluetooth) {
+		recoverRfidFromBluetooth = false; // only try it once per bootup
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
+			return;
+		}
+		String rfidToPlay = gPrefsSettings.getString("lastRfid", "-2");
+		if (rfidToPlay.compareTo("-1") == 0) { // rfid is != "-1"
+			// nothing to do. No tag to play
+		} else if (rfidToPlay.compareTo("-2") == 0) {
+			// reset value in since it was not set yet
+			gPrefsSettings.putString("lastRfid", "-1"); // set this value to reset
+		} else { // should be a vaild RFID-Tag.
+			char *nextRfid = x_strdup(rfidToPlay.c_str());
+			xQueueSend(gRfidCardQueue, nextRfid, 0);
+			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), rfidToPlay.c_str());
+			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			gPrefsSettings.putString("lastRfid", "-1"); // reset this value
+		}
 	}
 }
 
