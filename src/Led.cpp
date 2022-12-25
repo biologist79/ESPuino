@@ -165,12 +165,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 }
 
 bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
-			     bool notificationShown, bool ledBusyShown,
 			     bool requestProgressRedraw) {
 #ifdef BATTERY_MEASURE_ENABLE
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
-	    notificationShown || ledBusyShown || requestProgressRedraw ||
+	    requestProgressRedraw ||
 	    LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) ||
 	    LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) ||
 	    !gButtons[gShutdownButton].currentState ||
@@ -178,7 +177,7 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 #else
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
-	    notificationShown || ledBusyShown || requestProgressRedraw ||
+	    requestProgressRedraw ||
 	    !gButtons[gShutdownButton].currentState ||
 	    System_IsSleepRequested()) {
 #endif
@@ -194,8 +193,7 @@ static void Led_Task(void *parameter) {
 		static double lastPos = gPlayProperties.currentRelPos;
 		static bool lastPlayState = false;
 		static bool lastLockState = false;
-		static bool ledBusyShown = false;
-		static bool notificationShown = false;
+		static bool requestClearLeds = false;
 		static bool requestProgressRedraw = false;
 		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
@@ -311,7 +309,7 @@ static void Led_Task(void *parameter) {
 			// Single-LED: led flashes red 5x
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) { // If error occured (e.g. RFID-modification not accepted)
 				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				FastLED.clear();
 
 				if (NUM_LEDS == 1) {
@@ -339,7 +337,7 @@ static void Led_Task(void *parameter) {
 			// Single-LED: led flashes green 5x
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) { // If action was accepted
 				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				FastLED.clear();
 
 				if (NUM_LEDS == 1) {
@@ -367,7 +365,7 @@ static void Led_Task(void *parameter) {
 			// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				for (uint8_t i = 0; i < 3; i++) {
 					FastLED.clear();
 
@@ -620,7 +618,8 @@ static void Led_Task(void *parameter) {
 				break;
 
 			case BUSY: // If uC is busy (parsing SD-card)
-				ledBusyShown = true;
+				requestProgressRedraw = true;
+				requestClearLeds = true;
 				if (NUM_LEDS == 1) {
 					FastLED.clear();
 					singleLedStatus = !singleLedStatus;
@@ -657,18 +656,17 @@ static void Led_Task(void *parameter) {
 			default: // If playlist is active (doesn't matter which type)
 				if (!gPlayProperties.playlistFinished) {
 					if (Led_NeedsProgressRedraw(lastPlayState, lastLockState,
-								    notificationShown, ledBusyShown,
 								    requestProgressRedraw)) {
 						lastPlayState = gPlayProperties.pausePlay;
 						lastLockState = System_AreControlsLocked();
-						notificationShown = false;
 						requestProgressRedraw = false;
-						if (ledBusyShown) {
-							ledBusyShown = false;
-							FastLED.clear();
-							FastLED.show();
-						}
 						redrawProgress = true;
+					}
+
+					if (requestClearLeds) {
+						FastLED.clear();
+						FastLED.show();
+						requestClearLeds = false;
 					}
 
 					// Single-LED: led indicates between gradient green (beginning) => red (end)
