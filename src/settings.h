@@ -159,6 +159,7 @@
     constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
 
     //#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
+    #define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked
 
     // RFID-RC522
     #define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
