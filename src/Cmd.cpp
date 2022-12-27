@@ -260,7 +260,7 @@ void Cmd_Action(const uint16_t mod) {
 			}
 		#endif
 
-		#ifdef FTP_ENABLE
+		#ifdef CONFIG_FTP
 			case CMD_ENABLE_FTP_SERVER: {
 				if (millis() <= 30000) {    // Only allow to enable FTP within the first 30s after start (to prevent children it mess it up)
 					Ftp_EnableServer();

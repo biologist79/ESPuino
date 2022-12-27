@@ -8,7 +8,7 @@
 #include "System.h"
 #include "Wlan.h"
 
-#ifdef FTP_ENABLE
+#ifdef CONFIG_FTP
 	#include "ESP32FtpServer.h"
 #endif
 
@@ -17,7 +17,7 @@ String Ftp_User = "esp32";      // FTP-user (default; can be changed later via G
 String Ftp_Password = "esp32";  // FTP-password (default; can be changed later via GUI)
 
 // FTP
-#ifdef FTP_ENABLE
+#ifdef CONFIG_FTP
 FtpServer *ftpSrv; // Heap-alloction takes place later (when needed)
 bool ftpEnableLastStatus = false;
 bool ftpEnableCurrentStatus = false;
@@ -49,7 +49,7 @@ void Ftp_Init(void) {
 }
 
 void Ftp_Cyclic(void) {
-	#ifdef FTP_ENABLE
+	#ifdef CONFIG_FTP
 		ftpManager();
 
 		if (WL_CONNECTED == WiFi.status()) {
@@ -67,7 +67,7 @@ void Ftp_Cyclic(void) {
 }
 
 void Ftp_EnableServer(void) {
-	#ifdef FTP_ENABLE
+	#ifdef CONFIG_FTP
 		if (Wlan_IsConnected() && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
 			ftpEnableLastStatus = true;
 	#else
@@ -83,7 +83,7 @@ void Ftp_EnableServer(void) {
 
 // Creates FTP-instance only when requested
 void ftpManager(void) {
-	#ifdef FTP_ENABLE
+	#ifdef CONFIG_FTP
 		if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
 			Log_Printf(LOGLEVEL_DEBUG, freeHeapWithoutFtp, ESP.getFreeHeap());
 			ftpEnableCurrentStatus = true;

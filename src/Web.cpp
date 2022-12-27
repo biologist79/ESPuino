@@ -381,7 +381,7 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "FTP_PWD_LENGTH") {
 		return String(ftpPasswordLength - 1);
 	} else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
-		#ifdef FTP_ENABLE
+		#ifdef CONFIG_FTP
 			return (String) FPSTR(ftpTab);
 		#else
 			return String();
@@ -534,7 +534,7 @@ bool processJsonRequest(char *_serialJson) {
 		}
 	} else if (doc.containsKey("ftpStatus")) {
 		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
-		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
+		if (_ftpStart == 1) { // ifdef CONFIG_FTP is checked in Ftp_EnableServer()
 			Ftp_EnableServer();
 		}
 	} else if (doc.containsKey("mqtt")) {
