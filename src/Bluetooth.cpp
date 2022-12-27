@@ -175,7 +175,7 @@ void Bluetooth_Init(void) {
 				.data_in_num = I2S_PIN_NO_CHANGE};
 			a2dp_sink->set_pin_config(pin_config);
 			a2dp_sink->activate_pin_code(false);
-			#ifdef PLAY_MONO_SPEAKER
+			#ifdef CONFIG_MONO_SPEAKER
 				a2dp_sink->set_mono_downmix(true);
 			#endif
 			a2dp_sink->set_auto_reconnect(true);

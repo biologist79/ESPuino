@@ -80,6 +80,13 @@ config HEADPHONE_ADJUST
 	  If enabled and a headphone is plugged in, an alternative maximum
 	  volume is activated to prevent damage to childrens ears.
 
+config MONO_SPEAKER
+	bool "Enables mono output for speaker"
+	default y
+	help
+	  If active, mono output is used while headphones remain stereo (if
+	  CONFIG_HEADPHONE_ADJUST is active).
+
 endmenu
 
 menu "ESPuino Hardware Settings"
