@@ -56,6 +56,16 @@ config ACCEPT_SAME_RFID_AFTER_TRACK_END
 	  IF enabled the same tag can be applied after playback has finished in
 	  case PAUSE_WHEN_RFID_REMOVED is enabled.
 
+config DONT_ACCEPT_SAME_RFID_TWICE
+	bool "RFID reader doesn't accept the same RFID tag twice in a row"
+	default n
+	depends on !PAUSE_WHEN_RFID_REMOVED
+	help
+	  RFID reader doesn't accept the same RFID tag twice in a row (unless
+	  it's a modification card or RFID tag is unknown in NVS). See
+	  https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247
+	  for more information.
+
 config PLAY_LAST_RFID_AFTER_REBOOT
 	bool "Enable auto playback of last RFID after reboot"
 	default n
