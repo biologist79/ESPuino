@@ -41,6 +41,21 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+config PAUSE_WHEN_RFID_REMOVED
+	bool "Playback is only enabled as long as RFID tag is in range"
+	default n
+	help
+	  See https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541
+	  for more information.
+
+config ACCEPT_SAME_RFID_AFTER_TRACK_END
+	bool "Allow same RFID tag to be played after playback has finished"
+	default y
+	depends on PAUSE_WHEN_RFID_REMOVED
+	help
+	  IF enabled the same tag can be applied after playback has finished in
+	  case PAUSE_WHEN_RFID_REMOVED is enabled.
+
 config PLAY_LAST_RFID_AFTER_REBOOT
 	bool "Enable auto playback of last RFID after reboot"
 	default n

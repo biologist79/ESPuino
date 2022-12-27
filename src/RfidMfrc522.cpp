@@ -68,7 +68,7 @@
 			}
 			byte cardId[cardIdSize];
 			String cardIdString;
-			#ifdef PAUSE_WHEN_RFID_REMOVED
+			#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
 				byte lastValidcardId[cardIdSize];
 				bool cardAppliedCurrentRun = false;
 				bool sameCardReapplied = false;
@@ -87,11 +87,11 @@
 				if (!mfrc522.PICC_ReadCardSerial()) {
 					continue;
 				}
-				#ifdef PAUSE_WHEN_RFID_REMOVED
+				#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
 					cardAppliedCurrentRun = true;
 				#endif
 
-				#ifndef PAUSE_WHEN_RFID_REMOVED
+				#ifndef CONFIG_PAUSE_WHEN_RFID_REMOVED
 					mfrc522.PICC_HaltA();
 					mfrc522.PCD_StopCrypto1();
 				#endif
@@ -102,7 +102,7 @@
 					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 				#endif
 
-				#ifdef PAUSE_WHEN_RFID_REMOVED
+				#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
 					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
 						sameCardReapplied = true;
 					}
@@ -122,8 +122,8 @@
 					cardIdString += num;
 				}
 
-				#ifdef PAUSE_WHEN_RFID_REMOVED
-					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
+				#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
+					#ifdef CONFIG_ACCEPT_SAME_RFID_AFTER_TRACK_END
 						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
 					#else
 						if (!sameCardReapplied) {		// Don't allow to send card to queue if it's the same card again...
@@ -137,10 +137,10 @@
 					}
 					memcpy(lastValidcardId, mfrc522.uid.uidByte, cardIdSize);
 				#else
-					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);        // If PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
+					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);        // If CONFIG_PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
 				#endif
 
-				#ifdef PAUSE_WHEN_RFID_REMOVED
+				#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
 					// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
 					while (true) {
 						if (CONFIG_RFID_SCAN_INTERVAL/2 >= 20) {
