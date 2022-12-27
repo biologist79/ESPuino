@@ -13,7 +13,7 @@
 // 108 => port 1 channel/bit 0
 // 115 => port 1 channel/bit 7
 
-#ifdef PORT_EXPANDER_ENABLE
+#ifdef CONFIG_PORT_EXPANDER
 	extern TwoWire i2cBusTwo;
 
 	uint8_t Port_ExpanderPortsInputChannelStatus[2];
@@ -32,7 +32,7 @@
 #endif
 
 void Port_Init(void) {
-	#ifdef PORT_EXPANDER_ENABLE
+	#ifdef CONFIG_PORT_EXPANDER
 		Port_Test();
 		Port_WriteInitMaskForOutputChannels();
 		Port_ExpanderHandler();
@@ -46,7 +46,7 @@ void Port_Init(void) {
 }
 
 void Port_Cyclic(void) {
-	#ifdef PORT_EXPANDER_ENABLE
+	#ifdef CONFIG_PORT_EXPANDER
 		Port_ExpanderHandler();
 	#endif
 }
@@ -58,7 +58,7 @@ bool Port_Read(const uint8_t _channel) {
 		case 0 ... MAX_GPIO: // GPIO
 			return digitalRead(_channel);
 
-		#ifdef PORT_EXPANDER_ENABLE
+		#ifdef CONFIG_PORT_EXPANDER
 			case 100 ... 107: // Port-expander (port 0)
 				return (Port_ExpanderPortsInputChannelStatus[0] & (1 << (_channel - 100)));       // Remove offset 100 (return false if pressed)
 
@@ -108,7 +108,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			break;
 		}
 
-		#ifdef PORT_EXPANDER_ENABLE
+		#ifdef CONFIG_PORT_EXPANDER
 			case 100 ... 115: {
 				uint8_t portOffset = 0;
 				if (_channel >= 108 && _channel <= 115) {
@@ -140,7 +140,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 	}
 }
 
-#ifdef PORT_EXPANDER_ENABLE
+#ifdef CONFIG_PORT_EXPANDER
 	// Translates digitalWrite-style "GPIO" to bit
 	uint8_t Port_ChannelToBit(const uint8_t _channel) {
 		switch (_channel) {

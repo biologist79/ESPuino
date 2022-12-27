@@ -4,5 +4,17 @@ menu "Hidden Helpers"
 config CONVERT_TO_IDENTIFIER
 	bool
 	default y
+endmenu
+
+menu "ESPuino Module Settings"
+
+config PORT_EXPANDER
+	bool "Enables support for the PCA9555 port expander"
+	default n
+	help
+	  See https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
+	  for more information."
+
+
 
 endmenu

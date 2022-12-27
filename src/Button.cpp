@@ -46,7 +46,7 @@ t_button gButtons[7];         // next + prev + pplay + rotEnc + button4 + button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
 uint16_t gLongPressTime = 0;
 
-#ifdef PORT_EXPANDER_ENABLE
+#ifdef CONFIG_PORT_EXPANDER
 	extern bool Port_AllowReadFromPortExpander;
 #endif
 
@@ -128,7 +128,7 @@ void Button_Init() {
 void Button_Cyclic() {
 	if (xSemaphoreTake(Button_TimerSemaphore, 0) == pdTRUE) {
 		unsigned long currentTimestamp = millis();
-		#ifdef PORT_EXPANDER_ENABLE
+		#ifdef CONFIG_PORT_EXPANDER
 			Port_Cyclic();
 		#endif
 

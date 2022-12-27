@@ -220,7 +220,7 @@ void System_DeepSleepManager(void) {
 		#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
 			Rfid_Exit();
 		#endif
-		#ifdef PORT_EXPANDER_ENABLE
+		#ifdef CONFIG_PORT_EXPANDER
 			Port_Exit();
 		#endif
 		Log_Println((char *) F("deep-sleep, good night......."), LOGLEVEL_NOTICE);

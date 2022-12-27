@@ -74,12 +74,12 @@
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
-    #ifdef PORT_EXPANDER_ENABLE
+    #ifdef CONFIG_PORT_EXPANDER
         // Not supported
     #endif
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
+    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER)
         // Not supported
     #endif
 
