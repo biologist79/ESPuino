@@ -22,6 +22,12 @@ config MDNS
 	  If hostname is set to "ESPuino", you can reach it via
 	  http://ESPuino.local.
 
+config MQTT
+	bool "Enable support for MQTT"
+	default n
+	help
+	  Make sure to configure mqtt-server and (optionally) username+pwd.
+
 config PORT_EXPANDER
 	bool "Enables support for the PCA9555 port expander"
 	default n
