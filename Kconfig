@@ -73,6 +73,13 @@ endmenu
 
 menu "ESPuino Audio Settings"
 
+config CACHED_PLAYLIST
+	bool "Enables support for playlist caching"
+	default y
+	help
+	  See https://forum.espuino.de/t/neues-feature-cached-playlist/515 for
+	  more information.
+
 config HEADPHONE_ADJUST
 	bool "Enables adjustment of headphone volume"
 	default y

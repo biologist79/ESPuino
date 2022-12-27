@@ -231,7 +231,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	}
 
 	// Create linear playlist of caching-file
-	#ifdef CACHED_PLAYLIST_ENABLE
+	#ifdef CONFIG_CACHED_PLAYLIST
 		strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
 		strcat(cacheFileNameBuf, "/");
 		strcat(cacheFileNameBuf, (const char*) FPSTR(playlistCacheFile));       // Build absolute path of cacheFile
