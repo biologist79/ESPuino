@@ -116,7 +116,7 @@
 	#endif
 
 	// (Optional) remote control via infrared
-	#ifdef IR_CONTROL_ENABLE
+	#ifdef CONFIG_IR_CONTROL
 		#define IRLED_PIN		  5		// GPIO where IR-receiver is connected (only tested with VS1838B)
 		#define IR_DEBOUNCE		200		// Interval in ms to wait at least for next signal (not used for actions volume up/down)
 

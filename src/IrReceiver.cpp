@@ -6,23 +6,23 @@
 #include "Queues.h"
 #include "System.h"
 
-#ifdef IR_CONTROL_ENABLE
+#ifdef CONFIG_IR_CONTROL
 	#include <IRremote.h>
 #endif
 
 // HW-Timer
-#ifdef IR_CONTROL_ENABLE
+#ifdef CONFIG_IR_CONTROL
 	uint32_t IrReceiver_LastRcCmdTimestamp = 0u;
 #endif
 
 void IrReceiver_Init() {
-	#ifdef IR_CONTROL_ENABLE
+	#ifdef CONFIG_IR_CONTROL
 		IrReceiver.begin(IRLED_PIN);
 	#endif
 }
 
 void IrReceiver_Cyclic() {
-	#ifdef IR_CONTROL_ENABLE
+	#ifdef CONFIG_IR_CONTROL
 		static uint8_t lastVolume = 0;
 
 		if (IrReceiver.decode()) {
