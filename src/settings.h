@@ -33,7 +33,6 @@
 
 
 	//########################## MODULES #################################
-	#define LANGUAGE DE                     // DE = deutsch; EN = english
 	//#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
 	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (if PLAY_MONO_SPEAKER is set)
 	//#define PLAY_MONO_SPEAKER             // If only one speaker is used enabling mono should make sense. Please note: headphones is always stereo (if HEADPHONE_ADJUST_ENABLE is active)

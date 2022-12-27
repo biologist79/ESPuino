@@ -1,7 +1,7 @@
 
 #include "settings.h"
 
-#if (LANGUAGE == DE)
+#ifdef CONFIG_LANGUAGE_DE
 	#include "Log.h"
 
 	const char tryConnectMqttS[] PROGMEM = "Versuche Verbindung zu MQTT-Broker aufzubauen";

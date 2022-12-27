@@ -21,6 +21,18 @@ config I2S_COMM_FMT_LSB
 	help
 	  Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A.
 
+choice
+	bool "Set the language used in logs and web config"
+	default LANGUAGE_DE
+
+config LANGUAGE_DE
+	bool "German"
+
+config LANGUAGE_EN
+	bool "English"
+
+endchoice
+
 config MDNS
 	bool "Enables support for MDNS"
 	default y

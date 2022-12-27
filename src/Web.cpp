@@ -129,7 +129,7 @@ void Web_Init(void) {
 	});
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
+	#ifdef CONFIG_LANGUAGE_DE
 		request->send(200, "text/html", (char *) F("ESPuino wird neu gestartet..."));
 	#else
 		request->send(200, "text/html", (char *) F("ESPuino is being restarted..."));
@@ -139,7 +139,7 @@ void Web_Init(void) {
 	});
 
 	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
+	#ifdef CONFIG_LANGUAGE_DE
 		request->send(200, "text/html", (char *) F("ESPuino wird ausgeschaltet..."));
 	#else
 		request->send(200, "text/html", (char *) F("ESPuino is being shutdown..."));
@@ -207,7 +207,7 @@ void webserverStart(void) {
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
 				info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
-				#if (LANGUAGE == DE)
+				#ifdef CONFIG_LANGUAGE_DE
 					info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
 					info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
 					info += "\nFreier PSRAM: ";

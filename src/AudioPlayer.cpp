@@ -671,7 +671,7 @@ void AudioPlayer_Task(void *parameter) {
 			char ipBuf[16];
 			Wlan_GetIpAddress().toCharArray(ipBuf, sizeof(ipBuf));
 			bool speechOk;
-			#if (LANGUAGE == DE)
+			#ifdef CONFIG_LANGUAGE_DE
 				speechOk = audio->connecttospeech(ipBuf, "de");
 			#else
 				speechOk = audio->connecttospeech(ipBuf, "en");
