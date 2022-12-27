@@ -201,8 +201,8 @@ This mode is different from the others because the last playposition is saved. P
 * pause was pressed.
 * track is over.
 * playlist is over (playposition is set back to the first track and file-position 0).
-* As per default last playposition is not saved when applying a new RFID-tag. You can enable this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE`.
-* As per default last playposition is not saved when doing shutdown. You can enable this using `SAVE_PLAYPOS_BEFORE_SHUTDOWN`.
+* As per default last playposition is not saved when applying a new RFID-tag. You can enable this using `CONFIG_SAVE_PLAYPOS_WHEN_RFID_CHANGE`.
+* As per default last playposition is not saved when doing shutdown. You can enable this using `CONFIG_SAVE_PLAYPOS_BEFORE_SHUTDOWN`.
 
 ### FTP (optional)
 * FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` or use a modification-card to to activate it! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to save heap-memory when FTP isn't needed.

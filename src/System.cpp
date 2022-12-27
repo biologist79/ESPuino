@@ -188,7 +188,7 @@ void System_DeepSleepManager(void) {
 		Log_Println((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
 
 		// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-		#ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		#ifdef CONFIG_SAVE_PLAYPOS_BEFORE_SHUTDOWN
 			if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
 				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 				while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS

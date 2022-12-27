@@ -813,7 +813,7 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 // playmode to the track-queue.
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
 	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
-	#ifdef SAVE_PLAYPOS_WHEN_RFID_CHANGE
+	#ifdef CONFIG_SAVE_PLAYPOS_WHEN_RFID_CHANGE
 		if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
 			AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 			while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS

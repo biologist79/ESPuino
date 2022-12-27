@@ -98,6 +98,22 @@ config USE_LAST_VOLUME_AFTER_REBOOT
 	bool "Enables remembering the volume used before last shutdown"
 	default n
 
+config SAVE_PLAYPOS_BEFORE_SHUTDOWN
+	bool "Enables saving of the play position on shutdown"
+	default n
+	help
+	  When playback is active and mode audiobook was selected, the last
+	  position in the track is saved automatically when shutdown is
+	  initiated.
+
+config SAVE_PLAYPOS_WHEN_RFID_CHANGE
+	bool "Enables saving of the play position on RFID event"
+	default n
+	help
+	  When playback is active and mode audiobook was selected, the last
+	  position in the track is saved automatically when a new RFID tag
+	  is detected.
+
 endmenu
 
 menu "ESPuino Hardware Settings"
