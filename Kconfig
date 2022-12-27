@@ -87,6 +87,10 @@ config MONO_SPEAKER
 	  If active, mono output is used while headphones remain stereo (if
 	  CONFIG_HEADPHONE_ADJUST is active).
 
+config USE_LAST_VOLUME_AFTER_REBOOT
+	bool "Enables remembering the volume used before last shutdown"
+	default n
+
 endmenu
 
 menu "ESPuino Hardware Settings"

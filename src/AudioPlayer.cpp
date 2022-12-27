@@ -52,7 +52,7 @@ static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const cha
 static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
-	#ifndef USE_LAST_VOLUME_AFTER_REBOOT
+	#ifndef CONFIG_USE_LAST_VOLUME_AFTER_REBOOT
 		// Get initial volume from NVS
 		uint32_t nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
 	#else
