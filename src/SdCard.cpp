@@ -36,8 +36,8 @@ void SdCard_Init(void) {
 	#endif
 				Log_Println((char *) FPSTR(unableToMountSd), LOGLEVEL_ERROR);
 				delay(500);
-	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-				if (millis() >= deepsleepTimeAfterBootFails * 1000) {
+	#ifdef CONFIG_SHUTDOWN_IF_SD_BOOT_FAILS
+				if (millis() >= CONFIG_DEEPSLEEP_TIME_AFTER_BOOT_FAILS * 1000) {
 					Log_Println((char *) FPSTR(sdBootFailedDeepsleep), LOGLEVEL_ERROR);
 					esp_deep_sleep_start();
 				}

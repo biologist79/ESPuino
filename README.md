@@ -151,7 +151,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 ### Neopixel-ring (optional)
 Indicates different things. Don't forget configuration of number of LEDs via #define CONFIG_NEOPIXEL_NUM_LEDS
 * While booting: every second LED (rotating orange)
-* Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available or `SHUTDOWN_IF_SD_BOOT_FAILS` is active)
+* Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available or `CONFIG_SHUTDOWN_IF_SD_BOOT_FAILS` is active)
 * IDLE: four LEDs slow rotating (white if WiFi connected; green if WiFi disabled or ESPuino is about to connect to WiFi)
 * BLUETOOTH: four LEDs slow rotating coloured blue
 * ERROR: all LEDs flashing red (1x) if an action was not accepted

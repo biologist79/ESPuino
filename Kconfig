@@ -41,6 +41,19 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+config SHUTDOWN_IF_SD_BOOT_FAILS
+	bool "Enables shutdown on SD card boot failures"
+	default y
+	help
+	  If enabled the controller will go to deepsleep if boot fails due to
+	  SD card errors. This is recommended if there's no other way to restart
+	  the controller in battery mode!
+
+config DEEPSLEEP_TIME_AFTER_BOOT_FAILS
+	int "Time in seconds after which shutdown is triggered"
+	default 20
+	depends on SHUTDOWN_IF_SD_BOOT_FAILS
+
 menuconfig STATIC_IP
 	bool "Use static IP configuration"
 	default n
