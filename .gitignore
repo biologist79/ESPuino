@@ -1,3 +1,5 @@
+.config
+.config.old
 .pio
 venv/
 .vscode/.browse.c_cpp.db*
@@ -6,6 +8,7 @@ venv/
 .vscode/ipch
 .DS_Store
 .idea/
+config.h
 CMakeLists.txt
 CMakeListsPrivate.txt
 cmake-build-az-delivery-devkit-v4/
