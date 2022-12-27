@@ -137,7 +137,7 @@ void Wlan_Cyclic(void) {
 			long gmtOffset_sec = 3600;
 			int daylightOffset_sec = 3600;
 			configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
-			#ifdef MDNS_ENABLE
+			#ifdef CONFIG_MDNS
 				// zero conf, make device available as <hostname>.local
 				if (MDNS.begin(hostname.c_str())) {
 					MDNS.addService("http", "tcp", 80);
