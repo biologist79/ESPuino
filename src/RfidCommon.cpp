@@ -85,7 +85,7 @@ void Rfid_PreferenceLookupHandler(void) {
 						publishMqtt((char *) FPSTR(topicRfidState), gCurrentRfidTagId, false);
 					#endif
 
-					#ifdef BLUETOOTH_ENABLE
+					#ifdef CONFIG_BLUETOOTH
 						// if music rfid was read, go back to normal mode
 						if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 							System_SetOperationMode(OPMODE_NORMAL);

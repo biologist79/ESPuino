@@ -233,7 +233,7 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
-		#ifdef BLUETOOTH_ENABLE
+		#ifdef CONFIG_BLUETOOTH
 			case CMD_TOGGLE_BLUETOOTH_SINK_MODE: {
 				if (System_GetOperationModeFromNvs() == OPMODE_NORMAL) {
 					System_IndicateOk();

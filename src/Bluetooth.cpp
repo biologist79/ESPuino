@@ -7,13 +7,13 @@
 #include "Common.h"
 #include "System.h"
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	#include "esp_bt.h"
 	#include "BluetoothA2DPSink.h"
 	#include "BluetoothA2DPSource.h"
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	#define BLUETOOTHPLAYER_VOLUME_MAX 21u
 	#define BLUETOOTHPLAYER_VOLUME_MIN 0u
 
@@ -23,7 +23,7 @@
 	String btDeviceName;
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	const char *getType() {
 		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 			return "sink";
@@ -33,7 +33,7 @@
 	}
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), a2dp_source->to_str(state));
@@ -41,14 +41,14 @@
 #endif
 
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 	void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), a2dp_source->to_str(state));
 	}
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// handle Bluetooth AVRC metadata
 	// https://docs.espressif.com/projects/esp-idf/en/release-v3.2/api-reference/bluetooth/esp_avrc.html
 	void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
@@ -88,7 +88,7 @@
 	}
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// feed the A2DP source with audio data
 	int32_t get_data_channels(Frame *frame, int32_t channel_len) {
 		if (channel_len < 0 || frame == NULL)
@@ -119,14 +119,14 @@
 	};
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// callback which is notified on update Receiver RSSI
 	void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam) {
 		Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
 	}
 #endif
 
-#ifdef BLUETOOTH_ENABLE
+#ifdef CONFIG_BLUETOOTH
 	// Callback notifying BT-source devices available.
 	// Return true to connect, false will continue scanning
 	bool scan_bluetooth_device_callback(const char* ssid, esp_bd_addr_t address, int rssi) {
@@ -143,7 +143,7 @@
 #endif
 
 void Bluetooth_VolumeChanged(int _newVolume) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _newVolume);
 		uint8_t _volume;
 		if (_newVolume < int(BLUETOOTHPLAYER_VOLUME_MIN)) {
@@ -161,7 +161,7 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 }
 
 void Bluetooth_Init(void) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
         if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
             // bluetooth in sink mode (player acts as a BT-Speaker)
 			a2dp_sink = new BluetoothA2DPSink();
@@ -221,7 +221,7 @@ void Bluetooth_Init(void) {
 }
 
 void Bluetooth_Cyclic(void) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink)) {
 			esp_a2d_audio_state_t state = a2dp_sink->get_audio_state();
 			// Reset Sleep Timer when audio is playing
@@ -240,7 +240,7 @@ void Bluetooth_Cyclic(void) {
 }
 
 void Bluetooth_PlayPauseTrack(void) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink)) {
 			esp_a2d_audio_state_t state = a2dp_sink->get_audio_state();
 			if (state == ESP_A2D_AUDIO_STATE_STARTED) {
@@ -253,7 +253,7 @@ void Bluetooth_PlayPauseTrack(void) {
 }
 
 void Bluetooth_NextTrack(void) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink)) {
 			a2dp_sink->next();
 		}
@@ -261,7 +261,7 @@ void Bluetooth_NextTrack(void) {
 }
 
 void Bluetooth_PreviousTrack(void) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink)) {
 			a2dp_sink->previous();
 		}
@@ -270,7 +270,7 @@ void Bluetooth_PreviousTrack(void) {
 
 // set volume from ESPuino to phone needs at least Arduino ESP version 2.0.0
 void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		if (!a2dp_sink)
 			return;
 		uint8_t _volume;
@@ -290,7 +290,7 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 }
 
 bool Bluetooth_Source_SendAudioData(uint32_t* sample) {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		// send audio data to ringbuffer
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()) {
 			return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, sample, sizeof(uint32_t), (portTickType)portMAX_DELAY));
@@ -303,7 +303,7 @@ bool Bluetooth_Source_SendAudioData(uint32_t* sample) {
 }
 
 bool Bluetooth_Source_Connected() {
-	#ifdef BLUETOOTH_ENABLE
+	#ifdef CONFIG_BLUETOOTH
 		// send audio data to ringbuffer
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()) {
 			return true;
