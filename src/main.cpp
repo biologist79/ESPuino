@@ -36,7 +36,7 @@ bool testSPIRAM(void) {
 	return true;
 }
 
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+#ifdef CONFIG_PLAY_LAST_RFID_AFTER_REBOOT
 	bool recoverLastRfid = true;
 	bool recoverBootCount = true;
 	bool resetBootCount = false;
@@ -56,7 +56,7 @@ bool testSPIRAM(void) {
 	TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+#ifdef CONFIG_PLAY_LAST_RFID_AFTER_REBOOT
 	// If a problem occurs, remembering last rfid can lead into a boot loop that's hard to escape of.
 	// That reason for a mechanism is necessary to prevent this.
 	// At start of a boot, bootCount is incremented by one and after 30s decremented because
@@ -245,7 +245,7 @@ void loop() {
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
-	#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+	#ifdef CONFIG_PLAY_LAST_RFID_AFTER_REBOOT
 		recoverBootCountFromNvs();
 		recoverLastRfidPlayedFromNvs();
 	#endif

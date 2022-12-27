@@ -41,6 +41,13 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+config PLAY_LAST_RFID_AFTER_REBOOT
+	bool "Enable auto playback of last RFID after reboot"
+	default n
+	help
+	  If enabled and the ESPuino is restarted, the last RFID that was active
+	  before, is recalled and played.
+
 config SHUTDOWN_IF_SD_BOOT_FAILS
 	bool "Enables shutdown on SD card boot failures"
 	default y

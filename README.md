@@ -187,7 +187,7 @@ Minimum duration for long press (to distinguish vom short press) in ms is define
 
 ### Music-play
 * Music starts to play right away after a valid RFID-tag was applied (if it's known to ESPuino).
-* If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay.
+* If `CONFIG_PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay.
 * If a folder should be played that contains many mp3s, the playlist-generation can take a few seconds.
 * For all playmodes that are not single tracks or webradio a filecache is available to speed up playlist-generation. The cache is generated as you apply the corresponding RFID-tag for the first time. Use `CONFIG_CACHED_PLAYLIST` to enable it - I really recommend to use it.
 * A file's name including path isn't allowed exceed 255 characters.
