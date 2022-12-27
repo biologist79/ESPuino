@@ -41,6 +41,34 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+menuconfig STATIC_IP
+	bool "Use static IP configuration"
+	default n
+
+if STATIC_IP
+
+config LOCAL_IP
+	string "ESPuino's static local IP address"
+	default "192,168,2,100"
+	depends on CONVERT_TO_IDENTIFIER
+
+config GATEWAY_IP
+	string "Gateway IP address"
+	default "192,168,2,1"
+	depends on CONVERT_TO_IDENTIFIER
+
+config SUBNET_MASK
+	string "Subnet mask"
+	default "255,255,255,0"
+	depends on CONVERT_TO_IDENTIFIER
+
+config DNS_IP
+	string "DNS Server IP"
+	default "192,168,2,1"
+	depends on CONVERT_TO_IDENTIFIER
+
+endif # STATIC_IP
+
 endmenu
 
 menu "ESPuino Hardware Settings"

@@ -92,9 +92,9 @@ void Wlan_Cyclic(void) {
 		}
 
 		// Add configuration of static IP (if requested)
-		#ifdef STATIC_IP_ENABLE
+		#ifdef CONFIG_STATIC_IP
 			Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
-			if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
+			if (!WiFi.config(IPAddress(CONFIG_LOCAL_IP), IPAddress(CONFIG_GATEWAY_IP), IPAddress(CONFIG_SUBNET_MASK), IPAddress(CONFIG_DNS_IP))) {
 				Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 			}
 		#endif

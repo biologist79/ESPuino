@@ -33,7 +33,6 @@
 
 
 	//########################## MODULES #################################
-	//#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
 	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (if PLAY_MONO_SPEAKER is set)
 	//#define PLAY_MONO_SPEAKER             // If only one speaker is used enabling mono should make sense. Please note: headphones is always stereo (if HEADPHONE_ADJUST_ENABLE is active)
 	#define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
@@ -148,14 +147,6 @@
 
 	// Serial-logging-configuration
 	#define SERIAL_LOGLEVEL LOGLEVEL_DEBUG              // Current loglevel for serial console
-
-	// Static ip-configuration
-	#ifdef STATIC_IP_ENABLE
-		#define LOCAL_IP   192,168,2,100                // ESPuino's IP
-		#define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router
-		#define SUBNET_IP  255,255,255,0                // Netmask of your network (/24 => 255.255.255.0)
-		#define DNS_IP     192,168,2,1                  // DNS-server of your network; in private networks it's usually the gatewy's IP
-	#endif
 
 	// Buttons (better leave unchanged if in doubts :-))
 	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
