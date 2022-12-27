@@ -8,6 +8,12 @@ endmenu
 
 menu "ESPuino Module Settings"
 
+config I2S_COMM_FMT_LSB
+	bool "Enables FMT instead of MSB for I2S-communication-format"
+	default n
+	help
+	  Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A.
+
 config PORT_EXPANDER
 	bool "Enables support for the PCA9555 port expander"
 	default n

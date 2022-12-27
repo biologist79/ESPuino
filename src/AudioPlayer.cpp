@@ -292,7 +292,7 @@ void AudioPlayer_Task(void *parameter) {
 		Audio *audio = &audioAsStatic;
 	#endif
 
-	#ifdef I2S_COMM_FMT_LSB_ENABLE
+	#ifdef CONFIG_I2S_COMM_FMT_LSB
 		audio->setI2SCommFMT_LSB(true);
 	#endif
 
