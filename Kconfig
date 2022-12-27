@@ -54,6 +54,11 @@ config DEEPSLEEP_TIME_AFTER_BOOT_FAILS
 	default 20
 	depends on SHUTDOWN_IF_SD_BOOT_FAILS
 
+config SHUTDOWN_ON_BAT_CRITICAL
+	bool "Enables shutdown if battery level is critical"
+	default n
+	depends on MEASURE_BATTERY_VOLTAGE || MEASURE_BATTERY_17055
+
 menuconfig STATIC_IP
 	bool "Use static IP configuration"
 	default n

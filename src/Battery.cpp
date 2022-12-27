@@ -22,7 +22,7 @@
 
 		Battery_InitInner();
 
-		#ifdef SHUTDOWN_ON_BAT_CRITICAL
+		#ifdef CONFIG_SHUTDOWN_ON_BAT_CRITICAL
 			if (Battery_IsCritical()) {
 				Battery_LogStatus();
 
@@ -54,7 +54,7 @@
 				Led_Indicate(LedIndicatorType::VoltageWarning);
 			}
 
-			#ifdef SHUTDOWN_ON_BAT_CRITICAL
+			#ifdef CONFIG_SHUTDOWN_ON_BAT_CRITICAL
 				if (Battery_IsCritical()) {
 					Log_Println((char *)FPSTR(batteryCriticalMsg), LOGLEVEL_ERROR);
 					System_RequestSleep();
