@@ -23,7 +23,7 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
 * `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
-* Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
+* Disable `CONFIG_SD_MMC_1BIT_MODE` and `CONFIG_SINGLE_SPI` as these are not supported by this PCB.
 * Enable `CONFIG_RFID_READER_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
 * Enable `CONFIG_ROTARY_ENCODER`.
 * Enable buttons for previous, next, pause/play.

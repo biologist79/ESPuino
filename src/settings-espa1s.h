@@ -15,7 +15,7 @@
 
     //################## GPIO-configuration ##############################
     // SD
-    // Make sure to enable SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
+    // Make sure to enable CONFIG_SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
 
     // RFID (via SPI; currently not supported!)
     #if defined(CONFIG_RFID_READER_MFRC522_SPI)

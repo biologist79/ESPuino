@@ -7,7 +7,7 @@
 #include "MemX.h"
 #include "System.h"
 
-#ifdef SD_MMC_1BIT_MODE
+#ifdef CONFIG_SD_MMC_1BIT_MODE
 	fs::FS gFSystem = (fs::FS)SD_MMC;
 #else
 	SPIClass spiSD(HSPI);
@@ -15,8 +15,8 @@
 #endif
 
 void SdCard_Init(void) {
-	#ifndef SINGLE_SPI_ENABLE
-		#ifdef SD_MMC_1BIT_MODE
+	#ifndef CONFIG_SINGLE_SPI
+		#ifdef CONFIG_SD_MMC_1BIT_MODE
 			pinMode(2, INPUT_PULLUP);
 			while (!SD_MMC.begin("/sdcard", true)) {
 		#else
@@ -27,7 +27,7 @@ void SdCard_Init(void) {
 			while (!SD.begin(SPISD_CS, spiSD)) {
 		#endif
 	#else
-		#ifdef SD_MMC_1BIT_MODE
+		#ifdef CONFIG_SD_MMC_1BIT_MODE
 			pinMode(2, INPUT_PULLUP);
 			while (!SD_MMC.begin("/sdcard", true)) {
 		#else
@@ -47,14 +47,14 @@ void SdCard_Init(void) {
 
 void SdCard_Exit(void) {
 	// SD card goto idle mode
-	#ifdef SD_MMC_1BIT_MODE
+	#ifdef CONFIG_SD_MMC_1BIT_MODE
 		SD_MMC.end();
 	#endif
 }
 
 sdcard_type_t SdCard_GetType(void) {
 	sdcard_type_t cardType;
-	#ifdef SD_MMC_1BIT_MODE
+	#ifdef CONFIG_SD_MMC_1BIT_MODE
 		Log_Println((char *) FPSTR(sdMountedMmc1BitMode), LOGLEVEL_NOTICE);
 		cardType = SD_MMC.cardType();
 	#else
@@ -65,7 +65,7 @@ sdcard_type_t SdCard_GetType(void) {
 }
 
 uint64_t SdCard_GetSize() {
-	#ifdef SD_MMC_1BIT_MODE
+	#ifdef CONFIG_SD_MMC_1BIT_MODE
 		return SD_MMC.cardSize();
 	#else
 		return SD.cardSize();
@@ -73,7 +73,7 @@ uint64_t SdCard_GetSize() {
 }
 
 uint64_t SdCard_GetFreeSize() {
-	#ifdef SD_MMC_1BIT_MODE
+	#ifdef CONFIG_SD_MMC_1BIT_MODE
 		return SD_MMC.cardSize() - SD_MMC.usedBytes();
 	#else
 		return SD.cardSize() - SD.usedBytes();

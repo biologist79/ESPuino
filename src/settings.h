@@ -48,10 +48,6 @@
 		#define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after playback has ended (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541/2)
 	#endif
 
-	//################## select SD card mode #############################
-	#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
-	//#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!)
-
 	#ifdef CONFIG_RFID_READER_MFRC522_I2C
 		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
 	#endif

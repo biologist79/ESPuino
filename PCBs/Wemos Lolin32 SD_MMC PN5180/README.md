@@ -22,9 +22,9 @@ After providing PCBs based on RC522 / SD-SPI it was about time to integrate "the
 * In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
 * `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
-* Enable `SD_MMC_1BIT_MODE` and `CONFIG_RFID_READER_PN5180`.
+* Enable `CONFIG_SD_MMC_1BIT_MODE` and `CONFIG_RFID_READER_PN5180`.
 * If you want to wake up ESPuino from deepsleep via PN5180: `CONFIG_RFID_LPCD` needs to be enabled as well.
-* Disable `CONFIG_RFID_READER_MFRC522_SPI` and `SINGLE_SPI_ENABLE`.
+* Disable `CONFIG_RFID_READER_MFRC522_SPI` and `CONFIG_SINGLE_SPI`.
 * Don't forget to add jumper for jp1! Connect the upper and the middle pin if you don't want to use LPCD. In this case PN5180 is switched off while deepsleep is active. Connect the middle and the lower pin in order to power PN5180 continously (which is mandatory for LPCD)
 * Make sure [Pullup-resistor was removed](https://github.com/biologist79/ESPuino/blob/master/pictures/Pullup-removal.jpg) for GPIO2/MISO.
 * Enable `CONFIG_ROTARY_ENCODER`.

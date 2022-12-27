@@ -261,4 +261,20 @@ config INCLUDE_ROTARY_IN_CONTROLS_LOCK
 
 endif # ROTARY_ENCODER
 
+choice
+	bool "Select SD card interface mode"
+	default SD_MMC_1BIT_MODE
+
+config SD_MMC_1BIT_MODE
+	bool "MMC interface with 1 bit buswidth"
+
+config SD_SPI_MODE
+	bool "SPI interface"
+
+endchoice
+
+config SINGLE_SPI
+	bool "Use single SPI instance instead of two (not yet working!)"
+	default n
+
 endmenu
