@@ -53,7 +53,7 @@
 #define I2S_LRC                         26          // LRC (I2S)
 
 // Rotary encoder
-#ifdef USEROTARY_ENABLE
+#ifdef CONFIG_ROTARY_ENCODER
     //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
     #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
     #define ROTARYENCODER_DT            35          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!

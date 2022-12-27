@@ -18,7 +18,7 @@ It's not recommended to use this one anymore for new ESPuinos as there's a bug w
 * Make sure to edit `settings.h` (HAL=3) and `settings-lolin_d32.h` according your needs.
 * Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
 * Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
-* Enable `USEROTARY_ENABLE`.
+* Enable `CONFIG_ROTARY_ENCODER`.
 * Enable buttons for previous, next, pause/play.
 
 ## PCB-Wiring (2 SPI-instances: RC522 + SD + 3 buttons + rotary encoder)

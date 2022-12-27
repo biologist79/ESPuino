@@ -68,7 +68,7 @@
     #define I2S_LRC                         25          // LRC (I2S)
 
     // Rotary encoder
-    #ifdef USEROTARY_ENABLE
+    #ifdef CONFIG_ROTARY_ENCODER
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
         #define ROTARYENCODER_CLK           36          // SENSOR-VP
         #define ROTARYENCODER_DT            39          // SENSOR_VN

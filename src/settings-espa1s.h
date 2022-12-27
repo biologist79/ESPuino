@@ -50,7 +50,7 @@
     #define GPIO_PA_EN                      21          // internal
 
     // Rotary encoder
-    #ifdef USEROTARY_ENABLE
+    #ifdef CONFIG_ROTARY_ENCODER
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
         #define ROTARYENCODER_CLK           5           // rotary encoder's CLK
         #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!

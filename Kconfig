@@ -199,4 +199,16 @@ config PORT_EXPANDER
 	  See https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 	  for more information."
 
+menuconfig ROTARY_ENCODER
+	bool "Enables support for rotary encoder"
+	default y
+
+if ROTARY_ENCODER
+
+config INCLUDE_ROTARY_IN_CONTROLS_LOCK
+	bool "If set the rotary encoder is locked if controls are locked"
+	default y
+
+endif # ROTARY_ENCODER
+
 endmenu

@@ -5,12 +5,12 @@
 #include "Log.h"
 #include "System.h"
 
-#ifdef USEROTARY_ENABLE
+#ifdef CONFIG_ROTARY_ENCODER
 #include <ESP32Encoder.h>
 #endif
 
 // Rotary encoder-configuration
-#ifdef USEROTARY_ENABLE
+#ifdef CONFIG_ROTARY_ENCODER
 	ESP32Encoder encoder;
 	// Rotary encoder-helper
 	int32_t lastEncoderValue;
@@ -20,7 +20,7 @@
 
 void RotaryEncoder_Init(void) {
 	// Init rotary encoder
-	#ifdef USEROTARY_ENABLE
+	#ifdef CONFIG_ROTARY_ENCODER
 		#ifndef REVERSE_ROTARY
 			encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
 		#else
@@ -34,7 +34,7 @@ void RotaryEncoder_Readjust(void) { }
 
 // Handles volume directed by rotary encoder
 void RotaryEncoder_Cyclic(void) {
-	#ifdef USEROTARY_ENABLE
+	#ifdef CONFIG_ROTARY_ENCODER
 		#ifdef INCLUDE_ROTARY_IN_CONTROLS_LOCK
 			if (System_AreControlsLocked()) {
 				encoder.clearCount();
