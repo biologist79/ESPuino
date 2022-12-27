@@ -71,6 +71,17 @@ endif # STATIC_IP
 
 endmenu
 
+menu "ESPuino Audio Settings"
+
+config HEADPHONE_ADJUST
+	bool "Enables adjustment of headphone volume"
+	default y
+	help
+	  If enabled and a headphone is plugged in, an alternative maximum
+	  volume is activated to prevent damage to childrens ears.
+
+endmenu
+
 menu "ESPuino Hardware Settings"
 
 config I2S_COMM_FMT_LSB

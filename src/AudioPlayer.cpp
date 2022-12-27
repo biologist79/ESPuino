@@ -36,7 +36,7 @@ static uint8_t AudioPlayer_MaxVolumeSpeaker = AUDIOPLAYER_VOLUME_MAX;
 static uint8_t AudioPlayer_MinVolume = AUDIOPLAYER_VOLUME_MIN;
 static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
 
-#ifdef HEADPHONE_ADJUST_ENABLE
+#ifdef CONFIG_HEADPHONE_ADJUST
 	static bool AudioPlayer_HeadphoneLastDetectionState;
 	static uint32_t AudioPlayer_HeadphoneLastDetectionTimestamp = 0u;
 	static uint8_t AudioPlayer_MaxVolumeHeadphone = 11u; // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
@@ -85,7 +85,7 @@ void AudioPlayer_Init(void) {
 		Log_Println((char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
 	}
 
-	#ifdef HEADPHONE_ADJUST_ENABLE
+	#ifdef CONFIG_HEADPHONE_ADJUST
 		#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
 			pinMode(HP_DETECT, INPUT_PULLUP);
 		#endif
@@ -202,7 +202,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 		gPlayProperties.newPlayMono = false;
 	#endif
 
-	#ifndef HEADPHONE_ADJUST_ENABLE
+	#ifndef CONFIG_HEADPHONE_ADJUST
 		AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
 			// If automatic HP-detection is not used, we enabled both (PA / HP) if defined
 		#ifdef GPIO_PA_EN
@@ -237,7 +237,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 }
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
-	#ifdef HEADPHONE_ADJUST_ENABLE
+	#ifdef CONFIG_HEADPHONE_ADJUST
 		bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
 		if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
