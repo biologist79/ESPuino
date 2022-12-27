@@ -52,11 +52,11 @@
     #define RFID_SCK                        99          // GPIO for clock-signal (RFID)
 
     // RFID (via I2C)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C)
+    #if defined(CONFIG_RFID_READER_MFRC522_I2C)
         #define MFRC522_RST_PIN                 4          // needed for initialisation -> MTDI on JTAG header
     #endif
 
-    #ifdef RFID_READER_TYPE_PN5180
+    #ifdef CONFIG_RFID_READER_PN5180
         #define RFID_BUSY                   16          // PN5180 BUSY PIN
         #define RFID_RST                    22          // PN5180 RESET PIN
         #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)

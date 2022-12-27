@@ -116,7 +116,7 @@ void setup() {
 
 	// Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
 	Button_Init();  // To preseed internal button-storage with values
-	#ifdef PN5180_ENABLE_LPCD
+	#ifdef CONFIG_RFID_LPCD
 		Rfid_Init();
 	#endif
 
@@ -191,8 +191,8 @@ void setup() {
 
 	Ftp_Init();
 	Mqtt_Init();
-	#ifndef PN5180_ENABLE_LPCD
-		#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+	#ifndef CONFIG_RFID_LPCD
+		#if defined (CONFIG_RFID_READER_MFRC522_SPI) || defined (CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_RFID_READER_PN5180)
 			Rfid_Init();
 		#endif
 	#endif

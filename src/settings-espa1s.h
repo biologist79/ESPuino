@@ -18,7 +18,7 @@
     // Make sure to enable SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
 
     // RFID (via SPI; currently not supported!)
-    #if defined(RFID_READER_TYPE_MFRC522_SPI)
+    #if defined(CONFIG_RFID_READER_MFRC522_SPI)
         #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
         #define RFID_CS                         21          // GPIO for chip select (RFID)
         #define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
@@ -27,7 +27,7 @@
     #endif
 
     // RFID (via I2C)
-    #if defined(RFID_READER_TYPE_MFRC522_I2C)
+    #if defined(CONFIG_RFID_READER_MFRC522_I2C)
         #define MFRC522_RST_PIN                 12          // needed for initialisation -> MTDI on JTAG header
     #endif
 

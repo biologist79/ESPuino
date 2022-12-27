@@ -12,7 +12,7 @@
 #include "AudioPlayer.h"
 #include "HallEffectSensor.h"
 
-#ifdef RFID_READER_TYPE_PN5180
+#ifdef CONFIG_RFID_READER_PN5180
 	#include <PN5180.h>
 	#include <PN5180ISO14443.h>
 	#include <PN5180ISO15693.h>
@@ -33,11 +33,11 @@
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 
-#ifdef RFID_READER_TYPE_PN5180
+#ifdef CONFIG_RFID_READER_PN5180
 	static void Rfid_Task(void *parameter);
 	TaskHandle_t rfidTaskHandle;
 
-	#ifdef PN5180_ENABLE_LPCD
+	#ifdef CONFIG_RFID_LPCD
 		void Rfid_EnableLpcd(void);
 		bool enabledLpcdShutdown = false;       // Indicates if LPCD should be activated as part of the shutdown-process
 
@@ -51,7 +51,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 	#endif
 
 	void Rfid_Init(void) {
-		#ifdef PN5180_ENABLE_LPCD
+		#ifdef CONFIG_RFID_LPCD
 			// Check if wakeup-reason was card-detection (PN5180 only)
 			// This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
 			esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
@@ -105,7 +105,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 		for (;;) {
 			vTaskDelay(portTICK_RATE_MS * 10u);
-			#ifdef PN5180_ENABLE_LPCD
+			#ifdef CONFIG_RFID_LPCD
 				if (Rfid_GetLpcdShutdownStatus()) {
 					Rfid_EnableLpcd();
 					Rfid_SetLpcdShutdownStatus(false);          // give feedback that execution is complete
@@ -297,7 +297,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 	}
 
 	void Rfid_Exit(void) {
-		#ifdef PN5180_ENABLE_LPCD
+		#ifdef CONFIG_RFID_LPCD
 			Rfid_SetLpcdShutdownStatus(true);
 			while (Rfid_GetLpcdShutdownStatus()) {          // Make sure init of LPCD is complete!
 				vTaskDelay(portTICK_RATE_MS * 10u);
@@ -309,7 +309,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 	// Handles activation of LPCD (while shutdown is in progress)
 	void Rfid_EnableLpcd(void) {
 		// goto low power card detection mode
-		#ifdef PN5180_ENABLE_LPCD
+		#ifdef CONFIG_RFID_LPCD
 			static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
 			nfc.begin();
 			nfc.reset();
@@ -353,7 +353,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 	// wake up from LPCD, check card is present. This works only for ISO-14443 compatible cards
 	void Rfid_WakeupCheck(void) {
-		#ifdef PN5180_ENABLE_LPCD
+		#ifdef CONFIG_RFID_LPCD
 			// disable pin hold from deep sleep
 			gpio_deep_sleep_hold_dis();
 			gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS

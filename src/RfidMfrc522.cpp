@@ -9,14 +9,14 @@
 #include "AudioPlayer.h"
 #include "HallEffectSensor.h"
 
-#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
-	#ifdef RFID_READER_TYPE_MFRC522_SPI
+#if defined CONFIG_RFID_READER_MFRC522_SPI || defined CONFIG_RFID_READER_MFRC522_I2C
+	#ifdef CONFIG_RFID_READER_MFRC522_SPI
 		#include <MFRC522.h>
 	#endif
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER)
+	#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER)
 		#include "Wire.h"
 	#endif
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
+	#ifdef CONFIG_RFID_READER_MFRC522_I2C
 		#include <MFRC522_I2C.h>
 	#endif
 
@@ -24,22 +24,22 @@
 	TaskHandle_t rfidTaskHandle;
 	static void Rfid_Task(void *parameter);
 
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
+	#ifdef CONFIG_RFID_READER_MFRC522_I2C
 		extern TwoWire i2cBusTwo;
 		static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
 	#endif
-	#ifdef RFID_READER_TYPE_MFRC522_SPI
+	#ifdef CONFIG_RFID_READER_MFRC522_SPI
 		static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
 	void Rfid_Init(void) {
-		#ifdef RFID_READER_TYPE_MFRC522_SPI
+		#ifdef CONFIG_RFID_READER_MFRC522_SPI
 			SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
 			SPI.setFrequency(1000000);
 		#endif
 
 		// Init RC522 Card-Reader
-		#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
+		#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_RFID_READER_MFRC522_SPI)
 			mfrc522.PCD_Init();
 			mfrc522.PCD_SetAntennaGain(rfidGain);
 			delay(50);
@@ -61,8 +61,8 @@
 		uint8_t control = 0x00;
 
 		for (;;) {
-			if (RFID_SCAN_INTERVAL/2 >= 20) {
-				vTaskDelay(portTICK_RATE_MS * (RFID_SCAN_INTERVAL/2));
+			if (CONFIG_RFID_SCAN_INTERVAL/2 >= 20) {
+				vTaskDelay(portTICK_RATE_MS * (CONFIG_RFID_SCAN_INTERVAL/2));
 			} else {
 			   vTaskDelay(portTICK_RATE_MS * 20);
 			}
@@ -73,7 +73,7 @@
 				bool cardAppliedCurrentRun = false;
 				bool sameCardReapplied = false;
 			#endif
-			if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+			if ((millis() - Rfid_LastRfidCheckTimestamp) >= CONFIG_RFID_SCAN_INTERVAL) {
 				//Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 
 				Rfid_LastRfidCheckTimestamp = millis();
@@ -143,8 +143,8 @@
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
 					while (true) {
-						if (RFID_SCAN_INTERVAL/2 >= 20) {
-							vTaskDelay(portTICK_RATE_MS * (RFID_SCAN_INTERVAL/2));
+						if (CONFIG_RFID_SCAN_INTERVAL/2 >= 20) {
+							vTaskDelay(portTICK_RATE_MS * (CONFIG_RFID_SCAN_INTERVAL/2));
 						} else {
 							vTaskDelay(portTICK_RATE_MS * 20);
 						}
@@ -187,7 +187,7 @@
 	}
 
 	void Rfid_Exit(void) {
-		#ifndef RFID_READER_TYPE_MFRC522_I2C
+		#ifndef CONFIG_RFID_READER_MFRC522_I2C
 			mfrc522.PCD_SoftPowerDown();
 		#endif
 	}

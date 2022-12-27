@@ -213,6 +213,42 @@ config PORT_EXPANDER
 	  See https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 	  for more information."
 
+menuconfig RFID
+	bool "Enables support for RFID reader"
+	default y
+
+if RFID
+
+choice
+	bool "Select RFID reader type"
+	default RFID_READER_MFRC522_SPI
+
+config RFID_READER_MFRC522_SPI
+	bool "MFRC522 connected via SPI"
+
+config RFID_READER_MFRC522_I2C
+	bool "MFRC522 connected via I2C"
+
+config RFID_READER_PN5180
+	bool "PN5180 connected via I2C"
+
+endchoice
+
+config RFID_SCAN_INTERVAL
+	int "Scan interval for MFRC522 driver in milliseconds"
+	default 100
+	depends on RFID_READER_MFRC522_SPI || RFID_READER_MFRC522_I2C
+
+config RFID_LPCD
+	bool "Enables support for wakeup triggered by RFID tag"
+	default n
+	depends on RFID_READER_PN5180
+	help
+	  Wakes up ESPuino if RFID tag was applied while deepsleep is active.
+	  Only ISO-14443-tags are supported for wakeup!
+
+endif # RFID
+
 menuconfig ROTARY_ENCODER
 	bool "Enables support for rotary encoder"
 	default y

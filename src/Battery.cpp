@@ -31,7 +31,7 @@
 				// Power down and enter deepsleep
 				Power_PeripheralOff();
 				delay(200);
-				#ifdef PN5180_ENABLE_LPCD
+				#ifdef CONFIG_RFID_LPCD
 					Rfid_Exit();
 				#endif
 				delay(1000);

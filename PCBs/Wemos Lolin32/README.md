@@ -24,7 +24,7 @@ After I've been asked many times to provide a PCB, I finally did so :-) It makes
 * `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
 * Disable `SD_MMC_1BIT_MODE` and `SINGLE_SPI_ENABLE` as these are not supported by this PCB.
-* Enable `RFID_READER_TYPE_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
+* Enable `CONFIG_RFID_READER_MFRC522_SPI` as other RFID-reader-types are not supported by this PCB.
 * Enable `CONFIG_ROTARY_ENCODER`.
 * Enable buttons for previous, next, pause/play.
 ## PCB-Wiring (2 SPI-instances: RC522 + SD + 3 buttons + rotary encoder)

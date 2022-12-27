@@ -37,7 +37,7 @@
 	#define RFID_SCK                        18		// GPIO for clock-signal (RFID)
 
 	// RFID (PN5180 only; not necessary for RC522)
-	#ifdef RFID_READER_TYPE_PN5180
+	#ifdef CONFIG_RFID_READER_PN5180
 		#define RFID_BUSY		33		// PN5180 BUSY PIN
 		#define RFID_RST		22		// PN5180 RESET PIN
 		#define RFID_IRQ		32		// PN5180 IRQ PIN (only needed for low power card detection)
