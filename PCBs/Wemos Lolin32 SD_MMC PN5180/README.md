@@ -18,7 +18,7 @@ After providing PCBs based on RC522 / SD-SPI it was about time to integrate "the
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `CONFIG_HEADPHONE_ADJUST` is disabled.
-* I used 130/130 kOhms-resistors as voltage-divider for `MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`.
+* I used 130/130 kOhms-resistors as voltage-divider for `CONFIG_MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`.
 * In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
 * `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).

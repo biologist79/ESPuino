@@ -401,7 +401,7 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "MAX_VOLUME_HEADPHONE") {
 		return String(gPrefsSettings.getUInt("maxVolumeHp", 0));
 #ifdef BATTERY_MEASURE_ENABLE
-	#ifdef MEASURE_BATTERY_VOLTAGE
+	#ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
 		} else if (templ == "WARNING_LOW_VOLTAGE") {
 			return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
 		} else if (templ == "VOLTAGE_INDICATOR_LOW") {

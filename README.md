@@ -182,7 +182,7 @@ Minimum duration for long press (to distinguish vom short press) in ms is define
 * rotary encoder (turning): vol +/-
 * rotary encoder (button long): switch off (only when on)
 * rotary encoder (button short): switch on (when switched off)
-* rotary encoder (button short): show battery-voltage via Neopixel (when switched on and `MEASURE_BATTERY_VOLTAGE` is active)
+* rotary encoder (button short): show battery-voltage via Neopixel (when switched on and `CONFIG_MEASURE_BATTERY_VOLTAGE` is active)
 * previous (long; keep pressed) + next (short) + release (both): toggle WiFi enabled/disabled
 
 ### Music-play

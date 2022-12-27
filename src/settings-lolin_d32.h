@@ -106,13 +106,13 @@
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            35          // Cannot be changed, it's built in
         constexpr float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
         constexpr float offsetVoltage = 0.2;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         constexpr uint16_t rdiv1 = 100;                           // Cannot be changed, it's built in
         constexpr uint16_t rdiv2 = 100;                           // Cannot be changed, it's built in
     #endif

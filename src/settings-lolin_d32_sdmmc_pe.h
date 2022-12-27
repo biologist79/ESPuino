@@ -104,14 +104,14 @@
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Don't change, it's built in
         constexpr float referenceVoltage = 3.30;        // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
         constexpr float offsetVoltage = 0.1;            // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
     // (optional) For measuring battery-voltage a voltage-divider is already onboard. Connect a LiPo and use it!
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         constexpr uint16_t rdiv1 = 100;                 // Don't change, it's built in
         constexpr uint16_t rdiv2 = 100;                 // Don't change, it's built in
     #endif

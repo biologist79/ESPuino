@@ -2,7 +2,7 @@
 #include "Battery.h"
 #include "settings.h"
 
-#ifdef MEASURE_BATTERY_MAX17055
+#ifdef CONFIG_MEASURE_BATTERY_MAX17055
 	#include "Log.h"
 	#include "Mqtt.h"
 	#include "Led.h"

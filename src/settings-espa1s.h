@@ -95,14 +95,14 @@
     #endif
 
     // (optional) Monitoring of battery-voltage via ADC
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
         constexpr float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
         constexpr float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
     #endif
 
     // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
-    #ifdef MEASURE_BATTERY_VOLTAGE
+    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         constexpr uint16_t rdiv1 = 129;                              // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
         constexpr uint16_t rdiv2 = 389;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
     #endif

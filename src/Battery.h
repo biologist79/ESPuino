@@ -2,7 +2,7 @@
 
 extern uint8_t batteryCheckInterval;
 
-#if defined(MEASURE_BATTERY_VOLTAGE)
+#if defined(CONFIG_MEASURE_BATTERY_VOLTAGE)
 	extern float voltageIndicatorCritical;
 	extern float warningLowVoltage;
 	extern float warningCriticalVoltage;

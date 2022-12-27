@@ -138,6 +138,19 @@ config IR_CONTROL
 	  See https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
 	  for more information.
 
+choice
+	bool "Battery measurement hardware"
+	default MEASURE_BATTERY_VOLTAGE
+	optional
+
+config MEASURE_BATTERY_VOLTAGE
+	bool "Enables battery measurement via ADC and voltage divider"
+
+config MEASURE_BATTERY_MAX17055
+	bool "Enables battery measurement via external fuel gauge (MAX17055)"
+
+endchoice
+
 menuconfig NEOPIXEL
 	bool "Enable support for NeoPixel LEDs"
 	default y
