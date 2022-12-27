@@ -35,6 +35,10 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+config NEOPIXEL
+	bool "Enable support for NeoPixel LEDs"
+	default y
+
 config PORT_EXPANDER
 	bool "Enables support for the PCA9555 port expander"
 	default n

@@ -84,7 +84,7 @@
     #endif
 
     // (optional) Neopixel
-    #if defined(NEOPIXEL_ENABLE)
+    #if defined(CONFIG_NEOPIXEL)
         #define LED_PIN                     23          // GPIO for Neopixel-signaling
     #endif
 

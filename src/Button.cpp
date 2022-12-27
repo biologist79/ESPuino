@@ -63,7 +63,7 @@ void Button_Init() {
 		}
 	#endif
 
-	#ifdef NEOPIXEL_ENABLE // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
+	#ifdef CONFIG_NEOPIXEL // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
 		#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
 			#if (BUTTON_0_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 0;

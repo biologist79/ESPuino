@@ -12,7 +12,7 @@
 #include "Bluetooth.h"
 #include "Port.h"
 
-#ifdef NEOPIXEL_ENABLE
+#ifdef CONFIG_NEOPIXEL
 	#include <FastLED.h>
 
 	#define LED_INITIAL_BRIGHTNESS 16u
@@ -67,7 +67,7 @@
 #endif
 
 void Led_Init(void) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		// Get some stuff from NVS...
 		// Get initial LED-brightness from NVS
 		uint8_t nvsILedBrightness = gPrefsSettings.getUChar("iLedBrightness", 0);
@@ -103,27 +103,27 @@ void Led_Init(void) {
 }
 
 void Led_Exit(void) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		FastLED.clear();
 		FastLED.show();
 	#endif
 }
 
 void Led_Indicate(LedIndicatorType value) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		LED_INDICATOR_SET(value);
 	#endif
 }
 
 void Led_SetPause(boolean value) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		Led_Pause = value;
 	#endif
 }
 
 // Used to reset brightness to initial value after prevously active sleepmode was left
 void Led_ResetToInitialBrightness(void) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		if (Led_Brightness == Led_NightBrightness || Led_Brightness == 0) {	// Only reset to initial value if brightness wasn't intentionally changed (or was zero)
 			Led_Brightness = Led_InitialBrightness;
 			Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
@@ -135,7 +135,7 @@ void Led_ResetToInitialBrightness(void) {
 }
 
 void Led_ResetToNightBrightness(void) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		Led_Brightness = Led_NightBrightness;
 		Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
 	#endif
@@ -145,7 +145,7 @@ void Led_ResetToNightBrightness(void) {
 }
 
 uint8_t Led_GetBrightness(void) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		return Led_Brightness;
 	#else
 		return 0u;
@@ -153,7 +153,7 @@ uint8_t Led_GetBrightness(void) {
 }
 
 void Led_SetBrightness(uint8_t value) {
-	#ifdef NEOPIXEL_ENABLE
+	#ifdef CONFIG_NEOPIXEL
 		Led_Brightness = value;
 		#ifdef BUTTONS_LED
 			Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
@@ -162,7 +162,7 @@ void Led_SetBrightness(uint8_t value) {
 }
 
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
-#ifdef NEOPIXEL_ENABLE
+#ifdef CONFIG_NEOPIXEL
 	uint8_t Led_Address(uint8_t number) {
 		#ifdef NEOPIXEL_REVERSE_ROTATION
 			#if LED_OFFSET > 0
@@ -187,7 +187,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 }
 
 
-#ifdef NEOPIXEL_ENABLE
+#ifdef CONFIG_NEOPIXEL
 	CRGB Led_DimColor(CRGB color, uint8_t brightness) {
 		const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
 		return color.nscale8(factor);
@@ -231,7 +231,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 #endif
 
-#ifdef NEOPIXEL_ENABLE
+#ifdef CONFIG_NEOPIXEL
 	static void Led_Task(void *parameter) {
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
@@ -410,7 +410,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 #endif
 
-#ifdef NEOPIXEL_ENABLE
+#ifdef CONFIG_NEOPIXEL
 	// ---------------------------------------------------------------------
 	// ---------------        ANIMATION-METHODS        ---------------------
 	// ---------------------------------------------------------------------

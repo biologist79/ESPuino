@@ -33,7 +33,6 @@
 
 
 	//########################## MODULES #################################
-	#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
 	//#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 	#define LANGUAGE DE                     // DE = deutsch; EN = english
 	//#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
@@ -198,8 +197,8 @@
 	#endif
 
 	//#################### Settings for optional Modules##############################
-	// (optinal) Neopixel
-	#ifdef NEOPIXEL_ENABLE
+	// (optional) Neopixel
+	#ifdef CONFIG_NEOPIXEL
 		#define NUM_LEDS			24          	// number of LEDs
 		#define CHIPSET				WS2812B     	// type of Neopixel
 		#define COLOR_ORDER			GRB
