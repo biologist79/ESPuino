@@ -104,10 +104,13 @@ void Led_SetPause(boolean value) {
 	#endif
 }
 
+// Used to reset brightness to initial value after prevously active sleepmode was left
 void Led_ResetToInitialBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
-		Led_Brightness = Led_InitialBrightness;
-		Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
+		if (Led_Brightness == Led_NightBrightness || Led_Brightness == 0) {	// Only reset to initial value if brightness wasn't intentionally changed (or was zero)
+			Led_Brightness = Led_InitialBrightness;
+			Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
+		}
 	#endif
 	#ifdef BUTTONS_LED
 		Port_Write(BUTTONS_LED, HIGH, false);
