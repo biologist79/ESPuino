@@ -80,7 +80,7 @@ void Led_Init(void) {
 			NULL,       /* Task input parameter */
 			1,          /* Priority of the task */
 			NULL,       /* Task handle. */
-			0           /* Core where the task should run */
+			1           /* Core where the task should run */
 		);
 	#endif
 }
