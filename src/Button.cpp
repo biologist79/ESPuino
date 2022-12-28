@@ -128,14 +128,14 @@ void Button_Init() {
 // If timer-semaphore is set, read buttons (unless controls are locked)
 void Button_Cyclic() {
 	if (xSemaphoreTake(Button_TimerSemaphore, 0) == pdTRUE) {
-		if (System_AreControlsLocked()) {
-			return;
-		}
-
 		unsigned long currentTimestamp = millis();
 		#ifdef PORT_EXPANDER_ENABLE
 			Port_Cyclic();
 		#endif
+
+		if (System_AreControlsLocked()) {
+			return;
+		}
 
 		// Buttons can be mixed between GPIO and port-expander.
 		// But at the same time only one of them can be for example NEXT_BUTTON
