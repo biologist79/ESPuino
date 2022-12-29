@@ -1,0 +1,8 @@
+menu "Hidden Helpers"
+	visible if n
+
+config CONVERT_TO_IDENTIFIER
+	bool
+	default y
+
+endmenu

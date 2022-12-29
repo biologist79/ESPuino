@@ -18,6 +18,25 @@ def generate_configs(*args, **kwargs):
     chunks = kconf._autoconf_contents(None).splitlines()
 
     #
+    # Kconfig can only deal with literals, not with identifiers. For some purposes
+    # we need to set/select identifiers declared elsewhere. To achieve this we use a
+    # string literal in Kconfig and then translate the value (remove string quotes)
+    # here. The translated value is replaced before generating the config.h header.
+    #
+    # To enable the automatic translation, make the config item depend on the
+    # CONVERT_TO_IDENTIFIER item in the Kconfig file.
+    #
+    for symbol in kconf.unique_defined_syms:
+        if not symbol._write_to_conf or not symbol.orig_type is kconfiglib.STRING:
+            continue
+        for dep in kconfiglib.expr_items(symbol.direct_dep):
+            if dep.name == "CONVERT_TO_IDENTIFIER":
+                for i in range(0, len(chunks)):
+                    if chunks[i].startswith(f"#define {kconf.config_prefix}{symbol.name} "):
+                        chunks[i] = chunks[i].replace('"', '')
+                        break
+
+    #
     # Save the manipulated config header lines to config.h again replicating the
     # behavior of Kconfig.write_autoconf()
     #
