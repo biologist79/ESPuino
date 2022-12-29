@@ -63,8 +63,8 @@ void Led_Init(void) {
 		}
 
 		// Get night LED-brightness from NVS
-		uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 0);
-		if (nvsNLedBrightness) {
+		uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
+		if (nvsNLedBrightness != 255) {
 			Led_NightBrightness = nvsNLedBrightness;
 			snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(restoredInitialBrightnessForNmFromNvs), nvsNLedBrightness);
 			Log_Println(Log_Buffer, LOGLEVEL_INFO);

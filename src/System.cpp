@@ -76,14 +76,12 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 	if (System_SleepTimerStartTimestamp && (System_SleepTimer == minutes)) {
 		System_SleepTimerStartTimestamp = 0u;
+		System_SleepTimer = 0u;
 		Led_ResetToInitialBrightness();
 		Log_Println((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
-		#ifdef MQTT_ENABLE
-			publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-		#endif
 	} else {
-		System_SleepTimer = minutes;
 		System_SleepTimerStartTimestamp = millis();
+		System_SleepTimer = minutes;
 		sleepTimerEnabled = true;
 
 		Led_ResetToNightBrightness();
@@ -96,12 +94,12 @@ bool System_SetSleepTimer(uint8_t minutes) {
 		} else {
 			Log_Println((char *)FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
 		}
-
-		#ifdef MQTT_ENABLE
-			publishMqtt((char *) FPSTR(topicSleepTimerState), System_SleepTimer, false);
-			publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
-		#endif
 	}
+
+	#ifdef MQTT_ENABLE
+		publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimer(), false);
+		publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+	#endif
 
 	return sleepTimerEnabled;
 }
