@@ -24,7 +24,7 @@
     99: custom                              => settings-custom.h
     more to come...
     */
-    #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
+    #ifndef HAL             // Will be set by platformio.ini. If using Arduino-IDE you have to set HAL according your needs!
         #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; ... 99 = custom
     #endif
 
