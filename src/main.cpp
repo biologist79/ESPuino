@@ -45,7 +45,7 @@ bool testSPIRAM(void) {
 
 ////////////
 
-#if (HAL == 2)
+#ifdef CONFIG_BOARD_AUDIO_KIT
 	#include "AC101.h"
 	static TwoWire i2cBusOne = TwoWire(0);
 	static AC101 ac(&i2cBusOne);
@@ -153,7 +153,7 @@ void setup() {
 	Led_Init();
 
 	// Only used for ESP32-A1S-Audiokit
-	#if (HAL == 2)
+	#ifdef CONFIG_BOARD_AUDIO_KIT
 		i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
 		while (not ac.begin()) {

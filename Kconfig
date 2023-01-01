@@ -4,6 +4,11 @@ menu "Hidden Helpers"
 config CONVERT_TO_IDENTIFIER
 	bool
 	default y
+
+config EXPORT_TO_PIO
+	bool
+	default y
+
 endmenu
 
 menu "ESPuino General Settings"
@@ -166,10 +171,79 @@ config SAVE_PLAYPOS_WHEN_RFID_CHANGE
 
 endmenu
 
-menu "ESPuino Hardware Settings"
+menu "ESPuino Board Selection"
+
+choice
+	bool "Board Configuration"
+	default BOARD_LOLIN_D32_PRO
+
+config BOARD_AUDIO_KIT
+	bool "AI Thinker ESP32-Audio-Kit"
+
+config BOARD_COMPLETE
+	bool "ESPuino Complete"
+
+config BOARD_ESP32_S3_DEVKITC
+	bool "ESP32-S3 DevKitC"
+
+config BOARD_LOLIN32
+	bool "Wemos Lolin32"
+
+config BOARD_LOLIN_D32
+	bool "Wemos Lolin D32"
+
+config BOARD_LOLIN_D32_PRO
+	bool "Wemos Lolin D32 Pro"
+
+config BOARD_MUSE_PROTO
+	bool "RASPIAUDIO ESP32 Muse PROTO"
+
+config BOARD_NODEMCU_32S
+	bool "NodeMCU 32S"
+
+config BOARD_NODEMCU_DEVKIT
+	bool "AZ Delivery ESP32 NodeMCU/DevKitC"
+
+config BOARD_TTGO_T8
+	bool "LilyGo TTGO T8"
+
+config BOARD_WROVER_KIT
+	bool "Espressif ESP-WROVER-KIT"
+
+endchoice
+
+menu "Hidden Board Helpers"
+	visible if n
+
+config PIO_BOARD
+	string "PlatformIO Board configuration"
+	default "esp-wrover-kit" if BOARD_AUDIO_KIT || BOARD_COMPLETE || BOARD_MUSE_PROTO || BOARD_TTGO_T8 || BOARD_WROVER_KIT
+	default "lolin32" if BOARD_LOLIN32
+	default "lolin_d32" if BOARD_LOLIN_D32
+	default "lolin_d32_pro" if BOARD_LOLIN_D32_PRO
+	default "nodemcu-32s" if BOARD_NODEMCU_32S
+	default "az-delivery-devkit-v4" if BOARD_NODEMCU_DEVKIT
+	default "esp32-s3-devkitc-1" if BOARD_ESP32_S3_DEVKITC
+	depends on EXPORT_TO_PIO
+
+config PIO_EXTENDS
+	string "PlatformIO base configurations"
+	default "base, extra:esp32, extra:flash16mb_psram" if BOARD_AUDIO_KIT || BOARD_LOLIN_D32_PRO || BOARD_COMPLETE
+	default "base, extra:esp32, extra:flash8mb_psram" if BOARD_WROVER_KIT
+	default "base, extra:esp32, extra:flash4mb_psram" if BOARD_MUSE_PROTO
+	default "base, extra:esp32, extra:flash4mb" if BOARD_LOLIN32 || BOARD_LOLIN_D32 || BOARD_TTGO_T8 || BOARD_NODEMCU_32S || BOARD_NODEMCU_DEVKIT
+	default "base, extra:esp32-s3" if BOARD_ESP32_S3_DEVKITC
+	default "base"
+	depends on EXPORT_TO_PIO
+
+endmenu
+endmenu
+
+menu "ESPuino Peripheral Settings"
 
 config BLUETOOTH
 	bool "Enables Bluetooth support"
+	default n if BOARD_ESP32_S3_DEVKITC
 	default y
 	help
 	  If enabled and Bluetooth mode is active, you can stream to your
