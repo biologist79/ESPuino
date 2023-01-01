@@ -124,6 +124,13 @@ config DNS_IP
 
 endif # STATIC_IP
 
+config EXPERT
+	bool "Show hidden expert settings"
+	default n
+	help
+	  Only enable this if you know what you do. This will enable additional
+	  settings that are normally hidden.
+
 endmenu
 
 menu "ESPuino Audio Settings"
@@ -211,6 +218,37 @@ config BOARD_WROVER_KIT
 	bool "Espressif ESP-WROVER-KIT"
 
 endchoice
+
+menu "Expert Board Settings"
+	visible if EXPERT
+
+if SD_SPI_MODE
+
+config GPIO_SPISD_CS
+	int "GPIO for SPI SD Card CS"
+	default 4 if BOARD_LOLIN_D32_PRO
+	default 15
+
+if !SINGLE_SPI
+
+config GPIO_SPISD_MOSI
+	int "GPIO for SPI SD Card MOSI"
+	default 23 if BOARD_LOLIN_D32_PRO
+	default 13
+
+config GPIO_SPISD_MISO
+	int "GPIO for SPI SD Card MISO"
+	default 19 if BOARD_LOLIN_D32_PRO
+	default 16
+
+config GPIO_SPISD_SCK
+	int "GPIO for SPI SD Card SCK"
+	default 18 if BOARD_LOLIN_D32_PRO
+	default 14
+
+endif # SINGLE_SPI
+endif # SD_MMC_1BIT_MODE
+endmenu
 
 menu "Hidden Board Helpers"
 	visible if n

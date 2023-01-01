@@ -18,17 +18,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
-    #ifdef CONFIG_SD_MMC_1BIT_MODE
-        // NOT SUPPORTED BY D32 pro as 15 / 14 / 2 doesn't match D32 pro's SD-pinout
-    #else
-        // uSD-card-reader (via SPI) => Cannot be changed, it's built in!
-        #define SPISD_CS                     4          // GPIO for chip select (SD)
-        #ifndef CONFIG_SINGLE_SPI
-            #define SPISD_MOSI              23          // GPIO for master out slave in (SD) => not necessary for single-SPI
-            #define SPISD_MISO              19          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-            #define SPISD_SCK               18          // GPIO for clock-signal (SD) => not necessary for single-SPI
-        #endif
-    #endif
 
     // RFID (via SPI)
     #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number

@@ -20,19 +20,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
-    #ifdef CONFIG_SD_MMC_1BIT_MODE
-        //  (MOSI)    15  CMD
-        //  (SCK)     14  SCK
-        //  (MISO)     2  D0
-    #else
-        // SPI-SD IS NOT SUPPORTED BY THIS PCB - DON'T USE INTERNAL SD-READER!
-        #define SPISD_CS                    99          // GPIO for chip select (SD)
-        #ifndef CONFIG_SINGLE_SPI
-            #define SPISD_MOSI              99          // GPIO for master out slave in (SD) => not necessary for single-SPI
-            #define SPISD_MISO              99          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-            #define SPISD_SCK               99          // GPIO for clock-signal (SD) => not necessary for single-SPI
-        #endif
-    #endif
 
     // RFID (via SPI)
     #define RST_PIN                         99          // Used as dummy for RC522
