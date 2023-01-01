@@ -13,6 +13,7 @@ CMakeLists.txt
 CMakeListsPrivate.txt
 config.h
 node_modules/
+platformio-kconfig.ini
 platformio-override.ini
 src/settings-custom-override.h
 src/settings-override.h
