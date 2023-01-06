@@ -10,6 +10,7 @@
 #include "System.h"
 #include "Wlan.h"
 #include "Bluetooth.h"
+#include "Port.h"
 
 #ifdef NEOPIXEL_ENABLE
 	#include <FastLED.h>
@@ -20,6 +21,16 @@
 	#define LED_INDICATOR_SET(indicator) ((Led_Indicators) |= (1u << ((uint8_t)indicator)))
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t)indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator) ((Led_Indicators) &= ~(1u << ((uint8_t)indicator)))
+
+	#ifndef LED_OFFSET
+		#define LED_OFFSET 0
+	#elif LED_OFFSET < 0 || LED_OFFSET >= NUM_LEDS
+		#error LED_OFFSET must be between 0 and NUM_LEDS-1
+	#endif
+
+	// Time in milliseconds the volume indicator is visible
+	#define LED_VOLUME_INDICATOR_RETURN_DELAY	1000U
+	#define LED_VOLUME_INDICATOR_NUM_CYCLES		(LED_VOLUME_INDICATOR_RETURN_DELAY / 20)
 
 	extern t_button gButtons[7];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 	extern uint8_t gShutdownButton;
@@ -52,8 +63,8 @@ void Led_Init(void) {
 		}
 
 		// Get night LED-brightness from NVS
-		uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 0);
-		if (nvsNLedBrightness) {
+		uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
+		if (nvsNLedBrightness != 255) {
 			Led_NightBrightness = nvsNLedBrightness;
 			snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(restoredInitialBrightnessForNmFromNvs), nvsNLedBrightness);
 			Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -69,7 +80,7 @@ void Led_Init(void) {
 			NULL,       /* Task input parameter */
 			1,          /* Priority of the task */
 			NULL,       /* Task handle. */
-			0           /* Core where the task should run */
+			1           /* Core where the task should run */
 		);
 	#endif
 }
@@ -93,10 +104,16 @@ void Led_SetPause(boolean value) {
 	#endif
 }
 
+// Used to reset brightness to initial value after prevously active sleepmode was left
 void Led_ResetToInitialBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
-		Led_Brightness = Led_InitialBrightness;
-		Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
+		if (Led_Brightness == Led_NightBrightness || Led_Brightness == 0) {	// Only reset to initial value if brightness wasn't intentionally changed (or was zero)
+			Led_Brightness = Led_InitialBrightness;
+			Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
+		}
+	#endif
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, HIGH, false);
 	#endif
 }
 
@@ -104,6 +121,9 @@ void Led_ResetToNightBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
 		Led_Brightness = Led_NightBrightness;
 		Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+	#endif
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, LOW, false);
 	#endif
 }
 
@@ -118,16 +138,56 @@ uint8_t Led_GetBrightness(void) {
 void Led_SetBrightness(uint8_t value) {
 	#ifdef NEOPIXEL_ENABLE
 		Led_Brightness = value;
+		#ifdef BUTTONS_LED
+			Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
+		#endif
 	#endif
 }
 
-// Switches Neopixel-addressing from clockwise to counter clockwise (and vice versa)
+// Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
 uint8_t Led_Address(uint8_t number) {
 	#ifdef NEOPIXEL_REVERSE_ROTATION
-		return NUM_LEDS - 1 - number;
+		#if LED_OFFSET > 0
+			return number <=  LED_OFFSET - 1 ? LED_OFFSET - 1 - number : NUM_LEDS + LED_OFFSET - 1 - number;
+		#else
+			return NUM_LEDS - 1 - number;
+		#endif
 	#else
-		return number;
+		#if LED_OFFSET > 0
+			return number >= NUM_LEDS - LED_OFFSET ?  number + LED_OFFSET - NUM_LEDS : number + LED_OFFSET;
+		#else
+			return number;
+		#endif
 	#endif
+}
+
+void Led_SetButtonLedsEnabled(boolean value) {
+	#ifdef BUTTONS_LED
+		Port_Write(BUTTONS_LED, value ? HIGH : LOW, false);
+	#endif
+}
+
+bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
+			     bool requestProgressRedraw) {
+#ifdef BATTERY_MEASURE_ENABLE
+	if (gPlayProperties.pausePlay != lastPlayState ||
+	    System_AreControlsLocked() != lastLockState ||
+	    requestProgressRedraw ||
+	    LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) ||
+	    LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) ||
+	    !gButtons[gShutdownButton].currentState ||
+	    System_IsSleepRequested()) {
+#else
+	if (gPlayProperties.pausePlay != lastPlayState ||
+	    System_AreControlsLocked() != lastLockState ||
+	    requestProgressRedraw ||
+	    !gButtons[gShutdownButton].currentState ||
+	    System_IsSleepRequested()) {
+#endif
+		return true;
+	}
+
+	return false;
 }
 
 static void Led_Task(void *parameter) {
@@ -136,9 +196,8 @@ static void Led_Task(void *parameter) {
 		static double lastPos = gPlayProperties.currentRelPos;
 		static bool lastPlayState = false;
 		static bool lastLockState = false;
-		static bool ledBusyShown = false;
-		static bool notificationShown = false;
-		static bool volumeChangeShown = false;
+		static bool requestClearLeds = false;
+		static bool requestProgressRedraw = false;
 		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
 		static bool singleLedStatus = false;
@@ -253,7 +312,7 @@ static void Led_Task(void *parameter) {
 			// Single-LED: led flashes red 5x
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) { // If error occured (e.g. RFID-modification not accepted)
 				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				FastLED.clear();
 
 				if (NUM_LEDS == 1) {
@@ -281,7 +340,7 @@ static void Led_Task(void *parameter) {
 			// Single-LED: led flashes green 5x
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) { // If action was accepted
 				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				FastLED.clear();
 
 				if (NUM_LEDS == 1) {
@@ -309,7 +368,7 @@ static void Led_Task(void *parameter) {
 			// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-				notificationShown = true;
+				requestProgressRedraw = true;
 				for (uint8_t i = 0; i < 3; i++) {
 					FastLED.clear();
 
@@ -378,33 +437,56 @@ static void Led_Task(void *parameter) {
 			}
 		#endif
 
-		// Single-LED: led indicates loudness between green (low) => red (high)
-		// Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between green (low) => red (high)
+		/*
+		 * - Single-LED: led indicates loudness between green (low) => red (high)
+		 * - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
+		 *   green (low) => red (high)
+		 */
 		if (hlastVolume != AudioPlayer_GetCurrentVolume()) { // If volume has been changed
-			uint8_t numLedsToLight = map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, NUM_LEDS);
-			hlastVolume = AudioPlayer_GetCurrentVolume();
-			volumeChangeShown = true;
-			FastLED.clear();
+			uint8_t timeout = LED_VOLUME_INDICATOR_NUM_CYCLES;
+			// wait for further volume changes within next 20ms for 50 cycles = 1s
+			while (timeout--) {
+				uint8_t numLedsToLight = map(AudioPlayer_GetCurrentVolume(), 0,
+							     AudioPlayer_GetMaxVolume(), 0,
+							     NUM_LEDS);
 
-			if (NUM_LEDS == 1) {
-				leds[0].setHue((uint8_t)(85 - (90 * ((double)AudioPlayer_GetCurrentVolume() / (double)AudioPlayer_GetMaxVolumeSpeaker()))));
-			} else {
-				for (int led = 0; led < numLedsToLight; led++) { // (Inverse) color-gradient from green (85) back to (still) red (250) using unsigned-cast
-					leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)90 / NUM_LEDS) * led));
-				}
-			}
-			FastLED.show();
+				// Reset timeout when volume has changed
+				if (hlastVolume != AudioPlayer_GetCurrentVolume())
+					timeout = LED_VOLUME_INDICATOR_NUM_CYCLES;
 
-			for (uint8_t i = 0; i <= 50; i++) {
-				if (hlastVolume != AudioPlayer_GetCurrentVolume() || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-					if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-						volumeChangeShown = false;
+				hlastVolume = AudioPlayer_GetCurrentVolume();
+				FastLED.clear();
+
+				if (NUM_LEDS == 1) {
+					uint8_t hue = 85 - (90 *
+						((double)AudioPlayer_GetCurrentVolume() /
+						(double)AudioPlayer_GetMaxVolumeSpeaker()));
+					leds[0].setHue(hue);
+				} else {
+					/*
+					 * (Inverse) color-gradient from green (85) back to (still)
+					 * red (250) using unsigned-cast.
+					 */
+					for (int led = 0; led < numLedsToLight; led++) {
+						uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+						leds[Led_Address(led)].setHue(hue);
 					}
+				}
+
+				FastLED.show();
+
+				// abort volume change indication if necessary
+				if (LED_INDICATOR_IS_SET(LedIndicatorType::Error) ||
+				    LED_INDICATOR_IS_SET(LedIndicatorType::Ok) ||
+				    !gButtons[gShutdownButton].currentState ||
+				    System_IsSleepRequested()) {
 					break;
 				}
 
 				vTaskDelay(portTICK_RATE_MS * 20);
 			}
+
+			requestProgressRedraw = true;
 		}
 
 		// < 4 LEDs: doesn't make sense at all
@@ -486,6 +568,10 @@ static void Led_Task(void *parameter) {
 			case NO_PLAYLIST: // If no playlist is active (idle)
 				if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
 					for (uint8_t i = 0; i < NUM_LEDS; i++) {
+						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
+							// skip idle pattern if volume has changed
+							break;
+						}
 						if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 							idleColor = CRGB::Blue;
 						} else
@@ -539,7 +625,8 @@ static void Led_Task(void *parameter) {
 				break;
 
 			case BUSY: // If uC is busy (parsing SD-card)
-				ledBusyShown = true;
+				requestProgressRedraw = true;
+				requestClearLeds = true;
 				if (NUM_LEDS == 1) {
 					FastLED.clear();
 					singleLedStatus = !singleLedStatus;
@@ -575,21 +662,18 @@ static void Led_Task(void *parameter) {
 
 			default: // If playlist is active (doesn't matter which type)
 				if (!gPlayProperties.playlistFinished) {
-					#ifdef BATTERY_MEASURE_ENABLE
-						if (gPlayProperties.pausePlay != lastPlayState || System_AreControlsLocked() != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-					#else
-						if (gPlayProperties.pausePlay != lastPlayState || System_AreControlsLocked() != lastLockState || notificationShown || ledBusyShown || volumeChangeShown || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-					#endif
+					if (Led_NeedsProgressRedraw(lastPlayState, lastLockState,
+								    requestProgressRedraw)) {
 						lastPlayState = gPlayProperties.pausePlay;
 						lastLockState = System_AreControlsLocked();
-						notificationShown = false;
-						volumeChangeShown = false;
-						if (ledBusyShown) {
-							ledBusyShown = false;
-							FastLED.clear();
-							FastLED.show();
-						}
+						requestProgressRedraw = false;
 						redrawProgress = true;
+					}
+
+					if (requestClearLeds) {
+						FastLED.clear();
+						FastLED.show();
+						requestClearLeds = false;
 					}
 
 					// Single-LED: led indicates between gradient green (beginning) => red (end)
@@ -607,7 +691,7 @@ static void Led_Task(void *parameter) {
 									if (System_AreControlsLocked()) {
 										leds[Led_Address(led)] = CRGB::Red;
 									} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-										leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)90 / NUM_LEDS) * led));
+										leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
 									}
 								}
 							}

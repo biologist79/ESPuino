@@ -1,10 +1,8 @@
-#ifndef __ESPUINO_SETTINGS_H__
-    #define __ESPUINO_SETTINGS_H__
+#ifndef __ESPUINO_SETTINGS_OVERRIDE_H__
+    #define __ESPUINO_SETTINGS_OVERRIDE_H__
         #include "Arduino.h"
         #include "values.h"
-#if __has_include("settings-override.h")
-    #include "settings-override.h"
-#else
+
     //######################### INFOS ####################################
     // This is the general configfile for ESPuino-configuration.
 
@@ -19,10 +17,12 @@
     6: ESPuino complete                     => settings-complete.h
     7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
     8: AZDelivery ESP32 NodeMCU             => settings-azdelivery_sdmmc.h
+    9: Lolin D32 SDMMC Port-Expander        => settings-lolin_d32_sdmmc_pe.h
+    10: RASPIAUDIO Muse Proto               => settings-muse_proto.h
     99: custom                              => settings-custom.h
     more to come...
     */
-    #ifndef HAL             // Will be set by platformio.ini. If using Arduini-IDE you have to set HAL according your needs!
+    #ifndef HAL             // Will be set by platformio.ini. If using Arduino-IDE you have to set HAL according your needs!
         #define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; ... 99 = custom
     #endif
 
@@ -50,6 +50,7 @@
     //#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
     #define CACHED_PLAYLIST_ENABLE          // Enables playlist-caching (infos: https://forum.espuino.de/t/neues-feature-cached-playlist/515)
     //#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
+    //#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
     //#define SAVE_PLAYPOS_BEFORE_SHUTDOWN  // When playback is active and mode audiobook was selected, last play-position is saved automatically when shutdown is initiated
     //#define SAVE_PLAYPOS_WHEN_RFID_CHANGE // When playback is active and mode audiobook was selected, last play-position is saved automatically for old playlist when new RFID-tag is applied
 
@@ -171,7 +172,10 @@
 
     // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
     constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-    constexpr const char nameBluetoothDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+
+    // Bluetooth
+    constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
 
     // Where to store the backup-file for NVS-records
     constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
@@ -274,7 +278,9 @@
     #elif (HAL == 8)
         #include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
     #elif (HAL == 9)
-        #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+        #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for Lolin D32 (non-pro) with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+    #elif (HAL == 10)
+        #include "settings-muse_proto.h"                     // Pre-configured settings for Raspiaudio ESPMuse Proto Board with I2C RFID Reader (https://raspiaudio.com/produit/muse-proto)
     #elif (HAL == 99)
         #include "settings-custom.h"                        // Contains all user-relevant settings custom-board
     #endif

@@ -62,6 +62,8 @@
 #define BUTTON_4                        104         // Button 4: unnamed optional button
 #define BUTTON_5                        101         // Button 5: unnamed optional button
 
+//#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
+
 // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
 // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 #ifdef PORT_EXPANDER_ENABLE

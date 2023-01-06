@@ -214,6 +214,9 @@ void setup() {
 		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	}
 	System_ShowUpgradeWarning();
+#ifdef CONTROLS_LOCKED_BY_DEFAULT
+	System_SetLockControls(true);
+#endif
 }
 
 void loop() {

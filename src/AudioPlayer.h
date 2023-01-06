@@ -12,6 +12,7 @@ typedef struct { // Bit field
 	double currentRelPos;                       // Current relative playPosition (in %)
 	bool sleepAfterCurrentTrack:        1;      // If uC should go to sleep after current track
 	bool sleepAfterPlaylist:            1;      // If uC should go to sleep after whole playlist
+	bool sleepAfter5Tracks:             1;      // If uC should go to sleep after 5 tracks
 	bool saveLastPlayPosition:          1;      // If playposition/current track should be saved (for AUDIOBOOK)
 	char playRfidTag[13];                       // ID of RFID-tag that started playlist
 	bool pausePlay:                     1;      // If pause is active
