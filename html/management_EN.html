@@ -228,6 +228,39 @@
 					<legend>Current track</legend>
 					<div id="track"></div>
 				</div>
+				<div class="form-group col-md-12">
+					<legend>Command Control</legend>
+					<select class="form-control" id="commandId" name="commandId">
+						<option class="placeholder" disabled selected value="">Modifikation auswählen</option>
+						<option value="100">Tastensperre</option>
+						<option value="179">Schlafe sofort</option>
+						<option value="101">Schlafen nach 15 Minuten</option>
+						<option value="102">Schlafen nach 30 Minuten</option>
+						<option value="103">Schlafen nach 1 Stunde</option>
+						<option value="104">Schlafen nach 2 Stunden</option>
+						<option value="105">Schlafen nach Ende des Titels</option>
+						<option value="106">Schlafen nach Ende der Playlist</option>
+						<option value="107">Schlafen nach fünf Titeln</option>
+						<option value="110">Wiederhole Playlist (endlos)</option>
+						<option value="111">Wiederhole Titel (endlos)</option>
+						<option value="120">Dimme LEDs (Nachtmodus)</option>
+						<option value="130">Aktiviere/deaktive WLAN</option>
+						<option value="140">Bluetooth Lautsprecher aktivieren/deaktivieren</option>
+						<option value="141">Bluetooth Kopfhörer aktivieren/deaktivieren</option>
+						<option value="150">Aktiviere FTP</option>
+						<option value="152">Spreche Text</option>
+						<option value="0">Lösche Zuordnung</option>
+						<option value="170">Play/Pause</option>
+						<option value="171">Vorheriger Titel</option>
+						<option value="172">Nächster Titel</option>
+						<option value="173">Erster Titel</option>
+						<option value="174">Letzter Titel</option>
+						<option value="180">Springe vorwärts (n Sekunden)</option>
+						<option value="181">Springe rückwärts (n Sekunden)</option>
+					</select>
+					<button type="button" onclick="executeCommand()" class="btn btn-primary" >Ausführen</button>
+				</div>
+
 		</div>
 	</div>
 	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
@@ -295,6 +328,7 @@
 								<option class="option-folder" value="9">All tracks of a directory (random, loop)</option>
 								<option class="option-folder" value="13">All tracks of a random subdirectory (sorted alph.)</option>
 								<option class="option-stream" value="8">Webradio</option>
+								<option class="option-stream" value="14">Text To Speech</option>
 								<option class="option-stream" value="11">List (files from SD and/or webstreams) from local .m3u-File</option>
 							</select>
 						</div>
@@ -317,6 +351,7 @@
 								<option value="130">Toggle WiFi</option>
 								<option value="140">Toggle Bluetooth</option>
 								<option value="150">Enable FTP</option>
+								<option value="152">Speek Text</option>
 								<option value="0">Remove assignment</option>
 								<option value="170">Toggle Play/Pause</option>
 								<option value="171">Previous track</option>
@@ -460,6 +495,18 @@
 						<label for="inactivityTime">After n minutes inactivity</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
 						 data-slider-value="%MAX_INACTIVITY%"  value="%MAX_INACTIVITY%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
+					</fieldset>
+				</div>
+<br>
+				<div class="form-group col-md-12">
+					<fieldset>
+						<legend>Custom Text</legend>
+
+						<label for="customText">Custom Text:</label>
+						<input type="text" class="form-control" id="customText" placeholder="CUSTOM TEXT" name="customText" required>
+						<div class="invalid-feedback">
+							Please enter custom-text.
+						</div>
 					</fieldset>
 				</div>
 <br>
@@ -1208,7 +1255,8 @@
 				vWarning: document.getElementById('warningLowVoltage').value,
 				vIndLow: document.getElementById('voltageIndicatorLow').value,
 				vIndHi: document.getElementById('voltageIndicatorHigh').value,
-				vInt: document.getElementById('voltageCheckInterval').value
+				vInt: document.getElementById('voltageCheckInterval').value,
+				vCustText: document.getElementById('customText').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1309,6 +1357,17 @@
 		var myJSON = JSON.stringify(myObj);
 		socket.send(myJSON);
 	}
+
+	function executeCommand() {
+		var myObj = {
+			"controls": {
+				action: document.getElementById('commandId').value
+			}
+		};
+		var myJSON = JSON.stringify(myObj);
+		socket.send(myJSON);
+	}
+
 	function sendVolume(vol) {
 		var myObj = {
 			"controls": {

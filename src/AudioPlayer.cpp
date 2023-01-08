@@ -43,6 +43,7 @@ static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
 static void AudioPlayer_Task(void *parameter);
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static char **AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
+static char **AutioPlayer_ReturnPlaylistFromTextToSpeech(const char *_textToInsert);
 static int AudioPlayer_ArrSortHelper(const void *a, const void *b);
 static void AudioPlayer_SortPlaylist(const char **arr, int n);
 static void AudioPlayer_SortPlaylist(char *str[], const uint32_t count);
@@ -624,6 +625,12 @@ void AudioPlayer_Task(void *parameter) {
 			if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
 				audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
 				gPlayProperties.playlistFinished = false;
+			} else if (gPlayProperties.playMode == TEXT_TO_SPEECH) {
+				audioReturnCode = true; // is handled later
+				gPlayProperties.tellCustomText = true;
+				gPlayProperties.currentSpeechActive = true;
+				gPlayProperties.lastSpeechActive = true;
+				gPlayProperties.playlistFinished = false;
 			} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 				// Files from SD
 				if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -657,6 +664,8 @@ void AudioPlayer_Task(void *parameter) {
 					} else {
 						Audio_setTitle("Webradio");
 					}
+				} else if (gPlayProperties.tellCustomText) {
+					Audio_setTitle("Text To Speech");
 				} else {
 					if (gPlayProperties.numberOfTracks > 1) {
 						Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber+1,  gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
@@ -719,10 +728,32 @@ void AudioPlayer_Task(void *parameter) {
 			}
 		}
 
+		// Handle custom text
+		if (gPlayProperties.tellCustomText) {
+			gPlayProperties.tellCustomText = false;
+			bool speechOk;
+			String customText = "";
+			if (gPlayProperties.playMode == TEXT_TO_SPEECH){
+				customText = *(gPlayProperties.playlist);
+			} else {
+				customText = gPrefsSettings.getString("customText", "");
+			}
+			#if (LANGUAGE == DE)
+				speechOk = audio->connecttospeech(customText.c_str(), "de");
+			#else
+				speechOk = audio->connecttospeech(customText.c_str(), "en");
+			#endif
+			if (!speechOk) {
+				System_IndicateError();
+			}
+		}
+
 		// If speech is over, go back to predefined state
 		if (!gPlayProperties.currentSpeechActive && gPlayProperties.lastSpeechActive) {
 			gPlayProperties.lastSpeechActive = false;
-			if (gPlayProperties.playMode != NO_PLAYLIST) {
+			if (gPlayProperties.playMode == TEXT_TO_SPEECH) {
+				gPlayProperties.playMode = NO_PLAYLIST;
+			} else if (gPlayProperties.playMode != NO_PLAYLIST) {
 				xQueueSend(gRfidCardQueue, gPlayProperties.playRfidTag, 0);     // Re-inject previous RFID-ID in order to continue playback
 			}
 		}
@@ -835,7 +866,11 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;
 	char **musicFiles;
 
-	if (_playMode != WEBSTREAM) {
+	if (_playMode == WEBSTREAM) {
+		musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
+	} else if (_playMode == TEXT_TO_SPEECH) {
+		musicFiles = AutioPlayer_ReturnPlaylistFromTextToSpeech(filename); // no modification needed
+	} else {
 		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
 			filename = SdCard_pickRandomSubdirectory(filename);     // *filename (input): target-directory  //   *filename (output): random subdirectory
 			if (filename == NULL) {  // If error occured while extracting random subdirectory
@@ -846,8 +881,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		} else {
 			musicFiles = SdCard_ReturnPlaylist(filename, _playMode);
 		}
-	} else {
-		musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(filename);
 	}
 
 	// Catch if error occured (e.g. file not found)
@@ -857,6 +890,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
 			AudioPlayer_TrackControlToQueueSender(STOP);
 		}
+		free(filename);
 		return;
 	}
 
@@ -978,6 +1012,18 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			break;
 		}
 
+		case TEXT_TO_SPEECH: { // This is also always just one "track"
+			Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
+			if (Wlan_IsConnected()) {
+				xQueueSend(gTrackQueue, &(musicFiles), 0);
+			} else {
+				Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
+				System_IndicateError();
+				gPlayProperties.playMode = NO_PLAYLIST;
+			}
+			break;
+		}
+
 		case LOCAL_M3U: { // Can be one or multiple SD-files or webradio-stations; or a mix of both
 			Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
@@ -1051,6 +1097,18 @@ char **AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl) {
 
 	free(webUrl);
 	return ++url;
+}
+
+// Adds Text To Speech to playlist; same like SdCard_ReturnPlaylist() but always only one entry
+char **AutioPlayer_ReturnPlaylistFromTextToSpeech(const char *_textToInsert) {
+	char *textToInsert = x_strdup(_textToInsert);
+	static char **playlist;
+	playlist = (char **)x_malloc(sizeof(char *) * 2);
+	playlist[0] = x_strdup("1"); // Number of files is always 1 in url-mode
+	playlist[1] = x_strdup(textToInsert);
+
+	free(textToInsert);
+	return ++playlist;
 }
 
 // Adds new control-command to control-queue

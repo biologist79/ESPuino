@@ -448,6 +448,7 @@ bool processJsonRequest(char *_serialJson) {
 		float vIndLow = doc["general"]["vIndLow"].as<float>();
 		float vIndHi = doc["general"]["vIndHi"].as<float>();
 		uint8_t vInt = doc["general"]["vInt"].as<uint8_t>();
+		const char *_customText = object["general"]["vCustText"];
 
 		gPrefsSettings.putUInt("initVolume", iVol);
 		gPrefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
@@ -459,6 +460,7 @@ bool processJsonRequest(char *_serialJson) {
 		gPrefsSettings.putFloat("vIndicatorLow", vIndLow);
 		gPrefsSettings.putFloat("vIndicatorHigh", vIndHi);
 		gPrefsSettings.putUInt("vCheckIntv", vInt);
+		gPrefsSettings.putString("customText", _customText);
 
 		// Check if settings were written successfully
 		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
