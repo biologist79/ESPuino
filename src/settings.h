@@ -52,6 +52,7 @@
     //#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
     #define CACHED_PLAYLIST_ENABLE          // Enables playlist-caching (infos: https://forum.espuino.de/t/neues-feature-cached-playlist/515)
     //#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
+    //#define PAUSE_ON_MIN_VOLUME           // When playback is active and volume is changed to zero, playback is paused automatically. Playback is continued if volume reaches 1. (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
     //#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
     //#define SAVE_PLAYPOS_BEFORE_SHUTDOWN  // When playback is active and mode audiobook was selected, last play-position is saved automatically when shutdown is initiated
     //#define SAVE_PLAYPOS_WHEN_RFID_CHANGE // When playback is active and mode audiobook was selected, last play-position is saved automatically for old playlist when new RFID-tag is applied
@@ -177,9 +178,9 @@
 
     // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
     constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-    
-	// Bluetooth
-	constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+
+    // Bluetooth
+    constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
     constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
 
     // Where to store the backup-file for NVS-records
