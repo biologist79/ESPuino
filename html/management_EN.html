@@ -230,33 +230,33 @@
 				</div>
 				<div class="form-group col-md-12">
 					<legend>Command Control</legend>
-					<select class="form-control" id="commandId" name="commandId">
-						<option class="placeholder" disabled selected value="">Modifikation auswählen</option>
-						<option value="100">Tastensperre</option>
-						<option value="179">Schlafe sofort</option>
-						<option value="101">Schlafen nach 15 Minuten</option>
-						<option value="102">Schlafen nach 30 Minuten</option>
-						<option value="103">Schlafen nach 1 Stunde</option>
-						<option value="104">Schlafen nach 2 Stunden</option>
-						<option value="105">Schlafen nach Ende des Titels</option>
-						<option value="106">Schlafen nach Ende der Playlist</option>
-						<option value="107">Schlafen nach fünf Titeln</option>
-						<option value="110">Wiederhole Playlist (endlos)</option>
-						<option value="111">Wiederhole Titel (endlos)</option>
-						<option value="120">Dimme LEDs (Nachtmodus)</option>
-						<option value="130">Aktiviere/deaktive WLAN</option>
-						<option value="140">Bluetooth Lautsprecher aktivieren/deaktivieren</option>
-						<option value="141">Bluetooth Kopfhörer aktivieren/deaktivieren</option>
-						<option value="150">Aktiviere FTP</option>
-						<option value="152">Spreche Text</option>
-						<option value="0">Lösche Zuordnung</option>
-						<option value="170">Play/Pause</option>
-						<option value="171">Vorheriger Titel</option>
-						<option value="172">Nächster Titel</option>
-						<option value="173">Erster Titel</option>
-						<option value="174">Letzter Titel</option>
-						<option value="180">Springe vorwärts (n Sekunden)</option>
-						<option value="181">Springe rückwärts (n Sekunden)</option>
+					<select class="form-control" id="modId" name="modId">
+						<option class="placeholder" disabled selected value="">Select modification</option>
+						<option value="100">Keylock</option>
+						<option value="179">Schlafe immediately</option>
+						<option value="101">Sleep after 15 minutes</option>
+						<option value="102">Sleep after 30 minutes</option>
+						<option value="103">Sleep after 1 hour</option>
+						<option value="104">Sleep after 2 hours</option>
+						<option value="105">Sleep after end of track</option>
+						<option value="106">Sleep after end of playlist</option>
+						<option value="107">Sleep after end of five tracks</option>
+						<option value="110">Loop playlist</option>
+						<option value="111">Loop track</option>
+						<option value="120">Dimm LEDs (nightmode)</option>
+						<option value="130">Toggle WiFi</option>
+						<option value="140">Toggle Bluetooth</option>
+						<option value="141">Bluetooth Headphoe aktivation / deaktivation </option>
+						<option value="150">Enable FTP</option>
+						<option value="152">Speek Text</option>
+						<option value="0">Remove assignment</option>
+						<option value="170">Toggle Play/Pause</option>
+						<option value="171">Previous track</option>
+						<option value="172">Next track</option>
+						<option value="173">First track</option>
+						<option value="174">Last track</option>
+						<option value="180">Seek forwards (n seconds)</option>
+						<option value="181">Seek backwards (n seconds)</option>
 					</select>
 					<button type="button" onclick="executeCommand()" class="btn btn-primary" >Ausführen</button>
 				</div>
@@ -350,6 +350,7 @@
 								<option value="120">Dimm LEDs (nightmode)</option>
 								<option value="130">Toggle WiFi</option>
 								<option value="140">Toggle Bluetooth</option>
+								<option value="141">Bluetooth Headphoe aktivation / deaktivation </option>
 								<option value="150">Enable FTP</option>
 								<option value="152">Speek Text</option>
 								<option value="0">Remove assignment</option>
