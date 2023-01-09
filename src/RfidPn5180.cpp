@@ -255,7 +255,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
-						if (!sameCardReapplied || gPlayProperties == trackFinished || gPlayProperties == playlistFinished) {       // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished 
+						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {       // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished 
 					#else	
 						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again... 
 					#endif
