@@ -42,6 +42,7 @@
 	static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+	static uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
 
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
@@ -188,6 +189,24 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 	}
 
 	return false;
+}
+
+void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
+	for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++){
+		leds[(Led_Address(offset)+i*Led_IdleDotDistance)%NUM_LEDS] = color;
+	}
+}
+
+bool Led_SkipIdleState(uint8_t lastVolume, uint8_t lastLedBrightness){
+	#ifdef BATTERY_MEASURE_ENABLE
+		if (lastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+	#else
+		if (lastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
+	#endif
+		return true;
+	} else {
+		return false;
+	}
 }
 
 static void Led_Task(void *parameter) {
@@ -568,8 +587,8 @@ static void Led_Task(void *parameter) {
 			case NO_PLAYLIST: // If no playlist is active (idle)
 				if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
 					for (uint8_t i = 0; i < NUM_LEDS; i++) {
-						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-							// skip idle pattern if volume has changed
+						// skip idle pattern if volume or something else has changed
+						if (Led_SkipIdleState(hlastVolume, lastLedBrightness)) {
 							break;
 						}
 						if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
@@ -597,24 +616,10 @@ static void Led_Task(void *parameter) {
 							}
 						}
 						FastLED.clear();
-						if (Led_Address(i) == 0) { // White if Wifi is enabled and blue if not
-							leds[0] = idleColor;
-							leds[NUM_LEDS / 4] = idleColor;
-							leds[NUM_LEDS / 2] = idleColor;
-							leds[NUM_LEDS / 4 * 3] = idleColor;
-						} else {
-							leds[Led_Address(i) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = idleColor;
-						}
+						Led_DrawIdleDots(leds, i, idleColor);
 						FastLED.show();
 						for (uint8_t i = 0; i <= 50; i++) {
-							#ifdef BATTERY_MEASURE_ENABLE
-								if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-							#else
-								if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-							#endif
+							if (Led_SkipIdleState(hlastVolume, lastLedBrightness)) {
 								break;
 							} else {
 								vTaskDelay(portTICK_RATE_MS * 10);
@@ -640,17 +645,7 @@ static void Led_Task(void *parameter) {
 				} else {
 					for (uint8_t i = 0; i < NUM_LEDS; i++) {
 						FastLED.clear();
-						if (Led_Address(i) == 0) {
-							leds[0] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 4] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 2] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 4 * 3] = CRGB::BlueViolet;
-						} else {
-							leds[Led_Address(i) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = CRGB::BlueViolet;
-						}
+						Led_DrawIdleDots(leds, i, idleColor);
 						FastLED.show();
 						if (gPlayProperties.playMode != BUSY) {
 							break;
@@ -704,12 +699,11 @@ static void Led_Task(void *parameter) {
 									generalColor = speechColor;
 								}
 
-								leds[Led_Address(0)] = generalColor;
-								if (NUM_LEDS > 1) {
-									leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = generalColor;
-									leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = generalColor;
-									leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = generalColor;
+								uint8_t pauseOffset = 0;
+								if (OFFSET_PAUSE_LEDS) {
+									pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
 								}
+								Led_DrawIdleDots(leds, pauseOffset, generalColor);
 								break;
 							}
 						}

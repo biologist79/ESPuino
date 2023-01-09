@@ -189,11 +189,13 @@
     //#################### Settings for optional Modules##############################
     // (optinal) Neopixel
     #ifdef NEOPIXEL_ENABLE
-        #define NUM_LEDS                    24          // number of LEDs
-        #define CHIPSET                     WS2812B     // type of Neopixel
-        #define COLOR_ORDER                 GRB
-        #define PROGRESS_HUE_START          85          // Start and end hue of mulitple-LED progress indicator. Hue ranges from basically 0 - 255, but you can also set numbers outside this range to get the desired effect (e.g. 85-215 will go from green to purple via blue, 341-215 start and end at exactly the same color but go from green to purple via yellow and red)
-        #define PROGRESS_HUE_END            -1
+		#define NUM_LEDS                    24          // number of LEDs
+		#define CHIPSET                     WS2812B     // type of Neopixel
+		#define COLOR_ORDER                 GRB
+		#define NUM_LEDS_IDLE_DOTS          5           // count of LEDs, which are shown when Idle
+		#define OFFSET_PAUSE_LEDS			false		// if true the pause-leds are centered in the mid of the LED-Strip
+		#define PROGRESS_HUE_START          85          // Start and end hue of mulitple-LED progress indicator. Hue ranges from basically 0 - 255, but you can also set numbers outside this range to get the desired effect (e.g. 85-215 will go from green to purple via blue, 341-215 start and end at exactly the same color but go from green to purple via yellow and red)
+		#define PROGRESS_HUE_END            -1
         //#define LED_OFFSET                0           // shifts the starting LED in the original direction of the neopixel ring
     #endif
 
@@ -285,7 +287,6 @@
         #include "settings-lolin_d32_pro_sdmmc_pe.h"        // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
     #elif (HAL == 8)
         #include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
-    #elif (HAL == 9)
          #include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for Lolin D32 (non-pro) with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
     #elif (HAL == 10)
         #include "settings-muse_proto.h"                     // Pre-configured settings for Raspiaudio ESPMuse Proto Board with I2C RFID Reader (https://raspiaudio.com/produit/muse-proto)
