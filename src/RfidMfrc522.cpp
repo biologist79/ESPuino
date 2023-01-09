@@ -116,8 +116,11 @@
 				}
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
-					if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
-						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
+						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished  
+					#else	
+						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again...
+					#endif
 					} else {
 						// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 						if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
