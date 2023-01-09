@@ -59,7 +59,7 @@
 
     //################## set PAUSE_WHEN_RFID_REMOVED behaviour #############################
     #ifdef PAUSE_WHEN_RFID_REMOVED
-        #define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after plaback has end
+        #define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after playback has ended (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541/2)
     #endif
 
     //################## select SD card mode #############################
