@@ -826,7 +826,7 @@
 		var ref = $('#explorerTree').jstree(true);
 		var node = ref.get_node(nodeId);
 		console.log("call delete request: " + node.data.path);
-		deleteData("/explorer?path=" + node.data.path);
+		deleteData("/explorer?path=" + encodeURIComponent(node.data.path));
 	}
 
 	function fileNameSort( a, b ) {
@@ -882,7 +882,7 @@
 
 		var node = ref.get_node(nodeId);
 
-		getData("/explorer?path=" + node.data.path, function(data) {
+		getData("/explorer?path=" + encodeURIComponent(node.data.path), function(data) {
 			/* We now have data! */
 
 			deleteChildrenNodes(nodeId);
@@ -973,7 +973,7 @@
 									var childNode = ref.create_node(nodeId, {text: "Neuer Ordner", type: "folder"});
 									if(childNode) {
 										ref.edit(childNode, null, function(childNode, status){
-											putData("/explorer?path=" + node.data.path + "/" + childNode.text);
+											putData("/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
 											refreshNode(nodeId);
 										});
 									}
@@ -993,7 +993,7 @@
 										playMode = 11;
 									}
 								}
-								postData("/exploreraudio?path=" + node.data.path + "&playmode=" + playMode);
+								postData("/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
 
@@ -1021,7 +1021,7 @@
 								var srcPath = node.data.path;
 								ref.edit(nodeId, null, function(node, status){
 									node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf("/")+1) + node.text;
-									patchData("/explorer?srcpath=" + srcPath + "&dstpath=" + node.data.path);
+									patchData("/explorer?srcpath=" + encodeURIComponent(srcPath) + "&dstpath=" + encodeURIComponent(node.data.path));
 									refreshNode(ref.get_parent(nodeId));
 								});
 							}
