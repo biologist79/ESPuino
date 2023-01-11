@@ -149,6 +149,10 @@
 	<a class="reboot float-right nav-link" href="/shutdown"><i class="fas fa-power-off"></i> <span data-i18n="shutdown"></span></a>
 	<a class="reboot float-right nav-link" href="/log"><i class="fas fa-book"></i> <span data-i18n="log"></span></a>
 	<a class="reboot float-right nav-link" href="/info"><i class="fas fa-info"></i> <span data-i18n="info"></span></a>
+	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
+		<option value="de">de</option>
+		<option value="en">en</option>
+	</select>
 	</div>
 </nav>
 <br/>
@@ -552,6 +556,8 @@
 	var lastIdclicked = '';
 	var ActiveSubTab = 'rfid-music-tab';
 	var host = $(location).attr('hostname');
+	var language = navigator.language || navigator.userLanguage;
+	var localize;
 
 	/* show active / selected tab */
 	$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
@@ -597,7 +603,30 @@
     }, (err, t) => {
         localize = locI18next.init(i18next);
         localize('body');
-    });
+
+		// change the language if we found it in the local storage
+		const lang = localStorage.getItem("language");
+		if(lang === null)
+			i18next.changeLanguage(language.split("-")[0]);
+		else
+			i18next.changeLanguage(lang);
+	});
+
+	i18next.on('languageChanged', (lng) => {
+		document.querySelector('#langSel').value = lng;
+
+		if(localize)
+			localize('body');
+	});
+
+	document.querySelector('#langSel').addEventListener('change', (e) => {
+		const lang = e.target.value;
+		console.log(lang);
+		if(lang !== i18next.language){
+			localStorage.setItem("language", lang);
+			i18next.changeLanguage(lang);
+		}
+	});
 
 	function postRendering(event, data) {
 		Object.keys(data.instance._model.data).forEach(function (key, index) {
