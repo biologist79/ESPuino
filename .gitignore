@@ -13,3 +13,4 @@ cmake-build-debug/
 platformio-override.ini
 src/settings-override.h
 src/settings-custom-override.h
+node_modules/
