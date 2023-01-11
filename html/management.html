@@ -171,13 +171,13 @@
 			<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 				<div class="form-group col-md-12">
 					<legend data-i18n="wifi.title"></legend>
-					<label for="ssid" data-i18n="[before]wifi.ssid.title">:</label>
-					<input type="text" class="form-control" id="ssid" placeholder="SSID" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
-					<div class="invalid-feedback" data-i18n="wifi.ssid.ssid"></div>
-					<label for="pwd" data-i18n="[before]wifi.password.title">:</label>
-					<input type="password" class="form-control" id="pwd" placeholder="Passwort" name="pwd" required>
-					<label for="hostname" data-i18n="[before]wifi.hostname.title">:</label>
-					<input type="text" class="form-control" id="hostname" placeholder="espuino" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
+					<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
+					<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
+					<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
+					<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
+					<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required>
+					<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
+					<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
 						   value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
 				</div>
 				<br>
@@ -235,7 +235,7 @@
 	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 		<div class="container" id="filetreeContainer">
 			<fieldset>
-				<legend data-i18n="files.title">Files</legend>
+				<legend data-i18n="files.title"></legend>
 				<div class="filetree-container">
 				<div id="filebrowser">
 					<div class="filetree demo" id="explorerTree"></div>
@@ -245,9 +245,9 @@
 						<div class="input-group">
 							<span class="form-control" id="uploaded_file_text"></span>
 							<span class="input-group-btn">
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" title="Upload one ore more files" data-i18n="[title]files.files.desc;files.files.text">Files</span>
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" title="Upload directory with all files and subdirectories" data-i18n="[title]files.directory.desc;files.directory.text">Directory</span>
-								<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" title="Start Upload" data-i18n="[title]files.upload.desc;files.upload.text">Upload</span>
+								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>
+								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>
+								<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>
 								<input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
 							</span>
 						</div>
@@ -263,78 +263,78 @@
 		</div>
 		<div class="container" id="rfidMusicTags">
 			<fieldset>
-				<legend>RFID-Assignments</legend>
+				<legend data-i18n="files.rfid.title"></legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 				<div class="form-group col-md-12">
-					<label for="rfidIdMusic">RFID-number (12 digits)</label>
+					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 						   placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
 					<br>
 					<ul class="nav nav-tabs" id="SubTab" role="tablist">
 						<li class="nav-item">
-							<a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> Musik</a>
+							<a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music"></span></a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" id="rfid-mod-tab" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> Modifikation</a>
+							<a class="nav-link" id="rfid-mod-tab" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification"></span></a>
 						</li>
 					</ul>
 					<div class="tab-content" id="SubTabContent">
 						<div class="tab-pane show active" id="rfidmusic" role="tabpanel">
 							<br>
-							<label for="fileOrUrl">File, directory or URL (^ and # aren't allowed as chars)</label>
-							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" placeholder="z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3" pattern="^[^\^#]+$" name="fileOrUrl" required>
-							<label for="playMode">Playmode</label>
+							<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
+							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
+							<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
 							<select class="form-control" id="playMode" name="playMode">
-								<option class="placeholder" disabled selected value="">Select mode</option>
-								<option class="option-file" value="1">Single track</option>
-								<option class="option-file" value="2">Single track (loop)</option>
-								<option class="option-folder" value="12">Single track of a directory (random). Followed by sleep.</option>
-								<option class="option-file-and-folder" value="3">Audiobook</option>
-								<option class="option-file-and-folder" value="4">Audiobook (loop)</option>
-								<option class="option-folder" value="5">All tracks of a directory (sorted alph.)</option>
-								<option class="option-folder" value="6">All tracks of a directory (random)</option>
-								<option class="option-folder" value="7">All tracks of a directory (sorted alph., loop)</option>
-								<option class="option-folder" value="9">All tracks of a directory (random, loop)</option>
-								<option class="option-folder" value="13">All tracks of a random subdirectory (sorted alph.)</option>
-								<option class="option-stream" value="8">Webradio</option>
-								<option class="option-stream" value="11">List (files from SD and/or webstreams) from local .m3u-File</option>
+								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.mode.0"></option>
+								<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
+								<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
+								<option class="option-folder" value="12" data-i18n="files.rfid.playmode.mode.3"></option>
+								<option class="option-file-and-folder" value="3" data-i18n="files.rfid.playmode.mode.4"></option>
+								<option class="option-file-and-folder" value="4" data-i18n="files.rfid.playmode.mode.5"></option>
+								<option class="option-folder" value="5" data-i18n="files.rfid.playmode.mode.6"></option>
+								<option class="option-folder" value="6" data-i18n="files.rfid.playmode.mode.7"></option>
+								<option class="option-folder" value="7" data-i18n="files.rfid.playmode.mode.8"></option>
+								<option class="option-folder" value="9" data-i18n="files.rfid.playmode.mode.9"></option>
+								<option class="option-folder" value="13" data-i18n="files.rfid.playmode.mode.10"></option>
+								<option class="option-stream" value="8" data-i18n="files.rfid.playmode.mode.11"></option>
+								<option class="option-stream" value="11" data-i18n="files.rfid.playmode.mode.12"></option>
 							</select>
 						</div>
 						<div class="tab-pane " id="rfidmod" role="tabpanel">
-							<label for="modId"></label>
+							<label for="modId" data-i18n="files.rfid.mod.title"></label>
 							<select class="form-control" id="modId" name="modId">
-								<option class="placeholder" disabled selected value="">Select modification</option>
-								<option value="100">Keylock</option>
-								<option value="179">Schlafe immediately</option>
-								<option value="101">Sleep after 15 minutes</option>
-								<option value="102">Sleep after 30 minutes</option>
-								<option value="103">Sleep after 1 hour</option>
-								<option value="104">Sleep after 2 hours</option>
-								<option value="105">Sleep after end of track</option>
-								<option value="106">Sleep after end of playlist</option>
-								<option value="107">Sleep after end of five tracks</option>
-								<option value="110">Loop playlist</option>
-								<option value="111">Loop track</option>
-								<option value="120">Dimm LEDs (nightmode)</option>
-								<option value="130">Toggle WiFi</option>
-								<option value="140">Toggle Bluetooth</option>
-								<option value="150">Enable FTP</option>
-								<option value="0">Remove assignment</option>
-								<option value="170">Toggle Play/Pause</option>
-								<option value="171">Previous track</option>
-								<option value="172">Next track</option>
-								<option value="173">First track</option>
-								<option value="174">Last track</option>
-								<option value="180">Seek forwards (n seconds)</option>
-								<option value="181">Seek backwards (n seconds)</option>
+								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.mods.0"></option>></option>
+								<option value="100" data-i18n="files.rfid.mod.mods.1"></option>
+								<option value="179" data-i18n="files.rfid.mod.mods.2"></option>
+								<option value="101" data-i18n="files.rfid.mod.mods.3"></option>
+								<option value="102" data-i18n="files.rfid.mod.mods.4"></option>
+								<option value="103" data-i18n="files.rfid.mod.mods.5"></option>
+								<option value="104" data-i18n="files.rfid.mod.mods.6"></option>
+								<option value="105" data-i18n="files.rfid.mod.mods.7"></option>
+								<option value="106" data-i18n="files.rfid.mod.mods.8"></option>
+								<option value="107" data-i18n="files.rfid.mod.mods.9"></option>
+								<option value="110" data-i18n="files.rfid.mod.mods.10"></option>
+								<option value="111" data-i18n="files.rfid.mod.mods.11"></option>
+								<option value="120" data-i18n="files.rfid.mod.mods.12"></option>
+								<option value="130" data-i18n="files.rfid.mod.mods.13"></option>
+								<option value="140" data-i18n="files.rfid.mod.mods.14"></option>
+								<option value="150" data-i18n="files.rfid.mod.mods.15"></option>
+								<option value="0" data-i18n="files.rfid.mod.mods.16"></option>
+								<option value="170" data-i18n="files.rfid.mod.mods.17"></option>
+								<option value="171" data-i18n="files.rfid.mod.mods.18"></option>
+								<option value="172" data-i18n="files.rfid.mod.mods.19"></option>
+								<option value="173" data-i18n="files.rfid.mod.mods.20"></option>
+								<option value="174" data-i18n="files.rfid.mod.mods.21"></option>
+								<option value="180" data-i18n="files.rfid.mod.mods.22"></option>
+								<option value="181" data-i18n="files.rfid.mod.mods.23"></option>
 							</select>
 						</div>
 					</div>
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary">Reset</button>
-				<button type="submit" class="btn btn-primary">Submit</button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 			</fieldset>
@@ -347,33 +347,31 @@
 			<form class="needs-validation" action="#mqttConfig" method="POST"
 				  onsubmit="mqttSettings('mqttConfig'); return false">
 				<div class="form-check col-md-12">
-					<legend data-i18n="mqtt.title">MQTT-settings</legend>
+					<legend data-i18n="mqtt.title"></legend>
 					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable" %MQTT_ENABLE%>
-					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable">
-						Enable MQTT
-					</label>
+					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 				</div>
 				<div class="form-group my-2 col-md-12">
-					<label for="mqttClientId" data-i18n="mqtt.clientId.text">MQTT-ClientId</label>
+					<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="%MQTT_CLIENTID_LENGTH%"
-						   placeholder="z.B. ESPuino" data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="%MQTT_CLIENTID%">
-					<label for="mqttServer" data-i18n="mqtt.server.text">MQTT-server</label>
+						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="%MQTT_CLIENTID%">
+					<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
 					<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
-						   placeholder="z.B. 192.168.2.89" data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="%MQTT_SERVER%">
-					<label for="mqttUser" data-i18n="mqtt.username.text">MQTT-username (optional):</label>
+						   data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="%MQTT_SERVER%">
+					<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
 					<input type="text" class="form-control" id="mqttUser" maxlength="%MQTT_USER_LENGTH%"
-						   placeholder="Benutzername" data-i18n="[placeholder]mqtt.username.placeholder" name="mqttUser" value="%MQTT_USER%">
-					<label for="mqttPwd" data-i18n="mqtt.password.text">MQTT-password (optional):</label>
+						   data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="%MQTT_USER%">
+					<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
 					<input type="password" class="form-control" id="mqttPwd" maxlength="%MQTT_PWD_LENGTH%"
-						   placeholder="Passwort" data-i18n="[placeholder]mqtt.password.placeholder" name="mqttPwd" value="%MQTT_PWD%">
-					<label for="mqttPort" data-i18n="mqtt.port.text">MQTT-port:</label>
+						   data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="%MQTT_PWD%">
+					<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
 					<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
-							placeholder="Port" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="%MQTT_PORT%" required>
+							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="%MQTT_PORT%" required>
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>
-				<button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 		</div>
@@ -383,18 +381,18 @@
 
 			<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 				<div class="form-group col-md-12">
-					<legend>FTP-settings</legend>
-					<label for="ftpUser">FTP-username:</label>
+					<legend data-i18n="ftp.title"></legend>
+					<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
 					<input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%"
-						   placeholder="Benutzername" name="ftpUser" value="%FTP_USER%" required>
-					<label for="pwd">FTP-password:</label>
-					<input type="password" class="form-control" id="ftpPwd" maxlength="%FTP_PWD_LENGTH%" placeholder="Passwort"
+						data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="%FTP_USER%" required>
+					<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
+					<input type="password" class="form-control" id="ftpPwd" maxlength="%FTP_PWD_LENGTH%" data-i18n="[placeholder]ftp.pwd.placeholder"
 						   name="ftpPwd" value="%FTP_PWD%" required>
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary">Reset</button>
-				<button type="submit" class="btn btn-primary">Submit</button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 		</div>
@@ -502,8 +500,8 @@
 				</div>
 <br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary">Reset</button>
-				<button type="submit" class="btn btn-primary">Submit</button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 		</div>
@@ -540,7 +538,7 @@
 					<label for="firmwareUpload">Firmware can be updated right here.</label>
 					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 				</div>
-				<button type="submit" class="btn btn-primary">Submit</button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 			</form>
 		</div>
 	</div>
@@ -602,6 +600,7 @@
         },
         debug: true,
         fallbackLng: 'en',
+		returnObjects: true,
     }, (err, t) => {
         localize = locI18next.init(i18next);
         localize('body');

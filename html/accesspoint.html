@@ -49,11 +49,11 @@
 	<body>
 		<form id="settings" action="/init" class="box" method="POST">
 			<h1 data-i18n="wifi.title"></h1>
-			<label for="ssid" data-i18n="[before]wifi.ssid.title">:</label><br>
+			<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label><br>
 			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
-			<label for="pwd" data-i18n="[before]wifi.password.title">:</label><br>
+			<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label><br>
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
-			<label for="hostname" data-i18n="[before]wifi.hostname.title">:</label><br>
+			<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label><br>
 			<input type="text" id="hostname" name="hostname" placeholder="espuino" required><br><br>
 			<button type="submit" id="save-button" data-i18n="submit"></button>
 		</form>

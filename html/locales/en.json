@@ -1,0 +1,159 @@
+{
+    "submit": "Submit",
+    "restart": "Restart",
+    "reset": "Reset",
+    "title": "ESPuino-Settings",
+    "shutdown": "Shutdown",
+    "log": "Log",
+    "info": "Info",
+    "nav": {
+        "control": "Control",
+        "rfid": "RFID",
+        "wifi": "WiFi",
+        "general": "General",
+        "tools": "Tools",
+        "forum": "Forum"
+    },
+    "wifi": {
+        "title": "WiFi-configuration",
+        "ssid": {
+            "title": "WiFi-name (SSID)",
+            "placeholder": "SSID",
+            "validation": "Enter WiFi's SSID"
+        },
+        "password": {
+            "title": "Password",
+            "placeholder": "Password",
+            "validation": "Enter the WiFi's password"
+        },
+        "hostname": {
+            "title": "ESPuino's name (hostname)",
+            "placeholder": "espuino",
+            "validation": "Enter a valid hostname"
+        },
+        "restartPrompt": "Ready to go?"
+    },
+    "control": {
+        "title": "Control",
+        "first": "First",
+        "prev": "Previous",
+        "playpause": "Play / Pause",
+        "forward": "Next",
+        "last": "Last",
+        "volume": "Volume",
+        "voldown": "Volume Down",
+        "volup": "Volume Up"
+    },
+    "files": {
+        "title": "Files",
+        "files": {
+            "title": "Files",
+            "desc": "Upload one ore more files"
+        },
+        "directory": {
+            "title": "Directory",
+            "desc": "Upload directory with all files and subdirectories"
+        },
+        "upload": {
+            "title": "Upload",
+            "desc": "Start Upload"
+        },
+        "rfid": {
+            "title": "RFID-Assignments",
+            "idNumber": "RFID-number (12 digits)",
+            "music": "Music",
+            "modification": "Modifikation",
+            "fileurl": {
+                "title": "File, directory or URL (^ and # aren't allowed as chars)",
+                "placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
+            },
+            "playmode": {
+                "title": "Playmode",
+                "mode": [
+                    "Select mode",
+                    "Single track",
+                    "Single track (loop)",
+                    "Single track of a directory (random). Followed by sleep.",
+                    "Audiobook",
+                    "Audiobook (loop)",
+                    "All tracks of a directory (sorted alph.)",
+                    "All tracks of a directory (random)",
+                    "All tracks of a directory (sorted alph., loop)",
+                    "All tracks of a directory (random, loop)",
+                    "All tracks of a random subdirectory (sorted alph.)",
+                    "Webradio",
+                    "List (files from SD and/or webstreams) from local .m3u-File"
+                ]
+            },
+            "mod": {
+                "title": "Mod",
+                "mods": [
+                    "Select modification",
+                    "Keylock",
+                    "Sleep immediately",
+                    "Sleep after 15 minutes",
+                    "Sleep after 30 minutes",
+                    "Sleep after 1 hour",
+                    "Sleep after 2 hours",
+                    "Sleep after end of track",
+                    "Sleep after end of playlist",
+                    "Sleep after end of five tracks",
+                    "Loop playlist",
+                    "Loop track",
+                    "Dimm LEDs (nightmode)",
+                    "Toggle WiFi",
+                    "Toggle Bluetooth",
+                    "Enable FTP",
+                    "Remove assignment",
+                    "Toggle Play/Pause",
+                    "Previous track",
+                    "Next track",
+                    "First track",
+                    "Last track",
+                    "Seek forwards (n seconds)",
+                    "Seek backwards (n seconds)"
+                ]
+            }
+        }
+    },
+    "mqtt": {
+        "title": "MQTT-settings",
+        "enable": "Enable MQTT",
+        "clientId": {
+            "title": "MQTT-ClientId",
+            "placeholder": "f.e. ESPuino",
+            "validation": ""
+        },
+        "server": {
+            "title": "MQTT-server",
+            "placeholder": "f.e. 192.168.2.89",
+            "validation": ""
+        },
+        "user": {
+            "title": "MQTT-username (optional)",
+            "placeholder": "username",
+            "validation": ""
+        },
+        "pwd": {
+            "title": "MQTT-password (optional)",
+            "placeholder": "password",
+            "validation": ""
+        },
+        "port": {
+            "title": "MQTT-port",
+            "placeholder": "f.e. 1883",
+            "validation": ""
+        }
+    },
+    "ftp": {
+        "title": "FTP-settings",
+        "user": {
+            "title": "Username",
+            "placeholder": "username"
+        },
+        "pwd": {
+            "title": "FTP-password",
+            "placeholder": "password"
+        }
+    }
+}
