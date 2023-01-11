@@ -1,0 +1,91 @@
+{
+    "submit": "Submit",
+    "restart": "",
+    "reset": "Reset",
+    "title": "ESPuino-Settings",
+    "shutdown": "Shutdown",
+    "log": "Log",
+    "info": "Info",
+    "nav": {
+        "control": "Control",
+        "rfid": "RFID",
+        "wifi": "WiFi",
+        "general": "General",
+        "tools": "Tools",
+        "forum": "Forum"
+    },
+    "wifi": {
+        "title": "WiFi-configuration",
+        "ssid": {
+            "title": "WiFi-name (SSID)",
+            "placeholder": "SSID",
+            "validation": "Enter WiFi's SSID"
+        },
+        "password": {
+            "title": "Password",
+            "placeholder": "SSID",
+            "validation": "Enter WiFi's "
+        },
+        "hostname": {
+            "title": "ESPuino's name (hostname)",
+            "placeholder": "",
+            "validation": ""
+        },
+        "restartPrompt": "Ready to go?"
+    },
+    "control": {
+        "title": "",
+        "first": "",
+        "prev": "",
+        "playpause": "",
+        "forward": "",
+        "last": "",
+        "volume": "",
+        "voldown": "",
+        "volup": ""
+    },
+    "files": {
+        "title": "",
+        "files": {
+            "desc": "",
+            "text": ""
+        },
+        "directory": {
+            "text": "",
+            "desc": ""
+        },
+        "upload": {
+            "text": "",
+            "desc": ""
+        }
+    },
+    "mqtt": {
+        "title": "",
+        "enable": "",
+        "clientId": {
+            "title": "",
+            "placeholder": "",
+            "validation": ""
+        },
+        "server": {
+            "title": "",
+            "placeholder": "",
+            "validation": ""
+        },
+        "username": {
+            "title": "",
+            "placeholder": "",
+            "validation": ""
+        },
+        "password": {
+            "title": "",
+            "placeholder": "",
+            "validation": ""
+        },
+        "port": {
+            "title": "",
+            "placeholder": "",
+            "validation": ""
+        }
+    }
+}
