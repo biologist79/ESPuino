@@ -398,13 +398,11 @@
 		</div>
 		<div class="container" id="ftpStart">
 			<div class="form-group col-md-12">
-				<legend>Start FTP-server</legend>
-				<div>
-					Enables FTP-server until device is restarted.
-				</div>
+				<legend data-i18n="ftp.start.title"></legend>
+				<div data-i18n="ftp.start.desc"></div>
 				<br>
 				<div class="text-center">
-					<button type="button" class="btn btn-primary" onclick="ftpStart()">Start FTP-server</button>
+					<button type="button" class="btn btn-primary" onclick="ftpStart()" data-i18n="ftp.start.button"></button>
 				</div>
 			</div>
 		</div>
@@ -415,19 +413,19 @@
 			<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
 					<div class="form-group col-md-12">
 					<fieldset>
-							<legend class="w-auto">Volume</legend>
-					<label for="initialVolume">After restart</label>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
 						data-slider-value="%INIT_VOLUME%"  value="%INIT_VOLUME%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
 						<br>
-					<label for="maxVolumeSpeaker">Max. volume (speaker)</label>
+					<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 						<div class="text-center">
 					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>   <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
 						data-slider-value="%MAX_VOLUME_SPEAKER%"  value="%MAX_VOLUME_SPEAKER%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 						<br>
-					<label for="maxVolumeHeadphone">Max. volume (headphones)</label>
+					<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone"
 						 data-slider-value="%MAX_VOLUME_HEADPHONE%" value="%MAX_VOLUME_HEADPHONE%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
@@ -437,52 +435,50 @@
 				<br>
 				<div class="form-group col-md-12">
 					<fieldset >
-						<legend class="w-auto">Neopixel (brightness)</legend>
-					<label for="initBrightness">After restart:</label>
+						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
 						<div class="text-center">
 							<i class="far fa-sun fa-2x .icon-pos"></i>
 						<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
 							   data-slider-value="%INIT_LED_BRIGHTNESS%"  value="%INIT_LED_BRIGHTNESS%" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 
-					<label for="nightBrightness">For nightmode:</label>
+					<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
 						<div class="text-center">
 						<i class="far fa-sun fa-2x .icon-pos"></i><input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="%NIGHT_LED_BRIGHTNESS%" value="%NIGHT_LED_BRIGHTNESS%" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 					</fieldset>
 				</div>
-<br>
+				<br>
 				<div class="form-group col-md-12">
 					<fieldset>
-						<legend>Deep Sleep</legend>
+						<legend data-i18n="general.sleep.title"></legend>
 
-						<label for="inactivityTime">After n minutes inactivity</label>
+						<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
 						 data-slider-value="%MAX_INACTIVITY%"  value="%MAX_INACTIVITY%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
 					</fieldset>
 				</div>
-<br>
+				<br>
 
 				<div class="form-group col-md-12">
 					<fieldset>
-						<legend>Battery</legend>
-					<div>Show voltage-status via Neopixel</div>
+						<legend data-i18n="general.battery.title"></legend>
+					<div data-i18n="general.battery.desc"></div>
 						<br>
-					<label for="warningLowVoltage">Show warning below this threshold.
-					</label>
+					<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
 						<div class="text-center">
 						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input  data-provide="slider"  data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0"  min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage"
 						data-slider-value="%WARNING_LOW_VOLTAGE%" value="%WARNING_LOW_VOLTAGE%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
-<br>
-					<label for="voltageIndicatorLow">Lowest voltage, that is indicated by one LED
-						</label>
+					<br>
+					<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 						<div class="text-center">
 						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
 						  data-slider-value="%VOLTAGE_INDICATOR_LOW%"  value="%VOLTAGE_INDICATOR_LOW%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 						<br>
-						<label for="voltageIndicatorHigh">Voltage, that is indicated by all LEDs</label>
+						<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 
 							<div class="text-center">
 								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
@@ -490,7 +486,7 @@
 						</div>
 
 						<br>
-					<label for="voltageCheckInterval">Interval between measurements (in minutes)</label>
+					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
 								   data-slider-value="%BATTERY_CHECK_INTERVAL%"  name="voltageCheckInterval" value="%BATTERY_CHECK_INTERVAL%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
@@ -509,33 +505,33 @@
 	</div>
 	<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 		<div class="container" id="eraseNvs">
-			<legend>Erase NVS RFID-assignments</legend>
+			<legend data-i18n="tools.nvserase.title"></legend>
 			<form action="/rfidnvserase" enctype="multipart/form-data" method="GET">
-				<div class="form-group">
-					<p>Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href="https://forum.espuino.de/t/die-backupfunktion-des-espuino/508" target="_blank">infos</a> in German language.</p>
+				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
+					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary">Delete assignments</button>
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button"></button>
 			</form>
 		</div>
 		<br />
 		<br />
 		<div class="container" id="importNvs">
-			<legend>NVS RFID-Importer</legend>
+			<legend data-i18n="tools.nvsimport.title"></legend>
 			<form action="/upload" enctype="multipart/form-data" method="POST">
 				<div class="form-group">
-					<label for="nvsUpload">Backupfile can be uploaded right here in order to import NVS-RFID-assignments.</label>
+					<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
 					<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
 				</div>
-				<button type="submit" class="btn btn-primary">Submit</button>
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 			</form>
 		</div>
 		<br />
 		<br />
 		<div class="container" id="httpUpdate">
-			<legend>Firmware-Update</legend>
+			<legend data-i18n="tools.fwupdate.title"></legend>
 			<form action="/update" enctype="multipart/form-data" method="POST">
 				<div class="form-group">
-					<label for="firmwareUpload">Firmware can be updated right here.</label>
+					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
 					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 				</div>
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>

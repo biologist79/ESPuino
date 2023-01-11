@@ -154,6 +154,51 @@
         "pwd": {
             "title": "FTP-password",
             "placeholder": "password"
+        },
+        "start": {
+            "title": "Start FTP-server",
+            "desc": "Enables FTP-server until device is restarted.",
+            "button": "Start FTP-server"
+        }
+    },
+    "general": {
+        "volume": {
+            "title": "Volume",
+            "restart": "After restart",
+            "speakerMax": "Max. volume (speaker)",
+            "headphoneMax": "Max. volume (headphones)"
+        },
+        "neopixel": {
+            "title": "Neopixel (brightness)",
+            "restart": "After restart",
+            "nightmode": "For nightmode"
+        },
+        "sleep": {
+            "title": "Deep Sleep",
+            "incativity": "After n minutes inactivity"
+        },
+        "battery": {
+            "title": "Battery",
+            "desc": "Show voltage-status via Neopixel",
+            "lowWarning": "Show warning below this threshold",
+            "lowCritical": "Lowest voltage, that is indicated by one LED",
+            "high": "Voltage, that is indicated by all LEDs",
+            "measureInterval": "Interval between measurements (in minutes)"
+        }
+    },
+    "tools": {
+        "nvserase": {
+            "title": "Erase NVS RFID-assignments",
+            "desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
+            "button": "Delete assignments"
+        },
+        "nvsimport": {
+            "title": "NVS RFID-Importer",
+            "desc": "Backupfile can be uploaded right here in order to import NVS-RFID-assignments."
+        },
+        "fwupdate": {
+            "title": "Firmware-Update",
+            "desc": "Firmware can be updated right here.",
         }
     }
 }
