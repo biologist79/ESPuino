@@ -10,6 +10,8 @@
         "control": "Control",
         "rfid": "RFID",
         "wifi": "WiFi",
+        "mqtt": "MQTT",
+        "ftp": "FTP",
         "general": "General",
         "tools": "Tools",
         "forum": "Forum"
@@ -42,7 +44,8 @@
         "last": "Last",
         "volume": "Volume",
         "voldown": "Volume Down",
-        "volup": "Volume Up"
+        "volup": "Volume Up",
+        "current": "Current track"
     },
     "files": {
         "title": "Files",
@@ -148,7 +151,7 @@
     "ftp": {
         "title": "FTP-settings",
         "user": {
-            "title": "Username",
+            "title": "FTP-Username",
             "placeholder": "username"
         },
         "pwd": {
