@@ -1,5 +1,5 @@
 {
-    "submit": "Senden",
+    "submit": "Absenden",
     "restart": "Neustart",
     "reset": "Reset",
     "title": "ESPuino-Settings",
@@ -7,202 +7,206 @@
     "log": "Log",
     "info": "Info",
     "nav": {
-        "control": "Control",
+        "control": "Steuerung",
         "rfid": "RFID",
-        "wifi": "WiFi",
-        "general": "General",
+        "wifi": "WLAN",
+        "mqtt": "MQTT",
+        "ftp": "FTP",
+        "general": "Allgemein",
         "tools": "Tools",
         "forum": "Forum"
     },
     "wifi": {
-        "title": "WiFi-configuration",
+        "title": "WLAN-Einstellungen",
         "ssid": {
-            "title": "WiFi-name (SSID)",
+            "title": "WLAN-Name (SSID)",
             "placeholder": "SSID",
-            "validation": "Enter WiFi's SSID"
+            "validation": "Bitte SSID des WLANs eintragen"
         },
         "password": {
-            "title": "Password",
-            "placeholder": "Password",
-            "validation": "Enter the WiFi's password"
+            "title": "Passwort",
+            "placeholder": "Passwort",
+            "validation": "Bitte Passwort vom WLANs eintragen"
         },
         "hostname": {
-            "title": "ESPuino's name (hostname)",
+            "title": "ESPuino-Name (Hostname)",
             "placeholder": "espuino",
-            "validation": "Enter a valid hostname"
+            "validation": "Trage einen validen Hostnamen ein"
         },
-        "restartPrompt": "Ready to go?"
+        "restartPrompt": "Fertig?"
     },
     "control": {
-        "title": "Control",
-        "first": "First",
-        "prev": "Previous",
+        "title": "Steuerung",
+        "first": "Erster",
+        "prev": "Vorheriger",
         "playpause": "Play / Pause",
-        "forward": "Next",
-        "last": "Last",
-        "volume": "Volume",
-        "voldown": "Volume Down",
-        "volup": "Volume Up"
+        "forward": "Nächster",
+        "last": "Letzter",
+        "volume": "Lautstärke",
+        "voldown": "Leiser",
+        "volup": "Lauter",
+        "current": "Aktueller Titel"
     },
     "files": {
-        "title": "Files",
+        "title": "Dateien",
         "files": {
-            "title": "Files",
-            "desc": "Upload one ore more files"
+            "title": "Dateien",
+            "desc": "Eine oder mehrere Datei(en) hochladen"
         },
         "directory": {
-            "title": "Directory",
-            "desc": "Upload directory with all files and subdirectories"
+            "title": "Ordner",
+            "desc": "Einen Ordner samt Inhalt (und allen Unterordnern) hochladen"
         },
         "upload": {
             "title": "Upload",
-            "desc": "Start Upload"
+            "desc": "Upload starten"
         },
         "rfid": {
-            "title": "RFID-Assignments",
-            "idNumber": "RFID-number (12 digits)",
-            "music": "Music",
+            "title": "RFID-Zuweisungen",
+            "idNumber": "RFID-Chip-Nummer (12-stellig)",
+            "music": "Musik",
             "modification": "Modifikation",
             "fileurl": {
-                "title": "File, directory or URL (^ and # aren't allowed as chars)",
-                "placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
+                "title": "Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)",
+                "placeholder": "z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3"
             },
             "playmode": {
-                "title": "Playmode",
+                "title": "Abspielmodus",
                 "mode": [
-                    "Select mode",
-                    "Single track",
-                    "Single track (loop)",
-                    "Single track of a directory (random). Followed by sleep.",
-                    "Audiobook",
-                    "Audiobook (loop)",
-                    "All tracks of a directory (sorted alph.)",
-                    "All tracks of a directory (random)",
-                    "All tracks of a directory (sorted alph., loop)",
-                    "All tracks of a directory (random, loop)",
-                    "All tracks of a random subdirectory (sorted alph.)",
+                    "Modus auswählen",
+                    "Einzelner Titel",
+                    "Einzelner Titel (Endlosschleife)",
+                    "Einzelner Titel eines Verzeichnis (zufällig). Danach schlafen.",
+                    "Hörbuch",
+                    "Hörbuch (Endlosschleife)",
+                    "Alle Titel eines Verzeichnis (sortiert)",
+                    "Alle Titel eines Verzeichnis (zufällig)",
+                    "Alle Titel eines Verzeichnis (sortiert, Endlosschleife)",
+                    "Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
+                    "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
                     "Webradio",
-                    "List (files from SD and/or webstreams) from local .m3u-File"
+                    "Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
                 ]
             },
             "mod": {
-                "title": "Mod",
+                "title": "Modifikation",
                 "mods": [
-                    "Select modification",
-                    "Keylock",
-                    "Sleep immediately",
-                    "Sleep after 15 minutes",
-                    "Sleep after 30 minutes",
-                    "Sleep after 1 hour",
-                    "Sleep after 2 hours",
-                    "Sleep after end of track",
-                    "Sleep after end of playlist",
-                    "Sleep after end of five tracks",
-                    "Loop playlist",
-                    "Loop track",
-                    "Dimm LEDs (nightmode)",
-                    "Toggle WiFi",
-                    "Toggle Bluetooth",
-                    "Enable FTP",
-                    "Remove assignment",
-                    "Toggle Play/Pause",
-                    "Previous track",
-                    "Next track",
-                    "First track",
-                    "Last track",
-                    "Seek forwards (n seconds)",
-                    "Seek backwards (n seconds)"
+                    "Modifikation auswählen",
+                    "Tastensperre",
+                    "Schlafe sofort",
+                    "Schlafen nach 15 Minuten",
+                    "Schlafen nach 30 Minuten",
+                    "Schlafen nach 1 Stunde",
+                    "Schlafen nach 2 Stunden",
+                    "Schlafen nach Ende des Titels",
+                    "Schlafen nach Ende der Playlist",
+                    "Schlafen nach fünf Titeln",
+                    "Wiederhole Playlist (endlos)",
+                    "Wiederhole Titel (endlos)",
+                    "Dimme LEDs (Nachtmodus)",
+                    "Aktiviere/deaktive WLAN",
+                    "Bluetooth Lautsprecher aktivieren/deaktivieren",
+                    "Bluetooth Kopfhörer aktivieren/deaktivieren",
+                    "Aktiviere FTP",
+                    "Lösche Zuordnung",
+                    "Play/Pause",
+                    "Vorheriger Titel",
+                    "Nächster Titel",
+                    "Erster Titel",
+                    "Letzter Titel",
+                    "Springe vorwärts (n Sekunden)",
+                    "Springe rückwärts (n Sekunden)"
                 ]
             }
         }
     },
     "mqtt": {
-        "title": "MQTT-settings",
-        "enable": "Enable MQTT",
+        "title": "MQTT-Einstellungen",
+        "enable": "MQTT aktivieren",
         "clientId": {
             "title": "MQTT-ClientId",
-            "placeholder": "f.e. ESPuino",
+            "placeholder": "z.B. ESPuino",
             "validation": ""
         },
         "server": {
-            "title": "MQTT-server",
+            "title": "MQTT-Server",
             "placeholder": "f.e. 192.168.2.89",
             "validation": ""
         },
         "user": {
-            "title": "MQTT-username (optional)",
-            "placeholder": "username",
+            "title": "MQTT-Benutzername (optional)",
+            "placeholder": "Benutzername",
             "validation": ""
         },
         "pwd": {
-            "title": "MQTT-password (optional)",
-            "placeholder": "password",
+            "title": "MQTT-Passwort (optional)",
+            "placeholder": "Passwort",
             "validation": ""
         },
         "port": {
-            "title": "MQTT-port",
-            "placeholder": "f.e. 1883",
+            "title": "MQTT-Port",
+            "placeholder": "z.B.. 1883",
             "validation": ""
         }
     },
     "ftp": {
-        "title": "FTP-settings",
+        "title": "FTP-Einstellungen",
         "user": {
-            "title": "Username",
-            "placeholder": "username"
+            "title": "FTP-Benutzername",
+            "placeholder": "Benutzername"
         },
         "pwd": {
-            "title": "FTP-password",
-            "placeholder": "password"
+            "title": "FTP-Passwort",
+            "placeholder": "Passwort"
         },
         "start": {
-            "title": "Start FTP-server",
-            "desc": "Enables FTP-server until device is restarted.",
-            "button": "Start FTP-server"
+            "title": "FTP-Server starten",
+            "desc": "Aktiviert den FTP-Server bis zum Neustart des Geräts.",
+            "button": "FTP-Server starten"
         }
     },
     "general": {
         "volume": {
-            "title": "Volume",
-            "restart": "After restart",
-            "speakerMax": "Max. volume (speaker)",
-            "headphoneMax": "Max. volume (headphones)"
+            "title": "Lautstärke",
+            "restart": "Nach dem Einschalten",
+            "speakerMax": "Maximal (Lautsprecher)",
+            "headphoneMax": "Maximal (Kopfhörer)"
         },
         "neopixel": {
-            "title": "Neopixel (brightness)",
-            "restart": "After restart",
-            "nightmode": "For nightmode"
+            "title": "Neopixel (Helligkeit)",
+            "restart": "Nach dem Einschalten",
+            "nightmode": "Im Nachtmodus"
         },
         "sleep": {
             "title": "Deep Sleep",
-            "incativity": "After n minutes inactivity"
+            "incativity": "Inaktivität nach (in Minuten)"
         },
         "battery": {
-            "title": "Battery",
-            "desc": "Show voltage-status via Neopixel",
-            "lowWarning": "Show warning below this threshold",
-            "lowCritical": "Lowest voltage, that is indicated by one LED",
-            "high": "Voltage, that is indicated by all LEDs",
-            "measureInterval": "Interval between measurements (in minutes)"
+            "title": "Batterie",
+            "desc": "Status über Neopixel anzeigen",
+            "lowWarning": "Unter dieser Spannung wird eine Warnung angezeigt",
+            "lowCritical": "Eine LED leuchtet bei dieser Spannung",
+            "high": "Alle LEDs leuchten bei dieser Spannung",
+            "measureInterval": "Zeitabstand der Messung (in Minuten)"
         }
     },
     "tools": {
         "nvserase": {
-            "title": "Erase NVS RFID-assignments",
-            "desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
-            "button": "Delete assignments"
+            "title": "NVS RFID-Zuweisungen löschen",
+            "desc": "Über den Importer werden lediglich neue Einträge importiert, jedoch keine bestehenden Einträge aktiv gelöscht. Im Falle einer doppelten Zuweisung wird ein Eintrag allenfalls überschrieben. Mit dieser Funktion können alle bestehenden NVS-RFID-Zuweisungen gelöscht werden, so dass der ESPuino im Anschluss keinerlei Karten mehr kennt. Wird im Anschluss der Importer gestartet, befinden sich im Speicher des ESPuino anschließend exakt nur solche Zuweisungen, die Teil der Backup-Datei sind. Weitere Infos gibt es <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">hier</a>.",
+            "button": "Zuweisungen löschen"
         },
         "nvsimport": {
             "title": "NVS RFID-Importer",
-            "desc": "Backupfile can be uploaded right here in order to import NVS-RFID-assignments."
+            "desc": "Hier kann eine Backup-Datei hochgeladen werden, um NVS-RFID-Zuweisungen zu importieren."
         },
         "fwupdate": {
             "title": "Firmware-Update",
-            "desc": "Firmware can be updated right here."
+            "desc": "Hier kann ein Firmware-Update durchgeführt werden."
         }
     },
-    "forum":{
-        "title":"Forum",
-        "desc":"Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
+    "forum": {
+        "title": "Forum",
+        "desc": "Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!"
     }
 }
