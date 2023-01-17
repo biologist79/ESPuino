@@ -27,16 +27,9 @@
 #include "Rfid.h"
 #include "HallEffectSensor.h"
 
-#if (LANGUAGE == DE)
-	#include "HTMLaccesspoint_DE.h"
-	#include "HTMLmanagement_DE.h"
-#endif
-
-#if (LANGUAGE == EN)
-	#include "HTMLaccesspoint_EN.h"
-	#include "HTMLmanagement_EN.h"
-#endif
-
+#include "HTMLaccesspoint.h"
+#include "HTMLmanagement.h"
+#include "HTMLbinary.h"
 
 typedef struct {
 	char nvsKey[13];
@@ -90,6 +83,15 @@ using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->send_P(200, "text/html", accesspoint_HTML);
+	});
+
+	WWWData::registerRoutes([](const String& uri, const String& contentType, const uint8_t *content, size_t len){
+		wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
+			AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, content, len);
+			response->addHeader("Content-Encoding", "gzip");
+			response->addHeader("Cache-Control", "public,max-age=604800");		// set cache control to 1 week (could even go higher, since the data will not change)
+          	request->send(response);
+		});
 	});
 
 	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
