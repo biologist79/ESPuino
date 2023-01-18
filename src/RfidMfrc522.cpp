@@ -7,6 +7,7 @@
 #include "System.h"
 #include <esp_task_wdt.h>
 #include "AudioPlayer.h"
+#include "HallEffectSensor.h"
 
 #if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
 	#ifdef RFID_READER_TYPE_MFRC522_SPI
@@ -96,6 +97,9 @@
 				#endif
 
 				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
+    			#ifdef HALLEFFECT_SENSOR_ENABLE
+					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);  
+				#endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {

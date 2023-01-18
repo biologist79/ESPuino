@@ -56,6 +56,7 @@
     //#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
     //#define SAVE_PLAYPOS_BEFORE_SHUTDOWN  // When playback is active and mode audiobook was selected, last play-position is saved automatically when shutdown is initiated
     //#define SAVE_PLAYPOS_WHEN_RFID_CHANGE // When playback is active and mode audiobook was selected, last play-position is saved automatically for old playlist when new RFID-tag is applied
+    //#define HALLEFFECT_SENSOR_ENABLE      // When enabled, also configure #define HallEffectSensor_PIN in "HallEffectSensor.h". (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
 
     //################## set PAUSE_WHEN_RFID_REMOVED behaviour #############################
     #ifdef PAUSE_WHEN_RFID_REMOVED

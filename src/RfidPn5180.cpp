@@ -10,6 +10,7 @@
 #include "Port.h"
 #include <esp_task_wdt.h>
 #include "AudioPlayer.h"
+#include "HallEffectSensor.h"
 
 #ifdef RFID_READER_TYPE_PN5180
 	#include <PN5180.h>
@@ -231,6 +232,9 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 				memcpy(lastCardId, cardId, cardIdSize);
 				showDisablePrivacyNotification = true;
+                #ifdef HALLEFFECT_SENSOR_ENABLE
+                    cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);  
+                #endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
