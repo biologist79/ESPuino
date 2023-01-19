@@ -46,7 +46,7 @@
 			xTaskCreatePinnedToCore(
 				Rfid_Task,              /* Function to implement the task */
 				"rfid",                 /* Name of the task */
-				1536,                   /* Stack size in words */
+				2048,                   /* Stack size in words */
 				NULL,                   /* Task input parameter */
 				2 | portPRIVILEGE_BIT,  /* Priority of the task */
 				NULL,                   /* Task handle. */
@@ -117,8 +117,8 @@
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
-						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished  
-					#else	
+						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
+					#else
 						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again...
 					#endif
 					} else {
