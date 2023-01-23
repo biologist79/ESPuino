@@ -1,7 +1,4 @@
-// NIKO-AT  04.12.2022  Project ESPuino new feature: https://forum.espuino.de/t/magnetische-hockey-tags/1449/35
 #pragma once
-
-#define HallEffectSensor_PIN                34  // GPIO (ADC)
 
 #define HallEffectMinDiffValue             100  // I had a minimum change of 250, so reliable (factor 2.5) sensitive detection | Delta analog read max. +- 10
 #define HallEffectMaxDiffValueReCalibrate   50  // Auto ReCalibration after start, when no HockeyDualfunctionTag is near reader
@@ -10,7 +7,7 @@
 
 class HallEffectSensor {
   public:
-    HallEffectSensor(); 
+    HallEffectSensor();
     void     init();
     void     cyclic();
     bool     saveActualFieldValue2NVS();

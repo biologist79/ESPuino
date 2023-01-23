@@ -3,24 +3,24 @@
     #include "Arduino.h"
 
     //######################### INFOS ####################################
-    /* 
+    /*
      * Make sure to read instructions:
      * https://forum.espuino.de/t/anleitung-raspiaudio-muse-proto-anfaenger-espuino/1598
-     * 
+     *
      * Support for this device is limited, and only available by the community in the
-     * forum. (See thread above) 
-     * 
+     * forum. (See thread above)
+     *
      * This is a device-specific settings file for the RASPIAUDIO Muse Proto
-     * offered by https://raspiaudio.com/produit/muse-proto and available at 
+     * offered by https://raspiaudio.com/produit/muse-proto and available at
      * multiple sources. It uses
-     * 
+     *
      * * On-Board Neopixel (1 Pixel)
      * * PN532 NFC Reader, using I2C, GPIOs 12 (CLK) and 32 (DATA)
      * * KY-040 Rotary Encoder with on-board pull ups on GPIOs 36, 39 (Printed VP/VN)
      * * Three buttons without pull ups on GPIOs 18, 19, 0
      * * Batteries measured using the on-board battery controller
      * * Using the on-board 3W output for externals speakers
-     * 
+     *
     */
 
     //################## GPIO-configuration ##############################
@@ -128,6 +128,11 @@
     #ifdef MEASURE_BATTERY_VOLTAGE
         constexpr uint16_t rdiv1 = 129;                              // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
         constexpr uint16_t rdiv2 = 129;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
+    #endif
+
+    // (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.
+    #ifdef HALLEFFECT_SENSOR_ENABLE
+        #define HallEffectSensor_PIN        34  	// GPIO that is used for hallsensor (ADC); user-support: https://forum.espuino.de/t/magnetische-hockey-tags/1449/35
     #endif
 
     // (Optional) remote control via infrared
