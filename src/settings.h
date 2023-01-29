@@ -181,8 +181,9 @@
     // Nothing to be configured here...
     // Default user/password is esp32/esp32 but can be changed via webgui
 
-    // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
+    // ESPuino will create a WiFi if joing existing WiFi was not possible. Name and password can be configured here.
     constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
+    constexpr const char accessPointNetworkPassword[] PROGMEM = "";        // Access-point's Password, at least 8 characters! Set to an empty string to spawn an open WiFi.
 
     // Bluetooth
     constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
