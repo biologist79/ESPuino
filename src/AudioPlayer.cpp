@@ -778,6 +778,12 @@ void AudioPlayer_Task(void *parameter) {
 			vTaskDelay(portTICK_PERIOD_MS * 1);
 		}
 		//esp_task_wdt_reset(); // Don't forget to feed the dog!
+
+		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+			if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
+				strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply an rfid-tag after playback is finished
+			}
+		#endif
 	}
 	vTaskDelete(NULL);
 }
