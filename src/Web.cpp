@@ -158,6 +158,16 @@ void webserverStart(void) {
 				request->send_P(200, "text/html", management_HTML, templateProcessor);
 			}
 		});
+
+		WWWData::registerRoutes([](const String& uri, const String& contentType, const uint8_t *content, size_t len){
+			wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
+				AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, content, len);
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "public,max-age=604800");		// set cache control to 1 week (could even go higher, since the data will not change)
+				request->send(response);
+			});
+		});
+
 		// Log
 		wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
