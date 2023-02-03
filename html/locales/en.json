@@ -49,6 +49,14 @@
     },
     "files": {
         "title": "Files",
+        "context": {
+            "newFolder" : "New Folder",
+            "play": "Play",
+            "refresh": "Refresh",
+            "delete": "Delete",
+            "rename": "Rename",
+            "download": "Download"
+        },
         "files": {
             "title": "Files",
             "desc": "Upload one ore more files"

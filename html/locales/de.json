@@ -49,6 +49,14 @@
     },
     "files": {
         "title": "Dateien",
+        "context": {
+            "newFolder" : "Neuer Ordner",
+            "play": "Abspielen",
+            "refresh": "Aktualisieren",
+            "delete": "Löschen",
+            "rename": "Umbenennen",
+            "download": "Download"
+        },
         "files": {
             "title": "Dateien",
             "desc": "Eine oder mehrere Datei(en) hochladen"

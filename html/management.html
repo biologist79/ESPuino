@@ -189,7 +189,7 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -250,10 +250,10 @@
 				<div>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 						<div class="input-group">
-							<span class="form-control" id="uploaded_file_text"></span>
+							<span class="form-control" id="uploaded_file_text"></span>&nbsp
 							<span class="input-group-btn">
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>
+								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp
+								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp
 								<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>
 								<input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
 							</span>
@@ -340,7 +340,7 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -377,7 +377,7 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -398,7 +398,7 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -503,7 +503,7 @@
 				</div>
 <br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -603,17 +603,17 @@
         debug: true,
         fallbackLng: 'en',
 		returnObjects: true,
-    }, (err, t) => {
-        localize = locI18next.init(i18next);
-        localize('body');
+    });
+	
+	localize = locI18next.init(i18next);
+	localize('body');
 
-		// change the language if we found it in the local storage
-		const lang = localStorage.getItem("language");
-		if(lang === null)
-			i18next.changeLanguage(language.split("-")[0]);
-		else
-			i18next.changeLanguage(lang);
-	});
+	// change the language if we found it in the local storage
+	const lang = localStorage.getItem("language");
+	if(lang === null)
+		i18next.changeLanguage(language.split("-")[0]);
+	else
+		i18next.changeLanguage(lang);
 
 	i18next.on('languageChanged', (lng) => {
 		document.querySelector('#langSel').value = lng;
@@ -1003,9 +1003,9 @@
 
 						if (node.data.directory) {
 							items.createDir = {
-								label: "New folder",
+								label: () => i18next.t("files.context.newFolder"),
 								action: function(x) {
-									var childNode = ref.create_node(nodeId, {text: "New folder", type: "folder"});
+									var childNode = ref.create_node(nodeId, {text: () => i18next.t("files.context.newFolder"), type: "folder"});
 									if(childNode) {
 										ref.edit(childNode, null, function(childNode, status){
 											putData("/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
@@ -1018,7 +1018,7 @@
 
 						/* Play */
 						items.play = {
-							label: "Play",
+							label: () => i18next.t("files.context.play"),
 							action: function(x) {
 								var playMode = 1;
 								if (node.data.directory) {
@@ -1034,7 +1034,7 @@
 
 						/* Refresh */
 						items.refresh = {
-							label: "Refresh",
+							label: () => i18next.t("files.context.refresh"),
 							action: function(x) {
 								refreshNode(nodeId);
 							}
@@ -1042,7 +1042,7 @@
 
 						/* Delete */
 						items.delete = {
-							label: "Delete",
+							label: () => i18next.t("files.context.delete"),
 							action: function(x) {
 								handleDeleteData(nodeId);
 								refreshNode(ref.get_parent(nodeId));
@@ -1051,7 +1051,7 @@
 
 						/* Rename */
 						items.rename = {
-							label: "Rename",
+							label: () => i18next.t("files.context.rename"),
 							action: function(x) {
 								var srcPath = node.data.path;
 								ref.edit(nodeId, null, function(node, status){
@@ -1065,7 +1065,7 @@
 						/* Download */
 						if (!node.data.directory) {
 							items.download = {
-								label: "Download",
+								label: () => i18next.t("files.context.download"),
 								action: function(x) {
 									uri = "/explorerdownload?path=" + encodeURIComponent(node.data.path);
 									console.log("download file: " + node.data.path);
