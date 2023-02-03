@@ -80,19 +80,38 @@ struct SpiRamAllocator {
 };
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
+static void serveProgmemFiles(const String& uri, const String& contentType, const uint8_t *content, size_t len) {
+	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
+		AsyncWebServerResponse *response;
+
+		auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		if(etag)
+			response = request->beginResponse(304);
+		else{
+			response = request->beginResponse_P(200, contentType, content, len);
+			response->addHeader("Content-Encoding", "gzip");
+		}
+		response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		request->send(response);
+	});
+}
+
 void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-		request->send_P(200, "text/html", accesspoint_HTML);
+		AsyncWebServerResponse *response;
+
+		auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		if(etag)
+			response = request->beginResponse(304);
+		else
+			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
+		response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		request->send(response);
 	});
 
-	WWWData::registerRoutes([](const String& uri, const String& contentType, const uint8_t *content, size_t len){
-		wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
-			AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, content, len);
-			response->addHeader("Content-Encoding", "gzip");
-			response->addHeader("Cache-Control", "public,max-age=604800");		// set cache control to 1 week (could even go higher, since the data will not change)
-          	request->send(response);
-		});
-	});
+	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
 		if (request->hasParam("ssid", true) && request->hasParam("pwd", true) && request->hasParam("hostname", true)) {
@@ -150,23 +169,25 @@ void webserverStart(void) {
 
 		// Default
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-			if (gFSystem.exists("/.html/index.htm")) {
-				// serve webpage from SD card
-				request->send(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
-			} else {
-				// serve webpage from PROGMEM
-				request->send_P(200, "text/html", management_HTML, templateProcessor);
+
+			AsyncWebServerResponse *response;
+
+			auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+			if(etag)
+				response = request->beginResponse(304);
+			else {
+				if (gFSystem.exists("/.html/index.htm"))
+					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
+				else
+					response = request->beginResponse_P(200, "text/html", management_HTML, templateProcessor);
 			}
+			response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+			
+			response->addHeader("ETag", gitRevShort);		// use git revision as digest
+			request->send(response);
 		});
 
-		WWWData::registerRoutes([](const String& uri, const String& contentType, const uint8_t *content, size_t len){
-			wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
-				AsyncWebServerResponse *response = request->beginResponse_P(200, contentType, content, len);
-				response->addHeader("Content-Encoding", "gzip");
-				response->addHeader("Cache-Control", "public,max-age=604800");		// set cache control to 1 week (could even go higher, since the data will not change)
-				request->send(response);
-			});
-		});
+		WWWData::registerRoutes(serveProgmemFiles);
 
 		// Log
 		wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
