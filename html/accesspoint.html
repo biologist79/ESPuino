@@ -51,18 +51,18 @@
 	</head>
 	<body>
 		<form id="settings" action="/init" class="box" method="POST">
-			<h1 data-i18n="wifi.title"></h1>
-			<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label><br>
+			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
+			<label for="ssid" data-i18n="[prepend]wifi.ssid.title">SSID:</label><br>
 			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
-			<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label><br>
+			<label for="pwd" data-i18n="[prepend]wifi.password.title">Password:</label><br>
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
-			<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label><br>
+			<label for="hostname" data-i18n="[prepend]wifi.hostname.title">ESPuino's name (hostname):</label><br>
 			<input type="text" id="hostname" name="hostname" placeholder="espuino" required><br><br>
 			<button type="submit" id="save-button" data-i18n="submit"></button>
 		</form>
 		<form action="/restart" class="box">
-			<h1 data-i18n="wifi.restartPrompt"></h1>
-			<button type="submit" id="restart-button" data-i18n="restart"></button>
+			<h1 data-i18n="wifi.restartPrompt">Ready to go?</h1>
+			<button type="submit" id="restart-button" data-i18n="restart" value="Reboot"></button>
 		</form>
         
         <script>
