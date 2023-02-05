@@ -6,6 +6,11 @@
     "shutdown": "Shutdown",
     "log": "Log",
     "info": "Info",
+    "toast": {
+        "rfidDetect": "RFID-tag {{rfidId}} detected.",
+        "success": "Action performed successfully.",
+        "conlost": "Connection to ESPuino broken! Please reload website."
+    },
     "nav": {
         "control": "Control",
         "rfid": "RFID",
@@ -49,8 +54,9 @@
     },
     "files": {
         "title": "Files",
+        "loading": "Please wait...",
         "context": {
-            "newFolder" : "New Folder",
+            "newFolder": "New Folder",
             "play": "Play",
             "refresh": "Refresh",
             "delete": "Delete",
@@ -67,13 +73,17 @@
         },
         "upload": {
             "title": "Upload",
-            "desc": "Start Upload"
+            "desc": "Start Upload",
+            "selectFolder": "Please select the upload location!",
+            "selectFile": "Please select files to upload!",
+            "success": "Upload success",
+            "error": "Upload error"
         },
         "rfid": {
             "title": "RFID-Assignments",
             "idNumber": "RFID-number (12 digits)",
             "music": "Music",
-            "modification": "Modifikation",
+            "modification": "Modification",
             "fileurl": {
                 "title": "File, directory or URL (^ and # aren't allowed as chars)",
                 "placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"

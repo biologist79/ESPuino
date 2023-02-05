@@ -161,9 +161,9 @@
 <br/>
 	<nav>
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
-			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad fa-fw"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
-			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle fa-fw"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi fa-fw"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></a>
+			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
+			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></a>
 			%SHOW_MQTT_TAB%
 			%SHOW_FTP_TAB%
 			<a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
@@ -760,8 +760,8 @@
 		var ref = $('#explorerTree').jstree(true),
 			sel = ref.get_selected(),
 			path = "/";
-		if(!sel.length) { alert("Please select the upload location!");return false; }
-		if(!document.getElementById('uploaded_file').files.length > 0) { alert("Please select files to upload!");return false; }
+		if(!sel.length) { alert(i18next.t("files.upload.selectFolder")); return false; }
+		if(!document.getElementById('uploaded_file').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
 		sel = sel[0];
 		selectedNode = ref.get_node(sel);
 		if(selectedNode.data.directory){
@@ -836,7 +836,7 @@
 				var seconds = seconds_elapsed - (minutes * 60);
 				var timeText = minutes.toString().padStart(2, '0') + ':' + seconds.toFixed(0).toString().padStart(2, '0');
 				console.log("Upload success (" + timeText + ", " + Kbytes_per_second.toFixed(2) + " KB/s): " + textStatus);
-				var progressText = "Upload done (" + timeText + ", " + Kbytes_per_second.toFixed(2) + "  KB/s).";
+				var progressText = i18next.t("files.upload.success") +" (" + timeText + ", " + Kbytes_per_second.toFixed(2) + "  KB/s).";
 				$("#explorerUploadProgress").text(progressText);
 				document.getElementById('uploaded_file').value = '';
 				document.getElementById('uploaded_file_text').innerHTML = '';
@@ -851,8 +851,8 @@
 			},
 			error: function(request, status, error) {
 				console.log("Upload ERROR!");
-				$("#explorerUploadProgress").text("Upload-error: " + status);
-				toastr.error("Upload-error: " + status);
+				$("#explorerUploadProgress").text(i18next.t("files.upload.error") +" :" + status);
+				toastr.error(i18next.t("files.upload.error") + status);
 			}
 		});
 	});
@@ -964,7 +964,7 @@
 				"core" : {
 						"check_callback" : true,
 						'force_text' : true,
-						'strings' : { "Loading ..." : "is being loaded..." },
+						'strings' : { "Loading ..." : () => i18next.t("files.loading") },
 						"themes" : { "stripes" : true },
 						'data' : {	text: '/',
 									state: {
@@ -1147,11 +1147,11 @@
 		  var socketMsg = JSON.parse(event.data);
 		  if (socketMsg.rfidId != null) {
 			  document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-			  toastr.info("RFID-tag "+ socketMsg.rfidId + " detected." );
+			  toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
 			  $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
 		  } if ("status" in socketMsg) {
 			  if (socketMsg.status == "ok") {
-				  toastr.success("Action performed successfully." );
+				  toastr.success(i18next.t("toast.success"));
 			  }
 		  } if ("pong" in socketMsg) {
 			if (socketMsg.pong == 'pong') {
@@ -1203,7 +1203,7 @@
 		var myJSON = JSON.stringify(myObj);
 		socket.send(myJSON);
 		tm = setTimeout(function () {
-			toastr.warning('Connection to ESPuino broken! Please reload website.');
+			toastr.warning(i18next.t("toast.conlost"));
 		}, 5000);
 	}
 
