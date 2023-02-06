@@ -84,15 +84,16 @@ static void serveProgmemFiles(const String& uri, const String& contentType, cons
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
 		AsyncWebServerResponse *response;
 
-		auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		const bool etag = false;
 		if(etag)
 			response = request->beginResponse(304);
 		else{
 			response = request->beginResponse_P(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
-		response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 		request->send(response);
 	});
 }
@@ -101,13 +102,14 @@ void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
-		auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		const bool etag = false;
 		if(etag)
 			response = request->beginResponse(304);
 		else
 			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
-		response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 		request->send(response);
 	});
 
@@ -172,7 +174,8 @@ void webserverStart(void) {
 
 			AsyncWebServerResponse *response;
 
-			auto etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+			const bool etag = false;
 			if(etag)
 				response = request->beginResponse(304);
 			else {
@@ -181,9 +184,8 @@ void webserverStart(void) {
 				else
 					response = request->beginResponse_P(200, "text/html", management_HTML, templateProcessor);
 			}
-			response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-			
-			response->addHeader("ETag", gitRevShort);		// use git revision as digest
+			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 			request->send(response);
 		});
 
