@@ -8,16 +8,16 @@
 
 ## Changelog
 Last three events:
+* 08.01.2023: New feature: `PAUSE_ON_MIN_VOLUME`. Playback is paused automatically if volume reaches minVolume (usually 0).
 * 18.10.2022: New playmode: pick random subdirectory of a given directory and play it's content alphabetic ordered
 * 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
-* 08.09.2022: New playmode `SINGLE_TRACK_OF_DIR_RANDOM`: picks and plays one file randomly out of a directory and fall asleep subsequently.
 
 ## Known bugs
 * For ESPuinos making use of SPI to connect SD, there's an unsolved problem that occasionally leads to incomplete file-transfers via webtransfer or FTP-transger. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
 ## ESPuino - what's that?
 The basic idea of ESPuino is to use RFID-tags to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play stuff from SD or webradio. Place another RFID-object on it and anything else is played. Simple as that.
 
-This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). Especially this is true for [ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino). 
+This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). Especially this is true for [ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino).
 
 ## Hardware-setup
 You can start on a breadboard with jumper wires but I strongly recommend to start right away with a PCB like [ESPuino-mini](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866). Several PCBs are available. Please click on the links below for more informations and pictures.
@@ -34,7 +34,7 @@ You can start on a breadboard with jumper wires but I strongly recommend to star
 * Install [Git](https://git-scm.com/downloads) and make a copy ("clone") my repository to your local computer using `git clone https://github.com/biologist79/ESPuino.git`. Using git you can keep your local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull origin master`. Further infos [here](https://stackoverflow.com/questions/1443210/updating-a-local-repository-with-changes-from-a-github-repository) and [here](https://forum.espuino.de/t/espuino-in-platformio-anlegen-und-mit-git-aktuell-halten/891).
 * (Optional) Install [Gitlens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) as plugin (to have advanced Git-support).
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
-* Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_pe). 
+* Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_pe).
 * Edit `src/settings.h` according your needs.
 * Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
 * Connect your develboard via USB, click the alien-head to the left, choose the project-task that matches your desired HAL and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware. Depending on your develboard it might me necessary to push a button in order to allow ESP32 to enter flashmode (not necessary für Lolin32, D32 und D32 pro).
@@ -203,8 +203,8 @@ This mode is different from the others because the last playposition is saved. P
 * pause was pressed.
 * track is over.
 * playlist is over (playposition is set back to the first track and file-position 0).
-* As per default last playposition is not saved when applying a new RFID-tag. You can enable this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE`. 
-* As per default last playposition is not saved when doing shutdown. You can enable this using `SAVE_PLAYPOS_BEFORE_SHUTDOWN`. 
+* As per default last playposition is not saved when applying a new RFID-tag. You can enable this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE`.
+* As per default last playposition is not saved when doing shutdown. You can enable this using `SAVE_PLAYPOS_BEFORE_SHUTDOWN`.
 
 ### FTP (optional)
 * FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` or use a modification-card to to activate it! Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to save heap-memory when FTP isn't needed.

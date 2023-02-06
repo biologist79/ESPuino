@@ -25,7 +25,7 @@
 #include "Wlan.h"
 #include "revision.h"
 #include "Rfid.h"
-
+#include "HallEffectSensor.h"
 
 #if (LANGUAGE == DE)
 	#include "HTMLaccesspoint_DE.h"
@@ -194,6 +194,12 @@ void webserverStart(void) {
 					snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f %%", (char *)FPSTR(currentChargeMsg), Battery_EstimateLevel() * 100);
 					info += (String) Log_Buffer;
 				#endif
+                #ifdef HALLEFFECT_SENSOR_ENABLE
+                    uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
+                    int diff = sva-gHallEffectSensor.NullFieldValue();
+                    snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(F("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)")), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
+                    info += (String) Log_Buffer;
+                #endif
 				request->send_P(200, "text/plain", info.c_str());
 			});
 
@@ -304,6 +310,15 @@ void webserverStart(void) {
 			};
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
+        // Init HallEffectSensor Value
+        #ifdef HALLEFFECT_SENSOR_ENABLE
+            wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
+                bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
+                snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s")), gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
+                Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                request->send(200, "text/html", Log_Buffer);
+            });
+        #endif
 
 		wServer.onNotFound(notFound);
 

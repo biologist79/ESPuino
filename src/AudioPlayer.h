@@ -38,6 +38,7 @@ uint8_t AudioPlayer_GetRepeatMode(void);
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand);
+void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);
 
 uint8_t AudioPlayer_GetCurrentVolume(void);
 void AudioPlayer_SetCurrentVolume(uint8_t value);
