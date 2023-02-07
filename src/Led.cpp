@@ -192,8 +192,7 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 }
 
 CRGB Led_ConvertColorToDimmedColor(CRGB color, uint8_t brightness) {
-	float factorBrighness = (float)brightness / 100.0f;
-
+	float factorBrighness = (float)brightness / DIMMABLE_STATES;
 	color.red *= factorBrighness;
 	color.green *= factorBrighness;
 	color.blue *= factorBrighness;
@@ -253,6 +252,7 @@ static void Led_Task(void *parameter) {
 		static uint32_t animationIndex;
 		static uint32_t subAnimationIndex;
 		static uint32_t animationHelperNumberInt;
+		static uint32_t animationHelperNumberInt2;
 		static float animationHelperNumberFloat;
 
 
@@ -487,9 +487,11 @@ static void Led_Task(void *parameter) {
 						animationActive = true;
 
 						// wait for further volume changes within next 20ms for 50 cycles = 1s
-						uint8_t numLedsToLight = map(AudioPlayer_GetCurrentVolume(), 0,
+						uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
 										AudioPlayer_GetMaxVolume(), 0,
-										NUM_LEDS);
+										NUM_LEDS * DIMMABLE_STATES);
+						uint8_t fullLeds = ledValue/DIMMABLE_STATES;
+						uint8_t lastLed = ledValue%DIMMABLE_STATES;
 
 						FastLED.clear();
 
@@ -503,9 +505,12 @@ static void Led_Task(void *parameter) {
 							* (Inverse) color-gradient from green (85) back to (still)
 							* red (250) using unsigned-cast.
 							*/
-							for (int led = 0; led < numLedsToLight; led++) {
+							for (int led = 0; led <= fullLeds; led++) {
 								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
 								leds[Led_Address(led)].setHue(hue);
+								if (led == fullLeds){
+									leds[Led_Address(led)] = Led_ConvertColorToDimmedColor(leds[Led_Address(led)], lastLed);
+								}
 							}
 						}
 
@@ -621,14 +626,17 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Playlist: {
 						if (NUM_LEDS >= 4) {
 							if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-								uint8_t numLedsToLight = map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS);
+								uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
+								uint8_t fullLeds = ledValue/DIMMABLE_STATES;
+								uint8_t lastLed = ledValue%DIMMABLE_STATES;
 
 								if (animationIndex == 0 ) {
 									FastLED.clear();
 									animationActive = true;
 									subAnimationIndex = 0;
 									animationIndex++;
-									animationHelperNumberInt = numLedsToLight;
+									animationHelperNumberInt = fullLeds;
+									animationHelperNumberInt2 = lastLed;
 								}
 								
 								if ((animationIndex == 1) && (subAnimationIndex < animationHelperNumberInt)) {
@@ -637,8 +645,9 @@ static void Led_Task(void *parameter) {
 									animaitonTimer = 30;
 									subAnimationIndex ++;
 								} else if ((animationIndex == 1) && (subAnimationIndex == animationHelperNumberInt)){
+									leds[Led_Address(animationHelperNumberInt)] = Led_ConvertColorToDimmedColor(CRGB::Blue, lastLed);
 									animaitonTimer = 100*15;
-									subAnimationIndex = animationHelperNumberInt;
+									subAnimationIndex = animationHelperNumberInt + 1;
 									animationIndex++;
 								} else if ((animationIndex == 2) && (subAnimationIndex > 0)) { 
 									leds[Led_Address(subAnimationIndex) - 1] = CRGB::Black;
@@ -754,12 +763,17 @@ static void Led_Task(void *parameter) {
 								if (NUM_LEDS == 1) {
 									leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 								} else {
-									uint8_t numLedsToLight = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
-									for (uint8_t led = 0; led < numLedsToLight; led++) {
+									uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+									uint8_t fullLeds = ledValue/DIMMABLE_STATES;
+									uint8_t lastLed = ledValue%DIMMABLE_STATES;
+									for (uint8_t led = 0; led <= fullLeds; led++) {
 										if (System_AreControlsLocked()) {
 											leds[Led_Address(led)] = CRGB::Red;
 										} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 											leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
+											if (led == fullLeds) {
+												leds[Led_Address(led)] = Led_ConvertColorToDimmedColor(leds[Led_Address(led)], lastLed);
+											}
 										}
 									}
 								}
