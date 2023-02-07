@@ -27,24 +27,17 @@
 #include "Rfid.h"
 #include "HallEffectSensor.h"
 
-#if (LANGUAGE == DE)
-	#include "HTMLaccesspoint_DE.h"
-	#include "HTMLmanagement_DE.h"
-#endif
-
-#if (LANGUAGE == EN)
-	#include "HTMLaccesspoint_EN.h"
-	#include "HTMLmanagement_EN.h"
-#endif
-
+#include "HTMLaccesspoint.h"
+#include "HTMLmanagement.h"
+#include "HTMLbinary.h"
 
 typedef struct {
 	char nvsKey[13];
 	char nvsEntry[275];
 } nvs_t;
 
-const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i> MQTT</a>";
-const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i> FTP</a>";
+const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i><span data-i18n=\"nav.mqtt\"></span></a>";
+const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i><span data-i18n=\"nav.ftp\"></span></a>";
 
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
@@ -87,10 +80,40 @@ struct SpiRamAllocator {
 };
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
+static void serveProgmemFiles(const String& uri, const String& contentType, const uint8_t *content, size_t len) {
+	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
+		AsyncWebServerResponse *response;
+
+		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		const bool etag = false;
+		if(etag)
+			response = request->beginResponse(304);
+		else{
+			response = request->beginResponse_P(200, contentType, content, len);
+			response->addHeader("Content-Encoding", "gzip");
+		}
+		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		request->send(response);
+	});
+}
+
 void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-		request->send_P(200, "text/html", accesspoint_HTML);
+		AsyncWebServerResponse *response;
+
+		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+		const bool etag = false;
+		if(etag)
+			response = request->beginResponse(304);
+		else
+			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
+		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		request->send(response);
 	});
+
+	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
 		if (request->hasParam("ssid", true) && request->hasParam("pwd", true) && request->hasParam("hostname", true)) {
@@ -148,14 +171,26 @@ void webserverStart(void) {
 
 		// Default
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-			if (gFSystem.exists("/.html/index.htm")) {
-				// serve webpage from SD card
-				request->send(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
-			} else {
-				// serve webpage from PROGMEM
-				request->send_P(200, "text/html", management_HTML, templateProcessor);
+
+			AsyncWebServerResponse *response;
+
+			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
+			const bool etag = false;
+			if(etag)
+				response = request->beginResponse(304);
+			else {
+				if (gFSystem.exists("/.html/index.htm"))
+					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
+				else
+					response = request->beginResponse_P(200, "text/html", management_HTML, templateProcessor);
 			}
+			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
+			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+			request->send(response);
 		});
+
+		WWWData::registerRoutes(serveProgmemFiles);
+
 		// Log
 		wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
