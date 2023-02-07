@@ -24,7 +24,7 @@ IPAddress apIP(192, 168, 4, 1);        // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
 bool accessPointStarted = false;
 
-void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask);
+void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAddress netmask);
 bool getWifiEnableStatusFromNVS(void);
 void writeWifiStatusToNVS(bool wifiStatus);
 bool Wlan_IsConnected(void);
@@ -61,7 +61,7 @@ void Wlan_Cyclic(void) {
 		}
 
 		if (wifiAccessIncomplete) {
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
 			wifiInit = false;
 			wifiConnectionTryInProgress = false;
 			return;
@@ -124,7 +124,7 @@ void Wlan_Cyclic(void) {
 
 		if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 2 && (millis() - wifiCheckLastTimestamp >= 9000)) {
 			wifiConnectIteration = 0;
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), apIP, apNetmask);
+			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
 			wifiConnectionTryInProgress = false;
 			free(_ssid);
 			free(_pwd);
@@ -184,10 +184,10 @@ int8_t Wlan_GetRssi(void) {
 }
 
 // Initialize soft access-point
-void accessPointStart(const char *SSID, IPAddress ip, IPAddress netmask) {
+void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAddress netmask) {
 	WiFi.mode(WIFI_AP);
 	WiFi.softAPConfig(ip, ip, netmask);
-	WiFi.softAP(SSID);
+	WiFi.softAP(SSID, (password != NULL && password[0] != '\0') ? password : NULL);
 	delay(500);
 
 	Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);

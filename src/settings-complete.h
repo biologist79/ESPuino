@@ -109,6 +109,11 @@
     constexpr uint16_t rdiv2 = 33;                  // Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
 #endif
 
+// (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.
+#ifdef HALLEFFECT_SENSOR_ENABLE
+    #define HallEffectSensor_PIN        34  	// GPIO that is used for hallsensor (ADC); user-support: https://forum.espuino.de/t/magnetische-hockey-tags/1449/35
+#endif
+
 // (Optional) remote control via infrared
 #ifdef IR_CONTROL_ENABLE
     #define IRLED_PIN                   0           // GPIO where IR-receiver is connected (only tested with VS1838B)

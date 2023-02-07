@@ -52,10 +52,16 @@
     //#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
     #define CACHED_PLAYLIST_ENABLE          // Enables playlist-caching (infos: https://forum.espuino.de/t/neues-feature-cached-playlist/515)
     //#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
+    //#define PAUSE_ON_MIN_VOLUME           // When playback is active and volume is changed to zero, playback is paused automatically. Playback is continued if volume reaches 1. (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
     //#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
     //#define SAVE_PLAYPOS_BEFORE_SHUTDOWN  // When playback is active and mode audiobook was selected, last play-position is saved automatically when shutdown is initiated
     //#define SAVE_PLAYPOS_WHEN_RFID_CHANGE // When playback is active and mode audiobook was selected, last play-position is saved automatically for old playlist when new RFID-tag is applied
+    //#define HALLEFFECT_SENSOR_ENABLE      // Support for hallsensor. For fine-tuning please adjust HallEffectSensor.h Please note: only user-support provided (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
 
+    //################## set PAUSE_WHEN_RFID_REMOVED behaviour #############################
+    #ifdef PAUSE_WHEN_RFID_REMOVED
+        #define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after playback has ended (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541/2)
+    #endif
 
     //################## select SD card mode #############################
     #define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
@@ -175,11 +181,12 @@
     // Nothing to be configured here...
     // Default user/password is esp32/esp32 but can be changed via webgui
 
-    // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
+    // ESPuino will create a WiFi if joing existing WiFi was not possible. Name and password can be configured here.
     constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-    
-	// Bluetooth
-	constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    constexpr const char accessPointNetworkPassword[] PROGMEM = "";        // Access-point's Password, at least 8 characters! Set to an empty string to spawn an open WiFi.
+
+    // Bluetooth
+    constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
     constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
 
     // Where to store the backup-file for NVS-records

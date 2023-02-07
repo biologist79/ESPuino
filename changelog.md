@@ -19,6 +19,7 @@
 * 31.08.2022: Directive `DONT_ACCEPT_SAME_RFID_TWICE` added. Blocks unwanted reapplies of the same rfid-tag (in case it's not a modification-card or rfid-tag is unknown in NVS).
 * 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
 * 18.10.2022: New playmode: pick random subdirectory of a given directory and play it's content alphabetic ordered
+* 08.01.2023: New feature: `PAUSE_ON_MIN_VOLUME`. Playback is paused automatically if volume reaches minVolume (usually 0).
 
 ## Old (monolithic main.cpp)
 * 11.07.2020: Added support for reversed Neopixel addressing.

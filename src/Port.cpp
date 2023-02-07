@@ -318,18 +318,19 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		}
 	}
 
-	// Reads input from port-expander and writes output into global array
+	// Reads input-registers from port-expander and writes output into global cache-array
 	// Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 	void Port_ExpanderHandler(void) {
-		// If interrupt-handling is active, only read port-expander's register if interrupt was fired
+		static bool verifyChangeOfInputRegister[2] = {false, false};	// Used to debounce once in case of register-change
+		static uint8_t inputRegisterBuffer[2];
+
+		// If interrupt-handling is active, only read port-expander's registers if interrupt was fired
 		#ifdef PE_INTERRUPT_PIN_ENABLE
-			if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander) {
-				//Serial.println("Interrupt false!");
+			if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander && !verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
 				return;
 			} else if (Port_AllowInitReadFromPortExpander) {
 				Port_AllowInitReadFromPortExpander = false;
 			} else if (Port_AllowReadFromPortExpander || Port_AllowInitReadFromPortExpander) {
-				//Serial.println("Interrupt true!");
 				Port_AllowReadFromPortExpander = false;
 			}
 		#endif
@@ -341,8 +342,18 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
 
 			if (i2cBusTwo.available()) {
-				Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
-				//Serial.printf("Debug: PE-Port: %u  Status: %u\n", i, Port_ExpanderPortsInputChannelStatus[i]);
+				inputRegisterBuffer[i] = i2cBusTwo.read();	// Cache current readout
+				// Check if input-register changed. If so, don't use the value immediately
+				// but wait another cycle instead (=> rudimentary debounce).
+				// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
+				if (inputRegisterBuffer[i] != Port_ExpanderPortsInputChannelStatus[i] && millis() >= 10000 && !verifyChangeOfInputRegister[i]) {
+					verifyChangeOfInputRegister[i] = true;
+					//Serial.println("Verify set!");
+				} else {
+					verifyChangeOfInputRegister[i] = false;
+					Port_ExpanderPortsInputChannelStatus[i] = inputRegisterBuffer[i];
+				}
+				//Serial.printf("%u Debug: PE-Port: %u  Status: %u\n", millis(), i, Port_ExpanderPortsInputChannelStatus[i]);
 			}
 		}
 	}

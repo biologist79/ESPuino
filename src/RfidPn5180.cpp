@@ -10,6 +10,7 @@
 #include "Port.h"
 #include <esp_task_wdt.h>
 #include "AudioPlayer.h"
+#include "HallEffectSensor.h"
 
 #ifdef RFID_READER_TYPE_PN5180
 	#include <PN5180.h>
@@ -231,6 +232,9 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 				memcpy(lastCardId, cardId, cardIdSize);
 				showDisablePrivacyNotification = true;
+                #ifdef HALLEFFECT_SENSOR_ENABLE
+                    cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);  
+                #endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
@@ -254,7 +258,11 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				}
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
-					if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
+					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
+						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {       // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished 
+					#else	
+						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again... 
+					#endif
 						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 					} else {
 						// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
