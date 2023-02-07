@@ -1,0 +1,229 @@
+{
+    "submit": "Submit",
+    "restart": "Restart",
+    "reset": "Reset",
+    "title": "ESPuino-Settings",
+    "shutdown": "Shutdown",
+    "log": "Log",
+    "info": "Info",
+    "toast": {
+        "rfidDetect": "RFID-tag {{rfidId}} detected.",
+        "success": "Action performed successfully.",
+        "conlost": "Connection to ESPuino broken! Please reload website."
+    },
+    "nav": {
+        "control": "Control",
+        "rfid": "RFID",
+        "wifi": "WiFi",
+        "mqtt": "MQTT",
+        "ftp": "FTP",
+        "general": "General",
+        "tools": "Tools",
+        "forum": "Forum"
+    },
+    "wifi": {
+        "title": "WiFi-configuration",
+        "ssid": {
+            "title": "WiFi-name (SSID)",
+            "placeholder": "SSID",
+            "validation": "Enter WiFi's SSID"
+        },
+        "password": {
+            "title": "Password",
+            "placeholder": "Password",
+            "validation": "Enter the WiFi's password"
+        },
+        "hostname": {
+            "title": "ESPuino's name (hostname)",
+            "placeholder": "espuino",
+            "validation": "Enter a valid hostname"
+        },
+        "restartPrompt": "Ready to go?"
+    },
+    "control": {
+        "title": "Control",
+        "first": "First",
+        "prev": "Previous",
+        "playpause": "Play / Pause",
+        "forward": "Next",
+        "last": "Last",
+        "volume": "Volume",
+        "voldown": "Volume Down",
+        "volup": "Volume Up",
+        "current": "Current track"
+    },
+    "files": {
+        "title": "Files",
+        "loading": "Please wait...",
+        "context": {
+            "newFolder": "New Folder",
+            "play": "Play",
+            "refresh": "Refresh",
+            "delete": "Delete",
+            "rename": "Rename",
+            "download": "Download"
+        },
+        "files": {
+            "title": "Files",
+            "desc": "Upload one ore more files"
+        },
+        "directory": {
+            "title": "Directory",
+            "desc": "Upload directory with all files and subdirectories"
+        },
+        "upload": {
+            "title": "Upload",
+            "desc": "Start Upload",
+            "selectFolder": "Please select the upload location!",
+            "selectFile": "Please select files to upload!",
+            "success": "Upload success",
+            "error": "Upload error"
+        },
+        "rfid": {
+            "title": "RFID-Assignments",
+            "idNumber": "RFID-number (12 digits)",
+            "music": "Music",
+            "modification": "Modification",
+            "fileurl": {
+                "title": "File, directory or URL (^ and # aren't allowed as chars)",
+                "placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
+            },
+            "playmode": {
+                "title": "Playmode",
+                "mode": [
+                    "Select mode",
+                    "Single track",
+                    "Single track (loop)",
+                    "Single track of a directory (random). Followed by sleep.",
+                    "Audiobook",
+                    "Audiobook (loop)",
+                    "All tracks of a directory (sorted alph.)",
+                    "All tracks of a directory (random)",
+                    "All tracks of a directory (sorted alph., loop)",
+                    "All tracks of a directory (random, loop)",
+                    "All tracks of a random subdirectory (sorted alph.)",
+                    "Webradio",
+                    "List (files from SD and/or webstreams) from local .m3u-File"
+                ]
+            },
+            "mod": {
+                "title": "Mod",
+                "mods": [
+                    "Select modification",
+                    "Keylock",
+                    "Sleep immediately",
+                    "Sleep after 15 minutes",
+                    "Sleep after 30 minutes",
+                    "Sleep after 1 hour",
+                    "Sleep after 2 hours",
+                    "Sleep after end of track",
+                    "Sleep after end of playlist",
+                    "Sleep after end of five tracks",
+                    "Loop playlist",
+                    "Loop track",
+                    "Dimm LEDs (nightmode)",
+                    "Toggle WiFi",
+                    "Toggle Bluetooth",
+                    "Enable FTP",
+                    "Remove assignment",
+                    "Toggle Play/Pause",
+                    "Previous track",
+                    "Next track",
+                    "First track",
+                    "Last track",
+                    "Seek forwards (n seconds)",
+                    "Seek backwards (n seconds)"
+                ]
+            }
+        }
+    },
+    "mqtt": {
+        "title": "MQTT-settings",
+        "enable": "Enable MQTT",
+        "clientId": {
+            "title": "MQTT-ClientId",
+            "placeholder": "f.e. ESPuino",
+            "validation": ""
+        },
+        "server": {
+            "title": "MQTT-server",
+            "placeholder": "f.e. 192.168.2.89",
+            "validation": ""
+        },
+        "user": {
+            "title": "MQTT-username (optional)",
+            "placeholder": "username",
+            "validation": ""
+        },
+        "pwd": {
+            "title": "MQTT-password (optional)",
+            "placeholder": "password",
+            "validation": ""
+        },
+        "port": {
+            "title": "MQTT-port",
+            "placeholder": "f.e. 1883",
+            "validation": ""
+        }
+    },
+    "ftp": {
+        "title": "FTP-settings",
+        "user": {
+            "title": "FTP-Username",
+            "placeholder": "username"
+        },
+        "pwd": {
+            "title": "FTP-password",
+            "placeholder": "password"
+        },
+        "start": {
+            "title": "Start FTP-server",
+            "desc": "Enables FTP-server until device is restarted.",
+            "button": "Start FTP-server"
+        }
+    },
+    "general": {
+        "volume": {
+            "title": "Volume",
+            "restart": "After restart",
+            "speakerMax": "Max. volume (speaker)",
+            "headphoneMax": "Max. volume (headphones)"
+        },
+        "neopixel": {
+            "title": "Neopixel (brightness)",
+            "restart": "After restart",
+            "nightmode": "For nightmode"
+        },
+        "sleep": {
+            "title": "Deep Sleep",
+            "incativity": "After n minutes inactivity"
+        },
+        "battery": {
+            "title": "Battery",
+            "desc": "Show voltage-status via Neopixel",
+            "lowWarning": "Show warning below this threshold",
+            "lowCritical": "Lowest voltage, that is indicated by one LED",
+            "high": "Voltage, that is indicated by all LEDs",
+            "measureInterval": "Interval between measurements (in minutes)"
+        }
+    },
+    "tools": {
+        "nvserase": {
+            "title": "Erase NVS RFID-assignments",
+            "desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
+            "button": "Delete assignments"
+        },
+        "nvsimport": {
+            "title": "NVS RFID-Importer",
+            "desc": "Backupfile can be uploaded right here in order to import NVS-RFID-assignments."
+        },
+        "fwupdate": {
+            "title": "Firmware-Update",
+            "desc": "Firmware can be updated right here."
+        }
+    },
+    "forum": {
+        "title": "Forum",
+        "desc": "Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
+    }
+}
