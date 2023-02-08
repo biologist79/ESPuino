@@ -191,11 +191,11 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 	return false;
 }
 
-CRGB Led_ConvertColorToDimmedColor(CRGB color, uint8_t brightness) {
+CRGB Led_DimColor(CRGB color, uint8_t brightness) {
 	float factorBrighness = (float)brightness / DIMMABLE_STATES;
-	color.red = (color.red * factorBrighness) + 0.5;
-	color.green = (color.green * factorBrighness) + 0.5;
-	color.blue = (color.blue* factorBrighness) + 0.5;
+	color.red = static_cast<uint8_t>((color.red * factorBrighness) + 0.5f);
+	color.green = static_cast<uint8_t>((color.green * factorBrighness) + 0.5f);
+	color.blue = static_cast<uint8_t>((color.blue* factorBrighness) + 0.5f);
 	return color;
 }
 
@@ -512,7 +512,7 @@ static void Led_Task(void *parameter) {
 							if (lastLed > 0){
 								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
 								leds[Led_Address(fullLeds)].setHue(hue);
-								leds[Led_Address(fullLeds)] = Led_ConvertColorToDimmedColor(leds[Led_Address(fullLeds)], lastLed);
+								leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 							}
 						}
 
@@ -647,7 +647,7 @@ static void Led_Task(void *parameter) {
 									animaitonTimer = 30;
 									subAnimationIndex ++;
 								} else if ((animationIndex == 1) && (subAnimationIndex == animationHelperNumberInt)){
-									leds[Led_Address(animationHelperNumberInt)] = Led_ConvertColorToDimmedColor(CRGB::Blue, animationHelperNumberInt2);
+									leds[Led_Address(animationHelperNumberInt)] = Led_DimColor(CRGB::Blue, animationHelperNumberInt2);
 									FastLED.show();
 									animaitonTimer = 100*15;
 									subAnimationIndex = animationHelperNumberInt + 1;
@@ -782,7 +782,7 @@ static void Led_Task(void *parameter) {
 										} else {
 											leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
 										}
-										leds[Led_Address(fullLeds)] = Led_ConvertColorToDimmedColor(leds[Led_Address(fullLeds)], lastLed);
+										leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 									}
 								}
 								if (gPlayProperties.pausePlay) {
