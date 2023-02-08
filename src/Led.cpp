@@ -193,9 +193,9 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 
 CRGB Led_ConvertColorToDimmedColor(CRGB color, uint8_t brightness) {
 	float factorBrighness = (float)brightness / DIMMABLE_STATES;
-	color.red *= factorBrighness;
-	color.green *= factorBrighness;
-	color.blue *= factorBrighness;
+	color.red = (color.red * factorBrighness) + 0.5;
+	color.green = (color.green * factorBrighness) + 0.5;
+	color.blue = (color.blue* factorBrighness) + 0.5;
 	return color;
 }
 
@@ -243,7 +243,7 @@ static void Led_Task(void *parameter) {
 		static CRGB leds[NUM_LEDS];
 		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
-
+		FastLED.setDither(DISABLE_DITHER);
 
 		static LedAnimation activeAnnimation = LedAnimationType::NoNewAnimation;
 		static LedAnimation nextAnimaiton = LedAnimationType::NoNewAnimation;
@@ -505,12 +505,14 @@ static void Led_Task(void *parameter) {
 							* (Inverse) color-gradient from green (85) back to (still)
 							* red (250) using unsigned-cast.
 							*/
-							for (int led = 0; led <= fullLeds; led++) {
+							for (int led = 0; led < fullLeds; led++) {
 								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
 								leds[Led_Address(led)].setHue(hue);
-								if (led == fullLeds){
-									leds[Led_Address(led)] = Led_ConvertColorToDimmedColor(leds[Led_Address(led)], lastLed);
-								}
+							}
+							if (lastLed > 0){
+								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+								leds[Led_Address(fullLeds)].setHue(hue);
+								leds[Led_Address(fullLeds)] = Led_ConvertColorToDimmedColor(leds[Led_Address(fullLeds)], lastLed);
 							}
 						}
 
@@ -645,7 +647,8 @@ static void Led_Task(void *parameter) {
 									animaitonTimer = 30;
 									subAnimationIndex ++;
 								} else if ((animationIndex == 1) && (subAnimationIndex == animationHelperNumberInt)){
-									leds[Led_Address(animationHelperNumberInt)] = Led_ConvertColorToDimmedColor(CRGB::Blue, lastLed);
+									leds[Led_Address(animationHelperNumberInt)] = Led_ConvertColorToDimmedColor(CRGB::Blue, animationHelperNumberInt2);
+									FastLED.show();
 									animaitonTimer = 100*15;
 									subAnimationIndex = animationHelperNumberInt + 1;
 									animationIndex++;
@@ -766,15 +769,20 @@ static void Led_Task(void *parameter) {
 									uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
 									uint8_t fullLeds = ledValue/DIMMABLE_STATES;
 									uint8_t lastLed = ledValue%DIMMABLE_STATES;
-									for (uint8_t led = 0; led <= fullLeds; led++) {
+									for (uint8_t led = 0; led < fullLeds; led++) {
 										if (System_AreControlsLocked()) {
 											leds[Led_Address(led)] = CRGB::Red;
 										} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 											leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
-											if (led == fullLeds) {
-												leds[Led_Address(led)] = Led_ConvertColorToDimmedColor(leds[Led_Address(led)], lastLed);
-											}
 										}
+									}
+									if(lastLed > 0){
+										if (System_AreControlsLocked()) {
+											leds[Led_Address(fullLeds)] = CRGB::Red;
+										} else {
+											leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+										}
+										leds[Led_Address(fullLeds)] = Led_ConvertColorToDimmedColor(leds[Led_Address(fullLeds)], lastLed);
 									}
 								}
 								if (gPlayProperties.pausePlay) {
@@ -790,6 +798,7 @@ static void Led_Task(void *parameter) {
 									if (OFFSET_PAUSE_LEDS) {
 										pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
 									}
+									FastLED.clear();
 									Led_DrawIdleDots(leds, pauseOffset, generalColor);
 								}
 							}
@@ -830,7 +839,7 @@ static void Led_Task(void *parameter) {
 							}
 						}
 						FastLED.show();
-						animaitonTimer = 5;
+						animaitonTimer = 10;
 					} break;
 
 					default:
