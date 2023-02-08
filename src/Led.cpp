@@ -251,8 +251,8 @@ static void Led_Task(void *parameter) {
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
 		static uint32_t subAnimationIndex;
-		static uint32_t staticNumberOfLeds;
-		static uint32_t staticLastLedValue;
+		static uint32_t staticLastBarLenghtPlaylist;
+		static uint32_t staticLastTrack;
 		static float staticBatteryLevel;
 
 
@@ -298,7 +298,6 @@ static void Led_Task(void *parameter) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
 				nextAnimaiton = LedAnimationType::Rewind;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)){
-				LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
 				nextAnimaiton = LedAnimationType::Playlist;
 			} else if (gPlayProperties.playlistFinished) {
 				nextAnimaiton = LedAnimationType::Idle; // todo: what is valid?
@@ -327,12 +326,6 @@ static void Led_Task(void *parameter) {
 			}
 			if ((!animationActive) && (animaitonTimer <= 0)) {
 				activeAnnimation = nextAnimaiton; // set new animation
-				animationIndex = 0;
-			}
-
-			// position of playlist is triggered again
-			if (activeAnnimation == LedAnimationType::Playlist && nextAnimaiton == LedAnimationType::Playlist){
-				animaitonTimer = 0;
 				animationIndex = 0;
 			}
 
@@ -636,34 +629,82 @@ static void Led_Task(void *parameter) {
 								uint8_t fullLeds = ledValue/DIMMABLE_STATES;
 								uint8_t lastLed = ledValue%DIMMABLE_STATES;
 
+								if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)){
+									LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
+									// only animate diff, if triggered again
+									if (animationActive) {
+										// forward
+										if (staticLastTrack < gPlayProperties.currentTrackNumber) {
+											if (animationIndex > 1) {
+												animationIndex = 1;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											}
+										// backwards
+										} else if (staticLastTrack > gPlayProperties.currentTrackNumber){
+											if (staticLastBarLenghtPlaylist < fullLeds) {
+												animationIndex = 1;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											} else {
+												animationIndex = 42;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											}
+										}
+									}
+									staticLastTrack = gPlayProperties.currentTrackNumber;
+								}
+
 								if (animationIndex == 0 ) {
-									FastLED.clear();
 									animationActive = true;
 									subAnimationIndex = 0;
 									animationIndex++;
-									staticNumberOfLeds = fullLeds;
-									staticLastLedValue = lastLed;
 								}
-								
-								if ((animationIndex == 1) && (subAnimationIndex < staticNumberOfLeds)) {
-									leds[Led_Address(subAnimationIndex)] = CRGB::Blue;
-									FastLED.show();
-									animaitonTimer = 30;
+
+								animaitonTimer = 30;
+								uint8_t barLength = 0;
+								if (animationIndex == 1){
+									barLength = subAnimationIndex;
+									subAnimationIndex++;
+									if (subAnimationIndex >= fullLeds){
+										animationIndex++;
+										subAnimationIndex = 0;
+									} 
+								} else if (animationIndex == 2) {
+									// wait
 									subAnimationIndex ++;
-								} else if ((animationIndex == 1) && (subAnimationIndex == staticNumberOfLeds)){
-									leds[Led_Address(staticNumberOfLeds)] = Led_DimColor(CRGB::Blue, staticLastLedValue);
-									FastLED.show();
-									animaitonTimer = 100*15;
-									subAnimationIndex = staticNumberOfLeds + 1;
-									animationIndex++;
-								} else if ((animationIndex == 2) && (subAnimationIndex > 0)) { 
-									leds[Led_Address(subAnimationIndex) - 1] = CRGB::Black;
-									FastLED.show();
-									animaitonTimer = 30;
+									if (subAnimationIndex >= 50){
+										animationIndex++;
+										subAnimationIndex = fullLeds;
+									}
+									barLength = fullLeds;
+								} else if (animationIndex == 3) {
+									// negative
 									subAnimationIndex--;
+									barLength = subAnimationIndex;
+									if (subAnimationIndex == 0){
+										animationIndex++;
+									}
+								} else if (animationIndex == 42){
+									// move back to target and wait there
+									subAnimationIndex--;
+									barLength = subAnimationIndex;
+									if (subAnimationIndex <= fullLeds){
+										animationIndex = 2;
+									}
 								} else {
+									// done
 									animationActive = false;
 								}
+							
+								// draw bar
+								FastLED.clear();
+								for (uint8_t i = 0; i < barLength; i++){
+									leds[Led_Address(i)] = CRGB::Blue;
+								}
+								if (barLength == fullLeds && lastLed > 0){
+									leds[Led_Address(barLength)] = Led_DimColor(CRGB::Blue, lastLed);
+								}
+								staticLastBarLenghtPlaylist = barLength;
+								FastLED.show();
 							}
 						}
 					} break;
