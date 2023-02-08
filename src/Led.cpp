@@ -251,9 +251,9 @@ static void Led_Task(void *parameter) {
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
 		static uint32_t subAnimationIndex;
-		static uint32_t animationHelperNumberInt;
-		static uint32_t animationHelperNumberInt2;
-		static float animationHelperNumberFloat;
+		static uint32_t staticNumberOfLeds;
+		static uint32_t staticLastLedValue;
+		static float staticBatteryLevel;
 
 
 		for (;;) {
@@ -562,14 +562,14 @@ static void Led_Task(void *parameter) {
 							break;
 						} else {
 							if (animationIndex == 0) {
-								animationHelperNumberFloat = batteryLevel;
+								staticBatteryLevel = batteryLevel;
 								animationActive = true;
 								FastLED.clear();
 							}
 							if (NUM_LEDS == 1) {
-								if (animationHelperNumberFloat < 0.3) {
+								if (staticBatteryLevel < 0.3) {
 									leds[0] = CRGB::Red;
-								} else if (animationHelperNumberFloat < 0.6) {
+								} else if (staticBatteryLevel < 0.6) {
 									leds[0] = CRGB::Orange;
 								} else {
 									leds[0] = CRGB::Green;
@@ -579,15 +579,15 @@ static void Led_Task(void *parameter) {
 								animaitonTimer = 20*100;
 								animationActive = false;
 							} else {
-								uint8_t numLedsToLight = animationHelperNumberFloat * NUM_LEDS;
+								uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
 								if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
 									numLedsToLight = NUM_LEDS;
 								}
 
 								if (animationIndex < numLedsToLight){
-									if (animationHelperNumberFloat < 0.3) {
+									if (staticBatteryLevel < 0.3) {
 										leds[Led_Address(animationIndex)] = CRGB::Red;
-									} else if (animationHelperNumberFloat < 0.6) {
+									} else if (staticBatteryLevel < 0.6) {
 										leds[Led_Address(animationIndex)] = CRGB::Orange;
 									} else {
 										leds[Led_Address(animationIndex)] = CRGB::Green;
@@ -637,20 +637,20 @@ static void Led_Task(void *parameter) {
 									animationActive = true;
 									subAnimationIndex = 0;
 									animationIndex++;
-									animationHelperNumberInt = fullLeds;
-									animationHelperNumberInt2 = lastLed;
+									staticNumberOfLeds = fullLeds;
+									staticLastLedValue = lastLed;
 								}
 								
-								if ((animationIndex == 1) && (subAnimationIndex < animationHelperNumberInt)) {
+								if ((animationIndex == 1) && (subAnimationIndex < staticNumberOfLeds)) {
 									leds[Led_Address(subAnimationIndex)] = CRGB::Blue;
 									FastLED.show();
 									animaitonTimer = 30;
 									subAnimationIndex ++;
-								} else if ((animationIndex == 1) && (subAnimationIndex == animationHelperNumberInt)){
-									leds[Led_Address(animationHelperNumberInt)] = Led_DimColor(CRGB::Blue, animationHelperNumberInt2);
+								} else if ((animationIndex == 1) && (subAnimationIndex == staticNumberOfLeds)){
+									leds[Led_Address(staticNumberOfLeds)] = Led_DimColor(CRGB::Blue, staticLastLedValue);
 									FastLED.show();
 									animaitonTimer = 100*15;
-									subAnimationIndex = animationHelperNumberInt + 1;
+									subAnimationIndex = staticNumberOfLeds + 1;
 									animationIndex++;
 								} else if ((animationIndex == 2) && (subAnimationIndex > 0)) { 
 									leds[Led_Address(subAnimationIndex) - 1] = CRGB::Black;
