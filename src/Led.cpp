@@ -317,12 +317,10 @@ static void Led_Task(void *parameter) {
 				nextAnimaiton = LedAnimationType::NoNewAnimation; // should not happen
 			}
 
-			// check for transition
-			if (nextAnimaiton != activeAnnimation) {
-				if (animationActive && nextAnimaiton < activeAnnimation) {
-					animationActive = false; // abort current animation
-					animaitonTimer = 0;
-				}
+			// check for instant transition
+			if ((animationActive) && (activeAnnimation != nextAnimaiton) && (nextAnimaiton < activeAnnimation)) {
+				animationActive = false; // abort current animation
+				animaitonTimer = 0;
 			}
 			if ((!animationActive) && (animaitonTimer <= 0)) {
 				activeAnnimation = nextAnimaiton; // set new animation
