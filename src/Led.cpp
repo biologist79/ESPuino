@@ -293,7 +293,6 @@ static void Led_Task(void *parameter) {
 				nextAnimaiton = LedAnimationType::BatteryMeasurement;
 			#endif
 			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-				hlastVolume = AudioPlayer_GetCurrentVolume();
 				nextAnimaiton = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
@@ -330,17 +329,13 @@ static void Led_Task(void *parameter) {
 				activeAnnimation = nextAnimaiton; // set new animation
 				animationIndex = 0;
 			}
-			// some special transitions: Retrigger Volume
-			if (activeAnnimation == LedAnimationType::Volume && nextAnimaiton == LedAnimationType::Volume){
-				animaitonTimer = 0;
-			}
+
 			// position of playlist is triggered again
 			if (activeAnnimation == LedAnimationType::Playlist && nextAnimaiton == LedAnimationType::Playlist){
 				animaitonTimer = 0;
 				animationIndex = 0;
 			}
 
-			// TODO: Remove Brightness from here (use own LED-function)
 			if (lastLedBrightness != Led_Brightness) {
 				FastLED.setBrightness(Led_Brightness);
 				lastLedBrightness = Led_Brightness;
@@ -515,12 +510,21 @@ static void Led_Task(void *parameter) {
 								leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 							}
 						}
-
 						FastLED.show();
-						animationActive = false;
-						requestProgressRedraw = true;
-						animaitonTimer = 20 * LED_VOLUME_INDICATOR_NUM_CYCLES;
 
+						// reset animation if volume changes
+						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
+							hlastVolume = AudioPlayer_GetCurrentVolume();
+							animationIndex = 0;
+						}
+
+						if (animationIndex < LED_VOLUME_INDICATOR_NUM_CYCLES){
+							animaitonTimer = 20;
+							animationIndex ++;
+						} else {
+							animationActive = false;
+							requestProgressRedraw = true;
+						}
 					} break;
 
 					// --------------------------------------------------
