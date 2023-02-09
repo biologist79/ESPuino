@@ -174,15 +174,11 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
 	    requestProgressRedraw ||
-	    LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) ||
-	    LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) ||
-	    !gButtons[gShutdownButton].currentState ||
 	    System_IsSleepRequested()) {
 #else
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
 	    requestProgressRedraw ||
-	    !gButtons[gShutdownButton].currentState ||
 	    System_IsSleepRequested()) {
 #endif
 		return true;
@@ -226,7 +222,6 @@ static void Led_Task(void *parameter) {
 		static double lastPos = gPlayProperties.currentRelPos;
 		static bool lastPlayState = false;
 		static bool lastLockState = false;
-		static bool requestClearLeds = false;
 		static bool requestProgressRedraw = false;
 		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
@@ -332,6 +327,10 @@ static void Led_Task(void *parameter) {
 				lastLedBrightness = Led_Brightness;
 			}
 
+			if (activeAnnimation != LedAnimationType::Progress && activeAnnimation != LedAnimationType::Webstream){
+				redrawProgress = true;
+			}
+
 			if (animaitonTimer <= 0) {
 				switch(activeAnnimation) {
 					// --------------------------------------------------
@@ -427,7 +426,6 @@ static void Led_Task(void *parameter) {
 
 						if (animationIndex == 0){
 							animationActive = true;
-							requestProgressRedraw = true;
 							FastLED.clear();
 						}
 
@@ -514,7 +512,6 @@ static void Led_Task(void *parameter) {
 							animationIndex ++;
 						} else {
 							animationActive = false;
-							requestProgressRedraw = true;
 						}
 					} break;
 
@@ -523,7 +520,6 @@ static void Led_Task(void *parameter) {
 					// --------------------------------------------------
 					case LedAnimationType::VoltageWarning: {
 						// Single + Multiple LEDs: flashes red three times if battery-voltage is low
-						requestProgressRedraw = true;
 						animationActive = true;
 
 						CRGB colorToDraw = CRGB::Red;
@@ -752,8 +748,6 @@ static void Led_Task(void *parameter) {
 					// --------------------------------------------------
 					case LedAnimationType::Busy: {
 						animationActive = true;
-						requestProgressRedraw = true;
-						requestClearLeds = true;
 						if (NUM_LEDS == 1) {
 							FastLED.clear();
 							singleLedStatus = !singleLedStatus;
@@ -781,107 +775,97 @@ static void Led_Task(void *parameter) {
 					// --------------------------------------------------
 					// Animation of Progress
 					// --------------------------------------------------
-					case LedAnimationType::Pause: // TODO: separate animations?
-					case LedAnimationType::Webstream:
 					case LedAnimationType::Speech:
-					case LedAnimationType::Progress:  {
-						if (Led_NeedsProgressRedraw(lastPlayState, lastLockState,
-										requestProgressRedraw)) {
-							lastPlayState = gPlayProperties.pausePlay;
-							lastLockState = System_AreControlsLocked();
-							requestProgressRedraw = false;
-							redrawProgress = true;
-						}
+					case LedAnimationType::Pause: { // TODO: separate animations?
+						if (gPlayProperties.isWebstream) {
+							generalColor = CRGB::Orange;
+							if (gPlayProperties.currentSpeechActive) {
+								generalColor = speechColor;
+							}
+							if (NUM_LEDS == 1) {
+								leds[0] = generalColor;
+							} else {
+								leds[Led_Address(ledPosWebstream)] = generalColor;
+								leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
+							}
+						} else {
+							generalColor = CRGB::Orange;
+							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+								generalColor = CRGB::Blue;
+							} else
+							if (gPlayProperties.currentSpeechActive) {
+								generalColor = speechColor;
+							}
 
-						if (requestClearLeds) {
+							uint8_t pauseOffset = 0;
+							if (OFFSET_PAUSE_LEDS) {
+								pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+							}
 							FastLED.clear();
-							FastLED.show();
-							requestClearLeds = false;
-						}
-
-						// Single-LED: led indicates between gradient green (beginning) => red (end)
-						// Multiple-LED: growing number of leds indicate between gradient green (beginning) => red (end)
-						if (!gPlayProperties.isWebstream) {
-							if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
-								redrawProgress = false;
-								lastPos = gPlayProperties.currentRelPos;
-								FastLED.clear();
-								if (NUM_LEDS == 1) {
-									leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
-								} else {
-									uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
-									uint8_t fullLeds = ledValue/DIMMABLE_STATES;
-									uint8_t lastLed = ledValue%DIMMABLE_STATES;
-									for (uint8_t led = 0; led < fullLeds; led++) {
-										if (System_AreControlsLocked()) {
-											leds[Led_Address(led)] = CRGB::Red;
-										} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-											leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
-										}
-									}
-									if(lastLed > 0){
-										if (System_AreControlsLocked()) {
-											leds[Led_Address(fullLeds)] = CRGB::Red;
-										} else {
-											leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
-										}
-										leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
-									}
-								}
-								if (gPlayProperties.pausePlay) {
-									generalColor = CRGB::Orange;
-									if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-										generalColor = CRGB::Blue;
-									} else
-									if (gPlayProperties.currentSpeechActive) {
-										generalColor = speechColor;
-									}
-
-									uint8_t pauseOffset = 0;
-									if (OFFSET_PAUSE_LEDS) {
-										pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
-									}
-									FastLED.clear();
-									Led_DrawIdleDots(leds, pauseOffset, generalColor);
-								}
-							}
-						} else { // ... but do things a little bit different for Webstream as there's no progress available
-							if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || redrawProgress) {
-								redrawProgress = false;
-								lastSwitchTimestamp = millis();
-								FastLED.clear();
-								if (ledPosWebstream + 1 < NUM_LEDS) {
-									ledPosWebstream++;
-								} else {
-									ledPosWebstream = 0;
-								}
-								if (System_AreControlsLocked()) {
-									leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-									if (NUM_LEDS > 1) {
-										leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
-									}
-								} else if (!gPlayProperties.pausePlay) {
-									if (NUM_LEDS == 1) {
-										leds[0].setHue(webstreamColor++);
-									} else {
-										leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-										leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
-									}
-								} else if (gPlayProperties.pausePlay) {
-									generalColor = CRGB::Orange;
-									if (gPlayProperties.currentSpeechActive) {
-										generalColor = speechColor;
-									}
-									if (NUM_LEDS == 1) {
-										leds[0] = generalColor;
-									} else {
-										leds[Led_Address(ledPosWebstream)] = generalColor;
-										leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
-									}
-								}
-							}
+							Led_DrawIdleDots(leds, pauseOffset, generalColor);
 						}
 						FastLED.show();
+						animaitonTimer = 10;
+					} break;
+
+					case LedAnimationType::Progress: {
+						if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
+							redrawProgress = false;
+							lastPos = gPlayProperties.currentRelPos;
+							FastLED.clear();
+							if (NUM_LEDS == 1) {
+								leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
+							} else {
+								uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+								uint8_t fullLeds = ledValue/DIMMABLE_STATES;
+								uint8_t lastLed = ledValue%DIMMABLE_STATES;
+								for (uint8_t led = 0; led < fullLeds; led++) {
+									if (System_AreControlsLocked()) {
+										leds[Led_Address(led)] = CRGB::Red;
+									} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
+										leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
+									}
+								}
+								if(lastLed > 0){
+									if (System_AreControlsLocked()) {
+										leds[Led_Address(fullLeds)] = CRGB::Red;
+									} else {
+										leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+									}
+									leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+								}
+							}
+							FastLED.show();
+						}
+						animaitonTimer = 10;
+					} break;
+
+					case LedAnimationType::Webstream: {
+						// do things a little bit different for Webstream as there's no progress available
+						if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || redrawProgress) {
+							redrawProgress = false;
+							lastSwitchTimestamp = millis();
+							FastLED.clear();
+							if (ledPosWebstream + 1 < NUM_LEDS) {
+								ledPosWebstream++;
+							} else {
+								ledPosWebstream = 0;
+							}
+							if (System_AreControlsLocked()) {
+								leds[Led_Address(ledPosWebstream)] = CRGB::Red;
+								if (NUM_LEDS > 1) {
+									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+								}
+							} else if (!gPlayProperties.pausePlay) {
+								if (NUM_LEDS == 1) {
+									leds[0].setHue(webstreamColor++);
+								} else {
+									leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
+									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
+								}
+							}
+							FastLED.show();
+						}
 						animaitonTimer = 10;
 					} break;
 
@@ -894,6 +878,9 @@ static void Led_Task(void *parameter) {
 			}
 
 			// get the time to wait
+			if (animaitonTimer == 0){
+				animaitonTimer = animationDelay;
+			} 
 			if (animaitonTimer < animationDelay){
 				animationDelay = animaitonTimer;
 			}
