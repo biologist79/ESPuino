@@ -134,7 +134,8 @@
                     "First track",
                     "Last track",
                     "Seek forwards (n seconds)",
-                    "Seek backwards (n seconds)"
+                    "Seek backwards (n seconds)",
+                    "Read Custom Text"
                 ]
             }
         }

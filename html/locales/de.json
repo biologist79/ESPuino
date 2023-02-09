@@ -135,7 +135,8 @@
                     "Erster Titel",
                     "Letzter Titel",
                     "Springe vorwärts (n Sekunden)",
-                    "Springe rückwärts (n Sekunden)"
+                    "Springe rückwärts (n Sekunden)",
+                    "Lese Benutzertext"
                 ]
             }
         }
