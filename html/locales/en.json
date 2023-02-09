@@ -103,7 +103,8 @@
                     "All tracks of a directory (random, loop)",
                     "All tracks of a random subdirectory (sorted alph.)",
                     "Webradio",
-                    "List (files from SD and/or webstreams) from local .m3u-File"
+                    "List (files from SD and/or webstreams) from local .m3u-File",
+                    "Text To Speech"
                 ]
             },
             "mod": {

@@ -103,7 +103,8 @@
                     "Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
                     "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
                     "Webradio",
-                    "Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+                    "Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei",
+                    "Gesprochener Text"
                 ]
             },
             "mod": {
