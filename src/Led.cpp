@@ -229,7 +229,6 @@ static void Led_Task(void *parameter) {
 		static uint8_t ledPosWebstream = 0;
 		static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
 		static uint8_t webstreamColor = 0;
-		static unsigned long lastSwitchTimestamp = 0;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB::HTMLColorCode idleColor;
 		static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
@@ -312,7 +311,7 @@ static void Led_Task(void *parameter) {
 			}
 
 			// check for instant transition
-			if ((animationActive) && (activeAnnimation != nextAnimaiton) && (nextAnimaiton < activeAnnimation)) {
+			if ((activeAnnimation != nextAnimaiton) && (nextAnimaiton < activeAnnimation)) {
 				animationActive = false; // abort current animation
 				animaitonTimer = 0;
 			}
@@ -443,6 +442,7 @@ static void Led_Task(void *parameter) {
 								animationActive = false;
 							}
 						} else {
+							FastLED.clear();
 							for (uint8_t led = 0; led < NUM_LEDS; led++) {
 								leds[Led_Address(led)] = signalColor;
 							}
@@ -774,6 +774,7 @@ static void Led_Task(void *parameter) {
 					// --------------------------------------------------
 					case LedAnimationType::Speech:
 					case LedAnimationType::Pause: { // TODO: separate animations?
+						FastLED.clear();
 						if (gPlayProperties.isWebstream) {
 							generalColor = CRGB::Orange;
 							if (gPlayProperties.currentSpeechActive) {
@@ -798,7 +799,6 @@ static void Led_Task(void *parameter) {
 							if (OFFSET_PAUSE_LEDS) {
 								pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
 							}
-							FastLED.clear();
 							Led_DrawIdleDots(leds, pauseOffset, generalColor);
 						}
 						FastLED.show();
@@ -833,15 +833,15 @@ static void Led_Task(void *parameter) {
 								}
 							}
 							FastLED.show();
+							animaitonTimer = 10;
+							animationActive = false;
 						}
-						animaitonTimer = 10;
 					} break;
 
 					case LedAnimationType::Webstream: {
 						// do things a little bit different for Webstream as there's no progress available
-						if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || animationIndex == 0) {
+						if (animationIndex == 0) {
 							animationIndex = 1;
-							lastSwitchTimestamp = millis();
 							FastLED.clear();
 							if (ledPosWebstream + 1 < NUM_LEDS) {
 								ledPosWebstream++;
@@ -862,8 +862,9 @@ static void Led_Task(void *parameter) {
 								}
 							}
 							FastLED.show();
+							animaitonTimer = ledSwitchInterval * 1000;
+							animationActive = false;
 						}
-						animaitonTimer = 10;
 					} break;
 
 					default:
