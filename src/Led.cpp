@@ -706,10 +706,9 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Idle: {
 						animationActive = true;
 						if (animationIndex < NUM_LEDS) {
-							if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
-								idleColor = CRGB::Blue;
-							} else
 							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+								idleColor = CRGB::Blue;
+							} else if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 								if (Bluetooth_Source_Connected()) {
 										idleColor = CRGB::Blue;
 									} else {
