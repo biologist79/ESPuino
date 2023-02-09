@@ -50,7 +50,8 @@
         "volume": "Lautstärke",
         "voldown": "Leiser",
         "volup": "Lauter",
-        "current": "Aktueller Titel"
+        "current": "Aktueller Titel",
+        "command": "Befehl Ausführen"
     },
     "files": {
         "title": "Dateien",
