@@ -809,6 +809,12 @@ void AudioPlayer_Task(void *parameter) {
 			vTaskDelay(portTICK_PERIOD_MS * 1);
 		}
 		//esp_task_wdt_reset(); // Don't forget to feed the dog!
+
+		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+			if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
+				strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply an rfid-tag after playback is finished
+			}
+		#endif
 	}
 	vTaskDelete(NULL);
 }
@@ -830,6 +836,8 @@ uint8_t AudioPlayer_GetRepeatMode(void) {
 // If volume is changed via webgui or MQTT, it's necessary to re-adjust current value of rotary-encoder.
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary) {
 	uint32_t _volume;
+	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
+
 	if (_newVolume < AudioPlayer_GetMinVolume()) {
 		Log_Println((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
 		return;
@@ -842,9 +850,32 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 		if (reAdjustRotary) {
 			RotaryEncoder_Readjust();
 		}
+		xQueueSend(gVolumeQueue, &_volume, 0);
+		AudioPlayer_PauseOnMinVolume(_volumeBuf, _newVolume);
 	}
-	xQueueSend(gVolumeQueue, &_volume, 0);
 }
+
+
+// Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
+void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
+	#ifdef PAUSE_ON_MIN_VOLUME
+		if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
+			return;
+		}
+
+		if (!gPlayProperties.pausePlay ) {	// Volume changes from 1 to 0
+			if (oldVolume == AudioPlayer_GetMinVolume()+1 && newVolume == AudioPlayer_GetMinVolume()) {
+				Cmd_Action(CMD_PLAYPAUSE);
+			}
+		}
+		if (gPlayProperties.pausePlay) {	// Volume changes from 0 to 1
+			if (oldVolume == AudioPlayer_GetMinVolume() && newVolume > AudioPlayer_GetMinVolume()) {
+				Cmd_Action(CMD_PLAYPAUSE);
+			}
+		}
+	#endif
+}
+
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.

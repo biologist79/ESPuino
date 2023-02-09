@@ -43,7 +43,7 @@
     #ifdef RFID_READER_TYPE_PN5180
         #define RFID_BUSY                   33          // PN5180 BUSY PIN
         #define RFID_RST                    22          // PN5180 RESET PIN
-        #define RFID_IRQ                    99          // Needs to be adjusted to 106 if LPCD-mode is desired!
+        #define RFID_IRQ                    99          // Depending on your configuration this needs to be adjusted to 32.
     #endif
 
     // I2S (DAC)
@@ -116,6 +116,12 @@
         constexpr uint16_t rdiv2 = 100;                 // Don't change, it's built in
     #endif
 
+    // (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.
+    #ifdef HALLEFFECT_SENSOR_ENABLE
+        #define HallEffectSensor_PIN        32  	// GPIO that is used for hallsensor (ADC); user-support: https://forum.espuino.de/t/magnetische-hockey-tags/1449/35
+    #endif
+
+    // (Optional) remote control via infrared
     #ifdef IR_CONTROL_ENABLE
         #define IRLED_PIN                   5               // GPIO where IR-receiver is connected (only tested with VS1838B)
         #define IR_DEBOUNCE                 200             // Interval in ms to wait at least for next signal (not used for actions volume up/down)

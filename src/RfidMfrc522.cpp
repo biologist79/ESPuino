@@ -7,6 +7,7 @@
 #include "System.h"
 #include <esp_task_wdt.h>
 #include "AudioPlayer.h"
+#include "HallEffectSensor.h"
 
 #if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
 	#ifdef RFID_READER_TYPE_MFRC522_SPI
@@ -46,7 +47,7 @@
 			xTaskCreatePinnedToCore(
 				Rfid_Task,              /* Function to implement the task */
 				"rfid",                 /* Name of the task */
-				1536,                   /* Stack size in words */
+				2048,                   /* Stack size in words */
 				NULL,                   /* Task input parameter */
 				2 | portPRIVILEGE_BIT,  /* Priority of the task */
 				NULL,                   /* Task handle. */
@@ -96,6 +97,9 @@
 				#endif
 
 				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
+    			#ifdef HALLEFFECT_SENSOR_ENABLE
+					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);  
+				#endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
 					if (memcmp((const void *)lastValidcardId, (const void *)cardId, sizeof(cardId)) == 0) {
@@ -116,8 +120,11 @@
 				}
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
-					if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
-						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
+						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
+					#else
+						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again...
+					#endif
 					} else {
 						// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 						if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
