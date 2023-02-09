@@ -230,7 +230,6 @@ static void Led_Task(void *parameter) {
 		static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
 		static uint8_t webstreamColor = 0;
 		static unsigned long lastSwitchTimestamp = 0;
-		static bool redrawProgress = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB::HTMLColorCode idleColor;
 		static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
@@ -317,18 +316,16 @@ static void Led_Task(void *parameter) {
 				animationActive = false; // abort current animation
 				animaitonTimer = 0;
 			}
+			// do normal transitions
 			if ((!animationActive) && (animaitonTimer <= 0)) {
 				activeAnnimation = nextAnimaiton; // set new animation
 				animationIndex = 0;
 			}
 
+			// apply brightness-changes
 			if (lastLedBrightness != Led_Brightness) {
 				FastLED.setBrightness(Led_Brightness);
 				lastLedBrightness = Led_Brightness;
-			}
-
-			if (activeAnnimation != LedAnimationType::Progress && activeAnnimation != LedAnimationType::Webstream){
-				redrawProgress = true;
 			}
 
 			if (animaitonTimer <= 0) {
@@ -809,8 +806,8 @@ static void Led_Task(void *parameter) {
 					} break;
 
 					case LedAnimationType::Progress: {
-						if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
-							redrawProgress = false;
+						if (gPlayProperties.currentRelPos != lastPos || animationIndex == 0) {
+							animationIndex = 1;
 							lastPos = gPlayProperties.currentRelPos;
 							FastLED.clear();
 							if (NUM_LEDS == 1) {
@@ -842,8 +839,8 @@ static void Led_Task(void *parameter) {
 
 					case LedAnimationType::Webstream: {
 						// do things a little bit different for Webstream as there's no progress available
-						if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || redrawProgress) {
-							redrawProgress = false;
+						if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || animationIndex == 0) {
+							animationIndex = 1;
 							lastSwitchTimestamp = millis();
 							FastLED.clear();
 							if (ledPosWebstream + 1 < NUM_LEDS) {
