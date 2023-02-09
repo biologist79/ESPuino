@@ -227,7 +227,6 @@ static void Led_Task(void *parameter) {
 		static bool turnedOffLeds = false;
 		static bool singleLedStatus = false;
 		static uint8_t ledPosWebstream = 0;
-		static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
 		static uint8_t webstreamColor = 0;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB::HTMLColorCode idleColor;
@@ -264,7 +263,7 @@ static void Led_Task(void *parameter) {
 				continue;
 			}
 
-			uint32_t animationDelay = 10;
+			uint32_t taskDelay = 20;
 			
 			// check indications and set led-mode
 			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)){
@@ -706,9 +705,9 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Idle: {
 						animationActive = true;
 						if (animationIndex < NUM_LEDS) {
-							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+							if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 								idleColor = CRGB::Blue;
-							} else if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+							} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 								if (Bluetooth_Source_Connected()) {
 										idleColor = CRGB::Blue;
 									} else {
@@ -861,7 +860,7 @@ static void Led_Task(void *parameter) {
 								}
 							}
 							FastLED.show();
-							animaitonTimer = ledSwitchInterval * 1000;
+							animaitonTimer = 5 * 950;
 							animationActive = false;
 						}
 					} break;
@@ -875,14 +874,11 @@ static void Led_Task(void *parameter) {
 			}
 
 			// get the time to wait
-			if (animaitonTimer == 0){
-				animaitonTimer = animationDelay;
-			} 
-			if (animaitonTimer < animationDelay){
-				animationDelay = animaitonTimer;
+			if ((animaitonTimer > 0) && (animaitonTimer < taskDelay)){
+				taskDelay = animaitonTimer;
 			}
-			animaitonTimer -= animationDelay;
-			vTaskDelay(portTICK_RATE_MS * animationDelay);
+			animaitonTimer -= taskDelay;
+			vTaskDelay(portTICK_RATE_MS * taskDelay);
 		}
 		vTaskDelete(NULL);
 	#endif
