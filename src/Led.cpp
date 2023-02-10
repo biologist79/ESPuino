@@ -228,7 +228,6 @@ static void Led_Task(void *parameter) {
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB::HTMLColorCode idleColor;
 		static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
-		static CRGB::HTMLColorCode generalColor;
 		static CRGB leds[NUM_LEDS];
 		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
@@ -331,19 +330,20 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Boot: {
 						animaitonTimer = 500;
 
-						FastLED.clear();
 						if(millis() > 10000) {
 							fill_solid(leds, NUM_LEDS, CRGB::Red);
 							if(showEvenError) {
-							// and then draw in the black dots
-							for(uint8_t i=0;i<NUM_LEDS;i +=2)
-								leds[i] = CRGB::Black;
+								// and then draw in the black dots
+								for(uint8_t i=0;i<NUM_LEDS;i +=2) {
+									leds[i] = CRGB::Black;
+								}
 							}
 						} else {
 							fill_solid(leds, NUM_LEDS, CRGB::Black);
 							const uint8_t startLed = (showEvenError) ? 1 : 0;
-							for(uint8_t i=startLed;i<NUM_LEDS;i+=2)
+							for(uint8_t i=startLed;i<NUM_LEDS;i+=2) {
 								leds[i] = CRGB::Orange;
+							}
 						}
 						FastLED.show();
 						showEvenError = !showEvenError;
@@ -364,8 +364,6 @@ static void Led_Task(void *parameter) {
 							} else {
 								if (singleLedStatus) {
 									leds[0] = CRGB::Red;
-								} else {
-									leds[0] = CRGB::Black;
 								}
 								FastLED.show();
 								singleLedStatus = !singleLedStatus;
@@ -400,27 +398,18 @@ static void Led_Task(void *parameter) {
 					// --------------------------------------------------
 					case LedAnimationType::Error: 
 					case LedAnimationType::Ok:{
-						CRGB signalColor = CRGB::Black;
-						uint16_t onTime = 0;
-						if (activeAnnimation == LedAnimationType::Ok){
-							signalColor = CRGB::Green;
-							onTime = 400;
-						} else {
+						CRGB signalColor = CRGB::Green;
+						uint16_t onTime = 400;
+						animationActive = true;
+						if(activeAnnimation == LedAnimationType::Error) {
 							signalColor = CRGB::Red;
-							onTime = 200;						
-						}
-
-						if (animationIndex == 0){
-							animationActive = true;
-							FastLED.clear();
-						}
+							onTime = 200;
+						}	
 
 						if (NUM_LEDS == 1) {
 							FastLED.clear();
 							if (singleLedStatus) {
 								leds[0] = signalColor;
-							} else {
-								leds[0] = CRGB::Black;
 							}
 							FastLED.show();
 							singleLedStatus = !singleLedStatus;
@@ -432,10 +421,7 @@ static void Led_Task(void *parameter) {
 								animationActive = false;
 							}
 						} else {
-							FastLED.clear();
-							for (uint8_t led = 0; led < NUM_LEDS; led++) {
-								leds[Led_Address(led)] = signalColor;
-							}
+							fill_solid(leds, NUM_LEDS, signalColor);
 							FastLED.show();
 							if (animationIndex > 0){
 								animationActive = false;
@@ -467,7 +453,7 @@ static void Led_Task(void *parameter) {
 						FastLED.clear();
 
 						if (NUM_LEDS == 1) {
-							uint8_t hue = 85 - (90 *
+							const uint8_t hue = 85 - (90 *
 								((double)AudioPlayer_GetCurrentVolume() /
 								(double)AudioPlayer_GetMaxVolumeSpeaker()));
 							leds[0].setHue(hue);
@@ -477,11 +463,11 @@ static void Led_Task(void *parameter) {
 							* red (250) using unsigned-cast.
 							*/
 							for (int led = 0; led < fullLeds; led++) {
-								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
 								leds[Led_Address(led)].setHue(hue);
 							}
 							if (lastLed > 0){
-								uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
 								leds[Led_Address(fullLeds)].setHue(hue);
 								leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 							}
@@ -509,14 +495,9 @@ static void Led_Task(void *parameter) {
 						// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 						animationActive = true;
 
-						CRGB colorToDraw = CRGB::Red;
-						if (animationIndex % 2){
-							colorToDraw = CRGB::Black;
-						}
-
 						FastLED.clear();
-						for (uint8_t led = 0; led < NUM_LEDS; led++) {
-							leds[Led_Address(led)] = colorToDraw;
+						if(animationIndex % 2 == 0) {
+							fill_solid(leds, NUM_LEDS, CRGB::Red);
 						}
 						FastLED.show();
 					
@@ -764,8 +745,8 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Speech:
 					case LedAnimationType::Pause: { // TODO: separate animations?
 						FastLED.clear();
+						CRGB::HTMLColorCode generalColor = CRGB::Orange;
 						if (gPlayProperties.isWebstream) {
-							generalColor = CRGB::Orange;
 							if (gPlayProperties.currentSpeechActive) {
 								generalColor = speechColor;
 							}
@@ -776,7 +757,6 @@ static void Led_Task(void *parameter) {
 								leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
 							}
 						} else {
-							generalColor = CRGB::Orange;
 							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 								generalColor = CRGB::Blue;
 							} else
