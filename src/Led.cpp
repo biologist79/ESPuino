@@ -42,7 +42,7 @@
 	static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
-	static uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
+	constexpr uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
 
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
@@ -188,11 +188,8 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 }
 
 CRGB Led_DimColor(CRGB color, uint8_t brightness) {
-	float factorBrighness = (float)brightness / DIMMABLE_STATES;
-	color.red = static_cast<uint8_t>((color.red * factorBrighness) + 0.5f);
-	color.green = static_cast<uint8_t>((color.green * factorBrighness) + 0.5f);
-	color.blue = static_cast<uint8_t>((color.blue* factorBrighness) + 0.5f);
-	return color;
+	const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
+	return color.nscale8(factor);
 }
 
 void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
@@ -335,24 +332,18 @@ static void Led_Task(void *parameter) {
 						animaitonTimer = 500;
 
 						FastLED.clear();
-						for (uint8_t led = 0; led < NUM_LEDS; led++) {
-							if (showEvenError) {
-								if (Led_Address(led) % 2 == 0) {
-									if (millis() <= 10000) {
-										leds[Led_Address(led)] = CRGB::Orange;
-									} else {
-										leds[Led_Address(led)] = CRGB::Red;
-									}
-								}
-							} else {
-								if (millis() >= 10000) { // Flashes red after 10s (will remain forever if SD cannot be mounted)
-									leds[Led_Address(led)] = CRGB::Red;
-								} else {
-									if (Led_Address(led) % 2 == 1) {
-										leds[Led_Address(led)] = CRGB::Orange;
-									}
-								}
+						if(millis() > 10000) {
+							fill_solid(leds, NUM_LEDS, CRGB::Red);
+							if(showEvenError) {
+							// and then draw in the black dots
+							for(uint8_t i=0;i<NUM_LEDS;i +=2)
+								leds[i] = CRGB::Black;
 							}
+						} else {
+							fill_solid(leds, NUM_LEDS, CRGB::Black);
+							const uint8_t startLed = (showEvenError) ? 1 : 0;
+							for(uint8_t i=startLed;i<NUM_LEDS;i+=2)
+								leds[i] = CRGB::Orange;
 						}
 						FastLED.show();
 						showEvenError = !showEvenError;
