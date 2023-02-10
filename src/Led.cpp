@@ -277,7 +277,6 @@ static void Led_Task(void *parameter) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
 				nextAnimaiton = LedAnimationType::VoltageWarning;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
-				LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 				nextAnimaiton = LedAnimationType::BatteryMeasurement;
 			#endif
 			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
@@ -513,6 +512,7 @@ static void Led_Task(void *parameter) {
 					// Animation of Battery Measurement
 					// --------------------------------------------------
 					case LedAnimationType::BatteryMeasurement: {
+						LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 						// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
 						// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
 						float batteryLevel = Battery_EstimateLevel();
