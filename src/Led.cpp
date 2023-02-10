@@ -305,7 +305,7 @@ static void Led_Task(void *parameter) {
 			}
 
 			// check for instant transition
-			if ((activeAnnimation != nextAnimaiton) && (nextAnimaiton < activeAnnimation)) {
+			if (nextAnimaiton < activeAnnimation) {
 				animationActive = false; // abort current animation
 				animaitonTimer = 0;
 			}
@@ -443,11 +443,11 @@ static void Led_Task(void *parameter) {
 						animationActive = true;
 
 						// wait for further volume changes within next 20ms for 50 cycles = 1s
-						uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
+						const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
 										AudioPlayer_GetMaxVolume(), 0,
 										NUM_LEDS * DIMMABLE_STATES);
-						uint8_t fullLeds = ledValue/DIMMABLE_STATES;
-						uint8_t lastLed = ledValue%DIMMABLE_STATES;
+						const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+						const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
 						FastLED.clear();
 
@@ -687,21 +687,19 @@ static void Led_Task(void *parameter) {
 								idleColor = CRGB::Blue;
 							} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 								if (Bluetooth_Source_Connected()) {
-										idleColor = CRGB::Blue;
-									} else {
-										idleColor = CRGB::BlueViolet;
-									}
+									idleColor = CRGB::Blue;
+								} else {
+									idleColor = CRGB::BlueViolet;
+								}
 							} else {
 								if (Wlan_ConnectionTryInProgress()) {
 									idleColor = CRGB::Orange;
 								} else {
-									if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
-										idleColor = speechColor;
-									} else {
-										if (Wlan_IsConnected()) {
-											idleColor = CRGB::White;
-										} else {
-											idleColor = CRGB::Green;
+									idleColor = CRGB::Green;
+									if (Wlan_IsConnected()) {
+										idleColor = CRGB::White;
+										if(gPlayProperties.currentSpeechActive) {
+											idleColor = speechColor;
 										}
 									}
 								}
