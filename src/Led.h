@@ -13,7 +13,7 @@ typedef enum class LedIndicator
 
 
 // ordered by priority
-typedef enum class LedAnimation
+enum class LedAnimationType
 {
 	Boot = 0,
 	Shutdown,
@@ -31,7 +31,7 @@ typedef enum class LedAnimation
 	Idle,
 	Busy,
 	NoNewAnimation
-}LedAnimationType;
+};
 
 void Led_Init(void);
 void Led_Exit(void);

@@ -233,8 +233,8 @@ static void Led_Task(void *parameter) {
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 
-		static LedAnimation activeAnnimation = LedAnimationType::NoNewAnimation;
-		static LedAnimation nextAnimaiton = LedAnimationType::NoNewAnimation;
+		static LedAnimationType activeAnnimation = LedAnimationType::NoNewAnimation;
+		static LedAnimationType nextAnimaiton = LedAnimationType::NoNewAnimation;
 		static bool animationActive = false;
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
@@ -587,9 +587,9 @@ static void Led_Task(void *parameter) {
 					case LedAnimationType::Playlist: {
 						if (NUM_LEDS >= 4) {
 							if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-								uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
-								uint8_t fullLeds = ledValue/DIMMABLE_STATES;
-								uint8_t lastLed = ledValue%DIMMABLE_STATES;
+								const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
+								const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+								const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
 								if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)){
 									LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
@@ -623,40 +623,46 @@ static void Led_Task(void *parameter) {
 
 								animaitonTimer = 30;
 								uint8_t barLength = 0;
-								if (animationIndex == 1){
-									barLength = subAnimationIndex;
-									subAnimationIndex++;
-									if (subAnimationIndex >= fullLeds){
-										animationIndex++;
-										subAnimationIndex = 0;
-									} 
-								} else if (animationIndex == 2) {
-									// wait
-									subAnimationIndex ++;
-									if (subAnimationIndex >= 50){
-										animationIndex++;
-										subAnimationIndex = fullLeds;
-									}
-									barLength = fullLeds;
-								} else if (animationIndex == 3) {
-									// negative
-									subAnimationIndex--;
-									barLength = subAnimationIndex;
-									if (subAnimationIndex == 0){
-										animationIndex++;
-									}
-								} else if (animationIndex == 42){
-									// move back to target and wait there
-									subAnimationIndex--;
-									barLength = subAnimationIndex;
-									if (subAnimationIndex <= fullLeds){
-										animationIndex = 2;
-									}
-								} else {
-									// done
-									animationActive = false;
+								switch (animationIndex) {
+									case 1:
+										barLength = subAnimationIndex;
+										subAnimationIndex++;
+										if (subAnimationIndex >= fullLeds){
+											animationIndex++;
+											subAnimationIndex = 0;
+										} 
+									break;
+									case 2:
+										// wait
+										subAnimationIndex ++;
+										if (subAnimationIndex >= 50){
+											animationIndex++;
+											subAnimationIndex = fullLeds;
+										}
+										barLength = fullLeds;
+									break;
+									case 3:
+										// negative
+										subAnimationIndex--;
+										barLength = subAnimationIndex;
+										if (subAnimationIndex == 0){
+											animationIndex++;
+										}
+									break;
+									case 42:
+										// move back to target and wait there
+										subAnimationIndex--;
+										barLength = subAnimationIndex;
+										if (subAnimationIndex <= fullLeds){
+											animationIndex = 2;
+										}
+									break;
+									default:
+										// done
+										animationActive = false;
+									break;
 								}
-							
+					
 								// draw bar
 								FastLED.clear();
 								for (uint8_t i = 0; i < barLength; i++){
@@ -720,8 +726,6 @@ static void Led_Task(void *parameter) {
 							singleLedStatus = !singleLedStatus;
 							if (singleLedStatus) {
 								leds[0] = CRGB::BlueViolet;
-							} else {
-								leds[0] = CRGB::Black;
 							}
 							FastLED.show();
 							animaitonTimer = 100;
@@ -782,9 +786,9 @@ static void Led_Task(void *parameter) {
 							if (NUM_LEDS == 1) {
 								leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 							} else {
-								uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
-								uint8_t fullLeds = ledValue/DIMMABLE_STATES;
-								uint8_t lastLed = ledValue%DIMMABLE_STATES;
+								const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+								const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+								const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 								for (uint8_t led = 0; led < fullLeds; led++) {
 									if (System_AreControlsLocked()) {
 										leds[Led_Address(led)] = CRGB::Red;
