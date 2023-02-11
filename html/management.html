@@ -644,17 +644,19 @@
 
 		// change the language if we found it in the local storage
 		const lang = localStorage.getItem("language");
-		if(lang === null)
+		if(lang === null){
 			i18next.changeLanguage(language.split("-")[0]);
-		else
+		} else {
 			i18next.changeLanguage(lang);
+		}
 	});
 
 	i18next.on('languageChanged', (lng) => {
 		document.querySelector('#langSel').value = lng;
 
-		if(localize)
+		if(localize) {
 			localize('body');
+		}
 	});
 
 	document.querySelector('#langSel').addEventListener('change', (e) => {

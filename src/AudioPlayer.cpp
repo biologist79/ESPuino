@@ -774,7 +774,7 @@ void AudioPlayer_Task(void *parameter) {
 		// Calculate relative position in file (for neopixel) for SD-card-mode
 		if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
 			if (millis() % 20 == 0) {   // Keep it simple
-				if (!gPlayProperties.pausePlay) {   // To progress necessary when paused
+				if (!gPlayProperties.pausePlay && (audio->getFileSize() > 0)) {   // To progress necessary when paused
 					gPlayProperties.currentRelPos = ((double)(audio->getFilePos() - audio->inBufferFilled()) / (double)audio->getFileSize()) * 100;
 				}
 			}
