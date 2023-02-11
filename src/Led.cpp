@@ -42,6 +42,7 @@
 	static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+	constexpr uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
 
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
@@ -173,15 +174,11 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
 	    requestProgressRedraw ||
-	    LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) ||
-	    LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) ||
-	    !gButtons[gShutdownButton].currentState ||
 	    System_IsSleepRequested()) {
 #else
 	if (gPlayProperties.pausePlay != lastPlayState ||
 	    System_AreControlsLocked() != lastLockState ||
 	    requestProgressRedraw ||
-	    !gButtons[gShutdownButton].currentState ||
 	    System_IsSleepRequested()) {
 #endif
 		return true;
@@ -190,31 +187,65 @@ bool Led_NeedsProgressRedraw(bool lastPlayState, bool lastLockState,
 	return false;
 }
 
+CRGB Led_DimColor(CRGB color, uint8_t brightness) {
+	const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
+	return color.nscale8(factor);
+}
+
+void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
+	for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++){
+		leds[(Led_Address(offset)+i*Led_IdleDotDistance)%NUM_LEDS] = color;
+	}
+}
+
+bool CheckForPowerButtonAnimation() {
+	bool powerAnimation = false;
+	if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
+		if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
+			powerAnimation = true;
+		}
+	} else {
+		gShutdownButton = (sizeof(gButtons) / sizeof(gButtons[0])) - 1; // If CMD_SLEEPMODE was not assigned to an enabled button, dummy-button is used
+		if (!gButtons[gShutdownButton].currentState) {
+			gButtons[gShutdownButton].currentState = true;
+		}
+	}
+	return powerAnimation;
+}
+
 static void Led_Task(void *parameter) {
 	#ifdef NEOPIXEL_ENABLE
 		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
 		static double lastPos = gPlayProperties.currentRelPos;
 		static bool lastPlayState = false;
 		static bool lastLockState = false;
-		static bool requestClearLeds = false;
 		static bool requestProgressRedraw = false;
 		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
 		static bool singleLedStatus = false;
 		static uint8_t ledPosWebstream = 0;
-		static uint8_t ledSwitchInterval = 5; // time in secs (webstream-only)
 		static uint8_t webstreamColor = 0;
-		static unsigned long lastSwitchTimestamp = 0;
-		static bool redrawProgress = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB::HTMLColorCode idleColor;
 		static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
-		static CRGB::HTMLColorCode generalColor;
 		static CRGB leds[NUM_LEDS];
 		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
+		FastLED.setDither(DISABLE_DITHER);
+
+		static LedAnimationType activeAnnimation = LedAnimationType::NoNewAnimation;
+		static LedAnimationType nextAnimaiton = LedAnimationType::NoNewAnimation;
+		static bool animationActive = false;
+		static int32_t animaitonTimer;
+		static uint32_t animationIndex;
+		static uint32_t subAnimationIndex;
+		static uint32_t staticLastBarLenghtPlaylist;
+		static uint32_t staticLastTrack;
+		static float staticBatteryLevel;
+
 
 		for (;;) {
+			// special handling
 			if (Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
 				vTaskDelay(portTICK_RATE_MS * 10);
 				continue;
@@ -224,500 +255,564 @@ static void Led_Task(void *parameter) {
 					FastLED.clear(true);
 					turnedOffLeds = true;
 				}
-
 				vTaskDelay(portTICK_RATE_MS * 10);
 				continue;
 			}
-			// Multi-LED: rotates orange unless boot isn't complete
-			// Single-LED: blinking orange
-			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
-				FastLED.clear();
-				for (uint8_t led = 0; led < NUM_LEDS; led++) {
-					if (showEvenError) {
-						if (Led_Address(led) % 2 == 0) {
-							if (millis() <= 10000) {
-								leds[Led_Address(led)] = CRGB::Orange;
-							} else {
-								leds[Led_Address(led)] = CRGB::Red;
-							}
-						}
-					} else {
-						if (millis() >= 10000) { // Flashes red after 10s (will remain forever if SD cannot be mounted)
-							leds[Led_Address(led)] = CRGB::Red;
-						} else {
-							if (Led_Address(led) % 2 == 1) {
-								leds[Led_Address(led)] = CRGB::Orange;
-							}
-						}
-					}
-				}
-				FastLED.show();
-				showEvenError = !showEvenError;
-				vTaskDelay(portTICK_RATE_MS * 500);
-				continue;
+
+			uint32_t taskDelay = 20;
+			
+			// check indications and set led-mode
+			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)){
+				nextAnimaiton = LedAnimationType::Boot;
+			} else if (CheckForPowerButtonAnimation()) { 
+				nextAnimaiton = LedAnimationType::Shutdown;
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)){
+				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
+				nextAnimaiton = LedAnimationType::Error;
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) {
+				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
+				nextAnimaiton = LedAnimationType::Ok;
+			#ifdef BATTERY_MEASURE_ENABLE
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
+				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
+				nextAnimaiton = LedAnimationType::VoltageWarning;
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
+				nextAnimaiton = LedAnimationType::BatteryMeasurement;
+			#endif
+			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
+				nextAnimaiton = LedAnimationType::Volume;
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
+				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
+				nextAnimaiton = LedAnimationType::Rewind;
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)){
+				nextAnimaiton = LedAnimationType::Playlist;
+			} else if (gPlayProperties.playlistFinished) {
+				nextAnimaiton = LedAnimationType::Idle; // todo: what is valid?
+			} else if (gPlayProperties.currentSpeechActive) {
+				nextAnimaiton = LedAnimationType::Speech;
+			} else if (gPlayProperties.pausePlay) {
+				nextAnimaiton = LedAnimationType::Pause;
+			} else if (gPlayProperties.isWebstream) {
+				nextAnimaiton = LedAnimationType::Webstream;
+			} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST)) {
+				nextAnimaiton = LedAnimationType::Progress;
+			} else if (gPlayProperties.playMode == NO_PLAYLIST){
+				nextAnimaiton = LedAnimationType::Idle;
+			} else if (gPlayProperties.playMode == BUSY) {
+				nextAnimaiton = LedAnimationType::Busy;
+			} else {
+				nextAnimaiton = LedAnimationType::NoNewAnimation; // should not happen
 			}
 
+			// check for instant transition
+			if (nextAnimaiton < activeAnnimation) {
+				animationActive = false; // abort current animation
+				animaitonTimer = 0;
+			}
+			// do normal transitions
+			if ((!animationActive) && (animaitonTimer <= 0)) {
+				activeAnnimation = nextAnimaiton; // set new animation
+				animationIndex = 0;
+			}
+
+			// apply brightness-changes
 			if (lastLedBrightness != Led_Brightness) {
 				FastLED.setBrightness(Led_Brightness);
 				lastLedBrightness = Led_Brightness;
 			}
 
-			// Multi-LED: growing red as long button for sleepmode is pressed.
-			// Single-LED: red when pressed and flashing red when long interval-duration is reached
-			if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
-				//snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
-				//Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-				if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
-					if (NUM_LEDS == 1) {
-						FastLED.clear();
-						if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
-							leds[0] = CRGB::Red;
-							FastLED.show();
+			if (animaitonTimer <= 0) {
+				switch(activeAnnimation) {
+					// --------------------------------------------------
+					// Bootup - Animation
+					// --------------------------------------------------
+					case LedAnimationType::Boot: {
+						animaitonTimer = 500;
+
+						if(millis() > 10000) {
+							fill_solid(leds, NUM_LEDS, CRGB::Red);
+							if(showEvenError) {
+								// and then draw in the black dots
+								for(uint8_t i=0;i<NUM_LEDS;i +=2) {
+									leds[i] = CRGB::Black;
+								}
+							}
 						} else {
-							if (singleLedStatus) {
+							fill_solid(leds, NUM_LEDS, CRGB::Black);
+							const uint8_t startLed = (showEvenError) ? 1 : 0;
+							for(uint8_t i=startLed;i<NUM_LEDS;i+=2) {
+								leds[i] = CRGB::Orange;
+							}
+						}
+						FastLED.show();
+						showEvenError = !showEvenError;
+					} break;
+
+					// --------------------------------------------------
+					// Power-Button Animation
+					// --------------------------------------------------
+					case LedAnimationType::Shutdown: {
+						animationActive = true;
+
+						if (NUM_LEDS == 1) {
+							FastLED.clear();
+							if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
 								leds[0] = CRGB::Red;
+								FastLED.show();
+								animaitonTimer = 5;
 							} else {
-								leds[0] = CRGB::Black;
+								if (singleLedStatus) {
+									leds[0] = CRGB::Red;
+								}
+								FastLED.show();
+								singleLedStatus = !singleLedStatus;
+								animaitonTimer = 50;
+							}
+							animationActive = false;
+						} else {
+							if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
+								animaitonTimer = 50;
+								// don't end animation, we already reached the shutdown.
+							} else {
+								if (animationIndex == 0){
+									FastLED.clear();
+								}
+								if (animationIndex < NUM_LEDS){
+									leds[Led_Address(animationIndex)] = CRGB::Red;
+									if (gButtons[gShutdownButton].currentState) {
+										animaitonTimer = 5;
+										animationActive = false;
+									} else {
+										animaitonTimer = intervalToLongPress / NUM_LEDS;
+									}
+									animationIndex++;
+									FastLED.show();
+								}
+							}
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Error or OK
+					// --------------------------------------------------
+					case LedAnimationType::Error: 
+					case LedAnimationType::Ok:{
+						CRGB signalColor = CRGB::Green;
+						uint16_t onTime = 400;
+						animationActive = true;
+						if(activeAnnimation == LedAnimationType::Error) {
+							signalColor = CRGB::Red;
+							onTime = 200;
+						}	
+
+						if (NUM_LEDS == 1) {
+							FastLED.clear();
+							if (singleLedStatus) {
+								leds[0] = signalColor;
 							}
 							FastLED.show();
 							singleLedStatus = !singleLedStatus;
-							vTaskDelay(portTICK_RATE_MS * 50);
-						}
-					} else {
-						if (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) {
-							vTaskDelay(portTICK_RATE_MS * 50);
-							continue;
-						}
-						FastLED.clear();
-						for (uint8_t led = 0; led < NUM_LEDS; led++) {
-							leds[Led_Address(led)] = CRGB::Red;
-							if (gButtons[gShutdownButton].currentState) {
-								FastLED.show();
-								vTaskDelay(portTICK_RATE_MS * 5);
-								break;
-							}
-							FastLED.show();
-							vTaskDelay(intervalToLongPress / NUM_LEDS * portTICK_RATE_MS);
-						}
-					}
-				}
-			} else {
-				gShutdownButton = (sizeof(gButtons) / sizeof(gButtons[0])) - 1; // If CMD_SLEEPMODE was not assigned to an enabled button, dummy-button is used
-				if (!gButtons[gShutdownButton].currentState) {
-					gButtons[gShutdownButton].currentState = true;
-				}
-			}
 
-			// Multi-LED: all leds flash red 1x
-			// Single-LED: led flashes red 5x
-			if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) { // If error occured (e.g. RFID-modification not accepted)
-				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-				requestProgressRedraw = true;
-				FastLED.clear();
-
-				if (NUM_LEDS == 1) {
-					for (uint8_t cnt = 0; cnt < 5; cnt++) {
-						FastLED.clear();
-						if (singleLedStatus) {
-							leds[0] = CRGB::Red;
-						} else {
-							leds[0] = CRGB::Black;
-						}
-						FastLED.show();
-						singleLedStatus = !singleLedStatus;
-						vTaskDelay(portTICK_RATE_MS * 100);
-					}
-				} else {
-					for (uint8_t led = 0; led < NUM_LEDS; led++) {
-						leds[Led_Address(led)] = CRGB::Red;
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 200);
-				}
-			}
-
-			// Multi-LED: all leds flash green 1x
-			// Single-LED: led flashes green 5x
-			if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) { // If action was accepted
-				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-				requestProgressRedraw = true;
-				FastLED.clear();
-
-				if (NUM_LEDS == 1) {
-					for (uint8_t cnt = 0; cnt < 5; cnt++) {
-						FastLED.clear();
-						if (singleLedStatus) {
-							leds[0] = CRGB::Green;
-						} else {
-							leds[0] = CRGB::Black;
-						}
-						FastLED.show();
-						singleLedStatus = !singleLedStatus;
-						vTaskDelay(portTICK_RATE_MS * 100);
-					}
-				} else {
-					for (uint8_t led = 0; led < NUM_LEDS; led++) {
-						leds[Led_Address(led)] = CRGB::Green;
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 400);
-				}
-			}
-
-		#ifdef BATTERY_MEASURE_ENABLE
-			// Single + Multiple LEDs: flashes red three times if battery-voltage is low
-			if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
-				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-				requestProgressRedraw = true;
-				for (uint8_t i = 0; i < 3; i++) {
-					FastLED.clear();
-
-					for (uint8_t led = 0; led < NUM_LEDS; led++) {
-						leds[Led_Address(led)] = CRGB::Red;
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 200);
-					FastLED.clear();
-
-					for (uint8_t led = 0; led < NUM_LEDS; led++) {
-						leds[Led_Address(led)] = CRGB::Black;
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 200);
-				}
-			}
-
-			// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
-			// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-			if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
-				LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
-				float batteryLevel = Battery_EstimateLevel();
-
-				if (batteryLevel < 0) { // If voltage is too low or no battery is connected
-					LED_INDICATOR_SET(LedIndicatorType::Error);
-					break;
-				} else {
-					FastLED.clear();
-					if (NUM_LEDS == 1) {
-						if (batteryLevel < 0.3) {
-							leds[0] = CRGB::Red;
-						} else if (batteryLevel < 0.6) {
-							leds[0] = CRGB::Orange;
-						} else {
-							leds[0] = CRGB::Green;
-						}
-						FastLED.show();
-					} else {
-						uint8_t numLedsToLight = batteryLevel * NUM_LEDS;
-						if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
-							numLedsToLight = NUM_LEDS;
-						}
-						for (uint8_t led = 0; led < numLedsToLight; led++) {
-							if (batteryLevel < 0.3) {
-								leds[Led_Address(led)] = CRGB::Red;
-							} else if (batteryLevel < 0.6) {
-								leds[Led_Address(led)] = CRGB::Orange;
+							if (animationIndex < 5){
+								animationIndex++;
+								animaitonTimer = 100;
 							} else {
-								leds[Led_Address(led)] = CRGB::Green;
+								animationActive = false;
 							}
+						} else {
+							fill_solid(leds, NUM_LEDS, signalColor);
 							FastLED.show();
-							vTaskDelay(portTICK_RATE_MS * 20);
+							if (animationIndex > 0){
+								animationActive = false;
+							} else {
+								animationIndex++;
+								animaitonTimer = onTime;
+							}
 						}
-						FastLED.show();
-					}
+					} break;
 
-					for (uint8_t i = 0; i <= 100; i++) {
-						if (hlastVolume != AudioPlayer_GetCurrentVolume() || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-							break;
-						}
+					// --------------------------------------------------
+					// Animation of Volume
+					// --------------------------------------------------
+					case LedAnimationType::Volume: {
+						/*
+						* - Single-LED: led indicates loudness between green (low) => red (high)
+						* - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
+						*   green (low) => red (high)
+						*/
+						animationActive = true;
 
-						vTaskDelay(portTICK_RATE_MS * 20);
-					}
-				}
-			}
-		#endif
+						// wait for further volume changes within next 20ms for 50 cycles = 1s
+						const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
+										AudioPlayer_GetMaxVolume(), 0,
+										NUM_LEDS * DIMMABLE_STATES);
+						const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+						const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
-		/*
-		 * - Single-LED: led indicates loudness between green (low) => red (high)
-		 * - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
-		 *   green (low) => red (high)
-		 */
-		if (hlastVolume != AudioPlayer_GetCurrentVolume()) { // If volume has been changed
-			uint8_t timeout = LED_VOLUME_INDICATOR_NUM_CYCLES;
-			// wait for further volume changes within next 20ms for 50 cycles = 1s
-			while (timeout--) {
-				uint8_t numLedsToLight = map(AudioPlayer_GetCurrentVolume(), 0,
-							     AudioPlayer_GetMaxVolume(), 0,
-							     NUM_LEDS);
+						FastLED.clear();
 
-				// Reset timeout when volume has changed
-				if (hlastVolume != AudioPlayer_GetCurrentVolume())
-					timeout = LED_VOLUME_INDICATOR_NUM_CYCLES;
-
-				hlastVolume = AudioPlayer_GetCurrentVolume();
-				FastLED.clear();
-
-				if (NUM_LEDS == 1) {
-					uint8_t hue = 85 - (90 *
-						((double)AudioPlayer_GetCurrentVolume() /
-						(double)AudioPlayer_GetMaxVolumeSpeaker()));
-					leds[0].setHue(hue);
-				} else {
-					/*
-					 * (Inverse) color-gradient from green (85) back to (still)
-					 * red (250) using unsigned-cast.
-					 */
-					for (int led = 0; led < numLedsToLight; led++) {
-						uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
-						leds[Led_Address(led)].setHue(hue);
-					}
-				}
-
-				FastLED.show();
-
-				// abort volume change indication if necessary
-				if (LED_INDICATOR_IS_SET(LedIndicatorType::Error) ||
-				    LED_INDICATOR_IS_SET(LedIndicatorType::Ok) ||
-				    !gButtons[gShutdownButton].currentState ||
-				    System_IsSleepRequested()) {
-					break;
-				}
-
-				vTaskDelay(portTICK_RATE_MS * 20);
-			}
-
-			requestProgressRedraw = true;
-		}
-
-		// < 4 LEDs: doesn't make sense at all
-		// >= 4 LEDs: collapsing ring (blue => black)
-		if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
-			if (NUM_LEDS >= 4) {
-				for (uint8_t i = NUM_LEDS - 1; i > 0; i--) {
-					leds[Led_Address(i)] = CRGB::Black;
-					FastLED.show();
-					if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						break;
-					} else {
-						vTaskDelay(portTICK_RATE_MS * 30);
-					}
-				}
-			}
-		}
-
-		// < 4 LEDs: doesn't make sense at all
-		// >= 4 LEDs: growing ring (black => blue); relative number of LEDs indicate playlist-progress
-		if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
-			if (NUM_LEDS >= 4) {
-				if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-					uint8_t numLedsToLight = map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS);
-					FastLED.clear();
-					for (uint8_t i = 0; i < numLedsToLight; i++) {
-						leds[Led_Address(i)] = CRGB::Blue;
-						FastLED.show();
-						#ifdef BATTERY_MEASURE_ENABLE
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#else
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#endif
-							break;
+						if (NUM_LEDS == 1) {
+							const uint8_t hue = 85 - (90 *
+								((double)AudioPlayer_GetCurrentVolume() /
+								(double)AudioPlayer_GetMaxVolumeSpeaker()));
+							leds[0].setHue(hue);
 						} else {
-							vTaskDelay(portTICK_RATE_MS * 30);
+							/*
+							* (Inverse) color-gradient from green (85) back to (still)
+							* red (250) using unsigned-cast.
+							*/
+							for (int led = 0; led < fullLeds; led++) {
+								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+								leds[Led_Address(led)].setHue(hue);
+							}
+							if (lastLed > 0){
+								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+								leds[Led_Address(fullLeds)].setHue(hue);
+								leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+							}
 						}
-					}
-
-					for (uint8_t i = 0; i <= 100; i++)  {
-						#ifdef BATTERY_MEASURE_ENABLE
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#else
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#endif
-							break;
-						} else {
-							vTaskDelay(portTICK_RATE_MS * 15);
-						}
-					}
-
-					for (uint8_t i = numLedsToLight; i > 0; i--) {
-						leds[Led_Address(i) - 1] = CRGB::Black;
 						FastLED.show();
-						#ifdef BATTERY_MEASURE_ENABLE
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#else
-							if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-						#endif
-							break;
-						}
-						else {
-							vTaskDelay(portTICK_RATE_MS * 30);
-						}
-					}
-				}
-			}
-		}
 
-		// Skip playmodes if shutdown-button is pressed as this leads to ugly indications
-		if (!gButtons[gShutdownButton].currentState && gShutdownButton != 99) {
-			vTaskDelay(portTICK_RATE_MS * 20);
-			continue;
-		}
-
-		switch (gPlayProperties.playMode) {
-			case NO_PLAYLIST: // If no playlist is active (idle)
-				if (hlastVolume == AudioPlayer_GetCurrentVolume() && lastLedBrightness == Led_Brightness) {
-					for (uint8_t i = 0; i < NUM_LEDS; i++) {
+						// reset animation if volume changes
 						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-							// skip idle pattern if volume has changed
-							break;
+							hlastVolume = AudioPlayer_GetCurrentVolume();
+							animationIndex = 0;
 						}
-						if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
-							idleColor = CRGB::Blue;
-						} else
-						if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-							if (Bluetooth_Source_Connected()) {
+
+						if (animationIndex < LED_VOLUME_INDICATOR_NUM_CYCLES){
+							animaitonTimer = 20;
+							animationIndex ++;
+						} else {
+							animationActive = false;
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Voltage Warning
+					// --------------------------------------------------
+					case LedAnimationType::VoltageWarning: {
+						// Single + Multiple LEDs: flashes red three times if battery-voltage is low
+						animationActive = true;
+
+						FastLED.clear();
+						if(animationIndex % 2 == 0) {
+							fill_solid(leds, NUM_LEDS, CRGB::Red);
+						}
+						FastLED.show();
+					
+						if (animationIndex < 6) {
+							animationIndex++;
+							animaitonTimer = 200;
+						} else {
+							animationActive = false;
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Battery Measurement
+					// --------------------------------------------------
+					case LedAnimationType::BatteryMeasurement: {
+						LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
+						// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
+						// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
+						float batteryLevel = Battery_EstimateLevel();
+						if (batteryLevel < 0) { // If voltage is too low or no battery is connected
+							LED_INDICATOR_SET(LedIndicatorType::Error);
+							break;
+						} else {
+							if (animationIndex == 0) {
+								staticBatteryLevel = batteryLevel;
+								animationActive = true;
+								FastLED.clear();
+							}
+							if (NUM_LEDS == 1) {
+								if (staticBatteryLevel < 0.3) {
+									leds[0] = CRGB::Red;
+								} else if (staticBatteryLevel < 0.6) {
+									leds[0] = CRGB::Orange;
+								} else {
+									leds[0] = CRGB::Green;
+								}
+								FastLED.show();
+								
+								animaitonTimer = 20*100;
+								animationActive = false;
+							} else {
+								uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
+								if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
+									numLedsToLight = NUM_LEDS;
+								}
+
+								if (animationIndex < numLedsToLight){
+									if (staticBatteryLevel < 0.3) {
+										leds[Led_Address(animationIndex)] = CRGB::Red;
+									} else if (staticBatteryLevel < 0.6) {
+										leds[Led_Address(animationIndex)] = CRGB::Orange;
+									} else {
+										leds[Led_Address(animationIndex)] = CRGB::Green;
+									}
+									FastLED.show();
+
+									animationIndex ++;
+									animaitonTimer = 20;
+								} else {
+									animaitonTimer = 20*100;
+									animationActive = false;
+								}
+							}
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Rewind
+					// --------------------------------------------------
+					case LedAnimationType::Rewind: {
+						if (NUM_LEDS >= 4) {
+							animationActive = true;
+
+							if (animationIndex < (NUM_LEDS)) {
+								leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
+								FastLED.show();
+								animaitonTimer = 30;
+								animationIndex ++;
+							} else {
+								animationActive = false;
+							}
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Playlist-Progress
+					// --------------------------------------------------
+					case LedAnimationType::Playlist: {
+						if (NUM_LEDS >= 4) {
+							if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
+								const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
+								const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+								const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+
+								if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)){
+									LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
+									// only animate diff, if triggered again
+									if (animationActive) {
+										// forward
+										if (staticLastTrack < gPlayProperties.currentTrackNumber) {
+											if (animationIndex > 1) {
+												animationIndex = 1;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											}
+										// backwards
+										} else if (staticLastTrack > gPlayProperties.currentTrackNumber){
+											if (staticLastBarLenghtPlaylist < fullLeds) {
+												animationIndex = 1;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											} else {
+												animationIndex = 42;
+												subAnimationIndex = staticLastBarLenghtPlaylist;
+											}
+										}
+									}
+									staticLastTrack = gPlayProperties.currentTrackNumber;
+								}
+
+								if (animationIndex == 0 ) {
+									animationActive = true;
+									subAnimationIndex = 0;
+									animationIndex++;
+								}
+
+								animaitonTimer = 30;
+								uint8_t barLength = 0;
+								switch (animationIndex) {
+									case 1:
+										barLength = subAnimationIndex;
+										subAnimationIndex++;
+										if (subAnimationIndex >= fullLeds){
+											animationIndex++;
+											subAnimationIndex = 0;
+										} 
+									break;
+									case 2:
+										// wait
+										subAnimationIndex ++;
+										if (subAnimationIndex >= 50){
+											animationIndex++;
+											subAnimationIndex = fullLeds;
+										}
+										barLength = fullLeds;
+									break;
+									case 3:
+										// negative
+										subAnimationIndex--;
+										barLength = subAnimationIndex;
+										if (subAnimationIndex == 0){
+											animationIndex++;
+										}
+									break;
+									case 42:
+										// move back to target and wait there
+										subAnimationIndex--;
+										barLength = subAnimationIndex;
+										if (subAnimationIndex <= fullLeds){
+											animationIndex = 2;
+										}
+									break;
+									default:
+										// done
+										animationActive = false;
+									break;
+								}
+					
+								// draw bar
+								FastLED.clear();
+								for (uint8_t i = 0; i < barLength; i++){
+									leds[Led_Address(i)] = CRGB::Blue;
+								}
+								if (barLength == fullLeds && lastLed > 0){
+									leds[Led_Address(barLength)] = Led_DimColor(CRGB::Blue, lastLed);
+								}
+								staticLastBarLenghtPlaylist = barLength;
+								FastLED.show();
+							}
+						}
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Idle-State
+					// --------------------------------------------------
+					case LedAnimationType::Idle: {
+						animationActive = true;
+						if (animationIndex < NUM_LEDS) {
+							if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+								idleColor = CRGB::Blue;
+							} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+								if (Bluetooth_Source_Connected()) {
 									idleColor = CRGB::Blue;
 								} else {
 									idleColor = CRGB::BlueViolet;
 								}
-						} else {
-							if (Wlan_ConnectionTryInProgress()) {
-								idleColor = CRGB::Orange;
 							} else {
-								if (Wlan_IsConnected() && gPlayProperties.currentSpeechActive) {
-									idleColor = speechColor;
+								if (Wlan_ConnectionTryInProgress()) {
+									idleColor = CRGB::Orange;
 								} else {
+									idleColor = CRGB::Green;
 									if (Wlan_IsConnected()) {
 										idleColor = CRGB::White;
-									} else {
-										idleColor = CRGB::Green;
+										if(gPlayProperties.currentSpeechActive) {
+											idleColor = speechColor;
+										}
 									}
 								}
 							}
-						}
-						FastLED.clear();
-						if (Led_Address(i) == 0) { // White if Wifi is enabled and blue if not
-							leds[0] = idleColor;
-							leds[NUM_LEDS / 4] = idleColor;
-							leds[NUM_LEDS / 2] = idleColor;
-							leds[NUM_LEDS / 4 * 3] = idleColor;
+							FastLED.clear();
+							Led_DrawIdleDots(leds, animationIndex, idleColor);
+							FastLED.show();
+							animaitonTimer = 50*10;
+							animationIndex++;
 						} else {
-							leds[Led_Address(i) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = idleColor;
-							leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = idleColor;
+							animationActive = false;
 						}
-						FastLED.show();
-						for (uint8_t i = 0; i <= 50; i++) {
-							#ifdef BATTERY_MEASURE_ENABLE
-								if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning) || LED_INDICATOR_IS_SET(LedIndicatorType::Voltage) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-							#else
-								if (hlastVolume != AudioPlayer_GetCurrentVolume() || lastLedBrightness != Led_Brightness || LED_INDICATOR_IS_SET(LedIndicatorType::Error) || LED_INDICATOR_IS_SET(LedIndicatorType::Ok) || gPlayProperties.playMode != NO_PLAYLIST || !gButtons[gShutdownButton].currentState || System_IsSleepRequested()) {
-							#endif
-								break;
+					} break;
+
+					// --------------------------------------------------
+					// Animation of Busy-State
+					// --------------------------------------------------
+					case LedAnimationType::Busy: {
+						animationActive = true;
+						if (NUM_LEDS == 1) {
+							FastLED.clear();
+							singleLedStatus = !singleLedStatus;
+							if (singleLedStatus) {
+								leds[0] = CRGB::BlueViolet;
+							}
+							FastLED.show();
+							animaitonTimer = 100;
+							animationActive = false;
+						} else {
+							if(animationIndex < NUM_LEDS) {
+								FastLED.clear();
+								Led_DrawIdleDots(leds, animationIndex, idleColor);
+								FastLED.show();
+								animaitonTimer = 50;
+								animationIndex++;
 							} else {
-								vTaskDelay(portTICK_RATE_MS * 10);
+								animationActive = false;
 							}
 						}
-					}
-				}
-				break;
+					} break;
 
-			case BUSY: // If uC is busy (parsing SD-card)
-				requestProgressRedraw = true;
-				requestClearLeds = true;
-				if (NUM_LEDS == 1) {
-					FastLED.clear();
-					singleLedStatus = !singleLedStatus;
-					if (singleLedStatus) {
-						leds[0] = CRGB::BlueViolet;
-					} else {
-						leds[0] = CRGB::Black;
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 100);
-				} else {
-					for (uint8_t i = 0; i < NUM_LEDS; i++) {
+					// --------------------------------------------------
+					// Animation of Progress
+					// --------------------------------------------------
+					case LedAnimationType::Speech:
+					case LedAnimationType::Pause: { // TODO: separate animations?
 						FastLED.clear();
-						if (Led_Address(i) == 0) {
-							leds[0] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 4] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 2] = CRGB::BlueViolet;
-							leds[NUM_LEDS / 4 * 3] = CRGB::BlueViolet;
+						CRGB::HTMLColorCode generalColor = CRGB::Orange;
+						if (gPlayProperties.isWebstream) {
+							if (gPlayProperties.currentSpeechActive) {
+								generalColor = speechColor;
+							}
+							if (NUM_LEDS == 1) {
+								leds[0] = generalColor;
+							} else {
+								leds[Led_Address(ledPosWebstream)] = generalColor;
+								leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
+							}
 						} else {
-							leds[Led_Address(i) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 4) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::BlueViolet;
-							leds[(Led_Address(i) + NUM_LEDS / 4 * 3) % NUM_LEDS] = CRGB::BlueViolet;
+							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+								generalColor = CRGB::Blue;
+							} else
+							if (gPlayProperties.currentSpeechActive) {
+								generalColor = speechColor;
+							}
+
+							uint8_t pauseOffset = 0;
+							if (OFFSET_PAUSE_LEDS) {
+								pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+							}
+							Led_DrawIdleDots(leds, pauseOffset, generalColor);
 						}
 						FastLED.show();
-						if (gPlayProperties.playMode != BUSY) {
-							break;
-						}
-						vTaskDelay(portTICK_RATE_MS * 50);
-					}
-				}
-				break;
+						animaitonTimer = 10;
+					} break;
 
-			default: // If playlist is active (doesn't matter which type)
-				if (!gPlayProperties.playlistFinished) {
-					if (Led_NeedsProgressRedraw(lastPlayState, lastLockState,
-								    requestProgressRedraw)) {
-						lastPlayState = gPlayProperties.pausePlay;
-						lastLockState = System_AreControlsLocked();
-						requestProgressRedraw = false;
-						redrawProgress = true;
-					}
-
-					if (requestClearLeds) {
-						FastLED.clear();
-						FastLED.show();
-						requestClearLeds = false;
-					}
-
-					// Single-LED: led indicates between gradient green (beginning) => red (end)
-					// Multiple-LED: growing number of leds indicate between gradient green (beginning) => red (end)
-					if (!gPlayProperties.isWebstream) {
-						if (gPlayProperties.currentRelPos != lastPos || redrawProgress) {
-							redrawProgress = false;
+					case LedAnimationType::Progress: {
+						if (gPlayProperties.currentRelPos != lastPos || animationIndex == 0) {
+							animationIndex = 1;
 							lastPos = gPlayProperties.currentRelPos;
 							FastLED.clear();
 							if (NUM_LEDS == 1) {
 								leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 							} else {
-								uint8_t numLedsToLight = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS);
-								for (uint8_t led = 0; led < numLedsToLight; led++) {
+								const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+								const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+								const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+								for (uint8_t led = 0; led < fullLeds; led++) {
 									if (System_AreControlsLocked()) {
 										leds[Led_Address(led)] = CRGB::Red;
 									} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 										leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
 									}
 								}
-							}
-							if (gPlayProperties.pausePlay) {
-								generalColor = CRGB::Orange;
-								if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-									generalColor = CRGB::Blue;
-								} else
-								if (gPlayProperties.currentSpeechActive) {
-									generalColor = speechColor;
+								if(lastLed > 0){
+									if (System_AreControlsLocked()) {
+										leds[Led_Address(fullLeds)] = CRGB::Red;
+									} else {
+										leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+									}
+									leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 								}
-
-								leds[Led_Address(0)] = generalColor;
-								if (NUM_LEDS > 1) {
-									leds[(Led_Address(NUM_LEDS / 4)) % NUM_LEDS] = generalColor;
-									leds[(Led_Address(NUM_LEDS / 2)) % NUM_LEDS] = generalColor;
-									leds[(Led_Address(NUM_LEDS / 4 * 3)) % NUM_LEDS] = generalColor;
-								}
-								break;
 							}
+							FastLED.show();
+							animaitonTimer = 10;
+							animationActive = false;
 						}
-					}
-					else { // ... but do things a little bit different for Webstream as there's no progress available
-						if (lastSwitchTimestamp == 0 || (millis() - lastSwitchTimestamp >= ledSwitchInterval * 1000) || redrawProgress) {
-							redrawProgress = false;
-							lastSwitchTimestamp = millis();
+					} break;
+
+					case LedAnimationType::Webstream: {
+						// do things a little bit different for Webstream as there's no progress available
+						if (animationIndex == 0) {
+							animationIndex = 1;
 							FastLED.clear();
 							if (ledPosWebstream + 1 < NUM_LEDS) {
 								ledPosWebstream++;
@@ -736,26 +831,27 @@ static void Led_Task(void *parameter) {
 									leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
 									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
 								}
-							} else if (gPlayProperties.pausePlay) {
-								generalColor = CRGB::Orange;
-								if (gPlayProperties.currentSpeechActive) {
-									generalColor = speechColor;
-								}
-								if (NUM_LEDS == 1) {
-									leds[0] = generalColor;
-								} else {
-									leds[Led_Address(ledPosWebstream)] = generalColor;
-									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
-								}
 							}
+							FastLED.show();
+							animaitonTimer = 5 * 950;
+							animationActive = false;
 						}
-					}
-					FastLED.show();
-					vTaskDelay(portTICK_RATE_MS * 5);
+					} break;
+
+					default:
+						FastLED.clear();
+						FastLED.show();
+						animaitonTimer = 50;
+					break;
 				}
 			}
-			vTaskDelay(portTICK_RATE_MS * 1);
-			//esp_task_wdt_reset();
+
+			// get the time to wait
+			if ((animaitonTimer > 0) && (animaitonTimer < taskDelay)){
+				taskDelay = animaitonTimer;
+			}
+			animaitonTimer -= taskDelay;
+			vTaskDelay(portTICK_RATE_MS * taskDelay);
 		}
 		vTaskDelete(NULL);
 	#endif
