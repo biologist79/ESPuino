@@ -217,7 +217,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.setDither(DISABLE_DITHER);
 
 		static LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
-		static LedAnimationType nextAniaiton = LedAnimationType::NoNewAnimation;
+		static LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
 		static bool animationActive = false;
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
@@ -246,55 +246,55 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 			// check indications and set led-mode
 			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
-				nextAniaiton = LedAnimationType::Boot;
+				nextAnimation = LedAnimationType::Boot;
 			} else if (CheckForPowerButtonAnimation()) {
-				nextAniaiton = LedAnimationType::Shutdown;
+				nextAnimation = LedAnimationType::Shutdown;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-				nextAniaiton = LedAnimationType::Error;
+				nextAnimation = LedAnimationType::Error;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-				nextAniaiton = LedAnimationType::Ok;
+				nextAnimation = LedAnimationType::Ok;
 			#ifdef BATTERY_MEASURE_ENABLE
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-				nextAniaiton = LedAnimationType::VoltageWarning;
+				nextAnimation = LedAnimationType::VoltageWarning;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
-				nextAniaiton = LedAnimationType::BatteryMeasurement;
+				nextAnimation = LedAnimationType::BatteryMeasurement;
 			#endif
 			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-				nextAniaiton = LedAnimationType::Volume;
+				nextAnimation = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
-				nextAniaiton = LedAnimationType::Rewind;
+				nextAnimation = LedAnimationType::Rewind;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
-				nextAniaiton = LedAnimationType::Playlist;
+				nextAnimation = LedAnimationType::Playlist;
 			} else if (gPlayProperties.playlistFinished) {
-				nextAniaiton = LedAnimationType::Idle; // todo: what is valid?
+				nextAnimation = LedAnimationType::Idle; // todo: what is valid?
 			} else if (gPlayProperties.currentSpeechActive) {
-				nextAniaiton = LedAnimationType::Speech;
+				nextAnimation = LedAnimationType::Speech;
 			} else if (gPlayProperties.pausePlay) {
-				nextAniaiton = LedAnimationType::Pause;
+				nextAnimation = LedAnimationType::Pause;
 			} else if (gPlayProperties.isWebstream) {
-				nextAniaiton = LedAnimationType::Webstream;
+				nextAnimation = LedAnimationType::Webstream;
 			} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST)) {
-				nextAniaiton = LedAnimationType::Progress;
+				nextAnimation = LedAnimationType::Progress;
 			} else if (gPlayProperties.playMode == NO_PLAYLIST) {
-				nextAniaiton = LedAnimationType::Idle;
+				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.playMode == BUSY) {
-				nextAniaiton = LedAnimationType::Busy;
+				nextAnimation = LedAnimationType::Busy;
 			} else {
-				nextAniaiton = LedAnimationType::NoNewAnimation; // should not happen
+				nextAnimation = LedAnimationType::NoNewAnimation; // should not happen
 			}
 
 			// check for instant transition
-			if (nextAniaiton < activeAnimation) {
+			if (nextAnimation < activeAnimation) {
 				animationActive = false; // abort current animation
 				animaitonTimer = 0;
 			}
 			// do normal transitions
 			if ((!animationActive) && (animaitonTimer <= 0)) {
-				activeAnimation = nextAniaiton; // set new animation
+				activeAnimation = nextAnimation; // set new animation
 				animationIndex = 0;
 			}
 
@@ -305,25 +305,25 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			}
 
 			if (animaitonTimer <= 0) {
-				switch(activeAnimation) {
+				switch (activeAnimation) {
 					// --------------------------------------------------
 					// Bootup - Animation
 					// --------------------------------------------------
 					case LedAnimationType::Boot: {
 						animaitonTimer = 500;
 
-						if(millis() > 10000) {
+						if (millis() > 10000) {
 							fill_solid(leds, NUM_LEDS, CRGB::Red);
-							if(showEvenError) {
+							if (showEvenError) {
 								// and then draw in the black dots
-								for(uint8_t i=0;i<NUM_LEDS;i +=2) {
+								for (uint8_t i=0;i<NUM_LEDS;i +=2) {
 									leds[i] = CRGB::Black;
 								}
 							}
 						} else {
 							fill_solid(leds, NUM_LEDS, CRGB::Black);
 							const uint8_t startLed = (showEvenError) ? 1 : 0;
-							for(uint8_t i=startLed;i<NUM_LEDS;i+=2) {
+							for (uint8_t i=startLed;i<NUM_LEDS;i+=2) {
 								leds[i] = CRGB::Orange;
 							}
 						}
@@ -383,7 +383,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						CRGB signalColor = CRGB::Green;
 						uint16_t onTime = 400;
 						animationActive = true;
-						if(activeAnimation == LedAnimationType::Error) {
+						if (activeAnimation == LedAnimationType::Error) {
 							signalColor = CRGB::Red;
 							onTime = 200;
 						}
@@ -478,7 +478,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						animationActive = true;
 
 						FastLED.clear();
-						if(animationIndex % 2 == 0) {
+						if (animationIndex % 2 == 0) {
 							fill_solid(leds, NUM_LEDS, CRGB::Red);
 						}
 						FastLED.show();
@@ -684,7 +684,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 									idleColor = CRGB::Green;
 									if (Wlan_IsConnected()) {
 										idleColor = CRGB::White;
-										if(gPlayProperties.currentSpeechActive) {
+										if (gPlayProperties.currentSpeechActive) {
 											idleColor = speechColor;
 										}
 									}
@@ -715,7 +715,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							animaitonTimer = 100;
 							animationActive = false;
 						} else {
-							if(animationIndex < NUM_LEDS) {
+							if (animationIndex < NUM_LEDS) {
 								FastLED.clear();
 								Led_DrawIdleDots(leds, animationIndex, idleColor);
 								FastLED.show();
@@ -780,7 +780,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 										leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
 									}
 								}
-								if(lastLed > 0) {
+								if (lastLed > 0) {
 									if (System_AreControlsLocked()) {
 										leds[Led_Address(fullLeds)] = CRGB::Red;
 									} else {
