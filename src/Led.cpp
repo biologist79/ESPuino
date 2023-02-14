@@ -219,7 +219,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
 		static LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
 		static bool animationActive = false;
-		static int32_t animaitonTimer;
+		static int32_t animationTimer;
 		static uint32_t animationIndex;
 		static uint32_t subAnimationIndex;
 		static uint32_t staticLastBarLenghtPlaylist;
@@ -290,10 +290,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			// check for instant transition
 			if (nextAnimation < activeAnimation) {
 				animationActive = false; // abort current animation
-				animaitonTimer = 0;
+				animationTimer = 0;
 			}
 			// do normal transitions
-			if ((!animationActive) && (animaitonTimer <= 0)) {
+			if ((!animationActive) && (animationTimer <= 0)) {
 				activeAnimation = nextAnimation; // set new animation
 				animationIndex = 0;
 			}
@@ -304,13 +304,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				lastLedBrightness = Led_Brightness;
 			}
 
-			if (animaitonTimer <= 0) {
+			if (animationTimer <= 0) {
 				switch (activeAnimation) {
 					// --------------------------------------------------
 					// Bootup - Animation
 					// --------------------------------------------------
 					case LedAnimationType::Boot: {
-						animaitonTimer = 500;
+						animationTimer = 500;
 
 						if (millis() > 10000) {
 							fill_solid(leds, NUM_LEDS, CRGB::Red);
@@ -342,19 +342,19 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
 								leds[0] = CRGB::Red;
 								FastLED.show();
-								animaitonTimer = 5;
+								animationTimer = 5;
 							} else {
 								if (singleLedStatus) {
 									leds[0] = CRGB::Red;
 								}
 								FastLED.show();
 								singleLedStatus = !singleLedStatus;
-								animaitonTimer = 50;
+								animationTimer = 50;
 							}
 							animationActive = false;
 						} else {
 							if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
-								animaitonTimer = 50;
+								animationTimer = 50;
 								// don't end animation, we already reached the shutdown.
 							} else {
 								if (animationIndex == 0) {
@@ -363,10 +363,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								if (animationIndex < NUM_LEDS) {
 									leds[Led_Address(animationIndex)] = CRGB::Red;
 									if (gButtons[gShutdownButton].currentState) {
-										animaitonTimer = 5;
+										animationTimer = 5;
 										animationActive = false;
 									} else {
-										animaitonTimer = intervalToLongPress / NUM_LEDS;
+										animationTimer = intervalToLongPress / NUM_LEDS;
 									}
 									animationIndex++;
 									FastLED.show();
@@ -398,7 +398,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 							if (animationIndex < 5) {
 								animationIndex++;
-								animaitonTimer = 100;
+								animationTimer = 100;
 							} else {
 								animationActive = false;
 							}
@@ -409,7 +409,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								animationActive = false;
 							} else {
 								animationIndex++;
-								animaitonTimer = onTime;
+								animationTimer = onTime;
 							}
 						}
 					} break;
@@ -463,7 +463,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						}
 
 						if (animationIndex < LED_VOLUME_INDICATOR_NUM_CYCLES) {
-							animaitonTimer = 20;
+							animationTimer = 20;
 							animationIndex ++;
 						} else {
 							animationActive = false;
@@ -485,7 +485,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 						if (animationIndex < 6) {
 							animationIndex++;
-							animaitonTimer = 200;
+							animationTimer = 200;
 						} else {
 							animationActive = false;
 						}
@@ -518,7 +518,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								}
 								FastLED.show();
 
-								animaitonTimer = 20*100;
+								animationTimer = 20*100;
 								animationActive = false;
 							} else {
 								uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
@@ -537,9 +537,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 									FastLED.show();
 
 									animationIndex ++;
-									animaitonTimer = 20;
+									animationTimer = 20;
 								} else {
-									animaitonTimer = 20*100;
+									animationTimer = 20*100;
 									animationActive = false;
 								}
 							}
@@ -556,7 +556,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							if (animationIndex < (NUM_LEDS)) {
 								leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
 								FastLED.show();
-								animaitonTimer = 30;
+								animationTimer = 30;
 								animationIndex ++;
 							} else {
 								animationActive = false;
@@ -604,7 +604,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 									animationIndex++;
 								}
 
-								animaitonTimer = 30;
+								animationTimer = 30;
 								uint8_t barLength = 0;
 								switch (animationIndex) {
 									case 1:
@@ -693,7 +693,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							FastLED.clear();
 							Led_DrawIdleDots(leds, animationIndex, idleColor);
 							FastLED.show();
-							animaitonTimer = 50*10;
+							animationTimer = 50*10;
 							animationIndex++;
 						} else {
 							animationActive = false;
@@ -712,14 +712,14 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								leds[0] = CRGB::BlueViolet;
 							}
 							FastLED.show();
-							animaitonTimer = 100;
+							animationTimer = 100;
 							animationActive = false;
 						} else {
 							if (animationIndex < NUM_LEDS) {
 								FastLED.clear();
 								Led_DrawIdleDots(leds, animationIndex, idleColor);
 								FastLED.show();
-								animaitonTimer = 50;
+								animationTimer = 50;
 								animationIndex++;
 							} else {
 								animationActive = false;
@@ -759,7 +759,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							Led_DrawIdleDots(leds, pauseOffset, generalColor);
 						}
 						FastLED.show();
-						animaitonTimer = 10;
+						animationTimer = 10;
 					} break;
 
 					case LedAnimationType::Progress: {
@@ -790,7 +790,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								}
 							}
 							FastLED.show();
-							animaitonTimer = 10;
+							animationTimer = 10;
 							animationActive = false;
 						}
 					} break;
@@ -819,7 +819,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								}
 							}
 							FastLED.show();
-							animaitonTimer = 5 * 950;
+							animationTimer = 5 * 950;
 							animationActive = false;
 						}
 					} break;
@@ -827,16 +827,16 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					default:
 						FastLED.clear();
 						FastLED.show();
-						animaitonTimer = 50;
+						animationTimer = 50;
 					break;
 				}
 			}
 
 			// get the time to wait
-			if ((animaitonTimer > 0) && (animaitonTimer < taskDelay)) {
-				taskDelay = animaitonTimer;
+			if ((animationTimer > 0) && (animationTimer < taskDelay)) {
+				taskDelay = animationTimer;
 			}
-			animaitonTimer -= taskDelay;
+			animationTimer -= taskDelay;
 			vTaskDelay(portTICK_RATE_MS * taskDelay);
 		}
 		vTaskDelete(NULL);
