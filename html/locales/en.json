@@ -209,7 +209,14 @@
             "lowCritical": "Lowest voltage, that is indicated by one LED",
             "high": "Voltage, that is indicated by all LEDs",
             "measureInterval": "Interval between measurements (in minutes)"
-        }
+		},
+		"customtext": {
+			"title": "User defined speech",
+			"desc": "User defined speech of the ESPUINO",
+			"textLabel": "Text of speech",
+			"textDefault": "This is the ESPUINO of Torsten"
+		}
+        
     },
     "tools": {
         "nvserase": {

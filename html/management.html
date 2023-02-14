@@ -538,7 +538,19 @@
 
 					</fieldset>
 				</div>
-<br>
+				<br>
+
+				<div class="form-group col-md-12">
+					<fieldset>
+						<legend data-i18n="general.customtext.title"></legend>
+					<div data-i18n="general.customtext.desc"></div>
+						<br>
+					<label for="customText" data-i18n="[prepend]general.customtext.textLabel">:</label>
+						<input type="text" class="form-control" id="customText" maxlength="255" pattern="^[^\^#]+$"
+						data-i18n="[placeholder]general.customtext.textDefault" name="customText" required>
+					</fieldset>
+				</div>
+
 				<div class="text-center">
 				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>

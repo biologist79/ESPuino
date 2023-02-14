@@ -210,6 +210,12 @@
             "lowCritical": "Eine LED leuchtet bei dieser Spannung",
             "high": "Alle LEDs leuchten bei dieser Spannung",
             "measureInterval": "Zeitabstand der Messung (in Minuten)"
+        },
+		"customtext": {
+            "title": "Benutzerdefinierte Ansage",
+            "desc": "Benuterdefinierte Ansage des ESPUINO",
+			"textLabel": "Text der Ansage",
+			"textDefault": "Dies ist der ESPUINO von Torsten"
         }
     },
     "tools": {
