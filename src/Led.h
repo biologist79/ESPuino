@@ -33,6 +33,27 @@ enum class LedAnimationType
 	NoNewAnimation
 };
 
+enum class LedPlaylistProgressStates
+{
+	FillBar = 0,
+	Wait,
+	EmptyBar,
+	EmptyBarToTarget,
+	Done
+};
+
+struct AnimationReturnType {
+    bool animationActive;
+    int32_t animationDelay;
+
+	void clear(){
+		animationActive = false;
+		animationDelay = 0;
+	}
+	AnimationReturnType() :animationActive(false), animationDelay(0) {}
+	AnimationReturnType(bool active, int32_t delay) :animationActive(active), animationDelay(delay) {}
+};
+
 void Led_Init(void);
 void Led_Exit(void);
 void Led_Indicate(LedIndicatorType value);
