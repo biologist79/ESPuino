@@ -2,6 +2,7 @@
     "submit": "Submit",
     "restart": "Restart",
     "reset": "Reset",
+    "execute": "Execute",
     "title": "ESPuino-Settings",
     "shutdown": "Shutdown",
     "log": "Log",
@@ -51,7 +52,7 @@
         "voldown": "Volume Down",
         "volup": "Volume Up",
         "current": "Current track",
-        "command": "Excecute Command"
+        "command": "Excecute Modification"
     },
     "files": {
         "title": "Files",

@@ -2,6 +2,7 @@
     "submit": "Absenden",
     "restart": "Neustart",
     "reset": "Reset",
+    "execute": "Ausführen",
     "title": "ESPuino-Konfiguration",
     "shutdown": "Ausschalten",
     "log": "Log",
@@ -51,7 +52,7 @@
         "voldown": "Leiser",
         "volup": "Lauter",
         "current": "Aktueller Titel",
-        "command": "Befehl Ausführen"
+        "command": "Modifikation Ausführen"
     },
     "files": {
         "title": "Dateien",
