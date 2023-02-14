@@ -49,6 +49,7 @@
 
 	// animation-functions prototypes
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -224,10 +225,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static bool animationActive = false;
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
-		static uint32_t subAnimationIndex;
-		static uint32_t staticLastBarLenghtPlaylist;
-		static uint32_t staticLastTrack;
-		static float staticBatteryLevel;
 
 
 		for (;;) {
@@ -500,55 +497,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// Animation of Battery Measurement
 					// --------------------------------------------------
 					case LedAnimationType::BatteryMeasurement: {
-						LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
-						// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
-						// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-						float batteryLevel = Battery_EstimateLevel();
-						if (batteryLevel < 0) { // If voltage is too low or no battery is connected
-							LED_INDICATOR_SET(LedIndicatorType::Error);
-							break;
-						} else {
-							if (animationIndex == 0) {
-								staticBatteryLevel = batteryLevel;
-								animationActive = true;
-								FastLED.clear();
-							}
-							if (NUM_LEDS == 1) {
-								if (staticBatteryLevel < 0.3) {
-									leds[0] = CRGB::Red;
-								} else if (staticBatteryLevel < 0.6) {
-									leds[0] = CRGB::Orange;
-								} else {
-									leds[0] = CRGB::Green;
-								}
-								FastLED.show();
-
-								animaitonTimer = 20*100;
-								animationActive = false;
-							} else {
-								uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
-								if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
-									numLedsToLight = NUM_LEDS;
-								}
-
-								if (animationIndex < numLedsToLight) {
-									if (staticBatteryLevel < 0.3) {
-										leds[Led_Address(animationIndex)] = CRGB::Red;
-									} else if (staticBatteryLevel < 0.6) {
-										leds[Led_Address(animationIndex)] = CRGB::Orange;
-									} else {
-										leds[Led_Address(animationIndex)] = CRGB::Green;
-									}
-									FastLED.show();
-
-									animationIndex ++;
-									animaitonTimer = 20;
-								} else {
-									animaitonTimer = 20*100;
-									animationActive = false;
-								}
-							}
-						}
+						AnimationReturnType ret = Animation_BatteryMeasurement(startNewAnimation, leds);
+						animationActive = ret.animationActive;
+						animaitonTimer = ret.animationDelay;
 					} break;
 
 					// --------------------------------------------------
@@ -763,6 +714,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 // all funcitons return the desired delay and if they are still active
 
 #ifdef NEOPIXEL_ENABLE
+	// ANIMATION OF PLAYLIST-PROGRESS
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false; // signals if the animation is currently active
 		int32_t animationDelay = 0;
@@ -872,6 +824,69 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
 		}
 		
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+
+	// ANIMATION OF BATTERY_MEASUREMENT
+	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds){
+		static bool animationActive = false;
+		int32_t animationDelay = 0;
+
+		// static variables for animation
+		static float staticBatteryLevel = 0.0f; // variable to store the measured battery-voltage
+		static uint32_t filledLedCount = 0; // loop variable to animate led-bar
+
+		LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
+		// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
+		// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
+		
+		if (startNewAnimation) {
+			float batteryLevel = Battery_EstimateLevel();
+			if (batteryLevel < 0.0f) { // If voltage is too low or no battery is connected
+				LED_INDICATOR_SET(LedIndicatorType::Error);
+				return AnimationReturnType(); // abort to indicate error
+			}
+			staticBatteryLevel = batteryLevel;
+			filledLedCount = 0;
+			animationActive = true;
+			FastLED.clear();
+		}
+		if (NUM_LEDS == 1) {
+			if (staticBatteryLevel < 0.3) {
+				leds[0] = CRGB::Red;
+			} else if (staticBatteryLevel < 0.6) {
+				leds[0] = CRGB::Orange;
+			} else {
+				leds[0] = CRGB::Green;
+			}
+			FastLED.show();
+
+			animationDelay = 20*100;
+			animationActive = false;
+		} else {
+			uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
+			if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
+				numLedsToLight = NUM_LEDS;
+			}
+
+			// fill all needed LEDs
+			if (filledLedCount < numLedsToLight) {
+				if (staticBatteryLevel < 0.3) {
+					leds[Led_Address(filledLedCount)] = CRGB::Red;
+				} else if (staticBatteryLevel < 0.6) {
+					leds[Led_Address(filledLedCount)] = CRGB::Orange;
+				} else {
+					leds[Led_Address(filledLedCount)] = CRGB::Green;
+				}
+				FastLED.show();
+
+				filledLedCount ++;
+				animationDelay = 20;
+			} else { // Wait a little
+				animationDelay = 20*100;
+				animationActive = false;
+			}
+		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 #endif
