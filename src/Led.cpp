@@ -494,57 +494,59 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// --------------------------------------------------
 					// Animation of Battery Measurement
 					// --------------------------------------------------
-					case LedAnimationType::BatteryMeasurement: {
-						LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
-						// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
-						// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-						float batteryLevel = Battery_EstimateLevel();
-						if (batteryLevel < 0) { // If voltage is too low or no battery is connected
-							LED_INDICATOR_SET(LedIndicatorType::Error);
-							break;
-						} else {
-							if (animationIndex == 0) {
-								staticBatteryLevel = batteryLevel;
-								animationActive = true;
-								FastLED.clear();
-							}
-							if (NUM_LEDS == 1) {
-								if (staticBatteryLevel < 0.3) {
-									leds[0] = CRGB::Red;
-								} else if (staticBatteryLevel < 0.6) {
-									leds[0] = CRGB::Orange;
-								} else {
-									leds[0] = CRGB::Green;
-								}
-								FastLED.show();
-
-								animationTimer = 20*100;
-								animationActive = false;
+					#ifdef BATTERY_MEASURE_ENABLE
+						case LedAnimationType::BatteryMeasurement: {
+							LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
+							// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
+							// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
+							float batteryLevel = Battery_EstimateLevel();
+							if (batteryLevel < 0) { // If voltage is too low or no battery is connected
+								LED_INDICATOR_SET(LedIndicatorType::Error);
+								break;
 							} else {
-								uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
-								if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
-									numLedsToLight = NUM_LEDS;
+								if (animationIndex == 0) {
+									staticBatteryLevel = batteryLevel;
+									animationActive = true;
+									FastLED.clear();
 								}
-
-								if (animationIndex < numLedsToLight) {
+								if (NUM_LEDS == 1) {
 									if (staticBatteryLevel < 0.3) {
-										leds[Led_Address(animationIndex)] = CRGB::Red;
+										leds[0] = CRGB::Red;
 									} else if (staticBatteryLevel < 0.6) {
-										leds[Led_Address(animationIndex)] = CRGB::Orange;
+										leds[0] = CRGB::Orange;
 									} else {
-										leds[Led_Address(animationIndex)] = CRGB::Green;
+										leds[0] = CRGB::Green;
 									}
 									FastLED.show();
 
-									animationIndex ++;
-									animationTimer = 20;
-								} else {
 									animationTimer = 20*100;
 									animationActive = false;
+								} else {
+									uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
+									if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
+										numLedsToLight = NUM_LEDS;
+									}
+
+									if (animationIndex < numLedsToLight) {
+										if (staticBatteryLevel < 0.3) {
+											leds[Led_Address(animationIndex)] = CRGB::Red;
+										} else if (staticBatteryLevel < 0.6) {
+											leds[Led_Address(animationIndex)] = CRGB::Orange;
+										} else {
+											leds[Led_Address(animationIndex)] = CRGB::Green;
+										}
+										FastLED.show();
+
+										animationIndex ++;
+										animationTimer = 20;
+									} else {
+										animationTimer = 20*100;
+										animationActive = false;
+									}
 								}
 							}
-						}
-					} break;
+						} break;
+					#endif
 
 					// --------------------------------------------------
 					// Animation of Rewind
