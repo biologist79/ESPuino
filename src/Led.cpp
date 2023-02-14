@@ -225,11 +225,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static bool animationActive = false;
 		static int32_t animationTimer;
 		static uint32_t animationIndex;
-		static uint32_t subAnimationIndex;
-		static uint32_t staticLastBarLenghtPlaylist;
-		static uint32_t staticLastTrack;
-		static float staticBatteryLevel;
-
 
 		for (;;) {
 			// special handling
