@@ -58,12 +58,12 @@ class HtmlHeaderProcessor:
     def _process_header_file(cls, html_path, header_path):
         parser = Parser({}, True)
         parser.update_runtime_options(True, True, True)
-        with html_path.open("r") as html_file:
+        with html_path.open(mode="r", encoding="utf-8") as html_file:
             content = html_file.read()
             content = parser.minify(content, "html")    # minify content as html
             content = cls._escape_html(content)
 
-        with header_path.open("w") as header_file:
+        with header_path.open(mode="w", encoding="utf-8") as header_file:
             header_file.write(
                 f"static const char {html_path.name.split('.')[0]}_HTML[] PROGMEM = \""
             )
@@ -75,18 +75,18 @@ class HtmlHeaderProcessor:
     def _process_binary_file(cls, binary_path, header_path, info):
         # minify json files explicitly
         if binary_path.suffix == "json":
-            with binary_path.open("r") as f:
+            with binary_path.open(mode="r", encoding="utf-8") as f:
                 jsonObj = json.load(f)
                 content = json.dumps(jsonObj, separators=(',', ':'))
         # use everything else as is
         else:
-            with binary_path.open("r") as f:
+            with binary_path.open(mode="r", encoding="utf-8") as f:
                 content = f.read()
 
         # compress content
         data = gzip.compress(content.encode())
 
-        with header_path.open("a") as header_file:
+        with header_path.open(mode="a", encoding="utf-8") as header_file:
             varName = binary_path.name.split('.')[0]
             header_file.write(
                 f"static const uint8_t {varName}_BIN[] PROGMEM = {{\n    "
@@ -126,7 +126,7 @@ class HtmlHeaderProcessor:
             info = cls._process_binary_file(HTML_DIR / binary_file, binary_header, info)
             fileList.append(info)
 
-        with binary_header.open("a") as f:
+        with binary_header.open(mode="a", encoding="utf-8") as f:
             f.write("""using RouteRegistrationHandler = std::function<void(const String& uri, const String& contentType, const uint8_t * content, size_t len)>;
 
 class WWWData {

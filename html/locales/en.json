@@ -78,8 +78,14 @@
             "desc": "Start Upload",
             "selectFolder": "Please select the upload location!",
             "selectFile": "Please select files to upload!",
-            "success": "Upload success",
-            "error": "Upload error"
+            "success": "Upload successfull ({{elapsed}}, {{speed}} KB/s)",
+            "error": "Upload error",
+            "timeCalc": "Remaining time is being calculated..",
+            "minutes_one": "minute",
+            "minutes_other": "minutes",
+            "seconds": "seconds",
+            "fewSec": "few",
+            "progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
         },
         "rfid": {
             "title": "RFID-Assignments",

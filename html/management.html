@@ -824,6 +824,8 @@
 			console.log("Parent path: " + path);
 		}
 
+		const startTime = new Date().getTime();
+		let bytesTotal = 0;
 		$.ajax({
 			url: '/explorer?path=' + path,
 			type: 'POST',
@@ -831,63 +833,58 @@
 			contentType: false,
 			processData:false,
 			xhr: function() {
-				var lastNow = new Date().getTime();
-				startTime = new Date().getTime();
-				var lastKBytes = 0;
-				bytesTotal = 0;
 				var xhr = new window.XMLHttpRequest();
 
 				xhr.upload.addEventListener("progress", function(evt) {
 				  if (evt.lengthComputable) {
-					var now = new Date().getTime();
+					const now = new Date().getTime();
+					const percent = parseInt(evt.loaded * 100 / evt.total);
+					const elapsed = (now - startTime) / 1000;
 					bytesTotal = evt.total;
-					var percentComplete = evt.loaded / evt.total;
-					percentComplete = parseInt(percentComplete * 100);
-					kbytes = evt.loaded / 1024;
-					var uploadedkBytes = kbytes - lastKBytes;
-					var elapsed = (now - lastNow) / 1000;
-					elapsed_total = (now - startTime) / 1000;
-					var kbps = elapsed ? uploadedkBytes / elapsed : 0;
-					lastKBytes = kbytes;
-					lastNow = now;
 
-					var seconds_elapsed =  (now - startTime) / 1000;
-					var bytes_per_second =  seconds_elapsed ? evt.loaded / seconds_elapsed : 0;
-					var Kbytes_per_second = bytes_per_second / 1024;
-					var remaining_bytes =   evt.total - evt.loaded;
-					var seconds_remaining = seconds_elapsed ? (remaining_bytes / bytes_per_second) : 'is being calculated..' ;
+					let progressText = i18next.t("files.upload.timeCalc");
+					if(elapsed){
+						const bps = evt.loaded / elapsed;
+						const kbps = bps / 1024;
+						const remaining = Math.round((evt.total - evt.loaded) / bps);
 
-					var percent = percentComplete + '%';
-					console.log("Percent: " + percent + ", " + Kbytes_per_second.toFixed(2) + " KB/s");
-					var progressText = percent;
-					if (seconds_remaining > 60) {
-						progressText = progressText + ", " + (seconds_remaining / 60).toFixed(0) + " mins. remaining..";
-					} else
-					if (seconds_remaining <= 0) {
-						progressText = progressText + " (" + Kbytes_per_second.toFixed(2) + " KB/s)";
-					} else
-					 if (seconds_remaining < 2) {
-						progressText = progressText + ", few secs. remaining..";
-					} else {
-						progressText = progressText + ", " + seconds_remaining.toFixed(0) + " secs. remaining..";
+						const data = {
+							percent: percent,
+							remaining: {
+								unit: (remaining>60) ? i18next.t("files.upload.minutes", {count: Math.round(remaining/60)}) : i18next.t("files.upload.seconds"),
+								value: (remaining>60) ? Math.round(remaining/60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+							},
+							speed: kbps.toFixed(2)
+						}
+						progressText = i18next.t("files.upload.progress", data);
+						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
 					}
-					$("#explorerUploadProgress").css('width', percent).text(progressText);
+					$("#explorerUploadProgress").css('width', percent+"%").text(progressText);
 				  }
 				}, false);
 
 				return xhr;
 			},
 			success: function(data, textStatus, jqXHR) {
-				var now = new Date().getTime();
-				var elapsed_time = (now - startTime);
-				var seconds_elapsed =  elapsed_time / 1000;
-				var bytes_per_second =  seconds_elapsed ? bytesTotal / seconds_elapsed : 0;
-				var Kbytes_per_second = bytes_per_second / 1024 ;
-				var minutes = Math.floor(seconds_elapsed / 60);
-				var seconds = seconds_elapsed - (minutes * 60);
-				var timeText = minutes.toString().padStart(2, '0') + ':' + seconds.toFixed(0).toString().padStart(2, '0');
-				console.log("Upload success (" + timeText + ", " + Kbytes_per_second.toFixed(2) + " KB/s): " + textStatus);
-				var progressText = i18next.t("files.upload.success") +" (" + timeText + ", " + Kbytes_per_second.toFixed(2) + "  KB/s).";
+				const now = new Date().getTime();
+				const elapsed = (now - startTime) / 1000;
+
+				let transData = {
+					elapsed: "00:00",
+					speed: "0,00"
+				};
+				if(elapsed){
+					const bps = bytesTotal / elapsed;
+					const kbps = bps / 1024;
+
+					const date = new Date(null);
+					date.setSeconds(elapsed);
+					const timeText = date.toISOString().substr(11, 8);
+
+					transData = { elapsed: timeText, speed: kbps.toFixed(2) };
+				}
+				console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
+				const progressText = i18next.t("files.upload.success", transData);
 				$("#explorerUploadProgress").text(progressText);
 				document.getElementById('uploaded_file').value = '';
 				document.getElementById('uploaded_file_text').innerHTML = '';
@@ -902,8 +899,8 @@
 			},
 			error: function(request, status, error) {
 				console.log("Upload ERROR!");
-				$("#explorerUploadProgress").text(i18next.t("files.upload.error") +" :" + status);
-				toastr.error(i18next.t("files.upload.error") + status);
+				$("#explorerUploadProgress").text(i18next.t("files.upload.error") +": " + status);
+				toastr.error(i18next.t("files.upload.error") + ": " + status);
 			}
 		});
 	});

@@ -78,8 +78,14 @@
             "desc": "Upload starten",
             "selectFolder": "Wähle den Ordner für den Upload!",
             "selectFile": "Wähle eine Datei zum Hochladen!",
-            "success": "Upload erfolgreich",
-            "error": "Upload fehlgeschlagen"
+            "success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
+            "error": "Upload fehlgeschlagen",
+            "timeCalc": "Verbleibende Zeit wird berechnet..",
+            "minutes_one": "Minute",
+            "minutes_other": "Minuten",
+            "seconds": "Sekunden",
+            "fewSec": "wenige",
+            "progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} verbleibend.."
         },
         "rfid": {
             "title": "RFID-Zuweisungen",
