@@ -216,8 +216,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 
-		static LedAnimationType activeAnnimation = LedAnimationType::NoNewAnimation;
-		static LedAnimationType nextAnimaiton = LedAnimationType::NoNewAnimation;
+		static LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
+		static LedAnimationType nextAniaiton = LedAnimationType::NoNewAnimation;
 		static bool animationActive = false;
 		static int32_t animaitonTimer;
 		static uint32_t animationIndex;
@@ -246,55 +246,55 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 			// check indications and set led-mode
 			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
-				nextAnimaiton = LedAnimationType::Boot;
+				nextAniaiton = LedAnimationType::Boot;
 			} else if (CheckForPowerButtonAnimation()) {
-				nextAnimaiton = LedAnimationType::Shutdown;
+				nextAniaiton = LedAnimationType::Shutdown;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-				nextAnimaiton = LedAnimationType::Error;
+				nextAniaiton = LedAnimationType::Error;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-				nextAnimaiton = LedAnimationType::Ok;
+				nextAniaiton = LedAnimationType::Ok;
 			#ifdef BATTERY_MEASURE_ENABLE
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-				nextAnimaiton = LedAnimationType::VoltageWarning;
+				nextAniaiton = LedAnimationType::VoltageWarning;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
-				nextAnimaiton = LedAnimationType::BatteryMeasurement;
+				nextAniaiton = LedAnimationType::BatteryMeasurement;
 			#endif
 			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-				nextAnimaiton = LedAnimationType::Volume;
+				nextAniaiton = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
-				nextAnimaiton = LedAnimationType::Rewind;
+				nextAniaiton = LedAnimationType::Rewind;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
-				nextAnimaiton = LedAnimationType::Playlist;
+				nextAniaiton = LedAnimationType::Playlist;
 			} else if (gPlayProperties.playlistFinished) {
-				nextAnimaiton = LedAnimationType::Idle; // todo: what is valid?
+				nextAniaiton = LedAnimationType::Idle; // todo: what is valid?
 			} else if (gPlayProperties.currentSpeechActive) {
-				nextAnimaiton = LedAnimationType::Speech;
+				nextAniaiton = LedAnimationType::Speech;
 			} else if (gPlayProperties.pausePlay) {
-				nextAnimaiton = LedAnimationType::Pause;
+				nextAniaiton = LedAnimationType::Pause;
 			} else if (gPlayProperties.isWebstream) {
-				nextAnimaiton = LedAnimationType::Webstream;
+				nextAniaiton = LedAnimationType::Webstream;
 			} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST)) {
-				nextAnimaiton = LedAnimationType::Progress;
+				nextAniaiton = LedAnimationType::Progress;
 			} else if (gPlayProperties.playMode == NO_PLAYLIST) {
-				nextAnimaiton = LedAnimationType::Idle;
+				nextAniaiton = LedAnimationType::Idle;
 			} else if (gPlayProperties.playMode == BUSY) {
-				nextAnimaiton = LedAnimationType::Busy;
+				nextAniaiton = LedAnimationType::Busy;
 			} else {
-				nextAnimaiton = LedAnimationType::NoNewAnimation; // should not happen
+				nextAniaiton = LedAnimationType::NoNewAnimation; // should not happen
 			}
 
 			// check for instant transition
-			if (nextAnimaiton < activeAnnimation) {
+			if (nextAniaiton < activeAnimation) {
 				animationActive = false; // abort current animation
 				animaitonTimer = 0;
 			}
 			// do normal transitions
 			if ((!animationActive) && (animaitonTimer <= 0)) {
-				activeAnnimation = nextAnimaiton; // set new animation
+				activeAnimation = nextAniaiton; // set new animation
 				animationIndex = 0;
 			}
 
@@ -305,7 +305,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			}
 
 			if (animaitonTimer <= 0) {
-				switch(activeAnnimation) {
+				switch(activeAnimation) {
 					// --------------------------------------------------
 					// Bootup - Animation
 					// --------------------------------------------------
@@ -383,7 +383,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						CRGB signalColor = CRGB::Green;
 						uint16_t onTime = 400;
 						animationActive = true;
-						if(activeAnnimation == LedAnimationType::Error) {
+						if(activeAnimation == LedAnimationType::Error) {
 							signalColor = CRGB::Red;
 							onTime = 200;
 						}
@@ -609,10 +609,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 								switch (animationIndex) {
 									case 1:
 										barLength = subAnimationIndex;
-										subAnimationIndex++;
 										if (subAnimationIndex >= fullLeds) {
 											animationIndex++;
 											subAnimationIndex = 0;
+										} else {
+											subAnimationIndex++;
 										}
 									break;
 									case 2:
@@ -626,18 +627,20 @@ void Led_SetButtonLedsEnabled(boolean value) {
 									break;
 									case 3:
 										// negative
-										subAnimationIndex--;
 										barLength = subAnimationIndex;
 										if (subAnimationIndex == 0) {
 											animationIndex++;
+										} else {
+											subAnimationIndex--;
 										}
 									break;
 									case 42:
 										// move back to target and wait there
-										subAnimationIndex--;
 										barLength = subAnimationIndex;
 										if (subAnimationIndex <= fullLeds) {
 											animationIndex = 2;
+										} else {
+											subAnimationIndex--;
 										}
 									break;
 									default:
