@@ -24,8 +24,8 @@
 
 	#ifndef LED_OFFSET
 		#define LED_OFFSET 0
-	#elif LED_OFFSET < 0 || LED_OFFSET >= NUM_LEDS
-		#error LED_OFFSET must be between 0 and NUM_LEDS-1
+	#elif LED_OFFSET < 0 || LED_OFFSET >= NUM_INDICATOR_LEDS
+		#error LED_OFFSET must be between 0 and NUM_INDICATOR_LEDS-1
 	#endif
 
 	// Time in milliseconds the volume indicator is visible
@@ -42,28 +42,31 @@
 	static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
-	constexpr uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
+	constexpr uint8_t Led_IdleDotDistance = NUM_INDICATOR_LEDS / NUM_LEDS_IDLE_DOTS;
+
+	static CRGBArray<NUM_INDICATOR_LEDS + NUM_STATIC_LEDS> leds;
+	static CRGBSet indicator(leds(0, NUM_INDICATOR_LEDS - 1));
 
 	TaskHandle_t Led_TaskHandle;
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
 
 	// animation-functions prototypes
-	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGBSet &leds);
+	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds);
 #endif
 
 void Led_Init(void) {
@@ -104,8 +107,7 @@ void Led_Init(void) {
 
 void Led_Exit(void) {
 	#ifdef NEOPIXEL_ENABLE
-		FastLED.clear();
-		FastLED.show();
+		FastLED.clear(true);
 	#endif
 }
 
@@ -166,13 +168,13 @@ void Led_SetBrightness(uint8_t value) {
 	uint8_t Led_Address(uint8_t number) {
 		#ifdef NEOPIXEL_REVERSE_ROTATION
 			#if LED_OFFSET > 0
-				return number <=  LED_OFFSET - 1 ? LED_OFFSET - 1 - number : NUM_LEDS + LED_OFFSET - 1 - number;
+				return number <=  LED_OFFSET - 1 ? LED_OFFSET - 1 - number : NUM_INDICATOR_LEDS + LED_OFFSET - 1 - number;
 			#else
-				return NUM_LEDS - 1 - number;
+				return NUM_INDICATOR_LEDS - 1 - number;
 			#endif
 		#else
 			#if LED_OFFSET > 0
-				return number >= NUM_LEDS - LED_OFFSET ?  number + LED_OFFSET - NUM_LEDS : number + LED_OFFSET;
+				return number >= NUM_INDICATOR_LEDS - LED_OFFSET ?  number + LED_OFFSET - NUM_INDICATOR_LEDS : number + LED_OFFSET;
 			#else
 				return number;
 			#endif
@@ -215,9 +217,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return idleColor;
 	}
 
-	void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
+	void Led_DrawIdleDots(CRGBSet &leds, uint8_t offset, CRGB::HTMLColorCode color) {
 		for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++) {
-			leds[(Led_Address(offset)+i*Led_IdleDotDistance)%NUM_LEDS] = color;
+			leds[(Led_Address(offset)+i*Led_IdleDotDistance)%leds.size()] = color;
 		}
 	}
 
@@ -235,8 +237,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	static void Led_Task(void *parameter) {
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
-		static CRGB leds[NUM_LEDS];
-		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, leds.size()).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 
@@ -328,67 +329,67 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				// animate the current animation
 				switch (activeAnimation) {
 					case LedAnimationType::Boot:
-						ret = Animation_Boot(startNewAnimation, leds);
+						ret = Animation_Boot(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Shutdown:
-						ret = Animation_Shutdown(startNewAnimation, leds);
+						ret = Animation_Shutdown(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Error:
-						ret = Animation_Error(startNewAnimation, leds);
+						ret = Animation_Error(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Ok:
-						ret = Animation_Ok(startNewAnimation, leds);
+						ret = Animation_Ok(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Volume:
-						ret = Animation_Volume(startNewAnimation, leds);
+						ret = Animation_Volume(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::VoltageWarning:
-						ret = Animation_VoltageWarning(startNewAnimation, leds);
+						ret = Animation_VoltageWarning(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::BatteryMeasurement:
-						ret = Animation_BatteryMeasurement(startNewAnimation, leds);
+						ret = Animation_BatteryMeasurement(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Rewind:
-						ret = Animation_Rewind(startNewAnimation, leds);
+						ret = Animation_Rewind(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Playlist:
-						ret = Animation_PlaylistProgress(startNewAnimation, leds);
+						ret = Animation_PlaylistProgress(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Idle:
-						ret = Animation_Idle(startNewAnimation, leds);
+						ret = Animation_Idle(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Busy:
-						ret = Animation_Busy(startNewAnimation, leds);
+						ret = Animation_Busy(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Speech:
-						ret = Animation_Speech(startNewAnimation, leds);
+						ret = Animation_Speech(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Pause:
-						ret = Animation_Pause(startNewAnimation, leds);
+						ret = Animation_Pause(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Progress:
-						ret = Animation_Progress(startNewAnimation, leds);
+						ret = Animation_Progress(startNewAnimation, indicator);
 						break;
 
 					case LedAnimationType::Webstream:
-						ret = Animation_Webstream(startNewAnimation, leds);
+						ret = Animation_Webstream(startNewAnimation, indicator);
 						break;
 
 					default:
-						FastLED.clear();
+						indicator = CRGB::Black;
 						FastLED.show();
 						ret.animationActive = false;
 						ret.animationDelay = 50;
@@ -397,6 +398,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				// apply delay and state from animation
 				animationActive = ret.animationActive;
 				animationTimer = ret.animationDelay;
+				if(ret.animationRefresh) {
+					FastLED.show();
+				}
 			}
 
 			// get the time to wait and delay the task
@@ -425,37 +429,36 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	// --------------------------------
 	// BOOT-UP Animation
 	// --------------------------------
-	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGBSet &leds) {
 		(void)startNewAnimation; // start is not used
 		// static vars
 		static bool showEvenError = false;
 
 		// 10 s without success?
 		if (millis() > 10000) {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			leds = CRGB::Red;
 			if (showEvenError) {
 				// and then draw in the black dots
-				for (uint8_t i=0;i<NUM_LEDS;i +=2) {
+				for (uint8_t i=0;i<leds.size();i +=2) {
 					leds[i] = CRGB::Black;
 				}
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Black);
+			leds = CRGB::Black;
 			const uint8_t startLed = (showEvenError) ? 1 : 0;
-			for (uint8_t i=startLed;i<NUM_LEDS;i+=2) {
+			for (uint8_t i=startLed;i<leds.size();i+=2) {
 				leds[i] = CRGB::Orange;
 			}
 		}
-		FastLED.show();
 		showEvenError = !showEvenError;
 
-		return AnimationReturnType(false, 500); // always wait 500 ms
+		return AnimationReturnType(false, 500, true); // always wait 500 ms
 	}
 
 	// --------------------------------
 	// Shutdown Animation
 	// --------------------------------
-	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = true;
 		int32_t animationDelay = 0;
@@ -466,55 +469,52 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
-			FastLED.clear();
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
+			leds = CRGB::Black;
 			if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
 				leds[0] = CRGB::Red;
-				FastLED.show();
 				animationDelay = 5;
 			} else {
 				if (singleLedStatus) {
 					leds[0] = CRGB::Red;
 				}
-				FastLED.show();
 				singleLedStatus = !singleLedStatus;
 				animationDelay = 50;
 			}
 			animationActive = false;
 		} else {
-			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
+			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= leds.size())) {
 				animationDelay = 50;
 				if (!gButtons[gShutdownButton].isPressed) {
 					// increase animation index to bail out, if we had a kombi-button
 					animationIndex++;
-					if (animationIndex >= NUM_LEDS + 3) {
+					if (animationIndex >= leds.size() + 3) {
 						animationActive = false;	// this is approx. 150ms after the button is released
 					}
 				}
 			} else {
 				if (animationIndex == 0) {
-					FastLED.clear();
+					leds = CRGB::Black;
 				}
-				if (animationIndex < NUM_LEDS) {
+				if (animationIndex < leds.size()) {
 					leds[Led_Address(animationIndex)] = CRGB::Red;
 					if (gButtons[gShutdownButton].currentState) {
 						animationDelay = 5;
 						animationActive = false;
 					} else {
-						animationDelay = intervalToLongPress / NUM_LEDS;
+						animationDelay = intervalToLongPress / leds.size();
 					}
 					animationIndex++;
-					FastLED.show();
 				}
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
 	// Error Animation
 	// --------------------------------
-	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = true;
 		uint16_t animationDelay = 0;
@@ -525,12 +525,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
-			FastLED.clear();
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
+			leds = CRGB::Black;
 			if (singleLedStatus) {
 				leds[0] = CRGB::Red;
 			}
-			FastLED.show();
 			singleLedStatus = !singleLedStatus;
 
 			if (animationIndex < 5) {
@@ -540,8 +539,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = false;
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
-			FastLED.show();
+			leds = CRGB::Red;
 			if (animationIndex > 0) {
 				animationActive = false;
 			} else {
@@ -549,12 +547,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationDelay = 200;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 	// --------------------------------
 	// OK Animation
 	// --------------------------------
-	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = true;
 		uint16_t animationDelay = 0;
@@ -565,12 +563,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
-			FastLED.clear();
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
+			leds = CRGB::Black;
 			if (singleLedStatus) {
 				leds[0] = CRGB::Green;
 			}
-			FastLED.show();
 			singleLedStatus = !singleLedStatus;
 
 			if (animationIndex < 5) {
@@ -580,8 +577,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = false;
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Green);
-			FastLED.show();
+			leds = CRGB::Green;
 			if (animationIndex > 0) {
 				animationActive = false;
 			} else {
@@ -589,14 +585,14 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationDelay = 400;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
 	// VoltageWarning Animation
 	// --------------------------------
 	// Single + Multiple LEDs: flashes red three times if battery-voltage is low
-	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = true;
 		uint16_t animationDelay = 0;
@@ -607,11 +603,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		FastLED.clear();
+		leds = CRGB::Black;
 		if (animationIndex % 2 == 0) {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			leds = CRGB::Red;
 		}
-		FastLED.show();
 
 		if (animationIndex < 6) {
 			animationIndex++;
@@ -619,16 +614,17 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		} else {
 			animationActive = false;
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
 	// Webstream Animation
 	// --------------------------------
 	// Animates the progress and Pause of a Webstream
-	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = false;
+		bool refresh = false;
 		int32_t animationDelay = 0;
 		// static vars
 		static uint8_t ledPosWebstream = 0;
@@ -637,40 +633,40 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		// pause-animation
 		if (gPlayProperties.pausePlay) {
-			FastLED.clear();
+			leds = CRGB::Black;
 			CRGB::HTMLColorCode generalColor = CRGB::Orange;
-			if (NUM_LEDS == 1) {
+			if constexpr(NUM_INDICATOR_LEDS == 1) {
 				leds[0] = generalColor;
 			} else {
 				leds[Led_Address(ledPosWebstream)] = generalColor;
-				leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
+				leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()] = generalColor;
 			}
 			animationDelay = 10;
 			timerProgress = 0; // directly show new animation after pause
-			FastLED.show();
+			refresh = true;
 		} else {
 			if (startNewAnimation || timerProgress == 0) {
-				FastLED.clear();
+				leds = CRGB::Black;
 				timerProgress = 100;
-				if (ledPosWebstream + 1 < NUM_LEDS) {
+				if (ledPosWebstream + 1 < leds.size()) {
 					ledPosWebstream++;
 				} else {
 					ledPosWebstream = 0;
 				}
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-					if (NUM_LEDS > 1) {
-						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+					if constexpr(NUM_INDICATOR_LEDS > 1) {
+						leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()] = CRGB::Red;
 					}
 				} else {
-					if (NUM_LEDS == 1) {
+					if constexpr(NUM_INDICATOR_LEDS == 1) {
 						leds[0].setHue(webstreamColor++);
 					} else {
 						leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
+						leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()].setHue(webstreamColor++);
 					}
 				}
-				FastLED.show();
+			refresh = true;
 			}
 			timerProgress --;
 			animationDelay = 45;
@@ -678,15 +674,16 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = true;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, refresh);
 	}
 
 	// --------------------------------
 	// Rewind Animation
 	// --------------------------------
-	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = false;
+		bool refresh = false;
 		int32_t animationDelay = 0;
 		// static vars
 		static uint16_t animationIndex = 0;
@@ -694,28 +691,29 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS >= 4) {
+		if constexpr(NUM_INDICATOR_LEDS >= 4) {
 			animationActive = true;
 
-			if (animationIndex < (NUM_LEDS)) {
-				leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
-				FastLED.show();
+			if (animationIndex < (leds.size())) {
+				leds[Led_Address(leds.size() - 1 - animationIndex)] = CRGB::Black;
+				refresh = true;
 				animationDelay = 30;
 				animationIndex ++;
 			} else {
 				animationActive = false;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, refresh);
 	}
 
 	// --------------------------------
 	// Idle Animation
 	// --------------------------------
-	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		int32_t animationDelay = 0;
 		bool animationActive = true;
+		bool refresh = true;
 		// static vars
 		static int16_t ledIndex = 0;
 		// this can be removed to always continue on the last position in idle
@@ -723,24 +721,24 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			ledIndex = 0;
 		}
 
-		if (ledIndex < NUM_LEDS) {
+		if (ledIndex < leds.size()) {
 			CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
-			FastLED.clear();
+			leds = CRGB::Black;
 			Led_DrawIdleDots(leds, ledIndex, idleColor);
-			FastLED.show();
 			animationDelay = 50*10;
 			ledIndex++;
 		} else {
 			animationActive = false;
+			refresh = false;
 			ledIndex = 0;
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, refresh);
 	}
 
 	// --------------------------------
 	// Busy Animation
 	// --------------------------------
-	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		bool animationActive = true;
 		int32_t animationDelay = 0;
@@ -750,38 +748,36 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (startNewAnimation) {
 			animationIndex = 0;
 		}
-		if (NUM_LEDS == 1) {
-			FastLED.clear();
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
+			leds = CRGB::Black;
 			singleLedStatus = !singleLedStatus;
 			if (singleLedStatus) {
 				leds[0] = CRGB::BlueViolet;
 			}
-			FastLED.show();
 			animationDelay = 100;
 			animationActive = false;
 		} else {
-			if (animationIndex < NUM_LEDS) {
-				FastLED.clear();
+			if (animationIndex < leds.size()) {
+				leds = CRGB::Black;
 				CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
 				Led_DrawIdleDots(leds, animationIndex, idleColor);
-				FastLED.show();
 				animationDelay = 50;
 				animationIndex++;
 			} else {
 				animationActive = false;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
 	// Pause Animation
 	// --------------------------------
 	// Animates the pause if no Webstream is active
-	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGBSet &leds) {
 		(void)startNewAnimation; // start is not used
 
-		FastLED.clear();
+		leds = CRGB::Black;
 		CRGB::HTMLColorCode generalColor = CRGB::Orange;
 		if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 			generalColor = CRGB::Blue;
@@ -789,38 +785,34 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		uint8_t pauseOffset = 0;
 		if (OFFSET_PAUSE_LEDS) {
-			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+			pauseOffset = ((leds.size()/NUM_LEDS_IDLE_DOTS)/2)-1;
 		}
 		Led_DrawIdleDots(leds, pauseOffset, generalColor);
 
-		FastLED.show();
-
-		return AnimationReturnType(false, 10);
+		return AnimationReturnType(false, 10, true);
 	}
 
 	// --------------------------------
 	// Speech Animation
 	// --------------------------------
 	// only draw yellow pause-dots
-	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds) {
 		(void)startNewAnimation; // start is not used
 
-		FastLED.clear();
+		leds = CRGB::Black;
 		uint8_t pauseOffset = 0;
 		if (OFFSET_PAUSE_LEDS) {
-			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+			pauseOffset = ((leds.size()/NUM_LEDS_IDLE_DOTS)/2)-1;
 		}
 		Led_DrawIdleDots(leds, pauseOffset, CRGB::Yellow);
 
-		FastLED.show();
-
-		return AnimationReturnType(false, 10);
+		return AnimationReturnType(false, 10, true);
 	}
 
 	// --------------------------------
 	// Progress in Track Animation
 	// --------------------------------
-	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &leds) {
 		// return values
 		int32_t animationDelay = 0;
 		// static values
@@ -828,33 +820,32 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
 			lastPos = gPlayProperties.currentRelPos;
-			FastLED.clear();
-			if (NUM_LEDS == 1) {
+			leds = CRGB::Black;
+			if constexpr(NUM_INDICATOR_LEDS == 1) {
 				leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 			} else {
-				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * DIMMABLE_STATES);
 				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 				for (uint8_t led = 0; led < fullLeds; led++) {
 					if (System_AreControlsLocked()) {
 						leds[Led_Address(led)] = CRGB::Red;
 					} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-						leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
+						leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (leds.size()-1) * led + PROGRESS_HUE_START));
 					}
 				}
 				if (lastLed > 0) {
 					if (System_AreControlsLocked()) {
 						leds[Led_Address(fullLeds)] = CRGB::Red;
 					} else {
-						leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+						leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (leds.size()-1) * fullLeds + PROGRESS_HUE_START));
 					}
 					leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 				}
 			}
-			FastLED.show();
 			animationDelay = 10;
 		}
-		return AnimationReturnType(false, animationDelay);
+		return AnimationReturnType(false, animationDelay, true);
 	}
 
 	// --------------------------------
@@ -863,7 +854,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	// - Single-LED: led indicates loudness between green (low) => red (high)
 	// - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
 	//   green (low) => red (high)
-	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGBSet &leds) {
 		// return-values
 		int32_t animationDelay = 0;
 		bool animationActive = true;
@@ -873,13 +864,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		// wait for further volume changes within next 20ms for 50 cycles = 1s
 		const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
 						AudioPlayer_GetMaxVolume(), 0,
-						NUM_LEDS * DIMMABLE_STATES);
+						leds.size() * DIMMABLE_STATES);
 		const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 		const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
-		FastLED.clear();
+		leds = CRGB::Black;
 
-		if (NUM_LEDS == 1) {
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
 			const uint8_t hue = 85 - (90 *
 				((double)AudioPlayer_GetCurrentVolume() /
 				(double)AudioPlayer_GetMaxVolumeSpeaker()));
@@ -890,16 +881,15 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			* red (250) using unsigned-cast.
 			*/
 			for (int led = 0; led < fullLeds; led++) {
-				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+				const uint8_t hue = (-86.0f) / (leds.size()-1) * led + 85.0f;
 				leds[Led_Address(led)].setHue(hue);
 			}
 			if (lastLed > 0) {
-				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+				const uint8_t hue = (-86.0f) / (leds.size()-1) * fullLeds + 85.0f;
 				leds[Led_Address(fullLeds)].setHue(hue);
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 			}
 		}
-		FastLED.show();
 
 		// reset animation if volume changes
 		if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange) || startNewAnimation) {
@@ -914,13 +904,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationActive = false;
 			cyclesWaited = 0;
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
 	// PLAYLIST-PROGRESS Animation
 	// --------------------------------
-	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGBSet &leds) {
 		// return-values
 		static bool animationActive = false; // signals if the animation is currently active
 		int32_t animationDelay = 0;
@@ -930,9 +920,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static uint32_t staticLastBarLenghtPlaylist = 0; // variable to remember the last length of the progress-bar (for connecting animations)
 		static uint32_t staticLastTrack = 0; // variable to remember the last track (for connecting animations)
 
-		if (NUM_LEDS >= 4) {
+		if constexpr(NUM_INDICATOR_LEDS >= 4) {
 			if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-				const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
+				const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_INDICATOR_LEDS * DIMMABLE_STATES);
 				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
@@ -1014,7 +1004,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				}
 
 				// draw bar
-				FastLED.clear();
+				leds = CRGB::Black;
 				for (uint8_t i = 0; i < barLength; i++) {
 					leds[Led_Address(i)] = CRGB::Blue;
 				}
@@ -1022,14 +1012,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					leds[Led_Address(barLength)] = Led_DimColor(CRGB::Blue, lastLed);
 				}
 				staticLastBarLenghtPlaylist = barLength;
-				FastLED.show();
 			}
 		} else {
 			// nothing to show. Just clear indicator
 			LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
 		}
 
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, true);
 	}
 
 	// --------------------------------
@@ -1037,9 +1026,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	// --------------------------------
 	// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
 	// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGBSet &leds) {
 		// return-values
 		static bool animationActive = false;
+		bool refresh = false;
 		int32_t animationDelay = 0;
 		// static variables for animation
 		static float staticBatteryLevel = 0.0f; // variable to store the measured battery-voltage
@@ -1060,9 +1050,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			staticBatteryLevel = batteryLevel;
 			filledLedCount = 0;
 			animationActive = true;
-			FastLED.clear();
+			leds = CRGB::Black;
+			refresh = true;
 		}
-		if (NUM_LEDS == 1) {
+		if constexpr(NUM_INDICATOR_LEDS == 1) {
 			if (staticBatteryLevel < 0.3) {
 				leds[0] = CRGB::Red;
 			} else if (staticBatteryLevel < 0.6) {
@@ -1070,14 +1061,14 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			} else {
 				leds[0] = CRGB::Green;
 			}
-			FastLED.show();
+			refresh = true;
 
 			animationDelay = 20*100;
 			animationActive = false;
 		} else {
-			uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
-			if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
-				numLedsToLight = NUM_LEDS;
+			uint8_t numLedsToLight = staticBatteryLevel * leds.size();
+			if (numLedsToLight > leds.size()) {    // Can happen e.g. if no battery is connected
+				numLedsToLight = leds.size();
 			}
 
 			// fill all needed LEDs
@@ -1089,7 +1080,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				} else {
 					leds[Led_Address(filledLedCount)] = CRGB::Green;
 				}
-				FastLED.show();
+				refresh = true;
 
 				filledLedCount ++;
 				animationDelay = 20;
@@ -1098,6 +1089,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = false;
 			}
 		}
-		return AnimationReturnType(animationActive, animationDelay);
+		return AnimationReturnType(animationActive, animationDelay, refresh);
 	}
 #endif

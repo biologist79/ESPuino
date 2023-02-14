@@ -202,9 +202,10 @@
 	//#################### Settings for optional Modules##############################
 	// (optinal) Neopixel
 	#ifdef NEOPIXEL_ENABLE
-		#define NUM_LEDS			24          	// number of LEDs
-		#define CHIPSET				WS2812B     	// type of Neopixel
-		#define COLOR_ORDER			GRB
+		#define NUM_INDICATOR_LEDS		24          	// number of LEDs
+		#define NUM_STATIC_LEDS			0				// not used currently
+		#define CHIPSET					WS2812B     	// type of Neopixel
+		#define COLOR_ORDER				GRB
 		#define NUM_LEDS_IDLE_DOTS		4           	// count of LEDs, which are shown when Idle
 		#define OFFSET_PAUSE_LEDS		false		// if true the pause-leds are centered in the mid of the LED-Strip
 		#define PROGRESS_HUE_START		85          	// Start and end hue of mulitple-LED progress indicator. Hue ranges from basically 0 - 255, but you can also set numbers outside this range to get the desired effect (e.g. 85-215 will go from green to purple via blue, 341-215 start and end at exactly the same color but go from green to purple via yellow and red)
