@@ -132,7 +132,8 @@
                     "Loop track",
                     "Dimm LEDs (nightmode)",
                     "Toggle WiFi",
-                    "Toggle Bluetooth",
+                    "Toggle Bluetooth Speeker",
+                    "Toggle Bluetooth Headphones",
                     "Enable FTP",
                     "Remove assignment",
                     "Toggle Play/Pause",
@@ -222,7 +223,6 @@
 			"textLabel": "Text of speech",
 			"textDefault": "This is the ESPUINO of Torsten"
 		}
-        
     },
     "tools": {
         "nvserase": {
