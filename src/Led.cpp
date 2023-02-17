@@ -824,7 +824,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			if constexpr(NUM_INDICATOR_LEDS == 1) {
 				leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 			} else {
-				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * DIMMABLE_STATES);
+				const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
 				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 				for (uint8_t led = 0; led < fullLeds; led++) {
@@ -862,9 +862,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static uint16_t cyclesWaited = 0;
 
 		// wait for further volume changes within next 20ms for 50 cycles = 1s
-		const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
-						AudioPlayer_GetMaxVolume(), 0,
-						leds.size() * DIMMABLE_STATES);
+		const uint32_t ledValue =  std::clamp<uint32_t>(map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
 		const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 		const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
@@ -922,7 +920,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		if constexpr(NUM_INDICATOR_LEDS >= 4) {
 			if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-				const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_INDICATOR_LEDS * DIMMABLE_STATES);
+				const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
 				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 
@@ -1066,10 +1064,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationDelay = 20*100;
 			animationActive = false;
 		} else {
-			uint8_t numLedsToLight = staticBatteryLevel * leds.size();
-			if (numLedsToLight > leds.size()) {    // Can happen e.g. if no battery is connected
-				numLedsToLight = leds.size();
-			}
+			uint8_t numLedsToLight = std::clamp<uint8_t>(staticBatteryLevel * leds.size(), 0, leds.size());
 
 			// fill all needed LEDs
 			if (filledLedCount < numLedsToLight) {
