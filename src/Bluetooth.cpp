@@ -4,6 +4,7 @@
 #include "Bluetooth.h"
 #include "Log.h"
 #include "RotaryEncoder.h"
+#include "Common.h"
 #include "System.h"
 
 #ifdef BLUETOOTH_ENABLE
@@ -19,6 +20,7 @@
 	BluetoothA2DPSink *a2dp_sink;
 	BluetoothA2DPSource *a2dp_source;
 	RingbufHandle_t audioSourceRingBuffer;
+	String btDeviceName;
 #endif
 
 
@@ -126,6 +128,22 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 	}
 #endif
 
+#ifdef BLUETOOTH_ENABLE
+	// Callback notifying BT-source devices available. 
+	// Return true to connect, false will continue scanning
+	bool scan_bluetooth_device_callback(const char* ssid, esp_bd_addr_t address, int rssi){
+		snprintf(Log_Buffer, Log_BufferLength, "%s %s", (char *) FPSTR("Bluetooth source => Device found: "), ssid);
+		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+
+		if (btDeviceName == "") {
+			// no device name given, connect to first device found
+    		return true;
+		} else {
+			// connect if device name (partially) matching, todo: compare case insensitive here?
+			return startsWith(ssid, btDeviceName.c_str());
+		}
+}
+#endif
 
 void Bluetooth_VolumeChanged(int _newVolume) {
 	#ifdef BLUETOOTH_ENABLE
@@ -185,11 +203,17 @@ void Bluetooth_Init(void) {
 			//a2dp_source->set_task_core(1);            // task core
 			//a2dp_source->set_nvs_init(true);          // erase/initialize NVS
 			//a2dp_source->set_ssp_enabled(true);       // enable secure simple pairing
-
+		
 			// start bluetooth source
-			String btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
-			a2dp_source->start(btDeviceName.c_str(), get_data_channels);
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source started, connect to device: '%s'", (char *)FPSTR(btDeviceName.c_str()));
+			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
+			a2dp_source->start(get_data_channels);  
+
+		    btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
+			if (btDeviceName == "") {
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source started, connect to device: '%s'", "First device found");
+			} else {
+				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source started, connect to device: '%s'", (char *)FPSTR(btDeviceName.c_str()));
+			}	
 			Log_Println(Log_Buffer, LOGLEVEL_INFO);
 			// connect events after startup
 			a2dp_source->set_on_connection_state_changed(connection_state_changed);

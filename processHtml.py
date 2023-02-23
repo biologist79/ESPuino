@@ -8,17 +8,16 @@ from pathlib import Path
 import os
 import mimetypes
 import gzip
+Import("env")  # pylint: disable=undefined-variable
 
 try:
     from flask_minify.parsers import Parser
 except ImportError:
   print("Trying to Install required module: flask_minify\nIf this failes, please execute \"pip install flask_minify\" manually.")
-  os.system('python -m pip install flask_minify')
+  env.Execute("$PYTHONEXE -m pip install flask_minify")
 
 from flask_minify.parsers import Parser
 import json
-
-Import("env")  # pylint: disable=undefined-variable
 
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
