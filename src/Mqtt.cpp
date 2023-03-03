@@ -290,9 +290,8 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	#ifdef MQTT_ENABLE
 		char *receivedString = (char*)x_calloc(length + 1u, sizeof(char));
 		memcpy(receivedString, (char *) payload, length);
-		char *mqttTopic = x_strdup(topic);
 
-		snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
+		snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), topic, receivedString);
 		Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
 		// Go to sleep?
@@ -303,8 +302,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		}
 		// New track to play? Take RFID-ID as input
 		else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-			char *_rfidId = x_strdup(receivedString);
-			xQueueSend(gRfidCardQueue, _rfidId, 0);
+			xQueueSend(gRfidCardQueue, receivedString, 0);
 		}
 		// Loudness to change?
 		else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
@@ -460,6 +458,5 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		}
 
 		free(receivedString);
-		free(mqttTopic);
 	#endif
 }
