@@ -159,13 +159,15 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 			/*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), buffer);
 			Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
-				subdirectoryList = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
+				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
 				Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
-				if (subdirectoryList == NULL) {
+				if (tmp == NULL) {
 					Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
 					System_IndicateError();
+					free(subdirectoryList);
 					return NULL;
 				}
+				subdirectoryList = tmp;
 			}
 			strcat(subdirectoryList, stringDelimiter);
 			strcat(subdirectoryList, buffer);
@@ -212,7 +214,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	First element of array always contains the number of payload-items. */
 char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	static char **files;
-	char *serializedPlaylist;
+	char *serializedPlaylist = NULL;
 	char fileNameBuf[255];
 	char cacheFileNameBuf[275];
 	bool readFromCacheFile = false;
@@ -257,6 +259,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				} else {
 					Log_Println((char *) FPSTR(playlistGenModeCached), LOGLEVEL_NOTICE);
 					serializedPlaylist = (char *) x_calloc(cacheFileSize+10, sizeof(char));
+					if(serializedPlaylist == NULL) {
+						Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
+						System_IndicateError();
+						return files;
+					}
 
 					char buf;
 					uint32_t fPos = 0;
@@ -302,14 +309,15 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 			while (fileOrDirectory.available() > 0) {
 				buf = fileOrDirectory.read();
 				if (fPos+1 >= allocCount * allocSize) {
-					serializedPlaylist = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
+					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
-					if (serializedPlaylist == NULL) {
+					if (tmp == NULL) {
 						Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
 						System_IndicateError();
 						free(serializedPlaylist);
 						return files;
 					}
+					serializedPlaylist = tmp;
 				}
 
 				if (buf != '\n' && buf != '\r') {
@@ -388,13 +396,15 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					/*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
 					Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
 					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
-						serializedPlaylist = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
+						char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 						Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
-						if (serializedPlaylist == NULL) {
+						if (tmp == NULL) {
 							Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
 							System_IndicateError();
+							free(serializedPlaylist);
 							return files;
 						}
+						serializedPlaylist = tmp;
 					}
 					strcat(serializedPlaylist, stringDelimiter);
 					strcat(serializedPlaylist, fileNameBuf);
@@ -425,7 +435,9 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	if (files == NULL) {
 		Log_Println((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
 		System_IndicateError();
-		free(serializedPlaylist);
+		if(serializedPlaylist) {
+			free(serializedPlaylist);
+		}
 		return NULL;
 	}
 
@@ -445,6 +457,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	if (files[0] == NULL) {
 		Log_Println((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
 		System_IndicateError();
+		freeMultiCharArray(files, cnt);
 		return NULL;
 	}
 	sprintf(files[0], "%u", cnt);
