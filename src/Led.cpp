@@ -224,18 +224,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	bool CheckForPowerButtonAnimation() {
-		bool powerAnimation = false;
 		if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
-			if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
-				powerAnimation = true;
-			}
-		} else {
-			gShutdownButton = (sizeof(gButtons) / sizeof(gButtons[0])) - 1; // If CMD_SLEEPMODE was not assigned to an enabled button, dummy-button is used
-			if (!gButtons[gShutdownButton].currentState) {
-				gButtons[gShutdownButton].currentState = true;
+			if (gButtons[gShutdownButton].isPressed && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
+				return true;
 			}
 		}
-		return powerAnimation;
+		return false;
 	}
 #endif
 
