@@ -221,11 +221,18 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	bool enablePlaylistCaching = false;
 	bool enablePlaylistFromM3u = false;
 
+	if (files != NULL) { // If **ptr already exists, de-allocate its memory
+		Log_Println((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
+		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
+		snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
+		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	}
+
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
 		Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
-		return NULL;
+		return nullptr;
 	}
 
 	// Create linear playlist of caching-file
@@ -279,13 +286,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 
 	snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
 	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-
-	if (files != NULL) { // If **ptr already exists, de-allocate its memory
-		Log_Println((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
-		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
-		snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-	}
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
