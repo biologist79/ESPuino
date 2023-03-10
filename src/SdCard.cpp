@@ -262,7 +262,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					if(serializedPlaylist == NULL) {
 						Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
 						System_IndicateError();
-						return files;
+						return nullptr;
 					}
 
 					char buf;
@@ -282,7 +282,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
 		Log_Println((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
-		freeMultiCharArray(files, strtoul(*files, NULL, 10) + 1);
+		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
 		snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
 		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	}
@@ -355,7 +355,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				strncpy(fileNameBuf, (char *) fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 			#endif
 			if (fileValid(fileNameBuf)) {
-				files = (char **) x_malloc(sizeof(char *) * 2);
 				files[1] = x_strdup(fileNameBuf);
 			}
 			files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
@@ -429,12 +428,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	}
 
 	// Alloc only necessary number of playlist-pointers
-	files = (char **) x_malloc(sizeof(char *) * cnt + 1);
-
-	if (files == NULL) {
+	files = (char **) x_malloc(sizeof(char *) * (cnt + 1));
+	if (files == nullptr) {
 		Log_Println((char *) FPSTR(unableToAllocateMemForPlaylist), LOGLEVEL_ERROR);
 		System_IndicateError();
-			free(serializedPlaylist);
+		free(serializedPlaylist);
 		return nullptr;
 	}
 
@@ -457,7 +455,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		freeMultiCharArray(files, cnt + 1);
 		return nullptr;
 	}
-	sprintf(files[0], "%u", cnt);
+	snprintf(files[0], 5,  "%u", cnt);
 	snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(numberOfValidFiles), cnt);
 	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
 
