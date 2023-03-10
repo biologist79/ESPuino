@@ -98,8 +98,7 @@ bool testSPIRAM(void) {
 			if (!lastRfidPlayed.compareTo("-1")) {
 				Log_Println((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
 			} else {
-				char *lastRfid = x_strdup(lastRfidPlayed.c_str());
-				xQueueSend(gRfidCardQueue, lastRfid, 0);
+				xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
 				snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
 				Log_Println(Log_Buffer, LOGLEVEL_INFO);
 			}
