@@ -44,8 +44,8 @@ static void AudioPlayer_Task(void *parameter);
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static char **AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
 static int AudioPlayer_ArrSortHelper(const void *a, const void *b);
-static void AudioPlayer_SortPlaylist(const char **arr, int n);
-static void AudioPlayer_SortPlaylist(char *str[], const uint32_t count);
+static void AudioPlayer_SortPlaylist(char **arr, int n);
+static void AudioPlayer_RandomizePlaylist(char **str, const uint32_t count);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 static void AudioPlayer_ClearCover(void);
 
@@ -934,7 +934,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			gPlayProperties.numberOfTracks = 1; // Limit number to 1 even there are more entries in the playlist
 			Led_ResetToNightBrightness();
 			Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -942,7 +942,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case AUDIOBOOK: { // Tracks need to be alph. sorted!
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -951,7 +951,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			gPlayProperties.repeatPlaylist = true;
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -960,14 +960,14 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
 			snprintf(Log_Buffer, Log_BufferLength, "%s '%s' ", (char *) FPSTR(modeAllTrackAlphSorted), filename);
 			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
 
 		case ALL_TRACKS_OF_DIR_RANDOM: {
 			Log_Println((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -975,7 +975,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case ALL_TRACKS_OF_DIR_SORTED_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
 			Log_Println((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist((const char **)musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -983,7 +983,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case ALL_TRACKS_OF_DIR_RANDOM_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
 			Log_Println((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(musicFiles, strtoul(*(musicFiles - 1), NULL, 10));
+			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -1074,7 +1074,7 @@ void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand) {
 }
 
 // Knuth-Fisher-Yates-algorithm to randomize playlist
-void AudioPlayer_SortPlaylist(char *str[], const uint32_t count) {
+void AudioPlayer_RandomizePlaylist(char **str, const uint32_t count) {
 	if (!count) {
 		return;
 	}
@@ -1098,7 +1098,7 @@ static int AudioPlayer_ArrSortHelper(const void *a, const void *b) {
 }
 
 // Sort playlist alphabetically
-void AudioPlayer_SortPlaylist(const char **arr, int n) {
+void AudioPlayer_SortPlaylist(char **arr, int n) {
 	qsort(arr, n, sizeof(const char *), AudioPlayer_ArrSortHelper);
 }
 
