@@ -98,7 +98,7 @@
 
 				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
     			#ifdef HALLEFFECT_SENSOR_ENABLE
-					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);  
+					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 				#endif
 
 				#ifdef PAUSE_WHEN_RFID_REMOVED
@@ -123,8 +123,9 @@
 					#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
 						if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) {     // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
 					#else
-						if (!sameCardReapplied){		// Don't allow to send card to queue if it's the same card again...
+						if (!sameCardReapplied) {		// Don't allow to send card to queue if it's the same card again...
 					#endif
+							xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 					} else {
 						// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 						if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
