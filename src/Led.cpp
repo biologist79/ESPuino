@@ -51,6 +51,7 @@
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -207,7 +208,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 #ifdef NEOPIXEL_ENABLE
 	static void Led_Task(void *parameter) {
 		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
-		static double lastPos = gPlayProperties.currentRelPos;
 		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
 		static bool singleLedStatus = false;
@@ -583,36 +583,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					} break;
 
 					case LedAnimationType::Progress: {
-						if (gPlayProperties.currentRelPos != lastPos || animationIndex == 0) {
-							animationIndex = 1;
-							lastPos = gPlayProperties.currentRelPos;
-							FastLED.clear();
-							if (NUM_LEDS == 1) {
-								leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
-							} else {
-								const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
-								const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-								const uint8_t lastLed = ledValue % DIMMABLE_STATES;
-								for (uint8_t led = 0; led < fullLeds; led++) {
-									if (System_AreControlsLocked()) {
-										leds[Led_Address(led)] = CRGB::Red;
-									} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-										leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
-									}
-								}
-								if (lastLed > 0) {
-									if (System_AreControlsLocked()) {
-										leds[Led_Address(fullLeds)] = CRGB::Red;
-									} else {
-										leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
-									}
-									leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
-								}
-							}
-							FastLED.show();
-							animationTimer = 10;
-							animationActive = false;
-						}
+						AnimationReturnType ret = Animation_Progress(startNewAnimation, leds);
+						animationActive = ret.animationActive;
+						animationTimer = ret.animationDelay;
 					} break;
 
 					case LedAnimationType::Webstream: {
@@ -668,6 +641,42 @@ void Led_SetButtonLedsEnabled(boolean value) {
 // all funcitons return the desired delay and if they are still active
 
 #ifdef NEOPIXEL_ENABLE
+	// ANIMATION OF PROGRESS
+	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds){
+		static double lastPos = 0.0f;
+		int32_t animationDelay = 0;
+		
+		if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
+			lastPos = gPlayProperties.currentRelPos;
+			FastLED.clear();
+			if (NUM_LEDS == 1) {
+				leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
+			} else {
+				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
+				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+				for (uint8_t led = 0; led < fullLeds; led++) {
+					if (System_AreControlsLocked()) {
+						leds[Led_Address(led)] = CRGB::Red;
+					} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
+						leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
+					}
+				}
+				if (lastLed > 0) {
+					if (System_AreControlsLocked()) {
+						leds[Led_Address(fullLeds)] = CRGB::Red;
+					} else {
+						leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+					}
+					leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+				}
+			}
+			FastLED.show();
+			animationDelay = 10;
+		}
+		return AnimationReturnType(false, animationDelay);
+	}
+
 	// ANIMATION OF VULUME CHANGE
 	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds){
 		static uint8_t lastVolume = 0;
@@ -726,7 +735,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
-	
+
 	// ANIMATION OF PLAYLIST-PROGRESS
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false; // signals if the animation is currently active
