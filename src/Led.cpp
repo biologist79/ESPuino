@@ -50,6 +50,7 @@
 	// animation-functions prototypes
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -263,6 +264,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::BatteryMeasurement;
 			#endif
 			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
+				hlastVolume = AudioPlayer_GetCurrentVolume();
 				nextAnimation = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
@@ -419,56 +421,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// Animation of Volume
 					// --------------------------------------------------
 					case LedAnimationType::Volume: {
-						/*
-						* - Single-LED: led indicates loudness between green (low) => red (high)
-						* - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
-						*   green (low) => red (high)
-						*/
-						animationActive = true;
-
-						// wait for further volume changes within next 20ms for 50 cycles = 1s
-						const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
-										AudioPlayer_GetMaxVolume(), 0,
-										NUM_LEDS * DIMMABLE_STATES);
-						const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-						const uint8_t lastLed = ledValue % DIMMABLE_STATES;
-
-						FastLED.clear();
-
-						if (NUM_LEDS == 1) {
-							const uint8_t hue = 85 - (90 *
-								((double)AudioPlayer_GetCurrentVolume() /
-								(double)AudioPlayer_GetMaxVolumeSpeaker()));
-							leds[0].setHue(hue);
-						} else {
-							/*
-							* (Inverse) color-gradient from green (85) back to (still)
-							* red (250) using unsigned-cast.
-							*/
-							for (int led = 0; led < fullLeds; led++) {
-								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
-								leds[Led_Address(led)].setHue(hue);
-							}
-							if (lastLed > 0) {
-								const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
-								leds[Led_Address(fullLeds)].setHue(hue);
-								leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
-							}
-						}
-						FastLED.show();
-
-						// reset animation if volume changes
-						if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-							hlastVolume = AudioPlayer_GetCurrentVolume();
-							animationIndex = 0;
-						}
-
-						if (animationIndex < LED_VOLUME_INDICATOR_NUM_CYCLES) {
-							animationTimer = 20;
-							animationIndex ++;
-						} else {
-							animationActive = false;
-						}
+						AnimationReturnType ret = Animation_Volume(startNewAnimation, leds);
+						animationActive = ret.animationActive;
+						animationTimer = ret.animationDelay;
 					} break;
 
 					// --------------------------------------------------
@@ -713,6 +668,65 @@ void Led_SetButtonLedsEnabled(boolean value) {
 // all funcitons return the desired delay and if they are still active
 
 #ifdef NEOPIXEL_ENABLE
+	// ANIMATION OF VULUME CHANGE
+	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds){
+		static uint8_t lastVolume = 0;
+		static uint16_t cyclesWaited = 0;
+		int32_t animationDelay = 0;
+
+		/*
+		* - Single-LED: led indicates loudness between green (low) => red (high)
+		* - Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between
+		*   green (low) => red (high)
+		*/
+		bool animationActive = true;
+
+		// wait for further volume changes within next 20ms for 50 cycles = 1s
+		const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
+						AudioPlayer_GetMaxVolume(), 0,
+						NUM_LEDS * DIMMABLE_STATES);
+		const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
+		const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+
+		FastLED.clear();
+
+		if (NUM_LEDS == 1) {
+			const uint8_t hue = 85 - (90 *
+				((double)AudioPlayer_GetCurrentVolume() /
+				(double)AudioPlayer_GetMaxVolumeSpeaker()));
+			leds[0].setHue(hue);
+		} else {
+			/*
+			* (Inverse) color-gradient from green (85) back to (still)
+			* red (250) using unsigned-cast.
+			*/
+			for (int led = 0; led < fullLeds; led++) {
+				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+				leds[Led_Address(led)].setHue(hue);
+			}
+			if (lastLed > 0) {
+				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+				leds[Led_Address(fullLeds)].setHue(hue);
+				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+			}
+		}
+		FastLED.show();
+
+		// reset animation if volume changes
+		if (lastVolume != AudioPlayer_GetCurrentVolume()) {
+			lastVolume = AudioPlayer_GetCurrentVolume();
+			cyclesWaited = 0;
+		}
+
+		if (cyclesWaited < LED_VOLUME_INDICATOR_NUM_CYCLES) {
+			animationDelay = 20;
+			cyclesWaited ++;
+		} else {
+			animationActive = false;
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+	
 	// ANIMATION OF PLAYLIST-PROGRESS
 	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false; // signals if the animation is currently active
