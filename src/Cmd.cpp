@@ -274,9 +274,6 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_TELL_IP_ADDRESS: {
 			if (Wlan_IsConnected()) {
-				if (!gPlayProperties.pausePlay) {
-					AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-				}
 				gPlayProperties.tellIpAddress = true;
 				gPlayProperties.currentSpeechActive = true;
 				gPlayProperties.lastSpeechActive = true;

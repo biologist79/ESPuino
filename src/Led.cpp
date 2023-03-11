@@ -190,18 +190,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	bool CheckForPowerButtonAnimation() {
-		bool powerAnimation = false;
 		if (gShutdownButton < (sizeof(gButtons) / sizeof(gButtons[0])) - 1) { // Only show animation, if CMD_SLEEPMODE was assigned to BUTTON_n_LONG + button is pressed
-			if (!gButtons[gShutdownButton].currentState && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
-				powerAnimation = true;
-			}
-		} else {
-			gShutdownButton = (sizeof(gButtons) / sizeof(gButtons[0])) - 1; // If CMD_SLEEPMODE was not assigned to an enabled button, dummy-button is used
-			if (!gButtons[gShutdownButton].currentState) {
-				gButtons[gShutdownButton].currentState = true;
+			if (gButtons[gShutdownButton].isPressed && (millis() - gButtons[gShutdownButton].firstPressedTimestamp >= 150) && gButtonInitComplete) {
+				return true;
 			}
 		}
-		return powerAnimation;
+		return false;
 	}
 #endif
 
@@ -358,7 +352,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						} else {
 							if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
 								animationTimer = 50;
-								// don't end animation, we already reached the shutdown.
+								if(!gButtons[gShutdownButton].isPressed) {
+									// increase animation index to bail out, if we had a kombi-button
+									animationIndex++;
+									if(animationIndex >= NUM_LEDS + 3) {
+										animationActive = false;	// this is approx. 150ms after the button is released
+									}
+								}
 							} else {
 								if (animationIndex == 0) {
 									FastLED.clear();
