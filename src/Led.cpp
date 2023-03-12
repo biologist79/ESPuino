@@ -22,12 +22,6 @@
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t)indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator) ((Led_Indicators) &= ~(1u << ((uint8_t)indicator)))
 
-	#ifndef LED_OFFSET
-		#define LED_OFFSET 0
-	#elif LED_OFFSET < 0 || LED_OFFSET >= NUM_LEDS
-		#error LED_OFFSET must be between 0 and NUM_LEDS-1
-	#endif
-
 	// Time in milliseconds the volume indicator is visible
 	#define LED_VOLUME_INDICATOR_RETURN_DELAY	1000U
 	#define LED_VOLUME_INDICATOR_NUM_CYCLES		(LED_VOLUME_INDICATOR_RETURN_DELAY / 20)
@@ -42,7 +36,7 @@
 	static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
-	constexpr uint8_t Led_IdleDotDistance = NUM_LEDS / NUM_LEDS_IDLE_DOTS;
+	constexpr uint8_t Led_IdleDotDistance = CONFIG_NEOPIXEL_NUM_LEDS / CONFIG_NEOPIXEL_NUM_IDLE_DOTS;
 
 	TaskHandle_t Led_TaskHandle;
 	static void Led_Task(void *parameter);
@@ -164,15 +158,15 @@ void Led_SetBrightness(uint8_t value) {
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
 #ifdef CONFIG_NEOPIXEL
 	uint8_t Led_Address(uint8_t number) {
-		#ifdef NEOPIXEL_REVERSE_ROTATION
-			#if LED_OFFSET > 0
-				return number <=  LED_OFFSET - 1 ? LED_OFFSET - 1 - number : NUM_LEDS + LED_OFFSET - 1 - number;
+		#ifdef CONFIG_NEOPIXEL_REVERSE
+			#if CONFIG_NEOPIXEL_OFFSET > 0
+				return number <=  CONFIG_NEOPIXEL_OFFSET - 1 ? CONFIG_NEOPIXEL_OFFSET - 1 - number : CONFIG_NEOPIXEL_NUM_LEDS + CONFIG_NEOPIXEL_OFFSET - 1 - number;
 			#else
-				return NUM_LEDS - 1 - number;
+				return CONFIG_NEOPIXEL_NUM_LEDS - 1 - number;
 			#endif
 		#else
 			#if LED_OFFSET > 0
-				return number >= NUM_LEDS - LED_OFFSET ?  number + LED_OFFSET - NUM_LEDS : number + LED_OFFSET;
+				return number >= CONFIG_NEOPIXEL_NUM_LEDS - CONFIG_NEOPIXEL_OFFSET ?  number + CONFIG_NEOPIXEL_OFFSET - CONFIG_NEOPIXEL_NUM_LEDS : number + CONFIG_NEOPIXEL_OFFSET;
 			#else
 				return number;
 			#endif
@@ -189,7 +183,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 #ifdef CONFIG_NEOPIXEL
 	CRGB Led_DimColor(CRGB color, uint8_t brightness) {
-		const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
+		const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / CONFIG_NEOPIXEL_DIMMABLE_STATES;
 		return color.nscale8(factor);
 	}
 	CRGB::HTMLColorCode Led_GetIdleColor() {
@@ -216,8 +210,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
-		for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++) {
-			leds[(Led_Address(offset)+i*Led_IdleDotDistance)%NUM_LEDS] = color;
+		for (uint8_t i=0; i<CONFIG_NEOPIXEL_NUM_IDLE_DOTS; i++) {
+			leds[(Led_Address(offset)+i*Led_IdleDotDistance)%CONFIG_NEOPIXEL_NUM_LEDS] = color;
 		}
 	}
 
@@ -235,8 +229,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	static void Led_Task(void *parameter) {
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
-		static CRGB leds[NUM_LEDS];
-		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+		static CRGB leds[CONFIG_NEOPIXEL_NUM_LEDS];
+		FastLED.addLeds<CONFIG_NEOPIXEL_CHIPSET, LED_PIN, CONFIG_NEOPIXEL_COLOR_ORDER>(leds, CONFIG_NEOPIXEL_NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 
@@ -432,17 +426,17 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		// 10 s without success?
 		if (millis() > 10000) {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			fill_solid(leds, CONFIG_NEOPIXEL_NUM_LEDS, CRGB::Red);
 			if (showEvenError) {
 				// and then draw in the black dots
-				for (uint8_t i=0;i<NUM_LEDS;i +=2) {
+				for (uint8_t i=0;i<CONFIG_NEOPIXEL_NUM_LEDS;i +=2) {
 					leds[i] = CRGB::Black;
 				}
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Black);
+			fill_solid(leds, CONFIG_NEOPIXEL_NUM_LEDS, CRGB::Black);
 			const uint8_t startLed = (showEvenError) ? 1 : 0;
-			for (uint8_t i=startLed;i<NUM_LEDS;i+=2) {
+			for (uint8_t i=startLed;i<CONFIG_NEOPIXEL_NUM_LEDS;i+=2) {
 				leds[i] = CRGB::Orange;
 			}
 		}
@@ -466,7 +460,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			FastLED.clear();
 			if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
 				leds[0] = CRGB::Red;
@@ -482,12 +476,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			}
 			animationActive = false;
 		} else {
-			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
+			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= CONFIG_NEOPIXEL_NUM_LEDS)) {
 				animationDelay = 50;
 				if (!gButtons[gShutdownButton].isPressed) {
 					// increase animation index to bail out, if we had a kombi-button
 					animationIndex++;
-					if (animationIndex >= NUM_LEDS + 3) {
+					if (animationIndex >= CONFIG_NEOPIXEL_NUM_LEDS + 3) {
 						animationActive = false;	// this is approx. 150ms after the button is released
 					}
 				}
@@ -495,13 +489,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				if (animationIndex == 0) {
 					FastLED.clear();
 				}
-				if (animationIndex < NUM_LEDS) {
+				if (animationIndex < CONFIG_NEOPIXEL_NUM_LEDS) {
 					leds[Led_Address(animationIndex)] = CRGB::Red;
 					if (gButtons[gShutdownButton].currentState) {
 						animationDelay = 5;
 						animationActive = false;
 					} else {
-						animationDelay = intervalToLongPress / NUM_LEDS;
+						animationDelay = intervalToLongPress / CONFIG_NEOPIXEL_NUM_LEDS;
 					}
 					animationIndex++;
 					FastLED.show();
@@ -525,7 +519,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			FastLED.clear();
 			if (singleLedStatus) {
 				leds[0] = CRGB::Red;
@@ -540,7 +534,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = false;
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			fill_solid(leds, CONFIG_NEOPIXEL_NUM_LEDS, CRGB::Red);
 			FastLED.show();
 			if (animationIndex > 0) {
 				animationActive = false;
@@ -565,7 +559,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			FastLED.clear();
 			if (singleLedStatus) {
 				leds[0] = CRGB::Green;
@@ -580,7 +574,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				animationActive = false;
 			}
 		} else {
-			fill_solid(leds, NUM_LEDS, CRGB::Green);
+			fill_solid(leds, CONFIG_NEOPIXEL_NUM_LEDS, CRGB::Green);
 			FastLED.show();
 			if (animationIndex > 0) {
 				animationActive = false;
@@ -609,7 +603,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		FastLED.clear();
 		if (animationIndex % 2 == 0) {
-			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			fill_solid(leds, CONFIG_NEOPIXEL_NUM_LEDS, CRGB::Red);
 		}
 		FastLED.show();
 
@@ -639,11 +633,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (gPlayProperties.pausePlay) {
 			FastLED.clear();
 			CRGB::HTMLColorCode generalColor = CRGB::Orange;
-			if (NUM_LEDS == 1) {
+			if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 				leds[0] = generalColor;
 			} else {
 				leds[Led_Address(ledPosWebstream)] = generalColor;
-				leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
+				leds[(Led_Address(ledPosWebstream) + CONFIG_NEOPIXEL_NUM_LEDS / 2) % CONFIG_NEOPIXEL_NUM_LEDS] = generalColor;
 			}
 			animationDelay = 10;
 			timerProgress = 0; // directly show new animation after pause
@@ -652,22 +646,22 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			if (startNewAnimation || timerProgress == 0) {
 				FastLED.clear();
 				timerProgress = 100;
-				if (ledPosWebstream + 1 < NUM_LEDS) {
+				if (ledPosWebstream + 1 < CONFIG_NEOPIXEL_NUM_LEDS) {
 					ledPosWebstream++;
 				} else {
 					ledPosWebstream = 0;
 				}
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-					if (NUM_LEDS > 1) {
-						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+					if (CONFIG_NEOPIXEL_NUM_LEDS > 1) {
+						leds[(Led_Address(ledPosWebstream) + CONFIG_NEOPIXEL_NUM_LEDS / 2) % CONFIG_NEOPIXEL_NUM_LEDS] = CRGB::Red;
 					}
 				} else {
-					if (NUM_LEDS == 1) {
+					if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 						leds[0].setHue(webstreamColor++);
 					} else {
 						leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
+						leds[(Led_Address(ledPosWebstream) + CONFIG_NEOPIXEL_NUM_LEDS / 2) % CONFIG_NEOPIXEL_NUM_LEDS].setHue(webstreamColor++);
 					}
 				}
 				FastLED.show();
@@ -694,11 +688,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationIndex = 0;
 		}
 
-		if (NUM_LEDS >= 4) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS >= 4) {
 			animationActive = true;
 
-			if (animationIndex < (NUM_LEDS)) {
-				leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
+			if (animationIndex < (CONFIG_NEOPIXEL_NUM_LEDS)) {
+				leds[Led_Address(CONFIG_NEOPIXEL_NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
 				FastLED.show();
 				animationDelay = 30;
 				animationIndex ++;
@@ -723,7 +717,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			ledIndex = 0;
 		}
 
-		if (ledIndex < NUM_LEDS) {
+		if (ledIndex < CONFIG_NEOPIXEL_NUM_LEDS) {
 			CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
 			FastLED.clear();
 			Led_DrawIdleDots(leds, ledIndex, idleColor);
@@ -750,7 +744,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (startNewAnimation) {
 			animationIndex = 0;
 		}
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			FastLED.clear();
 			singleLedStatus = !singleLedStatus;
 			if (singleLedStatus) {
@@ -760,7 +754,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationDelay = 100;
 			animationActive = false;
 		} else {
-			if (animationIndex < NUM_LEDS) {
+			if (animationIndex < CONFIG_NEOPIXEL_NUM_LEDS) {
 				FastLED.clear();
 				CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
 				Led_DrawIdleDots(leds, animationIndex, idleColor);
@@ -788,9 +782,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 
 		uint8_t pauseOffset = 0;
-		if (OFFSET_PAUSE_LEDS) {
-			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
-		}
+		#ifdef CONFIG_NEOPIXEL_CENTER_PAUSE
+			pauseOffset = ((CONFIG_NEOPIXEL_NUM_LEDS/CONFIG_NEOPIXEL_NUM_IDLE_DOTS)/2)-1;
+		#endif
 		Led_DrawIdleDots(leds, pauseOffset, generalColor);
 
 		FastLED.show();
@@ -807,9 +801,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		FastLED.clear();
 		uint8_t pauseOffset = 0;
-		if (OFFSET_PAUSE_LEDS) {
-			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
-		}
+		#ifdef CONFIG_NEOPIXEL_CENTER_PAUSE
+			pauseOffset = ((CONFIG_NEOPIXEL_NUM_LEDS/CONFIG_NEOPIXEL_NUM_IDLE_DOTS)/2)-1;
+		#endif
 		Led_DrawIdleDots(leds, pauseOffset, CRGB::Yellow);
 
 		FastLED.show();
@@ -829,24 +823,24 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
 			lastPos = gPlayProperties.currentRelPos;
 			FastLED.clear();
-			if (NUM_LEDS == 1) {
+			if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 				leds[0].setHue((uint8_t)(85 - ((double)90 / 100) * gPlayProperties.currentRelPos));
 			} else {
-				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, NUM_LEDS * DIMMABLE_STATES);
-				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+				const uint32_t ledValue = map(gPlayProperties.currentRelPos, 0, 98, 0, CONFIG_NEOPIXEL_NUM_LEDS * CONFIG_NEOPIXEL_DIMMABLE_STATES);
+				const uint8_t fullLeds = ledValue / CONFIG_NEOPIXEL_DIMMABLE_STATES;
+				const uint8_t lastLed = ledValue % CONFIG_NEOPIXEL_DIMMABLE_STATES;
 				for (uint8_t led = 0; led < fullLeds; led++) {
 					if (System_AreControlsLocked()) {
 						leds[Led_Address(led)] = CRGB::Red;
 					} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-						leds[Led_Address(led)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * led + PROGRESS_HUE_START));
+						leds[Led_Address(led)].setHue((uint8_t)(((float)CONFIG_NEOPIXEL_PROGRESS_HUE_END - (float)CONFIG_NEOPIXEL_PROGRESS_HUE_START) / (CONFIG_NEOPIXEL_NUM_LEDS-1) * led + CONFIG_NEOPIXEL_PROGRESS_HUE_START));
 					}
 				}
 				if (lastLed > 0) {
 					if (System_AreControlsLocked()) {
 						leds[Led_Address(fullLeds)] = CRGB::Red;
 					} else {
-						leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)PROGRESS_HUE_END - (float)PROGRESS_HUE_START) / (NUM_LEDS-1) * fullLeds + PROGRESS_HUE_START));
+						leds[Led_Address(fullLeds)].setHue((uint8_t)(((float)CONFIG_NEOPIXEL_PROGRESS_HUE_END - (float)CONFIG_NEOPIXEL_PROGRESS_HUE_START) / (CONFIG_NEOPIXEL_NUM_LEDS-1) * fullLeds + CONFIG_NEOPIXEL_PROGRESS_HUE_START));
 					}
 					leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 				}
@@ -873,13 +867,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		// wait for further volume changes within next 20ms for 50 cycles = 1s
 		const uint32_t ledValue =  map(AudioPlayer_GetCurrentVolume(), 0,
 						AudioPlayer_GetMaxVolume(), 0,
-						NUM_LEDS * DIMMABLE_STATES);
-		const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-		const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+						CONFIG_NEOPIXEL_NUM_LEDS * CONFIG_NEOPIXEL_DIMMABLE_STATES);
+		const uint8_t fullLeds = ledValue / CONFIG_NEOPIXEL_DIMMABLE_STATES;
+		const uint8_t lastLed = ledValue % CONFIG_NEOPIXEL_DIMMABLE_STATES;
 
 		FastLED.clear();
 
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			const uint8_t hue = 85 - (90 *
 				((double)AudioPlayer_GetCurrentVolume() /
 				(double)AudioPlayer_GetMaxVolumeSpeaker()));
@@ -890,11 +884,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			* red (250) using unsigned-cast.
 			*/
 			for (int led = 0; led < fullLeds; led++) {
-				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * led + 85.0f;
+				const uint8_t hue = (-86.0f) / (CONFIG_NEOPIXEL_NUM_LEDS-1) * led + 85.0f;
 				leds[Led_Address(led)].setHue(hue);
 			}
 			if (lastLed > 0) {
-				const uint8_t hue = (-86.0f) / (NUM_LEDS-1) * fullLeds + 85.0f;
+				const uint8_t hue = (-86.0f) / (CONFIG_NEOPIXEL_NUM_LEDS-1) * fullLeds + 85.0f;
 				leds[Led_Address(fullLeds)].setHue(hue);
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 			}
@@ -930,11 +924,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static uint32_t staticLastBarLenghtPlaylist = 0; // variable to remember the last length of the progress-bar (for connecting animations)
 		static uint32_t staticLastTrack = 0; // variable to remember the last track (for connecting animations)
 
-		if (NUM_LEDS >= 4) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS >= 4) {
 			if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-				const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, NUM_LEDS * DIMMABLE_STATES);
-				const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-				const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+				const uint32_t ledValue =  map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, CONFIG_NEOPIXEL_NUM_LEDS * CONFIG_NEOPIXEL_DIMMABLE_STATES);
+				const uint8_t fullLeds = ledValue / CONFIG_NEOPIXEL_DIMMABLE_STATES;
+				const uint8_t lastLed = ledValue % CONFIG_NEOPIXEL_DIMMABLE_STATES;
 
 				if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
 					LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
@@ -1062,7 +1056,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationActive = true;
 			FastLED.clear();
 		}
-		if (NUM_LEDS == 1) {
+		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			if (staticBatteryLevel < 0.3) {
 				leds[0] = CRGB::Red;
 			} else if (staticBatteryLevel < 0.6) {
@@ -1075,9 +1069,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			animationDelay = 20*100;
 			animationActive = false;
 		} else {
-			uint8_t numLedsToLight = staticBatteryLevel * NUM_LEDS;
-			if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
-				numLedsToLight = NUM_LEDS;
+			uint8_t numLedsToLight = staticBatteryLevel * CONFIG_NEOPIXEL_NUM_LEDS;
+			if (numLedsToLight > CONFIG_NEOPIXEL_NUM_LEDS) {    // Can happen e.g. if no battery is connected
+				numLedsToLight = CONFIG_NEOPIXEL_NUM_LEDS;
 			}
 
 			// fill all needed LEDs

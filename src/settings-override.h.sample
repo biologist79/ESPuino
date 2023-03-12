@@ -28,7 +28,6 @@
 
 
     //########################## MODULES #################################
-    //#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
     #define LANGUAGE DE                     // DE = deutsch; EN = english
     //#define STATIC_IP_ENABLE              // Enables static IP-configuration (change static ip-section accordingly)
     #define HEADPHONE_ADJUST_ENABLE       // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (if PLAY_MONO_SPEAKER is set)
@@ -174,14 +173,6 @@
     // Where to store the backup-file for NVS-records
     constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
     constexpr const char playlistCacheFile[] PROGMEM = "playlistcache.csv"; // Filename that is used for caching playlists
-
-    //#################### Settings for optional Modules##############################
-    // (optinal) Neopixel
-    #ifdef CONFIG_NEOPIXEL
-        #define NUM_LEDS                    24          // number of LEDs
-        #define CHIPSET                     WS2812B     // type of Neopixel
-        #define COLOR_ORDER                 GRB
-    #endif
 
     #if defined(MEASURE_BATTERY_VOLTAGE) || defined(MEASURE_BATTERY_MAX17055)
         #define BATTERY_MEASURE_ENABLE                 // Don't change. Set automatically if any method of battery monitoring is selected.

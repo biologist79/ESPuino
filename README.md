@@ -149,7 +149,7 @@ There are special RFID-tags, that don't start music by themself but can modify t
 * Toggle Bluetooth source (enable/disable) => restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device.
 
 ### Neopixel-ring (optional)
-Indicates different things. Don't forget configuration of number of LEDs via #define NUM_LEDS
+Indicates different things. Don't forget configuration of number of LEDs via #define CONFIG_NEOPIXEL_NUM_LEDS
 * While booting: every second LED (rotating orange)
 * Unable to mount SD: LEDs flashing red (will remain forever unless SD-card is available or `SHUTDOWN_IF_SD_BOOT_FAILS` is active)
 * IDLE: four LEDs slow rotating (white if WiFi connected; green if WiFi disabled or ESPuino is about to connect to WiFi)
@@ -169,7 +169,7 @@ Indicates different things. Don't forget configuration of number of LEDs via #de
 * (Optional) Short press of rotary encoder's button provides battery-voltage visualisation via Neopixel. Upper und lower voltage cut-offs can be adjusted via GUI. So for example if lower voltage is set to 3.2 V and upper voltage to 4.2 V, 50% of the LEDs indicate a voltage of 3.7 V.
 
 Please note: some Neopixels use a reversed addressing which leads to the 'problem', that all effects are shown
-counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.
+counter clockwise. If you want to change that behaviour, just enable `CONFIG_NEOPIXEL_REVERSE`.
 
 ### Buttons
 Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change number of buttons (up to 5) and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.

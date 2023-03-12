@@ -35,9 +35,73 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
-config NEOPIXEL
+menuconfig NEOPIXEL
 	bool "Enable support for NeoPixel LEDs"
 	default y
+
+if NEOPIXEL
+
+config NEOPIXEL_CENTER_PAUSE
+	bool "Center pause LED pattern"
+	default n
+	help
+	  If true the pause pattern is centered in the middle of the strip.
+
+config NEOPIXEL_CHIPSET
+	string "Type of NeoPixels"
+	default WS2812B
+	depends on CONVERT_TO_IDENTIFIER
+
+config NEOPIXEL_COLOR_ORDER
+	string "Order of NeoPixel colors"
+	default GRB
+	depends on CONVERT_TO_IDENTIFIER
+
+config NEOPIXEL_DIMMABLE_STATES
+	int "Number of intermediate values between to LEDs with full brightness"
+	default 50
+	help
+	  See https://forum.espuino.de/t/led-verbesserungen-rework/1739 for more
+	  information.
+
+config NEOPIXEL_NUM_IDLE_DOTS
+	int "Number of LED dots which are on when idle"
+	default 4
+
+config NEOPIXEL_NUM_LEDS
+	int "Number of NeoPixel LEDs available"
+	default 24
+
+config NEOPIXEL_OFFSET
+	int "Offset for first LED"
+	range 0 NEOPIXEL_NUM_LEDS
+	default 0
+	help
+	  Shifts the starting LED in the original direction of the NeoPixel ring.
+
+config NEOPIXEL_PROGRESS_HUE_START
+	int "Start hue for LED progress indicator"
+	default 85
+	help
+	  Hue ranges from basically 0 - 255, but you can also set numbers
+	  outside this range to get the desired effect (e.g. 85 - 215 will go
+	  from green to purple via blue, 341 - 215 start and end at exactly the
+	  same color but go from green to purple via yellow and red).
+
+config NEOPIXEL_PROGRESS_HUE_END
+	int "End hue for LED progress indicator"
+	default -1
+	help
+	  Hue ranges from basically 0 - 255, but you can also set numbers
+	  outside this range to get the desired effect (e.g. 85 - 215 will go
+	  from green to purple via blue, 341 - 215 start and end at exactly the
+	  same color but go from green to purple via yellow and red).
+
+config NEOPIXEL_REVERSE
+	bool "Reverse direction of NeoPixel LEDs"
+	default n
+
+endif # NEOPIXEL
 
 config PORT_EXPANDER
 	bool "Enables support for the PCA9555 port expander"
