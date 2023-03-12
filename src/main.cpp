@@ -129,7 +129,7 @@ void setup() {
 		Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 	#endif
 
-	#ifdef HALLEFFECT_SENSOR_ENABLE
+	#ifdef CONFIG_HALLEFFECT_SENSOR
 		gHallEffectSensor.init();
 	#endif
 
@@ -253,7 +253,7 @@ void loop() {
 	IrReceiver_Cyclic();
 	vTaskDelay(portTICK_RATE_MS * 5u);
 
-	#ifdef HALLEFFECT_SENSOR_ENABLE
+	#ifdef CONFIG_HALLEFFECT_SENSOR
 		gHallEffectSensor.cyclic();
 	#endif
 }

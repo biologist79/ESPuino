@@ -9,9 +9,6 @@
     	#include "settings-override.h"
 #else
 
-	//########################## MODULES #################################
-	//#define HALLEFFECT_SENSOR_ENABLE      // Support for hallsensor. For fine-tuning please adjust HallEffectSensor.h Please note: only user-support provided (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
-
 	#ifdef CONFIG_RFID_READER_MFRC522_I2C
 		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
 	#endif

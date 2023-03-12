@@ -104,11 +104,6 @@
         constexpr uint16_t rdiv2 = 100;                 // Don't change, it's built in
     #endif
 
-    // (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.
-    #ifdef HALLEFFECT_SENSOR_ENABLE
-        #define HallEffectSensor_PIN        32  	// GPIO that is used for hallsensor (ADC); user-support: https://forum.espuino.de/t/magnetische-hockey-tags/1449/35
-    #endif
-
     // (Optional) remote control via infrared
     #ifdef CONFIG_IR_CONTROL
         #define IRLED_PIN                   5               // GPIO where IR-receiver is connected (only tested with VS1838B)

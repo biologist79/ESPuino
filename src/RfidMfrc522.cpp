@@ -98,7 +98,7 @@
 
 				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
 
-    				#ifdef HALLEFFECT_SENSOR_ENABLE
+				#ifdef CONFIG_HALLEFFECT_SENSOR
 					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 				#endif
 

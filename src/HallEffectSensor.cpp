@@ -5,27 +5,27 @@
 #include "settings.h"
 #include "Log.h"
 
-#ifdef HALLEFFECT_SENSOR_ENABLE
+#ifdef CONFIG_HALLEFFECT_SENSOR
 
 // debugging
 #define HallEffectDebug_DISABLED   // remove _DISABLED
 
-// gPrefs VarNames 
-#define NULLFIELDVALUENAME  "HES_NullValue"  
+// gPrefs VarNames
+#define NULLFIELDVALUENAME  "HES_NullValue"
 
 
 HallEffectSensor gHallEffectSensor;
 
 
 HallEffectSensor::HallEffectSensor(){
-  pinMode(HallEffectSensor_PIN,INPUT);
+  pinMode(CONFIG_GPIO_HALL_SENSOR,INPUT);
 };
 
 // private
 void HallEffectSensor::LoadNullFieldValueFromNVS(){
   nullFieldValue = gPrefsSettings.getUShort(NULLFIELDVALUENAME, 0);
   Log_Printf(LOGLEVEL_INFO, PSTR("HallEffectSensor> NullFieldValue from NVS:%d"), nullFieldValue);
-}  
+}
 
 bool HallEffectSensor::SaveToNullFieldValueNVS( uint16_t val){
   uint16_t diff = abs(val-nullFieldValue);
@@ -34,7 +34,7 @@ bool HallEffectSensor::SaveToNullFieldValueNVS( uint16_t val){
   if (res) {
     resMsg = "OK";
     nullFieldValue= val;
-  } 
+  }
   Log_Printf(LOGLEVEL_INFO, PSTR("HallEffectSensor> Save NullFieldValue in NVS> Result:%s> NullValue:%d, diff:%d"), resMsg, val, diff);
   return res;
 }
@@ -55,7 +55,7 @@ void HallEffectSensor::init(){
   #else
     int sva=gHallEffectSensor.readSensorValueAverage(true);
     // check calibration
-    int diff = abs(sva-nullFieldValue); 
+    int diff = abs(sva-nullFieldValue);
     if ((nullFieldValue<1) || ((diff>5)&&(diff<HallEffectMaxDiffValueReCalibrate))) {
        SaveToNullFieldValueNVS(sva);
     } else if (diff>=HallEffectMinDiffValue) {
@@ -94,7 +94,7 @@ uint16_t HallEffectSensor::readSensorValueAverage(bool doLog){
   int sum = 0;
   int cnt = 0;
   for (int i=0; i<HallEffectAverageProbesMS*40; i++){
-    uint16_t v = analogRead(HallEffectSensor_PIN);
+    uint16_t v = analogRead(CONFIG_GPIO_HALL_SENSOR);
     sum += v;
     cnt++;
     delayMicroseconds(25);
@@ -131,7 +131,7 @@ uint8_t HallEffectSensor::waitForState( uint16_t waitMS){
       lastWaitForState = 2;
     else
       delay(50);
-  } while ( (lastWaitForState==0) && (millis() < (startms + waitMS))); 
+  } while ( (lastWaitForState==0) && (millis() < (startms + waitMS)));
   lastWaitForStateMS = millis()-startms;
   Log_Printf(LOGLEVEL_INFO, PSTR("HallEffectSensor waitForState> fieldValue:%d => state:%d, (duration:%d ms)"), sav, lastWaitForState, lastWaitForStateMS);
   return lastWaitForState;

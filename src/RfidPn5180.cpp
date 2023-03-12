@@ -238,8 +238,8 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				memcpy(lastCardId, cardId, cardIdSize);
 				showDisablePrivacyNotification = true;
 
-				#ifdef HALLEFFECT_SENSOR_ENABLE
-					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
+				#ifdef CONFIG_HALLEFFECT_SENSOR
+					cardId[cardIdSize-1] = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 				#endif
 
 				#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED

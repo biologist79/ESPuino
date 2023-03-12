@@ -234,12 +234,12 @@ void webserverStart(void) {
 					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
 					info += "\n" + String(buffer);
 				#endif
-                #ifdef HALLEFFECT_SENSOR_ENABLE
+				#ifdef CONFIG_HALLEFFECT_SENSOR
 					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 					int diff = sva-gHallEffectSensor.NullFieldValue();
 					snprintf(buffer, sizeof(buffer), PSTR("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)"), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
 					info += buffer;
-                #endif
+				#endif
 				request->send_P(200, "text/plain", info.c_str());
 			});
 
@@ -350,16 +350,16 @@ void webserverStart(void) {
 			};
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
-        // Init HallEffectSensor Value
-        #ifdef HALLEFFECT_SENSOR_ENABLE
-            wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
-                bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
+		// Init HallEffectSensor Value
+		#ifdef CONFIG_HALLEFFECT_SENSOR
+			wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
+				bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
 				char buffer[128];
 				snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
-                Log_Println(buffer, LOGLEVEL_INFO);
-                request->send(200, "text/html", buffer);
-            });
-        #endif
+				Log_Println(buffer, LOGLEVEL_INFO);
+				request->send(200, "text/html", buffer);
+			});
+		#endif
 
 		wServer.onNotFound(notFound);
 
