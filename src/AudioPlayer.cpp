@@ -790,7 +790,7 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
-	#ifdef PAUSE_ON_MIN_VOLUME
+	#ifdef CONFIG_PAUSE_ON_MIN_VOLUME
 		if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
 			return;
 		}

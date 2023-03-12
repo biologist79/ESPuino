@@ -46,6 +46,15 @@ config MQTT
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
 
+config PAUSE_ON_MIN_VOLUME
+	bool "Playback is paused as long as volume is zero"
+	default n
+	help
+	  When playback is active and volume is changed to zero, playback is
+	  paused automatically. Playback is continued if unmuted. See
+	  https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541
+	  for more information.
+
 config PAUSE_WHEN_RFID_REMOVED
 	bool "Playback is only enabled as long as RFID tag is in range"
 	default n

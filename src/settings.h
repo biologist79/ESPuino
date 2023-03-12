@@ -10,7 +10,6 @@
 #else
 
 	//########################## MODULES #################################
-	//#define PAUSE_ON_MIN_VOLUME           // When playback is active and volume is changed to zero, playback is paused automatically. Playback is continued if volume reaches 1. (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
 	//#define HALLEFFECT_SENSOR_ENABLE      // Support for hallsensor. For fine-tuning please adjust HallEffectSensor.h Please note: only user-support provided (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
 
 	#ifdef CONFIG_RFID_READER_MFRC522_I2C
