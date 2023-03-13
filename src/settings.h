@@ -9,11 +9,6 @@
     	#include "settings-override.h"
 #else
 
-	//############# Port-expander-configuration ######################
-	#ifdef CONFIG_PORT_EXPANDER
-		constexpr uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555 (0x20 is true if PCA's pins A0+A1+A2 are pulled to GND)
-	#endif
-
 	//################## BUTTON-Layout ##################################
 	/* German documentation: https://forum.espuino.de/t/das-dynamische-button-layout/224
 	Please note the following numbers as you need to know them in order to define actions for buttons.

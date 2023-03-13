@@ -118,7 +118,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 				uint8_t oldPortBitmask = Port_ExpanderPortsOutputChannelStatus[portOffset];
 				uint8_t newPortBitmask;
 
-				i2cBusTwo.beginTransmission(expanderI2cAddress);
+				i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 				i2cBusTwo.write(0x02);       // Pointer to output configuration-register
 				if (_newState) {
 					newPortBitmask = (oldPortBitmask | (1 << Port_ChannelToBit(_channel)));
@@ -227,7 +227,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 
 		// Only change port-config if necessary (at least bitmask changed from base-default for one port)
 		if ((OutputBitMaskInOutAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskInOutAsPerPort[1] != portBaseValueBitMask)) {
-			i2cBusTwo.beginTransmission(expanderI2cAddress);
+			i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 			i2cBusTwo.write(0x06);  // Pointer to configuration of input/output
 			for (uint8_t i=0; i<portsToWrite; i++) {
 				i2cBusTwo.write(OutputBitMaskInOutAsPerPort[i]);
@@ -236,7 +236,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			i2cBusTwo.endTransmission();
 
 			// Write low/high-config to all output-channels. Channels that are configured as input are silently/automatically ignored by PCA9555
-			i2cBusTwo.beginTransmission(expanderI2cAddress);
+			i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 			i2cBusTwo.write(0x02);  // Pointer to configuration of output-channels (high/low)
 			i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[0]);  // port0
 			i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[1]);  // port1
@@ -302,7 +302,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 
 		// Only change port-config if necessary (at least bitmask changed from base-default for one port)
 		if ((OutputBitMaskInOutAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskInOutAsPerPort[1] != portBaseValueBitMask)) {
-			i2cBusTwo.beginTransmission(expanderI2cAddress);
+			i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 			i2cBusTwo.write(0x06);  // Pointer to configuration of input/output
 			for (uint8_t i=0; i<portsToWrite; i++) {
 				i2cBusTwo.write(OutputBitMaskInOutAsPerPort[i]);
@@ -310,7 +310,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			i2cBusTwo.endTransmission();
 
 			// Write low/high-config to all output-channels. Channels that are configured as input are silently/automatically ignored by PCA9555
-			i2cBusTwo.beginTransmission(expanderI2cAddress);
+			i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 			i2cBusTwo.write(0x02);  // Pointer to configuration of output-channels (high/low)
 			i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[0]);  // port0
 			i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[1]);  // port1
@@ -335,11 +335,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
+		i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 		for (uint8_t i = 0; i < 2; i++) {
 			i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
 			i2cBusTwo.endTransmission();
-			i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
+			i2cBusTwo.requestFrom(CONFIG_PORT_EXPANDER_ADDR, 1u);   // ...and read its byte
 
 			if (i2cBusTwo.available()) {
 				inputRegisterBuffer[i] = i2cBusTwo.read();	// Cache current readout
@@ -361,11 +361,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 	// Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
 	void Port_Exit(void) {
 		Port_MakeSomeChannelsOutputForShutdown();
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
+		i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 		for (uint8_t i = 0; i < 2; i++) {
 			i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
 			i2cBusTwo.endTransmission();
-			i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
+			i2cBusTwo.requestFrom(CONFIG_PORT_EXPANDER_ADDR, 1u);   // ...and read its byte
 
 			if (i2cBusTwo.available()) {
 				Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
@@ -375,7 +375,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 
 	// Tests if port-expander can be detected at address configured
 	void Port_Test(void) {
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
+		i2cBusTwo.beginTransmission(CONFIG_PORT_EXPANDER_ADDR);
 		i2cBusTwo.write(0x02);
 		if (!i2cBusTwo.endTransmission()) {
 			Log_Println(portExpanderFound, LOGLEVEL_NOTICE);

@@ -277,6 +277,11 @@ config MFRC522_GAIN
 	  Sets the gain value for the MFRC522. Use one of the following values:
 	  0x2 (18dB), 0x3 (23db), 0x4 (33dB), 0x5 (38dB), 0x6 (43dB), 0x7 (48dB)
 
+config PORT_EXPANDER_ADDR
+	hex "PCA9555 Port Expander I2C Address"
+	default 0x20
+	depends on PORT_EXPANDER
+
 endmenu
 
 menu "Hidden Board Helpers"
