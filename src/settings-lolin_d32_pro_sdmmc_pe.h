@@ -21,19 +21,6 @@
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // RFID (via SPI)
-    #define RST_PIN                         99          // Used as dummy for RC522
-    #define RFID_CS                         21          // GPIO for chip select (RFID)
-    #define RFID_MOSI                       23          // GPIO for master out slave in (RFID)
-    #define RFID_MISO                       19          // GPIO for master in slave out (RFID)
-    #define RFID_SCK                        18          // GPIO for clock-signal (RFID)
-
-    #ifdef CONFIG_RFID_READER_PN5180
-        #define RFID_BUSY                   33          // PN5180 BUSY PIN
-        #define RFID_RST                    22          // PN5180 RESET PIN
-        #define RFID_IRQ                    99          // Depending on your configuration this needs to be adjusted to 32.
-    #endif
-
     // I2S (DAC)
     #define I2S_DOUT                        25          // Digital out (I2S)
     #define I2S_BCLK                        27          // BCLK (I2S)

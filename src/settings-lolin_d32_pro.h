@@ -19,18 +19,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 
-    // RFID (via SPI)
-    #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-    #define RFID_CS                         21          // GPIO for chip select (RFID)
-    #define RFID_MOSI                       13          // GPIO for master out slave in (RFID)
-    #define RFID_MISO                       15          // GPIO for master in slave out (RFID)
-    #define RFID_SCK                        14          // GPIO for clock-signal (RFID)
-
-    #ifdef CONFIG_RFID_READER_PN5180
-        #define RFID_BUSY                   33          // PN5180 BUSY PIN
-        #define RFID_RST                    22          // PN5180 RESET PIN
-        #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)
-    #endif
     // I2S (DAC)
     #define I2S_DOUT                        25          // Digital out (I2S)
     #define I2S_BCLK                        27          // BCLK (I2S)

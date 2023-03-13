@@ -60,10 +60,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			}
 			// disable pin hold from deep sleep
 			gpio_deep_sleep_hold_dis();
-			gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
-			gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-			#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-				pinMode(RFID_IRQ, INPUT);       // Not necessary for port-expander as for pca9555 all pins are configured as input per default
+			gpio_hold_dis(gpio_num_t(CONFIG_GPIO_RFID_CS));  // NSS
+			gpio_hold_dis(gpio_num_t(CONFIG_GPIO_RFID_RST)); // RST
+			#if (CONFIG_GPIO_RFID_IRQ >= 0 && CONFIG_GPIO_RFID_IRQ <= MAX_GPIO)
+				pinMode(CONFIG_GPIO_RFID_IRQ, INPUT);       // Not necessary for port-expander as for pca9555 all pins are configured as input per default
 			#endif
 		#endif
 
@@ -83,8 +83,8 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 	}
 
 	void Rfid_Task(void *parameter) {
-		static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
-		static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
+		static PN5180ISO14443 nfc14443(CONFIG_GPIO_RFID_CS, CONFIG_GPIO_RFID_BUSY, CONFIG_GPIO_RFID_RST);
+		static PN5180ISO15693 nfc15693(CONFIG_GPIO_RFID_CS, CONFIG_GPIO_RFID_BUSY, CONFIG_GPIO_RFID_RST);
 		uint32_t lastTimeDetected14443 = 0;
 		uint32_t lastTimeDetected15693 = 0;
 		#ifdef CONFIG_PAUSE_WHEN_RFID_REMOVED
@@ -310,7 +310,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 	void Rfid_EnableLpcd(void) {
 		// goto low power card detection mode
 		#ifdef CONFIG_RFID_LPCD
-			static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
+			static PN5180 nfc(CONFIG_GPIO_RFID_CS, CONFIG_GPIO_RFID_BUSY, CONFIG_GPIO_RFID_RST);
 			nfc.begin();
 			nfc.reset();
 			// show PN5180 reader version
@@ -332,18 +332,18 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			Serial.println(irqConfig, HEX);*/
 			nfc.prepareLPCD();
 			Log_Println((char *) F("PN5180 IRQ PIN: "), LOGLEVEL_NOTICE);
-			Serial.println(Port_Read(RFID_IRQ));
+			Serial.println(Port_Read(CONFIG_GPIO_RFID_IRQ));
 			// turn on LPCD
 			uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 			if (nfc.switchToLPCD(wakeupCounterInMs)) {
 				Log_Println((char *) F("switch to low power card detection: success"), LOGLEVEL_NOTICE);
 				// configure wakeup pin for deep-sleep wake-up, use ext1
-				#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+				#if (CONFIG_GPIO_RFID_IRQ >= 0 && CONFIG_GPIO_RFID_IRQ <= MAX_GPIO)
+					esp_sleep_enable_ext1_wakeup((1ULL << (CONFIG_GPIO_RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
 				#endif
 				// freeze pin states in deep sleep
-				gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
-				gpio_hold_en(gpio_num_t(RFID_RST)); // RST
+				gpio_hold_en(gpio_num_t(CONFIG_GPIO_RFID_CS));  // CS/NSS
+				gpio_hold_en(gpio_num_t(CONFIG_GPIO_RFID_RST)); // RST
 				gpio_deep_sleep_hold_en();
 			} else {
 				Log_Println((char *) F("switchToLPCD failed"), LOGLEVEL_ERROR);
@@ -356,12 +356,12 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 		#ifdef CONFIG_RFID_LPCD
 			// disable pin hold from deep sleep
 			gpio_deep_sleep_hold_dis();
-			gpio_hold_dis(gpio_num_t(RFID_CS));  // NSS
-			gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-			#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-				pinMode(RFID_IRQ, INPUT);
+			gpio_hold_dis(gpio_num_t(CONFIG_GPIO_RFID_CS));  // NSS
+			gpio_hold_dis(gpio_num_t(CONFIG_GPIO_RFID_RST)); // RST
+			#if (CONFIG_GPIO_RFID_IRQ >= 0 && CONFIG_GPIO_RFID_IRQ <= MAX_GPIO)
+				pinMode(CONFIG_GPIO_RFID_IRQ, INPUT);
 			#endif
-			static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
+			static PN5180ISO14443 nfc14443(CONFIG_GPIO_RFID_CS, CONFIG_GPIO_RFID_BUSY, CONFIG_GPIO_RFID_RST);
 			nfc14443.begin();
 			nfc14443.reset();
 			// enable RF field
@@ -372,10 +372,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
 					Log_Println((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
 					// configure wakeup pin for deep-sleep wake-up, use ext1
-					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+					esp_sleep_enable_ext1_wakeup((1ULL << (CONFIG_GPIO_RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
 					// freeze pin states in deep sleep
-					gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
-					gpio_hold_en(gpio_num_t(RFID_RST)); // RST
+					gpio_hold_en(gpio_num_t(CONFIG_GPIO_RFID_CS));  // CS/NSS
+					gpio_hold_en(gpio_num_t(CONFIG_GPIO_RFID_RST)); // RST
 					gpio_deep_sleep_hold_en();
 					Log_Println((char *) FPSTR(wakeUpRfidNoIso14443), LOGLEVEL_ERROR);
 					esp_deep_sleep_start();

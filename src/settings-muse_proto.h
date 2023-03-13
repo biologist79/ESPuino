@@ -28,24 +28,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // RFID (via SPI)
-    #define RST_PIN                         99          // Not necessary but has to be set anyway; so let's use a dummy-number
-    #define RFID_CS                         99          // GPIO for chip select (RFID)
-    #define RFID_MOSI                       99          // GPIO for master out slave in (RFID)
-    #define RFID_MISO                       99          // GPIO for master in slave out (RFID)
-    #define RFID_SCK                        99          // GPIO for clock-signal (RFID)
-
-    // RFID (via I2C)
-    #if defined(CONFIG_RFID_READER_MFRC522_I2C)
-        #define MFRC522_RST_PIN                 4          // needed for initialisation -> MTDI on JTAG header
-    #endif
-
-    #ifdef CONFIG_RFID_READER_PN5180
-        #define RFID_BUSY                   16          // PN5180 BUSY PIN
-        #define RFID_RST                    22          // PN5180 RESET PIN
-        #define RFID_IRQ                    39          // PN5180 IRQ PIN (only needed for low power card detection)
-    #endif
-
     // I2S (DAC)
     #define I2S_DOUT                        26          // Digital out (I2S)
     #define I2S_BCLK                        5          // BCLK (I2S)

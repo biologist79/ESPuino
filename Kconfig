@@ -258,6 +258,102 @@ config GPIO_SPISD_SCK
 endif # SINGLE_SPI
 endif # SD_MMC_1BIT_MODE
 
+if RFID
+
+config GPIO_RFID_RST
+	int "GPIO for RFID reader reset signal"
+	default 4 if BOARD_MUSE_PROTO
+	default 12 if BOARD_AUDIO_KIT
+	default 22
+
+if RFID_READER_MFRC522_SPI
+
+config GPIO_RFID_CS
+	int "GPIO for RFID reader chip select signal"
+	default 21
+
+config GPIO_RFID_SCK
+	int "GPIO for RFID reader clock signal"
+	default 14 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 18
+
+config GPIO_RFID_MOSI
+	int "GPIO for RFID reader data input signal"
+	default 13 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 23
+
+config GPIO_RFID_MISO
+	int "GPIO for RFID reader data output signal"
+	default 15 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 19
+
+endif # RFID_READER_MFRC522_SPI
+
+if RFID_READER_PN5180
+
+config GPIO_RFID_BUSY
+	int "GPIO for RFID reader busy signal"
+	default 5 if BOARD_TTGO_T8
+	default 33 if (BOARD_LOLIN_D32 && !SD_SPI_MODE) || BOARD_LOLIN_D32_PRO || BOARD_COMPLETE
+	default 16
+
+config GPIO_RFID_IRQ
+	int "GPIO for RFID reader interrupt signal"
+	default 13 if BOARD_TTGO_T8
+	default 32 if BOARD_COMPLETE
+	default 39
+
+endif # RFID_READER_PN5180
+endif # RFID
+
+if RFID
+
+config GPIO_RFID_RST
+	int "GPIO for RFID reader reset signal"
+	default 4 if BOARD_MUSE_PROTO
+	default 12 if BOARD_AUDIO_KIT
+	default 22
+
+if RFID_READER_MFRC522_SPI
+
+config GPIO_RFID_CS
+	int "GPIO for RFID reader chip select signal"
+	default 21
+
+config GPIO_RFID_SCK
+	int "GPIO for RFID reader clock signal"
+	default 14 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 18
+
+config GPIO_RFID_MOSI
+	int "GPIO for RFID reader data input signal"
+	default 13 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 23
+
+config GPIO_RFID_MISO
+	int "GPIO for RFID reader data output signal"
+	default 15 if BOARD_LOLIN_D32_PRO && SD_SPI_MODE
+	default 19
+
+endif # RFID_READER_MFRC522_SPI
+
+if RFID_READER_PN5180
+
+config GPIO_RFID_BUSY
+	int "GPIO for RFID reader busy signal"
+	default 5 if BOARD_TTGO_T8
+	default 33 if (BOARD_LOLIN_D32 && !SD_SPI_MODE) || BOARD_LOLIN_D32_PRO || BOARD_COMPLETE
+	default 16
+
+config GPIO_RFID_IRQ
+	int "GPIO for RFID reader interrupt signal"
+	default 13 if BOARD_TTGO_T8
+	default 32 if BOARD_COMPLETE
+	default 39
+
+endif # RFID_READER_PN5180
+endif # RFID
+
 config GPIO_HALL_SENSOR
 	int "GPIO for halleffect sensor"
 	default 32 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32 || BOARD_LOLIN32) && !SD_SPI_MODE)
