@@ -48,7 +48,13 @@ inline bool endsWith(const char *str, const char *suf) {
 	return b == suf && *a == *b;
 }
 
-inline void convertUtf8ToAscii(String utf8String, char *asciiString) {
+inline void convertFilenameToAscii(String utf8String, char *asciiString) {
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		// Arduino >= 2.0.5 filenames are already unicode, copy to result here without UTF-8 decoding
+        strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
+		asciiString[utf8String.length()] = 0;
+		return;
+	#endif
 
 	int k = 0;
 	bool f_C3_seen = false;
