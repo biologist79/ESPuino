@@ -41,7 +41,7 @@
 		// Init RC522 Card-Reader
 		#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_RFID_READER_MFRC522_SPI)
 			mfrc522.PCD_Init();
-			mfrc522.PCD_SetAntennaGain(rfidGain);
+			mfrc522.PCD_SetAntennaGain(CONFIG_MFRC522_GAIN << 4);
 			delay(50);
 			Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 

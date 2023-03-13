@@ -264,6 +264,19 @@ config GPIO_HALL_SENSOR
 	default 34
 	depends on HALLEFFECT_SENSOR
 
+config MFRC522_ADDR
+	hex "RFID Reader MFRC522 I2C Address"
+	default 0x28
+	depends on RFID_READER_MFRC522_I2C
+
+config MFRC522_GAIN
+	hex "RFID Reader MFRC522 Gain"
+	default 0x7
+	depends on RFID_READER_MFRC522_I2C || RFID_READER_MFRC522_SPI
+	help
+	  Sets the gain value for the MFRC522. Use one of the following values:
+	  0x2 (18dB), 0x3 (23db), 0x4 (33dB), 0x5 (38dB), 0x6 (43dB), 0x7 (48dB)
+
 endmenu
 
 menu "Hidden Board Helpers"

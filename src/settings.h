@@ -9,15 +9,6 @@
     	#include "settings-override.h"
 #else
 
-	#ifdef CONFIG_RFID_READER_MFRC522_I2C
-		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
-	#endif
-
-	#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_RFID_READER_MFRC522_SPI)
-		constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
-	#endif
-
-
 	//############# Port-expander-configuration ######################
 	#ifdef CONFIG_PORT_EXPANDER
 		constexpr uint8_t expanderI2cAddress = 0x20;  // I2C-address of PCA9555 (0x20 is true if PCA's pins A0+A1+A2 are pulled to GND)
