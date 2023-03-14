@@ -55,7 +55,7 @@
 
 	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_ErrorOk(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_ErrorOk(bool startNewAnimation, bool error, CRGB* leds);
 	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds);
@@ -316,52 +316,18 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						ret = Animation_Boot(startNewAnimation, leds);
 						break;
 
-					case LedAnimationType::Shutdown: {
+					case LedAnimationType::Shutdown:
 						ret = Animation_Shutdown(startNewAnimation, leds);
-					} break;
+						break;
 
-					// --------------------------------------------------
-					// Animation of Error or OK
-					// --------------------------------------------------
 					case LedAnimationType::Error:
-					case LedAnimationType::Ok:{
-						CRGB signalColor = CRGB::Green;
-						uint16_t onTime = 400;
-						animationActive = true;
-						if (activeAnimation == LedAnimationType::Error) {
-							signalColor = CRGB::Red;
-							onTime = 200;
-						}
+						ret = Animation_ErrorOk(startNewAnimation, true, leds);
+						break;
 
-						if (NUM_LEDS == 1) {
-							FastLED.clear();
-							if (singleLedStatus) {
-								leds[0] = signalColor;
-							}
-							FastLED.show();
-							singleLedStatus = !singleLedStatus;
+					case LedAnimationType::Ok:
+						ret = Animation_ErrorOk(startNewAnimation, false, leds);
+						break;
 
-							if (animationIndex < 5) {
-								animationIndex++;
-								animationTimer = 100;
-							} else {
-								animationActive = false;
-							}
-						} else {
-							fill_solid(leds, NUM_LEDS, signalColor);
-							FastLED.show();
-							if (animationIndex > 0) {
-								animationActive = false;
-							} else {
-								animationIndex++;
-								animationTimer = onTime;
-							}
-						}
-					} break;
-
-					// --------------------------------------------------
-					// Animation of Volume
-					// --------------------------------------------------
 					case LedAnimationType::Volume:
 						ret = Animation_Volume(startNewAnimation, leds);
 						break;
@@ -370,21 +336,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// Animation of Voltage Warning
 					// --------------------------------------------------
 					case LedAnimationType::VoltageWarning: {
-						// Single + Multiple LEDs: flashes red three times if battery-voltage is low
-						animationActive = true;
-
-						FastLED.clear();
-						if (animationIndex % 2 == 0) {
-							fill_solid(leds, NUM_LEDS, CRGB::Red);
-						}
-						FastLED.show();
-
-						if (animationIndex < 6) {
-							animationIndex++;
-							animationTimer = 200;
-						} else {
-							animationActive = false;
-						}
+						
 					} break;
 
 					case LedAnimationType::BatteryMeasurement:
@@ -591,13 +543,16 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.show();
 		showEvenError = !showEvenError;
 	
-		return AnimationReturnType(false, 500); // always wait 500 ms
+		return AnimationReturnType(true, 500); // always wait 500 ms
 	}
 	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds){
 		bool animationActive = true;
 		static bool singleLedStatus = false;
 		static uint32_t animationIndex = 0;
 		int32_t animationDelay = 0;
+		if (startNewAnimation) {
+			animationIndex = 0;
+		}
 
 		if (NUM_LEDS == 1) {
 			FastLED.clear();
@@ -643,8 +598,72 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
-	AnimationReturnType Animation_ErrorOk(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_ErrorOk(bool startNewAnimation, bool error, CRGB* leds){
+		static bool singleLedStatus = false;
+		static uint16_t animationIndex = 0;
+		CRGB signalColor = CRGB::Green;
+		uint16_t animationDelay = 0;
+		uint16_t onTime = 400;
+		bool animationActive = true;
+		if (error) {
+			signalColor = CRGB::Red;
+			onTime = 200;
+		}
+
+		if (startNewAnimation) {
+			animationIndex = 0;
+		}
+
+		if (NUM_LEDS == 1) {
+			FastLED.clear();
+			if (singleLedStatus) {
+				leds[0] = signalColor;
+			}
+			FastLED.show();
+			singleLedStatus = !singleLedStatus;
+
+			if (animationIndex < 5) {
+				animationIndex++;
+				animationDelay = 100;
+			} else {
+				animationActive = false;
+			}
+		} else {
+			fill_solid(leds, NUM_LEDS, signalColor);
+			FastLED.show();
+			if (animationIndex > 0) {
+				animationActive = false;
+			} else {
+				animationIndex++;
+				animationDelay = onTime;
+			}
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds) {
+		// Single + Multiple LEDs: flashes red three times if battery-voltage is low
+		static uint16_t animationIndex = 0;
+		uint16_t animationDelay = 0;
+		bool animationActive = true;
+
+		if (startNewAnimation){
+			animationIndex = 0;
+		}
+
+		FastLED.clear();
+		if (animationIndex % 2 == 0) {
+			fill_solid(leds, NUM_LEDS, CRGB::Red);
+		}
+		FastLED.show();
+
+		if (animationIndex < 6) {
+			animationIndex++;
+			animationDelay = 200;
+		} else {
+			animationActive = false;
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
 	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
