@@ -58,7 +58,9 @@
 	AnimationReturnType Animation_Ok(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds);
 #endif
 
@@ -190,6 +192,28 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
 		return color.nscale8(factor);
 	}
+	CRGB::HTMLColorCode Led_GetIdleColor(){
+		CRGB::HTMLColorCode idleColor = CRGB::Black;
+		if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+			idleColor = CRGB::Blue;
+		} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+			if (Bluetooth_Source_Connected()) {
+				idleColor = CRGB::Blue;
+			} else {
+				idleColor = CRGB::BlueViolet;
+			}
+		} else {
+			if (Wlan_ConnectionTryInProgress()) {
+				idleColor = CRGB::Orange;
+			} else {
+				idleColor = CRGB::Green;
+				if (Wlan_IsConnected()) {
+					idleColor = CRGB::White;
+				}
+			}
+		}
+		return idleColor;
+	}
 
 	void Led_DrawIdleDots(CRGB* leds, uint8_t offset, CRGB::HTMLColorCode color) {
 		for (uint8_t i=0; i<NUM_LEDS_IDLE_DOTS; i++) {
@@ -217,12 +241,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	static void Led_Task(void *parameter) {
 		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
 		static bool turnedOffLeds = false;
-		static bool singleLedStatus = false;
-		static uint8_t ledPosWebstream = 0;
-		static uint8_t webstreamColor = 0;
 		static uint8_t lastLedBrightness = Led_Brightness;
-		static CRGB::HTMLColorCode idleColor;
-		static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
 		static CRGB leds[NUM_LEDS];
 		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
@@ -277,7 +296,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
 				nextAnimation = LedAnimationType::Playlist;
 			} else if (gPlayProperties.playlistFinished) {
-				nextAnimation = LedAnimationType::Idle; // todo: what is valid?
+				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.currentSpeechActive) {
 				nextAnimation = LedAnimationType::Speech;
 			} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
@@ -343,23 +362,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						ret = Animation_BatteryMeasurement(startNewAnimation, leds);
 						break;
 
-					// --------------------------------------------------
-					// Animation of Rewind
-					// --------------------------------------------------
-					case LedAnimationType::Rewind: {
-						if (NUM_LEDS >= 4) {
-							animationActive = true;
-
-							if (animationIndex < (NUM_LEDS)) {
-								leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
-								FastLED.show();
-								animationTimer = 30;
-								animationIndex ++;
-							} else {
-								animationActive = false;
-							}
-						}
-					} break;
+					case LedAnimationType::Rewind:
+						ret = Animation_Rewind(startNewAnimation, leds);
+						break;
 
 					case LedAnimationType::Playlist:
 						ret = Animation_PlaylistProgress(startNewAnimation, leds);
@@ -369,36 +374,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						ret = Animation_Idle(startNewAnimation, leds);
 						break;
 
-					// --------------------------------------------------
-					// Animation of Busy-State
-					// --------------------------------------------------
-					case LedAnimationType::Busy: {
-						animationActive = true;
-						if (NUM_LEDS == 1) {
-							FastLED.clear();
-							singleLedStatus = !singleLedStatus;
-							if (singleLedStatus) {
-								leds[0] = CRGB::BlueViolet;
-							}
-							FastLED.show();
-							animationTimer = 100;
-							animationActive = false;
-						} else {
-							if (animationIndex < NUM_LEDS) {
-								FastLED.clear();
-								Led_DrawIdleDots(leds, animationIndex, idleColor);
-								FastLED.show();
-								animationTimer = 50;
-								animationIndex++;
-							} else {
-								animationActive = false;
-							}
-						}
-					} break;
+					case LedAnimationType::Busy:
+						ret = Animation_Busy(startNewAnimation, leds);
+						break;
 
-					// --------------------------------------------------
-					// Animation of Progress
-					// --------------------------------------------------
 					case LedAnimationType::Speech:
 					case LedAnimationType::Pause: // TODO: separate animations?
 						ret = Animation_Pause(startNewAnimation, leds);
@@ -670,37 +649,74 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds){
+		bool animationActive = false;
+		int32_t animationDelay = 0;
+		static uint16_t animationIndex = 0;
+		if (startNewAnimation){
+			animationIndex = 0;
+		}
+		if (NUM_LEDS >= 4) {
+			animationActive = true;
+
+			if (animationIndex < (NUM_LEDS)) {
+				leds[Led_Address(NUM_LEDS - 1 - animationIndex)] = CRGB::Black;
+				FastLED.show();
+				animationDelay = 30;
+				animationIndex ++;
+			} else {
+				animationActive = false;
+			}
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+
 	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds) {
-		static int16_t animationIndex = 0;
+		static int16_t ledIndex = 0;
 		int32_t animationDelay = 0;
 		bool animationActive = true;
-		if (animationIndex < NUM_LEDS) {
-			CRGB::HTMLColorCode idleColor = CRGB::Black;
-			if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
-				idleColor = CRGB::Blue;
-			} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-				if (Bluetooth_Source_Connected()) {
-					idleColor = CRGB::Blue;
-				} else {
-					idleColor = CRGB::BlueViolet;
-				}
-			} else {
-				if (Wlan_ConnectionTryInProgress()) {
-					idleColor = CRGB::Orange;
-				} else {
-					idleColor = CRGB::Green;
-					if (Wlan_IsConnected()) {
-						idleColor = CRGB::White;
-					}
-				}
-			}
+		if (ledIndex < NUM_LEDS) {
+			CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
 			FastLED.clear();
-			Led_DrawIdleDots(leds, animationIndex, idleColor);
+			Led_DrawIdleDots(leds, ledIndex, idleColor);
 			FastLED.show();
 			animationDelay = 50*10;
-			animationIndex++;
+			ledIndex++;
 		} else {
 			animationActive = false;
+			ledIndex = 0;
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+
+	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds){
+		static bool singleLedStatus = false;
+		int32_t animationDelay = 0;
+		static uint16_t animationIndex = 0;
+		bool animationActive = true;
+		if (startNewAnimation) {
+			animationIndex = 0;
+		}
+		if (NUM_LEDS == 1) {
+			FastLED.clear();
+			singleLedStatus = !singleLedStatus;
+			if (singleLedStatus) {
+				leds[0] = CRGB::BlueViolet;
+			}
+			FastLED.show();
+			animationDelay = 100;
+			animationActive = false;
+		} else {
+			if (animationIndex < NUM_LEDS) {
+				FastLED.clear();
+				CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
+				Led_DrawIdleDots(leds, animationIndex, idleColor);
+				FastLED.show();
+				animationDelay = 50;
+				animationIndex++;
+			} else {
+				animationActive = false;
+			}
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
