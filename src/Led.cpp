@@ -58,6 +58,7 @@
 	AnimationReturnType Animation_Ok(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds);
 #endif
 
@@ -364,42 +365,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						ret = Animation_PlaylistProgress(startNewAnimation, leds);
 						break;
 
-					// --------------------------------------------------
-					// Animation of Idle-State
-					// --------------------------------------------------
-					case LedAnimationType::Idle: {
-						animationActive = true;
-						if (animationIndex < NUM_LEDS) {
-							if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
-								idleColor = CRGB::Blue;
-							} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-								if (Bluetooth_Source_Connected()) {
-									idleColor = CRGB::Blue;
-								} else {
-									idleColor = CRGB::BlueViolet;
-								}
-							} else {
-								if (Wlan_ConnectionTryInProgress()) {
-									idleColor = CRGB::Orange;
-								} else {
-									idleColor = CRGB::Green;
-									if (Wlan_IsConnected()) {
-										idleColor = CRGB::White;
-										if (gPlayProperties.currentSpeechActive) {
-											idleColor = speechColor;
-										}
-									}
-								}
-							}
-							FastLED.clear();
-							Led_DrawIdleDots(leds, animationIndex, idleColor);
-							FastLED.show();
-							animationTimer = 50*10;
-							animationIndex++;
-						} else {
-							animationActive = false;
-						}
-					} break;
+					case LedAnimationType::Idle:
+						ret = Animation_Idle(startNewAnimation, leds);
+						break;
 
 					// --------------------------------------------------
 					// Animation of Busy-State
@@ -698,6 +666,41 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			if (timerProgress > 0){
 				animationActive = true;
 			}
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
+
+	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds) {
+		static int16_t animationIndex = 0;
+		int32_t animationDelay = 0;
+		bool animationActive = true;
+		if (animationIndex < NUM_LEDS) {
+			CRGB::HTMLColorCode idleColor = CRGB::Black;
+			if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+				idleColor = CRGB::Blue;
+			} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+				if (Bluetooth_Source_Connected()) {
+					idleColor = CRGB::Blue;
+				} else {
+					idleColor = CRGB::BlueViolet;
+				}
+			} else {
+				if (Wlan_ConnectionTryInProgress()) {
+					idleColor = CRGB::Orange;
+				} else {
+					idleColor = CRGB::Green;
+					if (Wlan_IsConnected()) {
+						idleColor = CRGB::White;
+					}
+				}
+			}
+			FastLED.clear();
+			Led_DrawIdleDots(leds, animationIndex, idleColor);
+			FastLED.show();
+			animationDelay = 50*10;
+			animationIndex++;
+		} else {
+			animationActive = false;
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
