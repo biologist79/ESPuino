@@ -277,9 +277,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::Idle; // todo: what is valid?
 			} else if (gPlayProperties.currentSpeechActive) {
 				nextAnimation = LedAnimationType::Speech;
-			} else if (gPlayProperties.pausePlay) {
+			} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
 				nextAnimation = LedAnimationType::Pause;
-			} else if (gPlayProperties.isWebstream) {
+			} else if (gPlayProperties.isWebstream) { // also animate pause in the webstream animation
 				nextAnimation = LedAnimationType::Webstream;
 			} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST)) {
 				nextAnimation = LedAnimationType::Progress;
@@ -433,69 +433,17 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// Animation of Progress
 					// --------------------------------------------------
 					case LedAnimationType::Speech:
-					case LedAnimationType::Pause: { // TODO: separate animations?
-						FastLED.clear();
-						CRGB::HTMLColorCode generalColor = CRGB::Orange;
-						if (gPlayProperties.isWebstream) {
-							if (gPlayProperties.currentSpeechActive) {
-								generalColor = speechColor;
-							}
-							if (NUM_LEDS == 1) {
-								leds[0] = generalColor;
-							} else {
-								leds[Led_Address(ledPosWebstream)] = generalColor;
-								leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
-							}
-						} else {
-							if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-								generalColor = CRGB::Blue;
-							} else
-							if (gPlayProperties.currentSpeechActive) {
-								generalColor = speechColor;
-							}
+					case LedAnimationType::Pause: // TODO: separate animations?
+						ret = Animation_Pause(startNewAnimation, leds);
+						break;
 
-							uint8_t pauseOffset = 0;
-							if (OFFSET_PAUSE_LEDS) {
-								pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
-							}
-							Led_DrawIdleDots(leds, pauseOffset, generalColor);
-						}
-						FastLED.show();
-						animationTimer = 10;
-					} break;
-
-					case LedAnimationType::Progress: {
+					case LedAnimationType::Progress:
 						ret = Animation_Progress(startNewAnimation, leds);
-					} break;
+						break;
 
-					case LedAnimationType::Webstream: {
-						// do things a little bit different for Webstream as there's no progress available
-						if (animationIndex == 0) {
-							animationIndex = 1;
-							FastLED.clear();
-							if (ledPosWebstream + 1 < NUM_LEDS) {
-								ledPosWebstream++;
-							} else {
-								ledPosWebstream = 0;
-							}
-							if (System_AreControlsLocked()) {
-								leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-								if (NUM_LEDS > 1) {
-									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
-								}
-							} else if (!gPlayProperties.pausePlay) {
-								if (NUM_LEDS == 1) {
-									leds[0].setHue(webstreamColor++);
-								} else {
-									leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-									leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
-								}
-							}
-							FastLED.show();
-							animationTimer = 5 * 950;
-							animationActive = false;
-						}
-					} break;
+					case LedAnimationType::Webstream:
+						ret = Animation_Webstream(startNewAnimation, leds);
+						break;
 
 					default:
 						FastLED.clear();
@@ -640,6 +588,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
+
 	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds) {
 		// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 		static uint16_t animationIndex = 0;
@@ -664,11 +613,80 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
-	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
+
+	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds){
+		static uint8_t ledPosWebstream = 0;
+		static uint8_t webstreamColor = 0;
+		static uint16_t timerProgress = 0;
+		int32_t animationDelay = 0;
+		// pause-animation
+		if (gPlayProperties.pausePlay) {
+			FastLED.clear();
+			CRGB::HTMLColorCode generalColor = CRGB::Orange;
+			CRGB::HTMLColorCode speechColor = CRGB::Yellow;
+			if (gPlayProperties.currentSpeechActive) {
+				generalColor = speechColor;
+			}
+			if (NUM_LEDS == 1) {
+				leds[0] = generalColor;
+			} else {
+				leds[Led_Address(ledPosWebstream)] = generalColor;
+				leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = generalColor;
+			}
+			animationDelay = 10;
+			timerProgress = 0; // directly show new animation after pause
+			FastLED.show();
+		} else {
+			if (timerProgress == 0) {
+				FastLED.clear();
+				timerProgress = 100;
+				if (ledPosWebstream + 1 < NUM_LEDS) {
+					ledPosWebstream++;
+				} else {
+					ledPosWebstream = 0;
+				}
+				if (System_AreControlsLocked()) {
+					leds[Led_Address(ledPosWebstream)] = CRGB::Red;
+					if (NUM_LEDS > 1) {
+						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS] = CRGB::Red;
+					}
+				} else {
+					if (NUM_LEDS == 1) {
+						leds[0].setHue(webstreamColor++);
+					} else {
+						leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
+						leds[(Led_Address(ledPosWebstream) + NUM_LEDS / 2) % NUM_LEDS].setHue(webstreamColor++);
+					}
+
+				}
+				FastLED.show();
+			}
+			timerProgress --;
+			animationDelay = 45;
+		}
+		return AnimationReturnType(false, animationDelay);
+	}
+
 	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds){
+		FastLED.clear();
+		CRGB::HTMLColorCode generalColor = CRGB::Orange;
+		if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+			generalColor = CRGB::Blue;
+		}
+
+		uint8_t pauseOffset = 0;
+		if (OFFSET_PAUSE_LEDS) {
+			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+		}
+		Led_DrawIdleDots(leds, pauseOffset, generalColor);
+	
+		FastLED.show();
+
+		return AnimationReturnType(false, 10);
+	}
 	AnimationReturnType Animation_Speech(bool startNewAnimation, CRGB* leds);
 	// ANIMATION OF PROGRESS
 	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds){
