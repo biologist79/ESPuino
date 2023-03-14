@@ -290,9 +290,8 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	#ifdef MQTT_ENABLE
 		char *receivedString = (char*)x_calloc(length + 1u, sizeof(char));
 		memcpy(receivedString, (char *) payload, length);
-		char *mqttTopic = x_strdup(topic);
 
-		snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), mqttTopic, receivedString);
+		snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), topic, receivedString);
 		Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
 		// Go to sleep?
@@ -303,8 +302,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		}
 		// New track to play? Take RFID-ID as input
 		else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-			char *_rfidId = x_strdup(receivedString);
-			xQueueSend(gRfidCardQueue, _rfidId, 0);
+			xQueueSend(gRfidCardQueue, receivedString, 0);
 		}
 		// Loudness to change?
 		else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
@@ -317,6 +315,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Log_Println((char *) FPSTR(modificatorNotallowedWhenIdle), LOGLEVEL_INFO);
 				publishMqtt((char *) FPSTR(topicSleepState), 0, false);
 				System_IndicateError();
+				free(receivedString);
 				return;
 			}
 			if (strcmp(receivedString, "EOP") == 0) {
@@ -326,6 +325,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Led_ResetToNightBrightness();
 				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
 				System_IndicateOk();
+				free(receivedString);
 				return;
 			} else if (strcmp(receivedString, "EOT") == 0) {
 				gPlayProperties.sleepAfterCurrentTrack = true;
@@ -334,6 +334,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Led_ResetToNightBrightness();
 				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
 				System_IndicateOk();
+				free(receivedString);
 				return;
 			} else if (strcmp(receivedString, "EO5T") == 0) {
 				if ((gPlayProperties.numberOfTracks - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
@@ -346,6 +347,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Led_ResetToNightBrightness();
 				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
 				System_IndicateOk();
+				free(receivedString);
 				return;
 			} else if (strcmp(receivedString, "0") == 0) {  // Disable sleep after it was active previously
 				if (System_IsSleepTimerEnabled()) {
@@ -357,12 +359,12 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;
 					gPlayProperties.playUntilTrackNumber = 0;
-					return;
 				} else {
 					Log_Println((char *) FPSTR(sleepTimerAlreadyStopped), LOGLEVEL_INFO);
 					System_IndicateError();
-					return;
 				}
+				free(receivedString);
+				return;
 			}
 			System_SetSleepTimer((uint8_t)strtoul(receivedString, NULL, 10));
 			snprintf(Log_Buffer, Log_BufferLength, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), System_GetSleepTimer());
@@ -460,6 +462,5 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		}
 
 		free(receivedString);
-		free(mqttTopic);
 	#endif
 }

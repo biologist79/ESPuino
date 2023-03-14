@@ -140,10 +140,11 @@ inline void convertAsciiToUtf8(String asciiString, char *utf8String) {
 
 // Release previously allocated memory
 inline void freeMultiCharArray(char **arr, const uint32_t cnt) {
-	for (uint32_t i = 0; i <= cnt; i++) {
+	for (uint32_t i = 0; i < cnt; i++) {
 		/*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(freePtr), *(arr+i));
 		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);*/
 		free(*(arr + i));
 	}
+	free(arr);
 	*arr = NULL;
 }
