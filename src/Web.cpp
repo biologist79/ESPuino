@@ -582,7 +582,7 @@ bool processJsonRequest(char *_serialJson) {
 	} else if (doc.containsKey("rfidAssign")) {
 		const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
 		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
-		convertUtf8ToAscii(object["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
+		convertFilenameToAscii(object["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
 		uint8_t _playMode = object["rfidAssign"]["playMode"];
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
@@ -760,7 +760,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			utf8FilePath = "/" + filename;
 		}
 
-		convertUtf8ToAscii(utf8FilePath, filePath);
+		convertFilenameToAscii(utf8FilePath, filePath);
 
 		snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
 		Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -916,7 +916,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	File root;
 	if (request->hasParam("path")) {
 		param = request->getParam("path");
-		convertUtf8ToAscii(param->value(), filePath);
+		convertFilenameToAscii(param->value(), filePath);
 		root = gFSystem.open(filePath);
 	} else {
 		root = gFSystem.open("/");
@@ -1034,7 +1034,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	}
 	// check file exists on SD card
 	param = request->getParam("path");
-	convertUtf8ToAscii(param->value(), filePath);
+	convertFilenameToAscii(param->value(), filePath);
 	if (!gFSystem.exists(filePath)) {
 		snprintf(Log_Buffer, Log_BufferLength, "DOWNLOAD:  File not found on SD card: %s", param->value().c_str());
 		Log_Println(Log_Buffer, LOGLEVEL_ERROR);
@@ -1083,7 +1083,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path")) {
 		param = request->getParam("path");
-		convertUtf8ToAscii(param->value(), filePath);
+		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.exists(filePath)) {
 			file = gFSystem.open(filePath);
 			if (file.isDirectory()) {
@@ -1122,7 +1122,7 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path")) {
 		param = request->getParam("path");
-		convertUtf8ToAscii(param->value(), filePath);
+		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.mkdir(filePath)) {
 			snprintf(Log_Buffer, Log_BufferLength, "CREATE:  %s created", param->value().c_str());
 			Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -1147,8 +1147,8 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
-		convertUtf8ToAscii(srcPath->value(), srcFullFilePath);
-		convertUtf8ToAscii(dstPath->value(), dstFullFilePath);
+		convertFilenameToAscii(srcPath->value(), srcFullFilePath);
+		convertFilenameToAscii(dstPath->value(), dstFullFilePath);
 		if (gFSystem.exists(srcFullFilePath)) {
 			if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
 				snprintf(Log_Buffer, Log_BufferLength, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
@@ -1179,7 +1179,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path") && request->hasParam("playmode")) {
 		param = request->getParam("path");
-		convertUtf8ToAscii(param->value(), filePath);
+		convertFilenameToAscii(param->value(), filePath);
 		param = request->getParam("playmode");
 		playModeString = param->value();
 
