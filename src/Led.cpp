@@ -335,9 +335,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// --------------------------------------------------
 					// Animation of Voltage Warning
 					// --------------------------------------------------
-					case LedAnimationType::VoltageWarning: {
-						
-					} break;
+					case LedAnimationType::VoltageWarning: 
+						ret = Animation_VoltageWarning(startNewAnimation, leds);
+						break;
 
 					case LedAnimationType::BatteryMeasurement:
 						ret = Animation_BatteryMeasurement(startNewAnimation, leds);
@@ -360,6 +360,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 							}
 						}
 					} break;
+
 					case LedAnimationType::Playlist:
 						ret = Animation_PlaylistProgress(startNewAnimation, leds);
 						break;
@@ -502,10 +503,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						animationTimer = 50;
 					break;
 				}
+				animationActive = ret.animationActive;
+				animationTimer = ret.animationDelay;
 			}
-
-			animationActive = ret.animationActive;
-			animationTimer = ret.animationDelay;
 
 			// get the time to wait
 			if ((animationTimer > 0) && (animationTimer < taskDelay)) {
@@ -543,7 +543,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.show();
 		showEvenError = !showEvenError;
 	
-		return AnimationReturnType(true, 500); // always wait 500 ms
+		return AnimationReturnType(false, 500); // always wait 500 ms
 	}
 	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds){
 		bool animationActive = true;
