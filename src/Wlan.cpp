@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <DNSServer.h>
 #include "settings.h"
 #include "AudioPlayer.h"
 #include "RotaryEncoder.h"
@@ -23,6 +24,8 @@ uint32_t lastPrintRssiTimestamp = 0;
 IPAddress apIP(192, 168, 4, 1);        // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
 bool accessPointStarted = false;
+constexpr uint8_t DNS_PORT = 53;
+DNSServer *dnsServer;
 
 void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAddress netmask);
 bool getWifiEnableStatusFromNVS(void);
@@ -153,6 +156,9 @@ void Wlan_Cyclic(void) {
 					MDNS.addService("http", "tcp", 80);
 				}
 			#endif
+			delete dnsServer;
+			dnsServer = nullptr;
+			
 			free(_ssid);
 			free(_pwd);
 		}
@@ -164,6 +170,10 @@ void Wlan_Cyclic(void) {
 			snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
 			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 		}
+	}
+
+	if(accessPointStarted && dnsServer) {
+		dnsServer->processNextRequest();
 	}
 }
 
@@ -193,6 +203,12 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
 	snprintf(Log_Buffer, Log_BufferLength, "IP-Adresse: %d.%d.%d.%d", apIP[0], apIP[1], apIP[2], apIP[3]);
 	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+
+	if(!dnsServer)
+		dnsServer = new DNSServer();
+
+	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
+	dnsServer->start(DNS_PORT, "*", ip);
 
 	Web_Init();
 

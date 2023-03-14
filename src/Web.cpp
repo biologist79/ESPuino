@@ -113,6 +113,10 @@ void Web_Init(void) {
 		request->send(response);
 	});
 
+	wServer.onNotFound([](AsyncWebServerRequest *request){
+		request->redirect("/");
+	});
+
 	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
