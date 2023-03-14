@@ -52,6 +52,8 @@
 	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -208,7 +210,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 #ifdef NEOPIXEL_ENABLE
 	static void Led_Task(void *parameter) {
 		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
-		static bool showEvenError = false;
 		static bool turnedOffLeds = false;
 		static bool singleLedStatus = false;
 		static uint8_t ledPosWebstream = 0;
@@ -308,74 +309,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			AnimationReturnType ret;
 			if (animationTimer <= 0) {
 				switch (activeAnimation) {
-					// --------------------------------------------------
-					// Bootup - Animation
-					// --------------------------------------------------
-					case LedAnimationType::Boot: {
-						animationTimer = 500;
+					case LedAnimationType::Boot:
+						ret = Animation_Boot(startNewAnimation, leds);
+						break;
 
-						if (millis() > 10000) {
-							fill_solid(leds, NUM_LEDS, CRGB::Red);
-							if (showEvenError) {
-								// and then draw in the black dots
-								for (uint8_t i=0;i<NUM_LEDS;i +=2) {
-									leds[i] = CRGB::Black;
-								}
-							}
-						} else {
-							fill_solid(leds, NUM_LEDS, CRGB::Black);
-							const uint8_t startLed = (showEvenError) ? 1 : 0;
-							for (uint8_t i=startLed;i<NUM_LEDS;i+=2) {
-								leds[i] = CRGB::Orange;
-							}
-						}
-						FastLED.show();
-						showEvenError = !showEvenError;
-					} break;
-
-					// --------------------------------------------------
-					// Power-Button Animation
-					// --------------------------------------------------
-					case LedAnimationType::Shutdown: {
-						animationActive = true;
-
-						if (NUM_LEDS == 1) {
-							FastLED.clear();
-							if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
-								leds[0] = CRGB::Red;
-								FastLED.show();
-								animationTimer = 5;
-							} else {
-								if (singleLedStatus) {
-									leds[0] = CRGB::Red;
-								}
-								FastLED.show();
-								singleLedStatus = !singleLedStatus;
-								animationTimer = 50;
-							}
-							animationActive = false;
-						} else {
-							if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
-								animationTimer = 50;
-								// don't end animation, we already reached the shutdown.
-							} else {
-								if (animationIndex == 0) {
-									FastLED.clear();
-								}
-								if (animationIndex < NUM_LEDS) {
-									leds[Led_Address(animationIndex)] = CRGB::Red;
-									if (gButtons[gShutdownButton].currentState) {
-										animationTimer = 5;
-										animationActive = false;
-									} else {
-										animationTimer = intervalToLongPress / NUM_LEDS;
-									}
-									animationIndex++;
-									FastLED.show();
-								}
-							}
-						}
-					} break;
+					case LedAnimationType::Shutdown:
+						ret = Animation_Shutdown(startNewAnimation, leds);
+						break;
 
 					// --------------------------------------------------
 					// Animation of Error or OK
@@ -629,11 +569,86 @@ void Led_SetButtonLedsEnabled(boolean value) {
 // all funcitons return the desired delay and if they are still active
 
 #ifdef NEOPIXEL_ENABLE
+	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds){
+		static bool showEvenError = false;
+		if (millis() > 10000) {
+			fill_solid(leds, NUM_LEDS, CRGB::Red);
+			if (showEvenError) {
+				// and then draw in the black dots
+				for (uint8_t i=0;i<NUM_LEDS;i +=2) {
+					leds[i] = CRGB::Black;
+				}
+			}
+		} else {
+			fill_solid(leds, NUM_LEDS, CRGB::Black);
+			const uint8_t startLed = (showEvenError) ? 1 : 0;
+			for (uint8_t i=startLed;i<NUM_LEDS;i+=2) {
+				leds[i] = CRGB::Orange;
+			}
+		}
+		FastLED.show();
+		showEvenError = !showEvenError;
+
+		return AnimationReturnType(false, 500); // always wait 500 ms
+	}
+	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds){
+		bool animationActive = true;
+		static bool singleLedStatus = false;
+		static uint32_t animationIndex = 0;
+		int32_t animationDelay = 0;
+		if (startNewAnimation) {
+			animationIndex = 0;
+		}
+
+		if (NUM_LEDS == 1) {
+			FastLED.clear();
+			if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
+				leds[0] = CRGB::Red;
+				FastLED.show();
+				animationDelay = 5;
+			} else {
+				if (singleLedStatus) {
+					leds[0] = CRGB::Red;
+				}
+				FastLED.show();
+				singleLedStatus = !singleLedStatus;
+				animationDelay = 50;
+			}
+			animationActive = false;
+		} else {
+			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= NUM_LEDS)) {
+				animationDelay = 50;
+				if(!gButtons[gShutdownButton].isPressed) {
+					// increase animation index to bail out, if we had a kombi-button
+					animationIndex++;
+					if(animationIndex >= NUM_LEDS + 3) {
+						animationActive = false;	// this is approx. 150ms after the button is released
+					}
+				}
+			} else {
+				if (animationIndex == 0) {
+					FastLED.clear();
+				}
+				if (animationIndex < NUM_LEDS) {
+					leds[Led_Address(animationIndex)] = CRGB::Red;
+					if (gButtons[gShutdownButton].currentState) {
+						animationDelay = 5;
+						animationActive = false;
+					} else {
+						animationDelay = intervalToLongPress / NUM_LEDS;
+					}
+					animationIndex++;
+					FastLED.show();
+				}
+			}
+		}
+		return AnimationReturnType(animationActive, animationDelay);
+	}
 	// ANIMATION OF PROGRESS
 	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds){
 		static double lastPos = 0.0f;
 		int32_t animationDelay = 0;
-		
+
 		if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
 			lastPos = gPlayProperties.currentRelPos;
 			FastLED.clear();
