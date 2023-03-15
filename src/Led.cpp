@@ -62,6 +62,7 @@
 	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Speech(bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -379,7 +380,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						break;
 
 					case LedAnimationType::Speech:
-					case LedAnimationType::Pause: // TODO: separate animations?
+						ret = Animation_Speech(startNewAnimation, leds);
+						break;
+
+					case LedAnimationType::Pause:
 						ret = Animation_Pause(startNewAnimation, leds);
 						break;
 
@@ -603,10 +607,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (gPlayProperties.pausePlay) {
 			FastLED.clear();
 			CRGB::HTMLColorCode generalColor = CRGB::Orange;
-			CRGB::HTMLColorCode speechColor = CRGB::Yellow;
-			if (gPlayProperties.currentSpeechActive) {
-				generalColor = speechColor;
-			}
 			if (NUM_LEDS == 1) {
 				leds[0] = generalColor;
 			} else {
@@ -733,6 +733,19 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
 		}
 		Led_DrawIdleDots(leds, pauseOffset, generalColor);
+
+		FastLED.show();
+
+		return AnimationReturnType(false, 10);
+	}
+
+	AnimationReturnType Animation_Speech(bool startNewAnimation, CRGB* leds){
+		FastLED.clear();
+		uint8_t pauseOffset = 0;
+		if (OFFSET_PAUSE_LEDS) {
+			pauseOffset = ((NUM_LEDS/NUM_LEDS_IDLE_DOTS)/2)-1;
+		}
+		Led_DrawIdleDots(leds, pauseOffset, CRGB::Yellow);
 
 		FastLED.show();
 
