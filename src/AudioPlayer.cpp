@@ -143,6 +143,7 @@ uint8_t AudioPlayer_GetCurrentVolume(void) {
 
 void AudioPlayer_SetCurrentVolume(uint8_t value) {
 	AudioPlayer_CurrentVolume = value;
+	Led_Indicate(LedIndicatorType::Volume);
 }
 
 uint8_t AudioPlayer_GetMaxVolume(void) {
@@ -799,8 +800,6 @@ uint8_t AudioPlayer_GetRepeatMode(void) {
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary) {
 	uint32_t _volume;
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
-
-	Led_Indicate(LedIndicatorType::Volume);
 
 	if (_newVolume < AudioPlayer_GetMinVolume()) {
 		Log_Println((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);

@@ -52,7 +52,6 @@
 	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds);
-
 	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds);
 	AnimationReturnType Animation_Error(bool startNewAnimation, CRGB* leds);
