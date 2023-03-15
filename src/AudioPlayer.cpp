@@ -800,6 +800,8 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 	uint32_t _volume;
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
 
+	Led_Indicate(LedIndicatorType::Volume);
+
 	if (_newVolume < AudioPlayer_GetMinVolume()) {
 		Log_Println((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
 		return;

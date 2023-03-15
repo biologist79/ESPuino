@@ -235,7 +235,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 #ifdef NEOPIXEL_ENABLE
 	static void Led_Task(void *parameter) {
-		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB leds[NUM_LEDS];
@@ -283,18 +282,17 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::VoltageWarning;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
 				nextAnimation = LedAnimationType::BatteryMeasurement;
-			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-				hlastVolume = AudioPlayer_GetCurrentVolume();
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Volume) ) {
 				nextAnimation = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
 				nextAnimation = LedAnimationType::Rewind;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
 				nextAnimation = LedAnimationType::Playlist;
-			} else if (gPlayProperties.playlistFinished) {
-				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.currentSpeechActive) {
 				nextAnimation = LedAnimationType::Speech;
+			} else if (gPlayProperties.playlistFinished) {
+				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
 				nextAnimation = LedAnimationType::Pause;
 			} else if (gPlayProperties.isWebstream) { // also animate pause in the webstream animation
@@ -307,7 +305,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::Busy;
 			} else {
 				nextAnimation = LedAnimationType::NoNewAnimation; // should not happen
-				Log_Println("No Animation", LOGLEVEL_ERROR);
 			}
 
 			// check for instant transition
@@ -826,8 +823,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.show();
 
 		// reset animation if volume changes
-		if (lastVolume != AudioPlayer_GetCurrentVolume()) {
-			lastVolume = AudioPlayer_GetCurrentVolume();
+		if (LED_INDICATOR_IS_SET(LedIndicatorType::Volume)) {
+			LED_INDICATOR_CLEAR(LedIndicatorType::Volume);
 			cyclesWaited = 0;
 		}
 
