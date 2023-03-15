@@ -962,9 +962,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 		// Single-LED: indicates voltage coloured between gradient green (high) => red (low)
 		// Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
-		
 		if (startNewAnimation) {
+			#ifdef MEASURE_BATTERY_VOLTAGE
 			float batteryLevel = Battery_EstimateLevel();
+			#else
+			float batteryLevel = 1.0f;
+			#endif 
 			if (batteryLevel < 0.0f) { // If voltage is too low or no battery is connected
 				LED_INDICATOR_SET(LedIndicatorType::Error);
 				return AnimationReturnType(); // abort to indicate error
