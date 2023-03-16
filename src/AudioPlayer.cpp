@@ -143,7 +143,6 @@ uint8_t AudioPlayer_GetCurrentVolume(void) {
 
 void AudioPlayer_SetCurrentVolume(uint8_t value) {
 	AudioPlayer_CurrentVolume = value;
-	Led_Indicate(LedIndicatorType::Volume);
 }
 
 uint8_t AudioPlayer_GetMaxVolume(void) {
