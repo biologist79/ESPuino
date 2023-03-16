@@ -62,7 +62,3 @@ void Led_ResetToInitialBrightness(void);
 void Led_ResetToNightBrightness(void);
 uint8_t Led_GetBrightness(void);
 void Led_SetBrightness(uint8_t value);
-uint8_t AudioPlayer_GetInitVolume(void);
-void AudioPlayer_SetInitVolume(uint8_t value);
-uint8_t AudioPlayer_GetInitVolume(void);
-void AudioPlayer_SetInitVolume(uint8_t value);
