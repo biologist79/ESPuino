@@ -248,11 +248,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 
-		static LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
-		static LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
-		static bool animationActive = false;
-		static int32_t animationTimer;
-		static uint32_t animationIndex;
+		LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
+		LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
+		bool animationActive = false;
+		int32_t animationTimer;
+		uint32_t animationIndex;
 
 		for (;;) {
 			// special handling
@@ -273,6 +273,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			bool startNewAnimation = false;
 
 			// check indications and set led-mode
+			// this mode will then be animated if the priority and the current animation state fit
 			if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
 				nextAnimation = LedAnimationType::Boot;
 			} else if (CheckForPowerButtonAnimation()) {
@@ -314,12 +315,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::NoNewAnimation; // should not happen
 			}
 
-			// check for instant transition
+			// check for instant transition if the requested animation has a higher priority then the current one
 			if (nextAnimation < activeAnimation) {
 				animationActive = false; // abort current animation
 				animationTimer = 0;
 			}
-			// do normal transitions
+			// transition to new animation
 			if ((!animationActive) && (animationTimer <= 0)) {
 				activeAnimation = nextAnimation; // set new animation
 				animationIndex = 0;
@@ -332,8 +333,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				lastLedBrightness = Led_Brightness;
 			}
 
-			AnimationReturnType ret;
+			// when there is no delay anymore we have to animate something
 			if (animationTimer <= 0) {
+				AnimationReturnType ret;
+				// animate the current animation
 				switch (activeAnimation) {
 					case LedAnimationType::Boot:
 						ret = Animation_Boot(startNewAnimation, leds);
@@ -402,11 +405,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						ret.animationDelay = 50;
 					break;
 				}
+				// apply delay and state from animation
 				animationActive = ret.animationActive;
 				animationTimer = ret.animationDelay;
 			}
 
-			// get the time to wait
+			// get the time to wait and delay the task
 			if ((animationTimer > 0) && (animationTimer < taskDelay)) {
 				taskDelay = animationTimer;
 			}
@@ -417,11 +421,18 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 #endif
 
-// each function has to be non-blocking.
-// all states are kept in this function.
-// all funcitons return the desired delay and if they are still active
-
 #ifdef NEOPIXEL_ENABLE
+	// ---------------------------------------------------------------------
+	// ---------------        ANIMATION-METHODS        ---------------------
+	// ---------------------------------------------------------------------
+	// each function has to be non-blocking.
+	// all states are kept in this function.
+	// all funcitons return the desired delay and if they are still active
+
+
+	// --------------------------------
+	// BOOT-UP Animation
+	// --------------------------------
 	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGB* leds){
 		static bool showEvenError = false;
 		if (millis() > 10000) {
@@ -444,6 +455,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		return AnimationReturnType(false, 500); // always wait 500 ms
 	}
+
+	// --------------------------------
+	// Shutdown Animation
+	// --------------------------------
 	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGB* leds){
 		bool animationActive = true;
 		static bool singleLedStatus = false;
@@ -497,6 +512,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
+
+	// --------------------------------
+	// Error Animation
+	// --------------------------------
 	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		static uint16_t animationIndex = 0;
@@ -534,6 +553,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
+	// --------------------------------
+	// OK Animation
+	// --------------------------------
 	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		static uint16_t animationIndex = 0;
@@ -572,8 +594,11 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// VoltageWarning Animation
+	// --------------------------------
+	// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGB* leds) {
-		// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 		static uint16_t animationIndex = 0;
 		uint16_t animationDelay = 0;
 		bool animationActive = true;
@@ -597,6 +622,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// Webstream Animation
+	// --------------------------------
+	// Animates the progress and Pause of a Webstream
 	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGB* leds){
 		static uint8_t ledPosWebstream = 0;
 		static uint8_t webstreamColor = 0;
@@ -649,6 +678,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// Rewind Animation
+	// --------------------------------
 	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGB* leds){
 		bool animationActive = false;
 		int32_t animationDelay = 0;
@@ -671,6 +703,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// Idle Animation
+	// --------------------------------
 	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGB* leds) {
 		static int16_t ledIndex = 0;
 		int32_t animationDelay = 0;
@@ -689,6 +724,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// Busy Animation
+	// --------------------------------
 	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		int32_t animationDelay = 0;
@@ -721,6 +759,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
+	// --------------------------------
+	// Pause Animation
+	// --------------------------------
+	// Animates the pause if no Webstream is active
 	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGB* leds){
 		FastLED.clear();
 		CRGB::HTMLColorCode generalColor = CRGB::Orange;
@@ -739,6 +781,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(false, 10);
 	}
 
+	// --------------------------------
+	// Speech Animation
+	// --------------------------------
 	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGB* leds){
 		FastLED.clear();
 		uint8_t pauseOffset = 0;
@@ -752,7 +797,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(false, 10);
 	}
 
-	// ANIMATION OF PROGRESS
+	// --------------------------------
+	// Progress in Track Animation
+	// --------------------------------
 	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGB* leds){
 		static double lastPos = 0.0f;
 		int32_t animationDelay = 0;
@@ -788,7 +835,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(false, animationDelay);
 	}
 
-	// ANIMATION OF VULUME CHANGE
+	// --------------------------------
+	// Volume-Change Animation
+	// --------------------------------
 	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGB* leds){
 		static uint8_t lastVolume = 0;
 		static uint16_t cyclesWaited = 0;
@@ -847,7 +896,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	// ANIMATION OF PLAYLIST-PROGRESS
+	// --------------------------------
+	// PLAYLIST-PROGRESS Animation
+	// --------------------------------
 	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false; // signals if the animation is currently active
 		int32_t animationDelay = 0;
@@ -960,7 +1011,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	// ANIMATION OF BATTERY_MEASUREMENT
+	// --------------------------------
+	// BATTERY_MEASUREMENT Animation
+	// --------------------------------
 	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false;
 		int32_t animationDelay = 0;
