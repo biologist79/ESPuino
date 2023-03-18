@@ -305,6 +305,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				lastLedBrightness = Led_Brightness;
 			}
 
+			AnimationReturnType ret;
 			if (animationTimer <= 0) {
 				switch (activeAnimation) {
 					// --------------------------------------------------
@@ -418,11 +419,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					// --------------------------------------------------
 					// Animation of Volume
 					// --------------------------------------------------
-					case LedAnimationType::Volume: {
-						AnimationReturnType ret = Animation_Volume(startNewAnimation, leds);
-						animationActive = ret.animationActive;
-						animationTimer = ret.animationDelay;
-					} break;
+					case LedAnimationType::Volume:
+						ret = Animation_Volume(startNewAnimation, leds);
+						break;
 
 					// --------------------------------------------------
 					// Animation of Voltage Warning
@@ -445,14 +444,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						}
 					} break;
 
-					// --------------------------------------------------
-					// Animation of Battery Measurement
-					// --------------------------------------------------
-					case LedAnimationType::BatteryMeasurement: {
-						AnimationReturnType ret = Animation_BatteryMeasurement(startNewAnimation, leds);
-						animationActive = ret.animationActive;
-						animationTimer = ret.animationDelay;
-					} break;
+					case LedAnimationType::BatteryMeasurement:
+						ret = Animation_BatteryMeasurement(startNewAnimation, leds);
+						break;
 
 					// --------------------------------------------------
 					// Animation of Rewind
@@ -472,14 +466,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						}
 					} break;
 
-					// --------------------------------------------------
-					// Animation of Playlist-Progress
-					// --------------------------------------------------
-					case LedAnimationType::Playlist: {
-						AnimationReturnType ret = Animation_PlaylistProgress(startNewAnimation, leds);
-						animationActive = ret.animationActive;
-						animationTimer = ret.animationDelay;
-					} break;
+					case LedAnimationType::Playlist:
+						ret = Animation_PlaylistProgress(startNewAnimation, leds);
+						break;
 
 					// --------------------------------------------------
 					// Animation of Idle-State
@@ -581,9 +570,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					} break;
 
 					case LedAnimationType::Progress: {
-						AnimationReturnType ret = Animation_Progress(startNewAnimation, leds);
-						animationActive = ret.animationActive;
-						animationTimer = ret.animationDelay;
+						ret = Animation_Progress(startNewAnimation, leds);
 					} break;
 
 					case LedAnimationType::Webstream: {
@@ -618,9 +605,12 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					default:
 						FastLED.clear();
 						FastLED.show();
-						animationTimer = 50;
+						ret.animationActive = false;
+						ret.animationDelay = 50;
 					break;
 				}
+				animationActive = ret.animationActive;
+				animationTimer = ret.animationDelay;
 			}
 
 			// get the time to wait
