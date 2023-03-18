@@ -296,10 +296,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::Rewind;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
 				nextAnimation = LedAnimationType::Playlist;
-			} else if (gPlayProperties.playlistFinished) {
-				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.currentSpeechActive) {
 				nextAnimation = LedAnimationType::Speech;
+			} else if (gPlayProperties.playlistFinished) {
+				nextAnimation = LedAnimationType::Idle;
 			} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
 				nextAnimation = LedAnimationType::Pause;
 			} else if (gPlayProperties.isWebstream) { // also animate pause in the webstream animation
