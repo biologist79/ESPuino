@@ -251,8 +251,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
 		LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
 		bool animationActive = false;
-		int32_t animationTimer;
-		uint32_t animationIndex;
+		int32_t animationTimer = 0;
 
 		for (;;) {
 			// special handling
@@ -323,7 +322,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			// transition to new animation
 			if ((!animationActive) && (animationTimer <= 0)) {
 				activeAnimation = nextAnimation; // set new animation
-				animationIndex = 0;
 				startNewAnimation = true;
 			}
 
