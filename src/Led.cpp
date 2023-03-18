@@ -48,21 +48,21 @@
 	static uint8_t Led_Address(uint8_t number);
 
 	// animation-functions prototypes
-	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Error(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Ok(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds);
-	AnimationReturnType Animation_Speech(bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGB* leds);
+	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGB* leds);
 #endif
 
 void Led_Init(void) {
@@ -422,7 +422,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 // all funcitons return the desired delay and if they are still active
 
 #ifdef NEOPIXEL_ENABLE
-	AnimationReturnType Animation_Boot(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Boot(const bool startNewAnimation, CRGB* leds){
 		static bool showEvenError = false;
 		if (millis() > 10000) {
 			fill_solid(leds, NUM_LEDS, CRGB::Red);
@@ -444,7 +444,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		return AnimationReturnType(false, 500); // always wait 500 ms
 	}
-	AnimationReturnType Animation_Shutdown(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGB* leds){
 		bool animationActive = true;
 		static bool singleLedStatus = false;
 		static uint32_t animationIndex = 0;
@@ -497,7 +497,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
-	AnimationReturnType Animation_Error(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Error(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		static uint16_t animationIndex = 0;
 		CRGB signalColor = CRGB::Red;
@@ -534,7 +534,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
-	AnimationReturnType Animation_Ok(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		static uint16_t animationIndex = 0;
 		CRGB signalColor = CRGB::Green;
@@ -572,7 +572,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_VoltageWarning(bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGB* leds) {
 		// Single + Multiple LEDs: flashes red three times if battery-voltage is low
 		static uint16_t animationIndex = 0;
 		uint16_t animationDelay = 0;
@@ -597,7 +597,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_Webstream(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGB* leds){
 		static uint8_t ledPosWebstream = 0;
 		static uint8_t webstreamColor = 0;
 		static uint16_t timerProgress = 0;
@@ -649,7 +649,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_Rewind(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGB* leds){
 		bool animationActive = false;
 		int32_t animationDelay = 0;
 		static uint16_t animationIndex = 0;
@@ -671,7 +671,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_Idle(bool startNewAnimation, CRGB* leds) {
+	AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGB* leds) {
 		static int16_t ledIndex = 0;
 		int32_t animationDelay = 0;
 		bool animationActive = true;
@@ -689,7 +689,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_Busy(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGB* leds){
 		static bool singleLedStatus = false;
 		int32_t animationDelay = 0;
 		static uint16_t animationIndex = 0;
@@ -721,7 +721,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay);
 	}
 
-	AnimationReturnType Animation_Pause(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGB* leds){
 		FastLED.clear();
 		CRGB::HTMLColorCode generalColor = CRGB::Orange;
 		if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
@@ -739,7 +739,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(false, 10);
 	}
 
-	AnimationReturnType Animation_Speech(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGB* leds){
 		FastLED.clear();
 		uint8_t pauseOffset = 0;
 		if (OFFSET_PAUSE_LEDS) {
@@ -753,7 +753,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	// ANIMATION OF PROGRESS
-	AnimationReturnType Animation_Progress(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGB* leds){
 		static double lastPos = 0.0f;
 		int32_t animationDelay = 0;
 
@@ -789,7 +789,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	// ANIMATION OF VULUME CHANGE
-	AnimationReturnType Animation_Volume(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGB* leds){
 		static uint8_t lastVolume = 0;
 		static uint16_t cyclesWaited = 0;
 		int32_t animationDelay = 0;
@@ -848,7 +848,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	// ANIMATION OF PLAYLIST-PROGRESS
-	AnimationReturnType Animation_PlaylistProgress(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false; // signals if the animation is currently active
 		int32_t animationDelay = 0;
 
@@ -961,7 +961,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 
 	// ANIMATION OF BATTERY_MEASUREMENT
-	AnimationReturnType Animation_BatteryMeasurement(bool startNewAnimation, CRGB* leds){
+	AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGB* leds){
 		static bool animationActive = false;
 		int32_t animationDelay = 0;
 
