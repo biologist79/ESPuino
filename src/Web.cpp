@@ -840,26 +840,25 @@ void explorerHandleFileStorageTask(void *parameter) {
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
 	uploadFile = gFSystem.open((char *)parameter, "w");
-	size_t maxItems = xRingbufferGetMaxItemSize(explorerFileUploadRingBuffer);
+
 	for (;;) {
-		// check buffer is filled with enough data
-		size_t itemsFree = xRingbufferGetCurFreeSize(explorerFileUploadRingBuffer);
-		item_size = maxItems - itemsFree;
-		if (item_size < (maxItems / 2)) {
+		
+		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
+
+		if (item != NULL) {
+			chunkCount++;
+			if (!uploadFile.write(item, item_size)) {
+				bytesNok += item_size;
+				feedTheDog();
+			} else {
+				bytesOk += item_size;
+				vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+			}
+			lastUpdateTimestamp = millis();
+		} else {
 			// not enough data in the buffer, check if all data arrived for the file
 			uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 			if (uploadFileNotification == pdPASS) {
-				item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
-				if (item != NULL) {
-					chunkCount++;
-					if (!uploadFile.write(item, item_size)) {
-						bytesNok += item_size;
-					} else {
-						bytesOk += item_size;
-					}
-					vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
-					vTaskDelay(portTICK_PERIOD_MS * 20);
-				}
 				uploadFile.close();
 				snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kiB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
 				Log_Println(Log_Buffer, LOGLEVEL_INFO);
@@ -875,28 +874,20 @@ void explorerHandleFileStorageTask(void *parameter) {
 				vTaskDelete(NULL);
 				return;
 			}
-			vTaskDelay(portTICK_PERIOD_MS * 5);
-			continue;
+			
 		}
-
-		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 100);
-		if (item != NULL) {
-			chunkCount++;
-			if (!uploadFile.write(item, item_size)) {
-				bytesNok += item_size;
-				feedTheDog();
-			} else {
-				bytesOk += item_size;
-			}
-			vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
-			feedTheDog();
-			lastUpdateTimestamp = millis();
-		}
+		// delay a bit to give the webtask some time fill the ringbuffer
+		#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		vTaskDelay(1u); 
+		#else
+		vTaskDelay(5u);
+		#endif
 	}
 	// send signal to upload function to terminate
 	xQueueSend(explorerFileUploadStatusQueue, &value, 0);
 	vTaskDelete(NULL);
 }
+
 
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
@@ -1154,6 +1145,12 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 				snprintf(Log_Buffer, Log_BufferLength, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
 				Log_Println(Log_Buffer, LOGLEVEL_INFO);
 				Web_DeleteCachefile(dstFullFilePath);
+				// Also delete cache file inside the renamed folder
+				char cacheFile[MAX_FILEPATH_LENTGH];
+				snprintf(cacheFile, MAX_FILEPATH_LENTGH, "%s/%s", dstFullFilePath, playlistCacheFile);
+				if (gFSystem.exists(cacheFile)) {
+					gFSystem.remove(cacheFile);
+				}
 			} else {
 				snprintf(Log_Buffer, Log_BufferLength, "RENAME:  Cannot rename %s", srcPath->value().c_str());
 				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
