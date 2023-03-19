@@ -779,6 +779,11 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			explorerFileUploadStatusQueue = xQueueCreate(1, sizeof(uint8_t));
 		}
 
+		// pause some tasks
+		vTaskSuspend(AudioTaskHandle);
+		vTaskSuspend(Led_TaskHandle);
+//		vTaskSuspend(rfidTaskHandle);
+
 		// Create Task for handling the storage of the data
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
@@ -802,6 +807,11 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// watit until the storage task is sending the signal to finish
 		uint8_t signal;
 		xQueueReceive(explorerFileUploadStatusQueue, &signal, portMAX_DELAY);
+
+		// pause some tasks
+		vTaskResume(AudioTaskHandle);
+		vTaskResume(Led_TaskHandle);
+//		vTaskResume(rfidTaskHandle);
 
 		// delete task
 		vTaskDelete(fileStorageTaskHandle);

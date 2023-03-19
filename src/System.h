@@ -3,6 +3,10 @@
 
 extern Preferences gPrefsRfid;
 extern Preferences gPrefsSettings;
+extern TaskHandle_t AudioTaskHandle;
+extern TaskHandle_t Led_TaskHandle;
+//extern TaskHandle_t rfidTaskHandle;
+
 
 void System_Init(void);
 void System_Cyclic(void);

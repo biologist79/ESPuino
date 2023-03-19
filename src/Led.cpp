@@ -46,6 +46,7 @@
 
 	static void Led_Task(void *parameter);
 	static uint8_t Led_Address(uint8_t number);
+	TaskHandle_t Led_TaskHandle;
 #endif
 
 void Led_Init(void) {
@@ -75,13 +76,13 @@ void Led_Init(void) {
 		}
 
 		xTaskCreatePinnedToCore(
-			Led_Task,   /* Function to implement the task */
-			"Led_Task", /* Name of the task */
-			1512,       /* Stack size in words */
-			NULL,       /* Task input parameter */
-			1,          /* Priority of the task */
-			NULL,       /* Task handle. */
-			1           /* Core where the task should run */
+			Led_Task,   		/* Function to implement the task */
+			"Led_Task", 		/* Name of the task */
+			1512,       		/* Stack size in words */
+			NULL,       		/* Task input parameter */
+			1,          		/* Priority of the task */
+			&Led_TaskHandle, 	/* Task handle. */
+			1           		/* Core where the task should run */
 		);
 	#endif
 }
