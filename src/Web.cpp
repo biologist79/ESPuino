@@ -779,11 +779,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			explorerFileUploadStatusQueue = xQueueCreate(1, sizeof(uint8_t));
 		}
 
-		// pause some tasks
-		vTaskSuspend(AudioTaskHandle);
-		vTaskSuspend(Led_TaskHandle);
-//		vTaskSuspend(rfidTaskHandle);
-
 		// Create Task for handling the storage of the data
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
@@ -802,16 +797,12 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	}
 
 	if (final) {
+
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eNoAction);
 		// watit until the storage task is sending the signal to finish
 		uint8_t signal;
 		xQueueReceive(explorerFileUploadStatusQueue, &signal, portMAX_DELAY);
-
-		// pause some tasks
-		vTaskResume(AudioTaskHandle);
-		vTaskResume(Led_TaskHandle);
-//		vTaskResume(rfidTaskHandle);
 
 		// delete task
 		vTaskDelete(fileStorageTaskHandle);
@@ -851,6 +842,11 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uint32_t uploadFileNotificationValue;
 	uploadFile = gFSystem.open((char *)parameter, "w");
 
+	// pause some tasks to get more free CPU time for the upload
+	vTaskSuspend(Led_TaskHandle);	
+	vTaskSuspend(AudioTaskHandle);	
+	vTaskSuspend(rfidTaskHandle);
+
 	for (;;) {
 		
 		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
@@ -881,6 +877,11 @@ void explorerHandleFileStorageTask(void *parameter) {
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
 				snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(webTxCanceled));
 				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				// resume the paused tasks
+				vTaskResume(Led_TaskHandle);	
+				vTaskResume(AudioTaskHandle);	
+				vTaskResume(rfidTaskHandle);	
+				// send signal to upload function to terminate
 				vTaskDelete(NULL);
 				return;
 			}
@@ -893,6 +894,10 @@ void explorerHandleFileStorageTask(void *parameter) {
 		vTaskDelay(5u);
 		#endif
 	}
+	// resume the paused tasks
+	vTaskResume(Led_TaskHandle);	
+	vTaskResume(AudioTaskHandle);	
+	vTaskResume(rfidTaskHandle);	
 	// send signal to upload function to terminate
 	xQueueSend(explorerFileUploadStatusQueue, &value, 0);
 	vTaskDelete(NULL);
