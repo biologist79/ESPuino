@@ -25,6 +25,7 @@
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
 playProps gPlayProperties;
+TaskHandle_t AudioTaskHandle;
 //uint32_t cnt123 = 0;
 
 // Volume
@@ -117,7 +118,7 @@ void AudioPlayer_Init(void) {
 			5500,                  /* Stack size in words */
 			NULL,                  /* Task input parameter */
 			2 | portPRIVILEGE_BIT, /* Priority of the task */
-			NULL,                  /* Task handle. */
+			&AudioTaskHandle,      /* Task handle. */
 			1                      /* Core where the task should run */
 		);
 	}
