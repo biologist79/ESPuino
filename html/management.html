@@ -237,6 +237,42 @@
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
 				</div>
+				<br/>
+				<div class="form-group col-md-12">
+					<legend data-i18n="control.command"></legend>
+					<div class="tab-pane " id="rfidmod" role="tabpanel">
+						<label for="modId" data-i18n="files.rfid.mod.title"></label>
+						<select class="form-control" id="commandId" name="modId">
+							<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>
+							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
+							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
+							<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
+							<option value="102" data-i18n="files.rfid.mod.cmd.102"></option>
+							<option value="103" data-i18n="files.rfid.mod.cmd.103"></option>
+							<option value="104" data-i18n="files.rfid.mod.cmd.104"></option>
+							<option value="105" data-i18n="files.rfid.mod.cmd.105"></option>
+							<option value="106" data-i18n="files.rfid.mod.cmd.106"></option>
+							<option value="107" data-i18n="files.rfid.mod.cmd.107"></option>
+							<option value="110" data-i18n="files.rfid.mod.cmd.110"></option>
+							<option value="111" data-i18n="files.rfid.mod.cmd.111"></option>
+							<option value="120" data-i18n="files.rfid.mod.cmd.120"></option>
+							<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
+							<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
+							<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
+							<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
+							<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
+							<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
+							<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
+							<option value="172" data-i18n="files.rfid.mod.cmd.172"></option>
+							<option value="173" data-i18n="files.rfid.mod.cmd.173"></option>
+							<option value="174" data-i18n="files.rfid.mod.cmd.174"></option>
+							<option value="180" data-i18n="files.rfid.mod.cmd.180"></option>
+							<option value="181" data-i18n="files.rfid.mod.cmd.181"></option>
+						</select>
+					</div>
+					<br>
+					<button type="button" class="btn btn-primary" onclick="executeCommand()" data-i18n="execute">Execute</button>
+				</div>
 		</div>
 	</div>
 	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
@@ -1341,6 +1377,15 @@
 		var myObj = {
 			"controls": {
 				action: cmd
+			}
+		};
+		var myJSON = JSON.stringify(myObj);
+		socket.send(myJSON);
+	}
+	function executeCommand() {
+		var myObj = {
+			"controls": {
+				action: document.getElementById('commandId').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
