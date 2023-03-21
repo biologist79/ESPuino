@@ -859,10 +859,13 @@
 
 	/* File Delete */
 	function handleDeleteData(nodeId) {
-		var ref = $('#explorerTree').jstree(true);
-		var node = ref.get_node(nodeId);
-		console.log("call delete request: " + node.data.path);
-		deleteData("/explorer?path=" + encodeURIComponent(node.data.path));
+		var selectedNodes = $('#explorerTree').jstree("get_selected", true);
+		$.each(selectedNodes, function() {
+			var ref = $('#explorerTree').jstree(true);
+			var node = ref.get_node(this.id);
+			console.log("call delete request: " + node.data.path);
+			deleteData("/explorer?path=" + encodeURIComponent(node.data.path));
+		});
 	}
 
 	function fileNameSort( a, b ) {
