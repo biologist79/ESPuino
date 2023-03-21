@@ -802,9 +802,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// watit until the storage task is sending the signal to finish
 		uint8_t signal;
 		xQueueReceive(explorerFileUploadStatusQueue, &signal, portMAX_DELAY);
-
-		// delete task
-		vTaskDelete(fileStorageTaskHandle);
 	}
 }
 
@@ -841,6 +838,13 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uint32_t uploadFileNotificationValue;
 	uploadFile = gFSystem.open((char *)parameter, "w");
 
+	// pause some tasks to get more free CPU time for the upload
+	#ifdef NEOPIXEL_ENABLE
+		vTaskSuspend(Led_TaskHandle);	
+	#endif
+	vTaskSuspend(AudioTaskHandle);	
+	vTaskSuspend(rfidTaskHandle);
+
 	for (;;) {
 		
 		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
@@ -871,6 +875,13 @@ void explorerHandleFileStorageTask(void *parameter) {
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
 				snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(webTxCanceled));
 				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				// resume the paused tasks
+				#ifdef NEOPIXEL_ENABLE
+					vTaskResume(Led_TaskHandle);	
+				#endif
+				vTaskResume(AudioTaskHandle);	
+				vTaskResume(rfidTaskHandle);	
+				// just delete task without signaling (abort)
 				vTaskDelete(NULL);
 				return;
 			}
@@ -883,6 +894,12 @@ void explorerHandleFileStorageTask(void *parameter) {
 		vTaskDelay(5u);
 		#endif
 	}
+	// resume the paused tasks
+	#ifdef NEOPIXEL_ENABLE
+		vTaskResume(Led_TaskHandle);	
+	#endif
+	vTaskResume(AudioTaskHandle);	
+	vTaskResume(rfidTaskHandle);	
 	// send signal to upload function to terminate
 	xQueueSend(explorerFileUploadStatusQueue, &value, 0);
 	vTaskDelete(NULL);

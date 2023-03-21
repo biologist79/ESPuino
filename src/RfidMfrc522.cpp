@@ -21,6 +21,7 @@
 	#endif
 
 	extern unsigned long Rfid_LastRfidCheckTimestamp;
+	TaskHandle_t rfidTaskHandle;
 	static void Rfid_Task(void *parameter);
 
 	#ifdef RFID_READER_TYPE_MFRC522_I2C
@@ -50,7 +51,7 @@
 				2048,                   /* Stack size in words */
 				NULL,                   /* Task input parameter */
 				2 | portPRIVILEGE_BIT,  /* Priority of the task */
-				NULL,                   /* Task handle. */
+				&rfidTaskHandle,        /* Task handle. */
 				1                       /* Core where the task should run */
 			);
 		#endif

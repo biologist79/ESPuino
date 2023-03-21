@@ -35,7 +35,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 #ifdef RFID_READER_TYPE_PN5180
 	static void Rfid_Task(void *parameter);
-	static TaskHandle_t rfidTaskHandle;
+	TaskHandle_t rfidTaskHandle;
 
 	#ifdef PN5180_ENABLE_LPCD
 		void Rfid_EnableLpcd(void);
