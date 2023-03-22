@@ -8,7 +8,8 @@ typedef enum class LedIndicator
 	PlaylistProgress,
 	Rewind,
 	Voltage,
-	VoltageWarning
+	VoltageWarning,
+	VolumeChange
 } LedIndicatorType;
 
 

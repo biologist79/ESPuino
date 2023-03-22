@@ -235,7 +235,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 #ifdef NEOPIXEL_ENABLE
 	static void Led_Task(void *parameter) {
-		static uint8_t hlastVolume = AudioPlayer_GetCurrentVolume();
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB leds[NUM_LEDS];
@@ -283,8 +282,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				nextAnimation = LedAnimationType::VoltageWarning;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
 				nextAnimation = LedAnimationType::BatteryMeasurement;
-			} else if (hlastVolume != AudioPlayer_GetCurrentVolume()) {
-				hlastVolume = AudioPlayer_GetCurrentVolume();
+			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange)) {
 				nextAnimation = LedAnimationType::Volume;
 			} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
@@ -872,7 +870,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		int32_t animationDelay = 0;
 		bool animationActive = true;
 		// static values
-		static uint8_t lastVolume = 0;
 		static uint16_t cyclesWaited = 0;
 
 		// wait for further volume changes within next 20ms for 50 cycles = 1s
@@ -907,8 +904,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		FastLED.show();
 
 		// reset animation if volume changes
-		if (lastVolume != AudioPlayer_GetCurrentVolume() || startNewAnimation) {
-			lastVolume = AudioPlayer_GetCurrentVolume();
+		if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange) || startNewAnimation) {
+			LED_INDICATOR_CLEAR(LedIndicatorType::VolumeChange);
 			cyclesWaited = 0;
 		}
 
@@ -917,6 +914,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			cyclesWaited ++;
 		} else {
 			animationActive = false;
+			cyclesWaited = 0;
 		}
 		return AnimationReturnType(animationActive, animationDelay);
 	}
