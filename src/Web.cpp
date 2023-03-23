@@ -807,7 +807,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 // feed the watchdog timer without delay
 void feedTheDog(void) {
-	#ifdef SD_MMC_1BIT_MODE
+	#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
 		// feed dog 0
 		TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
 		TIMERG0.wdt_feed=1;                       // feed dog
