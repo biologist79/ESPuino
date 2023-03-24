@@ -9,6 +9,7 @@
 #include "System.h"
 #include "Web.h"
 #include "MemX.h"
+#include "main.h"
 
 // HELPER //
 unsigned long wifiCheckLastTimestamp = 0;
@@ -161,6 +162,13 @@ void Wlan_Cyclic(void) {
 			
 			free(_ssid);
 			free(_pwd);
+			
+			#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+				if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost ) {
+					gPlayLastRfIdWhenWiFiConnected=false;
+					recoverLastRfidPlayedFromNvs(true);
+				}
+			#endif
 		}
 	}
 

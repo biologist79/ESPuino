@@ -26,7 +26,10 @@
 #include "revision.h"
 #include "Power.h"
 #include "HallEffectSensor.h"
+#include "main.h"
 
+bool gPlayLastRfIdWhenWiFiConnected = false;
+bool gTriedToConnectToHost = false;
 
 // avoid PSRAM check while wake-up from deepsleep
 bool testSPIRAM(void) {
@@ -87,8 +90,8 @@ bool testSPIRAM(void) {
 	}
 
 	// Get last RFID-tag applied from NVS
-	void recoverLastRfidPlayedFromNvs(void) {
-		if (recoverLastRfid) {
+	void recoverLastRfidPlayedFromNvs(bool force) {
+		if (recoverLastRfid || force) {
 			if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
 				recoverLastRfid = false;
 				return;
@@ -99,6 +102,7 @@ bool testSPIRAM(void) {
 				Log_Println((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
 			} else {
 				xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
+				gPlayLastRfIdWhenWiFiConnected = !force;
 				snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
 				Log_Println(Log_Buffer, LOGLEVEL_INFO);
 			}
