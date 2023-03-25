@@ -39,9 +39,6 @@ String hostname;
 char *_ssid;
 char *_pwd;
 
-constexpr const char accessPointNetworkSSID[] PROGMEM = CONFIG_WIFI_DEFAULT_SSID;
-constexpr const char accessPointNetworkPassword[] PROGMEM = CONFIG_WIFI_DEFAULT_KEY;
-
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
 }
@@ -68,7 +65,7 @@ void Wlan_Cyclic(void) {
 		}
 
 		if (wifiAccessIncomplete) {
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
+			accessPointStart(CONFIG_WIFI_DEFAULT_SSID, CONFIG_WIFI_DEFAULT_KEY, apIP, apNetmask);
 			wifiInit = false;
 			wifiConnectionTryInProgress = false;
 			return;
@@ -122,7 +119,7 @@ void Wlan_Cyclic(void) {
 
 		if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 2 && (millis() - wifiCheckLastTimestamp >= 9000)) {
 			wifiConnectIteration = 0;
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
+			accessPointStart(CONFIG_WIFI_DEFAULT_SSID, CONFIG_WIFI_DEFAULT_KEY, apIP, apNetmask);
 			wifiConnectionTryInProgress = false;
 			free(_ssid);
 			free(_pwd);
