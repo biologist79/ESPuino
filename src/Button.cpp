@@ -65,32 +65,32 @@ void Button_Init() {
 
 	#ifdef CONFIG_NEOPIXEL // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
 		#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
-			#if (BUTTON_0_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_0_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 0;
 			#endif
 		#endif
 		#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
-			#if (BUTTON_1_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_1_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 1;
 			#endif
 		#endif
 		#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
-			#if (BUTTON_2_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_2_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 2;
 			#endif
 		#endif
 		#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-			#if (BUTTON_3_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_3_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 3;
 			#endif
 		#endif
 		#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
-			#if (BUTTON_4_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_4_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 4;
 			#endif
 		#endif
 		#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
-			#if (BUTTON_5_LONG == CMD_SLEEPMODE)
+			#if (CONFIG_BUTTON_5_LONG == CMD_SLEEPMODE)
 				gShutdownButton = 5;
 			#endif
 		#endif
@@ -184,63 +184,93 @@ void Button_DoButtonActions(void) {
 	if (gButtons[0].isPressed && gButtons[1].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[1].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_01);
+		#ifdef CONFIG_BUTTON_MULTI_01
+			Cmd_Action(CONFIG_BUTTON_MULTI_01);
+		#endif
 	} else if (gButtons[0].isPressed && gButtons[2].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[2].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_02);
+		#ifdef CONFIG_BUTTON_MULTI_02
+			Cmd_Action(CONFIG_BUTTON_MULTI_02);
+		#endif
 	} else if (gButtons[0].isPressed && gButtons[3].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_03);
+		#ifdef CONFIG_BUTTON_MULTI_03
+			Cmd_Action(CONFIG_BUTTON_MULTI_03);
+		#endif
 	} else if (gButtons[0].isPressed && gButtons[4].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_04);
+		#ifdef CONFIG_BUTTON_MULTI_04
+			Cmd_Action(CONFIG_BUTTON_MULTI_04);
+		#endif
 	} else if (gButtons[0].isPressed && gButtons[5].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_05);
+		#ifdef CONFIG_BUTTON_MULTI_05
+			Cmd_Action(CONFIG_BUTTON_MULTI_05);
+		#endif
 	} else if (gButtons[1].isPressed && gButtons[2].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[2].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_12);
+		#ifdef CONFIG_BUTTON_MULTI_12
+			Cmd_Action(CONFIG_BUTTON_MULTI_12);
+		#endif
 	} else if (gButtons[1].isPressed && gButtons[3].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_13);
+		#ifdef CONFIG_BUTTON_MULTI_13
+			Cmd_Action(CONFIG_BUTTON_MULTI_13);
+		#endif
 	} else if (gButtons[1].isPressed && gButtons[4].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_14);
+		#ifdef CONFIG_BUTTON_MULTI_14
+			Cmd_Action(CONFIG_BUTTON_MULTI_14);
+		#endif
 	} else if (gButtons[1].isPressed && gButtons[5].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_15);
+		#ifdef CONFIG_BUTTON_MULTI_15
+			Cmd_Action(CONFIG_BUTTON_MULTI_15);
+		#endif
 	} else if (gButtons[2].isPressed && gButtons[3].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_23);
+		#ifdef CONFIG_BUTTON_MULTI_23
+			Cmd_Action(CONFIG_BUTTON_MULTI_23);
+		#endif
 	} else if (gButtons[2].isPressed && gButtons[4].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_24);
+		#ifdef CONFIG_BUTTON_MULTI_24
+			Cmd_Action(CONFIG_BUTTON_MULTI_24);
+		#endif
 	} else if (gButtons[2].isPressed && gButtons[5].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_25);
+		#ifdef CONFIG_BUTTON_MULTI_25
+			Cmd_Action(CONFIG_BUTTON_MULTI_25);
+		#endif
 	} else if (gButtons[3].isPressed && gButtons[4].isPressed) {
 		gButtons[3].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_34);
+		#ifdef CONFIG_BUTTON_MULTI_34
+			Cmd_Action(CONFIG_BUTTON_MULTI_34);
+		#endif
 	} else if (gButtons[3].isPressed && gButtons[5].isPressed) {
 		gButtons[3].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_35);
+		#ifdef CONFIG_BUTTON_MULTI_35
+			Cmd_Action(CONFIG_BUTTON_MULTI_35);
+		#endif
 	} else if (gButtons[4].isPressed && gButtons[5].isPressed) {
 		gButtons[4].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_45);
+		#ifdef CONFIG_BUTTON_MULTI_45
+			Cmd_Action(CONFIG_BUTTON_MULTI_45);
+		#endif
 	} else {
 		for (uint8_t i = 0; i <= 5; i++) {
 			if (gButtons[i].isPressed) {
@@ -248,34 +278,44 @@ void Button_DoButtonActions(void) {
 				uint8_t Cmd_Long = 0;
 
 				switch (i) { // Long-press-actions
+					#ifdef CONFIG_BUTTON_0
 					case 0:
-						Cmd_Short = BUTTON_0_SHORT;
-						Cmd_Long = BUTTON_0_LONG;
-						break;
 
+						Cmd_Short = CONFIG_BUTTON_0_SHORT;
+						Cmd_Long = CONFIG_BUTTON_0_LONG;
+						break;
+					#endif
+					#ifdef CONFIG_BUTTON_1
 					case 1:
-						Cmd_Short = BUTTON_1_SHORT;
-						Cmd_Long = BUTTON_1_LONG;
+						Cmd_Short = CONFIG_BUTTON_1_SHORT;
+						Cmd_Long = CONFIG_BUTTON_1_LONG;
 						break;
-
+					#endif
+					#ifdef CONFIG_BUTTON_2
 					case 2:
-						Cmd_Short = BUTTON_2_SHORT;
-						Cmd_Long = BUTTON_2_LONG;
+						Cmd_Short = CONFIG_BUTTON_2_SHORT;
+						Cmd_Long = CONFIG_BUTTON_2_LONG;
 						break;
-
+					#endif
+					#ifdef CONFIG_BUTTON_3
 					case 3:
-						Cmd_Short = BUTTON_3_SHORT;
-						Cmd_Long = BUTTON_3_LONG;
+						Cmd_Short = CONFIG_BUTTON_3_SHORT;
+						Cmd_Long = CONFIG_BUTTON_3_LONG;
 						break;
-
+					#endif
+					#ifdef CONFIG_BUTTON_4
 					case 4:
-						Cmd_Short = BUTTON_4_SHORT;
-						Cmd_Long = BUTTON_4_LONG;
+						Cmd_Short = CONFIG_BUTTON_4_SHORT;
+						Cmd_Long = CONFIG_BUTTON_4_LONG;
 						break;
-
+					#endif
+					#ifdef CONFIG_BUTTON_5
 					case 5:
-						Cmd_Short = BUTTON_5_SHORT;
-						Cmd_Long = BUTTON_5_LONG;
+						Cmd_Short = CONFIG_BUTTON_5_SHORT;
+						Cmd_Long = CONFIG_BUTTON_5_LONG;
+						break;
+					#endif
+					default:
 						break;
 				}
 

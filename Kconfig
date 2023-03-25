@@ -591,3 +591,142 @@ config SINGLE_SPI
 	default n
 
 endmenu
+
+menu "ESPuino Button Configuration"
+
+config BUTTON_0_SHORT
+	string "Button 0 short press command"
+	default "CMD_NEXTTRACK"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_1_SHORT
+	string "Button 1 short press command"
+	default "CMD_PREVTRACK"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_2_SHORT
+	string "Button 2 short press command"
+	default "CMD_PLAYPAUSE"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_3_SHORT
+	string "Button 3 short press command"
+	default "CMD_MEASUREBATTERY"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_4_SHORT
+	string "Button 4 short press command"
+	default "CMD_SEEK_BACKWARDS"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_5_SHORT
+	string "Button 5 short press command"
+	default "CMD_SEEK_FORWARDS"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_0_LONG
+	string "Button 0 long press command"
+	default "CMD_LASTTRACK"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_1_LONG
+	string "Button 1 long press command"
+	default "CMD_FIRSTTRACK"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_2_LONG
+	string "Button 2 long press command"
+	default "CMD_PLAYPAUSE"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_3_LONG
+	string "Button 3 long press command"
+	default "CMD_SLEEPMODE"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_4_LONG
+	string "Button 4 long press command"
+	default "CMD_VOLUMEUP"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_5_LONG
+	string "Button 5 long press command"
+	default "CMD_VOLUMEDOWN"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_01
+	string "Combined button 0 and 1 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_02
+	string "Combined button 0 and 2 press"
+	default "CMD_ENABLE_FTP_SERVER"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_03
+	string "Combined button 0 and 3 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_04
+	string "Combined button 0 and 4 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_05
+	string "Combined button 0 and 5 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_12
+	string "Combined button 1 and 2 press"
+	default "CMD_TELL_IP_ADDRESS"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_13
+	string "Combined button 1 and 3 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_14
+	string "Combined button 1 and 4 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_15
+	string "Combined button 1 and 5 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_23
+	string "Combined button 2 and 3 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_24
+	string "Combined button 2 and 4 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_25
+	string "Combined button 2 and 5 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_34
+	string "Combined button 3 and 4 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_35
+	string "Combined button 3 and 5 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+config BUTTON_MULTI_45
+	string "Combined button 4 and 5 press"
+	default "CMD_NOTHING"
+	depends on CONVERT_TO_IDENTIFIER
+
+endmenu
