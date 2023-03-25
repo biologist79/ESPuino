@@ -39,6 +39,9 @@ String hostname;
 char *_ssid;
 char *_pwd;
 
+constexpr const char accessPointNetworkSSID[] PROGMEM = CONFIG_WIFI_DEFAULT_SSID;
+constexpr const char accessPointNetworkPassword[] PROGMEM = CONFIG_WIFI_DEFAULT_KEY;
+
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
 }

@@ -11,9 +11,6 @@
     // Nothing to be configured here...
     // Default user/password is esp32/esp32 but can be changed via webgui
 
-    // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
-    constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
-
     // Bluetooth
     constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
     constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)

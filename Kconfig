@@ -142,6 +142,17 @@ config DNS_IP
 
 endif # STATIC_IP
 
+config WIFI_DEFAULT_SSID
+	string "The deafult SSID (name) of the WiFi AP created by the device"
+	default "ESPuino"
+
+config WIFI_DEFAULT_KEY
+	string "The deafult key (password) of the WiFi AP created by the device"
+	default ""
+	help
+	  Leave empty to create an unsecured WiFi network without password. If
+	  it is non-empty it needs to be at least 8 characters long.
+
 config EXPERT
 	bool "Show hidden expert settings"
 	default n
