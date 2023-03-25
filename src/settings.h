@@ -13,16 +13,6 @@
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
 
-	// Where to store the backup-file for NVS-records
-	constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
-	// Filename that is used for caching playlists
-	// Arduino 1.0.6 uses ANSI / Arduino >=2.0.5 UTF-8 encoding. Use different filenames to avoid incompabilities
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache2.csv"; 
-	#else
-		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache.csv";  
-	#endif
-
 	#if defined(CONFIG_MEASURE_BATTERY_VOLTAGE) || defined(CONFIG_MEASURE_BATTERY_MAX17055)
 		#define BATTERY_MEASURE_ENABLE                 // Don't change. Set automatically if any method of battery monitoring is selected.
 		constexpr uint8_t s_batteryCheckInterval = 10; // How often battery is measured (in minutes) (can be changed via GUI!)

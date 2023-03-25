@@ -302,7 +302,7 @@ void webserverStart(void) {
 			request->send_P(200, "text/html", eraseRfidNvsWeb);
 			Log_Println((char *) FPSTR(eraseRfidNvs), LOGLEVEL_NOTICE);
 			gPrefsRfid.clear();
-			Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile));
+			Web_DumpNvsToSd("rfidTags", CONFIG_FILENAME_BACKUP);
 		});
 
 
@@ -571,7 +571,7 @@ bool processJsonRequest(char *_serialJson) {
 				return false;
 			}
 		}
-		Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile)); // Store backup-file every time when a new rfid-tag is programmed
+		Web_DumpNvsToSd("rfidTags", CONFIG_FILENAME_BACKUP); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("rfidAssign")) {
 		const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
 		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
@@ -588,7 +588,7 @@ bool processJsonRequest(char *_serialJson) {
 		if (s.compareTo(rfidString)) {
 			return false;
 		}
-		Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile)); // Store backup-file every time when a new rfid-tag is programmed
+		Web_DumpNvsToSd("rfidTags", CONFIG_FILENAME_BACKUP); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("wifiConfig")) {
 		const char *_ssid = object["wifiConfig"]["ssid"];
 		const char *_pwd = object["wifiConfig"]["pwd"];
@@ -995,7 +995,7 @@ bool explorerDeleteDirectory(File dir) {
 // Handles delete-requests for cachefiles.
 // This is necessary to avoid outdated cachefiles if content of a directory changes (create, rename, delete).
 void Web_DeleteCachefile(const char *folderPath) {
-	const String cacheFile = String(folderPath) + "/" + playlistCacheFile;
+	const String cacheFile = String(folderPath) + "/" + FILENAME_PLAYLIST_CACHE;
 	Log_Printf(LOGLEVEL_DEBUG, "Trying to erase: %s", cacheFile.c_str());
 	if (gFSystem.exists(cacheFile)) {
 		if (gFSystem.remove(cacheFile)) {

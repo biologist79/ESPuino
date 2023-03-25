@@ -3,6 +3,14 @@
 // FilePathLength
 #define MAX_FILEPATH_LENTGH 256
 
+// Filename that is used for caching playlists
+// Arduino 1.0.6 uses ANSI / Arduino >=2.0.5 UTF-8 encoding. Use different filenames to avoid incompatibilities.
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+	#define FILENAME_PLAYLIST_CACHE CONFIG_FILENAME_PLAYLIST_CACHE
+#else
+	#define FILENAME_PLAYLIST_CACHE CONFIG_FILENAME_PLAYLIST_CACHE_V1
+#endif
+
 constexpr char stringDelimiter[] = "#";      // Character used to encapsulate data in linear NVS-strings (don't change)
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 

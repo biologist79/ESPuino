@@ -32,6 +32,21 @@ config LANGUAGE_EN
 
 endchoice
 
+config FILENAME_BACKUP
+	string "Name of the backup file on the SD card"
+	default "/backup.txt"
+	help
+	   The backup file is used to store NVS records on SD card. The file is
+	   updated each time a (new) RFID assignment via GUI is done.
+
+config FILENAME_PLAYLIST_CACHE_V1
+	string "Name of the playlist cache file on the SD card (Arduino v1)"
+	default "playlistcache.csv"
+
+config FILENAME_PLAYLIST_CACHE
+	string "Name of the playlist cache file on the SD card (Arduino >= v2)"
+	default "playlistcache2.csv"
+
 config MDNS
 	bool "Enables support for MDNS"
 	default y

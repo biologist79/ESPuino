@@ -234,7 +234,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	#ifdef CONFIG_CACHED_PLAYLIST
 		strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
 		strcat(cacheFileNameBuf, "/");
-		strcat(cacheFileNameBuf, (const char*) FPSTR(playlistCacheFile));       // Build absolute path of cacheFile
+		strcat(cacheFileNameBuf, FILENAME_PLAYLIST_CACHE);       // Build absolute path of cacheFile
 
 		// Decide if to use cacheFile. It needs to exist first...
 		if (gFSystem.exists(cacheFileNameBuf)) {     // Check if cacheFile (already) exists
