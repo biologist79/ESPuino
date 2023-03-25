@@ -21,9 +21,6 @@
 	BluetoothA2DPSource *a2dp_source;
 	RingbufHandle_t audioSourceRingBuffer;
 	String btDeviceName;
-
-	constexpr const char nameBluetoothSinkDevice[] PROGMEM = CONFIG_BLUETOOTH_SINK_DEVICE_NAME;
-	constexpr const char nameBluetoothSourceDevice[] PROGMEM = CONFIG_BLUETOOTH_SOURCE_DEVICE_NAME;
 #endif
 
 #ifdef CONFIG_BLUETOOTH
@@ -185,8 +182,8 @@ void Bluetooth_Init(void) {
 			a2dp_sink->set_rssi_active(true);
 			a2dp_sink->set_rssi_callback(rssi);
 			// start bluetooth sink
-			a2dp_sink->start((char *)FPSTR(nameBluetoothSinkDevice));
-			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", PSTR(nameBluetoothSinkDevice));
+			a2dp_sink->start(CONFIG_BLUETOOTH_SINK_DEVICE_NAME);
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", CONFIG_BLUETOOTH_SINK_DEVICE_NAME);
 			// connect events after startup
 			a2dp_sink->set_on_connection_state_changed(connection_state_changed);
 			a2dp_sink->set_on_audio_state_changed(audio_state_changed);
@@ -210,7 +207,7 @@ void Bluetooth_Init(void) {
 			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
 			a2dp_source->start(get_data_channels);
 
-		    	btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
+			btDeviceName = gPrefsSettings.getString("btDeviceName", CONFIG_BLUETOOTH_SOURCE_DEVICE_NAME);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "First device found" : btDeviceName.c_str());
 			// connect events after startup
 			a2dp_source->set_on_connection_state_changed(connection_state_changed);
