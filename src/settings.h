@@ -13,8 +13,7 @@
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
 
-	#if defined(CONFIG_MEASURE_BATTERY_VOLTAGE) || defined(CONFIG_MEASURE_BATTERY_MAX17055)
-		#define BATTERY_MEASURE_ENABLE                 // Don't change. Set automatically if any method of battery monitoring is selected.
+	#ifdef CONFIG_MEASURE_BATTERY
 		constexpr uint8_t s_batteryCheckInterval = 10; // How often battery is measured (in minutes) (can be changed via GUI!)
 	#endif
 
@@ -78,7 +77,7 @@
 		constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
 		constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
 		constexpr const char topicSRevisionState[] PROGMEM = "State/ESPuino/SoftwareRevision";
-		#ifdef BATTERY_MEASURE_ENABLE
+		#ifdef CONFIG_MEASURE_BATTERY
 		constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
 		constexpr const char topicBatterySOC[] PROGMEM     = "State/ESPuino/Battery";
 		#endif

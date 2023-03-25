@@ -228,7 +228,7 @@ void webserverStart(void) {
 						info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
 					}
 				#endif
-				#ifdef BATTERY_MEASURE_ENABLE
+				#ifdef CONFIG_MEASURE_BATTERY
 					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
 					info += "\n" + String(buffer);
 					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
@@ -400,7 +400,7 @@ String templateProcessor(const String &templ) {
 		return String(gPrefsSettings.getUInt("maxVolumeSp", 0));
 	} else if (templ == "MAX_VOLUME_HEADPHONE") {
 		return String(gPrefsSettings.getUInt("maxVolumeHp", 0));
-#ifdef BATTERY_MEASURE_ENABLE
+#ifdef CONFIG_MEASURE_BATTERY
 	#ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
 		} else if (templ == "WARNING_LOW_VOLTAGE") {
 			return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));

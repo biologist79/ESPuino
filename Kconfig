@@ -500,10 +500,14 @@ config IR_CONTROL
 	  See https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
 	  for more information.
 
+config MEASURE_BATTERY
+	bool "Enables support for measuring the battery status"
+	default y
+
 choice
 	bool "Battery measurement hardware"
 	default MEASURE_BATTERY_VOLTAGE
-	optional
+	depends on MEASURE_BATTERY
 
 config MEASURE_BATTERY_VOLTAGE
 	bool "Enables battery measurement via ADC and voltage divider"

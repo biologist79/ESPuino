@@ -346,7 +346,7 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_MEASUREBATTERY: {
-			#ifdef BATTERY_MEASURE_ENABLE
+			#ifdef CONFIG_MEASURE_BATTERY
 				Battery_LogStatus();
 				Battery_PublishMQTT();
 				Led_Indicate(LedIndicatorType::Voltage);

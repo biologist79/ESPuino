@@ -8,7 +8,7 @@
 #include "Power.h"
 #include "Rfid.h"
 
-#ifdef BATTERY_MEASURE_ENABLE
+#ifdef CONFIG_MEASURE_BATTERY
 	uint8_t batteryCheckInterval = s_batteryCheckInterval;
 
 	void Battery_Init(void) {
