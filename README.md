@@ -173,7 +173,7 @@ counter clockwise. If you want to change that behaviour, just enable `CONFIG_NEO
 
 ### Buttons
 Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change number of buttons (up to 5) and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
-Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using GPIO >= 34 make sure to add a external pullup-resistor (10 k).
+Minimum duration for long press (to distinguish vom short press) in ms is defined by `CONFIG_BUTTON_LONGPRESS_INTERVAL`. All actions available are listed in `src/values.h`. If using GPIO >= 34 make sure to add a external pullup-resistor (10 k).
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
 * previous (long): first track of playlist
 * next (short): next track of playlist

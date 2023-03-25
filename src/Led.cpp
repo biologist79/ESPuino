@@ -462,7 +462,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 		if (CONFIG_NEOPIXEL_NUM_LEDS == 1) {
 			FastLED.clear();
-			if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
+			if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= CONFIG_BUTTON_LONGPRESS_INTERVAL) {
 				leds[0] = CRGB::Red;
 				FastLED.show();
 				animationDelay = 5;
@@ -476,7 +476,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 			}
 			animationActive = false;
 		} else {
-			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= intervalToLongPress) && (animationIndex >= CONFIG_NEOPIXEL_NUM_LEDS)) {
+			if ((millis() - gButtons[gShutdownButton].firstPressedTimestamp >= CONFIG_BUTTON_LONGPRESS_INTERVAL) && (animationIndex >= CONFIG_NEOPIXEL_NUM_LEDS)) {
 				animationDelay = 50;
 				if (!gButtons[gShutdownButton].isPressed) {
 					// increase animation index to bail out, if we had a kombi-button
@@ -495,7 +495,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 						animationDelay = 5;
 						animationActive = false;
 					} else {
-						animationDelay = intervalToLongPress / CONFIG_NEOPIXEL_NUM_LEDS;
+						animationDelay = CONFIG_BUTTON_LONGPRESS_INTERVAL / CONFIG_NEOPIXEL_NUM_LEDS;
 					}
 					animationIndex++;
 					FastLED.show();

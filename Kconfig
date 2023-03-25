@@ -426,6 +426,16 @@ config BLUETOOTH
 	  If enabled and Bluetooth mode is active, you can stream to your
 	  ESPuino via Bluetooth (a2dp-sink).
 
+config BUTTON_DEBOUNCE_INTERVAL
+	int "Debounce interval for buttons in milliseconds"
+	default 50
+	range 0 255
+
+config BUTTON_LONGPRESS_INTERVAL
+	int "Debounce interval for buttons in milliseconds"
+	default 700
+	range 0 65535
+
 config HALLEFFECT_SENSOR
 	bool "Enables support for hallsensor"
 	default n

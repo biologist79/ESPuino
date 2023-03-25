@@ -9,11 +9,6 @@
     	#include "settings-override.h"
 #else
 	//#################### Various settings ##############################
-
-	// Buttons (better leave unchanged if in doubts :-))
-	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
-	constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
-
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 
 	// FTP

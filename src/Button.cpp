@@ -159,7 +159,7 @@ void Button_Cyclic() {
 
 		// Iterate over all buttons in struct-array
 		for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {
-			if (gButtons[i].currentState != gButtons[i].lastState && currentTimestamp - gButtons[i].lastPressedTimestamp > buttonDebounceInterval) {
+			if (gButtons[i].currentState != gButtons[i].lastState && currentTimestamp - gButtons[i].lastPressedTimestamp > CONFIG_BUTTON_DEBOUNCE_INTERVAL) {
 				if (!gButtons[i].currentState) {
 					gButtons[i].isPressed = true;
 					gButtons[i].lastPressedTimestamp = currentTimestamp;
@@ -320,7 +320,7 @@ void Button_DoButtonActions(void) {
 				}
 
 				if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) {
-					if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < intervalToLongPress) {
+					if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < CONFIG_BUTTON_LONGPRESS_INTERVAL) {
 						Cmd_Action(Cmd_Short);
 					} else {
 						// if not volume buttons than start action after button release
@@ -333,11 +333,11 @@ void Button_DoButtonActions(void) {
 				} else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
 					unsigned long currentTimestamp = millis();
 
-					// only start action if intervalToLongPress has been reached
-					if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
+					// only start action if CONFIG_BUTTON_LONGPRESS_INTERVAL has been reached
+					if (currentTimestamp - gButtons[i].lastPressedTimestamp > CONFIG_BUTTON_LONGPRESS_INTERVAL) {
 
 						// calculate remainder
-						uint16_t remainder = (currentTimestamp - gButtons[i].lastPressedTimestamp) % intervalToLongPress;
+						uint16_t remainder = (currentTimestamp - gButtons[i].lastPressedTimestamp) % CONFIG_BUTTON_LONGPRESS_INTERVAL;
 
 						// trigger action if remainder rolled over
 						if (remainder < gLongPressTime) {

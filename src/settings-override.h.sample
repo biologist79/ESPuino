@@ -7,11 +7,6 @@
     // This is the general configfile for ESPuino-configuration.
 
     //#################### Various settings ##############################
-
-    // Buttons (better leave unchanged if in doubts :-))
-    constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
-    constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
-
     // FTP
     // Nothing to be configured here...
     // Default user/password is esp32/esp32 but can be changed via webgui
