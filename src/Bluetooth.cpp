@@ -21,6 +21,9 @@
 	BluetoothA2DPSource *a2dp_source;
 	RingbufHandle_t audioSourceRingBuffer;
 	String btDeviceName;
+
+	constexpr const char nameBluetoothSinkDevice[] PROGMEM = CONFIG_BLUETOOTH_SINK_DEVICE_NAME;
+	constexpr const char nameBluetoothSourceDevice[] PROGMEM = CONFIG_BLUETOOTH_SOURCE_DEVICE_NAME;
 #endif
 
 #ifdef CONFIG_BLUETOOTH

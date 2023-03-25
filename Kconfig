@@ -441,6 +441,19 @@ config BLUETOOTH
 	  If enabled and Bluetooth mode is active, you can stream to your
 	  ESPuino via Bluetooth (a2dp-sink).
 
+config BLUETOOTH_SINK_DEVICE_NAME
+	string "The name of the Bluetooth device if the ESPuino acts as sink (speaker)"
+	default "ESPuino"
+	depends on BLUETOOTH
+
+config BLUETOOTH_SOURCE_DEVICE_NAME
+	string "The name of the Bluetooth speaker/headset if the ESPuino acts as source"
+	default "My POGS Wireless Headphone"
+	depends on BLUETOOTH
+	help
+	  See https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/
+	  for more information.
+
 config BUTTON_DEBOUNCE_INTERVAL
 	int "Debounce interval for buttons in milliseconds"
 	default 50
