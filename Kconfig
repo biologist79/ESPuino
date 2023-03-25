@@ -87,6 +87,10 @@ config PLAY_LAST_RFID_AFTER_REBOOT
 	  If enabled and the ESPuino is restarted, the last RFID that was active
 	  before, is recalled and played.
 
+config CONTROLS_LOCKED_BY_DEFAULT
+	bool "Enables locking of button input when the device starts"
+	default n
+
 config SERIAL_LOGLEVEL
 	int "Current loglevel for serial console"
 	range 1 4

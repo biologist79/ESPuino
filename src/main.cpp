@@ -216,7 +216,7 @@ void setup() {
 	}
 	System_ShowUpgradeWarning();
 
-	#ifdef CONTROLS_LOCKED_BY_DEFAULT
+	#ifdef CONFIG_CONTROLS_LOCKED_BY_DEFAULT
 		System_SetLockControls(true);
 	#endif
 }

@@ -9,8 +9,6 @@
     	#include "settings-override.h"
 #else
 	//#################### Various settings ##############################
-	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
-
 	// FTP
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
