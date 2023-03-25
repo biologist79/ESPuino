@@ -10,9 +10,6 @@
 #else
 	//#################### Various settings ##############################
 
-	// Serial-logging-configuration
-	#define SERIAL_LOGLEVEL LOGLEVEL_DEBUG              // Current loglevel for serial console
-
 	// Buttons (better leave unchanged if in doubts :-))
 	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
 	constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons

@@ -87,6 +87,15 @@ config PLAY_LAST_RFID_AFTER_REBOOT
 	  If enabled and the ESPuino is restarted, the last RFID that was active
 	  before, is recalled and played.
 
+config SERIAL_LOGLEVEL
+	int "Current loglevel for serial console"
+	range 1 4
+	default 4
+	help
+	  Use to set the loglevel for the serial debugging console. Use values
+	  4 for full debug output, 3 for info level messages, 2 for warning
+	  level messages and 1 for error messages only.
+
 config SHUTDOWN_IF_SD_BOOT_FAILS
 	bool "Enables shutdown on SD card boot failures"
 	default y

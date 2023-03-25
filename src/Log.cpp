@@ -14,10 +14,10 @@ void Log_Init(void){
 /* Wrapper-function for serial-logging (with newline)
    _logBuffer: char* to log
    _minLogLevel: loglevel configured for this message.
-   If (SERIAL_LOGLEVEL <= _minLogLevel) message will be logged
+   If (CONFIG_SERIAL_LOGLEVEL <= _minLogLevel) message will be logged
 */
 void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
-	if (SERIAL_LOGLEVEL >= _minLogLevel) {
+	if (CONFIG_SERIAL_LOGLEVEL >= _minLogLevel) {
 		uint32_t ctime = millis();
 		Serial.printf("[ %u ]  ", ctime);
 		Serial.println(_logBuffer);
@@ -30,7 +30,7 @@ void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
 
 /* Wrapper-function for serial-logging (without newline) */
 void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTimestamp) {
-	if (SERIAL_LOGLEVEL >= _minLogLevel) {
+	if (CONFIG_SERIAL_LOGLEVEL >= _minLogLevel) {
 		if (printTimestamp) {
 			uint32_t ctime = millis();
 			Serial.printf("[ %u ]  ", ctime);
