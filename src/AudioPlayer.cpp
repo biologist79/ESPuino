@@ -187,7 +187,7 @@ void Audio_setTitle(const char *format, ...) {
 	// notify web ui and mqtt
 	Web_SendWebsocketData(0, 30);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicTrackState), gPlayProperties.title, false);
+		publishMqtt(CONFIG_MQTT_TOPIC_TRACK_STATE, gPlayProperties.title, false);
 	#endif
 }
 
@@ -320,7 +320,7 @@ void AudioPlayer_Task(void *parameter) {
 			audio->setVolume(currentVolume);
 			Web_SendWebsocketData(0, 50);
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLoudnessState), currentVolume, false);
+				publishMqtt(CONFIG_MQTT_TOPIC_VOLUME_STATE, currentVolume, false);
 			#endif
 		}
 
@@ -339,8 +339,8 @@ void AudioPlayer_Task(void *parameter) {
 				Log_Printf(LOGLEVEL_DEBUG, "Free heap: %u", ESP.getFreeHeap());
 
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+					publishMqtt(CONFIG_MQTT_TOPIC_PLAYMODE_STATE, gPlayProperties.playMode, false);
+					publishMqtt(CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE, AudioPlayer_GetRepeatMode(), false);
 				#endif
 
 				// If we're in audiobook-mode and apply a modification-card, we don't
@@ -417,7 +417,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 						#ifdef MQTT_ENABLE
-							publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+							publishMqtt(CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE, AudioPlayer_GetRepeatMode(), false);
 						#endif
 					}
 					// Allow next track if current track played in playlist isn't the last track.
@@ -452,7 +452,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 						#ifdef MQTT_ENABLE
-							publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+							publishMqtt(CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE, AudioPlayer_GetRepeatMode(), false);
 						#endif
 					}
 					if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
@@ -568,7 +568,7 @@ void AudioPlayer_Task(void *parameter) {
 					Audio_setTitle((char *)FPSTR (noPlaylist));
 					AudioPlayer_ClearCover();
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+						publishMqtt(CONFIG_MQTT_TOPIC_PLAYMODE_STATE, gPlayProperties.playMode, false);
 					#endif
 					gPlayProperties.currentTrackNumber = 0;
 					gPlayProperties.numberOfTracks = 0;
@@ -1075,7 +1075,7 @@ void AudioPlayer_ClearCover(void) {
 	// websocket and mqtt notify cover image has changed
 	Web_SendWebsocketData(0, 40);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+		publishMqtt(CONFIG_MQTT_TOPIC_COVER_CHANGED_STATE, "", false);
 	#endif
 }
 
@@ -1147,7 +1147,7 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
 	// websocket and mqtt notify cover image has changed
 	Web_SendWebsocketData(0, 40);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+		publishMqtt(CONFIG_MQTT_TOPIC_COVER_CHANGED_STATE, "", false);
 	#endif
 }
 

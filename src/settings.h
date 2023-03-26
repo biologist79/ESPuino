@@ -13,39 +13,6 @@
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
 
-	// (optional) Topics for MQTT
-	#ifdef MQTT_ENABLE
-		constexpr uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
-		constexpr uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
-		#define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
-		constexpr const char topicSleepCmnd[] PROGMEM = "Cmnd/ESPuino/Sleep";
-		constexpr const char topicSleepState[] PROGMEM = "State/ESPuino/Sleep";
-		constexpr const char topicRfidCmnd[] PROGMEM = "Cmnd/ESPuino/Rfid";
-		constexpr const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
-		constexpr const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
-		constexpr const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
-		constexpr const char topicCoverChangedState[] PROGMEM = "State/ESPuino/CoverChanged";
-		constexpr const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
-		constexpr const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
-		constexpr const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
-		constexpr const char topicSleepTimerState[] PROGMEM = "State/ESPuino/SleepTimer";
-		constexpr const char topicState[] PROGMEM = "State/ESPuino/State";
-		constexpr const char topicCurrentIPv4IP[] PROGMEM = "State/ESPuino/IPv4";
-		constexpr const char topicLockControlsCmnd[] PROGMEM ="Cmnd/ESPuino/LockControls";
-		constexpr const char topicLockControlsState[] PROGMEM ="State/ESPuino/LockControls";
-		constexpr const char topicPlaymodeState[] PROGMEM = "State/ESPuino/Playmode";
-		constexpr const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/ESPuino/RepeatMode";
-		constexpr const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
-		constexpr const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
-		constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
-		constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
-		constexpr const char topicSRevisionState[] PROGMEM = "State/ESPuino/SoftwareRevision";
-		#ifdef CONFIG_MEASURE_BATTERY
-		constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
-		constexpr const char topicBatterySOC[] PROGMEM     = "State/ESPuino/Battery";
-		#endif
-	#endif
-
 	// !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
 	#ifdef CONFIG_BOARD_LOLIN32
 		#include "settings-lolin32.h"                       // Contains all user-relevant settings for Wemos Lolin32

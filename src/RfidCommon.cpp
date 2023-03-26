@@ -82,7 +82,7 @@ void Rfid_PreferenceLookupHandler(void) {
 						}
 					#endif
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicRfidState), gCurrentRfidTagId, false);
+						publishMqtt(CONFIG_MQTT_TOPIC_RFID_STATE, gCurrentRfidTagId, false);
 					#endif
 
 					#ifdef CONFIG_BLUETOOTH

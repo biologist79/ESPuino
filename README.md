@@ -227,36 +227,36 @@ As all assignments between RFID-IDs and actions (playmode, file to play...) is s
 As already described, MQTT is supported. In order to use it it's necessary to run a MQTT-broker; [Mosquitto](https://mosquitto.org/) for instance. After connecting to it, ESPuino subscribes to all command-topics. State-topics are used to push states to the broker in order to inform others if anything changed (change of volume, new playlist, new track... name it). Others, like openHAB, subscribe to state-topics end send commands via command-topics. So it's not just limited to openHAB. It's just necessary to use a platform, that supports MQTT. For further informations (and pictures) refer the [subfolder](https://github.com/biologist79/ESPuino/tree/master/openHAB).
 
 ## MQTT-topics and their ranges
-Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to ESPuino, you have to use a cmnd-topic whereas ESPuino pushes its states back via state-topics. So guess you want to change the volume to 8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing to, ESPuino sends a conformation of this command using `topicLoudnessState`. To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introducton (covers more than you need for ESPuino).
+Feel free to use your own smarthome-environments (instead of openHAB). The MQTT-topics available are described as follows. Please note: if you want to send a command to ESPuino, you have to use a cmnd-topic whereas ESPuino pushes its states back via state-topics. So guess you want to change the volume to 8 you have to send this number via topic-variable `CONFIG_MQTT_TOPIC_VOLUME_CMND`. Immediately after doing to, ESPuino sends a conformation of this command using `CONFIG_MQTT_TOPIC_VOLUME_STATE`. To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introducton (covers more than you need for ESPuino).
 
 
 | topic-variable          | range           | meaning                                                                        |
 | ----------------------- | --------------- | ------------------------------------------------------------------------------ |
-| topicSleepCmnd          | 0 or OFF        | Power off ESPuino immediately                                                  |
-| topicSleepState         | ON or OFF       | Sends ESPuino's last state                                                     |
-| topicRfidCmnd           | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
-| topicRfidState          | 12 digits       | ID of current RFID-tag (if not a modification-card)                            |
-| topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3" |
-| topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last |
-| topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
-| topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                |
-| topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                               |
-| topicSleepTimerCmnd     | EOP             | Power off after end to playlist                                                |
+| CONFIG_MQTT_TOPIC_SLEEP_CMND          | 0 or OFF        | Power off ESPuino immediately                                                  |
+| CONFIG_MQTT_TOPIC_SLEEP_STATE         | ON or OFF       | Sends ESPuino's last state                                                     |
+| CONFIG_MQTT_TOPIC_RFID_CMND           | 12 digits       | Set number of RFID-tag which 'emulates' an RFID-tag (e.g. `123789456089`)      |
+| CONFIG_MQTT_TOPIC_RFID_STATE          | 12 digits       | ID of current RFID-tag (if not a modification-card)                            |
+| CONFIG_MQTT_TOPIC_TRACK_STATE         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3" |
+| CONFIG_MQTT_TOPIC_TRACK_CTRL_CMND   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last |
+| CONFIG_MQTT_TOPIC_COVER_CHANGED_STATE  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
+| CONFIG_MQTT_TOPIC_VOLUME_CMND       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                |
+| CONFIG_MQTT_TOPIC_VOLUME_STATE      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                               |
+| CONFIG_MQTT_TOPIC_SLEEP_TIMER_CMND     | EOP             | Power off after end to playlist                                                |
 |                         | EOT             | Power off after end of track                                                   |
 |                         | EO5T            | Power off after end of five tracks                                             |
 |                         | 1 -> 2^32       | Duration in minutes to power off                                               |
 |                         | 0               | Deactivate timer (if active)                                                   |
-| topicSleepTimerState    | various         | Sends active timer (`EOP`, `EOT`, `EO5T`, `0`, ...)                            |
-| topicState              | Online, Offline | `Online` when powering on, `Offline` when powering off                         |
-| topicCurrentIPv4IP      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                               |
-| topicLockControlsCmnd   | ON, OFF         | Set if controls (buttons, rotary encoder) should be locked                     |
-| topicLockControlsState  | ON, OFF         | Sends if controls (buttons, rotary encoder) are locked                         |
-| topicPlaymodeState      | 0 - 10          | Sends current playmode (single track, audiobook...; see playmodes)             |
-| topicRepeatModeCmnd     | 0 - 3           | Set repeat-mode: `0`=no; `1`=track; `2`=playlist; `3`=both                     |
-| topicRepeatModeState    | 0 - 3           | Sends repeat-mode                                                              |
-| topicLedBrightnessCmnd  | 0 - 255         | Set brightness of Neopixel                                                     |
-| topicLedBrightnessState | 0 - 255         | Sends brightness of Neopixel                                                   |
-| topicBatteryVoltage     | float           | Voltage (e.g. 3.81)                                                            |
-| topicBatterySOC         | float           | Current battery charge in percent (e.g. 83.0)                                  |
-| topicWiFiRssiState      | int             | Numeric WiFi signal-strength (dBm)                                             |
-| topicSRevisionState     | String          | Software-revision                                                              |
+| CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE    | various         | Sends active timer (`EOP`, `EOT`, `EO5T`, `0`, ...)                            |
+| CONFIG_MQTT_TOPIC_STATE              | Online, Offline | `Online` when powering on, `Offline` when powering off                         |
+| CONFIG_MQTT_TOPIC_IPV4_STATE      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                               |
+| CONFIG_MQTT_TOPIC_LOCK_CONTROLS_CMND   | ON, OFF         | Set if controls (buttons, rotary encoder) should be locked                     |
+| CONFIG_MQTT_TOPIC_LOCK_CONTROLS_STATE  | ON, OFF         | Sends if controls (buttons, rotary encoder) are locked                         |
+| CONFIG_MQTT_TOPIC_PLAYMODE_STATE      | 0 - 10          | Sends current playmode (single track, audiobook...; see playmodes)             |
+| CONFIG_MQTT_TOPIC_REPEAT_MODE_CMND     | 0 - 3           | Set repeat-mode: `0`=no; `1`=track; `2`=playlist; `3`=both                     |
+| CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE    | 0 - 3           | Sends repeat-mode                                                              |
+| CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_CMND  | 0 - 255         | Set brightness of Neopixel                                                     |
+| CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE | 0 - 255         | Sends brightness of Neopixel                                                   |
+| CONFIG_MQTT_TOPIC_SW_REVISION_STATE     | float           | Voltage (e.g. 3.81)                                                            |
+| CONFIG_MQTT_TOPIC_BATTERY_CHARGE_STATE         | float           | Current battery charge in percent (e.g. 83.0)                                  |
+| CONFIG_MQTT_TOPIC_WIFI_RSSI_STATE      | int             | Numeric WiFi signal-strength (dBm)                                             |
+| CONFIG_MQTT_TOPIC_SW_REVISION_STATE     | String          | Software-revision                                                              |

@@ -55,11 +55,125 @@ config MDNS
 	  If hostname is set to "ESPuino", you can reach it via
 	  http://ESPuino.local.
 
-config MQTT
+menuconfig MQTT
 	bool "Enable support for MQTT"
 	default n
 	help
 	  Make sure to configure mqtt-server and (optionally) username+pwd.
+
+if MQTT
+
+config MQTT_RETRY_INTERVAL
+	int "Interval in seconds to retry after MQTT connection is down"
+	default 60
+
+config MQTT_RETRY_COUNT
+	int "Number of retries per interval"
+	default 1
+
+config MQTT_HOSTNAME
+	string "Hostname used for MQTT"
+	default "ESP32-ESPuino"
+
+config MQTT_TOPIC_SLEEP_CMND
+	string "MQTT topic for sleep command"
+	default "Cmnd/ESPuino/Sleep"
+
+config MQTT_TOPIC_SLEEP_STATE
+	string "MQTT topic for sleep state"
+	default "State/ESPuino/Sleep"
+
+config MQTT_TOPIC_RFID_CMND
+	string "MQTT topic for RFID command"
+	default "Cmnd/ESPuino/Rfid"
+
+config MQTT_TOPIC_RFID_STATE
+	string "MQTT topic for RFID state"
+	default "State/ESPuino/Rfid"
+
+config MQTT_TOPIC_TRACK_STATE
+	string "MQTT topic for track state"
+	default "State/ESPuino/Track"
+
+config MQTT_TOPIC_TRACK_CTRL_CMND
+	string "MQTT topic for track control command"
+	default "Cmnd/ESPuino/TrackControl"
+
+config MQTT_TOPIC_COVER_CHANGED_STATE
+	string "MQTT topic for cover changed state"
+	default "State/ESPuino/CoverChanged"
+
+config MQTT_TOPIC_VOLUME_CMND
+	string "MQTT topic for volume command"
+	default "Cmnd/ESPuino/Loudness"
+
+config MQTT_TOPIC_VOLUME_STATE
+	string "MQTT topic for volume state"
+	default "State/ESPuino/Loudness"
+
+config MQTT_TOPIC_SLEEP_TIMER_CMND
+	string "MQTT topic for sleep timer command"
+	default "Cmnd/ESPuino/SleepTimer"
+
+config MQTT_TOPIC_SLEEP_TIMER_STATE
+	string "MQTT topic for sleep timer state"
+	default "State/ESPuino/SleepTimer"
+
+config MQTT_TOPIC_STATE
+	string "MQTT topic for generic state"
+	default "State/ESPuino/State"
+
+config MQTT_TOPIC_IPV4_STATE
+	string "MQTT topic for current IPv4 address state"
+	default "State/ESPuino/IPv4"
+
+config MQTT_TOPIC_LOCK_CONTROLS_CMND
+	string "MQTT topic for controls lock command"
+	default "Cmnd/ESPuino/LockControls"
+
+config MQTT_TOPIC_LOCK_CONTROLS_STATE
+	string "MQTT topic for controls lock state"
+	default "State/ESPuino/LockControls"
+
+config MQTT_TOPIC_PLAYMODE_STATE
+	string "MQTT topic for playmode state"
+	default "State/ESPuino/Playmode"
+
+config MQTT_TOPIC_REPEAT_MODE_CMND
+	string "MQTT topic for repeat mode command"
+	default "Cmnd/ESPuino/RepeatMode"
+
+config MQTT_TOPIC_REPEAT_MODE_STATE
+	string "MQTT topic for repeat mode state"
+	default "State/ESPuino/RepeatMode"
+
+config MQTT_TOPIC_LED_BRIGHTNESS_CMND
+	string "MQTT topic for LED brightness command"
+	default "Cmnd/ESPuino/LedBrightness"
+
+config MQTT_TOPIC_LED_BRIGHTNESS_STATE
+	string "MQTT topic for LED brightness state"
+	default "State/ESPuino/LedBrightness"
+
+config MQTT_TOPIC_WIFI_RSSI_STATE
+	string "MQTT topic for WiFi RSSI state"
+	default "State/ESPuino/WifiRssi"
+
+config MQTT_TOPIC_SW_REVISION_STATE
+	string "MQTT topic for software revision state"
+	default "State/ESPuino/SoftwareRevision"
+
+config MQTT_TOPIC_SW_REVISION_STATE
+	string "MQTT topic for battery voltage state"
+	default "State/ESPuino/Voltage"
+	depends on MEASURE_BATTERY
+
+config MQTT_TOPIC_BATTERY_CHARGE_STATE
+	string "MQTT topic for battery charge state"
+	default "State/ESPuino/Battery"
+	depends on MEASURE_BATTERY
+
+endif # MQTT
 
 config PAUSE_ON_MIN_VOLUME
 	bool "Playback is paused as long as volume is zero"

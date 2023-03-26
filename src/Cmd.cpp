@@ -18,12 +18,12 @@ void Cmd_Action(const uint16_t mod) {
 			if (System_AreControlsLocked()) {
 				Log_Println((char *) FPSTR(modificatorAllButtonsLocked), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicLockControlsState), "ON", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_LOCK_CONTROLS_STATE, "ON", false);
 				#endif
 			} else {
 				Log_Println((char *) FPSTR(modificatorAllButtonsUnlocked), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicLockControlsState), "OFF", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_LOCK_CONTROLS_STATE, "OFF", false);
 				#endif
 			}
 			System_IndicateOk();
@@ -84,7 +84,7 @@ void Cmd_Action(const uint16_t mod) {
 				gPlayProperties.sleepAfterCurrentTrack = false;
 				Log_Println((char *) FPSTR(modificatorSleepAtEOTd), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "0", false);
 				#endif
 				Led_ResetToInitialBrightness();
 			} else {
@@ -92,13 +92,13 @@ void Cmd_Action(const uint16_t mod) {
 				gPlayProperties.sleepAfterCurrentTrack = true;
 				Log_Println((char *) FPSTR(modificatorSleepAtEOT), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicSleepTimerState), "EOT", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "EOT", false);
 				#endif
 				Led_ResetToNightBrightness();
 			}
 
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+				publishMqtt(CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE, Led_GetBrightness(), false);
 			#endif
 			System_IndicateOk();
 			break;
@@ -114,7 +114,7 @@ void Cmd_Action(const uint16_t mod) {
 				System_DisableSleepTimer();
 				gPlayProperties.sleepAfterPlaylist = false;
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "0", false);
 				#endif
 				Led_ResetToInitialBrightness();
 				Log_Println((char *) FPSTR(modificatorSleepAtEOPd), LOGLEVEL_NOTICE);
@@ -123,14 +123,14 @@ void Cmd_Action(const uint16_t mod) {
 				Led_ResetToNightBrightness();
 				Log_Println((char *) FPSTR(modificatorSleepAtEOP), LOGLEVEL_NOTICE);
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "EOP", false);
 				#endif
 			}
 
 			gPlayProperties.sleepAfterCurrentTrack = false;
 			gPlayProperties.playUntilTrackNumber = 0;
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+				publishMqtt(CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE, Led_GetBrightness(), false);
 			#endif
 			System_IndicateOk();
 			break;
@@ -151,7 +151,7 @@ void Cmd_Action(const uint16_t mod) {
 				gPlayProperties.sleepAfter5Tracks = false;
 				gPlayProperties.playUntilTrackNumber = 0;
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicSleepTimerState), "0", false);
+					publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "0", false);
 				#endif
 				Led_ResetToInitialBrightness();
 				Log_Println((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
@@ -160,12 +160,12 @@ void Cmd_Action(const uint16_t mod) {
 				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.numberOfTracks) { // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
 					gPlayProperties.sleepAfterPlaylist = true;
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicSleepTimerState), "EOP", false);
+						publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "EOP", false);
 					#endif
 				} else  {
 					gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicSleepTimerState), "EO5T", false);
+						publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, "EO5T", false);
 					#endif
 				}
 				Led_ResetToNightBrightness();
@@ -173,7 +173,7 @@ void Cmd_Action(const uint16_t mod) {
 			}
 
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+				publishMqtt(CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE, Led_GetBrightness(), false);
 			#endif
 			System_IndicateOk();
 			break;
@@ -191,7 +191,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatPlaylist = !gPlayProperties.repeatPlaylist;
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+					publishMqtt(CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE, AudioPlayer_GetRepeatMode(), false);
 				#endif
 				System_IndicateOk();
 			}
@@ -210,7 +210,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+					publishMqtt(CONFIG_MQTT_TOPIC_REPEAT_MODE_STATE, AudioPlayer_GetRepeatMode(), false);
 				#endif
 				System_IndicateOk();
 			}
@@ -219,7 +219,7 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_DIMM_LEDS_NIGHTMODE: {
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+				publishMqtt(CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE, Led_GetBrightness(), false);
 			#endif
 			Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
 			Led_ResetToNightBrightness();

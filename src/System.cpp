@@ -96,8 +96,8 @@ bool System_SetSleepTimer(uint8_t minutes) {
 	}
 
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimer(), false);
-		publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+		publishMqtt(CONFIG_MQTT_TOPIC_SLEEP_TIMER_STATE, System_GetSleepTimer(), false);
+		publishMqtt(CONFIG_MQTT_TOPIC_LED_BRIGHTNESS_STATE, Led_GetBrightness(), false);
 	#endif
 
 	return sleepTimerEnabled;
