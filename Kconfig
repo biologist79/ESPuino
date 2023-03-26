@@ -393,6 +393,19 @@ endchoice
 menu "Expert Board Settings"
 	visible if EXPERT
 
+config GPIO_I2S_BCLK
+	int "GPIO for the I2S DAC BCLK signal"
+	default 5 if BOARD_MUSE_PROTO
+	default 27
+
+config GPIO_I2S_DOUT
+	int "GPIO for the I2S DAC DOUT signal"
+	default 25
+
+config GPIO_I2S_LRC
+	int "GPIO for the I2S DAC LRC signal"
+	default 26
+
 if SD_SPI_MODE
 
 config GPIO_SPISD_CS

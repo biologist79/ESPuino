@@ -13,11 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	// I2S (DAC)
-	#define I2S_DOUT                        25		// Digital out (I2S)
-	#define I2S_BCLK                        27		// BCLK (I2S)
-	#define I2S_LRC                         26		// LRC (I2S)
-
 	// Rotary encoder
 	#ifdef CONFIG_ROTARY_ENCODER
 		//#define REVERSE_ROTARY			// To reverse encoder's direction; switching CLK / DT in hardware does the same

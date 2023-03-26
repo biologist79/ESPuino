@@ -167,11 +167,11 @@ void Bluetooth_Init(void) {
 			a2dp_sink = new BluetoothA2DPSink();
 			i2s_pin_config_t pin_config = {
 				#ifdef ESP_IDF_4
-            	.mck_io_num = 0,
-            	#endif
-				.bck_io_num = I2S_BCLK,
-				.ws_io_num = I2S_LRC,
-				.data_out_num = I2S_DOUT,
+				.mck_io_num = 0,
+				#endif
+				.bck_io_num = CONFIG_GPIO_I2S_BCLK,
+				.ws_io_num = CONFIG_GPIO_I2S_LRC,
+				.data_out_num = CONFIG_GPIO_I2S_DOUT,
 				.data_in_num = I2S_PIN_NO_CHANGE};
 			a2dp_sink->set_pin_config(pin_config);
 			a2dp_sink->activate_pin_code(false);

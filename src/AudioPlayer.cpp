@@ -297,7 +297,7 @@ void AudioPlayer_Task(void *parameter) {
 	#endif
 
 	uint8_t settleCount = 0;
-	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+	audio->setPinout(CONFIG_GPIO_I2S_BCLK, CONFIG_GPIO_I2S_LRC, CONFIG_GPIO_I2S_DOUT);
 	audio->setVolume(AudioPlayer_GetInitVolume());
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	if (gPlayProperties.currentPlayMono) {

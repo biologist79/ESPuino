@@ -28,11 +28,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // I2S (DAC)
-    #define I2S_DOUT                        26          // Digital out (I2S)
-    #define I2S_BCLK                        5          // BCLK (I2S)
-    #define I2S_LRC                         25          // LRC (I2S)
-
     // Rotary encoder
     #ifdef CONFIG_ROTARY_ENCODER
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
