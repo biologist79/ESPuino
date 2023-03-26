@@ -267,7 +267,7 @@ void System_ShowWakeUpReason() {
 	}
 }
 
-#ifdef ENABLE_ESPUINO_DEBUG
+#ifdef CONFIG_ESPUINO_DEBUG
 	void System_esp_print_tasks(void) {
 		char *pbuffer = (char *)calloc(2048, 1);
 		vTaskGetRunTimeStats(pbuffer);

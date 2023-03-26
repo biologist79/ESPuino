@@ -13,6 +13,11 @@ endmenu
 
 menu "ESPuino General Settings"
 
+config ESPUINO_DEBUG
+	bool "Enables debugging features"
+	default n
+	depends on EXPERT
+
 config FTP
 	bool "Enables support for FTP Server"
 	default y
