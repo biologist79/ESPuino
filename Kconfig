@@ -393,6 +393,51 @@ endchoice
 menu "Expert Board Settings"
 	visible if EXPERT
 
+config GPIO_BUTTON_0
+	int "GPIO signal for button 0 (NEXT)"
+	default 102 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 13 if BOARD_NODEMCU_DEVKIT
+	default 33 if (BOARD_LOLIN_D32_PRO && SD_SPI_MODE)
+	default 18 if BOARD_MUSE_PROTO
+	default 4
+	depends on BUTTON_0
+
+config GPIO_BUTTON_1
+	int "GPIO signal for button 1 (PREVIOUS)"
+	default 100 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 2 if ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && SD_SPI_MODE)
+	default 19 if BOARD_MUSE_PROTO
+	default 36
+	depends on BUTTON_1
+
+config GPIO_BUTTON_2
+	int "GPIO signal for button 2 (PAUSE/PLAY)"
+	default 101 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 5 if BOARD_NODEMCU_DEVKIT || (BOARD_LOLIN_D32 && SD_SPI_MODE)
+	default 36 if BOARD_AUDIO_KIT || (BOARD_LOLIN_D32_PRO && SD_SPI_MODE)
+	default 0 if BOARD_MUSE_PROTO
+	default 39
+	depends on BUTTON_2
+
+config GPIO_BUTTON_3
+	int "GPIO signal for button 3 (ENCODER)"
+	default 105 if BOARD_COMPLETE
+	default 103 if ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 32
+	depends on BUTTON_3
+
+config GPIO_BUTTON_4
+	int "GPIO signal for button 4"
+	default 103 if BOARD_COMPLETE
+	default 104
+	depends on BUTTON_4
+
+config GPIO_BUTTON_5
+	int "GPIO signal for button 5"
+	default 104 if BOARD_COMPLETE
+	default 105
+	depends on BUTTON_5
+
 config GPIO_PA_EN
 	int "GPIO for the speaker amp enable signal"
 	default 112 if BOARD_COMPLETE
@@ -645,6 +690,35 @@ config BLUETOOTH_SOURCE_DEVICE_NAME
 	help
 	  See https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/
 	  for more information.
+
+config BUTTON_0
+	bool "Enables support for button 0 via GPIO"
+	default n if BOARD_AUDIO_KIT
+	default y
+
+config BUTTON_1
+	bool "Enables support for button 1 via GPIO"
+	default n if BOARD_AUDIO_KIT
+	default y
+
+config BUTTON_2
+	bool "Enables support for button 2 via GPIO"
+	default y
+
+config BUTTON_3
+	bool "Enables support for button 3 via GPIO"
+	default n if BOARD_AUDIO_KIT || BOARD_MUSE_PROTO
+	default y
+
+config BUTTON_4
+	bool "Enables support for button 4 via GPIO"
+	default y if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default n
+
+config BUTTON_5
+	bool "Enables support for button 5 via GPIO"
+	default y if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default n
 
 config BUTTON_DEBOUNCE_INTERVAL
 	int "Debounce interval for buttons in milliseconds"
@@ -924,136 +998,136 @@ menu "ESPuino Button Configuration"
 config BUTTON_0_SHORT
 	string "Button 0 short press command"
 	default "CMD_NEXTTRACK"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0
 
 config BUTTON_1_SHORT
 	string "Button 1 short press command"
 	default "CMD_PREVTRACK"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1
 
 config BUTTON_2_SHORT
 	string "Button 2 short press command"
 	default "CMD_PLAYPAUSE"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_2
 
 config BUTTON_3_SHORT
 	string "Button 3 short press command"
 	default "CMD_MEASUREBATTERY"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_3
 
 config BUTTON_4_SHORT
 	string "Button 4 short press command"
 	default "CMD_SEEK_BACKWARDS"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_4
 
 config BUTTON_5_SHORT
 	string "Button 5 short press command"
 	default "CMD_SEEK_FORWARDS"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_5
 
 config BUTTON_0_LONG
 	string "Button 0 long press command"
 	default "CMD_LASTTRACK"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0
 
 config BUTTON_1_LONG
 	string "Button 1 long press command"
 	default "CMD_FIRSTTRACK"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1
 
 config BUTTON_2_LONG
 	string "Button 2 long press command"
 	default "CMD_PLAYPAUSE"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_2
 
 config BUTTON_3_LONG
 	string "Button 3 long press command"
 	default "CMD_SLEEPMODE"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_3
 
 config BUTTON_4_LONG
 	string "Button 4 long press command"
 	default "CMD_VOLUMEUP"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_4
 
 config BUTTON_5_LONG
 	string "Button 5 long press command"
 	default "CMD_VOLUMEDOWN"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_5
 
 config BUTTON_MULTI_01
 	string "Combined button 0 and 1 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0  && BUTTON_1
 
 config BUTTON_MULTI_02
 	string "Combined button 0 and 2 press"
 	default "CMD_ENABLE_FTP_SERVER"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0  && BUTTON_2
 
 config BUTTON_MULTI_03
 	string "Combined button 0 and 3 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0  && BUTTON_3
 
 config BUTTON_MULTI_04
 	string "Combined button 0 and 4 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0  && BUTTON_4
 
 config BUTTON_MULTI_05
 	string "Combined button 0 and 5 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_0  && BUTTON_5
 
 config BUTTON_MULTI_12
 	string "Combined button 1 and 2 press"
 	default "CMD_TELL_IP_ADDRESS"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1  && BUTTON_2
 
 config BUTTON_MULTI_13
 	string "Combined button 1 and 3 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1  && BUTTON_3
 
 config BUTTON_MULTI_14
 	string "Combined button 1 and 4 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1  && BUTTON_4
 
 config BUTTON_MULTI_15
 	string "Combined button 1 and 5 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_1  && BUTTON_5
 
 config BUTTON_MULTI_23
 	string "Combined button 2 and 3 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_2  && BUTTON_3
 
 config BUTTON_MULTI_24
 	string "Combined button 2 and 4 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_2  && BUTTON_4
 
 config BUTTON_MULTI_25
 	string "Combined button 2 and 5 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_2  && BUTTON_5
 
 config BUTTON_MULTI_34
 	string "Combined button 3 and 4 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_3  && BUTTON_4
 
 config BUTTON_MULTI_35
 	string "Combined button 3 and 5 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_3  && BUTTON_5
 
 config BUTTON_MULTI_45
 	string "Combined button 4 and 5 press"
 	default "CMD_NOTHING"
-	depends on CONVERT_TO_IDENTIFIER
+	depends on CONVERT_TO_IDENTIFIER && BUTTON_4  && BUTTON_5
 
 endmenu

@@ -21,14 +21,6 @@
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // Control-buttons
-    #define NEXT_BUTTON                     102         // Next-Button: connected to port-expander
-    #define PREVIOUS_BUTTON                 100         // Prev-Button: connected to port-expander
-    #define PAUSEPLAY_BUTTON                101         // Pplay-Button: connected to port-expander
-    #define ROTARYENCODER_BUTTON            103         // Set to 99 to disable the button; connected to port-expander
-    #define BUTTON_4                        104         // Button 4: connected to port-expander
-    #define BUTTON_5                        105         // Button 5: connected to port-expander
-
     //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!

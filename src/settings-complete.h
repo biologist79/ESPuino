@@ -13,14 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	// Control-buttons
-	#define NEXT_BUTTON			102		// Button 0: GPIO to detect next
-	#define PREVIOUS_BUTTON			100		// Button 1: GPIO to detect previous
-	#define PAUSEPLAY_BUTTON		101		// Button 2: GPIO to detect pause/play
-	#define ROTARYENCODER_BUTTON		105		// rotary encoder's button
-	#define BUTTON_4			103		// Button 4: unnamed optional button
-	#define BUTTON_5			104		// Button 5: unnamed optional button
-
 	//#define BUTTONS_LED                 	109         	// Powers the LEDs of the buttons. (ext.7)
 
 	// Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!

@@ -19,14 +19,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
-    #define NEXT_BUTTON                      4          // Button 0: GPIO to detect next
-    #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous (Important: as of 19.11.2020 changed from 33 to 2; make sure to change in SD-MMC-mode)
-    #define PAUSEPLAY_BUTTON                 5          // Button 2: GPIO to detect pause/play
-    #define ROTARYENCODER_BUTTON            32          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
-    #define BUTTON_4                        99          // Button 4: unnamed optional button
-    #define BUTTON_5                        99          // Button 5: unnamed optional button
-
     //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
@@ -44,7 +36,7 @@
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.
-    #define WAKEUP_BUTTON                   ROTARYENCODER_BUTTON // Defines the button that is used to wake up ESPuino from deepsleep.
+    #define WAKEUP_BUTTON                   CONFIG_GPIO_BUTTON_3 // Defines the button that is used to wake up ESPuino from deepsleep.
 
     // (optional) Power-control
     #define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
