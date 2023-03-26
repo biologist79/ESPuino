@@ -406,6 +406,23 @@ config GPIO_I2S_LRC
 	int "GPIO for the I2S DAC LRC signal"
 	default 26
 
+if ROTARY_ENCODER
+
+config GPIO_ROTENC_CLK
+	int "GPIO for the rotary encoder CLK signal"
+	default 5 if BOARD_AUDIO_KIT
+	default 36 if BOARD_MUSE_PROTO
+	default 34
+
+config GPIO_ROTENC_DT
+	int "GPIO for the rotary encoder DT signal"
+	default 35 if BOARD_NODEMCU_DEVKIT || BOARD_LOLIN32
+	default 33 if (BOARD_LOLIN_D32 && SD_SPI_MODE) || BOARD_TTGO_T8
+	default 18 if BOARD_AUDIO_KIT
+	default 39
+
+endif # ROTARY_ENCODER
+
 if SD_SPI_MODE
 
 config GPIO_SPISD_CS

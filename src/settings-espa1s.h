@@ -23,24 +23,12 @@
         #define ext_IIC_DATA                18          // i2c-SDA (data) [14 pin-header]
     #endif
 
-    // I2S (DAC)
-    #define I2S_DOUT                        25          // Digital out (I2S)
-    #define I2S_BCLK                        27          // BCLK (I2S)
-    #define I2S_LRC                         26          // LRC (I2S)
-
     // I2C (AC101)
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
     // Amp enable
     #define GPIO_PA_EN                      21          // internal
-
-    // Rotary encoder
-    #ifdef CONFIG_ROTARY_ENCODER
-        //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
-        #define ROTARYENCODER_CLK           5           // rotary encoder's CLK
-        #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-    #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next

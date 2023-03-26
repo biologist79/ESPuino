@@ -14,13 +14,6 @@
 // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
 // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-// Rotary encoder
-#ifdef CONFIG_ROTARY_ENCODER
-    //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
-    #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
-    #define ROTARYENCODER_DT            33          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-#endif
-
 // Amp enable (optional)
 //#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
 //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)

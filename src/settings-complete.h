@@ -13,13 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	// Rotary encoder
-	#ifdef CONFIG_ROTARY_ENCODER
-		//#define REVERSE_ROTARY			// To reverse encoder's direction; switching CLK / DT in hardware does the same
-		#define ROTARYENCODER_CLK	34          	// rotary encoder's CLK
-		#define ROTARYENCODER_DT	39		// rotary encoder's DT
-	#endif
-
 	// Amp enable
 	#define GPIO_PA_EN                      113         	// To enable amp for loudspeaker (GPIO or port-channel)
 	//#define GPIO_HP_EN                    112         	// To enable amp for headphones (GPIO or port-channel)

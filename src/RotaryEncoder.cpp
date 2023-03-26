@@ -22,9 +22,9 @@ void RotaryEncoder_Init(void) {
 	// Init rotary encoder
 	#ifdef CONFIG_ROTARY_ENCODER
 		#ifndef REVERSE_ROTARY
-			encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
+			encoder.attachHalfQuad(CONFIG_GPIO_ROTENC_CLK, CONFIG_GPIO_ROTENC_DT);
 		#else
-			encoder.attachHalfQuad(ROTARYENCODER_DT, ROTARYENCODER_CLK);
+			encoder.attachHalfQuad(CONFIG_GPIO_ROTENC_DT, CONFIG_GPIO_ROTENC_CLK);
 		#endif
 		encoder.clearCount();
 	#endif

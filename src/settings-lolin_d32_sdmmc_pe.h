@@ -20,13 +20,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // Rotary encoder
-    #ifdef CONFIG_ROTARY_ENCODER
-        //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
-        #define ROTARYENCODER_CLK           34          // rotary encoder's CLK
-        #define ROTARYENCODER_DT            39          // 39 = 'VN'; rotary encoder's DT
-    #endif
-
     // Amp enable (optional)
     #define GPIO_PA_EN                      108         // To enable/disable amp for loudspeaker; connected to port-expander
 
