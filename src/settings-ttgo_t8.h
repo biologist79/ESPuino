@@ -14,10 +14,6 @@
 // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
 // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-// Amp enable (optional)
-//#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
-//#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
-
 // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
 #define NEXT_BUTTON                      0          // Button 0: GPIO to detect next
 #define PREVIOUS_BUTTON                 36          // Button 1: GPIO to detect previous

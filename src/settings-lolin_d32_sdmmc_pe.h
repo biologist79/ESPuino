@@ -20,9 +20,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // Amp enable (optional)
-    #define GPIO_PA_EN                      108         // To enable/disable amp for loudspeaker; connected to port-expander
-
     // Control-buttons
     #define NEXT_BUTTON                     102         // Next-Button: connected to port-expander
     #define PREVIOUS_BUTTON                 100         // Prev-Button: connected to port-expander

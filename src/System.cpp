@@ -198,11 +198,11 @@ void System_DeepSleepManager(void) {
 		#endif
 
 		// Disable amps in order to avoid ugly noises when powering off
-		#ifdef GPIO_PA_EN
-			Port_Write(GPIO_PA_EN, false, false);
+		#ifdef CONFIG_AMP_SPEAKER
+			Port_Write(CONFIG_GPIO_PA_EN, false, false);
 		#endif
-		#ifdef GPIO_HP_EN
-			Port_Write(GPIO_HP_EN, false, false);
+		#ifdef CONFIG_AMP_HEADPHONE
+			Port_Write(CONFIG_GPIO_HP_EN, false, false);
 		#endif
 
 		Mqtt_Exit();

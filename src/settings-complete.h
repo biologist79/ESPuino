@@ -13,10 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	// Amp enable
-	#define GPIO_PA_EN                      113         	// To enable amp for loudspeaker (GPIO or port-channel)
-	//#define GPIO_HP_EN                    112         	// To enable amp for headphones (GPIO or port-channel)
-
 	// Control-buttons
 	#define NEXT_BUTTON			102		// Button 0: GPIO to detect next
 	#define PREVIOUS_BUTTON			100		// Button 1: GPIO to detect previous

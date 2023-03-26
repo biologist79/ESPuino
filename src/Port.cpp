@@ -75,8 +75,8 @@ bool Port_Read(const uint8_t _channel) {
 // Configures OUTPUT-mode for GPIOs (non port-expander)
 // Output-mode for port-channels is done via Port_WriteInitMaskForOutputChannels()
 void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGpio) {
-	#ifdef GPIO_PA_EN
-		if (_channel == GPIO_PA_EN) {
+	#ifdef CONFIG_AMP_SPEAKER
+		if (_channel == CONFIG_GPIO_PA_EN) {
 			if (_newState) {
 				Log_Println((char *) FPSTR(paOn), LOGLEVEL_NOTICE);
 			} else {
@@ -85,8 +85,8 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		}
 	#endif
 
-	#ifdef GPIO_HP_EN
-		if (_channel == GPIO_HP_EN) {
+	#ifdef CONFIG_AMP_HEADPHONE
+		if (_channel == CONFIG_GPIO_HP_EN) {
 			if (_newState) {
 				Log_Println((char *) FPSTR(hpOn), LOGLEVEL_NOTICE);
 			} else {
@@ -191,21 +191,21 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		uint8_t OutputBitMaskInOutAsPerPort[portsToWrite] = { portBaseValueBitMask, portBaseValueBitMask };   // 255 => all channels set to input; [0]: port0, [1]: port1
 		uint8_t OutputBitMaskLowHighAsPerPort[portsToWrite] = { 0x00, 0x00};     // Bit configured as 0 for an output-channels means: logic LOW
 
-		#ifdef GPIO_PA_EN   // Set as output to enable/disable amp for loudspeaker
-			if (GPIO_PA_EN >= 100 && GPIO_PA_EN <= 107) {
+		#ifdef CONFIG_AMP_SPEAKER   // Set as output to enable/disable amp for loudspeaker
+			if (CONFIG_GPIO_PA_EN >= 100 && CONFIG_GPIO_PA_EN <= 107) {
 				// Bits of channels to be configured as input are 1 by default.
 				// So in order to change I/O-direction to output we need to set those bits to 0.
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
-			} else if (GPIO_PA_EN >= 108 && GPIO_PA_EN <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_PA_EN));
+			} else if (CONFIG_GPIO_PA_EN >= 108 && CONFIG_GPIO_PA_EN <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_PA_EN));
 			}
 		#endif
 
-		#ifdef GPIO_HP_EN   // Set as output to enable/disable amp for headphones
-			if (GPIO_HP_EN >= 100 && GPIO_HP_EN <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
-			} else if (GPIO_HP_EN >= 108 && GPIO_HP_EN <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
+		#ifdef CONFIG_AMP_HEADPHONE   // Set as output to enable/disable amp for headphones
+			if (CONFIG_GPIO_HP_EN >= 100 && CONFIG_GPIO_HP_EN <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_EN));
+			} else if (CONFIG_GPIO_HP_EN >= 108 && CONFIG_GPIO_HP_EN <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_EN));
 			}
 		#endif
 
@@ -260,19 +260,19 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		#endif
 
 		// There's no possibility to get current I/O-status from PCA9555. So we just re-set it again for OUTPUT-pins.
-		#ifdef GPIO_PA_EN
-			if (GPIO_PA_EN >= 100 && GPIO_PA_EN <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
-			} else if (GPIO_PA_EN >= 108 && GPIO_PA_EN <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_PA_EN));
+		#ifdef CONFIG_AMP_SPEAKER
+			if (CONFIG_GPIO_PA_EN >= 100 && CONFIG_GPIO_PA_EN <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_PA_EN));
+			} else if (CONFIG_GPIO_PA_EN >= 108 && CONFIG_GPIO_PA_EN <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_PA_EN));
 			}
 		#endif
 
-		#ifdef GPIO_HP_EN
-			if (GPIO_HP_EN >= 100 && GPIO_HP_EN <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
-			} else if (GPIO_HP_EN >= 108 && GPIO_HP_EN <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(GPIO_HP_EN));
+		#ifdef CONFIG_AMP_HEADPHONE
+			if (CONFIG_GPIO_HP_EN >= 100 && CONFIG_GPIO_HP_EN <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_EN));
+			} else if (CONFIG_GPIO_HP_EN >= 108 && CONFIG_GPIO_HP_EN <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_EN));
 			}
 		#endif
 

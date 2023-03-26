@@ -19,10 +19,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 
-    // Amp enable (optional)
-    //#define GPIO_PA_EN                      112         // To enable amp for loudspeaker (GPIO or port-channel)
-    //#define GPIO_HP_EN                      113         // To enable amp for headphones (GPIO or port-channel)
-
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                     33          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                  2          // Button 1: GPIO to detect previous

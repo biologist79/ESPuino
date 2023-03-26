@@ -393,6 +393,17 @@ endchoice
 menu "Expert Board Settings"
 	visible if EXPERT
 
+config GPIO_PA_EN
+	int "GPIO for the speaker amp enable signal"
+	default 112 if BOARD_COMPLETE
+	default 21 if BOARD_AUDIO_KIT
+	default 108 if ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	depends on AMP_SPEAKER
+
+config GPIO_HP_EN
+	int "GPIO for the headphone amp enable signal"
+	depends on AMP_HEADPHONE
+
 config GPIO_I2S_BCLK
 	int "GPIO for the I2S DAC BCLK signal"
 	default 5 if BOARD_MUSE_PROTO
@@ -604,6 +615,15 @@ endmenu
 endmenu
 
 menu "ESPuino Peripheral Settings"
+
+config AMP_SPEAKER
+	bool "Enables support for a speaker amp enabled by GPIO"
+	default y if BOARD_COMPLETE || BOARD_AUDIO_KIT || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default n
+
+config AMP_HEADPHONE
+	bool "Enables support for a headphone amp enabled by GPIO"
+	default n
 
 config BLUETOOTH
 	bool "Enables Bluetooth support"

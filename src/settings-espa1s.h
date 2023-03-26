@@ -27,9 +27,6 @@
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
-    // Amp enable
-    #define GPIO_PA_EN                      21          // internal
-
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander)
     #define NEXT_BUTTON                     99          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                 99          // Button 1: GPIO to detect previous
