@@ -9,7 +9,7 @@
 #include "Rfid.h"
 
 #ifdef CONFIG_MEASURE_BATTERY
-	uint8_t batteryCheckInterval = s_batteryCheckInterval;
+	uint8_t batteryCheckInterval = CONFIG_MEASURE_BATTERY_INTERVAL;
 
 	void Battery_Init(void) {
 		uint32_t vInterval = gPrefsSettings.getUInt("vCheckIntv", 17777);

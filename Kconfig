@@ -504,6 +504,8 @@ config MEASURE_BATTERY
 	bool "Enables support for measuring the battery status"
 	default y
 
+if MEASURE_BATTERY
+
 choice
 	bool "Battery measurement hardware"
 	default MEASURE_BATTERY_VOLTAGE
@@ -516,6 +518,80 @@ config MEASURE_BATTERY_MAX17055
 	bool "Enables battery measurement via external fuel gauge (MAX17055)"
 
 endchoice
+
+config MEASURE_BATTERY_INTERVAL
+	int "Default value for interval of battery check in minutes"
+	default 10
+	help
+	  This parameter can be changed in the GUI.
+
+config MEASURE_BATTERY_LOW
+	int "Default value for low/recovery battery status in millivolts"
+	default 3400 if MEASURE_BATTERY_VOLTAGE
+	default 3600 if MEASURE_BATTERY_MAX17055
+	help
+	  This parameter can be changed in the GUI (only for ADC). When using
+	  the fuel gauge (MAX17055) this reflects the recovery voltage.
+
+config MEASURE_BATTERY_CRIT
+	int "Default value for critical/empty battery status in millivolts"
+	default 3100 if MEASURE_BATTERY_VOLTAGE
+	default 3000 if MEASURE_BATTERY_MAX17055
+	help
+	  This parameter can be changed in the GUI (only for ADC). When using
+	  the fuel gauge (MAX17055) this reflects the empty voltage.
+
+config ADC_BATTERY_INDICATOR_LOW
+	int "Default value for the LED battery low indicator (no LED on) in millivolts"
+	default 3000
+	depends on MEASURE_BATTERY_VOLTAGE
+	help
+	  This parameter can be changed in the GUI.
+
+config ADC_BATTERY_INDICATOR_HIGH
+	int "Default value for the LED battery high indicator (all LEDs on) in millivolts"
+	default 4200
+	depends on MEASURE_BATTERY_VOLTAGE
+	help
+	  This parameter can be changed in the GUI.
+
+config FUEL_GAUGE_LOW
+	int "Default value for the battery fuel gauge low value in percent"
+	range 0 100
+	default 15
+	depends on MEASURE_BATTERY_MAX17055
+
+config FUEL_GAUGE_CRIT
+	int "Default value for the battery fuel gauge critical value in percent"
+	range 0 100
+	default 5
+	depends on MEASURE_BATTERY_MAX17055
+
+config FUEL_GAUGE_CAPACITY
+	int "Default value for the battery fuel gauge capacity value in mAh"
+	default 6000
+	depends on MEASURE_BATTERY_MAX17055
+
+config FUEL_GAUGE_CHEMISTRY
+	hex "Default value for the battery fuel gauge cell chemistry"
+	default 0x60
+	depends on MEASURE_BATTERY_MAX17055
+	help
+	  Use 0x0 for LiIon, 0x20 for NCR and 0x60 for LiFePO4.
+
+config FUEL_GAUGE_RESISTOR
+	int "Default value for the battery fuel gauge current sense resistor value in milliohms"
+	default 10
+	depends on MEASURE_BATTERY_MAX17055
+
+config FUEL_GAUGE_CHARGE_VOLTAGE_HIGH
+	bool "Default value for the battery fuel gauge charge voltage parameter"
+	default off
+	depends on MEASURE_BATTERY_MAX17055
+	help
+	  Enable this if the charge voltage exceeds 4.275V.
+
+endif # MEASURE_BATTERY
 
 menuconfig NEOPIXEL
 	bool "Enable support for NeoPixel LEDs"

@@ -10,8 +10,8 @@
 	#include <Wire.h>
 	#include <Arduino-MAX17055_Driver.h>
 
-	float batteryLow = s_batteryLow;
-	float batteryCritical = s_batteryCritical;
+	float batteryLow = CONFIG_FUEL_GAUGE_LOW;
+	float batteryCritical = CONFIG_FUEL_GAUGE_CRIT;
 	uint16_t cycles = 0;
 
 	MAX17055 sensor;
@@ -20,7 +20,10 @@
 
 	void Battery_InitInner() {
 		bool por = false;
-		sensor.init(s_batteryCapacity, s_emptyVoltage, s_recoveryVoltage, s_batteryChemistry, s_vCharge, s_resistSensor, por, &i2cBusTwo, &delay);
+		sensor.init(CONFIG_FUEL_GAUGE_CAPACITY, (CONFIG_MEASURE_BATTERY_CRIT / 10),
+			    (CONFIG_MEASURE_BATTERY_LOW / 10), CONFIG_FUEL_GAUGE_CHEMISTRY,
+			    CONFIG_FUEL_GAUGE_CHARGE_VOLTAGE_HIGH, (CONFIG_FUEL_GAUGE_RESISTOR / 1000.0),
+			    por, &i2cBusTwo, &delay);
 		cycles = gPrefsSettings.getUShort("MAX17055_cycles", 0x0000);
 		Log_Printf(LOGLEVEL_DEBUG, "%s: %.2f", (char *)"Cycles saved in NVS:", cycles / 100.0);
 

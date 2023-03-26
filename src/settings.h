@@ -13,30 +13,6 @@
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
 
-	#ifdef CONFIG_MEASURE_BATTERY
-		constexpr uint8_t s_batteryCheckInterval = 10; // How often battery is measured (in minutes) (can be changed via GUI!)
-	#endif
-
-	#ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-		// (optional) Default-voltages for battery-monitoring via Neopixel; can be changed later via WebGUI
-		constexpr float s_warningLowVoltage = 3.4;                      // If battery-voltage is <= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-		constexpr float s_warningCriticalVoltage = 3.1;                 // If battery-voltage is <= this value, assume battery near-empty. Set to 0V to disable.
-		constexpr float s_voltageIndicatorLow = 3.0;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
-		constexpr float s_voltageIndicatorHigh = 4.2;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
-	#endif
-
-	#ifdef CONFIG_MEASURE_BATTERY_MAX17055
-		constexpr float s_batteryLow = 15.0;            // low percentage
-		constexpr float s_batteryCritical = 5.0;        // critical percentage
-
-		constexpr uint16_t s_batteryCapacity = 6000;    // design cap of battery (mAh)
-		constexpr uint16_t s_emptyVoltage = 300;        // empty voltage in 10mV
-		constexpr uint16_t s_recoveryVoltage = 360;     // recovery voltage in 10mV
-		constexpr uint8_t  s_batteryChemistry = 0x60;   // 0 = Li-Ion, 0x20 = NCR, 0x60 = LiFePO4
-		constexpr float s_resistSensor = 0.01;          // current sense resistor, currently non-default values might lead to problems
-		constexpr bool s_vCharge = false;                   // true if charge voltage is greater than 4.275V
-	#endif
-
 	// enable I2C if necessary
 	#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER) || defined(CONFIG_MEASURE_BATTERY_MAX17055)
 		#define I2C_2_ENABLE

@@ -10,10 +10,10 @@
 #if defined(CONFIG_MEASURE_BATTERY_VOLTAGE) && (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
 	constexpr uint16_t maxAnalogValue = 4095u; // Highest value given by analogRead(); don't change!
 
-	float warningLowVoltage = s_warningLowVoltage;
-	float warningCriticalVoltage = s_warningCriticalVoltage;
-	float voltageIndicatorLow = s_voltageIndicatorLow;
-	float voltageIndicatorHigh = s_voltageIndicatorHigh;
+	float warningLowVoltage = (CONFIG_MEASURE_BATTERY_LOW / 1000.0);
+	float warningCriticalVoltage = (CONFIG_MEASURE_BATTERY_CRIT / 1000.0);
+	float voltageIndicatorLow = (CONFIG_ADC_BATTERY_INDICATOR_LOW / 1000.0);
+	float voltageIndicatorHigh = (CONFIG_ADC_BATTERY_INDICATOR_HIGH / 1000.0);
 
 	void Battery_InitInner() {
 		// Get voltages from NVS for Neopixel
