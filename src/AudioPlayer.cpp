@@ -240,7 +240,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 	#ifdef CONFIG_HEADPHONE_ADJUST
 		bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
-		if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
+		if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= CONFIG_HEADPHONE_DEBOUNCE_INTERVAL)) {
 			if (currentHeadPhoneDetectionState) {
 				AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
 				#ifdef CONFIG_MONO_SPEAKER

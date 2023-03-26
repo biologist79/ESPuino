@@ -11,11 +11,6 @@
     // Nothing to be configured here...
     // Default user/password is esp32/esp32 but can be changed via webgui
 
-    // (optinal) Headphone-detection (leave unchanged if in doubts...)
-    #ifdef CONFIG_HEADPHONE_ADJUST
-        constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
-    #endif
-
     // Seekmode-configuration
     constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
 
