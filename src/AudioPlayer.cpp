@@ -650,14 +650,14 @@ void AudioPlayer_Task(void *parameter) {
 		// Handle seekmodes
 		if (gPlayProperties.seekmode != SEEK_NORMAL) {
 			if (gPlayProperties.seekmode == SEEK_FORWARDS) {
-				if (audio->setTimeOffset(jumpOffset)) {
-					Log_Printf(LOGLEVEL_NOTICE, secondsJumpForward, jumpOffset);
+				if (audio->setTimeOffset(CONFIG_SEEK_JUMP_OFFSET)) {
+					Log_Printf(LOGLEVEL_NOTICE, secondsJumpForward, CONFIG_SEEK_JUMP_OFFSET);
 				} else {
 					System_IndicateError();
 				}
 			} else if (gPlayProperties.seekmode == SEEK_BACKWARDS) {
-				if (audio->setTimeOffset(-(jumpOffset))) {
-					Log_Printf(LOGLEVEL_NOTICE, secondsJumpBackward, jumpOffset);
+				if (audio->setTimeOffset(-(CONFIG_SEEK_JUMP_OFFSET))) {
+					Log_Printf(LOGLEVEL_NOTICE, secondsJumpBackward, CONFIG_SEEK_JUMP_OFFSET);
 				} else {
 					System_IndicateError();
 				}

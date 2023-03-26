@@ -224,6 +224,10 @@ config SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	  position in the track is saved automatically when a new RFID tag
 	  is detected.
 
+config SEEK_JUMP_OFFSET
+	int "Number of seconds to jump forward/backward using CMD_SEEK_*"
+	default 30
+
 endmenu
 
 menu "ESPuino Board Selection"
