@@ -52,7 +52,7 @@ bool testSPIRAM(void) {
 #endif
 
 // I2C
-#ifdef I2C_2_ENABLE
+#ifdef CONFIG_I2C_2
 	TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
@@ -123,7 +123,7 @@ void setup() {
 	System_Init();
 
 	// Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-	#ifdef I2C_2_ENABLE
+	#ifdef CONFIG_I2C_2
 		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
 		delay(50);
 		Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);

@@ -18,7 +18,7 @@
     // Make sure to enable CONFIG_SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
 
     // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #ifdef I2C_2_ENABLE
+    #ifdef CONFIG_I2C_2
         #define ext_IIC_CLK                 23          // i2c-SCL (clock) [14 pin-header]
         #define ext_IIC_DATA                18          // i2c-SDA (data) [14 pin-header]
     #endif

@@ -52,7 +52,7 @@
     #endif
 
     // I2C-configuration (necessary for PCA9555)
-    #ifdef I2C_2_ENABLE
+    #ifdef CONFIG_I2C_2
         #define ext_IIC_CLK                 4           // i2c-SCL (clock)
         #define ext_IIC_DATA                13          // i2c-SDA (data)
     #endif

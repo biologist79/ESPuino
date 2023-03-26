@@ -46,7 +46,7 @@
 	#endif
 
 	// I2C-configuration (necessary at least for port-expander - don't change!)
-	#ifdef I2C_2_ENABLE
+	#ifdef CONFIG_I2C_2
 		#define ext_IIC_CLK		4		// i2c-SCL (clock)
 		#define ext_IIC_DATA		13		// i2c-SDA (data)
 	#endif

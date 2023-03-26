@@ -13,11 +13,6 @@
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui
 
-	// enable I2C if necessary
-	#if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER) || defined(CONFIG_MEASURE_BATTERY_MAX17055)
-		#define I2C_2_ENABLE
-	#endif
-
 	// (optinal) Headphone-detection (leave unchanged if in doubts...)
 	#ifdef CONFIG_HEADPHONE_ADJUST
 		constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone

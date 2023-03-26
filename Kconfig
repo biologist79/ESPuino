@@ -443,6 +443,10 @@ config PIO_EXTENDS
 	default "base"
 	depends on EXPORT_TO_PIO
 
+config I2C_2
+	bool "Enables support for the second I2C bus"
+	default n
+
 endmenu
 endmenu
 
@@ -516,6 +520,7 @@ config MEASURE_BATTERY_VOLTAGE
 
 config MEASURE_BATTERY_MAX17055
 	bool "Enables battery measurement via external fuel gauge (MAX17055)"
+	select I2C_2
 
 endchoice
 
@@ -664,6 +669,7 @@ endif # NEOPIXEL
 config PORT_EXPANDER
 	bool "Enables support for the PCA9555 port expander"
 	default n
+	select I2C_2
 	help
 	  See https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 	  for more information."
@@ -683,6 +689,7 @@ config RFID_READER_MFRC522_SPI
 
 config RFID_READER_MFRC522_I2C
 	bool "MFRC522 connected via I2C"
+	select I2C_2
 
 config RFID_READER_PN5180
 	bool "PN5180 connected via I2C"

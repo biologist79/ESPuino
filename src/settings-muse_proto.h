@@ -58,7 +58,7 @@
     #endif
 
     // I2C-configuration (necessary for RC522 or RC532 [only via i2c - not spi!] or port-expander)
-    #ifdef I2C_2_ENABLE
+    #ifdef CONFIG_I2C_2
         #define ext_IIC_CLK                12           // i2c-SCL (clock)
         #define ext_IIC_DATA               32           // i2c-SDA (data)
     #endif
