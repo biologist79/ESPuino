@@ -150,7 +150,7 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 		snprintf(Log_Buffer, Log_BufferLength, "%s %d !", (char *) FPSTR("Bluetooth => volume changed: "), _newVolume);
 		Log_Println(Log_Buffer, LOGLEVEL_INFO);
 		uint8_t _volume;
-		if (_newVolume < BLUETOOTHPLAYER_VOLUME_MIN) {
+		if (_newVolume < int(BLUETOOTHPLAYER_VOLUME_MIN)) {
 			return;
 		} else if (_newVolume > BLUETOOTHPLAYER_VOLUME_MAX) {
 			return;
@@ -166,10 +166,13 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 
 void Bluetooth_Init(void) {
 	#ifdef BLUETOOTH_ENABLE
-        	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-            		// bluetooth in sink mode (player acts as a BT-Speaker)
+        if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+            // bluetooth in sink mode (player acts as a BT-Speaker)
 			a2dp_sink = new BluetoothA2DPSink();
 			i2s_pin_config_t pin_config = {
+				#ifdef ESP_IDF_4
+            	.mck_io_num = 0, 
+            	#endif
 				.bck_io_num = I2S_BCLK,
 				.ws_io_num = I2S_LRC,
 				.data_out_num = I2S_DOUT,
@@ -203,6 +206,7 @@ void Bluetooth_Init(void) {
 			//a2dp_source->set_task_core(1);            // task core
 			//a2dp_source->set_nvs_init(true);          // erase/initialize NVS
 			//a2dp_source->set_ssp_enabled(true);       // enable secure simple pairing
+			//a2dp_source->set_pin_code("0000");        // set pin code if needed, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30 
 		
 			// start bluetooth source
 			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
@@ -280,7 +284,7 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 		if (!a2dp_sink)
 			return;
 		uint8_t _volume;
-		if (_newVolume < BLUETOOTHPLAYER_VOLUME_MIN) {
+		if (_newVolume < int32_t(BLUETOOTHPLAYER_VOLUME_MIN)) {
 			return;
 		} else if (_newVolume > BLUETOOTHPLAYER_VOLUME_MAX) {
 			return;
