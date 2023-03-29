@@ -66,7 +66,7 @@ static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static String templateProcessor(const String &templ);
 static void webserverStart(void);
-void Web_DeleteCachefile(const char *fileOrDirectory);
+void Web_DeleteCachefile(const char *folderPath);
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
@@ -740,19 +740,19 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 	// New File
 	if (!index) {
+		String utf8Folder = "/";
 		String utf8FilePath;
 		static char filePath[MAX_FILEPATH_LENTGH];
 		if (request->hasParam("path")) {
 			AsyncWebParameter *param = request->getParam("path");
-			utf8FilePath = param->value() + "/" + filename;
-		} else {
-			utf8FilePath = "/" + filename;
+			utf8Folder = param->value() + "/";
 		}
+		utf8FilePath = utf8Folder + filename;
 
 		convertFilenameToAscii(utf8FilePath, filePath);
 
 		Log_Printf(LOGLEVEL_INFO, writingFile, utf8FilePath.c_str());
-		Web_DeleteCachefile(utf8FilePath.c_str());
+		Web_DeleteCachefile(utf8Folder.c_str());
 
 		// Create Parent directories
 		explorerCreateParentDirectories(filePath);
@@ -994,17 +994,12 @@ bool explorerDeleteDirectory(File dir) {
 
 // Handles delete-requests for cachefiles.
 // This is necessary to avoid outdated cachefiles if content of a directory changes (create, rename, delete).
-void Web_DeleteCachefile(const char *fileOrDirectory) {
-	char cacheFile[MAX_FILEPATH_LENTGH];
-	const char s = '/';
-	char *last = strrchr(fileOrDirectory, s);
-	char *first = strchr(fileOrDirectory, s);
-	unsigned long substr = last - first + 1;
-	snprintf(cacheFile, substr+1, "%s", fileOrDirectory);
-	strcat(cacheFile, playlistCacheFile);
+void Web_DeleteCachefile(const char *folderPath) {
+	const String cacheFile = String(folderPath) + "/" + playlistCacheFile;
+	Log_Printf(LOGLEVEL_DEBUG, "Trying to erase: %s", cacheFile.c_str());
 	if (gFSystem.exists(cacheFile)) {
 		if (gFSystem.remove(cacheFile)) {
-			Log_Printf(LOGLEVEL_DEBUG, erasePlaylistCachefile, cacheFile);
+			Log_Printf(LOGLEVEL_DEBUG, erasePlaylistCachefile, cacheFile.c_str());
 		}
 	}
 }
@@ -1080,9 +1075,10 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
 				}
 			} else {
+				const String cPath = filePath;
 				if (gFSystem.remove(filePath)) {
 					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
-					Web_DeleteCachefile(filePath);
+					Web_DeleteCachefile(cPath.substring(0, cPath.lastIndexOf('/')).c_str());
 				} else {
 					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
 				}
@@ -1132,13 +1128,8 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 		if (gFSystem.exists(srcFullFilePath)) {
 			if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
 				Log_Printf(LOGLEVEL_INFO, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
-				Web_DeleteCachefile(dstFullFilePath);
 				// Also delete cache file inside the renamed folder
-				char cacheFile[MAX_FILEPATH_LENTGH];
-				snprintf(cacheFile, MAX_FILEPATH_LENTGH, "%s/%s", dstFullFilePath, playlistCacheFile);
-				if (gFSystem.exists(cacheFile)) {
-					gFSystem.remove(cacheFile);
-				}
+				Web_DeleteCachefile(dstFullFilePath);
 			} else {
 				Log_Printf(LOGLEVEL_ERROR, "RENAME:  Cannot rename %s", srcPath->value().c_str());
 			}

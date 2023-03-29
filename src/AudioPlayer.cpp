@@ -824,7 +824,10 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	#endif
 	char filename[255];
 
-	strncpy(filename, _itemToPlay, sizeof(filename));
+	size_t sizeCpy = strnlen(_itemToPlay, sizeof(filename) - 1);    // get the len of the play item (to a max of 254 chars)
+	memcpy(filename, _itemToPlay, sizeCpy);
+	filename[sizeCpy] = '\0';       // terminate the string
+	
 	gPlayProperties.startAtFilePos = _lastPlayPos;
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;
 	char **musicFiles;
