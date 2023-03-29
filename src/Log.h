@@ -7,9 +7,6 @@
 #define LOGLEVEL_INFO 3   // infos + errors + important messages
 #define LOGLEVEL_DEBUG 4  // almost everything
 
-extern uint8_t Log_BufferLength;
-extern char *Log_Buffer; // Buffer for all log-messages
-
 /* Wrapper-function for serial-logging (with newline)
    _logBuffer: char* to log
    _minLogLevel: loglevel configured for this message.

@@ -203,6 +203,7 @@ void webserverStart(void) {
 		// software/wifi/heap/psram-info
 		wServer.on(
 			"/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+				char buffer[128];
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
 				info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
@@ -228,16 +229,16 @@ void webserverStart(void) {
 					}
 				#endif
 				#ifdef BATTERY_MEASURE_ENABLE
-					snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f V", (char *) FPSTR(currentVoltageMsg), Battery_GetVoltage());
-					info += (String) Log_Buffer;
-					snprintf(Log_Buffer, Log_BufferLength, "\n%s: %.2f %%", (char *)FPSTR(currentChargeMsg), Battery_EstimateLevel() * 100);
-					info += (String) Log_Buffer;
+					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
+					info += "\n" + String(buffer);
+					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
+					info += "\n" + String(buffer);
 				#endif
                 #ifdef HALLEFFECT_SENSOR_ENABLE
-                    uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
-                    int diff = sva-gHallEffectSensor.NullFieldValue();
-                    snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(F("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)")), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
-                    info += (String) Log_Buffer;
+					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
+					int diff = sva-gHallEffectSensor.NullFieldValue();
+					snprintf(buffer, sizeof(buffer), (char *) FPSTR(F("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)")), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
+					info += buffer;
                 #endif
 				request->send_P(200, "text/plain", info.c_str());
 			});
@@ -353,8 +354,10 @@ void webserverStart(void) {
         #ifdef HALLEFFECT_SENSOR_ENABLE
             wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
                 bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
-                Log_Printf(LOGLEVEL_INFO, "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
-                request->send(200, "text/html", Log_Buffer);
+				char buffer[128];
+				snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
+                Log_Println(buffer, LOGLEVEL_INFO);
+                request->send(200, "text/html", buffer);
             });
         #endif
 
@@ -450,9 +453,7 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "BT_SOURCE_NAME") {
 		return gPrefsSettings.getString("btDeviceName", "");
 	} else if (templ == "IPv4") {
-		IPAddress myIP = WiFi.localIP();
-		snprintf(Log_Buffer, Log_BufferLength, "%d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-		return String(Log_Buffer);
+		return WiFi.localIP().toString();
 	} else if (templ == "RFID_TAG_ID") {
 		return String(gCurrentRfidTagId);
 	} else if (templ == "HOSTNAME") {
