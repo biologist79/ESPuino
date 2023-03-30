@@ -12,12 +12,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #ifdef CONFIG_I2C_2
-        #define ext_IIC_CLK                 4           // i2c-SCL (clock)
-        #define ext_IIC_DATA                2           // i2c-SDA (data)
-    #endif
-
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.

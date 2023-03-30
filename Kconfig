@@ -455,6 +455,22 @@ config GPIO_HP_EN
 	int "GPIO for the headphone amp enable signal"
 	depends on AMP_HEADPHONE
 
+config GPIO_I2C_2_SCL
+	int "GPIO for the I2C bus 2 SCL signal"
+	default 4 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 23 if BOARD_AUDIO_KIT
+	default 12 if BOARD_MUSE_PROTO
+	default 5
+	depends on I2C_2
+
+config GPIO_I2C_2_SDA
+	int "GPIO for the I2C bus 2 SDA signal"
+	default 13 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 18 if BOARD_AUDIO_KIT
+	default 32 if BOARD_MUSE_PROTO
+	default 2
+	depends on I2C_2
+
 config GPIO_I2S_BCLK
 	int "GPIO for the I2S DAC BCLK signal"
 	default 5 if BOARD_MUSE_PROTO
