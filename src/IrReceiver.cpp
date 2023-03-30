@@ -17,7 +17,7 @@
 
 void IrReceiver_Init() {
 	#ifdef CONFIG_IR_CONTROL
-		IrReceiver.begin(IRLED_PIN);
+		IrReceiver.begin(CONFIG_GPIO_IR_LED);
 	#endif
 }
 
@@ -32,55 +32,55 @@ void IrReceiver_Cyclic() {
 			Serial.println();
 			IrReceiver.resume(); // Enable receiving of the next value
 			bool rcActionOk = false;
-			if (millis() - IrReceiver_LastRcCmdTimestamp >= IR_DEBOUNCE) {
+			if (millis() - IrReceiver_LastRcCmdTimestamp >= CONFIG_IR_DEBOUNCE_INTERVAL) {
 				rcActionOk = true; // not used for volume up/down
 				IrReceiver_LastRcCmdTimestamp = millis();
 			}
 
 			switch (IrReceiver.decodedIRData.command) {
-				case RC_PLAY: {
+				case CONFIG_IR_RC_PLAY: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
 						Log_Println((char *) F("RC: Play"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_PAUSE: {
+				case CONFIG_IR_RC_PAUSE: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
 						Log_Println((char *) F("RC: Pause"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_NEXT: {
+				case CONFIG_IR_RC_NEXT: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_NEXTTRACK);
 						Log_Println((char *) F("RC: Next"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_PREVIOUS: {
+				case CONFIG_IR_RC_PREVIOUS: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PREVTRACK);
 						Log_Println((char *) F("RC: Previous"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_FIRST: {
+				case CONFIG_IR_RC_FIRST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_FIRSTTRACK);
 						Log_Println((char *) F("RC: First"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_LAST: {
+				case CONFIG_IR_RC_LAST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_LASTTRACK);
 						Log_Println((char *) F("RC: Last"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_MUTE: {
+				case CONFIG_IR_RC_MUTE: {
 					if (rcActionOk) {
 						if (AudioPlayer_GetCurrentVolume() > 0) {
 							lastVolume = AudioPlayer_GetCurrentVolume();
@@ -95,7 +95,7 @@ void IrReceiver_Cyclic() {
 					}
 					break;
 				}
-				case RC_BLUETOOTH: {
+				case CONFIG_IR_RC_BLUETOOTH: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_TOGGLE_BLUETOOTH_SINK_MODE);
 						Log_Println((char *) F("RC: Bluetooth sink"), LOGLEVEL_NOTICE);
@@ -103,26 +103,26 @@ void IrReceiver_Cyclic() {
 					break;
 				}
 				// +++ todo: bluetooth source mode +++
-				case RC_FTP: {
+				case CONFIG_IR_RC_FTP: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_ENABLE_FTP_SERVER);
 						Log_Println((char *) F("RC: FTP"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_SHUTDOWN: {
+				case CONFIG_IR_RC_SHUTDOWN: {
 					if (rcActionOk) {
 						System_RequestSleep();
 						Log_Println((char *) F("RC: Shutdown"), LOGLEVEL_NOTICE);
 					}
 					break;
 				}
-				case RC_VOL_DOWN: {
+				case CONFIG_IR_RC_VOL_DOWN: {
 					Cmd_Action(CMD_VOLUMEDOWN);
 						Log_Println((char *) F("RC: Volume down"), LOGLEVEL_NOTICE);
 					break;
 				}
-				case RC_VOL_UP: {
+				case CONFIG_IR_RC_VOL_UP: {
 					Cmd_Action(CMD_VOLUMEUP);
 						Log_Println((char *) F("RC: Volume up"), LOGLEVEL_NOTICE);
 					break;

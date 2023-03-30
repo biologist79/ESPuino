@@ -495,6 +495,13 @@ config GPIO_I2S_LRC
 	int "GPIO for the I2S DAC LRC signal"
 	default 26
 
+config GPIO_IR_LED
+	int "GPIO for the IR LED signal"
+	default 33 if BOARD_NODEMCU_DEVKIT
+	default 5 if BOARD_COMPLETE || ((BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32) && !SD_SPI_MODE)
+	default 22
+	depends on IR_CONTROL
+
 config GPIO_NEOPIXEL
 	int "GPIO for the NeoPixel data signal"
 	default 22 if BOARD_MUSE_PROTO
@@ -838,6 +845,62 @@ config IR_CONTROL
 	help
 	  See https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
 	  for more information.
+
+if IR_CONTROL
+
+config IR_DEBOUNCE_INTERVAL
+	int "Debounce interval for detecting IR commands in milliseconds"
+	default 200
+
+config IR_RC_PLAY
+	hex "IR command value for 'play'"
+	default 0x68
+
+config IR_RC_PAUSE
+	hex "IR command value for 'pause'"
+	default 0x67
+
+config IR_RC_NEXT
+	hex "IR command value for 'next track'"
+	default 0x6b
+
+config IR_RC_PREVIOUS
+	hex "IR command value for 'previous track'"
+	default 0x6a
+
+config IR_RC_FIRST
+	hex "IR command value for 'first track'"
+	default 0x6c
+
+config IR_RC_LAST
+	hex "IR command value for 'last track'"
+	default 0x6d
+
+config IR_RC_VOL_UP
+	hex "IR command value for 'volume up'"
+	default 0x1a
+
+config IR_RC_VOL_DOWN
+	hex "IR command value for 'volume down'"
+	default 0x1b
+
+config IR_RC_MUTE
+	hex "IR command value for 'mute'"
+	default 0x1c
+
+config IR_RC_SHUTDOWN
+	hex "IR command value for 'sleep'"
+	default 0x2a
+
+config IR_RC_BLUETOOTH
+	hex "IR command value for 'enable/disable Bluetooth'"
+	default 0x72
+
+config IR_RC_FTP
+	hex "IR command value for 'enable FTP'"
+	default 0x65
+
+endif # IR_CONTROL
 
 config BUTTON_LEDS
 	bool "Enables support for button LEDs controlled by GPIO"
