@@ -250,11 +250,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		uint8_t OutputBitMaskInOutAsPerPort[portsToWrite] = { portBaseValueBitMask, portBaseValueBitMask };   // 255 => all channels set to input; [0]: port0, [1]: port1
 		uint8_t OutputBitMaskLowHighAsPerPort[portsToWrite] = { 0x00, 0x00};
 
-		#ifdef HP_DETECT    // https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638/33
-			if (HP_DETECT >= 100 && HP_DETECT <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(HP_DETECT));
-			} else if (HP_DETECT >= 108 && HP_DETECT <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(HP_DETECT));
+		#ifdef CONFIG_GPIO_HP_DETECT    // https://forum.espuino.de/t/lolin-d32-pro-mit-sd-mmc-pn5180-max-fuenf-buttons-und-port-expander-smd/638/33
+			if (CONFIG_GPIO_HP_DETECT >= 100 && CONFIG_GPIO_HP_DETECT <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_DETECT));
+			} else if (CONFIG_GPIO_HP_DETECT >= 108 && CONFIG_GPIO_HP_DETECT <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_HP_DETECT));
 			}
 		#endif
 

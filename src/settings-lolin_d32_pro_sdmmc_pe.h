@@ -21,12 +21,6 @@
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // (optinal) Headphone-detection
-    #ifdef CONFIG_HEADPHONE_ADJUST
-        //#define DETECT_HP_ON_HIGH                      // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
-        #define HP_DETECT                   107          // GPIO that detects, if there's a plug in the headphone jack or not; connected to port-expander
-    #endif
-
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Don't change, it's built in

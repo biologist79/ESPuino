@@ -21,12 +21,6 @@
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
-    // (optinal) Headphone-detection
-    #ifdef CONFIG_HEADPHONE_ADJUST
-        //#define DETECT_HP_ON_HIGH                     // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
-        #define HP_DETECT                   39          // GPIO that detects, if there's a plug in the headphone jack or not
-    #endif
-
     // (optional) Monitoring of battery-voltage via ADC
     #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
         #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!

@@ -86,10 +86,10 @@ void AudioPlayer_Init(void) {
 	}
 
 	#ifdef CONFIG_HEADPHONE_ADJUST
-		#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
-			pinMode(HP_DETECT, INPUT_PULLUP);
+		#if (CONFIG_GPIO_HP_DETECT >= 0 && CONFIG_GPIO_HP_DETECT <= MAX_GPIO)
+			pinMode(CONFIG_GPIO_HP_DETECT, INPUT_PULLUP);
 		#endif
-		AudioPlayer_HeadphoneLastDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+		AudioPlayer_HeadphoneLastDetectionState = Audio_Detect_Mode_HP(Port_Read(CONFIG_GPIO_HP_DETECT));
 
 		// Get maximum volume for headphone from NVS
 		uint32_t nvsAudioPlayer_MaxVolumeHeadphone = gPrefsSettings.getUInt("maxVolumeHp", 0);
@@ -212,7 +212,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 			Port_Write(CONFIG_GPIO_HP_EN, true, true);
 		#endif
 	#else
-		if (Audio_Detect_Mode_HP(Port_Read(HP_DETECT))) {
+		if (Audio_Detect_Mode_HP(Port_Read(CONFIG_GPIO_HP_DETECT))) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
 			#ifdef CONFIG_AMP_SPEAKER
 				Port_Write(CONFIG_GPIO_PA_EN, true, true);
@@ -238,7 +238,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
 	#ifdef CONFIG_HEADPHONE_ADJUST
-		bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+		bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(CONFIG_GPIO_HP_DETECT));
 
 		if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= CONFIG_HEADPHONE_DEBOUNCE_INTERVAL)) {
 			if (currentHeadPhoneDetectionState) {
