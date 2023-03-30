@@ -1,7 +1,8 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 #include <Arduino.h>
 #include <Wire.h>
-#include "settings.h" // Contains all user-relevant settings (general)
+#include "../config.h"
+#include "values.h"
 
 #include "AudioPlayer.h"
 #include "Battery.h"

@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Log.h"
 #include "Battery.h"
 #include "Mqtt.h"

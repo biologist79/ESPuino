@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "SdCard.h"
 #include "Common.h"
 #include "Led.h"

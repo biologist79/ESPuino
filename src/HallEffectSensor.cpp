@@ -2,7 +2,8 @@
 #include <Arduino.h>
 #include "System.h"
 #include "HallEffectSensor.h"
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Log.h"
 
 #ifdef CONFIG_HALLEFFECT_SENSOR

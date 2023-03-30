@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Battery.h"
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 
 #ifdef CONFIG_MEASURE_BATTERY_MAX17055
 	#include "Log.h"

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <AudioPlayer.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Bluetooth.h"
 #include "Log.h"
 #include "RotaryEncoder.h"

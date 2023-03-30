@@ -1,5 +1,5 @@
-
-#include "settings.h"
+#include "../config.h"
+#include "Arduino.h"
 
 #ifdef CONFIG_LANGUAGE_EN
 	#include "Log.h"

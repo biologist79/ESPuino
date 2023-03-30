@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <esp_task_wdt.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Button.h"

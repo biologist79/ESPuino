@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Audio.h"
 #include "AudioPlayer.h"
 #include "Common.h"

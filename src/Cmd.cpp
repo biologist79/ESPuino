@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Cmd.h"
 #include "AudioPlayer.h"
 #include "Battery.h"

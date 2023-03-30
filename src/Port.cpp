@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Port.h"
 #include "Log.h"
 

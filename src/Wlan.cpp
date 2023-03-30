@@ -2,7 +2,8 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <DNSServer.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "AudioPlayer.h"
 #include "RotaryEncoder.h"
 #include "Log.h"

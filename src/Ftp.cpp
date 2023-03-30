@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Ftp.h"
 #include "Log.h"
 #include "MemX.h"

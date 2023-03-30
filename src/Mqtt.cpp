@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include "settings.h"
+#include "../config.h"
+#include "values.h"
 #include "Mqtt.h"
 #include "AudioPlayer.h"
 #include "Led.h"
