@@ -7,7 +7,7 @@
 #include "System.h"
 
 // Only enable measurements if valid GPIO is used
-#if defined(CONFIG_MEASURE_BATTERY_VOLTAGE) && (VOLTAGE_READ_PIN >= 0 && VOLTAGE_READ_PIN <= 39)
+#if defined(CONFIG_MEASURE_BATTERY_VOLTAGE) && (CONFIG_GPIO_VOLTAGE_READ >= 0 && CONFIG_GPIO_VOLTAGE_READ <= 39)
 	constexpr uint16_t maxAnalogValue = 4095u; // Highest value given by analogRead(); don't change!
 
 	float warningLowVoltage = (CONFIG_MEASURE_BATTERY_LOW / 1000.0);
@@ -57,14 +57,14 @@
 
 	// The average of several analog reads will be taken to reduce the noise (Note: One analog read takes ~10µs)
 	float Battery_GetVoltage(void) {
-		float factor = 1 / ((float) rdiv2 / (rdiv2 + rdiv1));
+		float factor = 1 / ((float) CONFIG_ADC_BATTERY_RDIV2 / (CONFIG_ADC_BATTERY_RDIV2 + CONFIG_ADC_BATTERY_RDIV1));
 		float averagedAnalogValue = 0;
 		uint8_t i;
 		for (i = 0; i <= 19; i++) {
-			averagedAnalogValue += (float)analogRead(VOLTAGE_READ_PIN);
+			averagedAnalogValue += (float)analogRead(CONFIG_GPIO_VOLTAGE_READ);
 		}
 		averagedAnalogValue /= 20.0;
-		return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
+		return (averagedAnalogValue / maxAnalogValue) * ((float)CONFIG_ADC_BATTERY_REFERENCE / 1000) * factor + ((float)CONFIG_ADC_BATTERY_OFFSET / 1000);
 	}
 
 	void Battery_PublishMQTT(){

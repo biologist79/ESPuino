@@ -18,9 +18,9 @@ After providing PCBs based on RC522 / SD-SPI it was about time to integrate "the
 
 ## Prerequisites
 * If no [headphone-pcb](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308) is connected, make sure `CONFIG_HEADPHONE_ADJUST` is disabled.
-* I used 130/130 kOhms-resistors as voltage-divider for `CONFIG_MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `rdiv1` and `rdiv2`.
-* In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `offsetVoltage` accordingly. But make sure to measure in battery-mode (disconnect USB!).
-* `referenceVoltage` is the voltage between 3.3 V and GND on the develboard in battery-mode
+* I used 130/130 kOhms-resistors as voltage-divider for `CONFIG_MEASURE_BATTERY_VOLTAGE`. However, make sure to use a multimeter to determine their exact values in order to achieve a better battery-measurement (was 129 kOhms in my case). They can be configured in `settings-lolin32.h` as `CONFIG_ADC_BATTERY_RDIV1` and `CONFIG_ADC_BATTERY_RDIV2`.
+* In my tests, measured values were around 0.1 V too low. If you encounter such a difference you can adjust the `CONFIG_ADC_BATTERY_OFFSET` accordingly. But make sure to measure in battery-mode (disconnect USB!).
+* `CONFIG_ADC_BATTERY_REFERENCE` is the voltage between 3.3 V and GND on the develboard in battery-mode
 * Make sure to edit `settings.h` (HAL=1) and `settings-lolin32.h` according your needs (see table below).
 * Enable `CONFIG_SD_MMC_1BIT_MODE` and `CONFIG_RFID_READER_PN5180`.
 * If you want to wake up ESPuino from deepsleep via PN5180: `CONFIG_RFID_LPCD` needs to be enabled as well.

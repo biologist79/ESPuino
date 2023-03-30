@@ -694,6 +694,12 @@ config MFRC522_GAIN
 	  Sets the gain value for the MFRC522. Use one of the following values:
 	  0x2 (18dB), 0x3 (23db), 0x4 (33dB), 0x5 (38dB), 0x6 (43dB), 0x7 (48dB)
 
+config GPIO_VOLTAGE_READ
+	int "GPIO for voltage measurements via ADC"
+	default 35 if BOARD_COMPLETE || BOARD_LOLIN_D32_PRO || BOARD_LOLIN_D32 || BOARD_LOLIN_D32
+	default 33
+	depends on MEASURE_BATTERY_VOLTAGE
+
 config GPIO_WAKEUP
 	int "GPIO for the wakeup signal of the ESP32"
 	default GPIO_PE_IRQ if PORT_EXPANDER && PORT_EXPANDER_HAS_IRQ
@@ -892,6 +898,34 @@ config ADC_BATTERY_INDICATOR_HIGH
 	depends on MEASURE_BATTERY_VOLTAGE
 	help
 	  This parameter can be changed in the GUI.
+
+config ADC_BATTERY_REFERENCE
+	int "Reference voltage for the voltage divider in millivolts"
+	default 3300 if BOARD_NODEMCU_DEVKIT || BOARD_AUDIO_KIT || BOARD_LOLIN_D32 || BOARD_LOLIN_D32_PRO
+	default 3345 if BOARD_COMPLETE
+	default 3350
+	depends on MEASURE_BATTERY_VOLTAGE
+
+config ADC_BATTERY_OFFSET
+	int "Offset voltage for the voltage divider in millivolts"
+	default 0 if BOARD_NODEMCU_DEVKIT
+	default 250 if BOARD_COMPLETE
+	default 200 if BOARD_LOLIN_D32
+	default 100
+	depends on MEASURE_BATTERY_VOLTAGE
+
+config ADC_BATTERY_RDIV1
+	int "Value of the voltage divider resistor value R_DIV1 in kiloohms"
+	default 300 if BOARD_COMPLETE
+	default 129 if BOARD_CUSTOM || BOARD_AUDIO_KIT || BOARD_LOLIN32 || BOARD_MUSE_PROTO
+	default 100
+
+config ADC_BATTERY_RDIV2
+	int "Value of the voltage divider resistor value R_DIV2 in kiloohms"
+	default 300 if BOARD_COMPLETE
+	default 389 if BOARD_AUDIO_KIT
+	default 129 if BOARD_CUSTOM || BOARD_LOLIN32 || BOARD_MUSE_PROTO
+	default 100
 
 config FUEL_GAUGE_LOW
 	int "Default value for the battery fuel gauge low value in percent"

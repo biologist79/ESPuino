@@ -24,18 +24,6 @@
         // Not supported
     #endif
 
-    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
-    #if defined(CONFIG_RFID_READER_MFRC522_I2C) || defined(CONFIG_PORT_EXPANDER)
-        // Not supported
-    #endif
-
-    // (optional) Monitoring of battery-voltage via ADC
-    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-        #define VOLTAGE_READ_PIN            99          // GPIO used to monitor battery-voltage.
-        constexpr float referenceVoltage = 3.3;         // Voltage between 3.3V and GND-pin in battery-mode (disconnect USB!)
-        constexpr float offsetVoltage = 0.0;            // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
-    #endif
-
     // (Optional) remote control via infrared
     #ifdef CONFIG_IR_CONTROL
         #define IRLED_PIN                   33              // GPIO where IR-receiver is connected (only tested with VS1838B)

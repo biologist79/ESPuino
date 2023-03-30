@@ -19,19 +19,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 
-    // (optional) Monitoring of battery-voltage via ADC
-    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-        #define VOLTAGE_READ_PIN            35          // GPIO used to monitor battery-voltage. Cannot be changed, it's built in
-        constexpr float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
-        constexpr float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
-    #endif
-
-    // (optional) For measuring battery-voltage a voltage-divider is already onboard. Connect a LiPo and use it!
-    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-        constexpr uint16_t rdiv1 = 100;                           // Cannot be changed, it's built in
-        constexpr uint16_t rdiv2 = 100;                           // Cannot be changed, it's built in
-    #endif
-
     // (Optional) remote control via infrared
     #ifdef CONFIG_IR_CONTROL
         #define IRLED_PIN                   22              // GPIO where IR-receiver is connected (only tested with VS1838B)

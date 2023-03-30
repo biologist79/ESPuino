@@ -12,16 +12,6 @@
 	*/
 
 	//################## GPIO-configuration ##############################
-
-	// (optional) Monitoring of battery-voltage via ADC
-	#ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-		#define VOLTAGE_READ_PIN	35		// GPIO used to monitor battery-voltage.
-		constexpr float referenceVoltage = 3.345;	// Reference-voltage (provided by dc-dc-converter)
-		constexpr float offsetVoltage = 0.25;		// If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
-		constexpr uint16_t rdiv1 = 300;			// Rdiv1 of voltage-divider (kOhms)
-		constexpr uint16_t rdiv2 = 300;			// Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
-	#endif
-
 	// (Optional) remote control via infrared
 	#ifdef CONFIG_IR_CONTROL
 		#define IRLED_PIN		  5		// GPIO where IR-receiver is connected (only tested with VS1838B)

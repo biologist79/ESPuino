@@ -19,18 +19,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // (optional) Monitoring of battery-voltage via ADC
-    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-        #define VOLTAGE_READ_PIN            35          // Cannot be changed, it's built in
-        constexpr float referenceVoltage = 3.30;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
-        constexpr float offsetVoltage = 0.2;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
-    #endif
-
-    #ifdef CONFIG_MEASURE_BATTERY_VOLTAGE
-        constexpr uint16_t rdiv1 = 100;                           // Cannot be changed, it's built in
-        constexpr uint16_t rdiv2 = 100;                           // Cannot be changed, it's built in
-    #endif
-
     // (Optional) remote control via infrared
     #ifdef CONFIG_IR_CONTROL
         #define IRLED_PIN                   22              // GPIO where IR-receiver is connected (only tested with VS1838B)
