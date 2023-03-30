@@ -230,7 +230,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		static CRGB leds[CONFIG_NEOPIXEL_NUM_LEDS];
-		FastLED.addLeds<CONFIG_NEOPIXEL_CHIPSET, LED_PIN, CONFIG_NEOPIXEL_COLOR_ORDER>(leds, CONFIG_NEOPIXEL_NUM_LEDS).setCorrection(TypicalSMD5050);
+		FastLED.addLeds<CONFIG_NEOPIXEL_CHIPSET, CONFIG_GPIO_NEOPIXEL, CONFIG_NEOPIXEL_COLOR_ORDER>(leds, CONFIG_NEOPIXEL_NUM_LEDS).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
 		FastLED.setDither(DISABLE_DITHER);
 

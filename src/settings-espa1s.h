@@ -21,11 +21,6 @@
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
-    // (optional) Neopixel
-    #if defined(CONFIG_NEOPIXEL)
-        #define LED_PIN                     23          // GPIO for Neopixel-signaling
-    #endif
-
     // (optinal) Headphone-detection
     #ifdef CONFIG_HEADPHONE_ADJUST
         //#define DETECT_HP_ON_HIGH                     // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.

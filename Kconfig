@@ -484,6 +484,13 @@ config GPIO_I2S_LRC
 	int "GPIO for the I2S DAC LRC signal"
 	default 26
 
+config GPIO_NEOPIXEL
+	int "GPIO for the NeoPixel data signal"
+	default 22 if BOARD_MUSE_PROTO
+	default 23 if BOARD_AUDIO_KIT
+	default 12
+	depends on NEOPIXEL
+
 if PORT_EXPANDER
 
 config PORT_EXPANDER_ADDR

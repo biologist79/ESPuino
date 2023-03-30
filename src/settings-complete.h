@@ -13,9 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	// (optional) Neopixel
-	#define LED_PIN				12		// GPIO for Neopixel-signaling
-
 	// Headphone-detection
 	#ifdef CONFIG_HEADPHONE_ADJUST
 		//#define DETECT_HP_ON_HIGH			// Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.

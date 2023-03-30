@@ -19,9 +19,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 
-    // (optional) Neopixel
-    #define LED_PIN                         12          // GPIO for Neopixel-signaling
-
     // (optinal) Headphone-detection
     #ifdef CONFIG_HEADPHONE_ADJUST
         //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.

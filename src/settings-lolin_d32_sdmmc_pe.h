@@ -20,9 +20,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // (optional) Neopixel
-    #define LED_PIN                         12          // GPIO for Neopixel-signaling
-
     // (optinal) Headphone-detection
     #ifdef CONFIG_HEADPHONE_ADJUST
         //#define DETECT_HP_ON_HIGH                      // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.

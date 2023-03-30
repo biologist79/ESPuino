@@ -28,9 +28,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // (optional) Neopixel
-    #define LED_PIN                         22          // GPIO for Neopixel-signaling
-
     // (optinal) Headphone-detection
     #ifdef CONFIG_HEADPHONE_ADJUST
         //#define DETECT_HP_ON_HIGH                       // Per default headphones are supposed to be connected if HT_DETECT is LOW. DETECT_HP_ON_HIGH will change this behaviour to HIGH.
