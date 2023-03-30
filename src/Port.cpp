@@ -23,8 +23,7 @@
 	void Port_WriteInitMaskForOutputChannels(void);
 	void Port_Test(void);
 
-	#if (PE_INTERRUPT_PIN >= 0 && PE_INTERRUPT_PIN <= MAX_GPIO)
-		#define PE_INTERRUPT_PIN_ENABLE
+	#ifdef CONFIG_PORT_EXPANDER_HAS_IRQ
 		void IRAM_ATTR PORT_ExpanderISR(void);
 		bool Port_AllowReadFromPortExpander = false;
 		bool Port_AllowInitReadFromPortExpander = true;
@@ -38,9 +37,9 @@ void Port_Init(void) {
 		Port_ExpanderHandler();
 	#endif
 
-	#ifdef PE_INTERRUPT_PIN_ENABLE
-		pinMode(PE_INTERRUPT_PIN, INPUT_PULLUP);
-		attachInterrupt(PE_INTERRUPT_PIN, PORT_ExpanderISR, FALLING);
+	#ifdef CONFIG_PORT_EXPANDER_HAS_IRQ
+		pinMode(CONFIG_GPIO_PE_IRQ, INPUT_PULLUP);
+		attachInterrupt(CONFIG_GPIO_PE_IRQ, PORT_ExpanderISR, FALLING);
 		Log_Println(portExpanderInterruptEnabled, LOGLEVEL_NOTICE);
 	#endif
 }
@@ -325,7 +324,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		static uint8_t inputRegisterBuffer[2];
 
 		// If interrupt-handling is active, only read port-expander's registers if interrupt was fired
-		#ifdef PE_INTERRUPT_PIN_ENABLE
+		#ifdef CONFIG_PORT_EXPANDER_HAS_IRQ
 			if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander && !verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
 				return;
 			} else if (Port_AllowInitReadFromPortExpander) {
@@ -384,7 +383,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 		}
 	}
 
-	#ifdef PE_INTERRUPT_PIN_ENABLE
+	#ifdef CONFIG_PORT_EXPANDER_HAS_IRQ
 		void IRAM_ATTR PORT_ExpanderISR(void) {
 			Port_AllowReadFromPortExpander = true;
 		}

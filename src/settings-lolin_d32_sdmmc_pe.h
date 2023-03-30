@@ -20,12 +20,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
-    // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
-    #ifdef CONFIG_PORT_EXPANDER
-        #define PE_INTERRUPT_PIN            36          // GPIO that is used to receive interrupts from port-expander + to wake up ESP32
-    #endif
-
     // I2C-configuration (necessary for PCA9555)
     #ifdef CONFIG_I2C_2
         #define ext_IIC_CLK                 4           // i2c-SCL (clock)

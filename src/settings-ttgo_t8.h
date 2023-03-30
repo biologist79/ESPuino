@@ -14,12 +14,6 @@
 // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
 // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-// Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
-// Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
-#ifdef CONFIG_PORT_EXPANDER
-    #define PE_INTERRUPT_PIN            99          // GPIO that is used to receive interrupts from port-expander
-#endif
-
 // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
 #ifdef CONFIG_I2C_2
     #define ext_IIC_CLK                 5           // i2c-SCL (clock)

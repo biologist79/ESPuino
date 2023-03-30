@@ -468,6 +468,23 @@ config GPIO_I2S_LRC
 	int "GPIO for the I2S DAC LRC signal"
 	default 26
 
+if PORT_EXPANDER
+
+config PORT_EXPANDER_ADDR
+	hex "PCA9555 Port Expander I2C Address"
+	default 0x20
+
+config PORT_EXPANDER_HAS_IRQ
+	bool "Enables support for the interrupt line of the port expander"
+	default y
+
+config GPIO_PE_IRQ
+	int "GPIO for the port expander interrupt signal"
+	default 36
+	depends on PORT_EXPANDER_HAS_IRQ
+
+endif # PORT_EXPANDER
+
 if ROTARY_ENCODER
 
 config GPIO_ROTENC_CLK
@@ -626,11 +643,6 @@ config MFRC522_GAIN
 	help
 	  Sets the gain value for the MFRC522. Use one of the following values:
 	  0x2 (18dB), 0x3 (23db), 0x4 (33dB), 0x5 (38dB), 0x6 (43dB), 0x7 (48dB)
-
-config PORT_EXPANDER_ADDR
-	hex "PCA9555 Port Expander I2C Address"
-	default 0x20
-	depends on PORT_EXPANDER
 
 endmenu
 
