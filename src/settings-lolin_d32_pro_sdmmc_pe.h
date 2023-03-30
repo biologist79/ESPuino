@@ -21,8 +21,6 @@
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
     // All GPIOs >=100 and <= 115 are connected to a port-expander
 
-    //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
-
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
     #ifdef CONFIG_PORT_EXPANDER

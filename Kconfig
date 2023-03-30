@@ -438,6 +438,12 @@ config GPIO_BUTTON_5
 	default 105
 	depends on BUTTON_5
 
+config GPIO_BUTTON_LEDS
+	int "GPIO signal for controlling button LEDs"
+	default 109 if BOARD_COMPLETE
+	default 114
+	depends on BUTTON_LEDS
+
 config GPIO_PA_EN
 	int "GPIO for the speaker amp enable signal"
 	default 112 if BOARD_COMPLETE
@@ -755,6 +761,10 @@ config IR_CONTROL
 	help
 	  See https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265
 	  for more information.
+
+config BUTTON_LEDS
+	bool "Enables support for button LEDs controlled by GPIO"
+	default n
 
 config MEASURE_BATTERY
 	bool "Enables support for measuring the battery status"

@@ -27,8 +27,6 @@
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
-    //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
-
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
     #ifdef CONFIG_PORT_EXPANDER

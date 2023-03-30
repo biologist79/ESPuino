@@ -123,8 +123,8 @@ void Led_ResetToInitialBrightness(void) {
 			Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
 		}
 	#endif
-	#ifdef BUTTONS_LED
-		Port_Write(BUTTONS_LED, HIGH, false);
+	#ifdef CONFIG_BUTTON_LEDS
+		Port_Write(CONFIG_GPIO_BUTTON_LEDS, HIGH, false);
 	#endif
 }
 
@@ -133,8 +133,8 @@ void Led_ResetToNightBrightness(void) {
 		Led_Brightness = Led_NightBrightness;
 		Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
 	#endif
-	#ifdef BUTTONS_LED
-		Port_Write(BUTTONS_LED, LOW, false);
+	#ifdef CONFIG_BUTTON_LEDS
+		Port_Write(CONFIG_GPIO_BUTTON_LEDS, LOW, false);
 	#endif
 }
 
@@ -149,8 +149,8 @@ uint8_t Led_GetBrightness(void) {
 void Led_SetBrightness(uint8_t value) {
 	#ifdef CONFIG_NEOPIXEL
 		Led_Brightness = value;
-		#ifdef BUTTONS_LED
-			Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
+		#ifdef CONFIG_BUTTON_LEDS
+			Port_Write(CONFIG_GPIO_BUTTON_LEDS, value <= Led_NightBrightness ? LOW : HIGH, false);
 		#endif
 	#endif
 }
@@ -175,8 +175,8 @@ void Led_SetBrightness(uint8_t value) {
 #endif
 
 void Led_SetButtonLedsEnabled(boolean value) {
-	#ifdef BUTTONS_LED
-		Port_Write(BUTTONS_LED, value ? HIGH : LOW, false);
+	#ifdef CONFIG_BUTTON_LEDS
+		Port_Write(CONFIG_GPIO_BUTTON_LEDS, value ? HIGH : LOW, false);
 	#endif
 }
 

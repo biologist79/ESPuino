@@ -217,11 +217,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		#ifdef BUTTONS_LED
-			if (BUTTONS_LED >= 100 && BUTTONS_LED <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
-			} else if (BUTTONS_LED >= 108 && BUTTONS_LED <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
+		#ifdef CONFIG_BUTTON_LEDS
+			if (CONFIG_GPIO_BUTTON_LEDS >= 100 && CONFIG_GPIO_BUTTON_LEDS <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_BUTTON_LEDS));
+			} else if (CONFIG_GPIO_BUTTON_LEDS >= 108 && CONFIG_GPIO_BUTTON_LEDS <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_BUTTON_LEDS));
 			}
 		#endif
 
@@ -292,11 +292,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		#ifdef BUTTONS_LED
-			if (BUTTONS_LED >= 100 && BUTTONS_LED <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
-			} else if (BUTTONS_LED >= 108 && BUTTONS_LED <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(BUTTONS_LED));
+		#ifdef CONFIG_BUTTON_LEDS
+			if (CONFIG_GPIO_BUTTON_LEDS >= 100 && CONFIG_GPIO_BUTTON_LEDS <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_BUTTON_LEDS));
+			} else if (CONFIG_GPIO_BUTTON_LEDS >= 108 && CONFIG_GPIO_BUTTON_LEDS <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_BUTTON_LEDS));
 			}
 		#endif
 

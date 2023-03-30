@@ -13,8 +13,6 @@
 
 	//################## GPIO-configuration ##############################
 
-	//#define BUTTONS_LED                 	109         	// Powers the LEDs of the buttons. (ext.7)
-
 	// Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
 	// Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 	#ifdef CONFIG_PORT_EXPANDER
