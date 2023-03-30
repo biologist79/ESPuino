@@ -357,6 +357,7 @@ choice
 
 config BOARD_AUDIO_KIT
 	bool "AI Thinker ESP32-Audio-Kit"
+	select I2C_1
 
 config BOARD_COMPLETE
 	bool "ESPuino Complete"
@@ -465,6 +466,16 @@ config GPIO_HP_DETECT
 	default 108 if BOARD_COMPLETE
 	default 22
 	depends on HEADPHONE_ADJUST
+
+config GPIO_I2C_1_SCL
+	int "GPIO for the I2C bus 1 SCL signal"
+	default 32
+	depends on I2C_1
+
+config GPIO_I2C_1_SDA
+	int "GPIO for the I2C bus 1 SDA signal"
+	default 33
+	depends on I2C_1
 
 config GPIO_I2C_2_SCL
 	int "GPIO for the I2C bus 2 SCL signal"
@@ -741,6 +752,10 @@ config PIO_EXTENDS
 	default "base, extra:esp32-s3" if BOARD_ESP32_S3_DEVKITC
 	default "base"
 	depends on EXPORT_TO_PIO
+
+config I2C_1
+	bool "Enables support for the first I2C bus"
+	default n
 
 config I2C_2
 	bool "Enables support for the second I2C bus"

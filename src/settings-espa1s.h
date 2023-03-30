@@ -16,8 +16,4 @@
     //################## GPIO-configuration ##############################
     // SD
     // Make sure to enable CONFIG_SD_MMC_1BIT_MODE! GPIOs 2, 14, 15 are used therefore. Make sure to not assign them elsewhere!
-
-    // I2C (AC101)
-    #define IIC_CLK                         32          // internal
-    #define IIC_DATA                        33          // internal
 #endif

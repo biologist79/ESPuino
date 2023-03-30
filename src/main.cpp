@@ -154,7 +154,7 @@ void setup() {
 
 	// Only used for ESP32-A1S-Audiokit
 	#ifdef CONFIG_BOARD_AUDIO_KIT
-		i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
+		i2cBusOne.begin(CONFIG_GPIO_I2C_1_SDA, CONFIG_GPIO_I2C_1_SCL, 40000);
 
 		while (not ac.begin()) {
 			Log_Println((char *) F("AC101 Failed!"), LOGLEVEL_ERROR);
