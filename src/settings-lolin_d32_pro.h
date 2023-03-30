@@ -19,12 +19,6 @@
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
     // GPIOs 16+17 are not available for D32 pro as they're used to internal purposes (PSRAM).
 
-    // (optional) Power-control
-    #define POWER                           5           // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
-    #ifdef POWER
-        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
-    #endif
-
     // (optional) Neopixel
     #define LED_PIN                         12          // GPIO for Neopixel-signaling
 

@@ -21,12 +21,6 @@
     #define IIC_CLK                         32          // internal
     #define IIC_DATA                        33          // internal
 
-    // Power-control
-    #define POWER                           19          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
-    #ifdef POWER
-        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
-    #endif
-
     // (optional) Neopixel
     #if defined(CONFIG_NEOPIXEL)
         #define LED_PIN                     23          // GPIO for Neopixel-signaling

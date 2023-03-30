@@ -208,11 +208,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		#ifdef POWER    // Set as output to trigger mosfet/power-pin for powering peripherals. Hint: logic is inverted if INVERT_POWER is enabled.
-			if (POWER >= 100 && POWER <= 107) {
-				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(POWER));
-			} else if (POWER >= 108 && POWER <= 115) {
-				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(POWER));
+		#ifdef CONFIG_POWER_SWITCH    // Set as output to trigger mosfet/power-pin for powering peripherals. Hint: logic is inverted if CONFIG_GPIO_POWER_ACTIVE_LOW is enabled.
+			if (CONFIG_GPIO_POWER >= 100 && CONFIG_GPIO_POWER <= 107) {
+				OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_POWER));
+			} else if (CONFIG_GPIO_POWER >= 108 && CONFIG_GPIO_POWER <= 115) {
+				OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(CONFIG_GPIO_POWER));
 			}
 		#endif
 
@@ -275,16 +275,16 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		#ifdef POWER    // Set as output to trigger mosfet/power-pin for powering peripherals. Hint: logic is inverted if INVERT_POWER is enabled.
-			if (POWER >= 100 && POWER <= 107) {
-				#ifdef INVERT_POWER
-					OutputBitMaskLowHighAsPerPort[0] |= (1 << Port_ChannelToBit(POWER));
+		#ifdef CONFIG_POWER_SWITCH    // Set as output to trigger mosfet/power-pin for powering peripherals. Hint: logic is inverted if CONFIG_GPIO_POWER_ACTIVE_LOW is enabled.
+			if (CONFIG_GPIO_POWER >= 100 && CONFIG_GPIO_POWER <= 107) {
+				#ifdef CONFIG_GPIO_POWER_ACTIVE_LOW
+					OutputBitMaskLowHighAsPerPort[0] |= (1 << Port_ChannelToBit(CONFIG_GPIO_POWER));
 				#else
 					OutputBitMaskInOutAsPerPort[0] &= ~(1 << Port_ChannelToBit(POWER));
 				#endif
-			} else if (POWER >= 108 && POWER <= 115) {
-				#ifdef INVERT_POWER
-					OutputBitMaskLowHighAsPerPort[1] |= (1 << Port_ChannelToBit(POWER));
+			} else if (CONFIG_GPIO_POWER >= 108 && CONFIG_GPIO_POWER <= 115) {
+				#ifdef CONFIG_GPIO_POWER_ACTIVE_LOW
+					OutputBitMaskLowHighAsPerPort[1] |= (1 << Port_ChannelToBit(CONFIG_GPIO_POWER));
 				#else
 					OutputBitMaskInOutAsPerPort[1] &= ~(1 << Port_ChannelToBit(POWER));
 				#endif

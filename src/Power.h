@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef INVERT_POWER
+#ifdef CONFIG_GPIO_POWER_ACTIVE_LOW
 	#define POWER_ON LOW
 	#define POWER_OFF HIGH
 #else

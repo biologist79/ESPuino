@@ -501,6 +501,22 @@ config GPIO_PE_IRQ
 
 endif # PORT_EXPANDER
 
+config GPIO_POWER
+	int "GPIO to control the power switch for peripherals"
+	default 114 if BOARD_COMPLETE
+	default 115 if (BOARD_LOLIN_D32 && !SD_SPI_MODE)
+	default 19 if BOARD_AUDIO_KIT
+	default 32 if (BOARD_LOLIN_D32_PRO && !SD_SPI_MODE)
+	default 4 if BOARD_TTGO_T8
+	default 5 if (BOARD_LOLIN_D32_PRO && SD_SPI_MODE)
+	default 17
+	depends on POWER_SWITCH
+
+config GPIO_POWER_ACTIVE_LOW
+	bool "Makes the power control signal 'active low' instead of 'active high'"
+	default n
+	depends on POWER_SWITCH
+
 if ROTARY_ENCODER
 
 config GPIO_ROTENC_CLK
@@ -972,6 +988,10 @@ config PORT_EXPANDER
 	help
 	  See https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
 	  for more information."
+
+config POWER_SWITCH
+	bool "Enables support for the power switch controlled by GPIO"
+	default y
 
 menuconfig RFID
 	bool "Enables support for RFID reader"

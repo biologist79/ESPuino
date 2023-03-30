@@ -19,12 +19,6 @@
     // So if connecting a button to these, make sure to add a 10k-pullup-resistor for each button.
     // Further infos: https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 
-    // (optional) Power-control
-    #define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
-    #ifdef POWER
-        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
-    #endif
-
     // (optional) Neopixel
     #define LED_PIN                         12          // GPIO for Neopixel-signaling
 
