@@ -660,6 +660,15 @@ config MFRC522_GAIN
 	  Sets the gain value for the MFRC522. Use one of the following values:
 	  0x2 (18dB), 0x3 (23db), 0x4 (33dB), 0x5 (38dB), 0x6 (43dB), 0x7 (48dB)
 
+config GPIO_WAKEUP
+	int "GPIO for the wakeup signal of the ESP32"
+	default GPIO_PE_IRQ if PORT_EXPANDER && PORT_EXPANDER_HAS_IRQ
+	default GPIO_BUTTON_2 if BUTTON_2 && (BOARD_AUDIO_KIT || BOARD_MUSE_PROTO)
+	default GPIO_BUTTON_3 if BUTTON_3
+	help
+	  Note: only RTC GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34,
+	  35, 36, 39) can be used. This can be set to the IRQ pin of the port
+	  expander in order to use all buttons on the expander as wakeup source.
 endmenu
 
 menu "Hidden Board Helpers"

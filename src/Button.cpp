@@ -26,9 +26,9 @@ static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
-	#if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
-		if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0)) {
-			Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, WAKEUP_BUTTON);
+	#if (CONFIG_GPIO_WAKEUP >= 0 && CONFIG_GPIO_WAKEUP <= MAX_GPIO)
+		if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t)CONFIG_GPIO_WAKEUP, 0)) {
+			Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, CONFIG_GPIO_WAKEUP);
 		}
 	#endif
 

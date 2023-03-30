@@ -29,10 +29,6 @@
         // Not supported
     #endif
 
-    // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
-    // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
-    #define WAKEUP_BUTTON                   CONFIG_GPIO_BUTTON_3 // Defines the button that is used to wake up ESPuino from deepsleep.
-
     // (optional) Power-control
     #define POWER                           17          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
     #ifdef POWER
