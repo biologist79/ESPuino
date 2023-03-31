@@ -1,8 +1,6 @@
 name: Build all boards
 on:
   push:
-    branches:    
-      - master
 
 jobs:
   main:
