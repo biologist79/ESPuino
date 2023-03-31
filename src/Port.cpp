@@ -97,7 +97,7 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 
 	// Make init only for GPIO but not for PE (because PE is already done earlier)
 	if (_initGpio) {
-		if (_channel >= 0 && _channel <= MAX_GPIO) {
+		if (_channel <= MAX_GPIO) {
 			pinMode(_channel, OUTPUT);
 		}
 	}
