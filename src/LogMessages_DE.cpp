@@ -33,7 +33,7 @@
 	const char numberOfValidFiles[] PROGMEM = "Anzahl gültiger Files/Webstreams";
 	const char newLoudnessReceivedQueue[] PROGMEM = "Neue Lautstärke empfangen via Queue";
 	const char newCntrlReceivedQueue[] PROGMEM = "Kontroll-Kommando empfangen via Queue";
-	const char newPlaylistReceived[] PROGMEM = "Neue Playlist empfangen";
+	const char newPlaylistReceived[] PROGMEM = "Neue Playlist mit %d Titel(n) empfangen";
 	const char repeatTrackDueToPlaymode[] PROGMEM = "Wiederhole Titel aufgrund von Playmode.";
 	const char repeatPlaylistDueToPlaymode[] PROGMEM = "Wiederhole Playlist aufgrund von Playmode.";
 	const char cmndStop[] PROGMEM = "Kommando: Stop";
@@ -186,9 +186,7 @@
 	const char restartWebsite[] PROGMEM = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino wird ausgeschaltet...</p>";
 	const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
-	const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position";
-	const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung";
-	const char freeHeapWithFtp[] PROGMEM = "Freier Heap-Speicher nach FTP-Instanzierung";
+	const char ftpServerStarted[] PROGMEM = "FTP-Server gestartet";
 	const char freeHeapAfterSetup[] PROGMEM = "Freier Heap-Speicher nach Setup-Routine";
 	const char tryStaticIpConfig[] PROGMEM = "Statische IP-Konfiguration wird durchgeführt...";
 	const char staticIPConfigFailed[] PROGMEM = "Statische IP-Konfiguration fehlgeschlagen";
@@ -233,4 +231,11 @@
 	const char tryToPickRandomDir[] PROGMEM = "Versuche ein zufälliges Unterzeichnis zu finden aus";
 	const char pickedRandomDir[] PROGMEM = "Zufällig ausgewähltes Unterverzeichnis";
 	const char wrongWakeUpGpio[] PROGMEM = "Der gewählte GPIO ist nicht vom Typ RTC und unterstützt daher das Aufwecken des ESP32 nicht!";
+	const char currentlyPlaying[] PROGMEM = "'%s' wird abgespielt (%d von %d)";
+	const char secondsJumpForward[] PROGMEM = "%d Sekunden nach vorne gesprungen";
+	const char secondsJumpBackward[] PROGMEM = "%d Sekunden zurück gesprungen";
+	const char wroteLastTrackToNvs[] PROGMEM = "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u";
+	const char wifiConnectionInProgress[] PROGMEM = "Versuche mit WLAN '%s' zu verbinden...";
+	const char wifiCurrentIp[] PROGMEM = "Aktuelle IP: %s";
+	const char jsonErrorMsg[] PROGMEM = "deserializeJson() fehlgeschlagen: %s";
 #endif

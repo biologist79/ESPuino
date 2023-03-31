@@ -33,7 +33,7 @@
 	const char numberOfValidFiles[] PROGMEM = "Number of valid files/webstreams";
 	const char newLoudnessReceivedQueue[] PROGMEM = "New volume received via queue";
 	const char newCntrlReceivedQueue[] PROGMEM = "Control-command received via queue";
-	const char newPlaylistReceived[] PROGMEM = "New playlist received";
+	const char newPlaylistReceived[] PROGMEM = "New playlist received with %d track(s)";
 	const char repeatTrackDueToPlaymode[] PROGMEM = "Repeating track due to playmode configured.";
 	const char repeatPlaylistDueToPlaymode[] PROGMEM = "Repeating playlist due to playmode configured.";
 	const char cmndStop[] PROGMEM = "Command: stop";
@@ -190,6 +190,7 @@
 	const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation";
 	const char freeHeapWithFtp[] PROGMEM = "Free heap after FTP-allocation";
 	const char freeHeapAfterSetup[] PROGMEM = "Free heap after setup";
+	const char ftpServerStarted[] PROGMEM = "FTP-Server started";
 	const char tryStaticIpConfig[] PROGMEM = "Performing IP-configuration...";
 	const char staticIPConfigFailed[] PROGMEM = "IP-configuration failed";
 	const char wakeUpRfidNoIso14443[] PROGMEM = "Wakeup caused by low power card-detection. RF-field changed but no ISO-14443 card on reader was found. So I'll return back to sleep now...";
@@ -233,4 +234,11 @@
 	const char tryToPickRandomDir[] PROGMEM = "Try to pick randon subdirectory out of";
 	const char pickedRandomDir[] PROGMEM = "Randomly picked subdirectory";
 	const char wrongWakeUpGpio[] PROGMEM = "GPIO choosen as wakeup-pin isn't of type RTC and that reason for can't wake up ESP32!";
+	const char currentlyPlaying[] PROGMEM = "'%s' is being played (%d of %d)";
+	const char secondsJumpForward[] PROGMEM = "Jumped %d seconds forwards";
+	const char secondsJumpBackward[] PROGMEM = "Jumped %d seconds backward";
+	const char wroteLastTrackToNvs[] PROGMEM = "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u";
+	const char wifiConnectionInProgress[] PROGMEM = "Try to connect to WiFi with SSID '%s'...";
+	const char wifiCurrentIp[] PROGMEM = "Current IP: %s";
+	const char jsonErrorMsg[] PROGMEM = "deserializeJson() failed: %s";
 #endif

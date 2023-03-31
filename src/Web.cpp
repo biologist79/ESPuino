@@ -478,14 +478,8 @@ bool processJsonRequest(char *_serialJson) {
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
 	if (error) {
-		#if (LANGUAGE == DE)
-			snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) F("deserializeJson() fehlgeschlagen: "));
-		#else
-			nprintf(Log_Buffer, Log_BufferLength, "%s", (char *) F("deserializeJson() failed: "));
-		#endif
-		Log_Print(Log_Buffer, LOGLEVEL_ERROR, true);
-		snprintf(Log_Buffer, Log_BufferLength, "%s\n", error.c_str());
-		Log_Print(Log_Buffer, LOGLEVEL_ERROR, true);
+		snprintf(Log_Buffer, Log_BufferLength, jsonErrorMsg, error.c_str());
+		Log_Println(Log_Buffer, LOGLEVEL_ERROR, true);
 		return false;
 	}
 

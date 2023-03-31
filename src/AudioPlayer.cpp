@@ -344,12 +344,7 @@ void AudioPlayer_Task(void *parameter) {
 					gPlayProperties.pausePlay = false;
 				}
 				audio->stopSong();
-				#if (LANGUAGE == DE)
-					snprintf(Log_Buffer, Log_BufferLength, "%s mit %d Titel(n)", (char *) FPSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
-				#else
-					snprintf(Log_Buffer, Log_BufferLength, "%s with %d track(s)", (char *) FPSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
-				#endif
-				Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+				Log_Printf(LOGLEVEL_NOTICE, PSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
 
 				snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) F("Free heap: "), ESP.getFreeHeap());
 				Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
@@ -661,12 +656,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 				}
 				AudioPlayer_ClearCover();
-				#if (LANGUAGE == DE)
-					snprintf(Log_Buffer, Log_BufferLength, "'%s' wird abgespielt (%d von %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
-				#else
-					snprintf(Log_Buffer, Log_BufferLength, "'%s' is being played (%d of %d)", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
-				#endif
-				Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+				Log_Printf(LOGLEVEL_NOTICE, PSTR(currentlyPlaying),  *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
 				gPlayProperties.playlistFinished = false;
 			}
 		}
@@ -675,23 +665,13 @@ void AudioPlayer_Task(void *parameter) {
 		if (gPlayProperties.seekmode != SEEK_NORMAL) {
 			if (gPlayProperties.seekmode == SEEK_FORWARDS) {
 				if (audio->setTimeOffset(jumpOffset)) {
-					#if (LANGUAGE == DE)
-						snprintf(Log_Buffer, Log_BufferLength, "%d Sekunden nach vorne gesprungen", jumpOffset);
-					#else
-						snprintf(Log_Buffer, Log_BufferLength, "Jumped %d seconds forwards", jumpOffset);
-					#endif
-					Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+					Log_Printf(LOGLEVEL_NOTICE, secondsJumpForward, jumpOffset);
 				} else {
 					System_IndicateError();
 				}
 			} else if (gPlayProperties.seekmode == SEEK_BACKWARDS) {
 				if (audio->setTimeOffset(-(jumpOffset))) {
-					#if (LANGUAGE == DE)
-						snprintf(Log_Buffer, Log_BufferLength, "%d Sekunden zurueck gesprungen", jumpOffset);
-					#else
-						snprintf(Log_Buffer, Log_BufferLength, "Jumped %d seconds backwards", jumpOffset);
-					#endif
-					Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+					Log_Printf(LOGLEVEL_NOTICE, secondsJumpBackward, jumpOffset);
 				} else {
 					System_IndicateError();
 				}
@@ -1039,12 +1019,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 	}
 
 	snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-	#if (LANGUAGE == DE)
-		snprintf(Log_Buffer, Log_BufferLength, "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
-	#else
-		snprintf(Log_Buffer, Log_BufferLength, "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u\n", prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
-	#endif
-	Log_Print(Log_Buffer, LOGLEVEL_INFO, true);
+	Log_Printf(LOGLEVEL_INFO, PSTR(wroteLastTrackToNvs), prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
 	Log_Println(prefBuf, LOGLEVEL_INFO);
 	Led_SetPause(false);
 	return gPrefsRfid.putString(_rfidCardId, prefBuf);

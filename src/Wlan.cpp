@@ -104,12 +104,7 @@ void Wlan_Cyclic(void) {
 
 		// Try to join local WiFi. If not successful, an access-point is opened.
 		WiFi.begin(_ssid, _pwd);
-		#if (LANGUAGE == DE)
-			snprintf(Log_Buffer, Log_BufferLength, "Versuche mit WLAN '%s' zu verbinden...", _ssid);
-		#else
-			snprintf(Log_Buffer, Log_BufferLength, "Try to connect to WiFi with SSID '%s'...", _ssid);
-		#endif
-		Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+		Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, _ssid);
 		wifiCheckLastTimestamp = millis();
 		wifiConnectIteration = 1;   // 1: First try; 2: Retry; 0: inactive
 		wifiInit = false;
@@ -139,12 +134,7 @@ void Wlan_Cyclic(void) {
 			wifiConnectionTryInProgress = false;
 			wifiConnectIteration = 0;
 			IPAddress myIP = WiFi.localIP();
-			#if (LANGUAGE == DE)
-				snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-			#else
-				snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-			#endif
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, wifiCurrentIp, myIP.toString().c_str());
 			// get current time and date
 			Log_Println((char *) FPSTR(syncingViaNtp), LOGLEVEL_NOTICE);
 			// timezone: Berlin
