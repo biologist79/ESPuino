@@ -103,8 +103,7 @@ bool testSPIRAM(void) {
 			} else {
 				xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
 				gPlayLastRfIdWhenWiFiConnected = !force;
-				snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
-				Log_Println(Log_Buffer, LOGLEVEL_INFO);
+				Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
 			}
 		}
 	}
@@ -181,12 +180,9 @@ void setup() {
 	Serial.print(F(" Rfid-controlled musicplayer\n\n"));
 
 	// Software-version
-	snprintf(Log_Buffer, Log_BufferLength, "%s", softwareRevision);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-	snprintf(Log_Buffer, Log_BufferLength, "%s", gitRevision);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
-	snprintf(Log_Buffer, Log_BufferLength, "ESP-IDF version: %s", (char *) (ESP.getSdkVersion()));
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Println(softwareRevision, LOGLEVEL_NOTICE);
+	Log_Println(gitRevision, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "ESP-IDF version: %s", ESP.getSdkVersion());
 
 	// print wake-up reason
 	System_ShowWakeUpReason();
@@ -212,15 +208,11 @@ void setup() {
 	System_UpdateActivityTimer(); // initial set after boot
 	Led_Indicate(LedIndicatorType::BootComplete);
 
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-	snprintf(Log_Buffer, Log_BufferLength, "PSRAM: %u bytes", ESP.getPsramSize());
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-	snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
+	Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
+	Log_Printf(LOGLEVEL_DEBUG, "Flash-size: %u bytes", ESP.getFlashChipSize());
 	if (Wlan_IsConnected()) {
-		snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}
 	System_ShowUpgradeWarning();
 #ifdef CONTROLS_LOCKED_BY_DEFAULT

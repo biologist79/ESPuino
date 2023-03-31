@@ -353,8 +353,7 @@ void webserverStart(void) {
         #ifdef HALLEFFECT_SENSOR_ENABLE
             wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
                 bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
-                snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s")), gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
-                Log_Println(Log_Buffer, LOGLEVEL_INFO);
+                Log_Printf(LOGLEVEL_INFO,(char *) FPSTR(F("WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s")), gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
                 request->send(200, "text/html", Log_Buffer);
             });
         #endif
@@ -478,8 +477,7 @@ bool processJsonRequest(char *_serialJson) {
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
 	if (error) {
-		snprintf(Log_Buffer, Log_BufferLength, jsonErrorMsg, error.c_str());
-		Log_Println(Log_Buffer, LOGLEVEL_ERROR, true);
+		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, error.c_str());
 		return false;
 	}
 
@@ -679,22 +677,18 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 
 	if (type == WS_EVT_CONNECT) {
 		//client connected
-		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] connect", server->url(), client->id());
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
 		//client->printf("Hello Client %u :)", client->id());
 		//client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {
 		//client disconnected
-		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] disconnect", server->url(), client->id());
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] disconnect", server->url(), client->id());
 	} else if (type == WS_EVT_ERROR) {
 		//error was received from the other end
-		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
 	} else if (type == WS_EVT_PONG) {
 		//pong message was received (in response to a ping request maybe)
-		snprintf(Log_Buffer, Log_BufferLength, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
 	} else if (type == WS_EVT_DATA) {
 		//data packet
 		AwsFrameInfo *info = (AwsFrameInfo *)arg;
@@ -756,8 +750,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 		convertFilenameToAscii(utf8FilePath, filePath);
 
-		snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
 		Web_DeleteCachefile(utf8FilePath.c_str());
 
 		// Create Parent directories
@@ -858,17 +851,14 @@ void explorerHandleFileStorageTask(void *parameter) {
 			uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
-				snprintf(Log_Buffer, Log_BufferLength, "%s: %s => %zu bytes in %lu ms (%lu kiB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
-				Log_Println(Log_Buffer, LOGLEVEL_INFO);
-				snprintf(Log_Buffer, Log_BufferLength, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
-				Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+				Log_Printf(LOGLEVEL_INFO, "%s: %s => %zu bytes in %lu ms (%lu kiB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
 				// done exit loop to terminate
 				break;
 			}
 
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
-				snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(webTxCanceled));
-				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				Log_Println(PSTR(webTxCanceled), LOGLEVEL_ERROR);
 				// resume the paused tasks
 				#ifdef NEOPIXEL_ENABLE
 					vTaskResume(Led_TaskHandle);	
@@ -925,14 +915,12 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 
 	if (!root) {
-		snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(failedToOpenDirectory));
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Println(PSTR(failedToOpenDirectory), LOGLEVEL_DEBUG);
 		return;
 	}
 
 	if (!root.isDirectory()) {
-		snprintf(Log_Buffer, Log_BufferLength, (char *) FPSTR(notADirectory));
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Println(PSTR(notADirectory), LOGLEVEL_DEBUG);
 		return;
 	}
 
@@ -972,8 +960,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
-	snprintf(Log_Buffer, Log_BufferLength, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	Log_Printf(LOGLEVEL_DEBUG, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
 	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
 }
 
@@ -1016,8 +1003,7 @@ void Web_DeleteCachefile(const char *fileOrDirectory) {
 	strcat(cacheFile, playlistCacheFile);
 	if (gFSystem.exists(cacheFile)) {
 		if (gFSystem.remove(cacheFile)) {
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(erasePlaylistCachefile), cacheFile);
-			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+			Log_Printf(LOGLEVEL_DEBUG, "%s: %s", (char *) FPSTR(erasePlaylistCachefile), cacheFile);
 		}
 	}
 }
@@ -1038,16 +1024,14 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	param = request->getParam("path");
 	convertFilenameToAscii(param->value(), filePath);
 	if (!gFSystem.exists(filePath)) {
-		snprintf(Log_Buffer, Log_BufferLength, "DOWNLOAD:  File not found on SD card: %s", param->value().c_str());
-		Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  File not found on SD card: %s", param->value().c_str());
 		request->send(404);
 		return;
 	}
 	// check is file and not a directory
 	file = gFSystem.open(filePath);
 	if (file.isDirectory()) {
-		snprintf(Log_Buffer, Log_BufferLength, "DOWNLOAD:  Cannot download a directory %s", param->value().c_str());
-		Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  Cannot download a directory %s", param->value().c_str());
 		request->send(404);
 		file.close();
 		return;
@@ -1090,25 +1074,20 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 			file = gFSystem.open(filePath);
 			if (file.isDirectory()) {
 				if (explorerDeleteDirectory(file)) {
-					snprintf(Log_Buffer, Log_BufferLength, "DELETE:  %s deleted", param->value().c_str());
-					Log_Println(Log_Buffer, LOGLEVEL_INFO);
+					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
 				} else {
-					snprintf(Log_Buffer, Log_BufferLength, "DELETE:  Cannot delete %s", param->value().c_str());
-					Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
 				}
 			} else {
 				if (gFSystem.remove(filePath)) {
-					snprintf(Log_Buffer, Log_BufferLength, "DELETE:  %s deleted", param->value().c_str());
-					Log_Println(Log_Buffer, LOGLEVEL_INFO);
+					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
 					Web_DeleteCachefile(filePath);
 				} else {
-					snprintf(Log_Buffer, Log_BufferLength, "DELETE:  Cannot delete %s", param->value().c_str());
-					Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
 				}
 			}
 		} else {
-			snprintf(Log_Buffer, Log_BufferLength, "DELETE: Path %s does not exist", param->value().c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, "DELETE: Path %s does not exist", param->value().c_str());
 		}
 	} else {
 		Log_Println((char *) F("DELETE: No path variable set"), LOGLEVEL_ERROR);
@@ -1126,11 +1105,9 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.mkdir(filePath)) {
-			snprintf(Log_Buffer, Log_BufferLength, "CREATE:  %s created", param->value().c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "CREATE:  %s created", param->value().c_str());
 		} else {
-			snprintf(Log_Buffer, Log_BufferLength, "CREATE:  Cannot create %s", param->value().c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, "CREATE:  Cannot create %s", param->value().c_str());
 		}
 	} else {
 		Log_Println((char *) F("CREATE: No path variable set"), LOGLEVEL_ERROR);
@@ -1153,8 +1130,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 		convertFilenameToAscii(dstPath->value(), dstFullFilePath);
 		if (gFSystem.exists(srcFullFilePath)) {
 			if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
-				snprintf(Log_Buffer, Log_BufferLength, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
-				Log_Println(Log_Buffer, LOGLEVEL_INFO);
+				Log_Printf(LOGLEVEL_INFO, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
 				Web_DeleteCachefile(dstFullFilePath);
 				// Also delete cache file inside the renamed folder
 				char cacheFile[MAX_FILEPATH_LENTGH];
@@ -1163,12 +1139,10 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 					gFSystem.remove(cacheFile);
 				}
 			} else {
-				snprintf(Log_Buffer, Log_BufferLength, "RENAME:  Cannot rename %s", srcPath->value().c_str());
-				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				Log_Printf(LOGLEVEL_ERROR, "RENAME:  Cannot rename %s", srcPath->value().c_str());
 			}
 		} else {
-			snprintf(Log_Buffer, Log_BufferLength, "RENAME: Path %s does not exist", srcPath->value().c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, "RENAME: Path %s does not exist", srcPath->value().c_str());
 		}
 	} else {
 		Log_Println((char *) F("RENAME: No path variable set"), LOGLEVEL_ERROR);
@@ -1270,8 +1244,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 				token = strtok(NULL, stringOuterDelimiter);
 			}
 			if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
-				snprintf(Log_Buffer, Log_BufferLength, "[%u] %s: %s => %s", ++importCount, (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
-				Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+				Log_Printf(LOGLEVEL_NOTICE, "[%u] %s: %s => %s", ++importCount, (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
 				gPrefsRfid.putString(nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
 			} else {
 				invalidCount++;
@@ -1280,8 +1253,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 	}
 
 	Led_SetPause(false);
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(importCountNokNvs), invalidCount);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "%s: %u", (char *) FPSTR(importCountNokNvs), invalidCount);
 	tmpFile.close();
 	gFSystem.remove(_filename);
 }
@@ -1307,8 +1279,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 		esp_partition_iterator_release(pi); // Release the iterator
 		dbgprint("Partition %s found, %d bytes", partname, nvs->size);
 	} else {
-		snprintf(Log_Buffer, Log_BufferLength, "Partition %s not found!", partname);
-		Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
 		return NULL;
 	}
 	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
@@ -1321,8 +1292,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 									&buf,
 									sizeof(nvs_page));
 		if (result != ESP_OK) {
-			snprintf(Log_Buffer, Log_BufferLength, (char *) F("Error reading NVS!"));
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
 			return false;
 		}
 
@@ -1362,13 +1332,11 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		// request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
 		if (gPlayProperties.playMode == WEBSTREAM) {
 			// no cover -> send placeholder icon for webstream (fa-soundcloud)
-			snprintf(Log_Buffer, Log_BufferLength, (char *) F("no cover image for webstream"));
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Println("no cover image for webstream", LOGLEVEL_NOTICE);
 			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>"));
 		} else {
 			// no cover -> send placeholder icon for playing music from SD-card (fa-music)
-			snprintf(Log_Buffer, Log_BufferLength, (char *) F("no cover image for SD-card audio"));
-			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+			Log_Println("no cover image for SD-card audio", LOGLEVEL_DEBUG);
 			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>"));
 		}
 		return;
@@ -1388,8 +1356,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			break;
 		}
 	}
-	snprintf(Log_Buffer, Log_BufferLength, "serve cover image (%s): %s", (char *) mimeType, coverFileName);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFileName);
 
 	// skip image type (1 Byte)
 	coverFile.read();

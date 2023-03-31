@@ -23,30 +23,29 @@
 	String btDeviceName;
 #endif
 
+#ifdef BLUETOOTH_ENABLE
+	const char *getType() {
+		if(System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			return "sink";
+		} else {
+			return "source";
+		}
+	}
+#endif
 
 #ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
-		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => connection state: %s", a2dp_sink->to_str(state));
-		} else {
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => connection state: %s", a2dp_source->to_str(state));
-		}
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), a2dp_source->to_str(state));
 	}
 #endif
 
 
 #ifdef BLUETOOTH_ENABLE
-// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
-void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
-	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-        	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink => audio state: %s", a2dp_sink->to_str(state));
-    	} else {
-        	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source => audio state: %s", a2dp_source->to_str(state));
-    	}
-    	Log_Println(Log_Buffer, LOGLEVEL_INFO);
-}
+	// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
+	void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), a2dp_source->to_str(state));
+	}
 #endif
 
 #ifdef BLUETOOTH_ENABLE
@@ -58,34 +57,33 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 		switch (id) {
 			case ESP_AVRC_MD_ATTR_TITLE:
 				// title
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Title: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Title: %s", text);
 				break;
 			case ESP_AVRC_MD_ATTR_ARTIST:
 				// artists
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Artist: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Artist: %s", text);
 				break;
 			case ESP_AVRC_MD_ATTR_ALBUM:
 				// album
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Album: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Album: %s", text);
 				break;
 			case ESP_AVRC_MD_ATTR_TRACK_NUM:
 				// current track number
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Track-No: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Track-No: %s", text);
 				break;
 			case ESP_AVRC_MD_ATTR_NUM_TRACKS:
 				// number of tracks in playlist
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Number of tracks: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Number of tracks: %s", text);
 				break;
 			case ESP_AVRC_MD_ATTR_GENRE:
 				// genre
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC Genre: %s", text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC Genre: %s", text);
 				break;
 			default:
 				// unknown/unsupported metadata
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => AVRC metadata rsp: attribute id 0x%x, %s", id, text);
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => AVRC metadata rsp: attribute id 0x%x, %s", id, text);
 				break;
 		}
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
 	}
 #endif
 
@@ -123,8 +121,7 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 #ifdef BLUETOOTH_ENABLE
 	// callback which is notified on update Receiver RSSI
 	void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam){
-	snprintf(Log_Buffer, Log_BufferLength, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
 	}
 #endif
 
@@ -132,8 +129,7 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 	// Callback notifying BT-source devices available. 
 	// Return true to connect, false will continue scanning
 	bool scan_bluetooth_device_callback(const char* ssid, esp_bd_addr_t address, int rssi){
-		snprintf(Log_Buffer, Log_BufferLength, "%s %s", (char *) FPSTR("Bluetooth source => Device found: "), ssid);
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth source => Device found: %s", ssid);
 
 		if (btDeviceName == "") {
 			// no device name given, connect to first device found
@@ -147,8 +143,7 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 
 void Bluetooth_VolumeChanged(int _newVolume) {
 	#ifdef BLUETOOTH_ENABLE
-		snprintf(Log_Buffer, Log_BufferLength, "%s %d !", (char *) FPSTR("Bluetooth => volume changed: "), _newVolume);
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _newVolume);
 		uint8_t _volume;
 		if (_newVolume < int(BLUETOOTHPLAYER_VOLUME_MIN)) {
 			return;
@@ -187,8 +182,7 @@ void Bluetooth_Init(void) {
 			a2dp_sink->set_rssi_callback(rssi);
 			// start bluetooth sink
 			a2dp_sink->start((char *)FPSTR(nameBluetoothSinkDevice));
-			snprintf(Log_Buffer, Log_BufferLength, "Bluetooth sink started, Device: %s", (char *)FPSTR(nameBluetoothSinkDevice));
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", PSTR(nameBluetoothSinkDevice));
 			// connect events after startup
 			a2dp_sink->set_on_connection_state_changed(connection_state_changed);
 			a2dp_sink->set_on_audio_state_changed(audio_state_changed);
@@ -213,12 +207,7 @@ void Bluetooth_Init(void) {
 			a2dp_source->start(get_data_channels);  
 
 		    btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
-			if (btDeviceName == "") {
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source started, connect to device: '%s'", "First device found");
-			} else {
-				snprintf(Log_Buffer, Log_BufferLength, "Bluetooth source started, connect to device: '%s'", (char *)FPSTR(btDeviceName.c_str()));
-			}	
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "First device found" : btDeviceName.c_str());
 			// connect events after startup
 			a2dp_source->set_on_connection_state_changed(connection_state_changed);
 			a2dp_source->set_on_audio_state_changed(audio_state_changed);

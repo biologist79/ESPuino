@@ -44,8 +44,7 @@ void System_Init(void) {
 	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", 0);
 	if (nvsMInactivityTime) {
 		System_MaxInactivityTime = nvsMInactivityTime;
-		snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMaxInactivityFromNvs), nvsMInactivityTime);
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMaxInactivityFromNvs), nvsMInactivityTime);
 	} else {
 		gPrefsSettings.putUInt("mInactiviyT", System_MaxInactivityTime);
 		Log_Println((char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
@@ -263,8 +262,7 @@ void System_ShowWakeUpReason() {
 			Log_Println((char *) F("Wakeup caused by ULP-program"), LOGLEVEL_NOTICE);
 			break;
 		default:
-			snprintf(Log_Buffer, Log_BufferLength, "Wakeup was not caused by deepsleep: %d", wakeup_reason);
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, "Wakeup was not caused by deepsleep: %d", wakeup_reason);
 			break;
 	}
 }

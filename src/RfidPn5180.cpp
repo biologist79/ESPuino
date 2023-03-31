@@ -126,8 +126,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				// show PN5180 reader version
 				uint8_t firmwareVersion[2];
 				nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-				snprintf(Log_Buffer, Log_BufferLength, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
-				Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+				Log_Printf(LOGLEVEL_DEBUG, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
 
 				// activate RF field
 				delay(4u);
@@ -136,8 +135,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			// 1. check for an ISO-14443 card
 			} else if (RFID_PN5180_NFC14443_STATE_RESET == stateMachine) {
 				nfc14443.reset();
-				//snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
-				//Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+				//Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 			} else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
 
 				if (nfc14443.readCardSerial(uid) >= 4) {
@@ -249,14 +247,13 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 					}
 				#endif
 
-				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE, true);
-				snprintf(Log_Buffer, Log_BufferLength, "(%s) ID: ", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
-				Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
-
+				String hexString;
 				for (uint8_t i = 0u; i < cardIdSize; i++) {
-					snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-					Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
+					char str[4];
+					snprintf(str, sizeof(str), "%02x%c", cardId[i], (i < cardIdSize - 1u) ? '-' : ' ');
+					hexString += str;
 				}
+				Log_Printf(LOGLEVEL_NOTICE, "%s (%s) ID: %s", PSTR(rfidTagDetected), (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693", hexString.c_str());
 
 				for (uint8_t i = 0u; i < cardIdSize; i++) {
 					char num[4];
@@ -317,8 +314,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			// show PN5180 reader version
 			uint8_t firmwareVersion[2];
 			nfc.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			snprintf(Log_Buffer, Log_BufferLength, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
-			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+			Log_Printf(LOGLEVEL_DEBUG, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
 
 			// check firmware version: PN5180 firmware < 4.0 has several bugs preventing the LPCD mode
 			// you can flash latest firmware with this project: https://github.com/abidxraihan/PN5180_Updater_ESP32

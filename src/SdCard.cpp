@@ -96,8 +96,7 @@ void SdCard_PrintInfo() {
 	// show SD card size / free space
 	uint64_t cardSize = SdCard_GetSize() / (1024 * 1024);
 	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);;
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %llu MB / %llu MB", (char *) FPSTR(sdInfo), cardSize, freeSize);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "%s: %llu MB / %llu MB", (char *) FPSTR(sdInfo), cardSize, freeSize);
 }
 
 
@@ -126,8 +125,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 		Log_Println((char *) FPSTR(dirOrFileDoesNotExist), LOGLEVEL_ERROR);
 		return NULL;
 	}
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(tryToPickRandomDir), _directory);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "%s: %s", (char *) FPSTR(tryToPickRandomDir), _directory);
 
 	static uint8_t allocCount = 1;
 	uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
@@ -156,8 +154,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 				strncpy(buffer, (char *) fileItem.name(), 255);
 			#endif
 
-			/*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), buffer);
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
+			// Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(nameOfFileFound), buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
 				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
 				Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
@@ -198,8 +195,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 		if (delimiterFoundCount > randomNumber || (b == 254)) {  // It's over when next delimiter is found or buffer is full
 			buffer[b] = '\0';
 			free(subdirectoryList);
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(pickedRandomDir), _directory);
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, "%s: %s", (char *) FPSTR(pickedRandomDir), _directory);
 			return buffer;  // Full path of random subdirectory
 		}
 		a++;
@@ -224,8 +220,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
 		Log_Println((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
 		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
-		snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
-		Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, "%s: %u", (char *) FPSTR(freeMemoryAfterFree), ESP.getFreeHeap());
 	}
 
 	// Look if file/folder requested really exists. If not => break.
@@ -284,8 +279,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 	#endif
 
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
-	Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", (char *) FPSTR(freeMemory), ESP.getFreeHeap());
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
@@ -391,8 +385,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 
 				// Don't support filenames that start with "." and only allow .mp3
 				if (fileValid(fileNameBuf)) {
-					/*snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
-					Log_Println(Log_Buffer, LOGLEVEL_INFO);*/
+					// Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
 					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
 						char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 						Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
@@ -456,8 +449,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		return nullptr;
 	}
 	snprintf(files[0], 5,  "%u", cnt);
-	snprintf(Log_Buffer, Log_BufferLength, "%s: %d", (char *) FPSTR(numberOfValidFiles), cnt);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "%s: %d", (char *) FPSTR(numberOfValidFiles), cnt);
 
 	return &(files[1]); // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
 }
