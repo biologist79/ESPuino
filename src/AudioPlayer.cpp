@@ -68,7 +68,7 @@ void AudioPlayer_Init(void) {
 
 	if (nvsInitialVolume) {
 		AudioPlayer_SetInitVolume(nvsInitialVolume);
-		Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredInitialLoudnessFromNvs), nvsInitialVolume);
+		Log_Printf(LOGLEVEL_INFO, restoredInitialLoudnessFromNvs, nvsInitialVolume);
 	} else {
 		gPrefsSettings.putUInt("initVolume", AudioPlayer_GetInitVolume());
 		Log_Println((char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
@@ -79,7 +79,7 @@ void AudioPlayer_Init(void) {
 	if (nvsMaxVolumeSpeaker) {
 		AudioPlayer_SetMaxVolumeSpeaker(nvsMaxVolumeSpeaker);
 		AudioPlayer_SetMaxVolume(nvsMaxVolumeSpeaker);
-		Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForSpeakerFromNvs), nvsMaxVolumeSpeaker);
+		Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForSpeakerFromNvs, nvsMaxVolumeSpeaker);
 	} else {
 		gPrefsSettings.putUInt("maxVolumeSp", nvsMaxVolumeSpeaker);
 		Log_Println((char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
@@ -95,7 +95,7 @@ void AudioPlayer_Init(void) {
 		uint32_t nvsAudioPlayer_MaxVolumeHeadphone = gPrefsSettings.getUInt("maxVolumeHp", 0);
 		if (nvsAudioPlayer_MaxVolumeHeadphone) {
 			AudioPlayer_MaxVolumeHeadphone = nvsAudioPlayer_MaxVolumeHeadphone;
-			Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMaxLoudnessForHeadphoneFromNvs), nvsAudioPlayer_MaxVolumeHeadphone);
+			Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForHeadphoneFromNvs, nvsAudioPlayer_MaxVolumeHeadphone);
 		} else {
 			gPrefsSettings.putUInt("maxVolumeHp", nvsAudioPlayer_MaxVolumeHeadphone);
 			Log_Println((char *) FPSTR(wroteMaxLoudnessForHeadphoneToNvs), LOGLEVEL_ERROR);
@@ -232,7 +232,7 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 				Port_Write(GPIO_HP_EN, true, true);
 			#endif
 		}
-		Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(maxVolumeSet), AudioPlayer_MaxVolume);
+		Log_Printf(LOGLEVEL_INFO, maxVolumeSet, AudioPlayer_MaxVolume);
 		return;
 	#endif
 }
@@ -317,7 +317,7 @@ void AudioPlayer_Task(void *parameter) {
 		}
 		*/
 		if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
-			Log_Printf(LOGLEVEL_INFO, "%s: %d", (char *) FPSTR(newLoudnessReceivedQueue), currentVolume);
+			Log_Printf(LOGLEVEL_INFO, newLoudnessReceivedQueue, currentVolume);
 			audio->setVolume(currentVolume);
 			Web_SendWebsocketData(0, 50);
 			#ifdef MQTT_ENABLE
@@ -326,7 +326,7 @@ void AudioPlayer_Task(void *parameter) {
 		}
 
 		if (xQueueReceive(gTrackControlQueue, &trackCommand, 0) == pdPASS) {
-			Log_Printf(LOGLEVEL_INFO, "%s: %d", (char *) FPSTR(newCntrlReceivedQueue), trackCommand);
+			Log_Printf(LOGLEVEL_INFO, newCntrlReceivedQueue, trackCommand);
 		}
 
 		trackQStatus = xQueueReceive(gTrackQueue, &gPlayProperties.playlist, 0);
@@ -336,8 +336,7 @@ void AudioPlayer_Task(void *parameter) {
 					gPlayProperties.pausePlay = false;
 				}
 				audio->stopSong();
-				Log_Printf(LOGLEVEL_NOTICE, PSTR(newPlaylistReceived), gPlayProperties.numberOfTracks);
-
+				Log_Printf(LOGLEVEL_NOTICE, newPlaylistReceived, gPlayProperties.numberOfTracks);
 				Log_Printf(LOGLEVEL_DEBUG, "Free heap: %u", ESP.getFreeHeap());
 
 				#ifdef MQTT_ENABLE
@@ -403,7 +402,7 @@ void AudioPlayer_Task(void *parameter) {
 					audio->pauseResume();
 					Log_Println((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
 					if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-						Log_Printf(LOGLEVEL_INFO,  "%s: %u (%u)", (char *) FPSTR(trackPausedAtPos), audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
+						Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 					}
 					gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
@@ -608,7 +607,7 @@ void AudioPlayer_Task(void *parameter) {
 			} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 				// Files from SD
 				if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
-					Log_Printf(LOGLEVEL_ERROR, "%s: %s", (char *) FPSTR(dirOrFileDoesNotExist), *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+					Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
 					gPlayProperties.trackFinished = true;
 					continue;
 				} else {
@@ -628,7 +627,7 @@ void AudioPlayer_Task(void *parameter) {
 				if (gPlayProperties.startAtFilePos > 0) {
 					audio->setFilePos(gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
-					Log_Printf(LOGLEVEL_NOTICE, "%s %u", (char *) FPSTR(trackStartatPos), audio->getFilePos());
+					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, audio->getFilePos());
 				}
 				if (gPlayProperties.isWebstream) {
 					if (gPlayProperties.numberOfTracks > 1) {
@@ -644,7 +643,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 				}
 				AudioPlayer_ClearCover();
-				Log_Printf(LOGLEVEL_NOTICE, PSTR(currentlyPlaying),  *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
+				Log_Printf(LOGLEVEL_NOTICE, currentlyPlaying,  *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
 				gPlayProperties.playlistFinished = false;
 			}
 		}
@@ -930,7 +929,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 		case ALL_TRACKS_OF_DIR_SORTED:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
-			Log_Printf(LOGLEVEL_NOTICE, "%s '%s' ", PSTR(modeAllTrackAlphSorted), filename);
+			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackAlphSorted, filename);
 			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -1006,7 +1005,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 	}
 
 	snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-	Log_Printf(LOGLEVEL_INFO, PSTR(wroteLastTrackToNvs), prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
 	Log_Println(prefBuf, LOGLEVEL_INFO);
 	Led_SetPause(false);
 	return gPrefsRfid.putString(_rfidCardId, prefBuf);

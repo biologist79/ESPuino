@@ -444,7 +444,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
 		// Requested something that isn't specified?
 		else {
-			Log_Printf(LOGLEVEL_ERROR, "%s: %s", (char *) FPSTR(noValidTopic), topic);
+			Log_Printf(LOGLEVEL_ERROR, noValidTopic, topic);
 			System_IndicateError();
 		}
 

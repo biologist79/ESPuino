@@ -34,7 +34,7 @@ void Ftp_Init(void) {
 		Log_Println((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
 	} else {
 		Ftp_User = nvsFtpUser;
-		Log_Printf(LOGLEVEL_INFO, "%s: %s", PSTR(restoredFtpUserFromNvs), nvsFtpUser.c_str());
+		Log_Printf(LOGLEVEL_INFO, restoredFtpUserFromNvs, nvsFtpUser.c_str());
 	}
 
 	// Get FTP-password from NVS
@@ -44,7 +44,7 @@ void Ftp_Init(void) {
 		Log_Println((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
 	} else {
 		Ftp_Password = nvsFtpPassword;
-		Log_Printf(LOGLEVEL_INFO, "%s: %s", PSTR(restoredFtpPwdFromNvs), nvsFtpPassword.c_str());
+		Log_Printf(LOGLEVEL_INFO, restoredFtpPwdFromNvs, nvsFtpPassword.c_str());
 	}
 }
 
@@ -85,7 +85,7 @@ void Ftp_EnableServer(void) {
 void ftpManager(void) {
 	#ifdef FTP_ENABLE
 		if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-			Log_Printf(LOGLEVEL_DEBUG, "%s: %u", PSTR(freeHeapWithoutFtp), ESP.getFreeHeap());
+			Log_Printf(LOGLEVEL_DEBUG, freeHeapWithoutFtp, ESP.getFreeHeap());
 			ftpEnableCurrentStatus = true;
 			ftpSrv = new FtpServer();
 			ftpSrv->begin(gFSystem, Ftp_User, Ftp_Password);

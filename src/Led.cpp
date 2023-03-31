@@ -74,7 +74,7 @@ void Led_Init(void) {
 		if (nvsILedBrightness) {
 			Led_InitialBrightness = nvsILedBrightness;
 			Led_Brightness = nvsILedBrightness;
-			Log_Printf(LOGLEVEL_INFO, "%s: %d", (char *) FPSTR(initialBrightnessfromNvs), nvsILedBrightness);
+			Log_Printf(LOGLEVEL_INFO, initialBrightnessfromNvs, nvsILedBrightness);
 		} else {
 			gPrefsSettings.putUChar("iLedBrightness", Led_InitialBrightness);
 			Log_Println((char *) FPSTR(wroteInitialBrightnessToNvs), LOGLEVEL_ERROR);
@@ -84,7 +84,7 @@ void Led_Init(void) {
 		uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
 		if (nvsNLedBrightness != 255) {
 			Led_NightBrightness = nvsNLedBrightness;
-			Log_Printf(LOGLEVEL_INFO, "%s: %d", (char *) FPSTR(restoredInitialBrightnessForNmFromNvs), nvsNLedBrightness);
+			Log_Printf(LOGLEVEL_INFO, restoredInitialBrightnessForNmFromNvs, nvsNLedBrightness);
 		} else {
 			gPrefsSettings.putUChar("nLedBrightness", Led_NightBrightness);
 			Log_Println((char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);

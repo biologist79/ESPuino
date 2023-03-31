@@ -44,7 +44,7 @@ void System_Init(void) {
 	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", 0);
 	if (nvsMInactivityTime) {
 		System_MaxInactivityTime = nvsMInactivityTime;
-		Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMaxInactivityFromNvs), nvsMInactivityTime);
+		Log_Printf(LOGLEVEL_INFO, restoredMaxInactivityFromNvs, nvsMInactivityTime);
 	} else {
 		gPrefsSettings.putUInt("mInactiviyT", System_MaxInactivityTime);
 		Log_Println((char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);

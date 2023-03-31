@@ -353,7 +353,7 @@ void webserverStart(void) {
         #ifdef HALLEFFECT_SENSOR_ENABLE
             wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
                 bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
-                Log_Printf(LOGLEVEL_INFO,(char *) FPSTR(F("WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s")), gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
+                Log_Printf(LOGLEVEL_INFO, "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
                 request->send(200, "text/html", Log_Buffer);
             });
         #endif
@@ -750,7 +750,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 		convertFilenameToAscii(utf8FilePath, filePath);
 
-		Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *)FPSTR (writingFile), utf8FilePath.c_str());
+		Log_Printf(LOGLEVEL_INFO, writingFile, utf8FilePath.c_str());
 		Web_DeleteCachefile(utf8FilePath.c_str());
 
 		// Create Parent directories
@@ -1003,7 +1003,7 @@ void Web_DeleteCachefile(const char *fileOrDirectory) {
 	strcat(cacheFile, playlistCacheFile);
 	if (gFSystem.exists(cacheFile)) {
 		if (gFSystem.remove(cacheFile)) {
-			Log_Printf(LOGLEVEL_DEBUG, "%s: %s", (char *) FPSTR(erasePlaylistCachefile), cacheFile);
+			Log_Printf(LOGLEVEL_DEBUG, erasePlaylistCachefile, cacheFile);
 		}
 	}
 }
@@ -1087,10 +1087,10 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 				}
 			}
 		} else {
-			Log_Printf(LOGLEVEL_ERROR, "DELETE: Path %s does not exist", param->value().c_str());
+			Log_Printf(LOGLEVEL_ERROR, "DELETE:  Path %s does not exist", param->value().c_str());
 		}
 	} else {
-		Log_Println((char *) F("DELETE: No path variable set"), LOGLEVEL_ERROR);
+		Log_Println((char *) F("DELETE:  No path variable set"), LOGLEVEL_ERROR);
 	}
 	request->send(200);
 	esp_task_wdt_reset();
@@ -1110,7 +1110,7 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 			Log_Printf(LOGLEVEL_ERROR, "CREATE:  Cannot create %s", param->value().c_str());
 		}
 	} else {
-		Log_Println((char *) F("CREATE: No path variable set"), LOGLEVEL_ERROR);
+		Log_Println((char *) F("CREATE:  No path variable set"), LOGLEVEL_ERROR);
 	}
 	request->send(200);
 }
@@ -1253,7 +1253,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 	}
 
 	Led_SetPause(false);
-	Log_Printf(LOGLEVEL_NOTICE, "%s: %u", (char *) FPSTR(importCountNokNvs), invalidCount);
+	Log_Printf(LOGLEVEL_NOTICE, importCountNokNvs, invalidCount);
 	tmpFile.close();
 	gFSystem.remove(_filename);
 }

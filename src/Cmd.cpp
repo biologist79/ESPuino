@@ -382,7 +382,7 @@ void Cmd_Action(const uint16_t mod) {
 		#endif
 
 		default: {
-			Log_Printf(LOGLEVEL_ERROR, "%s %d !", PSTR(modificatorDoesNotExist), mod);
+			Log_Printf(LOGLEVEL_ERROR, modificatorDoesNotExist, mod);
 			System_IndicateError();
 		}
 	}

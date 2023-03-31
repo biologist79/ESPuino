@@ -113,7 +113,7 @@
 					snprintf(str, sizeof(str), "%02x%c", cardId[i], (i < cardIdSize - 1u) ? '-' : ' ');
 					hexString += str;
 				}
-				Log_Printf(LOGLEVEL_NOTICE, "%s%s", PSTR(rfidTagDetected), hexString.c_str());
+				Log_Printf(LOGLEVEL_NOTICE, rfidTagDetected, hexString.c_str());
 
 				for (uint8_t i=0u; i < cardIdSize; i++) {
 					char num[4];

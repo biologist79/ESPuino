@@ -103,7 +103,7 @@ bool testSPIRAM(void) {
 			} else {
 				xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
 				gPlayLastRfIdWhenWiFiConnected = !force;
-				Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredLastRfidFromNVS), lastRfidPlayed.c_str());
+				Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());
 			}
 		}
 	}

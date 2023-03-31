@@ -15,7 +15,7 @@
 		uint32_t vInterval = gPrefsSettings.getUInt("vCheckIntv", 17777);
 		if (vInterval != 17777) {
 			batteryCheckInterval = vInterval;
-			Log_Printf(LOGLEVEL_INFO, "%s: %u Minuten", PSTR(batteryCheckIntervalFromNVS), vInterval);
+			Log_Printf(LOGLEVEL_INFO, batteryCheckIntervalFromNVS, vInterval);
 		} else {
 			gPrefsSettings.putUInt("vCheckIntv", batteryCheckInterval);
 		}

@@ -86,16 +86,16 @@ void Wlan_Cyclic(void) {
 		if (hostname.compareTo("-1")) {
 			//WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
 			WiFi.setHostname(hostname.c_str());
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
+			Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 		} else {
 			Log_Println((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
 		}
 
 		// Add configuration of static IP (if requested)
 		#ifdef STATIC_IP_ENABLE
-			Log_Printf(LOGLEVEL_NOTICE, "%s", (char *) FPSTR(tryStaticIpConfig));
+			Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
 			if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
-				Log_Printf(LOGLEVEL_ERROR, "%s", (char *) FPSTR(staticIPConfigFailed));
+				Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 			}
 		#endif
 

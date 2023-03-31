@@ -20,7 +20,7 @@
 		float vLowIndicator = gPrefsSettings.getFloat("vIndicatorLow", 999.99);
 		if (vLowIndicator <= 999) {
 			voltageIndicatorLow = vLowIndicator;
-			Log_Printf(LOGLEVEL_INFO, "%s: %.2f V", (char *)FPSTR(voltageIndicatorLowFromNVS), vLowIndicator);
+			Log_Printf(LOGLEVEL_INFO, voltageIndicatorLowFromNVS, vLowIndicator);
 		} else { // preseed if not set
 			gPrefsSettings.putFloat("vIndicatorLow", voltageIndicatorLow);
 		}
@@ -28,7 +28,7 @@
 		float vHighIndicator = gPrefsSettings.getFloat("vIndicatorHigh", 999.99);
 		if (vHighIndicator <= 999) {
 			voltageIndicatorHigh = vHighIndicator;
-			Log_Printf(LOGLEVEL_INFO, "%s: %.2f V", (char *)FPSTR(voltageIndicatorHighFromNVS), vHighIndicator);
+			Log_Printf(LOGLEVEL_INFO, voltageIndicatorHighFromNVS, vHighIndicator);
 		} else {
 			gPrefsSettings.putFloat("vIndicatorHigh", voltageIndicatorHigh);
 		}
@@ -36,7 +36,7 @@
 		float vLowWarning = gPrefsSettings.getFloat("wLowVoltage", 999.99);
 		if (vLowWarning <= 999) {
 			warningLowVoltage = vLowWarning;
-			Log_Printf(LOGLEVEL_INFO, "%s: %.2f V", (char *)FPSTR(warningLowVoltageFromNVS), vLowWarning);
+			Log_Printf(LOGLEVEL_INFO, warningLowVoltageFromNVS, vLowWarning);
 		} else {
 			gPrefsSettings.putFloat("wLowVoltage", warningLowVoltage);
 		}
@@ -44,7 +44,7 @@
 		float vCriticalWarning = gPrefsSettings.getFloat("wCritVoltage", 999.99);
 		if (vCriticalWarning <= 999) {
 			warningCriticalVoltage = vCriticalWarning;
-			Log_Printf(LOGLEVEL_INFO, "%s: %.2f V", (char *)FPSTR(warningCriticalVoltageFromNVS), vCriticalWarning);
+			Log_Printf(LOGLEVEL_INFO, warningCriticalVoltageFromNVS, vCriticalWarning);
 		} else {
 			gPrefsSettings.putFloat("wCritVoltage", warningCriticalVoltage);
 		}
@@ -81,11 +81,8 @@
 	}
 
 	void Battery_LogStatus(void){
-		float voltage = Battery_GetVoltage();
-		Log_Printf(LOGLEVEL_INFO, "%s: %.2f V", (char *)FPSTR(currentVoltageMsg), voltage);
-
-		float soc = Battery_EstimateLevel() * 100;
-		Log_Printf(LOGLEVEL_INFO, "%s: %.2f %%", (char *)FPSTR(currentChargeMsg), soc);
+		Log_Printf(LOGLEVEL_INFO, currentVoltageMsg, Battery_GetVoltage());
+		Log_Printf(LOGLEVEL_INFO, currentVoltageMsg, Battery_EstimateLevel() * 100);
 	}
 
 	float Battery_EstimateLevel(void) {

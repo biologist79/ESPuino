@@ -72,7 +72,7 @@ void Rfid_PreferenceLookupHandler(void) {
 				} else {
 					#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 						if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
-							Log_Printf(LOGLEVEL_ERROR, "%s (%s)", (char *) FPSTR(dontAccepctSameRfid), gCurrentRfidTagId);
+							Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
 							//System_IndicateError(); // Enable to have shown error @neopixel every time
 							return;
 						} else {
