@@ -31,9 +31,8 @@ void Rfid_PreferenceLookupHandler(void) {
 		if (rfidStatus == pdPASS) {
 			System_UpdateActivityTimer();
 			strncpy(gCurrentRfidTagId, rfidTagId, cardIdStringSize-1);
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(rfidTagReceived), gCurrentRfidTagId);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(rfidTagReceived), gCurrentRfidTagId);
 			Web_SendWebsocketData(0, 10); // Push new rfidTagId to all websocket-clients
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
 
 			String s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 			if (!s.compareTo("-1")) {
@@ -73,8 +72,7 @@ void Rfid_PreferenceLookupHandler(void) {
 				} else {
 					#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 						if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
-							snprintf(Log_Buffer, Log_BufferLength, "%s (%s)", (char *) FPSTR(dontAccepctSameRfid), gCurrentRfidTagId);
-							Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+							Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
 							//System_IndicateError(); // Enable to have shown error @neopixel every time
 							return;
 						} else {

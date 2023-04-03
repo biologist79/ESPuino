@@ -24,20 +24,18 @@ HallEffectSensor::HallEffectSensor(){
 // private
 void HallEffectSensor::LoadNullFieldValueFromNVS(){
   nullFieldValue = gPrefsSettings.getUShort(NULLFIELDVALUENAME, 0);
-  snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("HallEffectSensor> NullFieldValue from NVS:%d")), nullFieldValue);
-  Log_Println(Log_Buffer, LOGLEVEL_INFO);
+  Log_Printf(LOGLEVEL_INFO, PSTR(F("HallEffectSensor> NullFieldValue from NVS:%d")), nullFieldValue);
 }  
 
 bool HallEffectSensor::SaveToNullFieldValueNVS( uint16_t val){
   uint16_t diff = abs(val-nullFieldValue);
   bool res = (gPrefsSettings.putUShort(NULLFIELDVALUENAME, val) == 2);
-  char resMsg[10] = "ERROR";
-  if (res){
-    strcpy(resMsg,"OK");
+  const char *resMsg = "ERROR";
+  if (res) {
+    resMsg = "OK";
     nullFieldValue= val;
   } 
-  snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("HallEffectSensor> Save NullFieldValue in NVS> Result:%s> NullValue:%d, diff:%d")), resMsg, val, diff);
-  Log_Println(Log_Buffer, LOGLEVEL_INFO);
+  Log_Printf(LOGLEVEL_INFO, PSTR(F("HallEffectSensor> Save NullFieldValue in NVS> Result:%s> NullValue:%d, diff:%d")), resMsg, val, diff);
   return res;
 }
 
@@ -64,11 +62,9 @@ void HallEffectSensor::init(){
       diff = sva-nullFieldValue;
       byte nr = 1;
       if (diff>0) nr=2;
-      snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("HallEffectSensor> No AutoCalibration> TAG side:%d detected")), nr);
-      Log_Println(Log_Buffer, LOGLEVEL_INFO);
+      Log_Printf(LOGLEVEL_INFO, PSTR(F("HallEffectSensor> No AutoCalibration> TAG side:%d detected")), nr);
     } else {
-      snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("HallEffectSensor> No AutoCalibration> Difference too small> diff:%d")), diff);
-      Log_Println(Log_Buffer, LOGLEVEL_INFO);
+      Log_Printf(LOGLEVEL_INFO, PSTR(F("HallEffectSensor> No AutoCalibration> Difference too small> diff:%d")), diff);
     }
   #endif
 }
@@ -78,14 +74,12 @@ void HallEffectSensor::cyclic(){
     if ((calibrationFctCalls < maxCalibrationFctCalls) && (millis() > (lastCalibrationSubCallMS + calibrationFctCallsPauseMS))){
       readSensorValueAverage(false);
       calibrationFctCalls++;
-      snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("%d. calibration-loop of HallEffectSensor (make sure NO TAG is/was near reader!) ...")), calibrationFctCalls);
-      Log_Println(Log_Buffer, LOGLEVEL_INFO);
+      Log_Printf(LOGLEVEL_INFO, PSTR(F("%d. calibration-loop of HallEffectSensor (make sure NO TAG is/was near reader!) ...")), calibrationFctCalls);
       lastCalibrationSubCallMS = millis();
     }
     if (calibrationFctCalls == maxCalibrationFctCalls){   // Log results
       uint16_t sva = (maxVal+minVal)/2;
-      snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("Finished calibration of HallEffectSensor> HES_Uav:%d (min:%d, max:%d, (diff/2):%d, probes:%d)")), sva, minVal, maxVal, diffVal/2, calibrationProbes);
-      Log_Println(Log_Buffer, LOGLEVEL_INFO);
+      Log_Printf(LOGLEVEL_INFO, PSTR(F("Finished calibration of HallEffectSensor> HES_Uav:%d (min:%d, max:%d, (diff/2):%d, probes:%d)")), sva, minVal, maxVal, diffVal/2, calibrationProbes);
       calibrationFctCalls++;  // stop logging results
       #ifdef HallEffectDebug
         calibration();
@@ -112,8 +106,7 @@ uint16_t HallEffectSensor::readSensorValueAverage(bool doLog){
   diffVal = maxVal-minVal;
   calibrationProbes++;
   if (doLog){
-    snprintf(Log_Buffer, Log_BufferLength,(char *) FPSTR(F("Read HallEffectSensor> value:%d")), av);
-    Log_Println(Log_Buffer, LOGLEVEL_INFO);
+    Log_Printf(LOGLEVEL_INFO, PSTR(F("Read HallEffectSensor> value:%d")), av);
   }
   return av;
 };
@@ -140,8 +133,7 @@ uint8_t HallEffectSensor::waitForState( uint16_t waitMS){
       delay(50);
   } while ( (lastWaitForState==0) && (millis() < (startms + waitMS))); 
   lastWaitForStateMS = millis()-startms;
-  snprintf(Log_Buffer, Log_BufferLength, "HallEffectSensor waitForState> fieldValue:%d => state:%d, (duration:%d ms)", sav, lastWaitForState, lastWaitForStateMS);
-  Log_Println(Log_Buffer, LOGLEVEL_INFO);
+  Log_Printf(LOGLEVEL_INFO, "HallEffectSensor waitForState> fieldValue:%d => state:%d, (duration:%d ms)", sav, lastWaitForState, lastWaitForStateMS);
   return lastWaitForState;
 };
 

@@ -74,8 +74,7 @@
 				bool sameCardReapplied = false;
 			#endif
 			if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
-				//snprintf(Log_Buffer, Log_BufferLength, "%u", uxTaskGetStackHighWaterMark(NULL));
-				//Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+				//Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 
 				Rfid_LastRfidCheckTimestamp = millis();
 				// Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
@@ -108,11 +107,13 @@
 					}
 				#endif
 
-				Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE, true);
+				String hexString;
 				for (uint8_t i=0u; i < cardIdSize; i++) {
-					snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-					Log_Print(Log_Buffer, LOGLEVEL_NOTICE, false);
+					char str[4];
+					snprintf(str, sizeof(str), "%02x%c", cardId[i], (i < cardIdSize - 1u) ? '-' : ' ');
+					hexString += str;
 				}
+				Log_Printf(LOGLEVEL_NOTICE, rfidTagDetected, hexString.c_str());
 
 				for (uint8_t i=0u; i < cardIdSize; i++) {
 					char num[4];

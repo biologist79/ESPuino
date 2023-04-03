@@ -86,30 +86,22 @@ void Wlan_Cyclic(void) {
 		if (hostname.compareTo("-1")) {
 			//WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
 			WiFi.setHostname(hostname.c_str());
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredHostnameFromNvs), hostname.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 		} else {
 			Log_Println((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
 		}
 
 		// Add configuration of static IP (if requested)
 		#ifdef STATIC_IP_ENABLE
-			snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(tryStaticIpConfig));
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
 			if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
-				snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(staticIPConfigFailed));
-				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 			}
 		#endif
 
 		// Try to join local WiFi. If not successful, an access-point is opened.
 		WiFi.begin(_ssid, _pwd);
-		#if (LANGUAGE == DE)
-			snprintf(Log_Buffer, Log_BufferLength, "Versuche mit WLAN '%s' zu verbinden...", _ssid);
-		#else
-			snprintf(Log_Buffer, Log_BufferLength, "Try to connect to WiFi with SSID '%s'...", _ssid);
-		#endif
-		Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+		Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, _ssid);
 		wifiCheckLastTimestamp = millis();
 		wifiConnectIteration = 1;   // 1: First try; 2: Retry; 0: inactive
 		wifiInit = false;
@@ -118,8 +110,7 @@ void Wlan_Cyclic(void) {
 
 	if (wifiConnectIteration > 0 && (millis() - wifiCheckLastTimestamp >= 500)) {
 		if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 1 && (millis() - wifiCheckLastTimestamp >= 4500)) {
-			snprintf(Log_Buffer, Log_BufferLength, "%s", (char *) FPSTR(cantConnectToWifi));
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Println(PSTR(cantConnectToWifi), LOGLEVEL_ERROR);
 			WiFi.disconnect(true, true);
 			WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection fails every 2nd time)
 			wifiConnectIteration = 2;
@@ -139,12 +130,7 @@ void Wlan_Cyclic(void) {
 			wifiConnectionTryInProgress = false;
 			wifiConnectIteration = 0;
 			IPAddress myIP = WiFi.localIP();
-			#if (LANGUAGE == DE)
-				snprintf(Log_Buffer, Log_BufferLength, "Aktuelle IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-			#else
-				snprintf(Log_Buffer, Log_BufferLength, "Current IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-			#endif
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, wifiCurrentIp, myIP.toString().c_str());
 			// get current time and date
 			Log_Println((char *) FPSTR(syncingViaNtp), LOGLEVEL_NOTICE);
 			// timezone: Berlin
@@ -175,8 +161,7 @@ void Wlan_Cyclic(void) {
 	if (Wlan_IsConnected()) {
 		if (millis() - lastPrintRssiTimestamp >= 60000) {
 			lastPrintRssiTimestamp = millis();
-			snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
-			Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
+			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 		}
 	}
 
@@ -209,8 +194,7 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	delay(500);
 
 	Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
-	snprintf(Log_Buffer, Log_BufferLength, "IP-Adresse: %d.%d.%d.%d", apIP[0], apIP[1], apIP[2], apIP[3]);
-	Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
 
 	if(!dnsServer)
 		dnsServer = new DNSServer();

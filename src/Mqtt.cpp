@@ -46,13 +46,11 @@ void Mqtt_Init() {
 				break;
 			case 1:
 				Mqtt_Enabled = nvsEnableMqtt;
-				snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMqttActiveFromNvs), nvsEnableMqtt);
-				Log_Println(Log_Buffer, LOGLEVEL_INFO);
+				Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttActiveFromNvs), nvsEnableMqtt);
 				break;
 			case 0:
 				Mqtt_Enabled = nvsEnableMqtt;
-				snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
-				Log_Println(Log_Buffer, LOGLEVEL_INFO);
+				Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
 				break;
 		}
 
@@ -63,8 +61,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttClientIdToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttClientId = nvsMqttClientId;
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttClientIdFromNvs), nvsMqttClientId.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttClientIdFromNvs), nvsMqttClientId.c_str());
 		}
 
 		// Get MQTT-server from NVS
@@ -74,8 +71,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttServer = nvsMqttServer;
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
 		}
 
 		// Get MQTT-user from NVS
@@ -85,8 +81,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttUser = nvsMqttUser;
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
 		}
 
 		// Get MQTT-password from NVS
@@ -96,8 +91,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttPassword = nvsMqttPassword;
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
 		}
 
 		// Get MQTT-password from NVS
@@ -106,8 +100,7 @@ void Mqtt_Init() {
 			gPrefsSettings.putUInt("mqttPort", gMqttPort);
 		} else {
 			gMqttPort = nvsMqttPort;
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(restoredMqttPortFromNvs), gMqttPort);
-			Log_Println(Log_Buffer, LOGLEVEL_INFO);
+			Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttPortFromNvs), gMqttPort);
 		}
 
 		// Only enable MQTT if requested
@@ -214,8 +207,7 @@ bool Mqtt_Reconnect() {
 
 		while (!Mqtt_PubSubClient.connected() && i < mqttMaxRetriesPerInterval) {
 			i++;
-			snprintf(Log_Buffer, Log_BufferLength, "%s %s", (char *) FPSTR(tryConnectMqttS), gMqttServer.c_str());
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, "%s %s", (char *) FPSTR(tryConnectMqttS), gMqttServer.c_str());
 
 			// Try to connect to MQTT-server. If username AND password are set, they'll be used
 			if ((gMqttUser.length() < 1u) || (gMqttPassword.length()) < 1u) {
@@ -275,8 +267,7 @@ bool Mqtt_Reconnect() {
 
 				return Mqtt_PubSubClient.connected();
 			} else {
-				snprintf(Log_Buffer, Log_BufferLength, "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), Mqtt_PubSubClient.state(), i, mqttMaxRetriesPerInterval);
-				Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+				Log_Printf(LOGLEVEL_ERROR, "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), Mqtt_PubSubClient.state(), i, mqttMaxRetriesPerInterval);
 			}
 		}
 		return false;
@@ -291,8 +282,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		char *receivedString = (char*)x_calloc(length + 1u, sizeof(char));
 		memcpy(receivedString, (char *) payload, length);
 
-		snprintf(Log_Buffer, Log_BufferLength, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), topic, receivedString);
-		Log_Println(Log_Buffer, LOGLEVEL_INFO);
+		Log_Printf(LOGLEVEL_INFO, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), topic, receivedString);
 
 		// Go to sleep?
 		if (strcmp_P(topic, topicSleepCmnd) == 0) {
@@ -367,8 +357,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				return;
 			}
 			System_SetSleepTimer((uint8_t)strtoul(receivedString, NULL, 10));
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), System_GetSleepTimer());
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), System_GetSleepTimer());
 			System_IndicateOk();
 
 			gPlayProperties.sleepAfterPlaylist = false;
@@ -398,8 +387,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		// Check if playmode should be adjusted
 		else if (strcmp_P(topic, topicRepeatModeCmnd) == 0) {
 			uint8_t repeatMode = strtoul(receivedString, NULL, 10);
-			snprintf(Log_Buffer, Log_BufferLength, "Repeat: %d", repeatMode);
-			Log_Println(Log_Buffer, LOGLEVEL_NOTICE);
+			Log_Printf(LOGLEVEL_NOTICE, "Repeat: %d", repeatMode);
 			if (gPlayProperties.playMode != NO_PLAYLIST) {
 				if (gPlayProperties.playMode == NO_PLAYLIST) {
 					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
@@ -456,8 +444,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
 		// Requested something that isn't specified?
 		else {
-			snprintf(Log_Buffer, Log_BufferLength, "%s: %s", (char *) FPSTR(noValidTopic), topic);
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, noValidTopic, topic);
 			System_IndicateError();
 		}
 

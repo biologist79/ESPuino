@@ -382,8 +382,7 @@ void Cmd_Action(const uint16_t mod) {
 		#endif
 
 		default: {
-			snprintf(Log_Buffer, Log_BufferLength, "%s %d !", (char *) FPSTR(modificatorDoesNotExist), mod);
-			Log_Println(Log_Buffer, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, modificatorDoesNotExist, mod);
 			System_IndicateError();
 		}
 	}
