@@ -57,7 +57,7 @@ int Log_Printf(const uint8_t _minLogLevel, const char *format, ...) {
 	len = vsnprintf(loc_buf, sizeof(loc_buf), format, arg);
 
 	Log_Print(loc_buf, _minLogLevel, true);
-	if(len > sizeof(loc_buf) - 1) {
+	if (len > sizeof(loc_buf) - 1) {
 		// long string was trunctated
 		Log_Print("...", _minLogLevel, false);
 	}

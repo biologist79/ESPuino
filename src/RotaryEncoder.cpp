@@ -35,12 +35,12 @@ void RotaryEncoder_Readjust(void) { }
 // Handles volume directed by rotary encoder
 void RotaryEncoder_Cyclic(void) {
 	#ifdef USEROTARY_ENABLE
-#ifdef INCLUDE_ROTARY_IN_CONTROLS_LOCK
-		if (System_AreControlsLocked()) {
-			encoder.clearCount();
-			return;
-		}
-#endif
+		#ifdef INCLUDE_ROTARY_IN_CONTROLS_LOCK
+			if (System_AreControlsLocked()) {
+				encoder.clearCount();
+				return;
+			}
+		#endif
 
 		int32_t encoderValue = encoder.getCount();
 		// Only if initial run or value has changed. And only after "full step" of rotary encoder

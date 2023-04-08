@@ -176,8 +176,7 @@ void AudioPlayer_SetInitVolume(uint8_t value) {
 	AudioPlayer_InitVolume = value;
 }
 
-void Audio_setTitle(const char *format, ...)
-{
+void Audio_setTitle(const char *format, ...) {
 	char buf[256];
 	va_list args;
 	va_start(args, format);
@@ -827,7 +826,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	size_t sizeCpy = strnlen(_itemToPlay, sizeof(filename) - 1);    // get the len of the play item (to a max of 254 chars)
 	memcpy(filename, _itemToPlay, sizeCpy);
 	filename[sizeCpy] = '\0';       // terminate the string
-	
+
 	gPlayProperties.startAtFilePos = _lastPlayPos;
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;
 	char **musicFiles;

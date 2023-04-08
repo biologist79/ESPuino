@@ -145,10 +145,10 @@ void Wlan_Cyclic(void) {
 			#endif
 			delete dnsServer;
 			dnsServer = nullptr;
-			
+
 			free(_ssid);
 			free(_pwd);
-			
+
 			#ifdef PLAY_LAST_RFID_AFTER_REBOOT
 				if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost ) {
 					gPlayLastRfIdWhenWiFiConnected=false;
@@ -165,7 +165,7 @@ void Wlan_Cyclic(void) {
 		}
 	}
 
-	if(accessPointStarted && dnsServer) {
+	if (accessPointStarted && dnsServer) {
 		dnsServer->processNextRequest();
 	}
 }
@@ -196,7 +196,7 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
 	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
 
-	if(!dnsServer)
+	if (!dnsServer)
 		dnsServer = new DNSServer();
 
 	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);

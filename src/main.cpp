@@ -129,9 +129,9 @@ void setup() {
 		Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
 	#endif
 
-    #ifdef HALLEFFECT_SENSOR_ENABLE
-        gHallEffectSensor.init();
-    #endif
+	#ifdef HALLEFFECT_SENSOR_ENABLE
+		gHallEffectSensor.init();
+	#endif
 
 	// Needs i2c first if port-expander is used
 	Port_Init();
@@ -215,17 +215,17 @@ void setup() {
 		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}
 	System_ShowUpgradeWarning();
-#ifdef CONTROLS_LOCKED_BY_DEFAULT
-	System_SetLockControls(true);
-#endif
+
+	#ifdef CONTROLS_LOCKED_BY_DEFAULT
+		System_SetLockControls(true);
+	#endif
 }
 
 void loop() {
 	if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 		// bluetooth speaker mode
 		Bluetooth_Cyclic();
-	} else
-	if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+	} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 		// bluetooth headset mode
 		Bluetooth_Cyclic();
 		RotaryEncoder_Cyclic();
@@ -253,8 +253,7 @@ void loop() {
 	IrReceiver_Cyclic();
 	vTaskDelay(portTICK_RATE_MS * 5u);
 
-    #ifdef HALLEFFECT_SENSOR_ENABLE
-       gHallEffectSensor.cyclic();
-    #endif
-    
+	#ifdef HALLEFFECT_SENSOR_ENABLE
+		gHallEffectSensor.cyclic();
+	#endif
 }

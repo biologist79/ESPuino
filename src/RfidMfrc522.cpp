@@ -79,7 +79,7 @@
 				Rfid_LastRfidCheckTimestamp = millis();
 				// Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
 
-				 if (!mfrc522.PICC_IsNewCardPresent()) {
+				if (!mfrc522.PICC_IsNewCardPresent()) {
 					continue;
 				}
 
@@ -97,7 +97,8 @@
 				#endif
 
 				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
-    			#ifdef HALLEFFECT_SENSOR_ENABLE
+
+    				#ifdef HALLEFFECT_SENSOR_ENABLE
 					cardId[cardIdSize-1]   = cardId[cardIdSize-1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 				#endif
 
@@ -164,7 +165,7 @@
 						if (control == 13 || control == 14) {
 						  //card is still there
 						} else {
-						  break;
+							break;
 						}
 					}
 

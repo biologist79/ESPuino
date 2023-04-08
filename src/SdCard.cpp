@@ -83,7 +83,7 @@ uint64_t SdCard_GetFreeSize() {
 void SdCard_PrintInfo() {
 	// show SD card type
 	sdcard_type_t cardType = SdCard_GetType();
-	Log_Print((char *) F("SD card type: "), LOGLEVEL_DEBUG, true );
+	Log_Print((char *) F("SD card type: "), LOGLEVEL_DEBUG, true);
 	if (cardType == CARD_MMC) {
 		Log_Println((char *) F("MMC"), LOGLEVEL_DEBUG);
 	} else if (cardType == CARD_SD) {
@@ -261,7 +261,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				} else {
 					Log_Println((char *) FPSTR(playlistGenModeCached), LOGLEVEL_NOTICE);
 					serializedPlaylist = (char *) x_calloc(cacheFileSize+10, sizeof(char));
-					if(serializedPlaylist == NULL) {
+					if (serializedPlaylist == NULL) {
 						Log_Println((char *) FPSTR(unableToAllocateMemForLinearPlaylist), LOGLEVEL_ERROR);
 						System_IndicateError();
 						return nullptr;

@@ -336,7 +336,7 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
-		case CMD_VOLUMEDOWN:{
+		case CMD_VOLUMEDOWN: {
 			if (OPMODE_NORMAL == System_GetOperationMode()) {
 				AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() - 1, true);
 			} else {

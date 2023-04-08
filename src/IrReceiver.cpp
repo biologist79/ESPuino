@@ -25,7 +25,7 @@ void IrReceiver_Cyclic() {
 	#ifdef IR_CONTROL_ENABLE
 		static uint8_t lastVolume = 0;
 
-		if (IrReceiver.decode()){
+		if (IrReceiver.decode()) {
 
 			// Print a short summary of received data
 			IrReceiver.printIRResultShort(&Serial);

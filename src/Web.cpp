@@ -81,14 +81,14 @@ struct SpiRamAllocator {
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
 static void serveProgmemFiles(const String& uri, const String& contentType, const uint8_t *content, size_t len) {
-	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request){
+	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
 		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 		const bool etag = false;
-		if(etag)
+		if (etag)
 			response = request->beginResponse(304);
-		else{
+		else {
 			response = request->beginResponse_P(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
@@ -104,7 +104,7 @@ void Web_Init(void) {
 
 		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 		const bool etag = false;
-		if(etag)
+		if (etag)
 			response = request->beginResponse(304);
 		else
 			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
@@ -113,7 +113,7 @@ void Web_Init(void) {
 		request->send(response);
 	});
 
-	wServer.onNotFound([](AsyncWebServerRequest *request){
+	wServer.onNotFound([](AsyncWebServerRequest *request) {
 		request->redirect("/");
 	});
 
@@ -180,7 +180,7 @@ void webserverStart(void) {
 
 			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 			const bool etag = false;
-			if(etag)
+			if (etag)
 				response = request->beginResponse(304);
 			else {
 				if (gFSystem.exists("/.html/index.htm"))
@@ -828,13 +828,13 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 	// pause some tasks to get more free CPU time for the upload
 	#ifdef NEOPIXEL_ENABLE
-		vTaskSuspend(Led_TaskHandle);	
+		vTaskSuspend(Led_TaskHandle);
 	#endif
-	vTaskSuspend(AudioTaskHandle);	
+	vTaskSuspend(AudioTaskHandle);
 	vTaskSuspend(rfidTaskHandle);
 
 	for (;;) {
-		
+
 		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
 
 		if (item != NULL) {
@@ -862,29 +862,29 @@ void explorerHandleFileStorageTask(void *parameter) {
 				Log_Println(PSTR(webTxCanceled), LOGLEVEL_ERROR);
 				// resume the paused tasks
 				#ifdef NEOPIXEL_ENABLE
-					vTaskResume(Led_TaskHandle);	
+					vTaskResume(Led_TaskHandle);
 				#endif
-				vTaskResume(AudioTaskHandle);	
-				vTaskResume(rfidTaskHandle);	
+				vTaskResume(AudioTaskHandle);
+				vTaskResume(rfidTaskHandle);
 				// just delete task without signaling (abort)
 				vTaskDelete(NULL);
 				return;
 			}
-			
+
 		}
 		// delay a bit to give the webtask some time fill the ringbuffer
 		#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		vTaskDelay(1u); 
+		vTaskDelay(1u);
 		#else
 		vTaskDelay(5u);
 		#endif
 	}
 	// resume the paused tasks
 	#ifdef NEOPIXEL_ENABLE
-		vTaskResume(Led_TaskHandle);	
+		vTaskResume(Led_TaskHandle);
 	#endif
-	vTaskResume(AudioTaskHandle);	
-	vTaskResume(rfidTaskHandle);	
+	vTaskResume(AudioTaskHandle);
+	vTaskResume(rfidTaskHandle);
 	// send signal to upload function to terminate
 	xQueueSend(explorerFileUploadStatusQueue, &value, 0);
 	vTaskDelete(NULL);
@@ -1045,7 +1045,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
 		fileBlk *fileObj = (fileBlk*)request->_tempObject;
 		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
-		if((index + thisSize) >= fileObj->dataFile.size()){
+		if ((index + thisSize) >= fileObj->dataFile.size()) {
 			fileObj->dataFile.close();
 			request->_tempObject = NULL;
 			delete fileObj;
@@ -1372,8 +1372,8 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
-		if(! leftToWrite) {
-			return 0;//end of transfer
+		if (! leftToWrite) {
+			return 0; //end of transfer
 		}
 		size_t willWrite = (leftToWrite > maxLen)?maxLen:leftToWrite;
 		file.read(buffer, willWrite);

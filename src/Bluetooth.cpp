@@ -25,7 +25,7 @@
 
 #ifdef BLUETOOTH_ENABLE
 	const char *getType() {
-		if(System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 			return "sink";
 		} else {
 			return "source";
@@ -35,7 +35,7 @@
 
 #ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
-	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr){
+	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), a2dp_source->to_str(state));
 	}
 #endif
@@ -52,8 +52,9 @@
 	// handle Bluetooth AVRC metadata
 	// https://docs.espressif.com/projects/esp-idf/en/release-v3.2/api-reference/bluetooth/esp_avrc.html
 	void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
-		if (strlen((char *)text) == 0)
+		if (strlen((char *)text) == 0) {
 			return;
+		}
 		switch (id) {
 			case ESP_AVRC_MD_ATTR_TITLE:
 				// title
@@ -120,20 +121,20 @@
 
 #ifdef BLUETOOTH_ENABLE
 	// callback which is notified on update Receiver RSSI
-	void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam){
-	Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
+	void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param  &rssiParam) {
+		Log_Printf(LOGLEVEL_DEBUG, "Bluetooth => RSSI value: %d", rssiParam.rssi_delta);
 	}
 #endif
 
 #ifdef BLUETOOTH_ENABLE
-	// Callback notifying BT-source devices available. 
+	// Callback notifying BT-source devices available.
 	// Return true to connect, false will continue scanning
-	bool scan_bluetooth_device_callback(const char* ssid, esp_bd_addr_t address, int rssi){
+	bool scan_bluetooth_device_callback(const char* ssid, esp_bd_addr_t address, int rssi) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth source => Device found: %s", ssid);
 
 		if (btDeviceName == "") {
 			// no device name given, connect to first device found
-    		return true;
+    			return true;
 		} else {
 			// connect if device name (partially) matching, todo: compare case insensitive here?
 			return startsWith(ssid, btDeviceName.c_str());
@@ -166,7 +167,7 @@ void Bluetooth_Init(void) {
 			a2dp_sink = new BluetoothA2DPSink();
 			i2s_pin_config_t pin_config = {
 				#ifdef ESP_IDF_4
-            	.mck_io_num = 0, 
+            	.mck_io_num = 0,
             	#endif
 				.bck_io_num = I2S_BCLK,
 				.ws_io_num = I2S_LRC,
@@ -200,13 +201,13 @@ void Bluetooth_Init(void) {
 			//a2dp_source->set_task_core(1);            // task core
 			//a2dp_source->set_nvs_init(true);          // erase/initialize NVS
 			//a2dp_source->set_ssp_enabled(true);       // enable secure simple pairing
-			//a2dp_source->set_pin_code("0000");        // set pin code if needed, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30 
-		
+			//a2dp_source->set_pin_code("0000");        // set pin code if needed, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30
+
 			// start bluetooth source
 			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
-			a2dp_source->start(get_data_channels);  
+			a2dp_source->start(get_data_channels);
 
-		    btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
+		    	btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "First device found" : btDeviceName.c_str());
 			// connect events after startup
 			a2dp_source->set_on_connection_state_changed(connection_state_changed);
