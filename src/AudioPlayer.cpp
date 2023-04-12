@@ -62,7 +62,7 @@ void AudioPlayer_Init(void) {
 			gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetInitVolume());
 			nvsInitialVolume = AudioPlayer_GetInitVolume();
 		} else {
-			Log_Println((char *) FPSTR(rememberLastVolume), LOGLEVEL_ERROR);
+			Log_Println(rememberLastVolume, LOGLEVEL_ERROR);
 		}
 	#endif
 
@@ -71,7 +71,7 @@ void AudioPlayer_Init(void) {
 		Log_Printf(LOGLEVEL_INFO, restoredInitialLoudnessFromNvs, nvsInitialVolume);
 	} else {
 		gPrefsSettings.putUInt("initVolume", AudioPlayer_GetInitVolume());
-		Log_Println((char *) FPSTR(wroteInitialLoudnessToNvs), LOGLEVEL_ERROR);
+		Log_Println(wroteInitialLoudnessToNvs, LOGLEVEL_ERROR);
 	}
 
 	// Get maximum volume for speaker from NVS
@@ -82,7 +82,7 @@ void AudioPlayer_Init(void) {
 		Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForSpeakerFromNvs, nvsMaxVolumeSpeaker);
 	} else {
 		gPrefsSettings.putUInt("maxVolumeSp", nvsMaxVolumeSpeaker);
-		Log_Println((char *) FPSTR(wroteMaxLoudnessForSpeakerToNvs), LOGLEVEL_ERROR);
+		Log_Println(wroteMaxLoudnessForSpeakerToNvs, LOGLEVEL_ERROR);
 	}
 
 	#ifdef HEADPHONE_ADJUST_ENABLE
@@ -98,7 +98,7 @@ void AudioPlayer_Init(void) {
 			Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForHeadphoneFromNvs, nvsAudioPlayer_MaxVolumeHeadphone);
 		} else {
 			gPrefsSettings.putUInt("maxVolumeHp", nvsAudioPlayer_MaxVolumeHeadphone);
-			Log_Println((char *) FPSTR(wroteMaxLoudnessForHeadphoneToNvs), LOGLEVEL_ERROR);
+			Log_Println(wroteMaxLoudnessForHeadphoneToNvs, LOGLEVEL_ERROR);
 		}
 	#endif
 	// Adjust volume depending on headphone is connected and volume-adjustment is enabled
@@ -187,7 +187,7 @@ void Audio_setTitle(const char *format, ...) {
 	// notify web ui and mqtt
 	Web_SendWebsocketData(0, 30);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicTrackState), gPlayProperties.title, false);
+		publishMqtt(topicTrackState, gPlayProperties.title, false);
 	#endif
 }
 
@@ -271,7 +271,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			}
 			AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;
 			AudioPlayer_HeadphoneLastDetectionTimestamp = millis();
-			Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(maxVolumeSet), AudioPlayer_MaxVolume);
+			Log_Printf(LOGLEVEL_INFO, "%s: %u", maxVolumeSet, AudioPlayer_MaxVolume);
 		}
 	#endif
 }
@@ -320,7 +320,7 @@ void AudioPlayer_Task(void *parameter) {
 			audio->setVolume(currentVolume);
 			Web_SendWebsocketData(0, 50);
 			#ifdef MQTT_ENABLE
-				publishMqtt((char *) FPSTR(topicLoudnessState), currentVolume, false);
+				publishMqtt(topicLoudnessState, currentVolume, false);
 			#endif
 		}
 
@@ -339,8 +339,8 @@ void AudioPlayer_Task(void *parameter) {
 				Log_Printf(LOGLEVEL_DEBUG, "Free heap: %u", ESP.getFreeHeap());
 
 				#ifdef MQTT_ENABLE
-					publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
-					publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+					publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
+					publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
 				#endif
 
 				// If we're in audiobook-mode and apply a modification-card, we don't
@@ -369,14 +369,14 @@ void AudioPlayer_Task(void *parameter) {
 				if (!gPlayProperties.repeatCurrentTrack) { // If endless-loop requested, track-number will not be incremented
 					gPlayProperties.currentTrackNumber++;
 				} else {
-					Log_Println((char *) FPSTR(repeatTrackDueToPlaymode), LOGLEVEL_INFO);
+					Log_Println(repeatTrackDueToPlaymode, LOGLEVEL_INFO);
 					Led_Indicate(LedIndicatorType::Rewind);
 				}
 			}
 
 			if (gPlayProperties.playlistFinished && trackCommand != NO_ACTION) {
 				if (gPlayProperties.playMode != BUSY ) {    // Prevents from staying in mode BUSY forever when error occured (e.g. directory empty that should be played)
-					Log_Println((char *) FPSTR(noPlaymodeChangeIfIdle), LOGLEVEL_NOTICE);
+					Log_Println(noPlaymodeChangeIfIdle, LOGLEVEL_NOTICE);
 					trackCommand = NO_ACTION;
 					System_IndicateError();
 					continue;
@@ -388,18 +388,18 @@ void AudioPlayer_Task(void *parameter) {
 				case STOP:
 					audio->stopSong();
 					trackCommand = NO_ACTION;
-					Log_Println((char *) FPSTR(cmndStop), LOGLEVEL_INFO);
+					Log_Println(cmndStop, LOGLEVEL_INFO);
 					gPlayProperties.pausePlay = true;
 					gPlayProperties.playlistFinished = true;
 					gPlayProperties.playMode = NO_PLAYLIST;
-					Audio_setTitle((char *)FPSTR (noPlaylist));
+					Audio_setTitle(noPlaylist);
 					AudioPlayer_ClearCover();
 					continue;
 
 				case PAUSEPLAY:
 					trackCommand = NO_ACTION;
 					audio->pauseResume();
-					Log_Println((char *) FPSTR(cmndPause), LOGLEVEL_INFO);
+					Log_Println(cmndPause, LOGLEVEL_INFO);
 					if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 						Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
@@ -417,7 +417,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 						#ifdef MQTT_ENABLE
-							publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+							publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
 						#endif
 					}
 					// Allow next track if current track played in playlist isn't the last track.
@@ -430,14 +430,14 @@ void AudioPlayer_Task(void *parameter) {
 						}
 						if (gPlayProperties.saveLastPlayPosition) {
 							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-							Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
-						Log_Println((char *) FPSTR(cmndNextTrack), LOGLEVEL_INFO);
+						Log_Println(cmndNextTrack, LOGLEVEL_INFO);
 						if (!gPlayProperties.playlistFinished) {
 							audio->stopSong();
 						}
 					} else {
-						Log_Println((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
+						Log_Println(lastTrackAlreadyActive, LOGLEVEL_NOTICE);
 						System_IndicateError();
 						continue;
 					}
@@ -452,7 +452,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 						#ifdef MQTT_ENABLE
-							publishMqtt((char *) FPSTR(topicRepeatModeState), AudioPlayer_GetRepeatMode(), false);
+							publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
 						#endif
 					}
 					if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
@@ -466,16 +466,16 @@ void AudioPlayer_Task(void *parameter) {
 
 						if (gPlayProperties.saveLastPlayPosition) {
 							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-							Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 
-						Log_Println((char *) FPSTR(cmndPrevTrack), LOGLEVEL_INFO);
+						Log_Println(cmndPrevTrack, LOGLEVEL_INFO);
 						if (!gPlayProperties.playlistFinished) {
 							audio->stopSong();
 						}
 					} else {
 						if (gPlayProperties.playMode == WEBSTREAM) {
-							Log_Println((char *) FPSTR(trackChangeWebstream), LOGLEVEL_INFO);
+							Log_Println(trackChangeWebstream, LOGLEVEL_INFO);
 							System_IndicateError();
 							continue;
 						}
@@ -491,7 +491,7 @@ void AudioPlayer_Task(void *parameter) {
 							gPlayProperties.trackFinished = true;
 							continue;
 						}
-						Log_Println((char *) FPSTR(trackStart), LOGLEVEL_INFO);
+						Log_Println(trackStart, LOGLEVEL_INFO);
 						continue;
 					}
 					break;
@@ -505,9 +505,9 @@ void AudioPlayer_Task(void *parameter) {
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-						Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+						Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 					}
-					Log_Println((char *) FPSTR(cmndFirstTrack), LOGLEVEL_INFO);
+					Log_Println(cmndFirstTrack, LOGLEVEL_INFO);
 					if (!gPlayProperties.playlistFinished) {
 						audio->stopSong();
 					}
@@ -523,14 +523,14 @@ void AudioPlayer_Task(void *parameter) {
 						gPlayProperties.currentTrackNumber = gPlayProperties.numberOfTracks - 1;
 						if (gPlayProperties.saveLastPlayPosition) {
 							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-							Log_Println((char *) FPSTR(trackStartAudiobook), LOGLEVEL_INFO);
+							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
-						Log_Println((char *) FPSTR(cmndLastTrack), LOGLEVEL_INFO);
+						Log_Println(cmndLastTrack, LOGLEVEL_INFO);
 						if (!gPlayProperties.playlistFinished) {
 							audio->stopSong();
 						}
 					} else {
-						Log_Println((char *) FPSTR(lastTrackAlreadyActive), LOGLEVEL_NOTICE);
+						Log_Println(lastTrackAlreadyActive, LOGLEVEL_NOTICE);
 						System_IndicateError();
 						continue;
 					}
@@ -541,7 +541,7 @@ void AudioPlayer_Task(void *parameter) {
 
 				default:
 					trackCommand = NO_ACTION;
-					Log_Println((char *) FPSTR(cmndDoesNotExist), LOGLEVEL_NOTICE);
+					Log_Println(cmndDoesNotExist, LOGLEVEL_NOTICE);
 					System_IndicateError();
 					continue;
 			}
@@ -557,7 +557,7 @@ void AudioPlayer_Task(void *parameter) {
 			}
 
 			if (gPlayProperties.currentTrackNumber >= gPlayProperties.numberOfTracks) { // Check if last element of playlist is already reached
-				Log_Println((char *) FPSTR(endOfPlaylistReached), LOGLEVEL_NOTICE);
+				Log_Println(endOfPlaylistReached, LOGLEVEL_NOTICE);
 				if (!gPlayProperties.repeatPlaylist) {
 					if (gPlayProperties.saveLastPlayPosition) {
 						// Set back to first track
@@ -565,10 +565,10 @@ void AudioPlayer_Task(void *parameter) {
 					}
 					gPlayProperties.playlistFinished = true;
 					gPlayProperties.playMode = NO_PLAYLIST;
-					Audio_setTitle((char *)FPSTR (noPlaylist));
+					Audio_setTitle(noPlaylist);
 					AudioPlayer_ClearCover();
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicPlaymodeState), gPlayProperties.playMode, false);
+						publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
 					#endif
 					gPlayProperties.currentTrackNumber = 0;
 					gPlayProperties.numberOfTracks = 0;
@@ -583,7 +583,7 @@ void AudioPlayer_Task(void *parameter) {
 						System_RequestSleep();
 						continue;
 					} // Repeat playlist; set current track number back to 0
-					Log_Println((char *) FPSTR(repeatPlaylistDueToPlaymode), LOGLEVEL_NOTICE);
+					Log_Println(repeatPlaylistDueToPlaymode, LOGLEVEL_NOTICE);
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
@@ -771,10 +771,10 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 
 	Led_Indicate(LedIndicatorType::VolumeChange);
 	if (_newVolume < AudioPlayer_GetMinVolume()) {
-		Log_Println((char *) FPSTR(minLoudnessReached), LOGLEVEL_INFO);
+		Log_Println(minLoudnessReached, LOGLEVEL_INFO);
 		return;
 	} else if (_newVolume > AudioPlayer_GetMaxVolume()) {
-		Log_Println((char *) FPSTR(maxLoudnessReached), LOGLEVEL_INFO);
+		Log_Println(maxLoudnessReached, LOGLEVEL_INFO);
 		return;
 	} else {
 		_volume = _newVolume;
@@ -848,7 +848,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	// Catch if error occured (e.g. file not found)
 	if (musicFiles == NULL) {
-		Log_Println((char *) FPSTR(errorOccured), LOGLEVEL_ERROR);
+		Log_Println(errorOccured, LOGLEVEL_ERROR);
 		System_IndicateError();
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
 			AudioPlayer_TrackControlToQueueSender(STOP);
@@ -858,7 +858,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
 	if (!strcmp(*(musicFiles - 1), "0")) {
-		Log_Println((char *) FPSTR(noMp3FilesInDir), LOGLEVEL_NOTICE);
+		Log_Println(noMp3FilesInDir, LOGLEVEL_NOTICE);
 		System_IndicateError();
 		if (!gPlayProperties.pausePlay) {
 			AudioPlayer_TrackControlToQueueSender(STOP);
@@ -888,7 +888,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	switch (gPlayProperties.playMode) {
 		case SINGLE_TRACK: {
-			Log_Println((char *) FPSTR(modeSingleTrack), LOGLEVEL_NOTICE);
+			Log_Println(modeSingleTrack, LOGLEVEL_NOTICE);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -896,7 +896,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case SINGLE_TRACK_LOOP: {
 			gPlayProperties.repeatCurrentTrack = true;
 			gPlayProperties.repeatPlaylist = true;
-			Log_Println((char *) FPSTR(modeSingleTrackLoop), LOGLEVEL_NOTICE);
+			Log_Println(modeSingleTrackLoop, LOGLEVEL_NOTICE);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
@@ -906,7 +906,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			gPlayProperties.playUntilTrackNumber = 0;
 			gPlayProperties.numberOfTracks = 1; // Limit number to 1 even there are more entries in the playlist
 			Led_ResetToNightBrightness();
-			Log_Println((char *) FPSTR(modeSingleTrackRandom), LOGLEVEL_NOTICE);
+			Log_Println(modeSingleTrackRandom, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -914,7 +914,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 		case AUDIOBOOK: { // Tracks need to be alph. sorted!
 			gPlayProperties.saveLastPlayPosition = true;
-			Log_Println((char *) FPSTR(modeSingleAudiobook), LOGLEVEL_NOTICE);
+			Log_Println(modeSingleAudiobook, LOGLEVEL_NOTICE);
 			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -923,7 +923,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		case AUDIOBOOK_LOOP: { // Tracks need to be alph. sorted!
 			gPlayProperties.repeatPlaylist = true;
 			gPlayProperties.saveLastPlayPosition = true;
-			Log_Println((char *) FPSTR(modeSingleAudiobookLoop), LOGLEVEL_NOTICE);
+			Log_Println(modeSingleAudiobookLoop, LOGLEVEL_NOTICE);
 			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -938,7 +938,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		}
 
 		case ALL_TRACKS_OF_DIR_RANDOM: {
-			Log_Println((char *) FPSTR(modeAllTrackRandom), LOGLEVEL_NOTICE);
+			Log_Println(modeAllTrackRandom, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -946,7 +946,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 		case ALL_TRACKS_OF_DIR_SORTED_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
-			Log_Println((char *) FPSTR(modeAllTrackAlphSortedLoop), LOGLEVEL_NOTICE);
+			Log_Println(modeAllTrackAlphSortedLoop, LOGLEVEL_NOTICE);
 			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
@@ -954,18 +954,18 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 		case ALL_TRACKS_OF_DIR_RANDOM_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
-			Log_Println((char *) FPSTR(modeAllTrackRandomLoop), LOGLEVEL_NOTICE);
+			Log_Println(modeAllTrackRandomLoop, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
 
 		case WEBSTREAM: { // This is always just one "track"
-			Log_Println((char *) FPSTR(modeWebstream), LOGLEVEL_NOTICE);
+			Log_Println(modeWebstream, LOGLEVEL_NOTICE);
 			if (Wlan_IsConnected()) {
 				xQueueSend(gTrackQueue, &(musicFiles), 0);
 			} else {
-				Log_Println((char *) FPSTR(webstreamNotAvailable), LOGLEVEL_ERROR);
+				Log_Println(webstreamNotAvailable, LOGLEVEL_ERROR);
 				System_IndicateError();
 				gPlayProperties.playMode = NO_PLAYLIST;
 			}
@@ -973,13 +973,13 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		}
 
 		case LOCAL_M3U: { // Can be one or multiple SD-files or webradio-stations; or a mix of both
-			Log_Println((char *) FPSTR(modeWebstreamM3u), LOGLEVEL_NOTICE);
+			Log_Println(modeWebstreamM3u, LOGLEVEL_NOTICE);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;
 		}
 
 		default:
-			Log_Println((char *) FPSTR(modeDoesNotExist), LOGLEVEL_ERROR);
+			Log_Println(modeDoesNotExist, LOGLEVEL_ERROR);
 			gPlayProperties.playMode = NO_PLAYLIST;
 			System_IndicateError();
 	}
@@ -1075,7 +1075,7 @@ void AudioPlayer_ClearCover(void) {
 	// websocket and mqtt notify cover image has changed
 	Web_SendWebsocketData(0, 40);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+		publishMqtt(topicCoverChangedState, "", false);
 	#endif
 }
 
@@ -1147,7 +1147,7 @@ void audio_id3image(File& file, const size_t pos, const size_t size) {
 	// websocket and mqtt notify cover image has changed
 	Web_SendWebsocketData(0, 40);
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicCoverChangedState), "", false);
+		publishMqtt(topicCoverChangedState, "", false);
 	#endif
 }
 

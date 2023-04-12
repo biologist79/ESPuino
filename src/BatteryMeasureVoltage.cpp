@@ -72,11 +72,11 @@
 		float voltage = Battery_GetVoltage();
 		char vstr[6];
 		snprintf(vstr, 6, "%.2f", voltage);
-		publishMqtt((char *)FPSTR(topicBatteryVoltage), vstr, false);
+		publishMqtt(topicBatteryVoltage, vstr, false);
 
 		float soc = Battery_EstimateLevel() * 100;
 		snprintf(vstr, 6, "%.2f", soc);
-		publishMqtt((char *)FPSTR(topicBatterySOC), vstr, false);
+		publishMqtt(topicBatterySOC, vstr, false);
 	#endif
 	}
 

@@ -170,15 +170,15 @@
     // Default user/password is esp32/esp32 but can be changed via webgui
 
     // ESPuino will create a WiFi if joing existing WiFi was not possible. Name can be configured here.
-    constexpr const char accessPointNetworkSSID[] PROGMEM = "ESPuino";     // Access-point's SSID
+    constexpr const char accessPointNetworkSSID[] = "ESPuino";     // Access-point's SSID
 
     // Bluetooth
-    constexpr const char nameBluetoothSinkDevice[] PROGMEM = "ESPuino";        // Name of your ESPuino as Bluetooth-device
-    constexpr const char nameBluetoothSourceDevice[] PROGMEM = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
+    constexpr const char nameBluetoothSinkDevice[] = "ESPuino";        // Name of your ESPuino as Bluetooth-device
+    constexpr const char nameBluetoothSourceDevice[] = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
 
     // Where to store the backup-file for NVS-records
-    constexpr const char backupFile[] PROGMEM = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
-    constexpr const char playlistCacheFile[] PROGMEM = "playlistcache.csv"; // Filename that is used for caching playlists
+    constexpr const char backupFile[] = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done
+    constexpr const char playlistCacheFile[] = "playlistcache.csv"; // Filename that is used for caching playlists
 
     //#################### Settings for optional Modules##############################
     // (optinal) Neopixel
@@ -231,31 +231,31 @@
         constexpr uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
         constexpr uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
         #define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
-        constexpr const char topicSleepCmnd[] PROGMEM = "Cmnd/ESPuino/Sleep";
-        constexpr const char topicSleepState[] PROGMEM = "State/ESPuino/Sleep";
-        constexpr const char topicRfidCmnd[] PROGMEM = "Cmnd/ESPuino/Rfid";
-        constexpr const char topicRfidState[] PROGMEM = "State/ESPuino/Rfid";
-        constexpr const char topicTrackState[] PROGMEM = "State/ESPuino/Track";
-        constexpr const char topicTrackControlCmnd[] PROGMEM = "Cmnd/ESPuino/TrackControl";
-        constexpr const char topicCoverChangedState[] PROGMEM = "State/ESPuino/CoverChanged";
-        constexpr const char topicLoudnessCmnd[] PROGMEM = "Cmnd/ESPuino/Loudness";
-        constexpr const char topicLoudnessState[] PROGMEM = "State/ESPuino/Loudness";
-        constexpr const char topicSleepTimerCmnd[] PROGMEM = "Cmnd/ESPuino/SleepTimer";
-        constexpr const char topicSleepTimerState[] PROGMEM = "State/ESPuino/SleepTimer";
-        constexpr const char topicState[] PROGMEM = "State/ESPuino/State";
-        constexpr const char topicCurrentIPv4IP[] PROGMEM = "State/ESPuino/IPv4";
-        constexpr const char topicLockControlsCmnd[] PROGMEM ="Cmnd/ESPuino/LockControls";
-        constexpr const char topicLockControlsState[] PROGMEM ="State/ESPuino/LockControls";
-        constexpr const char topicPlaymodeState[] PROGMEM = "State/ESPuino/Playmode";
-        constexpr const char topicRepeatModeCmnd[] PROGMEM = "Cmnd/ESPuino/RepeatMode";
-        constexpr const char topicRepeatModeState[] PROGMEM = "State/ESPuino/RepeatMode";
-        constexpr const char topicLedBrightnessCmnd[] PROGMEM = "Cmnd/ESPuino/LedBrightness";
-        constexpr const char topicLedBrightnessState[] PROGMEM = "State/ESPuino/LedBrightness";
-        constexpr const char topicWiFiRssiState[] PROGMEM = "State/ESPuino/WifiRssi";
-        constexpr const char topicSRevisionState[] PROGMEM = "State/ESPuino/SoftwareRevision";
+        constexpr const char topicSleepCmnd[] = "Cmnd/ESPuino/Sleep";
+        constexpr const char topicSleepState[] = "State/ESPuino/Sleep";
+        constexpr const char topicRfidCmnd[] = "Cmnd/ESPuino/Rfid";
+        constexpr const char topicRfidState[] = "State/ESPuino/Rfid";
+        constexpr const char topicTrackState[] = "State/ESPuino/Track";
+        constexpr const char topicTrackControlCmnd[] = "Cmnd/ESPuino/TrackControl";
+        constexpr const char topicCoverChangedState[] = "State/ESPuino/CoverChanged";
+        constexpr const char topicLoudnessCmnd[] = "Cmnd/ESPuino/Loudness";
+        constexpr const char topicLoudnessState[] = "State/ESPuino/Loudness";
+        constexpr const char topicSleepTimerCmnd[] = "Cmnd/ESPuino/SleepTimer";
+        constexpr const char topicSleepTimerState[] = "State/ESPuino/SleepTimer";
+        constexpr const char topicState[] = "State/ESPuino/State";
+        constexpr const char topicCurrentIPv4IP[] = "State/ESPuino/IPv4";
+        constexpr const char topicLockControlsCmnd[] ="Cmnd/ESPuino/LockControls";
+        constexpr const char topicLockControlsState[] ="State/ESPuino/LockControls";
+        constexpr const char topicPlaymodeState[] = "State/ESPuino/Playmode";
+        constexpr const char topicRepeatModeCmnd[] = "Cmnd/ESPuino/RepeatMode";
+        constexpr const char topicRepeatModeState[] = "State/ESPuino/RepeatMode";
+        constexpr const char topicLedBrightnessCmnd[] = "Cmnd/ESPuino/LedBrightness";
+        constexpr const char topicLedBrightnessState[] = "State/ESPuino/LedBrightness";
+        constexpr const char topicWiFiRssiState[] = "State/ESPuino/WifiRssi";
+        constexpr const char topicSRevisionState[] = "State/ESPuino/SoftwareRevision";
         #ifdef BATTERY_MEASURE_ENABLE
-            constexpr const char topicBatteryVoltage[] PROGMEM = "State/ESPuino/Voltage";
-            constexpr const char topicBatterySOC[] PROGMEM     = "State/ESPuino/Battery";
+            constexpr const char topicBatteryVoltage[] = "State/ESPuino/Voltage";
+            constexpr const char topicBatterySOC[]     = "State/ESPuino/Battery";
         #endif
     #endif
 

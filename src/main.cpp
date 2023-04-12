@@ -31,6 +31,17 @@
 bool gPlayLastRfIdWhenWiFiConnected = false;
 bool gTriedToConnectToHost = false;
 
+static constexpr const char *logo = R"literal(
+ _____   ____    ____            _                 
+| ____| / ___|  |  _ \   _   _  (_)  _ __     ___  
+|  _|   \__  \  | |_) | | | | | | | | '_ \   / _ \
+| |___   ___) | |  __/  | |_| | | | | | | | | (_) |
+|_____| |____/  |_|      \__,_| |_| |_| |_|  \___/
+         Rfid-controlled musicplayer
+
+
+)literal";
+
 // avoid PSRAM check while wake-up from deepsleep
 bool testSPIRAM(void) {
 	return true;
@@ -74,7 +85,7 @@ bool testSPIRAM(void) {
 				bootCount = 1;
 				gPrefsSettings.putUInt("bootCount", bootCount);
 				gPrefsSettings.putString("lastRfid", "-1");     // reset last rfid
-				Log_Println((char *) FPSTR(bootLoopDetected), LOGLEVEL_ERROR);
+				Log_Println(bootLoopDetected, LOGLEVEL_ERROR);
 				recoverLastRfid = false;
 			} else {                        // normal operation
 				gPrefsSettings.putUInt("bootCount", ++bootCount);
@@ -85,7 +96,7 @@ bool testSPIRAM(void) {
 			resetBootCount = false;
 			bootCount = 0;
 			gPrefsSettings.putUInt("bootCount", bootCount);
-			Log_Println((char *) FPSTR(noBootLoopDetected), LOGLEVEL_INFO);
+			Log_Println(noBootLoopDetected, LOGLEVEL_INFO);
 		}
 	}
 
@@ -99,7 +110,7 @@ bool testSPIRAM(void) {
 			recoverLastRfid = false;
 			String lastRfidPlayed = gPrefsSettings.getString("lastRfid", "-1");
 			if (!lastRfidPlayed.compareTo("-1")) {
-				Log_Println((char *) FPSTR(unableToRestoreLastRfidFromNVS), LOGLEVEL_INFO);
+				Log_Println(unableToRestoreLastRfidFromNVS, LOGLEVEL_INFO);
 			} else {
 				xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
 				gPlayLastRfIdWhenWiFiConnected = !force;
@@ -126,7 +137,7 @@ void setup() {
 	#ifdef I2C_2_ENABLE
 		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
 		delay(50);
-		Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+		Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
 	#endif
 
 	#ifdef HALLEFFECT_SENSOR_ENABLE
@@ -157,10 +168,10 @@ void setup() {
 		i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
 
 		while (not ac.begin()) {
-			Log_Println((char *) F("AC101 Failed!"), LOGLEVEL_ERROR);
+			Log_Println("AC101 Failed!", LOGLEVEL_ERROR);
 			delay(1000);
 		}
-		Log_Println((char *) F("AC101 via I2C - OK!"), LOGLEVEL_NOTICE);
+		Log_Println("AC101 via I2C - OK!", LOGLEVEL_NOTICE);
 
 		pinMode(22, OUTPUT);
 		digitalWrite(22, HIGH);
@@ -171,13 +182,7 @@ void setup() {
 	SdCard_Init();
 
 	// welcome message
-	Serial.println(F(""));
-	Serial.println(F("  _____   ____    ____            _                 "));
-	Serial.println(F(" | ____| / ___|  |  _ \\   _   _  (_)  _ __     ___  "));
-	Serial.println(F(" |  _|   \\__  \\  | |_) | | | | | | | | '_ \\   / _ \\"));
-	Serial.println(F(" | |___   ___) | |  __/  | |_| | | | | | | | | (_) |"));
-	Serial.println(F(" |_____| |____/  |_|      \\__,_| |_| |_| |_|  \\___/ "));
-	Serial.print(F(" Rfid-controlled musicplayer\n\n"));
+	Serial.print(logo);
 
 	// Software-version
 	Log_Println(softwareRevision, LOGLEVEL_NOTICE);
@@ -208,7 +213,7 @@ void setup() {
 	System_UpdateActivityTimer(); // initial set after boot
 	Led_Indicate(LedIndicatorType::BootComplete);
 
-	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
+	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", freeHeapAfterSetup, ESP.getFreeHeap());
 	Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
 	Log_Printf(LOGLEVEL_DEBUG, "Flash-size: %u bytes", ESP.getFlashChipSize());
 	if (Wlan_IsConnected()) {

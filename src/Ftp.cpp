@@ -31,7 +31,7 @@ void Ftp_Init(void) {
 	String nvsFtpUser = gPrefsSettings.getString("ftpuser", "-1");
 	if (!nvsFtpUser.compareTo("-1")) {
 		gPrefsSettings.putString("ftpuser", (String)Ftp_User);
-		Log_Println((char *) FPSTR(wroteFtpUserToNvs), LOGLEVEL_ERROR);
+		Log_Println(wroteFtpUserToNvs, LOGLEVEL_ERROR);
 	} else {
 		Ftp_User = nvsFtpUser;
 		Log_Printf(LOGLEVEL_INFO, restoredFtpUserFromNvs, nvsFtpUser.c_str());
@@ -41,7 +41,7 @@ void Ftp_Init(void) {
 	String nvsFtpPassword = gPrefsSettings.getString("ftppassword", "-1");
 	if (!nvsFtpPassword.compareTo("-1")) {
 		gPrefsSettings.putString("ftppassword", (String)Ftp_Password);
-		Log_Println((char *) FPSTR(wroteFtpPwdToNvs), LOGLEVEL_ERROR);
+		Log_Println(wroteFtpPwdToNvs, LOGLEVEL_ERROR);
 	} else {
 		Ftp_Password = nvsFtpPassword;
 		Log_Printf(LOGLEVEL_INFO, restoredFtpPwdFromNvs, nvsFtpPassword.c_str());
@@ -76,7 +76,7 @@ void Ftp_EnableServer(void) {
 
 			System_IndicateOk();
 	} else {
-		Log_Println((char *) FPSTR(unableToStartFtpServer), LOGLEVEL_ERROR);
+		Log_Println(unableToStartFtpServer, LOGLEVEL_ERROR);
 		System_IndicateError();
 	}
 }
@@ -89,7 +89,7 @@ void ftpManager(void) {
 			ftpEnableCurrentStatus = true;
 			ftpSrv = new FtpServer();
 			ftpSrv->begin(gFSystem, Ftp_User, Ftp_Password);
-			Log_Printf(LOGLEVEL_DEBUG, "%s: %u", PSTR(freeHeapWithFtp), ESP.getFreeHeap());
+			Log_Printf(LOGLEVEL_DEBUG, freeHeapWithFtp, ESP.getFreeHeap());
 			Log_Println(ftpServerStarted, LOGLEVEL_NOTICE);
 		}
 	#endif

@@ -77,7 +77,7 @@ void Led_Init(void) {
 			Log_Printf(LOGLEVEL_INFO, initialBrightnessfromNvs, nvsILedBrightness);
 		} else {
 			gPrefsSettings.putUChar("iLedBrightness", Led_InitialBrightness);
-			Log_Println((char *) FPSTR(wroteInitialBrightnessToNvs), LOGLEVEL_ERROR);
+			Log_Println(wroteInitialBrightnessToNvs, LOGLEVEL_ERROR);
 		}
 
 		// Get night LED-brightness from NVS
@@ -87,7 +87,7 @@ void Led_Init(void) {
 			Log_Printf(LOGLEVEL_INFO, restoredInitialBrightnessForNmFromNvs, nvsNLedBrightness);
 		} else {
 			gPrefsSettings.putUChar("nLedBrightness", Led_NightBrightness);
-			Log_Println((char *) FPSTR(wroteNmBrightnessToNvs), LOGLEVEL_ERROR);
+			Log_Println(wroteNmBrightnessToNvs, LOGLEVEL_ERROR);
 		}
 
 		xTaskCreatePinnedToCore(
@@ -126,7 +126,7 @@ void Led_ResetToInitialBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
 		if (Led_Brightness == Led_NightBrightness || Led_Brightness == 0) {	// Only reset to initial value if brightness wasn't intentionally changed (or was zero)
 			Led_Brightness = Led_InitialBrightness;
-			Log_Println((char *) FPSTR(ledsDimmedToInitialValue), LOGLEVEL_INFO);
+			Log_Println(ledsDimmedToInitialValue, LOGLEVEL_INFO);
 		}
 	#endif
 	#ifdef BUTTONS_LED
@@ -137,7 +137,7 @@ void Led_ResetToInitialBrightness(void) {
 void Led_ResetToNightBrightness(void) {
 	#ifdef NEOPIXEL_ENABLE
 		Led_Brightness = Led_NightBrightness;
-		Log_Println((char *) FPSTR(ledsDimmedToNightmode), LOGLEVEL_INFO);
+		Log_Println(ledsDimmedToNightmode, LOGLEVEL_INFO);
 	#endif
 	#ifdef BUTTONS_LED
 		Port_Write(BUTTONS_LED, LOW, false);

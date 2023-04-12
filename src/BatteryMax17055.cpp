@@ -22,7 +22,7 @@
 		bool por = false;
 		sensor.init(s_batteryCapacity, s_emptyVoltage, s_recoveryVoltage, s_batteryChemistry, s_vCharge, s_resistSensor, por, &i2cBusTwo, &delay);
 		cycles = gPrefsSettings.getUShort("MAX17055_cycles", 0x0000);
-		Log_Printf(LOGLEVEL_DEBUG, "%s: %.2f", (char *)"Cycles saved in NVS:", cycles / 100.0);
+		Log_Printf(LOGLEVEL_DEBUG, "Cycles saved in NVS: %.2f", cycles / 100.0);
 
 		// if power was lost, restore model params
 		if (por) {
@@ -105,11 +105,11 @@
 			float voltage = Battery_GetVoltage();
 			char vstr[6];
 			snprintf(vstr, 6, "%.2f", voltage);
-			publishMqtt((char *)FPSTR(topicBatteryVoltage), vstr, false);
+			publishMqtt(topicBatteryVoltage, vstr, false);
 
 			float soc = Battery_EstimateLevel() * 100;
 			snprintf(vstr, 6, "%.2f", soc);
-			publishMqtt((char *)FPSTR(topicBatterySOC), vstr, false);
+			publishMqtt(topicBatterySOC, vstr, false);
 		#endif
 	}
 
@@ -120,8 +120,8 @@
 		Log_Printf(LOGLEVEL_INFO, batteryTempMsg, sensor.getTemperature());
 
 		// pretty useless because of low resolution
-		// Log_Printf(LOGLEVEL_INFO, "Max current to battery since last check: %.4f mA", "Max current to battery since last check", sensor.getMaxCurrent());
-		// Log_Printf(LOGLEVEL_INFO, "Min current to battery since last check: %.4f mA", "Min current to battery since last check", sensor.getMinCurrent());
+		// Log_Printf(LOGLEVEL_INFO, "Max current to battery since last check: %.4f mA", sensor.getMaxCurrent());
+		// Log_Printf(LOGLEVEL_INFO, "Min current to battery since last check: %.4f mA", sensor.getMinCurrent());
 		// sensor.resetMaxMinCurrent();
 
 		Log_Printf(LOGLEVEL_INFO, batteryCyclesMsg, sensor.getCycles() / 100.0);
