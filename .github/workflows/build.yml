@@ -4,8 +4,24 @@ on:
 
 jobs:
   main:
-    name: Build all boards
+    name: Build board
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [
+          BOARD_AUDIO_KIT,
+          BOARD_COMPLETE,
+          BOARD_ESP32_S3_DEVKITC,
+          BOARD_LOLIN32,
+          BOARD_LOLIN_D32,
+          BOARD_LOLIN_D32_PRO,
+          BOARD_MUSE_PROTO,
+          BOARD_NODEMCU_32S,
+          BOARD_NODEMCU_DEVKIT,
+          BOARD_TTGO_T8,
+          BOARD_WROVER_KIT
+        ]
     steps:
       - uses: actions/checkout@master
       - name: Setup Python
@@ -15,6 +31,7 @@ jobs:
       - name: Install Platform IO
         run: |
           python -m pip install --upgrade pip
-          pip3 install -U platformio
+          pip3 install -U platformio kconfiglib
       - name: Build
-        run: platformio run -e esp32-a1s -e lolin32 -e lolin_d32 -e lolin_d32_pro -e lolin_d32_pro_sdmmc_pe -e nodemcu-32s -e az-delivery-devkit-v4 -e ttgo_t8 -e complete
+        run: |
+          setconfig ${{ matrix.board }}=y && pio run -t genconfig && pio run
