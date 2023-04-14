@@ -2,25 +2,22 @@
 
 ## Forum
 * EN: I've set up a primarily German-speaking community with much documentation. Also an international corner for non-German-speakers is available at https://forum.espuino.de. Github-Login can be used there but it's not mandatory.
-* DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumenation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
+* DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10
 ## Build status
 ![build workflow](https://github.com/biologist79/ESPuino/actions/workflows/build.yml/badge.svg)
 
-## Changelog
-Last three events:
-* 08.01.2023: New feature: `PAUSE_ON_MIN_VOLUME`. Playback is paused automatically if volume reaches minVolume (usually 0).
-* 18.10.2022: New playmode: pick random subdirectory of a given directory and play it's content alphabetic ordered
-* 02.10.2022: ESPuino is now able to stream audio to external BT-devices. This is currently in testing. Big thanks to @tueddy for providing this feature!
+## Current Development
+A [dev](https://github.com/biologist79/ESPuino/tree/dev)-branch was created. Any new features will be introduced and tested there first until they become part of the master-branch. Feel free to test but be advised this could be unstable.
 
 ## Known bugs
-* For ESPuinos making use of SPI to connect SD, there's an unsolved problem that occasionally leads to incomplete file-transfers via webtransfer or FTP-transger. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
+* For ESPuinos making use of SPI to connect SD, there's an unsolved problem that occasionally leads to incomplete file-transfers via webtransfer or FTP-transfer. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
 ## ESPuino - what's that?
 The basic idea of ESPuino is to use RFID-tags to direct a music-player. Even for kids this concept is simple: place an RFID-object (card, character) on top of a box and the music starts to play stuff from SD or webradio. Place another RFID-object on it and anything else is played. Simple as that.
 
 This project is based on the popular microcontroller [ESP32 by Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). Why? It's powerful and having WiFi-support out-of-the-box enables further features like an integrated webserver, smarthome-integration via MQTT, webradio and FTP-server. And nonetheless Bluetooth, too! However, my primary focus was to port the project to a modular base: mp3-decoding is done in software and the digital music-output is done via the popular [I2S-protocol](https://en.wikipedia.org/wiki/I%C2%B2S). So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to make an analog signal of it: I did all my tests with [MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts), [UDA1334](https://www.adafruit.com/product/3678), [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308). General advice: ESPuino makes use of library [ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to work with this library should work with ESPuino, too (but maybe not right out of the box). Especially this is true for [ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino).
 
 ## Hardware-setup
-You can start on a breadboard with jumper wires but I strongly recommend to start right away with a PCB like [ESPuino-mini](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866). Several PCBs are available. Please click on the links below for more informations and pictures.
+You could start on a breadboard with jumper wires but I *strongly* recommend to start right away with a PCB like [ESPuino-mini 4L](https://forum.espuino.de/t/espuino-mini-4layer/1661). Several PCBs are available. Please click on the links below for more informations and pictures.
 * [Lolin D32 / Lolin D32 pro + PN5180/RC522 + port-expander (SMD)](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
 * [Lolin32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
 * [NodeMCU ESP32 + SD_MMC + PN5180/RC522 (THT)](https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
@@ -36,10 +33,10 @@ You can start on a breadboard with jumper wires but I strongly recommend to star
 * Now, that the git-repository is saved locally, import this folder into Platformio as a project.
 * Select the [desired environment](https://forum.espuino.de/t/projekt-und-profilwechsel-in-visual-studio-code/768) (e.g. lolin_d32_pro_sdmmc_pe).
 * Edit `src/settings.h` according your needs.
-* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin32.h` for Lolin32 or `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
+* Edit board-specific (`HAL`) config-file (e.g. `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h` and change it according your needs.
 * Connect your develboard via USB, click the alien-head to the left, choose the project-task that matches your desired HAL and run `Upload and Monitor`. All libraries necessary should be fetched in background now followed by code-compilation. After that, your ESP32 is flashed with the firmware. Depending on your develboard it might me necessary to push a button in order to allow ESP32 to enter flashmode (not necessary für Lolin32, D32 und D32 pro).
 * Now have a look at the serial-output at the bottom of Visual Studio Code's window. At the first run there might appear a few error-messages (related to missing entries in NVS). Don't worry, this is just normal. However, make sure SD is running as this is mandatory!
-* If everything ran fine, at the first run, ESPuino should open an access-point with the name "ESPuino". Join this WiFi with your computer (or mobile) and enter `http://192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart ESPuino. Hint: I tried to connect this access-point via Android mobile. Basically that's no problem, but as my mobile detected there'd be no internet-connection, it kept LTE-connection open and prevented me from connecting to `http://192.168.4.1`. So if in doubts better use a computer.
+* If everything ran fine, at the first run, ESPuino should open an access-point with the name "ESPuino". Join this WiFi with your computer (or mobile) and enter `http://192.168.4.1` to your webbrowser. Enter WiFi-credentials and the hostname. After saving the configuraton, restart ESPuino.
 * After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that was successful, an IP is shown in the serial-console. You can call ESPuino's GUI using a webbrowser via this IP; make sure to allow Javascript. If mDNS-feature is active in `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you configured `espuino` as hostname, you can use `http://espuino.local` for webgui and FTP.
 * Via FTP and webGUI you can upload data (but don't expect it to be super fast).
 * FTP needs to be activated after boot if you need it! Don't forget to assign action `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is, but's running this way in order to have more heap-memory available (for webstream) if FTP isn't necessary.
@@ -63,7 +60,7 @@ That's why my focus is on 3.3 V only. If you want to use 5 V instead - do so, bu
 * Rotary encoder: 3.3 V (don't power with 5 V! Encoder doesn't care if connected to 3.3 or 5 V, but GPIOs of ESP32 do!)
 
 ## WiFi
-WiFi is mandatory for webgui, FTP, MQTT and webradio. However, WiFi can be temporarily or permanently disabled (and ESPuino remembers this state after the next restart. There are two ways to (re-)enable/disable WiFi:
+WiFi is mandatory for webgui, FTP, MQTT and webradio. However, WiFi can be temporarily or permanently disabled (and ESPuino remembers this state after the next restart). There are two ways to (re-)enable/disable WiFi:
 * Use a special [modification-card](https://forum.espuino.de/t/was-sind-modifikationskarten/37) that can be configured via webgui.
 * Assign action `CMD_TOGGLE_WIFI_STATUS` to a button (or multi-button). This toggles the current WiFi-status.
 
@@ -73,7 +70,7 @@ ESPuino can be used as bluetooth-sink (a2dp-sink). In this mode you can stream (
 ESPuino can also be used to stream audio (a2dp-source) to a bluetooth headset or external bluetooth speakers. This mode can be enabled/disabled via a RFID-modification-card or by assigning action `CMD_TOGGLE_BLUETOOTH_SOURCE_MODE` to a button (or multi-button). Applying this will restart ESPuino immediately. Activated bluetooth is indicated by four slow rotating *blue-violet* LEDs. After the bluetooth headset is connected LEDs turn to blue. Please note: due to memory-restrictions it's not possible to run bluetooth in parallel with WiFi. This finally means that you cannot stream webradio via bluetooth or access webgui while this mode is enabled.
 
 ## Port-expander
-There might be situations where you run out of GPIOs. To address this, port-expander [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend number of input-channels (output-mode is only supported in special cases). This port-expander provides 2 ports with 8 channels each - so 16 channels in total. To activate PCA9555 you need to enable `PORT_EXPANDER_ENABLE`. Like GPIOs in your develboard-specific settings-file, you can assign numbers. Range is 100->115 where 100: port 0 channel 0 -> 107: port 0 channel 7; 108: port 1 channel 0 -> 115: port 1 channel 7. Via `expanderI2cAddress` port-expander's I2C-address can be changed. It's `0x20` if all A0, A1, A2 are wired to GND.<br />
+There might be situations where you run out of GPIOs. To address this, port-expander [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend number of input-channels (output-mode is only supported in special cases). PCA9555 provides 2 ports with 8 channels each - so 16 channels in total. To activate PCA9555 you need to enable `PORT_EXPANDER_ENABLE`. Like GPIOs in your develboard-specific settings-file, you can assign numbers. Range is 100->115 where 100: port 0 channel 0 -> 107: port 0 channel 7; 108: port 1 channel 0 -> 115: port 1 channel 7. Via `expanderI2cAddress` port-expander's I2C-address can be changed. It's `0x20` if all A0, A1, A2 are wired to GND.<br />
 
 ## After ESPuino is connected to your WiFi
 After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at the IP assigned by your router (or the configured hostname). Using this GUI you can:
@@ -85,6 +82,7 @@ After making ESPuino part of your LAN/WiFi, the 'regular' webgui is available at
 * configure initial volume, maximum volume (speaker / headphone), brightness of Neopixel (nightmode / default) and inactivity-time
 * view logs / status / current track
 * control player
+* run modifications (like modification-card)
 * upload audiofiles (called webtransfer)
 * do OTA-updates (ESP32s with 16 MB of flash-memory only)
 * import + delete NVS-RFID-assigments
@@ -174,7 +172,7 @@ Please note: some Neopixels use a reversed addressing which leads to the 'proble
 counter clockwise. If you want to change that behaviour, just enable `NEOPIXEL_REVERSE_ROTATION`.
 
 ### Buttons
-Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change button-number (up to 5) and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
+Important: this section describes my default-design: 3 buttons + rotary-encoder. Feel free to change number of buttons (up to 5) and button-actions according your needs in `settings.h` and your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five buttons + rotary-encoder.
 Minimum duration for long press (to distinguish vom short press) in ms is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using GPIO >= 34 make sure to add a external pullup-resistor (10 k).
 * previous (short): previous track / beginning of the first track if pressed while first track is playing
 * previous (long): first track of playlist
@@ -188,7 +186,7 @@ Minimum duration for long press (to distinguish vom short press) in ms is define
 * previous (long; keep pressed) + next (short) + release (both): toggle WiFi enabled/disabled
 
 ### Music-play
-* Music starts to play right after a valid RFID-tag was applied.
+* Music starts to play right away after a valid RFID-tag was applied (if it's known to ESPuino).
 * If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied => music-autoplay.
 * If a folder should be played that contains many mp3s, the playlist-generation can take a few seconds.
 * For all playmodes that are not single tracks or webradio a filecache is available to speed up playlist-generation. The cache is generated as you apply the corresponding RFID-tag for the first time. Use `CACHED_PLAYLIST_ENABLE` to enable it - I really recommend to use it.
