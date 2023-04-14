@@ -22,6 +22,10 @@ indent_size = unset
 indent_style = unset
 insert_final_newline = false
 
+[*.{yaml,yml}]
+indent_size = 2
+indent_style = space
+
 [platformio.ini]
 indent_size = 4
 indent_style = space
