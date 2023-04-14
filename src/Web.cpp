@@ -237,7 +237,7 @@ void webserverStart(void) {
                 #ifdef HALLEFFECT_SENSOR_ENABLE
 					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 					int diff = sva-gHallEffectSensor.NullFieldValue();
-					snprintf(buffer, sizeof(buffer), (char *) FPSTR(F("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)")), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
+					snprintf(buffer, sizeof(buffer), PSTR("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)"), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
 					info += buffer;
                 #endif
 				request->send_P(200, "text/plain", info.c_str());
