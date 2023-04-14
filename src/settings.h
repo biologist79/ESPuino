@@ -20,7 +20,6 @@
 	7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
 	8: AZDelivery ESP32 NodeMCU             => settings-azdelivery_sdmmc.h
 	9: Lolin D32 SDMMC Port-Expander        => settings-lolin_d32_sdmmc_pe.h
-	10: RASPIAUDIO Muse Proto               => settings-muse_proto.h
 	99: custom                              => settings-custom.h
 	more to come...
 	*/
@@ -194,9 +193,9 @@
 	// Filename that is used for caching playlists
 	// Arduino 1.0.6 uses ANSI / Arduino >=2.0.5 UTF-8 encoding. Use different filenames to avoid incompabilities
 	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache2.csv"; 
+		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache2.csv";
 	#else
-		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache.csv";  
+		constexpr const char playlistCacheFile[] PROGMEM = "playlistcache.csv";
 	#endif
 
 	//#################### Settings for optional Modules##############################
@@ -303,8 +302,6 @@
 		#include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
 	#elif (HAL == 9)
 		#include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for Lolin D32 (non-pro) with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
-	#elif (HAL == 10)
-		#include "settings-muse_proto.h"                     // Pre-configured settings for Raspiaudio ESPMuse Proto Board with I2C RFID Reader (https://raspiaudio.com/produit/muse-proto)
 	#elif (HAL == 99)
 		#include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 	#endif
