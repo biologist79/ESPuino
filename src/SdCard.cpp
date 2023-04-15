@@ -9,6 +9,10 @@
 #include "MemX.h"
 #include "System.h"
 
+#include "playlists/CacheFilePlaylist.hpp"
+#include "playlists/FolderPlaylist.hpp"
+#include "playlists/WebstreamPlaylist.hpp"
+
 #ifdef SD_MMC_1BIT_MODE
 fs::FS gFSystem = (fs::FS) SD_MMC;
 #else
@@ -143,270 +147,195 @@ bool fileValid(const char *_fileItem) {
 }
 
 // Takes a directory as input and returns a random subdirectory from it
-char *SdCard_pickRandomSubdirectory(char *_directory) {
+std::optional<const String> SdCard_pickRandomSubdirectory(const char *_directory) {
 	uint32_t listStartTimestamp = millis();
 
 	// Look if file/folder requested really exists. If not => break.
 	File directory = gFSystem.open(_directory);
 	if (!directory) {
-		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, _directory);
-		return NULL;
+		// does not exists
+		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
+		return std::nullopt;
 	}
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);
 
-	static uint8_t allocCount = 1;
-	uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
-	uint16_t directoryCount = 0;
-	char *buffer = _directory; // input char* is reused as it's content no longer needed
-	char *subdirectoryList = (char *) x_calloc(allocSize, sizeof(char));
-
-	if (subdirectoryList == NULL) {
-		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		return NULL;
-	}
-
-	// Create linear list of subdirectories with #-delimiters
-	while (true) {
-		bool isDir = false;
-		String MyfileName = directory.getNextFileName(&isDir);
-		if (MyfileName == "") {
-			break;
-		}
-		if (!isDir) {
-			continue;
-		} else {
-			strncpy(buffer, MyfileName.c_str(), 255);
-			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
-			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
-				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
-				Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-				if (tmp == NULL) {
-					Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-					System_IndicateError();
-					free(subdirectoryList);
-					return NULL;
-				}
-				subdirectoryList = tmp;
+	size_t dirCount = 0;
+	while(true) {
+		bool isDir;
+		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+			const String path = directory.getNextFileName(&isDir);
+			if(path.isEmpty()) {
+				break;
 			}
-			strcat(subdirectoryList, stringDelimiter);
-			strcat(subdirectoryList, buffer);
-			directoryCount++;
-		}
-	}
-	strcat(subdirectoryList, stringDelimiter);
-
-	if (!directoryCount) {
-		free(subdirectoryList);
-		return NULL;
-	}
-
-	uint16_t randomNumber = random(directoryCount) + 1; // Create random-number with max = subdirectory-count
-	uint16_t delimiterFoundCount = 0;
-	uint32_t a = 0;
-	uint8_t b = 0;
-
-	// Walk through subdirectory-array and extract randomized subdirectory
-	while (subdirectoryList[a] != '\0') {
-		if (subdirectoryList[a] == '#') {
-			delimiterFoundCount++;
-		} else {
-			if (delimiterFoundCount == randomNumber) { // Pick subdirectory of linear char* according to random number
-				buffer[b++] = subdirectoryList[a];
+		#else
+			File fileItem = directory.openNextFile();
+			if(!fileItem) {
+				break;
 			}
+			isDir = fileItem.isDirectory();
+		#endif
+		if(isDir) {
+			dirCount++;
 		}
-		if (delimiterFoundCount > randomNumber || (b == 254)) { // It's over when next delimiter is found or buffer is full
-			buffer[b] = '\0';
-			free(subdirectoryList);
-			Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, _directory);
-			return buffer; // Full path of random subdirectory
-		}
-		a++;
+	}
+	if(!dirCount) {
+		// no paths in folder
+		return std::nullopt;
 	}
 
-	free(subdirectoryList);
+	const uint32_t randomNumber = esp_random() % dirCount;
+	String path;
+	for(size_t i=0;i<randomNumber;) {
+		bool isDir;
+		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+			path = directory.getNextFileName(&isDir);
+		#else
+			File fileItem = directory.openNextFile();
+			if(!fileItem) {
+				path = "";
+			} else {
+				path = getPath(fileItem);
+				isDir = fileItem.isDirectory();
+			}
+		#endif
+		if(path.isEmpty()) {
+			// we reached the end before finding the correct dir!
+			return std::nullopt;
+		}
+		if(isDir) {
+			i++;
+		}
+	}
+	Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, path.c_str());	
 	Log_Printf(LOGLEVEL_DEBUG, "pick random directory from SD-card finished: %lu ms", (millis() - listStartTimestamp));
-	return NULL;
+	return path;
+}
+
+static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
+	const String line = f.readStringUntil('\n');
+	bool extended = line.startsWith("#EXTM3U") || forceExtended;
+	FolderPlaylist *playlist = new FolderPlaylist();
+
+	if(extended) {
+        // extended m3u file format
+        // ignore all lines starting with '#'
+
+        while(f.available()) {
+            String line = f.readStringUntil('\n');
+            if(!line.startsWith("#")){
+                // this something we have to save
+                line.trim(); 
+                if(!playlist->push_back(line)) {
+					delete playlist;
+                    return std::nullopt;
+                }
+            }
+        }
+        // resize memory to fit our count
+		playlist->compress();
+        return playlist;
+	}
+
+	// normal m3u is just a bunch of filenames, 1 / line
+	f.seek(0);
+	while(f.available()) {
+		String line = f.readStringUntil('\n');
+		line.trim();
+		if(!playlist->push_back(line)) {
+			delete playlist;
+			return std::nullopt;
+		}
+	}
+	// resize memory to fit our count
+	playlist->compress();
+	return playlist;
 }
 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
-char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
-	static char **files;
-	char *serializedPlaylist = NULL;
-	bool enablePlaylistFromM3u = false;
-	// uint32_t listStartTimestamp = millis();
-
-	if (files != NULL) { // If **ptr already exists, de-allocate its memory
-		Log_Printf(LOGLEVEL_DEBUG, releaseMemoryOfOldPlaylist, ESP.getFreeHeap());
-		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
-		Log_Printf(LOGLEVEL_DEBUG, freeMemoryAfterFree, ESP.getFreeHeap());
-	}
+std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
+	bool rebuildCacheFile = false;
 
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
-		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, fileName);
-		return nullptr;
+		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
+		return std::nullopt;
 	}
+
+	// Create linear playlist of caching-file
+	#ifdef CACHED_PLAYLIST_ENABLE
+		// Build absolute path of cacheFile
+		auto cacheFilePath = CacheFilePlaylist::getCachefilePath(fileOrDirectory);
+
+		// Decide if to use cacheFile. It needs to exist first check if cacheFile (already) exists
+		// ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
+		if (cacheFilePath && gFSystem.exists(cacheFilePath.value()) && _playMode != SINGLE_TRACK && _playMode != SINGLE_TRACK_LOOP) {
+			// Read linear playlist (csv with #-delimiter) from cachefile (faster!)
+
+			File cacheFile = gFSystem.open(cacheFilePath.value());
+			if (cacheFile && cacheFile.size()) {
+				CacheFilePlaylist *cachePlaylist = new CacheFilePlaylist();
+				
+				bool success = cachePlaylist->deserialize(cacheFile);
+				if(success) {
+					// always first assume a current playlist format
+					return cachePlaylist;
+				}
+				// we had some error reading the cache file, wait for the other to rebuild it
+				// we do not need the class anymore, so destroy it
+				delete cachePlaylist;
+			}
+			// we failed to read the cache file... set the flag to rebuild it
+			rebuildCacheFile = true;
+		}
+	#endif
 
 	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
-		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
-			enablePlaylistFromM3u = true;
-			uint16_t allocCount = 1;
-			uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
+		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size()) {
+			// create a m3u playlist and parse the file
+			return SdCard_ParseM3UPlaylist(fileOrDirectory);
+		}
+		// if we reach here, we failed
+		return std::nullopt;
+	}
 
-			serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-			if (serializedPlaylist == NULL) {
-				Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-				System_IndicateError();
-				return nullptr;
-			}
-			char buf;
-			char lastBuf = '#';
-			uint32_t fPos = 1;
+	// If we reached here, we did not read a cache file nor an m3u file. Means: read filenames from SD and make playlist of it
+	Log_Println(playlistGenModeUncached, LOGLEVEL_NOTICE);
 
-			serializedPlaylist[0] = '#';
-			while (fileOrDirectory.available() > 0) {
-				buf = fileOrDirectory.read();
-				if (buf == '#') {
-					// skip M3U comment lines starting with #
-					fileOrDirectory.readStringUntil('\n');
-					continue;
-				}
-				if (fPos + 1 >= allocCount * allocSize) {
-					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
-					Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-					if (tmp == NULL) {
-						Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-						System_IndicateError();
-						free(serializedPlaylist);
-						return nullptr;
-					}
-					serializedPlaylist = tmp;
-				}
-
-				if (buf != '\n' && buf != '\r') {
-					serializedPlaylist[fPos++] = buf;
-					lastBuf = buf;
-				} else {
-					if (lastBuf != '#') { // Strip empty lines from m3u
-						serializedPlaylist[fPos++] = '#';
-						lastBuf = '#';
-					}
-				}
-			}
-			if (serializedPlaylist[fPos - 1] == '#') { // Remove trailing delimiter if set
-				serializedPlaylist[fPos - 1] = '\0';
-			}
-		} else {
-			return nullptr;
+	// File-mode
+	if (!fileOrDirectory.isDirectory()) {
+		Log_Println(fileModeDetected, LOGLEVEL_INFO);
+		const char *path = getPath(fileOrDirectory);
+		if (fileValid(path)) {
+			return new WebstreamPlaylist(path);
 		}
 	}
 
-	// Don't read from m3u-file. Means: read filenames from SD and make playlist of it
-	if (!enablePlaylistFromM3u) {
-		Log_Println(playlistGen, LOGLEVEL_NOTICE);
-		char fileNameBuf[255];
-		// File-mode
-		if (!fileOrDirectory.isDirectory()) {
-			files = (char **) x_malloc(sizeof(char *) * 2);
-			if (files == nullptr) {
-				Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-				System_IndicateError();
-				return nullptr;
+	// Folder mode
+	FolderPlaylist *playlist = new FolderPlaylist();
+	playlist->createFromFolder(fileOrDirectory);
+	if (!playlist->isValid()) {
+		// something went wrong
+		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
+		delete playlist;
+		return std::nullopt;
+	}
+
+	#ifdef CACHED_PLAYLIST_ENABLE
+		if(cacheFilePath && rebuildCacheFile) {
+			File cacheFile = gFSystem.open(cacheFilePath.value(), FILE_WRITE);
+			if(cacheFile) {
+				CacheFilePlaylist::serialize(cacheFile, *playlist);
 			}
-			Log_Println(fileModeDetected, LOGLEVEL_INFO);
-			strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			if (fileValid(fileNameBuf)) {
-				files[1] = x_strdup(fileNameBuf);
-			}
-			files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
-
-			return &(files[1]);
+			cacheFile.close();
 		}
+	#endif
 
-		// Directory-mode (linear-playlist)
-		uint16_t allocCount = 1;
-		uint16_t allocSize = 4096;
-		if (psramInit()) {
-			allocSize = 65535; // There's enough PSRAM. So we don't have to care...
-		}
-
-		serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-		while (true) {
-			bool isDir = false;
-			String MyfileName = fileOrDirectory.getNextFileName(&isDir);
-			if (MyfileName == "") {
-				break;
-			}
-			if (isDir) {
-				continue;
-			} else {
-				strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
-				if (fileValid(fileNameBuf)) {
-					// Log_Printf(LOGLEVEL_INFO, "%s: %s", nameOfFileFound), fileNameBuf);
-					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
-						char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
-						Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-						if (tmp == nullptr) {
-							Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-							System_IndicateError();
-							free(serializedPlaylist);
-							return nullptr;
-						}
-						serializedPlaylist = tmp;
-					}
-					strcat(serializedPlaylist, stringDelimiter);
-					strcat(serializedPlaylist, fileNameBuf);
-				}
-			}
-		}
-	}
-
-	// Get number of elements out of serialized playlist
-	uint32_t cnt = 0;
-	for (uint32_t k = 0; k < (strlen(serializedPlaylist)); k++) {
-		if (serializedPlaylist[k] == '#') {
-			cnt++;
-		}
-	}
-
-	// Alloc only necessary number of playlist-pointers
-	files = (char **) x_malloc(sizeof(char *) * (cnt + 1));
-	if (files == nullptr) {
-		Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		free(serializedPlaylist);
-		return nullptr;
-	}
-
-	// Extract elements out of serialized playlist and copy to playlist
-	char *token;
-	token = strtok(serializedPlaylist, stringDelimiter);
-	uint32_t pos = 1;
-	while (token != NULL) {
-		files[pos++] = x_strdup(token);
-		token = strtok(NULL, stringDelimiter);
-	}
-
-	free(serializedPlaylist);
-
-	files[0] = (char *) x_malloc(sizeof(char) * 5);
-
-	if (files[0] == nullptr) {
-		Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		freeMultiCharArray(files, cnt + 1);
-		return nullptr;
-	}
-	snprintf(files[0], 5, "%u", cnt);
-	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
-	// Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
-
-	return &(files[1]); // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
+	// we are finished
+	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
+	return playlist;
 }

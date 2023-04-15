@@ -1,5 +1,7 @@
 #pragma once
 
+#include <FS.h>
+
 // FilePathLength
 #define MAX_FILEPATH_LENTGH 256
 
@@ -20,6 +22,14 @@ inline bool isNumber(const char *str) {
 	} else {
 		return false;
 	}
+}
+
+inline const char *getPath(File &f) {
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		return f.path();
+	#else
+		return f.name();
+	#endif
 }
 
 // Checks if string starts with prefix
