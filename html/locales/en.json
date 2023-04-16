@@ -24,6 +24,8 @@
     },
     "wifi": {
         "title": "WiFi-configuration",
+        "networks": "Networks",
+        "savedNetworks": "Saved Networks",
         "ssid": {
             "title": "WiFi-name (SSID)",
             "placeholder": "SSID",

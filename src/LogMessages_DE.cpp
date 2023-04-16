@@ -107,8 +107,6 @@
 	const char modificatorDoesNotExist[] PROGMEM = "Ein Karten-Modifikator existiert nicht vom Typ %d!";
 	const char errorOccuredNvs[] PROGMEM = "Es ist ein Fehler aufgetreten beim Lesen aus dem NVS!";
 	const char statementsReceivedByServer[] PROGMEM = "Vom Server wurde Folgendes empfangen";
-	const char savedSsidInNvs[] PROGMEM = "Speichere SSID in NVS";
-	const char savedWifiPwdInNvs[] PROGMEM = "Speichere WLAN-Password in NVS";
 	const char apReady[] PROGMEM = "Access-Point geöffnet";
 	const char httpReady[] PROGMEM = "HTTP-Server gestartet.";
 	const char unableToMountSd[] PROGMEM = "SD-Karte konnte nicht gemountet werden.";
@@ -148,7 +146,6 @@
 	const char mqttWithPwd[] PROGMEM = "Verbinde zu MQTT-Server mit User und Passwort";
 	const char mqttWithoutPwd[] PROGMEM = "Verbinde zu MQTT-Server ohne User und Passwort";
 	const char ssidNotFoundInNvs[] PROGMEM = "SSID wurde im NVS nicht gefunden.";
-	const char wifiPwdNotFoundInNvs[] PROGMEM = "WLAN-Passwort wurde im NVS nicht gefunden.";
 	const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Statische WLAN-IP-Konfiguration wurde im NVS nicht gefunden.";
 	const char wifiHostnameNotSet[] PROGMEM = "Keine Hostname-Konfiguration im NVS gefunden.";
 	const char mqttConnFailed[] PROGMEM = "Verbindung fehlgeschlagen, versuche in Kürze erneut";
@@ -161,8 +158,8 @@
 	const char batteryLowMsg[] PROGMEM = "Batterieladung niedrig";
 	const char batteryCriticalMsg[] PROGMEM = "Batterieladung kritisch. Gehe in Deepsleep...";
 	const char sdBootFailedDeepsleep[] PROGMEM = "Bootgang wegen SD fehlgeschlagen. Gehe in Deepsleep...";
-	const char wifiEnabledAfterRestart[] PROGMEM = "WLAN wird aktiviert.";
-	const char wifiDisabledAfterRestart[] PROGMEM = "WLAN wird deaktiviert.";
+	const char wifiEnabledMsg[] PROGMEM = "WLAN wird aktiviert.";
+	const char wifiDisabledMsg[] PROGMEM = "WLAN wird deaktiviert.";
 	const char voltageIndicatorLowFromNVS[] PROGMEM = "Unterer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
 	const char voltageIndicatorHighFromNVS[] PROGMEM = "Oberer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
 	const char batteryCheckIntervalFromNVS[] PROGMEM = "Zyklus für Batteriemessung fuer Neopixel-Anzeige aus NVS geladen: %u Minuten";
@@ -230,7 +227,6 @@
 	const char hpOn[] PROGMEM = "Kopfhörer eingeschaltet";
 	const char hpOff[] PROGMEM = "Kopfhörer ausgeschaltet";
 	const char webTxCanceled[] PROGMEM = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
-	const char cantConnectToWifi[] PROGMEM = "Verbindung zum WLAN nicht möglich. Nächster Versuch...";
 	const char tryToPickRandomDir[] PROGMEM = "Versuche ein zufälliges Unterzeichnis zu finden aus: %s";
 	const char pickedRandomDir[] PROGMEM = "Zufällig ausgewähltes Unterverzeichnis: %s";
 	const char wrongWakeUpGpio[] PROGMEM = "Der gewählte GPIO ist nicht vom Typ RTC und unterstützt daher das Aufwecken des ESP32 nicht! (GPIO: %u)";
@@ -241,4 +237,14 @@
 	const char wifiConnectionInProgress[] PROGMEM = "Versuche mit WLAN '%s' zu verbinden...";
 	const char wifiCurrentIp[] PROGMEM = "Aktuelle IP: %s";
 	const char jsonErrorMsg[] PROGMEM = "deserializeJson() fehlgeschlagen: %s";
+	const char wifiDeleteNetwork[] PROGMEM = "Lösche gespeichertes WLan %s";
+	const char wifiNetworkLoaded[] PROGMEM = "SSID %d von NVS geladen: %s";
+	const char wifiTooManyNetworks[] PROGMEM = "Anzahl der WLan-Netze in NVS ist %d, aber es sind maximal %d erlaubt.";
+	const char wifiAddTooManyNetworks[] PROGMEM = "Kein Platz, weiteres WLan zu speichern!";
+	const char wifiAddNetwork[] PROGMEM = "Füge WLan hinzu: %s";
+	const char wifiUpdateNetwork[] PROGMEM = "Ändere Passwort für WLan %s";	
+	const char wifiScanResult[] PROGMEM = "WLan mit SSID %s und Signalstärke %d auf channel %d gefunden.";
+	const char cantConnectToWifi[] PROGMEM = "WLan-Verbindung fehlgeschlagen.";
+	const char wifiSetLastSSID[] PROGMEM = "Schreibe letzte erfolgreiche SSID in NVS für WLan Schnellstart: %s";
+
 #endif

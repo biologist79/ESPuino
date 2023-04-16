@@ -7,6 +7,7 @@
 #include "soc/timer_group_reg.h"
 #include "freertos/ringbuf.h"
 #include "ESPAsyncWebServer.h"
+#include "AsyncJson.h"
 #include "ArduinoJson.h"
 #include "settings.h"
 #include "AudioPlayer.h"
@@ -59,6 +60,12 @@ static void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
 static void explorerHandleCreateRequest(AsyncWebServerRequest *request);
 static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
+static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
+static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
+static void handleGetActiveSSID(AsyncWebServerRequest *request);
+static void handleGetHostname(AsyncWebServerRequest *request);
+static void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 
 static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
@@ -98,6 +105,47 @@ static void serveProgmemFiles(const String& uri, const String& contentType, cons
 	});
 }
 
+
+class OneParamRewrite : public AsyncWebRewrite
+{
+  protected:
+    String _urlPrefix;
+    int _paramIndex;
+    String _paramsBackup;
+
+  public:
+  OneParamRewrite(const char* from, const char* to)
+    : AsyncWebRewrite(from, to) {
+
+      _paramIndex = _from.indexOf('{');
+
+      if( _paramIndex >=0 && _from.endsWith("}")) {
+        _urlPrefix = _from.substring(0, _paramIndex);
+        int index = _params.indexOf('{');
+        if(index >= 0) {
+          _params = _params.substring(0, index);
+        }
+      } else {
+        _urlPrefix = _from;
+      }
+      _paramsBackup = _params;
+  }
+
+  bool match(AsyncWebServerRequest *request) override {
+    if(request->url().startsWith(_urlPrefix)) {
+      if(_paramIndex >= 0) {
+        _params = _paramsBackup + request->url().substring(_paramIndex);
+      } else {
+        _params = _paramsBackup;
+      }
+    return true;
+
+    } else {
+      return false;
+    }
+  }
+};
+
 void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
@@ -119,14 +167,8 @@ void Web_Init(void) {
 
 	WWWData::registerRoutes(serveProgmemFiles);
 
-	wServer.on("/init", HTTP_POST, [](AsyncWebServerRequest *request) {
-		if (request->hasParam("ssid", true) && request->hasParam("pwd", true) && request->hasParam("hostname", true)) {
-			gPrefsSettings.putString("SSID", request->getParam("ssid", true)->value());
-			gPrefsSettings.putString("Password", request->getParam("pwd", true)->value());
-			gPrefsSettings.putString("Hostname", request->getParam("hostname", true)->value());
-		}
-		request->send_P(200, "text/html", accesspoint_HTML);
-	});
+	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
+	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
 	#if (LANGUAGE == DE)
@@ -324,6 +366,16 @@ void webserverStart(void) {
 		wServer.on("/explorer", HTTP_PATCH, explorerHandleRenameRequest);
 
 		wServer.on("/exploreraudio", HTTP_POST, explorerHandleAudioRequest);
+
+		wServer.on("/savedSSIDs", HTTP_GET, handleGetSavedSSIDs);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
+
+		wServer.addRewrite(new OneParamRewrite("/savedSSIDs/{ssid}", "/savedSSIDs?ssid={ssid}") );
+		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
+		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
+
+		wServer.on("/hostname", HTTP_GET, handleGetHostname);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
 
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
@@ -590,20 +642,22 @@ bool processJsonRequest(char *_serialJson) {
 		}
 		Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile)); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("wifiConfig")) {
-		const char *_ssid = object["wifiConfig"]["ssid"];
-		const char *_pwd = object["wifiConfig"]["pwd"];
-		const char *_hostname = object["wifiConfig"]["hostname"];
 
-		gPrefsSettings.putString("SSID", _ssid);
-		gPrefsSettings.putString("Password", _pwd);
-		gPrefsSettings.putString("Hostname", (String)_hostname);
+		JsonObject wifiConf = object["wifiConfig"];
 
-		String sSsid = gPrefsSettings.getString("SSID", "-1");
-		String sPwd = gPrefsSettings.getString("Password", "-1");
-		String sHostname = gPrefsSettings.getString("Hostname", "-1");
+		if (wifiConf.containsKey("addWifi")){
+			const char *_ssid = wifiConf["addWifi"]["ssid"];
+			const char *_pwd = wifiConf["addWifi"]["pwd"];
 
-		if (sSsid.compareTo(_ssid) || sPwd.compareTo(_pwd)) {
-			return false;
+			return Wlan_AddNetworkSettings(String(_ssid), String(_pwd));
+		} else if (wifiConf.containsKey("removeWifi")) {
+			const char *_ssid = wifiConf["removeWifi"]["ssid"];
+
+			return Wlan_DeleteNetwork(String(_ssid));
+		} else if (wifiConf.containsKey("setHostname")) {
+			const char *_hostname = wifiConf["setHostname"]["hostname"];
+
+			return Wlan_SetHostname(String(_hostname));
 		}
 	}
 	else if (doc.containsKey("ping")) {
@@ -1165,6 +1219,92 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 
 	request->send(200);
 }
+
+void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
+	#ifdef BOARD_HAS_PSRAM
+		SpiRamJsonDocument jsonBuffer(8192);
+	#else
+		StaticJsonDocument<8192> jsonBuffer;
+	#endif
+	String ssids[10];
+
+	String serializedJsonString;
+	
+	JsonArray json_ssids = jsonBuffer.createNestedArray("ssidList");
+	uint8_t len_ids = Wlan_NumSavedNetworks();
+	Wlan_GetSSIDs(ssids);
+
+	for (int i = 0; i < len_ids; i++) {
+		json_ssids.add(ssids[i]);
+	}
+
+	serializeJson(json_ssids, serializedJsonString);
+
+	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
+}
+
+void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
+	const JsonObject& jsonObj = json.as<JsonObject>();
+
+	String ssid = jsonObj["ssid"];
+	String password = jsonObj["pwd"];
+	
+	bool succ = Wlan_AddNetworkSettings(ssid, password);
+
+	if (succ) {
+		request->send(200, "text/plain; charset=utf-8", ssid);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error adding network");
+	}	
+}
+
+void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
+	AsyncWebParameter* p = request->getParam("ssid");
+	String ssid = p->value();
+
+	bool succ = Wlan_DeleteNetwork(ssid);
+
+	if (succ) {
+		request->send(200, "text/plain; charset=utf-8", ssid);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error deleting network");
+	}
+}
+
+void handleGetActiveSSID(AsyncWebServerRequest *request) {
+	#ifdef BOARD_HAS_PSRAM
+		SpiRamJsonDocument jsonBuffer(1024);
+	#else
+		StaticJsonDocument<8192> jsonBuffer;
+	#endif
+	String serializedJsonString;
+	JsonObject obj = jsonBuffer.createNestedObject();
+	if (Wlan_IsConnected()) {
+		String active = Wlan_GetCurrentSSID();
+		obj["active"] = active;
+	}
+
+	serializeJson(obj, serializedJsonString);
+	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
+}
+
+void handleGetHostname(AsyncWebServerRequest *request) {
+	String hostname = Wlan_GetHostname();
+	request->send(200, (char *) F("text/plain; charset=utf-8"), hostname);
+}
+
+void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
+	const JsonString& jsonStr = json.as<JsonString>();
+	String hostname = String(jsonStr.c_str());
+	bool succ = Wlan_SetHostname(hostname);
+
+	if (succ) {
+		request->send(200, "text/plain; charset=utf-8", hostname);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error setting hostname");
+	}
+}
+
 
 // Takes stream from file-upload and writes payload into a temporary sd-file.
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {

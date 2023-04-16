@@ -24,6 +24,8 @@
     },
     "wifi": {
         "title": "WLAN-Einstellungen",
+        "networks": "Netzwerke",
+        "savedNetworks": "Gespeicherte Netzwerke",
         "ssid": {
             "title": "WLAN-Name (SSID)",
             "placeholder": "SSID",
