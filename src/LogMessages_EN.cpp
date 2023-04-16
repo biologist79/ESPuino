@@ -4,14 +4,14 @@
 #if (LANGUAGE == EN)
 	#include "Log.h"
 
-	const char tryConnectMqttS[] PROGMEM = "Trying to connect to MQTT-broker";
+	const char tryConnectMqttS[] PROGMEM = "Trying to connect to MQTT-broker: %s";
 	const char mqttOk[] PROGMEM = "MQTT-connection established.";
 	const char sleepTimerEOP[] PROGMEM = "Sleep-timer: after last track of playlist.";
 	const char sleepTimerEOT[] PROGMEM = "Sleep-timer: after end of current track.";
 	const char sleepTimerStop[] PROGMEM = "Sleep-timer has been disabled.";
 	const char sleepTimerEO5[] PROGMEM = "Sleep-timer: after five track or end of playlist - whatever is reached first";
 	const char sleepTimerAlreadyStopped[] PROGMEM = "sleep-timer is already disabled.";
-	const char sleepTimerSetTo[] PROGMEM = "sleep-timer adjusted to";
+	const char sleepTimerSetTo[] PROGMEM = "sleep-timer adjusted to %u minute(s)";
 	const char allowButtons[] PROGMEM = "Unlocking all keys.";
 	const char lockButtons[] PROGMEM = "Locking all keys.";
 	const char noPlaylistNotAllowedMqtt[] PROGMEM = "Playmode cannot be adjusted to 'no playlist' via MQTT.";
@@ -20,7 +20,7 @@
 	const char noValidTopic[] PROGMEM = "No valid MQTT-topic: %s";
 	const char freePtr[] PROGMEM = "Releasing Pointer: %s (0x%04x)";
 	const char freeMemory[] PROGMEM = "Free memory: %u";
-	const char writeEntryToNvs[] PROGMEM = "Storing data to NVS";
+	const char writeEntryToNvs[] PROGMEM = "[%u] Storing data to NVS: %s => %s";
 	const char freeMemoryAfterFree[] PROGMEM = "Free memory after cleaning: %u";
 	const char releaseMemoryOfOldPlaylist[] PROGMEM = "Releasing memory of old playlist.";
 	const char dirOrFileDoesNotExist[] PROGMEM = "File of directory does not exist: %s";
@@ -134,24 +134,24 @@
 	const char wroteMaxLoudnessForHeadphoneToNvs[] PROGMEM = "Wrote maximum volume for headphone to NVS.";
 	const char maxVolumeSet[] PROGMEM = "Maximum volume set to: %u";
 	const char wroteMqttFlagToNvs[] PROGMEM = "Stored MQTT-flag to NVS.";
-	const char restoredMqttActiveFromNvs[] PROGMEM = "Restored MQTT-flag (enabled) from NVS";
-	const char restoredMqttDeactiveFromNvs[] PROGMEM = "Restored MQTT-flag (disabled) from NVS";
+	const char restoredMqttActiveFromNvs[] PROGMEM = "Restored MQTT-flag (enabled) from NVS: %u";
+	const char restoredMqttDeactiveFromNvs[] PROGMEM = "Restored MQTT-flag (disabled) from NVS: %u";
 	const char wroteMqttClientIdToNvs[] PROGMEM = "Stored MQTT-clientid to NVS.";
-	const char restoredMqttClientIdFromNvs[] PROGMEM = "Restored MQTT-clientid from NVS";
+	const char restoredMqttClientIdFromNvs[] PROGMEM = "Restored MQTT-clientid from NVS: %s";
 	const char wroteMqttServerToNvs[] PROGMEM = "Stored MQTT-server to NVS.";
-	const char restoredMqttServerFromNvs[] PROGMEM = "Restored MQTT-Server from NVS";
+	const char restoredMqttServerFromNvs[] PROGMEM = "Restored MQTT-Server from NVS: %s";
 	const char wroteMqttUserToNvs[] PROGMEM = "Stored MQTT-user to NVS.";
-	const char restoredMqttUserFromNvs[] PROGMEM = "Restored MQTT-user from NVS";
+	const char restoredMqttUserFromNvs[] PROGMEM = "Restored MQTT-user from NVS: %s";
 	const char wroteMqttPwdToNvs[] PROGMEM = "Stored MQTT-password to NVS.";
-	const char restoredMqttPwdFromNvs[] PROGMEM = "Restored MQTT-password from NVS";
-	const char restoredMqttPortFromNvs[] PROGMEM = "Restored MQTT-port from NVS";
+	const char restoredMqttPwdFromNvs[] PROGMEM = "Restored MQTT-password from NVS: %s";
+	const char restoredMqttPortFromNvs[] PROGMEM = "Restored MQTT-port from NVS: %u";
 	const char mqttWithPwd[] PROGMEM = "Try to connect to MQTT-server with user und password";
 	const char mqttWithoutPwd[] PROGMEM = "Try to connect to MQTT-server without user und password";
 	const char ssidNotFoundInNvs[] PROGMEM = "Unable to find SSID to NVS.";
 	const char wifiPwdNotFoundInNvs[] PROGMEM = "Unable to find wifi-password to NVS.";
 	const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Unable to find wifi-ip-configuration to NVS.";
 	const char wifiHostnameNotSet[] PROGMEM = "Unable to find hostname-configuration to NVS.";
-	const char mqttConnFailed[] PROGMEM = "Unable to establish mqtt-connection, trying again...";
+	const char mqttConnFailed[] PROGMEM = "Unable to establish mqtt-connection, trying again: rc=%i (%d / %d)";
 	const char restoredHostnameFromNvs[] PROGMEM = "Restored hostname from NVS: %s";
 	const char currentVoltageMsg[] PROGMEM = "Current battery-voltage: %.2f V";
 	const char currentChargeMsg[] PROGMEM = "Current battery charge: %.2f %%";
@@ -173,7 +173,7 @@
 	const char unableToRestoreLastRfidFromNVS[] PROGMEM = "Unable to restore last RFID from NVS";
 	const char restoredLastRfidFromNVS[] PROGMEM = "Restored last RFID from NVS: %s";
 	const char failedOpenFileForWrite[] PROGMEM = "Failed to open file for writing";
-	const char fileWritten[] PROGMEM = "File written";
+	const char fileWritten[] PROGMEM = "File written: %s => %zu bytes in %lu ms (%lu kiB/s)";
 	const char writeFailed[] PROGMEM = "Write failed";
 	const char writingFile[] PROGMEM = "Writing file: %s";
 	const char failedToOpenFileForAppending[] PROGMEM = "Failed to open file for appending";
@@ -185,7 +185,7 @@
 	const char backupRecoveryWebsite[] PROGMEM = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 	const char restartWebsite[] PROGMEM = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 	const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino is being shutdown...</p>";
-	const char mqttMsgReceived[] PROGMEM = "MQTT-message received";
+	const char mqttMsgReceived[] PROGMEM = "MQTT-message received: [Topic: %s] [Command: %s]";
 	const char trackPausedAtPos[] PROGMEM = "Track paused at position: %u (%u)";
 	const char freeHeapWithoutFtp[] PROGMEM = "Free heap before FTP-allocation: %u";
 	const char freeHeapWithFtp[] PROGMEM = "Free heap after FTP-allocation: %u";

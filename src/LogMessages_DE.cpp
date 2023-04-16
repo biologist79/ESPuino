@@ -4,14 +4,14 @@
 #if (LANGUAGE == DE)
 	#include "Log.h"
 
-	const char tryConnectMqttS[] PROGMEM = "Versuche Verbindung zu MQTT-Broker aufzubauen";
+	const char tryConnectMqttS[] PROGMEM = "Versuche Verbindung zu MQTT-Broker aufzubauen: %s";
 	const char mqttOk[] PROGMEM = "MQTT-Session aufgebaut.";
 	const char sleepTimerEOP[] PROGMEM = "Sleep-Timer: Nach dem letzten Track der Playlist.";
 	const char sleepTimerEOT[] PROGMEM = "Sleep-Timer: Nach dem Ende des laufenden Tracks.";
 	const char sleepTimerStop[] PROGMEM = "Sleep-Timer wurde deaktiviert.";
 	const char sleepTimerEO5[] PROGMEM = "Sleep Timer: Nach Ende des Titels oder, wenn früher, Ende der Playlist";
 	const char sleepTimerAlreadyStopped[] PROGMEM = "Sleep-Timer ist bereits deaktiviert.";
-	const char sleepTimerSetTo[] PROGMEM = "Sleep-Timer gesetzt auf";
+	const char sleepTimerSetTo[] PROGMEM = "Sleep-Timer gesetzt auf %u Minute(n)";
 	const char allowButtons[] PROGMEM = "Alle Tasten werden freigegeben.";
 	const char lockButtons[] PROGMEM = "Alle Tasten werden gesperrt.";
 	const char noPlaylistNotAllowedMqtt[] PROGMEM = "Playmode kann nicht auf 'Keine Playlist' gesetzt werden via MQTT.";
@@ -20,7 +20,7 @@
 	const char noValidTopic[] PROGMEM = "Kein gültiges Topic: %s";
 	const char freePtr[] PROGMEM = "Ptr-Freigabe: %s (0x%04x)";
 	const char freeMemory[] PROGMEM = "Freier Speicher: %u";
-	const char writeEntryToNvs[] PROGMEM = "Schreibe Eintrag in NVS";
+	const char writeEntryToNvs[] PROGMEM = "[%u] Schreibe Eintrag in NVS: %s => %s";
 	const char freeMemoryAfterFree[] PROGMEM = "Freier Speicher nach Aufräumen: %u";
 	const char releaseMemoryOfOldPlaylist[] PROGMEM = "Gebe Speicher der alten Playlist frei.";
 	const char dirOrFileDoesNotExist[] PROGMEM = "Datei oder Verzeichnis existiert nicht: %s";
@@ -134,24 +134,24 @@
 	const char wroteMaxLoudnessForHeadphoneToNvs[] PROGMEM = "Maximale Lautstärke für Kopfhörer wurde ins NVS geschrieben.";
 	const char maxVolumeSet[] PROGMEM = "Maximale Lautstärke wurde gesetzt auf: %u";
 	const char wroteMqttFlagToNvs[] PROGMEM = "MQTT-Flag wurde ins NVS geschrieben.";
-	const char restoredMqttActiveFromNvs[] PROGMEM = "MQTT-Flag (aktiviert) wurde aus NVS geladen";
-	const char restoredMqttDeactiveFromNvs[] PROGMEM = "MQTT-Flag (deaktiviert) wurde aus NVS geladen";
+	const char restoredMqttActiveFromNvs[] PROGMEM = "MQTT-Flag (aktiviert) wurde aus NVS geladen: %u";
+	const char restoredMqttDeactiveFromNvs[] PROGMEM = "MQTT-Flag (deaktiviert) wurde aus NVS geladen: %u";
 	const char wroteMqttClientIdToNvs[] PROGMEM = "MQTT-ClientId wurde ins NVS geschrieben.";
-	const char restoredMqttClientIdFromNvs[] PROGMEM = "MQTT-ClientId wurde aus NVS geladen";
+	const char restoredMqttClientIdFromNvs[] PROGMEM = "MQTT-ClientId wurde aus NVS geladen: %s";
 	const char wroteMqttServerToNvs[] PROGMEM = "MQTT-Server wurde ins NVS geschrieben.";
-	const char restoredMqttServerFromNvs[] PROGMEM = "MQTT-Server wurde aus NVS geladen";
+	const char restoredMqttServerFromNvs[] PROGMEM = "MQTT-Server wurde aus NVS geladen: %s";
 	const char wroteMqttUserToNvs[] PROGMEM = "MQTT-User wurde ins NVS geschrieben.";
-	const char restoredMqttUserFromNvs[] PROGMEM = "MQTT-User wurde aus NVS geladen";
+	const char restoredMqttUserFromNvs[] PROGMEM = "MQTT-User wurde aus NVS geladen: %s";
 	const char wroteMqttPwdToNvs[] PROGMEM = "MQTT-Passwort wurde ins NVS geschrieben.";
-	const char restoredMqttPwdFromNvs[] PROGMEM = "MQTT-Passwort wurde aus NVS geladen";
-	const char restoredMqttPortFromNvs[] PROGMEM = "MQTT-Port wurde aus NVS geladen";
+	const char restoredMqttPwdFromNvs[] PROGMEM = "MQTT-Passwort wurde aus NVS geladen: %s";
+	const char restoredMqttPortFromNvs[] PROGMEM = "MQTT-Port wurde aus NVS geladen: %u";
 	const char mqttWithPwd[] PROGMEM = "Verbinde zu MQTT-Server mit User und Passwort";
 	const char mqttWithoutPwd[] PROGMEM = "Verbinde zu MQTT-Server ohne User und Passwort";
 	const char ssidNotFoundInNvs[] PROGMEM = "SSID wurde im NVS nicht gefunden.";
 	const char wifiPwdNotFoundInNvs[] PROGMEM = "WLAN-Passwort wurde im NVS nicht gefunden.";
 	const char wifiStaticIpConfigNotFoundInNvs[] PROGMEM = "Statische WLAN-IP-Konfiguration wurde im NVS nicht gefunden.";
 	const char wifiHostnameNotSet[] PROGMEM = "Keine Hostname-Konfiguration im NVS gefunden.";
-	const char mqttConnFailed[] PROGMEM = "Verbindung fehlgeschlagen, versuche in Kürze erneut";
+	const char mqttConnFailed[] PROGMEM = "Verbindung fehlgeschlagen, versuche in Kürze erneut: rc=%i (%d / %d)";
 	const char restoredHostnameFromNvs[] PROGMEM = "Hostname aus NVS geladen: %s";
 	const char currentVoltageMsg[] PROGMEM = "Aktuelle Batteriespannung: %.2f V";
 	const char currentChargeMsg[] PROGMEM = "Aktuelle Batterieladung: %.2f %%";
@@ -173,7 +173,7 @@
 	const char unableToRestoreLastRfidFromNVS[] PROGMEM = "Letzte RFID konnte nicht aus NVS geladen werden";
 	const char restoredLastRfidFromNVS[] PROGMEM = "Letzte RFID wurde aus NVS geladen: %s";
 	const char failedOpenFileForWrite[] PROGMEM = "Öffnen der Datei für den Schreibvorgang fehlgeschlagen";
-	const char fileWritten[] PROGMEM = "Datei geschrieben";
+	const char fileWritten[] PROGMEM = "Datei geschrieben: %s => %zu bytes in %lu ms (%lu kiB/s)";
 	const char writeFailed[] PROGMEM = "Schreibvorgang fehlgeschlagen";
 	const char writingFile[] PROGMEM = "Schreibe Datei: %s";
 	const char failedToOpenFileForAppending[] PROGMEM = "Öffnen der Datei zum Schreiben der JSON-Datei fehlgeschlagen";
@@ -185,7 +185,7 @@
 	const char backupRecoveryWebsite[] PROGMEM = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char restartWebsite[] PROGMEM = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char shutdownWebsite[] PROGMEM = "<p>Der ESPuino wird ausgeschaltet...</p>";
-	const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen";
+	const char mqttMsgReceived[] PROGMEM = "MQTT-Nachricht empfangen: [Topic: %s] [Command: %s]";
 	const char trackPausedAtPos[] PROGMEM = "Titel pausiert bei Position: %u (%u)";
 	const char freeHeapWithoutFtp[] PROGMEM = "Freier Heap-Speicher vor FTP-Instanzierung: %u";
 	const char freeHeapWithFtp[] PROGMEM = "Freier Heap-Speicher nach FTP-Instanzierung: %u";

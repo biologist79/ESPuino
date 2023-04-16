@@ -46,11 +46,11 @@ void Mqtt_Init() {
 				break;
 			case 1:
 				Mqtt_Enabled = nvsEnableMqtt;
-				Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttActiveFromNvs), nvsEnableMqtt);
+				Log_Printf(LOGLEVEL_INFO, restoredMqttActiveFromNvs, nvsEnableMqtt);
 				break;
 			case 0:
 				Mqtt_Enabled = nvsEnableMqtt;
-				Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttDeactiveFromNvs), nvsEnableMqtt);
+				Log_Printf(LOGLEVEL_INFO, restoredMqttDeactiveFromNvs, nvsEnableMqtt);
 				break;
 		}
 
@@ -61,7 +61,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttClientIdToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttClientId = nvsMqttClientId;
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttClientIdFromNvs), nvsMqttClientId.c_str());
+			Log_Printf(LOGLEVEL_INFO, restoredMqttClientIdFromNvs, nvsMqttClientId.c_str());
 		}
 
 		// Get MQTT-server from NVS
@@ -71,7 +71,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttServerToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttServer = nvsMqttServer;
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttServerFromNvs), nvsMqttServer.c_str());
+			Log_Printf(LOGLEVEL_INFO, restoredMqttServerFromNvs, nvsMqttServer.c_str());
 		}
 
 		// Get MQTT-user from NVS
@@ -81,7 +81,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttUserToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttUser = nvsMqttUser;
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttUserFromNvs), nvsMqttUser.c_str());
+			Log_Printf(LOGLEVEL_INFO, restoredMqttUserFromNvs, nvsMqttUser.c_str());
 		}
 
 		// Get MQTT-password from NVS
@@ -91,7 +91,7 @@ void Mqtt_Init() {
 			Log_Println((char *) FPSTR(wroteMqttPwdToNvs), LOGLEVEL_ERROR);
 		} else {
 			gMqttPassword = nvsMqttPassword;
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(restoredMqttPwdFromNvs), nvsMqttPassword.c_str());
+			Log_Printf(LOGLEVEL_INFO, restoredMqttPwdFromNvs, nvsMqttPassword.c_str());
 		}
 
 		// Get MQTT-password from NVS
@@ -100,7 +100,7 @@ void Mqtt_Init() {
 			gPrefsSettings.putUInt("mqttPort", gMqttPort);
 		} else {
 			gMqttPort = nvsMqttPort;
-			Log_Printf(LOGLEVEL_INFO, "%s: %u", (char *) FPSTR(restoredMqttPortFromNvs), gMqttPort);
+			Log_Printf(LOGLEVEL_INFO, restoredMqttPortFromNvs, gMqttPort);
 		}
 
 		// Only enable MQTT if requested
@@ -207,7 +207,7 @@ bool Mqtt_Reconnect() {
 
 		while (!Mqtt_PubSubClient.connected() && i < mqttMaxRetriesPerInterval) {
 			i++;
-			Log_Printf(LOGLEVEL_NOTICE, "%s %s", (char *) FPSTR(tryConnectMqttS), gMqttServer.c_str());
+			Log_Printf(LOGLEVEL_NOTICE, tryConnectMqttS, gMqttServer.c_str());
 
 			// Try to connect to MQTT-server. If username AND password are set, they'll be used
 			if ((gMqttUser.length() < 1u) || (gMqttPassword.length()) < 1u) {
@@ -267,7 +267,7 @@ bool Mqtt_Reconnect() {
 
 				return Mqtt_PubSubClient.connected();
 			} else {
-				Log_Printf(LOGLEVEL_ERROR, "%s: rc=%i (%d / %d)", (char *) FPSTR(mqttConnFailed), Mqtt_PubSubClient.state(), i, mqttMaxRetriesPerInterval);
+				Log_Printf(LOGLEVEL_ERROR, mqttConnFailed, Mqtt_PubSubClient.state(), i, mqttMaxRetriesPerInterval);
 			}
 		}
 		return false;
@@ -282,7 +282,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		char *receivedString = (char*)x_calloc(length + 1u, sizeof(char));
 		memcpy(receivedString, (char *) payload, length);
 
-		Log_Printf(LOGLEVEL_INFO, "%s: [Topic: %s] [Command: %s]", (char *) FPSTR(mqttMsgReceived), topic, receivedString);
+		Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString);
 
 		// Go to sleep?
 		if (strcmp_P(topic, topicSleepCmnd) == 0) {
@@ -357,7 +357,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				return;
 			}
 			System_SetSleepTimer((uint8_t)strtoul(receivedString, NULL, 10));
-			Log_Printf(LOGLEVEL_NOTICE, "%s: %u Minute(n)", (char *) FPSTR(sleepTimerSetTo), System_GetSleepTimer());
+			Log_Printf(LOGLEVEL_NOTICE, sleepTimerSetTo, System_GetSleepTimer());
 			System_IndicateOk();
 
 			gPlayProperties.sleepAfterPlaylist = false;
