@@ -164,7 +164,15 @@
 	// Buttons (better leave unchanged if in doubts :-))
 	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
 	constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
-
+	
+	// Buttons active state: Default 0 for active LOW, 1 for active HIGH e.g. for TTP223 Capacitive Touch Switch Button (FinnBox)
+	#define BUTTON_0_ACTIVE_STATE 0
+	#define BUTTON_1_ACTIVE_STATE 0
+	#define BUTTON_2_ACTIVE_STATE 0
+	#define BUTTON_3_ACTIVE_STATE 0
+	#define BUTTON_4_ACTIVE_STATE 0
+	#define BUTTON_5_ACTIVE_STATE 0
+	
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 	#define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked
 
