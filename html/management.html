@@ -7,7 +7,7 @@
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon">
 	<link rel="stylesheet" href="https://espuino.de/espuino/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
 	<script src="https://espuino.de/espuino/js/jquery.min.js"></script>
@@ -678,10 +678,13 @@
 			var lastFolder = cur['id'].split('/').filter(function (el) {
 				return el.trim().length > 0;
 			}).pop();
-			if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|flac|FLAC|m4a|M4A)$/i).test(lastFolder)) {
+			if ((/\.(mp3|ogg|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
 				data.instance.set_type(data.instance._model.data[key], 'audio');
 			} else
-			if ((/\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(lastFolder)) {
+			if ((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
+				data.instance.set_type(data.instance._model.data[key], 'playlist');
+			} else
+			if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(lastFolder)) {
 				data.instance.set_type(data.instance._model.data[key], 'image');
 				data.instance.disable_node(data.instance._model.data[key]);
 			} else {
@@ -711,7 +714,7 @@
 			$('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
 		}
 
-		if (data.node.type == "audio") {
+		if ((data.node.type == "audio") || (data.node.type == "playlist")) {
 			$('.option-file').show();
 			$('.option-folder').hide();
 			$('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
@@ -974,9 +977,11 @@
 
 		if(data.dir) {
 			type = "folder";
-		} else if ((/\.(mp3|MP3|ogg|wav|WAV|OGG|wma|WMA|acc|ACC|m4a|M4A|flac|FLAC)$/i).test(data.name)) {
+		} else if ((/\.(mp3|ogg|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
 			type = "audio";
-		} else if ((/\.(png|PNG|jpg|JPG|jpeg|JPEG|bmp|BMP|gif|GIF)$/i).test(data.name)) {
+		} else if ((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
+			type = "playlist";
+		} else if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(data.name)) {
 			type = "image";
 		} else {
 			type = "file";
@@ -984,6 +989,7 @@
 
 		return type;
 	}
+
 
 
 	function addFileDirectory(parent, data) {
@@ -1026,6 +1032,9 @@
 						'audio': {
 							'icon': "fa fa-file-audio"
 						},
+						'playlist': {
+							'icon': "fa fa-file-alt"
+						},
 						'image': {
 							'icon': "fa fa-file-image"
 						},
@@ -1064,7 +1073,7 @@
 								if (node.data.directory) {
 									playMode = 5;
 								} else {
-									if ((/\.(m3u|M3U)$/i).test(node.data.path)) {
+									if ((/\.(m3u|m3u8|asx|pls)$/i).test(node.data.path)) {
 										playMode = 11;
 									}
 								}
