@@ -105,11 +105,14 @@ bool fileValid(const char *_fileItem) {
 	// make file extension to lowercase (compare case insenstive)
 	char *lFileItem;
 	lFileItem = x_strdup(_fileItem);
+	if (lFileItem == NULL) {
+		return false;
+	}
 	lFileItem = strlwr(lFileItem);
 	const char ch = '/';
 	char *subst;
 	subst = strrchr(lFileItem, ch); // Don't use files that start with .
-	return (!startsWith(subst, (char *) "/.")) && (
+	bool isValid = (!startsWith(subst, (char *) "/.")) && (
 			// audio file formats
 			endsWith(lFileItem, ".mp3") || 
 			endsWith(lFileItem, ".aac") || 
@@ -123,6 +126,8 @@ bool fileValid(const char *_fileItem) {
 			endsWith(lFileItem, ".m3u8") || 
 			endsWith(lFileItem, ".pls") || 
 			endsWith(lFileItem, ".asx"));
+	free(lFileItem);
+	return isValid;
 }
 
 
