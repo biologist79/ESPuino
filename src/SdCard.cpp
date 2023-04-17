@@ -160,7 +160,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 			break;
 		}
 		if (!fileItem.isDirectory()) {
-			fileItem.close();
 			continue;
 		} else {
 			#if ESP_ARDUINO_VERSION_MAJOR >= 2
@@ -168,7 +167,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 			#else
 				strncpy(buffer, (char *) fileItem.name(), 255);
 			#endif
-			fileItem.close();
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
 				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
@@ -395,7 +393,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				break;
 			}
 			if (fileItem.isDirectory()) {
-				fileItem.close();
 				continue;
 			} else {
 				#if ESP_ARDUINO_VERSION_MAJOR >= 2
@@ -403,7 +400,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				#else
 					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				#endif
-				fileItem.close();
 				// Don't support filenames that start with "." and only allow .mp3 and other supported audio formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
