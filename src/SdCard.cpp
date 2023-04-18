@@ -102,18 +102,32 @@ void SdCard_PrintInfo() {
 
 // Check if file-type is correct
 bool fileValid(const char *_fileItem) {
+	// make file extension to lowercase (compare case insenstive)
+	char *lFileItem;
+	lFileItem = x_strdup(_fileItem);
+	if (lFileItem == NULL) {
+		return false;
+	}
+	lFileItem = strlwr(lFileItem);
 	const char ch = '/';
 	char *subst;
-	subst = strrchr(_fileItem, ch); // Don't use files that start with .
-
-	return (!startsWith(subst, (char *) "/.")) && (
-			endsWith(_fileItem, ".mp3") || endsWith(_fileItem, ".MP3") ||
-			endsWith(_fileItem, ".aac") || endsWith(_fileItem, ".AAC") ||
-			endsWith(_fileItem, ".m3u") || endsWith(_fileItem, ".M3U") ||
-			endsWith(_fileItem, ".m4a") || endsWith(_fileItem, ".M4A") ||
-			endsWith(_fileItem, ".wav") || endsWith(_fileItem, ".WAV") ||
-			endsWith(_fileItem, ".flac") || endsWith(_fileItem, ".FLAC") ||
-			endsWith(_fileItem, ".asx") || endsWith(_fileItem, ".ASX"));
+	subst = strrchr(lFileItem, ch); // Don't use files that start with .
+	bool isValid = (!startsWith(subst, (char *) "/.")) && (
+			// audio file formats
+			endsWith(lFileItem, ".mp3") || 
+			endsWith(lFileItem, ".aac") || 
+			endsWith(lFileItem, ".m4a") || 
+			endsWith(lFileItem, ".wav") || 
+			endsWith(lFileItem, ".flac") || 
+			endsWith(lFileItem, ".ogg") || 
+			endsWith(lFileItem, ".opus") || 
+			// playlist file formats
+			endsWith(lFileItem, ".m3u") || 
+			endsWith(lFileItem, ".m3u8") || 
+			endsWith(lFileItem, ".pls") || 
+			endsWith(lFileItem, ".asx"));
+	free(lFileItem);
+	return isValid;
 }
 
 
@@ -153,7 +167,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 			#else
 				strncpy(buffer, (char *) fileItem.name(), 255);
 			#endif
-
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
 				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
@@ -301,6 +314,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 			serializedPlaylist[0] = '#';
 			while (fileOrDirectory.available() > 0) {
 				buf = fileOrDirectory.read();
+				if (buf == '#') {
+					// skip M3U comment lines starting with #
+					fileOrDirectory.readStringUntil('\n');
+					continue;
+				}
 				if (fPos+1 >= allocCount * allocSize) {
 					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
@@ -382,8 +400,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				#else
 					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				#endif
-
-				// Don't support filenames that start with "." and only allow .mp3
+				// Don't support filenames that start with "." and only allow .mp3 and other supported audio formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
 					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {

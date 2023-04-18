@@ -1067,6 +1067,8 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.exists(filePath)) {
+			// stop playback, file to delete might be in use
+			Cmd_Action(CMD_STOP);
 			file = gFSystem.open(filePath);
 			if (file.isDirectory()) {
 				if (explorerDeleteDirectory(file)) {
