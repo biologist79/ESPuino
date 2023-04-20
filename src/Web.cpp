@@ -925,39 +925,56 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
-	File file = root.openNextFile();
+	#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION_MAJOR == 2 && ESP_ARDUINO_VERSION_MINOR == 0 && ESP_ARDUINO_VERSION_PATCH >= 8)
+		bool isDir = false;
+		String MyfileName = root.getNextFileName(&isDir);
+		while (MyfileName != "") {
+			// ignore hidden folders, e.g. MacOS spotlight files
+			if (!startsWith( MyfileName.c_str() , (char *)"/.")) {
+				JsonObject entry = obj.createNestedObject();
+				convertAsciiToUtf8(MyfileName.c_str(), filePath);
+				std::string path = filePath;
+				std::string fileName = path.substr(path.find_last_of("/") + 1);
+				entry["name"] = fileName;
+				entry["dir"].set(isDir);
+			}
+			MyfileName = root.getNextFileName(&isDir);
+		}
+    #else
+		File file = root.openNextFile();
 
-	while (file) {
-		// ignore hidden folders, e.g. MacOS spotlight files
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		if (!startsWith( file.path() , (char *)"/.")) {
-		#else
-		if (!startsWith( file.name() , (char *)"/.")) {
-		#endif
-			JsonObject entry = obj.createNestedObject();
+		while (file) {
+			// ignore hidden folders, e.g. MacOS spotlight files
 			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				convertAsciiToUtf8(file.path(), filePath);
+				if (!startsWith( file.path() , (char *)"/.")) {
 			#else
-				convertAsciiToUtf8(file.name(), filePath);
+				if (!startsWith( file.name() , (char *)"/.")) {
 			#endif
-			std::string path = filePath;
-			std::string fileName = path.substr(path.find_last_of("/") + 1);
+				JsonObject entry = obj.createNestedObject();
+				#if ESP_ARDUINO_VERSION_MAJOR >= 2
+					convertAsciiToUtf8(file.path(), filePath);
+				#else
+					convertAsciiToUtf8(file.name(), filePath);
+				#endif
+				std::string path = filePath;
+				std::string fileName = path.substr(path.find_last_of("/") + 1);
 
-			entry["name"] = fileName;
-			entry["dir"].set(file.isDirectory());
+				entry["name"] = fileName;
+				entry["dir"].set(file.isDirectory());
+			}
+			file.close();
+			file = root.openNextFile();
+
+
+			if (!gPlayProperties.pausePlay) {
+				// time critical, avoid delay with many files on SD-card!
+				feedTheDog();
+			} else {
+				// If playback is active this can (at least sometimes) prevent scattering
+				vTaskDelay(portTICK_PERIOD_MS * 5);
+			}
 		}
-		file.close();
-		file = root.openNextFile();
-
-
-		if (!gPlayProperties.pausePlay) {
-			// time critical, avoid delay with many files on SD-card!
-			feedTheDog();
-		} else {
-			// If playback is active this can (at least sometimes) prevent scattering
-			vTaskDelay(portTICK_PERIOD_MS * 5);
-		}
-	}
+	#endif
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
@@ -1067,8 +1084,6 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.exists(filePath)) {
-			// stop playback, file to delete might be in use
-			Cmd_Action(CMD_STOP);
 			file = gFSystem.open(filePath);
 			if (file.isDirectory()) {
 				if (explorerDeleteDirectory(file)) {
