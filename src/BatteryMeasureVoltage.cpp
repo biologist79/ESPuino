@@ -67,7 +67,7 @@
 		return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
 	}
 
-	void Battery_PublishMQTT(){
+	void Battery_PublishMQTT() {
 	#ifdef MQTT_ENABLE
 		float voltage = Battery_GetVoltage();
 		char vstr[6];
@@ -80,9 +80,9 @@
 	#endif
 	}
 
-	void Battery_LogStatus(void){
+	void Battery_LogStatus(void) {
 		Log_Printf(LOGLEVEL_INFO, currentVoltageMsg, Battery_GetVoltage());
-		Log_Printf(LOGLEVEL_INFO, currentVoltageMsg, Battery_EstimateLevel() * 100);
+		Log_Printf(LOGLEVEL_INFO, currentChargeMsg, Battery_EstimateLevel() * 100);
 	}
 
 	float Battery_EstimateLevel(void) {
@@ -113,13 +113,13 @@
 		float voltageIndicatorLow = 3.0f;
 		float voltageIndicatorHigh = 4.2f;
 
-		void Battery_InitInner(void){}
-		void Battery_CyclicInner(void){}
-		float Battery_GetVoltage(void){return 4.2;}
-		void Battery_PublishMQTT(void){}
-		void Battery_LogStatus(void){}
-		float Battery_EstimateLevel(void) {return 42.0;}
-		bool Battery_IsLow(void) {return false;}
-		bool Battery_IsCritical(void) {return false;}
+		void Battery_InitInner(void) {}
+		void Battery_CyclicInner(void) {}
+		float Battery_GetVoltage(void) { return 4.2; }
+		void Battery_PublishMQTT(void) {}
+		void Battery_LogStatus(void) {}
+		float Battery_EstimateLevel(void) { return 42.0; }
+		bool Battery_IsLow(void) { return false; }
+		bool Battery_IsCritical(void) { return false; }
 	#endif
 #endif
