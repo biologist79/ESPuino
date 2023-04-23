@@ -180,7 +180,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 			#else
 				strncpy(buffer, (char *) fileItem.name(), 255);
 			#endif
-			fileItem.close();
 		#endif
 
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
@@ -332,6 +331,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 			serializedPlaylist[0] = '#';
 			while (fileOrDirectory.available() > 0) {
 				buf = fileOrDirectory.read();
+				if (buf == '#') {
+					// skip M3U comment lines starting with #
+					fileOrDirectory.readStringUntil('\n');
+					continue;
+				}				
 				if (fPos+1 >= allocCount * allocSize) {
 					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
@@ -424,7 +428,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				#else
 					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				#endif
-				fileItem.close();
 			#endif
 				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 				if (fileValid(fileNameBuf)) {
