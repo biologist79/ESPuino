@@ -405,7 +405,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 
 		while (true) {
-			#ifdef HAS_FILEEXPLORER_SPEEDUP
+			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION_MAJOR == 2 && ESP_ARDUINO_VERSION_MINOR == 0 && ESP_ARDUINO_VERSION_PATCH >= 8)
 				bool isDir = false;
 				String MyfileName = fileOrDirectory.getNextFileName(&isDir);
 				if (MyfileName == "") {
