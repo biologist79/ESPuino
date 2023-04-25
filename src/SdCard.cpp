@@ -157,16 +157,16 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 
 	// Create linear list of subdirectories with #-delimiters
 	while (true) {
-		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION_MAJOR == 2 && ESP_ARDUINO_VERSION_MINOR == 0 && ESP_ARDUINO_VERSION_PATCH >= 8)
+		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
 			bool isDir = false;
 			String MyfileName = directory.getNextFileName(&isDir);
 			if (MyfileName == "") {
 				break;
 			}
-			if (isDir) {
+			if (!isDir) {
 				continue;
 			} else {
-			strncpy(buffer, (char *) MyfileName.c_str(), 255);
+				strncpy(buffer, MyfileName.c_str(), 255);
 		#else
 			File fileItem = directory.openNextFile();
 			if (!fileItem) {
@@ -405,7 +405,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 
 		while (true) {
-			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION_MAJOR == 2 && ESP_ARDUINO_VERSION_MINOR == 0 && ESP_ARDUINO_VERSION_PATCH >= 8)
+			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
 				bool isDir = false;
 				String MyfileName = fileOrDirectory.getNextFileName(&isDir);
 				if (MyfileName == "") {
@@ -414,7 +414,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				if (isDir) {
 					continue;
 				} else {
-				strncpy(fileNameBuf, (char *) MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+					strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 			#else
 				File fileItem = fileOrDirectory.openNextFile();
 				if (!fileItem) {

@@ -925,7 +925,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
-	#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION_MAJOR == 2 && ESP_ARDUINO_VERSION_MINOR == 0 && ESP_ARDUINO_VERSION_PATCH >= 8)
+	#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
 		bool isDir = false;
 		String MyfileName = root.getNextFileName(&isDir);
 		while (MyfileName != "") {
