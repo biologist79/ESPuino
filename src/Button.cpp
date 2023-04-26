@@ -105,7 +105,7 @@ void Button_Init() {
 	#endif
 	#ifdef BUTTON_1_ENABLE
 		if (BUTTON_1_ACTIVE_STATE)
-			pinMode(PREVIOUS_BUTTON, INPUT;
+			pinMode(PREVIOUS_BUTTON, INPUT);
 		else
 			pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
 	#endif
