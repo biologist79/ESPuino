@@ -133,6 +133,8 @@ bool fileValid(const char *_fileItem) {
 
 // Takes a directory as input and returns a random subdirectory from it
 char *SdCard_pickRandomSubdirectory(char *_directory) {
+	uint32_t listStartTimestamp = millis();
+
 	// Look if file/folder requested really exists. If not => break.
 	File directory = gFSystem.open(_directory);
 	if (!directory) {
@@ -155,18 +157,31 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 
 	// Create linear list of subdirectories with #-delimiters
 	while (true) {
-		File fileItem = directory.openNextFile();
-		if (!fileItem) {
-			break;
-		}
-		if (!fileItem.isDirectory()) {
-			continue;
-		} else {
+		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+			bool isDir = false;
+			String MyfileName = directory.getNextFileName(&isDir);
+			if (MyfileName == "") {
+				break;
+			}
+			if (!isDir) {
+				continue;
+			} else {
+				strncpy(buffer, MyfileName.c_str(), 255);
+		#else
+			File fileItem = directory.openNextFile();
+			if (!fileItem) {
+				break;
+			}
+			if (!fileItem.isDirectory()) {
+				continue;
+			} else {
 			#if ESP_ARDUINO_VERSION_MAJOR >= 2
 				strncpy(buffer, (char *) fileItem.path(), 255);
 			#else
 				strncpy(buffer, (char *) fileItem.name(), 255);
 			#endif
+		#endif
+
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
 				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
@@ -215,6 +230,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	}
 
 	free(subdirectoryList);
+	Log_Printf(LOGLEVEL_DEBUG, "pick random directory from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 	return NULL;
 }
 
@@ -229,6 +245,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	bool readFromCacheFile = false;
 	bool enablePlaylistCaching = false;
 	bool enablePlaylistFromM3u = false;
+	uint32_t listStartTimestamp = millis();
 
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
 		Log_Println((char *) FPSTR(releaseMemoryOfOldPlaylist), LOGLEVEL_DEBUG);
@@ -318,7 +335,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					// skip M3U comment lines starting with #
 					fileOrDirectory.readStringUntil('\n');
 					continue;
-				}
+				}				
 				if (fPos+1 >= allocCount * allocSize) {
 					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println((char *) FPSTR(reallocCalled), LOGLEVEL_DEBUG);
@@ -388,19 +405,31 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 
 		while (true) {
-			File fileItem = fileOrDirectory.openNextFile();
-			if (!fileItem) {
-				break;
-			}
-			if (fileItem.isDirectory()) {
-				continue;
-			} else {
+			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+				bool isDir = false;
+				String MyfileName = fileOrDirectory.getNextFileName(&isDir);
+				if (MyfileName == "") {
+					break;
+				}
+				if (isDir) {
+					continue;
+				} else {
+					strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+			#else
+				File fileItem = fileOrDirectory.openNextFile();
+				if (!fileItem) {
+					break;
+				}
+				if (fileItem.isDirectory()) {
+					continue;
+				} else {
 				#if ESP_ARDUINO_VERSION_MAJOR >= 2
 					strncpy(fileNameBuf, (char *) fileItem.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				#else
 					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				#endif
-				// Don't support filenames that start with "." and only allow .mp3 and other supported audio formats
+			#endif
+				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(nameOfFileFound), fileNameBuf);
 					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
@@ -467,6 +496,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	}
 	snprintf(files[0], 5,  "%u", cnt);
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
+	Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 
 	return &(files[1]); // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
 }
