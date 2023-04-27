@@ -99,7 +99,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 
 		// wait until queues are created
 		while (gRfidCardQueue == NULL) {
-			Log_Println((char *) FPSTR(waitingForTaskQueues), LOGLEVEL_DEBUG);
+			Log_Println(waitingForTaskQueues, LOGLEVEL_DEBUG);
 			vTaskDelay(50);
 		}
 
@@ -126,11 +126,11 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				// show PN5180 reader version
 				uint8_t firmwareVersion[2];
 				nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-				Log_Printf(LOGLEVEL_DEBUG, "%s%d.%d", (char *) F("PN5180 firmware version="), firmwareVersion[1], firmwareVersion[0]);
+				Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
 
 				// activate RF field
 				delay(4u);
-				Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+				Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
 
 			// 1. check for an ISO-14443 card
 			} else if (RFID_PN5180_NFC14443_STATE_RESET == stateMachine) {
@@ -179,7 +179,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				if (ISO15693_EC_OK == myrc) {
 					if (showDisablePrivacyNotification) {
 						showDisablePrivacyNotification = false;
-						Log_Println((char *) F("disabling privacy-mode successful"), LOGLEVEL_NOTICE);
+						Log_Println("disabling privacy-mode successful", LOGLEVEL_NOTICE);
 					} else {
 						// no privacy mode or disabling failed, skip next steps & restart state machine
 						stateMachine = RFID_PN5180_NFC15693_STATE_GETINVENTORY_PRIVACY;
@@ -214,7 +214,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			#ifdef PAUSE_WHEN_RFID_REMOVED
 				if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {   // Card removed => pause
 					AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-					Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+					Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
 				}
 				cardAppliedLastRun = cardAppliedCurrentRun;
 			#endif
@@ -274,7 +274,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 						// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 						if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
 							AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead
-							Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
+							Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 						}
 					}
 					memcpy(lastValidcardId, uid, cardIdSize);
@@ -321,22 +321,23 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			// check firmware version: PN5180 firmware < 4.0 has several bugs preventing the LPCD mode
 			// you can flash latest firmware with this project: https://github.com/abidxraihan/PN5180_Updater_ESP32
 			if (firmwareVersion[1] < 4) {
-				Log_Println((char *) F("This PN5180 firmware does not work with LPCD! use firmware >= 4.0"), LOGLEVEL_ERROR);
+				Log_Println("This PN5180 firmware does not work with LPCD! use firmware >= 4.0", LOGLEVEL_ERROR);
 				return;
 			}
-			Log_Println((char *) F("prepare low power card detection..."), LOGLEVEL_NOTICE);
+			Log_Println("prepare low power card detection...", LOGLEVEL_NOTICE);
 			uint8_t irqConfig = 0b0000000; // Set IRQ active low + clear IRQ-register
 			nfc.writeEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
-			/*nfc.readEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
-			Serial.print(F("IRQ_PIN_CONFIG=0x"));
-			Serial.println(irqConfig, HEX);*/
+			/*
+			nfc.readEEprom(IRQ_PIN_CONFIG, &irqConfig, 1);
+			Log_Printf("IRQ_PIN_CONFIG=0x%02X", irqConfig)
+			*/
 			nfc.prepareLPCD();
-			Log_Println((char *) F("PN5180 IRQ PIN: "), LOGLEVEL_NOTICE);
+			Log_Println("PN5180 IRQ PIN: ", LOGLEVEL_NOTICE);
 			Serial.println(Port_Read(RFID_IRQ));
 			// turn on LPCD
 			uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 			if (nfc.switchToLPCD(wakeupCounterInMs)) {
-				Log_Println((char *) F("switch to low power card detection: success"), LOGLEVEL_NOTICE);
+				Log_Println("switch to low power card detection: success", LOGLEVEL_NOTICE);
 				// configure wakeup pin for deep-sleep wake-up, use ext1
 				#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
@@ -346,7 +347,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				gpio_hold_en(gpio_num_t(RFID_RST)); // RST
 				gpio_deep_sleep_hold_en();
 			} else {
-				Log_Println((char *) F("switchToLPCD failed"), LOGLEVEL_ERROR);
+				Log_Println("switchToLPCD failed", LOGLEVEL_ERROR);
 			}
 		#endif
 	}
@@ -370,17 +371,17 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				nfc14443.reset();
 				uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 				if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
-					Log_Println((char *) FPSTR(lowPowerCardSuccess), LOGLEVEL_INFO);
+					Log_Println(lowPowerCardSuccess, LOGLEVEL_INFO);
 					// configure wakeup pin for deep-sleep wake-up, use ext1
 					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
 					// freeze pin states in deep sleep
 					gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
 					gpio_hold_en(gpio_num_t(RFID_RST)); // RST
 					gpio_deep_sleep_hold_en();
-					Log_Println((char *) FPSTR(wakeUpRfidNoIso14443), LOGLEVEL_ERROR);
+					Log_Println(wakeUpRfidNoIso14443, LOGLEVEL_ERROR);
 					esp_deep_sleep_start();
 				} else {
-					Log_Println((char *) F("switchToLPCD failed"), LOGLEVEL_ERROR);
+					Log_Println("switchToLPCD failed", LOGLEVEL_ERROR);
 				}
 			}
 			nfc14443.end();

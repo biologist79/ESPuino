@@ -14,8 +14,8 @@
 #include "Audio.h"
 #include "Power.h"
 
-constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
-constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
+constexpr const char prefsRfidNamespace[] = "rfidTags";     // Namespace used to save IDs of rfid-tags
+constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used for generic settings
 
 Preferences gPrefsRfid;
 Preferences gPrefsSettings;
@@ -37,8 +37,8 @@ void System_DeepSleepManager(void);
 void System_Init(void) {
 	srand(esp_random());
 
-	gPrefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
-	gPrefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
+	gPrefsRfid.begin(prefsRfidNamespace);
+	gPrefsSettings.begin(prefsSettingsNamespace);
 
 	// Get maximum inactivity-time from NVS
 	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", 0);
@@ -47,7 +47,7 @@ void System_Init(void) {
 		Log_Printf(LOGLEVEL_INFO, restoredMaxInactivityFromNvs, nvsMInactivityTime);
 	} else {
 		gPrefsSettings.putUInt("mInactiviyT", System_MaxInactivityTime);
-		Log_Println((char *) FPSTR(wroteMaxInactivityToNvs), LOGLEVEL_ERROR);
+		Log_Println(wroteMaxInactivityToNvs, LOGLEVEL_ERROR);
 	}
 
 	System_OperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
@@ -77,7 +77,7 @@ bool System_SetSleepTimer(uint8_t minutes) {
 		System_SleepTimerStartTimestamp = 0u;
 		System_SleepTimer = 0u;
 		Led_ResetToInitialBrightness();
-		Log_Println((char *) FPSTR(modificatorSleepd), LOGLEVEL_NOTICE);
+		Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
 	} else {
 		System_SleepTimerStartTimestamp = millis();
 		System_SleepTimer = minutes;
@@ -85,19 +85,19 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 		Led_ResetToNightBrightness();
 		if (minutes == 15) {
-			Log_Println((char *)FPSTR(modificatorSleepTimer15), LOGLEVEL_NOTICE);
+			Log_Println(modificatorSleepTimer15, LOGLEVEL_NOTICE);
 		} else if (minutes == 30) {
-			Log_Println((char *)FPSTR(modificatorSleepTimer30), LOGLEVEL_NOTICE);
+			Log_Println(modificatorSleepTimer30, LOGLEVEL_NOTICE);
 		} else if (minutes == 60) {
-			Log_Println((char *)FPSTR(modificatorSleepTimer60), LOGLEVEL_NOTICE);
+			Log_Println(modificatorSleepTimer60, LOGLEVEL_NOTICE);
 		} else {
-			Log_Println((char *)FPSTR(modificatorSleepTimer120), LOGLEVEL_NOTICE);
+			Log_Println(modificatorSleepTimer120, LOGLEVEL_NOTICE);
 		}
 	}
 
 	#ifdef MQTT_ENABLE
-		publishMqtt((char *) FPSTR(topicSleepTimerState), System_GetSleepTimer(), false);
-		publishMqtt((char *) FPSTR(topicLedBrightnessState), Led_GetBrightness(), false);
+		publishMqtt(topicSleepTimerState, System_GetSleepTimer(), false);
+		publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 	#endif
 
 	return sleepTimerEnabled;
@@ -167,11 +167,11 @@ uint8_t System_GetOperationModeFromNvs(void) {
 void System_SleepHandler(void) {
 	unsigned long m = millis();
 	if (m >= System_LastTimeActiveTimestamp && (m - System_LastTimeActiveTimestamp >= (System_MaxInactivityTime * 1000u * 60u))) {
-		Log_Println((char *) FPSTR(goToSleepDueToIdle), LOGLEVEL_INFO);
+		Log_Println(goToSleepDueToIdle, LOGLEVEL_INFO);
 		System_RequestSleep();
 	} else if (System_SleepTimerStartTimestamp > 00) {
 		if (m - System_SleepTimerStartTimestamp >= (System_SleepTimer * 1000u * 60u)) {
-			Log_Println((char *) FPSTR(goToSleepDueToTimer), LOGLEVEL_INFO);
+			Log_Println(goToSleepDueToTimer, LOGLEVEL_INFO);
 			System_RequestSleep();
 		}
 	}
@@ -185,7 +185,7 @@ void System_DeepSleepManager(void) {
 		}
 
 		System_Sleeping = true;
-		Log_Println((char *) FPSTR(goToSleepNow), LOGLEVEL_NOTICE);
+		Log_Println(goToSleepNow, LOGLEVEL_NOTICE);
 
 		// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
 		#ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
@@ -223,7 +223,7 @@ void System_DeepSleepManager(void) {
 		#ifdef PORT_EXPANDER_ENABLE
 			Port_Exit();
 		#endif
-		Log_Println((char *) F("deep-sleep, good night......."), LOGLEVEL_NOTICE);
+		Log_Println("deep-sleep, good night.......", LOGLEVEL_NOTICE);
 		esp_deep_sleep_start();
 	}
 }
@@ -233,10 +233,10 @@ void System_ShowUpgradeWarning(void) {
 	uint32_t nvsShowUpgradeWarningCount = gPrefsSettings.getUInt("wcountrefact", 0);
 	if (!nvsShowUpgradeWarningCount) {
 		gPrefsSettings.putUInt("wcountrefact", 1);
-		Log_Println((char *) FPSTR(warningRefactoring), LOGLEVEL_ERROR);
+		Log_Println(warningRefactoring, LOGLEVEL_ERROR);
 	} else if (nvsShowUpgradeWarningCount < 5) {
 		gPrefsSettings.putUInt("wcountrefact", ++nvsShowUpgradeWarningCount);
-		Log_Println((char *) FPSTR(warningRefactoring), LOGLEVEL_ERROR);
+		Log_Println(warningRefactoring, LOGLEVEL_ERROR);
 	}
 }
 
@@ -247,19 +247,19 @@ void System_ShowWakeUpReason() {
 
 	switch (wakeup_reason) {
 		case ESP_SLEEP_WAKEUP_EXT0:
-			Log_Println((char *) F("Wakeup caused by push-button"), LOGLEVEL_NOTICE);
+			Log_Println("Wakeup caused by push-button", LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_EXT1:
-			Log_Println((char *) F("Wakeup caused by low power card-detection"), LOGLEVEL_NOTICE);
+			Log_Println("Wakeup caused by low power card-detection", LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_TIMER:
-			Log_Println((char *) F("Wakeup caused by timer"), LOGLEVEL_NOTICE);
+			Log_Println("Wakeup caused by timer", LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_TOUCHPAD:
-			Log_Println((char *) F("Wakeup caused by touchpad"), LOGLEVEL_NOTICE);
+			Log_Println("Wakeup caused by touchpad", LOGLEVEL_NOTICE);
 			break;
 		case ESP_SLEEP_WAKEUP_ULP:
-			Log_Println((char *) F("Wakeup caused by ULP-program"), LOGLEVEL_NOTICE);
+			Log_Println("Wakeup caused by ULP-program", LOGLEVEL_NOTICE);
 			break;
 		default:
 			Log_Printf(LOGLEVEL_NOTICE, "Wakeup was not caused by deepsleep: %d", wakeup_reason);

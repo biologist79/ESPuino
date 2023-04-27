@@ -43,7 +43,7 @@
 			mfrc522.PCD_Init();
 			mfrc522.PCD_SetAntennaGain(rfidGain);
 			delay(50);
-			Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+			Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
 
 			xTaskCreatePinnedToCore(
 				Rfid_Task,              /* Function to implement the task */
@@ -169,10 +169,10 @@
 						}
 					}
 
-					Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+					Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
 					if (!gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-						Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
+						Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 					}
 					mfrc522.PICC_HaltA();
 					mfrc522.PCD_StopCrypto1();

@@ -3,6 +3,7 @@
 #include "IrReceiver.h"
 #include "AudioPlayer.h"
 #include "Cmd.h"
+#include "Log.h"
 #include "Queues.h"
 #include "System.h"
 
@@ -41,42 +42,42 @@ void IrReceiver_Cyclic() {
 				case RC_PLAY: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
-						Log_Println((char *) F("RC: Play"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Play", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_PAUSE: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PLAYPAUSE);
-						Log_Println((char *) F("RC: Pause"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Pause", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_NEXT: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_NEXTTRACK);
-						Log_Println((char *) F("RC: Next"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Next", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_PREVIOUS: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_PREVTRACK);
-						Log_Println((char *) F("RC: Previous"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Previous", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_FIRST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_FIRSTTRACK);
-						Log_Println((char *) F("RC: First"), LOGLEVEL_NOTICE);
+						Log_Println("RC: First", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_LAST: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_LASTTRACK);
-						Log_Println((char *) F("RC: Last"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Last", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
@@ -91,14 +92,14 @@ void IrReceiver_Cyclic() {
 
 						uint8_t currentVolume = AudioPlayer_GetCurrentVolume();
 						xQueueSend(gVolumeQueue, &currentVolume, 0);
-						Log_Println((char *) F("RC: Mute"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Mute", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_BLUETOOTH: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_TOGGLE_BLUETOOTH_SINK_MODE);
-						Log_Println((char *) F("RC: Bluetooth sink"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Bluetooth sink", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
@@ -106,30 +107,30 @@ void IrReceiver_Cyclic() {
 				case RC_FTP: {
 					if (rcActionOk) {
 						Cmd_Action(CMD_ENABLE_FTP_SERVER);
-						Log_Println((char *) F("RC: FTP"), LOGLEVEL_NOTICE);
+						Log_Println("RC: FTP", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_SHUTDOWN: {
 					if (rcActionOk) {
 						System_RequestSleep();
-						Log_Println((char *) F("RC: Shutdown"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Shutdown", LOGLEVEL_NOTICE);
 					}
 					break;
 				}
 				case RC_VOL_DOWN: {
 					Cmd_Action(CMD_VOLUMEDOWN);
-						Log_Println((char *) F("RC: Volume down"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Volume down", LOGLEVEL_NOTICE);
 					break;
 				}
 				case RC_VOL_UP: {
 					Cmd_Action(CMD_VOLUMEUP);
-						Log_Println((char *) F("RC: Volume up"), LOGLEVEL_NOTICE);
+						Log_Println("RC: Volume up", LOGLEVEL_NOTICE);
 					break;
 				}
 				default: {
 					if (rcActionOk) {
-						Log_Println((char *) F("RC: unknown"), LOGLEVEL_NOTICE);
+						Log_Println("RC: unknown", LOGLEVEL_NOTICE);
 					}
 				}
 			}

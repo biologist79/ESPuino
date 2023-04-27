@@ -36,8 +36,8 @@ typedef struct {
 	char nvsEntry[275];
 } nvs_t;
 
-const char mqttTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i><span data-i18n=\"nav.mqtt\"></span></a>";
-const char ftpTab[] PROGMEM = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i><span data-i18n=\"nav.ftp\"></span></a>";
+const char mqttTab[] = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i><span data-i18n=\"nav.mqtt\"></span></a>";
+const char ftpTab[] = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i><span data-i18n=\"nav.ftp\"></span></a>";
 
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
@@ -130,9 +130,9 @@ void Web_Init(void) {
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
 	#if (LANGUAGE == DE)
-		request->send(200, "text/html", (char *) F("ESPuino wird neu gestartet..."));
+		request->send(200, "text/html", "ESPuino wird neu gestartet...");
 	#else
-		request->send(200, "text/html", (char *) F("ESPuino is being restarted..."));
+		request->send(200, "text/html", "ESPuino is being restarted...");
 	#endif
 		Serial.flush();
 		ESP.restart();
@@ -140,9 +140,9 @@ void Web_Init(void) {
 
 	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
 	#if (LANGUAGE == DE)
-		request->send(200, "text/html", (char *) F("ESPuino wird ausgeschaltet..."));
+		request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
 	#else
-		request->send(200, "text/html", (char *) F("ESPuino is being shutdown..."));
+		request->send(200, "text/html", "ESPuino is being shutdown...");
 		#endif
 		System_RequestSleep();
 	});
@@ -152,7 +152,7 @@ void Web_Init(void) {
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 	wServer.begin();
-	Log_Println((char *) FPSTR(httpReady), LOGLEVEL_NOTICE);
+	Log_Println(httpReady, LOGLEVEL_NOTICE);
 }
 
 void Web_Cyclic(void) {
@@ -237,7 +237,7 @@ void webserverStart(void) {
                 #ifdef HALLEFFECT_SENSOR_ENABLE
 					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 					int diff = sva-gHallEffectSensor.NullFieldValue();
-					snprintf(buffer, sizeof(buffer), PSTR("\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)"), gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
+					snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
 					info += buffer;
                 #endif
 				request->send_P(200, "text/plain", info.c_str());
@@ -260,7 +260,7 @@ void webserverStart(void) {
 				#endif
 			[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 				#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					Log_Println((char *) FPSTR(otaNotSupported), LOGLEVEL_NOTICE);
+					Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
 					return;
 				#endif
 
@@ -270,7 +270,7 @@ void webserverStart(void) {
 						Cmd_Action(CMD_STOP);
 					}
 					Update.begin();
-					Log_Println((char *) FPSTR(fwStart), LOGLEVEL_NOTICE);
+					Log_Println(fwStart, LOGLEVEL_NOTICE);
 				}
 
 				Update.write(data, len);
@@ -278,7 +278,7 @@ void webserverStart(void) {
 
 				if (final) {
 					Update.end(true);
-					Log_Println((char *) FPSTR(fwEnd), LOGLEVEL_NOTICE);
+					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					Serial.flush();
 					ESP.restart();
 				}
@@ -300,9 +300,9 @@ void webserverStart(void) {
 		// ESP-shutdown
 		wServer.on("/rfidnvserase", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", eraseRfidNvsWeb);
-			Log_Println((char *) FPSTR(eraseRfidNvs), LOGLEVEL_NOTICE);
+			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);
 			gPrefsRfid.clear();
-			Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile));
+			Web_DumpNvsToSd("rfidTags", backupFile);
 		});
 
 
@@ -330,7 +330,7 @@ void webserverStart(void) {
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
-			Log_Println((char *) F("logo request"), LOGLEVEL_DEBUG);
+			Log_Println("logo request", LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/logo.png")) {
 				request->send(gFSystem, "/.html/logo.png", "image/png");
 				return;
@@ -343,7 +343,7 @@ void webserverStart(void) {
 		});
 		// ESPuino favicon
 		wServer.on("/favicon", HTTP_GET, [](AsyncWebServerRequest *request) {
-			Log_Println((char *) F("favicon request"), LOGLEVEL_DEBUG);
+			Log_Println("favicon request", LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/favicon.ico")) {
 				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
 				return;
@@ -382,7 +382,7 @@ String templateProcessor(const String &templ) {
 		return String(ftpPasswordLength - 1);
 	} else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
 		#ifdef FTP_ENABLE
-			return (String) FPSTR(ftpTab);
+			return ftpTab;
 		#else
 			return String();
 		#endif
@@ -424,13 +424,13 @@ String templateProcessor(const String &templ) {
 		return gPrefsSettings.getString("mqttServer", "-1");
 	} else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
 		#ifdef MQTT_ENABLE
-			return (String) FPSTR(mqttTab);
+			return mqttTab;
 		#else
 			return String();
 		#endif
 	} else if (templ == "MQTT_ENABLE") {
 		if (Mqtt_IsEnabled()) {
-			return String("checked=\"checked\"");
+			return "checked=\"checked\"";
 		} else {
 			return String();
 		}
@@ -571,7 +571,7 @@ bool processJsonRequest(char *_serialJson) {
 				return false;
 			}
 		}
-		Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile)); // Store backup-file every time when a new rfid-tag is programmed
+		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("rfidAssign")) {
 		const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
 		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
@@ -588,7 +588,7 @@ bool processJsonRequest(char *_serialJson) {
 		if (s.compareTo(rfidString)) {
 			return false;
 		}
-		Web_DumpNvsToSd("rfidTags", (const char*) FPSTR(backupFile)); // Store backup-file every time when a new rfid-tag is programmed
+		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("wifiConfig")) {
 		const char *_ssid = object["wifiConfig"]["ssid"];
 		const char *_pwd = object["wifiConfig"]["pwd"];
@@ -725,7 +725,7 @@ void explorerCreateParentDirectories(const char* filePath) {
 		if (rest-filePath != 0){
 			memcpy(tmpPath, filePath, rest-filePath);
 			tmpPath[rest-filePath] = '\0';
-			printf("creating dir \"%s\"\n", tmpPath);
+			Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
 			gFSystem.mkdir(tmpPath);
 		}
 		rest = strchr(rest+1, '/');
@@ -852,14 +852,14 @@ void explorerHandleFileStorageTask(void *parameter) {
 			uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, "%s: %s => %zu bytes in %lu ms (%lu kiB/s)", (char *)FPSTR (fileWritten), (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
 				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
 				// done exit loop to terminate
 				break;
 			}
 
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
-				Log_Println(PSTR(webTxCanceled), LOGLEVEL_ERROR);
+				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				// resume the paused tasks
 				#ifdef NEOPIXEL_ENABLE
 					vTaskResume(Led_TaskHandle);
@@ -916,12 +916,12 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 
 	if (!root) {
-		Log_Println(PSTR(failedToOpenDirectory), LOGLEVEL_DEBUG);
+		Log_Println(failedToOpenDirectory, LOGLEVEL_DEBUG);
 		return;
 	}
 
 	if (!root.isDirectory()) {
-		Log_Println(PSTR(notADirectory), LOGLEVEL_DEBUG);
+		Log_Println(notADirectory, LOGLEVEL_DEBUG);
 		return;
 	}
 
@@ -943,21 +943,21 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
     #else
 		File file = root.openNextFile();
 
-		while (file) {
-			// ignore hidden folders, e.g. MacOS spotlight files
+	while (file) {
+		// ignore hidden folders, e.g. MacOS spotlight files
+		#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		if (!startsWith( file.path() , "/.")) {
+		#else
+		if (!startsWith( file.name() , "/.")) {
+		#endif
+			JsonObject entry = obj.createNestedObject();
 			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				if (!startsWith( file.path() , (char *)"/.")) {
+				convertAsciiToUtf8(file.path(), filePath);
 			#else
-				if (!startsWith( file.name() , (char *)"/.")) {
+				convertAsciiToUtf8(file.name(), filePath);
 			#endif
-				JsonObject entry = obj.createNestedObject();
-				#if ESP_ARDUINO_VERSION_MAJOR >= 2
-					convertAsciiToUtf8(file.path(), filePath);
-				#else
-					convertAsciiToUtf8(file.name(), filePath);
-				#endif
-				std::string path = filePath;
-				std::string fileName = path.substr(path.find_last_of("/") + 1);
+			std::string path = filePath;
+			std::string fileName = path.substr(path.find_last_of("/") + 1);
 
 				entry["name"] = fileName;
 				entry["dir"].set(file.isDirectory());
@@ -979,7 +979,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
 	serializeJson(obj, serializedJsonString);
 	Log_Printf(LOGLEVEL_DEBUG, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
-	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
+	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
 bool explorerDeleteDirectory(File dir) {
@@ -1029,7 +1029,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	char filePath[MAX_FILEPATH_LENTGH];
 	// check has path param
 	if (!request->hasParam("path")) {
-		Log_Println((char *) F("DOWNLOAD: No path variable set"), LOGLEVEL_ERROR);
+		Log_Println("DOWNLOAD: No path variable set", LOGLEVEL_ERROR);
 		request->send(404);
 		return;
 	}
@@ -1106,7 +1106,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 			Log_Printf(LOGLEVEL_ERROR, "DELETE:  Path %s does not exist", param->value().c_str());
 		}
 	} else {
-		Log_Println((char *) F("DELETE:  No path variable set"), LOGLEVEL_ERROR);
+		Log_Println("DELETE:  No path variable set", LOGLEVEL_ERROR);
 	}
 	request->send(200);
 	esp_task_wdt_reset();
@@ -1126,7 +1126,7 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 			Log_Printf(LOGLEVEL_ERROR, "CREATE:  Cannot create %s", param->value().c_str());
 		}
 	} else {
-		Log_Println((char *) F("CREATE:  No path variable set"), LOGLEVEL_ERROR);
+		Log_Println("CREATE:  No path variable set", LOGLEVEL_ERROR);
 	}
 	request->send(200);
 }
@@ -1156,7 +1156,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 			Log_Printf(LOGLEVEL_ERROR, "RENAME: Path %s does not exist", srcPath->value().c_str());
 		}
 	} else {
-		Log_Println((char *) F("RENAME: No path variable set"), LOGLEVEL_ERROR);
+		Log_Println("RENAME: No path variable set", LOGLEVEL_ERROR);
 	}
 
 	request->send(200);
@@ -1179,7 +1179,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playMode = atoi(playModeString.c_str());
 		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
 	} else {
-		Log_Println((char *) F("AUDIO: No path variable set"), LOGLEVEL_ERROR);
+		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
 	}
 
 	request->send(200);
@@ -1200,14 +1200,17 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 	}
 
 	if (!tmpFile) {
-		Log_Println((char *) FPSTR(errorWritingTmpfile), LOGLEVEL_ERROR);
+		Log_Println(errorWritingTmpfile, LOGLEVEL_ERROR);
 		return;
 	}
 
-	for (size_t i = 0; i < len; i++) {
-		tmpFile.printf("%c", data[i]);
+	size_t wrote = tmpFile.write(data, len);
+	if(wrote != len) {
+		// we did not write all bytes --> fail
+		Log_Printf(LOGLEVEL_ERROR, "Error writing %s. Expected %u, wrote %u (error: %u)!", tmpFile.path(), len, wrote, tmpFile.getWriteError());
+		return;
 	}
-	fileIndex += len;
+	fileIndex += wrote;
 
 	if (final) {
 		tmpFile.close();
@@ -1229,7 +1232,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 	File tmpFile = gFSystem.open(_filename);
 
 	if (!tmpFile) {
-		Log_Println((char *) FPSTR(errorReadingTmpfile), LOGLEVEL_ERROR);
+		Log_Println(errorReadingTmpfile, LOGLEVEL_ERROR);
 		return;
 	}
 
@@ -1255,7 +1258,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 				token = strtok(NULL, stringOuterDelimiter);
 			}
 			if (isNumber(nvsEntry[0].nvsKey) && nvsEntry[0].nvsEntry[0] == '#') {
-				Log_Printf(LOGLEVEL_NOTICE, "[%u] %s: %s => %s", ++importCount, (char *) FPSTR(writeEntryToNvs), nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
+				Log_Printf(LOGLEVEL_NOTICE, writeEntryToNvs, ++importCount, nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
 				gPrefsRfid.putString(nvsEntry[0].nvsKey, nvsEntry[0].nvsEntry);
 			} else {
 				invalidCount++;
@@ -1288,7 +1291,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 	if (pi) {
 		nvs = esp_partition_get(pi);        // Get partition struct
 		esp_partition_iterator_release(pi); // Release the iterator
-		dbgprint("Partition %s found, %d bytes", partname, nvs->size);
+		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
 	} else {
 		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
 		return NULL;
@@ -1344,11 +1347,11 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		if (gPlayProperties.playMode == WEBSTREAM) {
 			// no cover -> send placeholder icon for webstream (fa-soundcloud)
 			Log_Println("no cover image for webstream", LOGLEVEL_NOTICE);
-			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>"));
+			request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>");
 		} else {
 			// no cover -> send placeholder icon for playing music from SD-card (fa-music)
 			Log_Println("no cover image for SD-card audio", LOGLEVEL_DEBUG);
-			request->send(200, "image/svg+xml", FPSTR("<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>"));
+			request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
 		}
 		return;
 	}

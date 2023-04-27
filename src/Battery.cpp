@@ -26,7 +26,7 @@
 			if (Battery_IsCritical()) {
 				Battery_LogStatus();
 
-				Log_Println((char *)FPSTR(batteryCriticalMsg), LOGLEVEL_NOTICE);
+				Log_Println(batteryCriticalMsg, LOGLEVEL_NOTICE);
 
 				// Power down and enter deepsleep
 				Power_PeripheralOff();
@@ -50,13 +50,13 @@
 			Battery_LogStatus();
 
 			if (Battery_IsLow()) {
-				Log_Println((char *)FPSTR(batteryLowMsg), LOGLEVEL_ERROR);
+				Log_Println(batteryLowMsg, LOGLEVEL_ERROR);
 				Led_Indicate(LedIndicatorType::VoltageWarning);
 			}
 
 			#ifdef SHUTDOWN_ON_BAT_CRITICAL
 				if (Battery_IsCritical()) {
-					Log_Println((char *)FPSTR(batteryCriticalMsg), LOGLEVEL_ERROR);
+					Log_Println(batteryCriticalMsg, LOGLEVEL_ERROR);
 					System_RequestSleep();
 				}
 			#endif

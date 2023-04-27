@@ -55,17 +55,17 @@ void Wlan_Cyclic(void) {
 		// Get credentials from NVS
 		String strSSID = gPrefsSettings.getString("SSID", "-1");
 		if (!strSSID.compareTo("-1")) {
-			Log_Println((char *) FPSTR(ssidNotFoundInNvs), LOGLEVEL_ERROR);
+			Log_Println(ssidNotFoundInNvs, LOGLEVEL_ERROR);
 			wifiAccessIncomplete = true;
 		}
 		String strPassword = gPrefsSettings.getString("Password", "-1");
 		if (!strPassword.compareTo("-1")) {
-			Log_Println((char *) FPSTR(wifiPwdNotFoundInNvs), LOGLEVEL_ERROR);
+			Log_Println(wifiPwdNotFoundInNvs, LOGLEVEL_ERROR);
 			wifiAccessIncomplete = true;
 		}
 
 		if (wifiAccessIncomplete) {
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
+			accessPointStart(accessPointNetworkSSID, accessPointNetworkPassword, apIP, apNetmask);
 			wifiInit = false;
 			wifiConnectionTryInProgress = false;
 			return;
@@ -88,7 +88,7 @@ void Wlan_Cyclic(void) {
 			WiFi.setHostname(hostname.c_str());
 			Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 		} else {
-			Log_Println((char *) FPSTR(wifiHostnameNotSet), LOGLEVEL_INFO);
+			Log_Println(wifiHostnameNotSet, LOGLEVEL_INFO);
 		}
 
 		// Add configuration of static IP (if requested)
@@ -110,7 +110,7 @@ void Wlan_Cyclic(void) {
 
 	if (wifiConnectIteration > 0 && (millis() - wifiCheckLastTimestamp >= 500)) {
 		if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 1 && (millis() - wifiCheckLastTimestamp >= 4500)) {
-			Log_Println(PSTR(cantConnectToWifi), LOGLEVEL_ERROR);
+			Log_Println(cantConnectToWifi, LOGLEVEL_ERROR);
 			WiFi.disconnect(true, true);
 			WiFi.begin(_ssid, _pwd); // ESP32-workaround (otherwise WiFi-connection fails every 2nd time)
 			wifiConnectIteration = 2;
@@ -119,7 +119,7 @@ void Wlan_Cyclic(void) {
 
 		if (WiFi.status() != WL_CONNECTED && wifiConnectIteration == 2 && (millis() - wifiCheckLastTimestamp >= 9000)) {
 			wifiConnectIteration = 0;
-			accessPointStart((char *) FPSTR(accessPointNetworkSSID), (char *) FPSTR(accessPointNetworkPassword), apIP, apNetmask);
+			accessPointStart(accessPointNetworkSSID, accessPointNetworkPassword, apIP, apNetmask);
 			wifiConnectionTryInProgress = false;
 			free(_ssid);
 			free(_pwd);
@@ -132,7 +132,7 @@ void Wlan_Cyclic(void) {
 			IPAddress myIP = WiFi.localIP();
 			Log_Printf(LOGLEVEL_NOTICE, wifiCurrentIp, myIP.toString().c_str());
 			// get current time and date
-			Log_Println((char *) FPSTR(syncingViaNtp), LOGLEVEL_NOTICE);
+			Log_Println(syncingViaNtp, LOGLEVEL_NOTICE);
 			// timezone: Berlin
 			long gmtOffset_sec = 3600;
 			int daylightOffset_sec = 3600;
@@ -193,7 +193,7 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	WiFi.softAP(SSID, (password != NULL && password[0] != '\0') ? password : NULL);
 	delay(500);
 
-	Log_Println((char *) FPSTR(apReady), LOGLEVEL_NOTICE);
+	Log_Println(apReady, LOGLEVEL_NOTICE);
 	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
 
 	if (!dnsServer)
@@ -224,7 +224,7 @@ bool getWifiEnableStatusFromNVS(void) {
 void writeWifiStatusToNVS(bool wifiStatus) {
 	if (!wifiStatus) {
 		if (gPrefsSettings.putUInt("enableWifi", 0)) { // disable
-			Log_Println((char *) FPSTR(wifiDisabledAfterRestart), LOGLEVEL_NOTICE);
+			Log_Println(wifiDisabledAfterRestart, LOGLEVEL_NOTICE);
 			if (gPlayProperties.isWebstream) {
 				AudioPlayer_TrackControlToQueueSender(STOP);
 			}
@@ -234,7 +234,7 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 		}
 	} else {
 		if (gPrefsSettings.putUInt("enableWifi", 1)) { // enable
-			Log_Println((char *) FPSTR(wifiEnabledAfterRestart), LOGLEVEL_NOTICE);
+			Log_Println(wifiEnabledAfterRestart, LOGLEVEL_NOTICE);
 			wifiNeedsRestart = true;
 			wifiEnabled = true;
 		}

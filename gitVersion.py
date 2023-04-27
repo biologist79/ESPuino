@@ -21,8 +21,8 @@ OUTPUT_PATH = (
 TEMPLATE = """
 #ifndef __GIT_REVISION_H__
     #define __GIT_REVISION_H__
-    constexpr const char gitRevision[] PROGMEM = "Git-revision: {git_revision}";
-    constexpr const char gitRevShort[] PROGMEM = "\\"{git_revision}\\"";
+    constexpr const char gitRevision[] = "Git-revision: {git_revision}";
+    constexpr const char gitRevShort[] = "\\"{git_revision}\\"";
 #endif
 """
 

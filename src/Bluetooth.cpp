@@ -182,8 +182,8 @@ void Bluetooth_Init(void) {
 			a2dp_sink->set_rssi_active(true);
 			a2dp_sink->set_rssi_callback(rssi);
 			// start bluetooth sink
-			a2dp_sink->start((char *)FPSTR(nameBluetoothSinkDevice));
-			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", PSTR(nameBluetoothSinkDevice));
+			a2dp_sink->start(nameBluetoothSinkDevice);
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", nameBluetoothSinkDevice);
 			// connect events after startup
 			a2dp_sink->set_on_connection_state_changed(connection_state_changed);
 			a2dp_sink->set_on_audio_state_changed(audio_state_changed);

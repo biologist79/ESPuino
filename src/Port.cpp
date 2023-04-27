@@ -78,9 +78,9 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 	#ifdef GPIO_PA_EN
 		if (_channel == GPIO_PA_EN) {
 			if (_newState) {
-				Log_Println((char *) FPSTR(paOn), LOGLEVEL_NOTICE);
+				Log_Println(paOn, LOGLEVEL_NOTICE);
 			} else {
-				Log_Println((char *) FPSTR(paOff), LOGLEVEL_NOTICE);
+				Log_Println(paOff, LOGLEVEL_NOTICE);
 			}
 		}
 	#endif
@@ -88,9 +88,9 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 	#ifdef GPIO_HP_EN
 		if (_channel == GPIO_HP_EN) {
 			if (_newState) {
-				Log_Println((char *) FPSTR(hpOn), LOGLEVEL_NOTICE);
+				Log_Println(hpOn, LOGLEVEL_NOTICE);
 			} else {
-				Log_Println((char *) FPSTR(hpOff), LOGLEVEL_NOTICE);
+				Log_Println(hpOff, LOGLEVEL_NOTICE);
 			}
 		}
 	#endif

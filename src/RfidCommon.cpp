@@ -31,12 +31,12 @@ void Rfid_PreferenceLookupHandler(void) {
 		if (rfidStatus == pdPASS) {
 			System_UpdateActivityTimer();
 			strncpy(gCurrentRfidTagId, rfidTagId, cardIdStringSize-1);
-			Log_Printf(LOGLEVEL_INFO, "%s: %s", (char *) FPSTR(rfidTagReceived), gCurrentRfidTagId);
+			Log_Printf(LOGLEVEL_INFO, "%s: %s", rfidTagReceived, gCurrentRfidTagId);
 			Web_SendWebsocketData(0, 10); // Push new rfidTagId to all websocket-clients
 
 			String s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 			if (!s.compareTo("-1")) {
-				Log_Println((char *) FPSTR(rfidTagUnknownInNvs), LOGLEVEL_ERROR);
+				Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 				System_IndicateError();
 				#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 					strncpy(gOldRfidTagId, gCurrentRfidTagId, cardIdStringSize-1);      // Even if not found in NVS: accept it as card last applied
@@ -64,7 +64,7 @@ void Rfid_PreferenceLookupHandler(void) {
 			}
 
 			if (i != 5) {
-				Log_Println((char *) FPSTR(errorOccuredNvs), LOGLEVEL_ERROR);
+				Log_Println(errorOccuredNvs, LOGLEVEL_ERROR);
 				System_IndicateError();
 			} else {
 				// Only pass file to queue if strtok revealed 3 items
@@ -82,7 +82,7 @@ void Rfid_PreferenceLookupHandler(void) {
 						}
 					#endif
 					#ifdef MQTT_ENABLE
-						publishMqtt((char *) FPSTR(topicRfidState), gCurrentRfidTagId, false);
+						publishMqtt(topicRfidState, gCurrentRfidTagId, false);
 					#endif
 
 					#ifdef BLUETOOTH_ENABLE
