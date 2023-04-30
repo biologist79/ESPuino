@@ -46,13 +46,14 @@ enum class LedPlaylistProgressStates
 struct AnimationReturnType {
     bool animationActive;
     int32_t animationDelay;
+	bool animationRefresh;
 
 	void clear(){
 		animationActive = false;
 		animationDelay = 0;
 	}
-	AnimationReturnType() :animationActive(false), animationDelay(0) {}
-	AnimationReturnType(bool active, int32_t delay) :animationActive(active), animationDelay(delay) {}
+	AnimationReturnType() : animationActive(false), animationDelay(0), animationRefresh(false) {}
+	AnimationReturnType(bool active, int32_t delay, bool refresh = false) :animationActive(active), animationDelay(delay), animationRefresh(refresh) {}
 };
 
 void Led_Init(void);
