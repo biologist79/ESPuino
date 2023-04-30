@@ -2,6 +2,7 @@
 
 #include <WString.h>
 #include <string.h>
+#include <algorithm>
 #include "cpp.h"
 
 #if MEM_DEBUG == 1
@@ -34,6 +35,44 @@ public:
 
 	virtual void randomize() { }
 
+	// Check if file-type is correct
+	static bool fileValid(const String _fileItem) {
+		constexpr size_t maxExtLen = strlen(*std::max_element(audioFileSufix.begin(), audioFileSufix.end(), [](const char *a, const char *b){
+			return strlen(a) < strlen(b);
+		}));
+
+		if(!_fileItem)
+			return false;
+
+		// check for http address 
+		if(_fileItem.startsWith("http://") || _fileItem.startsWith("https://")) {
+			return true;
+		}
+
+		// Ignore hidden files starting with a '.'
+		//    lastIndex is -1 if '/' is not found --> first index will be 0
+		int fileNameIndex = _fileItem.lastIndexOf('/') + 1;	
+		if(_fileItem[fileNameIndex] == '.') {
+			return false;
+		}
+
+		String extBuf;
+		const size_t extStart = _fileItem.lastIndexOf('.');
+		const size_t extLen = _fileItem.length() - extStart;
+		if(extLen > maxExtLen) {
+			// we either did not find a . or extension was too long
+			return false;
+		}
+		extBuf = _fileItem.substring(extStart);
+		extBuf.toLowerCase();
+
+		for(const auto e:audioFileSufix) {
+			if(extBuf.equals(e)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 protected:
 
@@ -106,36 +145,14 @@ protected:
 	static constexpr auto audioFileSufix = std::to_array<const char*>({
 		".mp3",
 		".aac",
-		".m3u",
 		".m4a",
 		".wav",
 		".flac",
-		".aac"
+		".aac",
+		// playlists
+		".m3u",
+		".m3u8",
+		".pls",
+		".asx"
 	});
-
-	// Check if file-type is correct
-	bool fileValid(const String _fileItem) {
-		if(!_fileItem)
-			return false;
-
-		// check for http address 
-		if(_fileItem.startsWith("http://") || _fileItem.startsWith("https://")) {
-			return true;
-		}
-
-		// Ignore hidden files starting with a '.'
-		//    lastIndex is -1 if '/' is not found --> first index will be 0
-		int fileNameIndex = _fileItem.lastIndexOf('/') + 1;	
-		if(_fileItem[fileNameIndex] == '.') {
-			return false;
-		}
-
-		for(const auto e:audioFileSufix) {
-			if(_fileItem.endsWith(e)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 };

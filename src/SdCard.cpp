@@ -125,27 +125,6 @@ void SdCard_PrintInfo() {
 	Log_Printf(LOGLEVEL_NOTICE, sdInfo, cardSize, freeSize);
 }
 
-// Check if file-type is correct
-bool fileValid(const char *_fileItem) {
-	// make file extension to lowercase (compare case insenstive)
-	char *lFileItem;
-	lFileItem = x_strdup(_fileItem);
-	if (lFileItem == NULL) {
-		return false;
-	}
-	lFileItem = strlwr(lFileItem);
-	const char ch = '/';
-	char *subst;
-	subst = strrchr(lFileItem, ch); // Don't use files that start with .
-	bool isValid = (!startsWith(subst, (char *) "/.")) && (
-					   // audio file formats
-					   endsWith(lFileItem, ".mp3") || endsWith(lFileItem, ".aac") || endsWith(lFileItem, ".m4a") || endsWith(lFileItem, ".wav") || endsWith(lFileItem, ".flac") || endsWith(lFileItem, ".ogg") || endsWith(lFileItem, ".oga") || endsWith(lFileItem, ".opus") ||
-					   // playlist file formats
-					   endsWith(lFileItem, ".m3u") || endsWith(lFileItem, ".m3u8") || endsWith(lFileItem, ".pls") || endsWith(lFileItem, ".asx"));
-	free(lFileItem);
-	return isValid;
-}
-
 // Takes a directory as input and returns a random subdirectory from it
 std::optional<const String> SdCard_pickRandomSubdirectory(const char *_directory) {
 	uint32_t listStartTimestamp = millis();
@@ -310,7 +289,7 @@ std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint3
 	if (!fileOrDirectory.isDirectory()) {
 		Log_Println(fileModeDetected, LOGLEVEL_INFO);
 		const char *path = getPath(fileOrDirectory);
-		if (fileValid(path)) {
+		if (Playlist::fileValid(path)) {
 			return new WebstreamPlaylist(path);
 		}
 	}
