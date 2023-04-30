@@ -98,3 +98,15 @@ void Rfid_PreferenceLookupHandler(void) {
 		}
 	#endif
 }
+
+void Rfid_TaskPause(void) {
+	#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+		vTaskSuspend(rfidTaskHandle);
+	#endif
+}
+void Rfid_TaskResume(void) {
+	#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+		vTaskResume(rfidTaskHandle);
+	#endif
+}
+

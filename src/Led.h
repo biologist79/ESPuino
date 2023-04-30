@@ -64,3 +64,5 @@ void Led_ResetToInitialBrightness(void);
 void Led_ResetToNightBrightness(void);
 uint8_t Led_GetBrightness(void);
 void Led_SetBrightness(uint8_t value);
+void Led_TaskPause(void);
+void Led_TaskResume(void);
