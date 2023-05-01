@@ -1087,3 +1087,16 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		return AnimationReturnType(animationActive, animationDelay, refresh);
 	}
 #endif
+
+void Led_TaskPause(void) {
+	#ifdef NEOPIXEL_ENABLE
+		vTaskSuspend(Led_TaskHandle);
+		FastLED.clear(true);
+	#endif
+}
+
+void Led_TaskResume(void) {
+	#ifdef NEOPIXEL_ENABLE
+		vTaskResume(Led_TaskHandle);
+	#endif
+}
