@@ -99,6 +99,10 @@ void Rfid_PreferenceLookupHandler(void) {
 	#endif
 }
 
+#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+	extern TaskHandle_t rfidTaskHandle;
+#endif
+
 void Rfid_TaskPause(void) {
 	#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
 		vTaskSuspend(rfidTaskHandle);
