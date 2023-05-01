@@ -190,10 +190,10 @@ std::optional<const String> SdCard_pickRandomSubdirectory(const char *_directory
 	return path;
 }
 
-static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
+static std::optional<std::unique_ptr<Playlist>> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
 	const String line = f.readStringUntil('\n');
 	bool extended = line.startsWith("#EXTM3U") || forceExtended;
-	FolderPlaylist *playlist = new FolderPlaylist();
+	auto playlist = std::make_unique<FolderPlaylist>();
 
 	if(extended) {
         // extended m3u file format
@@ -205,7 +205,6 @@ static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtend
                 // this something we have to save
                 line.trim(); 
                 if(!playlist->push_back(line)) {
-					delete playlist;
                     return std::nullopt;
                 }
             }
@@ -221,7 +220,6 @@ static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtend
 		String line = f.readStringUntil('\n');
 		line.trim();
 		if(!playlist->push_back(line)) {
-			delete playlist;
 			return std::nullopt;
 		}
 	}
@@ -232,7 +230,7 @@ static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtend
 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
-std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
+std::optional<std::unique_ptr<Playlist>> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	bool rebuildCacheFile = false;
 
 	// Look if file/folder requested really exists. If not => break.
@@ -254,7 +252,7 @@ std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint3
 
 			File cacheFile = gFSystem.open(cacheFilePath.value());
 			if (cacheFile && cacheFile.size()) {
-				CacheFilePlaylist *cachePlaylist = new CacheFilePlaylist();
+				auto cachePlaylist = std::make_unique<CacheFilePlaylist>();
 				
 				bool success = cachePlaylist->deserialize(cacheFile);
 				if(success) {
@@ -263,7 +261,7 @@ std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint3
 				}
 				// we had some error reading the cache file, wait for the other to rebuild it
 				// we do not need the class anymore, so destroy it
-				delete cachePlaylist;
+				cachePlaylist.release();
 			}
 			// we failed to read the cache file... set the flag to rebuild it
 			rebuildCacheFile = true;
@@ -290,17 +288,16 @@ std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint3
 		Log_Println(fileModeDetected, LOGLEVEL_INFO);
 		const char *path = getPath(fileOrDirectory);
 		if (Playlist::fileValid(path)) {
-			return new WebstreamPlaylist(path);
+			return std::make_unique<WebstreamPlaylist>(path);
 		}
 	}
 
 	// Folder mode
-	FolderPlaylist *playlist = new FolderPlaylist();
+	auto playlist = std::make_unique<FolderPlaylist>();
 	playlist->createFromFolder(fileOrDirectory);
 	if (!playlist->isValid()) {
 		// something went wrong
 		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-		delete playlist;
 		return std::nullopt;
 	}
 

@@ -1879,7 +1879,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		}
 		return;
 	}
-	const char *coverFileName = gPlayProperties.playlist->getAbsolutePath(gPlayProperties.currentTrackNumber).c_str();
+	const char *coverFileName = AudioPlayer_getCurrentTrackPath(gPlayProperties.currentTrackNumber).c_str();
 	Log_Println(coverFileName, LOGLEVEL_DEBUG);
 
 	File coverFile = gFSystem.open(coverFileName, FILE_READ);

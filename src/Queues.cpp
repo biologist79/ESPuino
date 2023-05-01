@@ -4,6 +4,16 @@
 #include "Log.h"
 #include "Rfid.h"
 
+#include "Queues.h"
+#include "Playlist.h"
+
+SharedObject<int> gVolume;
+SharedObject<uint8_t> gTrackControl;
+SharedObject<std::unique_ptr<Playlist>> gTrack;
+SharedObject<char[cardIdStringSize]> gRfidCard;
+
+
+
 QueueHandle_t gVolumeQueue;
 QueueHandle_t gTrackQueue;
 QueueHandle_t gTrackControlQueue;
