@@ -44,8 +44,9 @@
 	static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
 	constexpr uint8_t Led_IdleDotDistance = NUM_INDICATOR_LEDS / NUM_LEDS_IDLE_DOTS;
 
-	static CRGBArray<NUM_INDICATOR_LEDS + NUM_STATIC_LEDS> leds;
+	static CRGBArray<NUM_INDICATOR_LEDS + NUM_CONTROL_LEDS> leds;
 	static CRGBSet indicator(leds(0, NUM_INDICATOR_LEDS - 1));
+	static CRGBSet controlLeds(leds(NUM_INDICATOR_LEDS, NUM_INDICATOR_LEDS + NUM_CONTROL_LEDS - 1));
 
 	TaskHandle_t Led_TaskHandle;
 	static void Led_Task(void *parameter);
@@ -182,6 +183,15 @@ void Led_SetBrightness(uint8_t value) {
 	}
 #endif
 
+#ifdef NEOPIXEL_ENABLE
+	void Led_DrawControls() {
+		static CRGB::HTMLColorCode controlLedColors[NUM_CONTROL_LEDS] = CONTROL_LEDS_COLORS;
+		for (uint8_t controlLed = 0; controlLed < NUM_CONTROL_LEDS; controlLed++) {
+			controlLeds[controlLed] = controlLedColors[controlLed];
+		}
+	}
+#endif
+
 void Led_SetButtonLedsEnabled(boolean value) {
 	#ifdef BUTTONS_LED
 		Port_Write(BUTTONS_LED, value ? HIGH : LOW, false);
@@ -260,6 +270,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				vTaskDelay(portTICK_RATE_MS * 10);
 				continue;
 			}
+
+			Led_DrawControls();
 
 			uint32_t taskDelay = 20;
 			bool startNewAnimation = false;
