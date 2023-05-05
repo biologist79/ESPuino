@@ -1,15 +1,17 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <DNSServer.h>
 #include "settings.h"
+
 #include "AudioPlayer.h"
-#include "RotaryEncoder.h"
 #include "Log.h"
+#include "MemX.h"
+#include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
-#include "MemX.h"
 #include "main.h"
+
+#include <DNSServer.h>
+#include <ESPmDNS.h>
+#include <WiFi.h>
 
 // HELPER //
 unsigned long wifiCheckLastTimestamp = 0;
@@ -22,7 +24,7 @@ bool wifiInit = true;
 uint32_t lastPrintRssiTimestamp = 0;
 
 // AP-WiFi
-IPAddress apIP(192, 168, 4, 1);        // Access-point's static IP
+IPAddress apIP(192, 168, 4, 1); // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
 bool accessPointStarted = false;
 constexpr uint8_t DNS_PORT = 53;
@@ -77,33 +79,33 @@ void Wlan_Cyclic(void) {
 		// However, the dynamic performs slightly slower than the static allocation.
 		// Use static allocation if you want to have more performance and if your application is multi-tasking.
 		// Arduino 2.0.x only, outcomment to use static buffers.
-		//WiFi.useStaticBuffers(true);
+		// WiFi.useStaticBuffers(true);
 
 		// set to station mode
 		WiFi.mode(WIFI_STA);
 		// Get (optional) hostname-configuration from NVS
 		hostname = gPrefsSettings.getString("Hostname", "-1");
 		if (hostname.compareTo("-1")) {
-			//WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+			// WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
 			WiFi.setHostname(hostname.c_str());
 			Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 		} else {
 			Log_Println(wifiHostnameNotSet, LOGLEVEL_INFO);
 		}
 
-		// Add configuration of static IP (if requested)
-		#ifdef STATIC_IP_ENABLE
-			Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
-			if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
-				Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
-			}
-		#endif
+// Add configuration of static IP (if requested)
+#ifdef STATIC_IP_ENABLE
+		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
+		if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
+			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
+		}
+#endif
 
 		// Try to join local WiFi. If not successful, an access-point is opened.
 		WiFi.begin(_ssid, _pwd);
 		Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, _ssid);
 		wifiCheckLastTimestamp = millis();
-		wifiConnectIteration = 1;   // 1: First try; 2: Retry; 0: inactive
+		wifiConnectIteration = 1; // 1: First try; 2: Retry; 0: inactive
 		wifiInit = false;
 		wifiNeedsRestart = false;
 	}
@@ -137,24 +139,24 @@ void Wlan_Cyclic(void) {
 			long gmtOffset_sec = 3600;
 			int daylightOffset_sec = 3600;
 			configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
-			#ifdef MDNS_ENABLE
-				// zero conf, make device available as <hostname>.local
-				if (MDNS.begin(hostname.c_str())) {
-					MDNS.addService("http", "tcp", 80);
-				}
-			#endif
+#ifdef MDNS_ENABLE
+			// zero conf, make device available as <hostname>.local
+			if (MDNS.begin(hostname.c_str())) {
+				MDNS.addService("http", "tcp", 80);
+			}
+#endif
 			delete dnsServer;
 			dnsServer = nullptr;
 
 			free(_ssid);
 			free(_pwd);
 
-			#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-				if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost ) {
-					gPlayLastRfIdWhenWiFiConnected=false;
-					recoverLastRfidPlayedFromNvs(true);
-				}
-			#endif
+#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+			if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost) {
+				gPlayLastRfIdWhenWiFiConnected = false;
+				recoverLastRfidPlayedFromNvs(true);
+			}
+#endif
 		}
 	}
 
@@ -196,8 +198,9 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	Log_Println(apReady, LOGLEVEL_NOTICE);
 	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
 
-	if (!dnsServer)
+	if (!dnsServer) {
 		dnsServer = new DNSServer();
+	}
 
 	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
 	dnsServer->start(DNS_PORT, "*", ip);

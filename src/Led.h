@@ -1,7 +1,6 @@
 #pragma once
 
-typedef enum class LedIndicator
-{
+typedef enum class LedIndicator {
 	BootComplete = 0,
 	Error,
 	Ok,
@@ -12,10 +11,8 @@ typedef enum class LedIndicator
 	VolumeChange
 } LedIndicatorType;
 
-
 // ordered by priority
-enum class LedAnimationType
-{
+enum class LedAnimationType {
 	Boot = 0,
 	Shutdown,
 	Error,
@@ -34,8 +31,7 @@ enum class LedAnimationType
 	NoNewAnimation
 };
 
-enum class LedPlaylistProgressStates
-{
+enum class LedPlaylistProgressStates {
 	FillBar = 0,
 	Wait,
 	EmptyBar,
@@ -44,16 +40,22 @@ enum class LedPlaylistProgressStates
 };
 
 struct AnimationReturnType {
-    bool animationActive;
-    int32_t animationDelay;
+	bool animationActive;
+	int32_t animationDelay;
 	bool animationRefresh;
 
-	void clear(){
+	void clear() {
 		animationActive = false;
 		animationDelay = 0;
 	}
-	AnimationReturnType() : animationActive(false), animationDelay(0), animationRefresh(false) {}
-	AnimationReturnType(bool active, int32_t delay, bool refresh = false) :animationActive(active), animationDelay(delay), animationRefresh(refresh) {}
+	AnimationReturnType()
+		: animationActive(false)
+		, animationDelay(0)
+		, animationRefresh(false) { }
+	AnimationReturnType(bool active, int32_t delay, bool refresh = false)
+		: animationActive(active)
+		, animationDelay(delay)
+		, animationRefresh(refresh) { }
 };
 
 void Led_Init(void);

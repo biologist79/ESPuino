@@ -1,19 +1,19 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <Update.h>
-#include <nvsDump.h>
-#include <esp_task_wdt.h>
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
-#include "freertos/ringbuf.h"
-#include "ESPAsyncWebServer.h"
-#include "ArduinoJson.h"
 #include "settings.h"
+
+#include "Web.h"
+
+#include "ArduinoJson.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Cmd.h"
 #include "Common.h"
+#include "ESPAsyncWebServer.h"
 #include "Ftp.h"
+#include "HTMLaccesspoint.h"
+#include "HTMLbinary.h"
+#include "HTMLmanagement.h"
+#include "HallEffectSensor.h"
 #include "Led.h"
 #include "Log.h"
 #include "MemX.h"
@@ -21,15 +21,16 @@
 #include "Rfid.h"
 #include "SdCard.h"
 #include "System.h"
-#include "Web.h"
 #include "Wlan.h"
+#include "freertos/ringbuf.h"
 #include "revision.h"
-#include "Rfid.h"
-#include "HallEffectSensor.h"
+#include "soc/timer_group_reg.h"
+#include "soc/timer_group_struct.h"
 
-#include "HTMLaccesspoint.h"
-#include "HTMLmanagement.h"
-#include "HTMLbinary.h"
+#include <Update.h>
+#include <WiFi.h>
+#include <esp_task_wdt.h>
+#include <nvsDump.h>
 
 typedef struct {
 	char nvsKey[13];
@@ -70,25 +71,24 @@ void Web_DeleteCachefile(const char *folderPath);
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
-	void* allocate(size_t size) {
+	void *allocate(size_t size) {
 		return ps_malloc(size);
-
 	}
-	void deallocate(void* pointer) {
+	void deallocate(void *pointer) {
 		free(pointer);
 	}
 };
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
-static void serveProgmemFiles(const String& uri, const String& contentType, const uint8_t *content, size_t len) {
+static void serveProgmemFiles(const String &uri, const String &contentType, const uint8_t *content, size_t len) {
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
 		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 		const bool etag = false;
-		if (etag)
+		if (etag) {
 			response = request->beginResponse(304);
-		else {
+		} else {
 			response = request->beginResponse_P(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
@@ -104,10 +104,11 @@ void Web_Init(void) {
 
 		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 		const bool etag = false;
-		if (etag)
+		if (etag) {
 			response = request->beginResponse(304);
-		else
+		} else {
 			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
+		}
 		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
 		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 		request->send(response);
@@ -129,21 +130,21 @@ void Web_Init(void) {
 	});
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
+#if (LANGUAGE == DE)
 		request->send(200, "text/html", "ESPuino wird neu gestartet...");
-	#else
+#else
 		request->send(200, "text/html", "ESPuino is being restarted...");
-	#endif
+#endif
 		Serial.flush();
 		ESP.restart();
 	});
 
 	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
+#if (LANGUAGE == DE)
 		request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
-	#else
+#else
 		request->send(200, "text/html", "ESPuino is being shutdown...");
-		#endif
+#endif
 		System_RequestSleep();
 	});
 
@@ -175,18 +176,18 @@ void webserverStart(void) {
 
 		// Default
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-
 			AsyncWebServerResponse *response;
 
 			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 			const bool etag = false;
-			if (etag)
+			if (etag) {
 				response = request->beginResponse(304);
-			else {
-				if (gFSystem.exists("/.html/index.htm"))
+			} else {
+				if (gFSystem.exists("/.html/index.htm")) {
 					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
-				else
+				} else {
 					response = request->beginResponse_P(200, "text/html", management_HTML, templateProcessor);
+				}
 			}
 			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
 			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
@@ -207,17 +208,17 @@ void webserverStart(void) {
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
 				info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
-				#if (LANGUAGE == DE)
-					info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
-					info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
-					info += "\nFreier PSRAM: ";
-					info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
-					if (Wlan_IsConnected()) {
-						IPAddress myIP = WiFi.localIP();
-						info += "\nAktuelle IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
-						info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
-					}
-				#else
+#if (LANGUAGE == DE)
+				info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
+				info += "\nGroesster freier Heap-Block: " + String((uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
+				info += "\nFreier PSRAM: ";
+				info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
+				if (Wlan_IsConnected()) {
+					IPAddress myIP = WiFi.localIP();
+					info += "\nAktuelle IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
+					info += "\nWLAN-Signalstaerke: " + String((int8_t) Wlan_GetRssi()) + " dBm";
+				}
+#else
 					info += "\nFree heap: " + String(ESP.getFreeHeap()) + " bytes";
 					info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
 					info += "\nFree PSRAM: ";
@@ -227,19 +228,19 @@ void webserverStart(void) {
 						info += "\nCurrent IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
 						info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
 					}
-				#endif
-				#ifdef BATTERY_MEASURE_ENABLE
-					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
-					info += "\n" + String(buffer);
-					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
-					info += "\n" + String(buffer);
-				#endif
-                #ifdef HALLEFFECT_SENSOR_ENABLE
-					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
-					int diff = sva-gHallEffectSensor.NullFieldValue();
-					snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
-					info += buffer;
-                #endif
+#endif
+#ifdef BATTERY_MEASURE_ENABLE
+				snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
+				info += "\n" + String(buffer);
+				snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
+				info += "\n" + String(buffer);
+#endif
+#ifdef HALLEFFECT_SENSOR_ENABLE
+				uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
+				int diff = sva - gHallEffectSensor.NullFieldValue();
+				snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
+				info += buffer;
+#endif
 				request->send_P(200, "text/plain", info.c_str());
 			});
 
@@ -253,20 +254,20 @@ void webserverStart(void) {
 		// OTA-upload
 		wServer.on(
 			"/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-				#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
 					request->send(200, "text/html", restartWebsite); },
-				#else
+#else
 					request->send(200, "text/html", otaNotSupportedWebsite); },
-				#endif
+#endif
 			[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-				#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
-					return;
-				#endif
+#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+				Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
+				return;
+#endif
 
 				if (!index) {
-					if (!gPlayProperties.pausePlay) {   // Pause playback as it sounds ugly when OTA starts
-						Cmd_Action(CMD_PLAYPAUSE);  // Pause first to possibly to save last playposition (if necessary)
+					if (!gPlayProperties.pausePlay) { // Pause playback as it sounds ugly when OTA starts
+						Cmd_Action(CMD_PLAYPAUSE); // Pause first to possibly to save last playposition (if necessary)
 						Cmd_Action(CMD_STOP);
 					}
 					Update.begin();
@@ -282,7 +283,7 @@ void webserverStart(void) {
 					Serial.flush();
 					ESP.restart();
 				}
-		});
+			});
 
 		// ESP-restart
 		wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -304,7 +305,6 @@ void webserverStart(void) {
 			gPrefsRfid.clear();
 			Web_DumpNvsToSd("rfidTags", backupFile);
 		});
-
 
 		// Fileexplorer (realtime)
 		wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
@@ -350,16 +350,16 @@ void webserverStart(void) {
 			};
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
-        // Init HallEffectSensor Value
-        #ifdef HALLEFFECT_SENSOR_ENABLE
-            wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
-                bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
-				char buffer[128];
-				snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
-                Log_Println(buffer, LOGLEVEL_INFO);
-                request->send(200, "text/html", buffer);
-            });
-        #endif
+// Init HallEffectSensor Value
+#ifdef HALLEFFECT_SENSOR_ENABLE
+		wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
+			bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
+			char buffer[128];
+			snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
+			Log_Println(buffer, LOGLEVEL_INFO);
+			request->send(200, "text/html", buffer);
+		});
+#endif
 
 		wServer.onNotFound(notFound);
 
@@ -381,11 +381,11 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "FTP_PWD_LENGTH") {
 		return String(ftpPasswordLength - 1);
 	} else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
-		#ifdef FTP_ENABLE
-			return ftpTab;
-		#else
-			return String();
-		#endif
+#ifdef FTP_ENABLE
+		return ftpTab;
+#else
+		return String();
+#endif
 	} else if (templ == "INIT_LED_BRIGHTNESS") {
 		return String(gPrefsSettings.getUChar("iLedBrightness", 0));
 	} else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -402,32 +402,32 @@ String templateProcessor(const String &templ) {
 		return String(gPrefsSettings.getUInt("maxVolumeHp", 0));
 #ifdef BATTERY_MEASURE_ENABLE
 	#ifdef MEASURE_BATTERY_VOLTAGE
-		} else if (templ == "WARNING_LOW_VOLTAGE") {
-			return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
-		} else if (templ == "VOLTAGE_INDICATOR_LOW") {
-			return String(gPrefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
-		} else if (templ == "VOLTAGE_INDICATOR_HIGH") {
-			return String(gPrefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
+	} else if (templ == "WARNING_LOW_VOLTAGE") {
+		return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
+	} else if (templ == "VOLTAGE_INDICATOR_LOW") {
+		return String(gPrefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
+	} else if (templ == "VOLTAGE_INDICATOR_HIGH") {
+		return String(gPrefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
 	#endif
 	#ifdef MEASURE_BATTERY_OTHER // placeholder
-		} else if (templ == "todo") {
-			return "todo";
+	} else if (templ == "todo") {
+		return "todo";
 	#endif
 	} else if (templ == "BATTERY_CHECK_INTERVAL") {
 		return String(gPrefsSettings.getUInt("vCheckIntv", batteryCheckInterval));
 #else
-	// TODO: hide battery config
+		// TODO: hide battery config
 #endif
 	} else if (templ == "MQTT_CLIENTID") {
 		return gPrefsSettings.getString("mqttClientId", "-1");
 	} else if (templ == "MQTT_SERVER") {
 		return gPrefsSettings.getString("mqttServer", "-1");
 	} else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
-		#ifdef MQTT_ENABLE
-			return mqttTab;
-		#else
-			return String();
-		#endif
+#ifdef MQTT_ENABLE
+		return mqttTab;
+#else
+		return String();
+#endif
 	} else if (templ == "MQTT_ENABLE") {
 		if (Mqtt_IsEnabled()) {
 			return "checked=\"checked\"";
@@ -466,14 +466,14 @@ String templateProcessor(const String &templ) {
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
 bool processJsonRequest(char *_serialJson) {
-	if (!_serialJson)  {
+	if (!_serialJson) {
 		return false;
 	}
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument doc(1000);
-	#else
-		StaticJsonDocument<1000> doc;
-	#endif
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(1000);
+#else
+	StaticJsonDocument<1000> doc;
+#endif
 
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
@@ -482,9 +482,9 @@ bool processJsonRequest(char *_serialJson) {
 		return false;
 	}
 
-   JsonObject object = doc.as<JsonObject>();
+	JsonObject object = doc.as<JsonObject>();
 
-   if (doc.containsKey("general")) {
+	if (doc.containsKey("general")) {
 		uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
 		uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
 		uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
@@ -508,28 +508,18 @@ bool processJsonRequest(char *_serialJson) {
 		gPrefsSettings.putUInt("vCheckIntv", vInt);
 
 		// Check if settings were written successfully
-		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
-			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
-			gPrefsSettings.getUChar("iLedBrightness", 0) != iBright ||
-			gPrefsSettings.getUChar("nLedBrightness", 0) != nBright ||
-			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime ||
-			gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
-			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
-			gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
-			gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-				return false;
+		if (gPrefsSettings.getUInt("initVolume", 0) != iVol || gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker || gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone || gPrefsSettings.getUChar("iLedBrightness", 0) != iBright || gPrefsSettings.getUChar("nLedBrightness", 0) != nBright || gPrefsSettings.getUInt("mInactiviyT", 0) != iTime || gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning || gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow || gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi || gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
+			return false;
 		}
 		Battery_Init();
 	} else if (doc.containsKey("ftp")) {
 		const char *_ftpUser = doc["ftp"]["ftpUser"];
 		const char *_ftpPwd = doc["ftp"]["ftpPwd"];
 
-		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
-		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
+		gPrefsSettings.putString("ftpuser", (String) _ftpUser);
+		gPrefsSettings.putString("ftppassword", (String) _ftpPwd);
 
-		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
-			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
+		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
 			return false;
 		}
 	} else if (doc.containsKey("ftpStatus")) {
@@ -546,14 +536,13 @@ bool processJsonRequest(char *_serialJson) {
 		uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
 
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-		gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
-		gPrefsSettings.putString("mqttServer", (String)_mqttServer);
-		gPrefsSettings.putString("mqttUser", (String)_mqttUser);
-		gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);
+		gPrefsSettings.putString("mqttClientId", (String) _mqttClientId);
+		gPrefsSettings.putString("mqttServer", (String) _mqttServer);
+		gPrefsSettings.putString("mqttUser", (String) _mqttUser);
+		gPrefsSettings.putString("mqttPassword", (String) _mqttPwd);
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
-			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
 			return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
@@ -580,9 +569,9 @@ bool processJsonRequest(char *_serialJson) {
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
 		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
-		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-			strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
-		#endif
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+		strncpy(gOldRfidTagId, "X", cardIdStringSize - 1); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
+#endif
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
@@ -596,7 +585,7 @@ bool processJsonRequest(char *_serialJson) {
 
 		gPrefsSettings.putString("SSID", _ssid);
 		gPrefsSettings.putString("Password", _pwd);
-		gPrefsSettings.putString("Hostname", (String)_hostname);
+		gPrefsSettings.putString("Hostname", (String) _hostname);
 
 		String sSsid = gPrefsSettings.getString("SSID", "-1");
 		String sPwd = gPrefsSettings.getString("Password", "-1");
@@ -605,15 +594,15 @@ bool processJsonRequest(char *_serialJson) {
 		if (sSsid.compareTo(_ssid) || sPwd.compareTo(_pwd)) {
 			return false;
 		}
-	}
-	else if (doc.containsKey("ping")) {
+	} else if (doc.containsKey("ping")) {
 		Web_SendWebsocketData(0, 20);
 		return false;
 	} else if (doc.containsKey("controls")) {
 		if (object["controls"].containsKey("set_volume")) {
 			uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
 			AudioPlayer_VolumeToQueueSender(new_vol, true);
-		} if (object["controls"].containsKey("action")) {
+		}
+		if (object["controls"].containsKey("action")) {
 			uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
 			Cmd_Action(cmd);
 		}
@@ -630,8 +619,9 @@ bool processJsonRequest(char *_serialJson) {
 
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
-	if (!webserverStarted)
+	if (!webserverStarted) {
 		return;
+	}
 	char *jBuf = (char *) x_calloc(255, sizeof(char));
 
 	const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 200;
@@ -648,7 +638,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
 		// todo: battery percent + loading status +++
-		//object["battery"] = Battery_GetVoltage();
+		// object["battery"] = Battery_GetVoltage();
 	} else if (code == 30) {
 		JsonObject entry = object.createNestedObject("trackinfo");
 		entry["pausePlay"] = gPlayProperties.pausePlay;
@@ -672,63 +662,62 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	free(jBuf);
 }
 
-
 // Processes websocket-requests
 void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
 
 	if (type == WS_EVT_CONNECT) {
-		//client connected
+		// client connected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
-		//client->printf("Hello Client %u :)", client->id());
-		//client->ping();
+		// client->printf("Hello Client %u :)", client->id());
+		// client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {
-		//client disconnected
+		// client disconnected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] disconnect", server->url(), client->id());
 	} else if (type == WS_EVT_ERROR) {
-		//error was received from the other end
-		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+		// error was received from the other end
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *) arg), (char *) data);
 	} else if (type == WS_EVT_PONG) {
-		//pong message was received (in response to a ping request maybe)
-		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
+		// pong message was received (in response to a ping request maybe)
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *) data : "");
 	} else if (type == WS_EVT_DATA) {
-		//data packet
-		AwsFrameInfo *info = (AwsFrameInfo *)arg;
+		// data packet
+		AwsFrameInfo *info = (AwsFrameInfo *) arg;
 		if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
-			//the whole message is in a single frame and we got all of it's data
-			//Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+			// the whole message is in a single frame and we got all of it's data
+			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
-			if (processJsonRequest((char *)data)) {
-				if (data && (strncmp((char *)data, "getTrack", 8))) {   // Don't send back ok-feedback if track's name is requested in background
+			if (processJsonRequest((char *) data)) {
+				if (data && (strncmp((char *) data, "getTrack", 8))) { // Don't send back ok-feedback if track's name is requested in background
 					Web_SendWebsocketData(client->id(), 1);
 				}
 			}
 
 			if (info->opcode == WS_TEXT) {
 				data[len] = 0;
-				//Serial.printf("%s\n", (char *)data);
+				// Serial.printf("%s\n", (char *)data);
 			} else {
 				for (size_t i = 0; i < info->len; i++) {
 					Serial.printf("%02x ", data[i]);
 				}
-				//Serial.printf("\n");
+				// Serial.printf("\n");
 			}
 		}
 	}
 }
 
-void explorerCreateParentDirectories(const char* filePath) {
+void explorerCreateParentDirectories(const char *filePath) {
 	char tmpPath[MAX_FILEPATH_LENTGH];
 	char *rest;
 
 	rest = strchr(filePath, '/');
 	while (rest) {
-		if (rest-filePath != 0){
-			memcpy(tmpPath, filePath, rest-filePath);
-			tmpPath[rest-filePath] = '\0';
+		if (rest - filePath != 0) {
+			memcpy(tmpPath, filePath, rest - filePath);
+			tmpPath[rest - filePath] = '\0';
 			Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
 			gFSystem.mkdir(tmpPath);
 		}
-		rest = strchr(rest+1, '/');
+		rest = strchr(rest + 1, '/');
 	}
 }
 
@@ -770,12 +759,12 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Task for handling the storage of the data
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
-			"fileStorageTask",             /* Name of the task */
-			4000,                          /* Stack size in words */
-			filePath,                      /* Task input parameter */
-			2 | portPRIVILEGE_BIT,         /* Priority of the task */
-			&fileStorageTaskHandle,        /* Task handle. */
-			1                              /* Core where the task should run */
+			"fileStorageTask", /* Name of the task */
+			4000, /* Stack size in words */
+			filePath, /* Task input parameter */
+			2 | portPRIVILEGE_BIT, /* Priority of the task */
+			&fileStorageTaskHandle, /* Task handle. */
+			1 /* Core where the task should run */
 		);
 	}
 
@@ -795,19 +784,19 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 // feed the watchdog timer without delay
 void feedTheDog(void) {
-	#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
-		// feed dog 0
-		TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-		TIMERG0.wdt_feed=1;                       // feed dog
-		TIMERG0.wdt_wprotect=0;                   // write protect
-		// feed dog 1
-		TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-		TIMERG1.wdt_feed=1;                       // feed dog
-		TIMERG1.wdt_wprotect=0;                   // write protect
-	#else
+#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
+	// feed dog 0
+	TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
+	TIMERG0.wdt_feed = 1; // feed dog
+	TIMERG0.wdt_wprotect = 0; // write protect
+	// feed dog 1
+	TIMERG1.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
+	TIMERG1.wdt_feed = 1; // feed dog
+	TIMERG1.wdt_wprotect = 0; // write protect
+#else
 	// Without delay upload-feature is broken for SD via SPI (for whatever reason...)
-		vTaskDelay(portTICK_PERIOD_MS * 11);
-	#endif
+	vTaskDelay(portTICK_PERIOD_MS * 11);
+#endif
 }
 
 void explorerHandleFileStorageTask(void *parameter) {
@@ -820,20 +809,20 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uint8_t *item;
 	uint8_t value = 0;
 	uint32_t lastUpdateTimestamp = millis();
-	uint32_t maxUploadDelay = 20;    // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
+	uint32_t maxUploadDelay = 20; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open((char *)parameter, "w");
+	uploadFile = gFSystem.open((char *) parameter, "w");
 
 	// pause some tasks to get more free CPU time for the upload
 	vTaskSuspend(AudioTaskHandle);
-	Led_TaskPause(); 
+	Led_TaskPause();
 	Rfid_TaskPause();
 
 	for (;;) {
 
-		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
+		item = (uint8_t *) xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
 
 		if (item != NULL) {
 			chunkCount++;
@@ -842,7 +831,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 				feedTheDog();
 			} else {
 				bytesOk += item_size;
-				vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+				vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *) item);
 			}
 			lastUpdateTimestamp = millis();
 		} else {
@@ -850,7 +839,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 			uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *) parameter, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
 				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
 				// done exit loop to terminate
 				break;
@@ -866,14 +855,13 @@ void explorerHandleFileStorageTask(void *parameter) {
 				vTaskDelete(NULL);
 				return;
 			}
-
 		}
-		// delay a bit to give the webtask some time fill the ringbuffer
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
+// delay a bit to give the webtask some time fill the ringbuffer
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
 		vTaskDelay(1u);
-		#else
+#else
 		vTaskDelay(5u);
-		#endif
+#endif
 	}
 	// resume the paused tasks
 	Led_TaskResume();
@@ -884,17 +872,16 @@ void explorerHandleFileStorageTask(void *parameter) {
 	vTaskDelete(NULL);
 }
 
-
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	uint32_t listStartTimestamp = millis();
-	//DynamicJsonDocument jsonBuffer(8192);
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument jsonBuffer(65636);
-	#else
-		StaticJsonDocument<8192> jsonBuffer;
-	#endif
+// DynamicJsonDocument jsonBuffer(8192);
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument jsonBuffer(65636);
+#else
+	StaticJsonDocument<8192> jsonBuffer;
+#endif
 
 	String serializedJsonString;
 	AsyncWebParameter *param;
@@ -919,56 +906,55 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
-	#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-		bool isDir = false;
-		String MyfileName = root.getNextFileName(&isDir);
-		while (MyfileName != "") {
-			// ignore hidden folders, e.g. MacOS spotlight files
-			if (!startsWith( MyfileName.c_str() , (char *)"/.")) {
-				JsonObject entry = obj.createNestedObject();
-				convertAsciiToUtf8(MyfileName.c_str(), filePath);
-				std::string path = filePath;
-				std::string fileName = path.substr(path.find_last_of("/") + 1);
-				entry["name"] = fileName;
-				entry["dir"].set(isDir);
-			}
-			MyfileName = root.getNextFileName(&isDir);
+#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+	bool isDir = false;
+	String MyfileName = root.getNextFileName(&isDir);
+	while (MyfileName != "") {
+		// ignore hidden folders, e.g. MacOS spotlight files
+		if (!startsWith(MyfileName.c_str(), (char *) "/.")) {
+			JsonObject entry = obj.createNestedObject();
+			convertAsciiToUtf8(MyfileName.c_str(), filePath);
+			std::string path = filePath;
+			std::string fileName = path.substr(path.find_last_of("/") + 1);
+			entry["name"] = fileName;
+			entry["dir"].set(isDir);
 		}
-    #else
-		File file = root.openNextFile();
+		MyfileName = root.getNextFileName(&isDir);
+	}
+#else
+	File file = root.openNextFile();
 
 	while (file) {
-		// ignore hidden folders, e.g. MacOS spotlight files
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		if (!startsWith( file.path() , "/.")) {
-		#else
-		if (!startsWith( file.name() , "/.")) {
-		#endif
+	// ignore hidden folders, e.g. MacOS spotlight files
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+		if (!startsWith(file.path(), "/.")) {
+	#else
+		if (!startsWith(file.name(), "/.")) {
+	#endif
 			JsonObject entry = obj.createNestedObject();
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				convertAsciiToUtf8(file.path(), filePath);
-			#else
-				convertAsciiToUtf8(file.name(), filePath);
-			#endif
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+			convertAsciiToUtf8(file.path(), filePath);
+	#else
+			convertAsciiToUtf8(file.name(), filePath);
+	#endif
 			std::string path = filePath;
 			std::string fileName = path.substr(path.find_last_of("/") + 1);
 
-				entry["name"] = fileName;
-				entry["dir"].set(file.isDirectory());
-			}
-			file.close();
-			file = root.openNextFile();
-
-
-			if (!gPlayProperties.pausePlay) {
-				// time critical, avoid delay with many files on SD-card!
-				feedTheDog();
-			} else {
-				// If playback is active this can (at least sometimes) prevent scattering
-				vTaskDelay(portTICK_PERIOD_MS * 5);
-			}
+			entry["name"] = fileName;
+			entry["dir"].set(file.isDirectory());
 		}
-	#endif
+		file.close();
+		file = root.openNextFile();
+
+		if (!gPlayProperties.pausePlay) {
+			// time critical, avoid delay with many files on SD-card!
+			feedTheDog();
+		} else {
+			// If playback is active this can (at least sometimes) prevent scattering
+			vTaskDelay(portTICK_PERIOD_MS * 5);
+		}
+	}
+#endif
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
@@ -984,11 +970,11 @@ bool explorerDeleteDirectory(File dir) {
 		if (file.isDirectory()) {
 			explorerDeleteDirectory(file);
 		} else {
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				gFSystem.remove(file.path());
-			#else
-				gFSystem.remove(file.name());
-			#endif
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+			gFSystem.remove(file.path());
+#else
+			gFSystem.remove(file.name());
+#endif
 		}
 
 		file = dir.openNextFile();
@@ -996,11 +982,11 @@ bool explorerDeleteDirectory(File dir) {
 		esp_task_wdt_reset();
 	}
 
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		return gFSystem.rmdir(dir.path());
-	#else
-		return gFSystem.rmdir(dir.name());
-	#endif
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+	return gFSystem.rmdir(dir.path());
+#else
+	return gFSystem.rmdir(dir.name());
+#endif
 }
 
 // Handles delete-requests for cachefiles.
@@ -1051,10 +1037,10 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	};
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
-	request->_tempObject = (void*)fileObj;
+	request->_tempObject = (void *) fileObj;
 
 	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
-		fileBlk *fileObj = (fileBlk*)request->_tempObject;
+		fileBlk *fileObj = (fileBlk *) request->_tempObject;
 		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
 		if ((index + thisSize) >= fileObj->dataFile.size()) {
 			fileObj->dataFile.close();
@@ -1199,7 +1185,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 	}
 
 	size_t wrote = tmpFile.write(data, len);
-	if(wrote != len) {
+	if (wrote != len) {
 		// we did not write all bytes --> fail
 		Log_Printf(LOGLEVEL_ERROR, "Error writing %s. Expected %u, wrote %u (error: %u)!", tmpFile.path(), len, wrote, tmpFile.getWriteError());
 		return;
@@ -1268,22 +1254,22 @@ void Web_DumpSdToNvs(const char *_filename) {
 
 // Dumps all RFID-entries from NVS into a file on SD-card
 bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
-	Led_SetPause(true);          // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
 	esp_partition_iterator_t pi; // Iterator for find
-	const esp_partition_t *nvs;  // Pointer to partition struct
+	const esp_partition_t *nvs; // Pointer to partition struct
 	esp_err_t result = ESP_OK;
 	const char *partname = "nvs";
-	uint8_t pagenr = 0;   // Page number in NVS
-	uint8_t i;            // Index in Entry 0..125
-	uint8_t bm;           // Bitmap for an entry
-	uint32_t offset = 0;  // Offset in nvs partition
+	uint8_t pagenr = 0; // Page number in NVS
+	uint8_t i; // Index in Entry 0..125
+	uint8_t bm; // Bitmap for an entry
+	uint32_t offset = 0; // Offset in nvs partition
 	uint8_t namespace_ID; // Namespace ID found
 
-	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA,   // Get partition iterator for
-							ESP_PARTITION_SUBTYPE_ANY, // this partition
-							partname);
+	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA, // Get partition iterator for
+		ESP_PARTITION_SUBTYPE_ANY, // this partition
+		partname);
 	if (pi) {
-		nvs = esp_partition_get(pi);        // Get partition struct
+		nvs = esp_partition_get(pi); // Get partition struct
 		esp_partition_iterator_release(pi); // Release the iterator
 		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
 	} else {
@@ -1297,8 +1283,8 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 	}
 	while (offset < nvs->size) {
 		result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition
-									&buf,
-									sizeof(nvs_page));
+			&buf,
+			sizeof(nvs_page));
 		if (result != ESP_OK) {
 			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
 			return false;
@@ -1312,7 +1298,7 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 				if ((namespace_ID == 0xFF) || // Show all if ID = 0xFF
 					(buf.Entry[i].Ns == namespace_ID)) { // otherwise just my namespace
 					if (isNumber(buf.Entry[i].Key)) {
-						String s = gPrefsRfid.getString((const char *)buf.Entry[i].Key);
+						String s = gPrefsRfid.getString((const char *) buf.Entry[i].Key);
 						backupFile.printf("%s%s%s%s\n", stringOuterDelimiter, buf.Entry[i].Key, stringOuterDelimiter, s.c_str());
 					}
 				}
@@ -1330,7 +1316,6 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 
 	return true;
 }
-
 
 // handle album cover image request
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
@@ -1380,18 +1365,17 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	}
 
 	int imageSize = gPlayProperties.coverFileSize;
-	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile,imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-
+	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
 		if (maxLen > 1024) {
 			maxLen = 1024;
 		}
 
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
-		if (! leftToWrite) {
-			return 0; //end of transfer
+		if (!leftToWrite) {
+			return 0; // end of transfer
 		}
-		size_t willWrite = (leftToWrite > maxLen)?maxLen:leftToWrite;
+		size_t willWrite = (leftToWrite > maxLen) ? maxLen : leftToWrite;
 		file.read(buffer, willWrite);
 		index += willWrite;
 		return willWrite;

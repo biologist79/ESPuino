@@ -1,20 +1,23 @@
 #include <Arduino.h>
-#include <WiFi.h>
 #include "settings.h"
+
 #include "Ftp.h"
+
 #include "Log.h"
 #include "MemX.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
 
+#include <WiFi.h>
+
 #ifdef FTP_ENABLE
 	#include "ESP32FtpServer.h"
 #endif
 
 // FTP
-String Ftp_User = "esp32";      // FTP-user (default; can be changed later via GUI)
-String Ftp_Password = "esp32";  // FTP-password (default; can be changed later via GUI)
+String Ftp_User = "esp32"; // FTP-user (default; can be changed later via GUI)
+String Ftp_Password = "esp32"; // FTP-password (default; can be changed later via GUI)
 
 // FTP
 #ifdef FTP_ENABLE
@@ -30,7 +33,7 @@ void Ftp_Init(void) {
 	// Get FTP-user from NVS
 	String nvsFtpUser = gPrefsSettings.getString("ftpuser", "-1");
 	if (!nvsFtpUser.compareTo("-1")) {
-		gPrefsSettings.putString("ftpuser", (String)Ftp_User);
+		gPrefsSettings.putString("ftpuser", (String) Ftp_User);
 		Log_Println(wroteFtpUserToNvs, LOGLEVEL_ERROR);
 	} else {
 		Ftp_User = nvsFtpUser;
@@ -40,7 +43,7 @@ void Ftp_Init(void) {
 	// Get FTP-password from NVS
 	String nvsFtpPassword = gPrefsSettings.getString("ftppassword", "-1");
 	if (!nvsFtpPassword.compareTo("-1")) {
-		gPrefsSettings.putString("ftppassword", (String)Ftp_Password);
+		gPrefsSettings.putString("ftppassword", (String) Ftp_Password);
 		Log_Println(wroteFtpPwdToNvs, LOGLEVEL_ERROR);
 	} else {
 		Ftp_Password = nvsFtpPassword;
@@ -49,32 +52,32 @@ void Ftp_Init(void) {
 }
 
 void Ftp_Cyclic(void) {
-	#ifdef FTP_ENABLE
-		ftpManager();
+#ifdef FTP_ENABLE
+	ftpManager();
 
-		if (WL_CONNECTED == WiFi.status()) {
-			if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
-				ftpSrv->handleFTP();
-			}
-		}
-
+	if (WL_CONNECTED == WiFi.status()) {
 		if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
-			if (ftpSrv->isConnected()) {
-				System_UpdateActivityTimer(); // Re-adjust timer while client is connected to avoid ESP falling asleep
-			}
+			ftpSrv->handleFTP();
 		}
-	#endif
+	}
+
+	if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
+		if (ftpSrv->isConnected()) {
+			System_UpdateActivityTimer(); // Re-adjust timer while client is connected to avoid ESP falling asleep
+		}
+	}
+#endif
 }
 
 void Ftp_EnableServer(void) {
-	#ifdef FTP_ENABLE
-		if (Wlan_IsConnected() && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-			ftpEnableLastStatus = true;
-	#else
-		if (Wlan_IsConnected()) {
-	#endif
+#ifdef FTP_ENABLE
+	if (Wlan_IsConnected() && !ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+		ftpEnableLastStatus = true;
+#else
+	if (Wlan_IsConnected()) {
+#endif
 
-			System_IndicateOk();
+		System_IndicateOk();
 	} else {
 		Log_Println(unableToStartFtpServer, LOGLEVEL_ERROR);
 		System_IndicateError();
@@ -83,14 +86,14 @@ void Ftp_EnableServer(void) {
 
 // Creates FTP-instance only when requested
 void ftpManager(void) {
-	#ifdef FTP_ENABLE
-		if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
-			Log_Printf(LOGLEVEL_DEBUG, freeHeapWithoutFtp, ESP.getFreeHeap());
-			ftpEnableCurrentStatus = true;
-			ftpSrv = new FtpServer();
-			ftpSrv->begin(gFSystem, Ftp_User, Ftp_Password);
-			Log_Printf(LOGLEVEL_DEBUG, freeHeapWithFtp, ESP.getFreeHeap());
-			Log_Println(ftpServerStarted, LOGLEVEL_NOTICE);
-		}
-	#endif
+#ifdef FTP_ENABLE
+	if (ftpEnableLastStatus && !ftpEnableCurrentStatus) {
+		Log_Printf(LOGLEVEL_DEBUG, freeHeapWithoutFtp, ESP.getFreeHeap());
+		ftpEnableCurrentStatus = true;
+		ftpSrv = new FtpServer();
+		ftpSrv->begin(gFSystem, Ftp_User, Ftp_Password);
+		Log_Printf(LOGLEVEL_DEBUG, freeHeapWithFtp, ESP.getFreeHeap());
+		Log_Println(ftpServerStarted, LOGLEVEL_NOTICE);
+	}
+#endif
 }

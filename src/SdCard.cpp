@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "settings.h"
+
 #include "SdCard.h"
+
 #include "Common.h"
 #include "Led.h"
 #include "Log.h"
@@ -8,83 +10,83 @@
 #include "System.h"
 
 #ifdef SD_MMC_1BIT_MODE
-	fs::FS gFSystem = (fs::FS)SD_MMC;
+fs::FS gFSystem = (fs::FS) SD_MMC;
 #else
-	SPIClass spiSD(HSPI);
-	fs::FS gFSystem = (fs::FS)SD;
+SPIClass spiSD(HSPI);
+fs::FS gFSystem = (fs::FS) SD;
 #endif
 
 void SdCard_Init(void) {
-	#ifndef SINGLE_SPI_ENABLE
-		#ifdef SD_MMC_1BIT_MODE
-			pinMode(2, INPUT_PULLUP);
-			while (!SD_MMC.begin("/sdcard", true)) {
-		#else
-			pinMode(SPISD_CS, OUTPUT);
-			digitalWrite(SPISD_CS, HIGH);
-			spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
-			spiSD.setFrequency(1000000);
-			while (!SD.begin(SPISD_CS, spiSD)) {
-		#endif
+#ifndef SINGLE_SPI_ENABLE
+	#ifdef SD_MMC_1BIT_MODE
+	pinMode(2, INPUT_PULLUP);
+	while (!SD_MMC.begin("/sdcard", true)) {
 	#else
-		#ifdef SD_MMC_1BIT_MODE
-			pinMode(2, INPUT_PULLUP);
-			while (!SD_MMC.begin("/sdcard", true)) {
-		#else
-			while (!SD.begin(SPISD_CS)) {
-		#endif
+	pinMode(SPISD_CS, OUTPUT);
+	digitalWrite(SPISD_CS, HIGH);
+	spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
+	spiSD.setFrequency(1000000);
+	while (!SD.begin(SPISD_CS, spiSD)) {
 	#endif
-				Log_Println(unableToMountSd, LOGLEVEL_ERROR);
-				delay(500);
-	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-				if (millis() >= deepsleepTimeAfterBootFails * 1000) {
-					Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
-					esp_deep_sleep_start();
-				}
+#else
+	#ifdef SD_MMC_1BIT_MODE
+	pinMode(2, INPUT_PULLUP);
+	while (!SD_MMC.begin("/sdcard", true)) {
+	#else
+	while (!SD.begin(SPISD_CS)) {
 	#endif
-			}
+#endif
+		Log_Println(unableToMountSd, LOGLEVEL_ERROR);
+		delay(500);
+#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
+		if (millis() >= deepsleepTimeAfterBootFails * 1000) {
+			Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
+			esp_deep_sleep_start();
+		}
+#endif
+	}
 }
 
 void SdCard_Exit(void) {
-	// SD card goto idle mode
-	#ifdef SD_MMC_1BIT_MODE
-		SD_MMC.end();
-	#endif
+// SD card goto idle mode
+#ifdef SD_MMC_1BIT_MODE
+	SD_MMC.end();
+#endif
 }
 
 sdcard_type_t SdCard_GetType(void) {
 	sdcard_type_t cardType;
-	#ifdef SD_MMC_1BIT_MODE
-		Log_Println(sdMountedMmc1BitMode, LOGLEVEL_NOTICE);
-		cardType = SD_MMC.cardType();
-	#else
-		Log_Println(sdMountedSpiMode, LOGLEVEL_NOTICE);
-		cardType = SD.cardType();
-	#endif
-		return cardType;
+#ifdef SD_MMC_1BIT_MODE
+	Log_Println(sdMountedMmc1BitMode, LOGLEVEL_NOTICE);
+	cardType = SD_MMC.cardType();
+#else
+	Log_Println(sdMountedSpiMode, LOGLEVEL_NOTICE);
+	cardType = SD.cardType();
+#endif
+	return cardType;
 }
 
 uint64_t SdCard_GetSize() {
-	#ifdef SD_MMC_1BIT_MODE
-		return SD_MMC.cardSize();
-	#else
-		return SD.cardSize();
-	#endif
+#ifdef SD_MMC_1BIT_MODE
+	return SD_MMC.cardSize();
+#else
+	return SD.cardSize();
+#endif
 }
 
 uint64_t SdCard_GetFreeSize() {
-	#ifdef SD_MMC_1BIT_MODE
-		return SD_MMC.cardSize() - SD_MMC.usedBytes();
-	#else
-		return SD.cardSize() - SD.usedBytes();
-	#endif
+#ifdef SD_MMC_1BIT_MODE
+	return SD_MMC.cardSize() - SD_MMC.usedBytes();
+#else
+	return SD.cardSize() - SD.usedBytes();
+#endif
 }
 
 void SdCard_PrintInfo() {
 	// show SD card type
 	sdcard_type_t cardType = SdCard_GetType();
 	const char *type = "UNKNOWN";
-	switch(cardType) {
+	switch (cardType) {
 		case CARD_MMC:
 			type = "MMC";
 			break;
@@ -103,10 +105,10 @@ void SdCard_PrintInfo() {
 	Log_Printf(LOGLEVEL_DEBUG, "SD card type: %s", type);
 	// show SD card size / free space
 	uint64_t cardSize = SdCard_GetSize() / (1024 * 1024);
-	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);;
+	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);
+	;
 	Log_Printf(LOGLEVEL_NOTICE, sdInfo, cardSize, freeSize);
 }
-
 
 // Check if file-type is correct
 bool fileValid(const char *_fileItem) {
@@ -121,23 +123,13 @@ bool fileValid(const char *_fileItem) {
 	char *subst;
 	subst = strrchr(lFileItem, ch); // Don't use files that start with .
 	bool isValid = (!startsWith(subst, (char *) "/.")) && (
-			// audio file formats
-			endsWith(lFileItem, ".mp3") || 
-			endsWith(lFileItem, ".aac") || 
-			endsWith(lFileItem, ".m4a") || 
-			endsWith(lFileItem, ".wav") || 
-			endsWith(lFileItem, ".flac") || 
-			endsWith(lFileItem, ".ogg") || 
-			endsWith(lFileItem, ".opus") || 
-			// playlist file formats
-			endsWith(lFileItem, ".m3u") || 
-			endsWith(lFileItem, ".m3u8") || 
-			endsWith(lFileItem, ".pls") || 
-			endsWith(lFileItem, ".asx"));
+					   // audio file formats
+					   endsWith(lFileItem, ".mp3") || endsWith(lFileItem, ".aac") || endsWith(lFileItem, ".m4a") || endsWith(lFileItem, ".wav") || endsWith(lFileItem, ".flac") || endsWith(lFileItem, ".ogg") || endsWith(lFileItem, ".opus") ||
+					   // playlist file formats
+					   endsWith(lFileItem, ".m3u") || endsWith(lFileItem, ".m3u8") || endsWith(lFileItem, ".pls") || endsWith(lFileItem, ".asx"));
 	free(lFileItem);
 	return isValid;
 }
-
 
 // Takes a directory as input and returns a random subdirectory from it
 char *SdCard_pickRandomSubdirectory(char *_directory) {
@@ -152,9 +144,9 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);
 
 	static uint8_t allocCount = 1;
-	uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
+	uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
 	uint16_t directoryCount = 0;
-	char *buffer = _directory;  // input char* is reused as it's content no longer needed
+	char *buffer = _directory; // input char* is reused as it's content no longer needed
 	char *subdirectoryList = (char *) x_calloc(allocSize, sizeof(char));
 
 	if (subdirectoryList == NULL) {
@@ -165,30 +157,30 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 
 	// Create linear list of subdirectories with #-delimiters
 	while (true) {
-		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-			bool isDir = false;
-			String MyfileName = directory.getNextFileName(&isDir);
-			if (MyfileName == "") {
-				break;
-			}
-			if (!isDir) {
-				continue;
-			} else {
-				strncpy(buffer, MyfileName.c_str(), 255);
-		#else
-			File fileItem = directory.openNextFile();
-			if (!fileItem) {
-				break;
-			}
-			if (!fileItem.isDirectory()) {
-				continue;
-			} else {
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				strncpy(buffer, (char *) fileItem.path(), 255);
-			#else
-				strncpy(buffer, (char *) fileItem.name(), 255);
-			#endif
-		#endif
+#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+		bool isDir = false;
+		String MyfileName = directory.getNextFileName(&isDir);
+		if (MyfileName == "") {
+			break;
+		}
+		if (!isDir) {
+			continue;
+		} else {
+			strncpy(buffer, MyfileName.c_str(), 255);
+#else
+		File fileItem = directory.openNextFile();
+		if (!fileItem) {
+			break;
+		}
+		if (!fileItem.isDirectory()) {
+			continue;
+		} else {
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+			strncpy(buffer, (char *) fileItem.path(), 255);
+	#else
+			strncpy(buffer, (char *) fileItem.name(), 255);
+	#endif
+#endif
 
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
@@ -214,25 +206,25 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 		return NULL;
 	}
 
-	uint16_t randomNumber = random(directoryCount) + 1;     // Create random-number with max = subdirectory-count
+	uint16_t randomNumber = random(directoryCount) + 1; // Create random-number with max = subdirectory-count
 	uint16_t delimiterFoundCount = 0;
-	uint32_t a=0;
-	uint8_t b=0;
+	uint32_t a = 0;
+	uint8_t b = 0;
 
 	// Walk through subdirectory-array and extract randomized subdirectory
 	while (subdirectoryList[a] != '\0') {
 		if (subdirectoryList[a] == '#') {
 			delimiterFoundCount++;
 		} else {
-			if (delimiterFoundCount == randomNumber) {  // Pick subdirectory of linear char* according to random number
+			if (delimiterFoundCount == randomNumber) { // Pick subdirectory of linear char* according to random number
 				buffer[b++] = subdirectoryList[a];
 			}
 		}
-		if (delimiterFoundCount > randomNumber || (b == 254)) {  // It's over when next delimiter is found or buffer is full
+		if (delimiterFoundCount > randomNumber || (b == 254)) { // It's over when next delimiter is found or buffer is full
 			buffer[b] = '\0';
 			free(subdirectoryList);
 			Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, _directory);
-			return buffer;  // Full path of random subdirectory
+			return buffer; // Full path of random subdirectory
 		}
 		a++;
 	}
@@ -241,7 +233,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	Log_Printf(LOGLEVEL_DEBUG, "pick random directory from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 	return NULL;
 }
-
 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
@@ -268,54 +259,53 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		return nullptr;
 	}
 
-	// Create linear playlist of caching-file
-	#ifdef CACHED_PLAYLIST_ENABLE
-		strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
-		strcat(cacheFileNameBuf, "/");
-		strcat(cacheFileNameBuf, playlistCacheFile);       // Build absolute path of cacheFile
+// Create linear playlist of caching-file
+#ifdef CACHED_PLAYLIST_ENABLE
+	strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
+	strcat(cacheFileNameBuf, "/");
+	strcat(cacheFileNameBuf, playlistCacheFile); // Build absolute path of cacheFile
 
-		// Decide if to use cacheFile. It needs to exist first...
-		if (gFSystem.exists(cacheFileNameBuf)) {     // Check if cacheFile (already) exists
-			readFromCacheFile = true;
-		}
+	// Decide if to use cacheFile. It needs to exist first...
+	if (gFSystem.exists(cacheFileNameBuf)) { // Check if cacheFile (already) exists
+		readFromCacheFile = true;
+	}
 
-		// ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
-		if (_playMode == SINGLE_TRACK ||
-			_playMode == SINGLE_TRACK_LOOP) {
+	// ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
+	if (_playMode == SINGLE_TRACK || _playMode == SINGLE_TRACK_LOOP) {
+		readFromCacheFile = false;
+	} else {
+		enablePlaylistCaching = true;
+	}
+
+	// Read linear playlist (csv with #-delimiter) from cachefile (faster!)
+	if (readFromCacheFile) {
+		File cacheFile = gFSystem.open(cacheFileNameBuf);
+		if (cacheFile) {
+			uint32_t cacheFileSize = cacheFile.size();
+
+			if (!(cacheFileSize >= 1)) { // Make sure it's greater than 0 bytes
+				Log_Println(playlistCacheFoundBut0, LOGLEVEL_ERROR);
 				readFromCacheFile = false;
-		} else {
-			enablePlaylistCaching = true;
-		}
-
-		// Read linear playlist (csv with #-delimiter) from cachefile (faster!)
-		if (readFromCacheFile) {
-			File cacheFile = gFSystem.open(cacheFileNameBuf);
-			if (cacheFile) {
-				uint32_t cacheFileSize = cacheFile.size();
-
-				if (!(cacheFileSize >= 1)) {        // Make sure it's greater than 0 bytes
-					Log_Println(playlistCacheFoundBut0, LOGLEVEL_ERROR);
-					readFromCacheFile = false;
-				} else {
-					Log_Println(playlistGenModeCached, LOGLEVEL_NOTICE);
-					serializedPlaylist = (char *) x_calloc(cacheFileSize+10, sizeof(char));
-					if (serializedPlaylist == NULL) {
-						Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-						System_IndicateError();
-						return nullptr;
-					}
-
-					char buf;
-					uint32_t fPos = 0;
-					while (cacheFile.available() > 0) {
-						buf = cacheFile.read();
-						serializedPlaylist[fPos++] = buf;
-					}
+			} else {
+				Log_Println(playlistGenModeCached, LOGLEVEL_NOTICE);
+				serializedPlaylist = (char *) x_calloc(cacheFileSize + 10, sizeof(char));
+				if (serializedPlaylist == NULL) {
+					Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
+					System_IndicateError();
+					return nullptr;
 				}
-				cacheFile.close();
+
+				char buf;
+				uint32_t fPos = 0;
+				while (cacheFile.available() > 0) {
+					buf = cacheFile.read();
+					serializedPlaylist[fPos++] = buf;
+				}
 			}
+			cacheFile.close();
 		}
-	#endif
+	}
+#endif
 
 	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
@@ -324,7 +314,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
 			enablePlaylistFromM3u = true;
 			uint16_t allocCount = 1;
-			uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
+			uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
 
 			serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
 			if (serializedPlaylist == NULL) {
@@ -343,8 +333,8 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					// skip M3U comment lines starting with #
 					fileOrDirectory.readStringUntil('\n');
 					continue;
-				}				
-				if (fPos+1 >= allocCount * allocSize) {
+				}
+				if (fPos + 1 >= allocCount * allocSize) {
 					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println(reallocCalled, LOGLEVEL_DEBUG);
 					if (tmp == NULL) {
@@ -360,14 +350,14 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					serializedPlaylist[fPos++] = buf;
 					lastBuf = buf;
 				} else {
-					if (lastBuf != '#') {   // Strip empty lines from m3u
+					if (lastBuf != '#') { // Strip empty lines from m3u
 						serializedPlaylist[fPos++] = '#';
 						lastBuf = '#';
 					}
 				}
 			}
-			if (serializedPlaylist[fPos-1] == '#') {    // Remove trailing delimiter if set
-				serializedPlaylist[fPos-1] = '\0';
+			if (serializedPlaylist[fPos - 1] == '#') { // Remove trailing delimiter if set
+				serializedPlaylist[fPos - 1] = '\0';
 			}
 		} else {
 			return nullptr;
@@ -386,11 +376,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				return nullptr;
 			}
 			Log_Println(fileModeDetected, LOGLEVEL_INFO);
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#else
-				strncpy(fileNameBuf, fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#endif
+#if ESP_ARDUINO_VERSION_MAJOR >= 2
+			strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+#else
+			strncpy(fileNameBuf, fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+#endif
 			if (fileValid(fileNameBuf)) {
 				files[1] = x_strdup(fileNameBuf);
 			}
@@ -413,30 +403,30 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 
 		while (true) {
-			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-				bool isDir = false;
-				String MyfileName = fileOrDirectory.getNextFileName(&isDir);
-				if (MyfileName == "") {
-					break;
-				}
-				if (isDir) {
-					continue;
-				} else {
-					strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#else
-				File fileItem = fileOrDirectory.openNextFile();
-				if (!fileItem) {
-					break;
-				}
-				if (fileItem.isDirectory()) {
-					continue;
-				} else {
-				#if ESP_ARDUINO_VERSION_MAJOR >= 2
-					strncpy(fileNameBuf, (char *) fileItem.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-				#else
-					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-				#endif
-			#endif
+#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+			bool isDir = false;
+			String MyfileName = fileOrDirectory.getNextFileName(&isDir);
+			if (MyfileName == "") {
+				break;
+			}
+			if (isDir) {
+				continue;
+			} else {
+				strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+#else
+			File fileItem = fileOrDirectory.openNextFile();
+			if (!fileItem) {
+				break;
+			}
+			if (fileItem.isDirectory()) {
+				continue;
+			} else {
+	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+				strncpy(fileNameBuf, (char *) fileItem.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+	#else
+				strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+	#endif
+#endif
 				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", nameOfFileFound), fileNameBuf);
@@ -455,7 +445,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					strcat(serializedPlaylist, fileNameBuf);
 					if (cacheFile && enablePlaylistCaching) {
 						cacheFile.print(stringDelimiter);
-						cacheFile.print(fileNameBuf);       // Write linear playlist to cacheFile
+						cacheFile.print(fileNameBuf); // Write linear playlist to cacheFile
 					}
 				}
 			}
@@ -502,7 +492,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		freeMultiCharArray(files, cnt + 1);
 		return nullptr;
 	}
-	snprintf(files[0], 5,  "%u", cnt);
+	snprintf(files[0], 5, "%u", cnt);
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
 	Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 
