@@ -1215,26 +1215,17 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 }
 
 void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument jsonBuffer(8192);
-	#else
-		StaticJsonDocument<8192> jsonBuffer;
-	#endif
-	String ssids[10];
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	JsonArray json_ssids = response->getRoot();
+	static String ssids[10];
 
-	String serializedJsonString;
-	
-	JsonArray json_ssids = jsonBuffer.createNestedArray("ssidList");
-	uint8_t len_ids = Wlan_NumSavedNetworks();
-	Wlan_GetSSIDs(ssids, 10);
-
-	for (int i = 0; i < len_ids; i++) {
+	size_t len = Wlan_GetSSIDs(ssids, 10);
+	for (int i = 0; i < len; i++) {
 		json_ssids.add(ssids[i]);
 	}
 
-	serializeJson(json_ssids, serializedJsonString);
-
-	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
+	response->setLength();
+	request->send(response);
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
@@ -1292,20 +1283,16 @@ void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handleGetActiveSSID(AsyncWebServerRequest *request) {
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument jsonBuffer(1024);
-	#else
-		StaticJsonDocument<8192> jsonBuffer;
-	#endif
-	String serializedJsonString;
-	JsonObject obj = jsonBuffer.createNestedObject();
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	JsonObject obj = response->getRoot();
+
 	if (Wlan_IsConnected()) {
 		String active = Wlan_GetCurrentSSID();
 		obj["active"] = active;
 	}
 
-	serializeJson(obj, serializedJsonString);
-	request->send(200, (char *) F("application/json; charset=utf-8"), serializedJsonString);
+	response->setLength();
+	request->send(response);
 }
 
 void handleGetHostname(AsyncWebServerRequest *request) {

@@ -1311,7 +1311,7 @@
 	async function updateHostnameField() {
 		let hostnameElem = document.getElementById("hostname");
 
-		let hostname = await (await fetch("/hostname")).json();
+		let hostname = await (await fetch("/hostname")).text();
 
 		if (hostname && hostname !== "") {
 			hostnameElem.value = hostname;
