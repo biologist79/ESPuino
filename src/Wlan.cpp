@@ -437,11 +437,11 @@ size_t Wlan_GetSSIDs(String* ssids, size_t max_len) {
 	return numKnownNetworks;
 }
 
-String Wlan_GetCurrentSSID() {
+const String Wlan_GetCurrentSSID() {
 	return WiFi.SSID();
 }
 
-String Wlan_GetHostname() {
+const String Wlan_GetHostname() {
 	return gPrefsSettings.getString("Hostname", "");
 }
 
