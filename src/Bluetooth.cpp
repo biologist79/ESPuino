@@ -24,19 +24,13 @@
 #endif
 
 #ifdef BLUETOOTH_ENABLE
-	const char *getType() {
-		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-			return "sink";
-		} else {
-			return "source";
-		}
-	}
-#endif
-
-#ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
-		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), a2dp_source->to_str(state));
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink => connection state: %s", a2dp_sink->to_str(state));
+		} else {
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth source => connection state: %s", a2dp_source->to_str(state));
+		}
 	}
 #endif
 
@@ -44,7 +38,11 @@
 #ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 	void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
-		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), a2dp_source->to_str(state));
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink => audio state: %s", a2dp_sink->to_str(state));
+		} else {
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth source => audio state: %s", a2dp_source->to_str(state));
+		}
 	}
 #endif
 
