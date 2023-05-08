@@ -36,7 +36,7 @@
 #ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
-		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), a2dp_source->to_str(state));
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), ((BluetoothA2DPCommon *)ptr)->to_str(state));
 	}
 #endif
 
@@ -44,7 +44,7 @@
 #ifdef BLUETOOTH_ENABLE
 	// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 	void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
-		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), a2dp_source->to_str(state));
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), ((BluetoothA2DPCommon *)ptr)->to_str(state));
 	}
 #endif
 
@@ -185,8 +185,8 @@ void Bluetooth_Init(void) {
 			a2dp_sink->start(nameBluetoothSinkDevice);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth sink started, Device: %s", nameBluetoothSinkDevice);
 			// connect events after startup
-			a2dp_sink->set_on_connection_state_changed(connection_state_changed);
-			a2dp_sink->set_on_audio_state_changed(audio_state_changed);
+			a2dp_sink->set_on_connection_state_changed(connection_state_changed, a2dp_sink);
+			a2dp_sink->set_on_audio_state_changed(audio_state_changed, a2dp_sink);
 			a2dp_sink->set_avrc_metadata_callback(avrc_metadata_callback);
 			a2dp_sink->set_on_volumechange(Bluetooth_VolumeChanged);
         	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
@@ -210,8 +210,8 @@ void Bluetooth_Init(void) {
 		    	btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "First device found" : btDeviceName.c_str());
 			// connect events after startup
-			a2dp_source->set_on_connection_state_changed(connection_state_changed);
-			a2dp_source->set_on_audio_state_changed(audio_state_changed);
+			a2dp_source->set_on_connection_state_changed(connection_state_changed, a2dp_source);
+			a2dp_source->set_on_audio_state_changed(audio_state_changed, a2dp_source);
 			// max headphone volume (0..255): volume is controlled by audio class
 			a2dp_source->set_volume(127);
 		} else {
