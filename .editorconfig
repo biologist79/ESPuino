@@ -22,6 +22,9 @@ indent_size = unset
 indent_style = unset
 insert_final_newline = false
 
+[*.md]
+max_line_length = 100
+
 [platformio.ini]
 indent_size = 4
 indent_style = space
