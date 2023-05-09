@@ -12,19 +12,19 @@
   dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr
   insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10.
 
-## Current Development
+## Current development
 
 There is a [development branch (dev)](https://github.com/biologist79/ESPuino/tree/dev) that contains
 new features, that will be introduced and tested there first until they become part of the master
 branch. Feel free to try but be advised this could be unstable.
 
-## Known Bugs
+## Known bugs
 
 - For ESPuinos making use of SPI to interface the SD card, there's an unsolved problem that
   occasionally leads to incomplete file transfers via web interface or FTP. Solution: use SD_MMC
   instead (by the way: it's faster and needs one GPIO less).
 
-## ESPuino - What's that?
+## ESPuino - what's that?
 
 The basic idea of ESPuino is to use RFID tags to control an audio player. Even for kids this concept
 is simple: place a RFID-tagged object (card, toy character, etc.) on top of a box and the music
@@ -49,7 +49,7 @@ work with this library should work with ESPuino, too (but maybe not right out-of
 Especially this is true for
 [ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino).
 
-## Hardware Setup
+## Hardware setup
 
 You could start on a breadboard with jumper wires but I _strongly_ recommend to start right away
 with a PCB like [ESPuino-mini 4L](https://forum.espuino.de/t/espuino-mini-4layer/1661). Several PCBs
@@ -68,7 +68,7 @@ are available. Please click on the links below for more informations and picture
   and [headphone-pcb
   #3](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308).
 
-## Getting Started
+## Getting started
 
 - [Much more documentation in german
   language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
@@ -136,24 +136,24 @@ to the reader. PN5180 instead has better RFID range/sensitivity and can read ISO
 SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake up ESPuino with
 the a ISO-14443 card (after flashing PN5180 with a new firmware). This feature is called LPCD.
 Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4). In my opinion
-it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3V
-only make sure to connect these 3.3V to PN5180's 5V AND 3.3V. Sounds weird but it's necessary.
+it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3 V
+only make sure to connect these 3.3 V to PN5180's 5 V AND 3.3 V. Sounds weird but it's necessary.
 
-## 3.3V or 5V?
+## 3.3 V or 5 V?
 
-ESP32 runs at 3.3V only. But what about the periphery?
+ESP32 runs at 3.3 V only. But what about the periphery?
 
-- 3.3V! Because: if you plan to use battery mode with LiPo/LiFePO4, there's no 5V available (unless
-  USB is connected or you make use of a boost converter). That's why my focus is on 3.3V only. If
-  you want to use 5V instead - do so, but be advised it might not be compatible with battery mode.
-- MAX98357A: provides more power at 5V but also runs at 3.3V. Anyway: it's still loud enough (in
+- 3.3 V! Because: if you plan to use battery mode with LiPo/LiFePO4, there's no 5 V available (unless
+  USB is connected or you make use of a boost converter). That's why my focus is on 3.3 V only. If
+  you want to use 5 V instead - do so, but be advised it might not be compatible with battery mode.
+- MAX98357A: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in
   my opinion).
-- Neopixel: specification says it needs 5V but runs at 3.3V as well.
-- RC522: needs 3.3V (don't ever power with 5V!)
-- PN5180: at 3.3V make sure to connect both 5V and 3.3V pins to 3.3V. If 5V is available all
-  the time: connect 5V to 5V and 3.3V to 3.3V.
-- SD card: needs 3.3V but if voltage regulator is onboard, it can be connected to 5V as well
-- Rotary encoder: 3.3V (don't power with 5V! Encoder doesn't care if connected to 3.3 or 5V, but
+- Neopixel: specification says it needs 5 V but runs at 3.3 V as well.
+- RC522: needs 3.3 V (don't ever power with 5 V!)
+- PN5180: at 3.3 V make sure to connect both 5 V and 3.3 V pins to 3.3 V. If 5 V is available all
+  the time: connect 5 V to 5 V and 3.3 V to 3.3 V.
+- SD card: needs 3.3 V but if voltage regulator is onboard, it can be connected to 5 V as well
+- Rotary encoder: 3.3 V (don't power with 5 V! Encoder doesn't care if connected to 3.3 or 5 V, but
   GPIOs of ESP32 do!)
 
 ## WiFi
@@ -173,7 +173,7 @@ to (re-)enable/disable WiFi:
   parallel with WiFi.** This means that you cannot stream webradio via Bluetooth
   or access the web GUI while this mode is enabled.
 
-### ESPuino as A2DP Sink (stream to ESPuino)
+### ESPuino as A2DP sink (stream to ESPuino)
 
 ESPuino can be used as Bluetooth sink (A2DP sink). In this mode you can stream audio (e.g. from a
 mobile device) via Bluetooth to your ESPuino. This mode can be enabled/disabled via a RFID
@@ -181,7 +181,7 @@ modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button
 Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four slow
 rotating _blue_ LEDs.
 
-### ESPuino as A2DP Source (stream from ESPuino)
+### ESPuino as A2DP source (stream from ESPuino)
 
 ESPuino can also be used to stream audio (A2DP source) to a Bluetooth headset or external Bluetooth
 speakers. This mode can be enabled/disabled via a RFID modification card or by assigning action
@@ -189,7 +189,7 @@ speakers. This mode can be enabled/disabled via a RFID modification card or by a
 immediately. Activated Bluetooth is indicated by four slow rotating _blue-violet_ LEDs. After the
 Bluetooth headset is connected LEDs turn to blue.
 
-## Port Expander
+## Port expander
 
 There might be situations where you run out of GPIOs. To address this, a port expander
 [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend the number of
@@ -244,7 +244,7 @@ width="30%"></img>
 
 ## Interacting with ESPuino
 
-### Playback Modes
+### Playback modes
 
 It's not just simply playing music; different playback modes are supported:
 
@@ -364,7 +364,7 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
 - **Previous** (long; keep pressed) + **Next** (short) + release (both): toggle WiFi
   enabled/disabled
 
-### Music Playback
+### Music playback
 
 - Music starts to play right away after a valid RFID tag was applied (if it's known to ESPuino).
 - If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied =>
@@ -378,7 +378,7 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
 - While the playlist is generated Neopixel indicates BUSY-mode.
 - After the last track was played, Neopixel indicates IDLE-mode.
 
-### Audiobook Mode
+### Audiobook mode
 
 This mode is different from the others because the last playback position is saved, when...
 
@@ -449,7 +449,7 @@ directory](https://github.com/biologist79/ESPuino/tree/master/openHAB).
   can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend
   some time to get familiar with it.
 
-#### MQTT Topics
+#### MQTT topics
 
 Feel free to use your own smarthome environments (instead of openHAB). The MQTT topics available are
 described as follows.
