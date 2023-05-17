@@ -37,6 +37,12 @@
 	// for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 	void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), ((BluetoothA2DPCommon *)ptr)->to_str(state));
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			// for Neopixel (indicator LEDs) use the webstream mode
+			gPlayProperties.isWebstream = false;
+			gPlayProperties.pausePlay = false;
+			gPlayProperties.playlistFinished = true;
+		}
 	}
 #endif
 
@@ -45,6 +51,13 @@
 	// for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 	void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), ((BluetoothA2DPCommon *)ptr)->to_str(state));
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+			// set play/pause status
+			gPlayProperties.pausePlay = (state != ESP_A2D_AUDIO_STATE_STARTED);
+			// for Neopixel (indicator LEDs) use the webstream mode
+			gPlayProperties.playlistFinished = false;
+			gPlayProperties.isWebstream = true;
+		}	
 	}
 #endif
 
@@ -144,18 +157,15 @@
 
 void Bluetooth_VolumeChanged(int _newVolume) {
 	#ifdef BLUETOOTH_ENABLE
-		Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _newVolume);
+		if ((_newVolume < 0) || (_newVolume > 0x7F)) {
+			return;
+		}
+		// map bluetooth volume (0..127) to ESPuino volume (0..21) to
 		uint8_t _volume;
-		if (_newVolume < int(BLUETOOTHPLAYER_VOLUME_MIN)) {
-			return;
-		} else if (_newVolume > BLUETOOTHPLAYER_VOLUME_MAX) {
-			return;
-		} else {
-			// map bluetooth volume (0..127) to ESPuino volume (0..21) to
-			_volume = map(_newVolume, 0, 0x7F, BLUETOOTHPLAYER_VOLUME_MIN, BLUETOOTHPLAYER_VOLUME_MAX);
-			AudioPlayer_SetCurrentVolume(_volume);
-			// update rotary encoder
-			RotaryEncoder_Readjust();
+		_volume = map(_newVolume, 0, 0x7F, BLUETOOTHPLAYER_VOLUME_MIN, BLUETOOTHPLAYER_VOLUME_MAX);
+		if (AudioPlayer_GetCurrentVolume() != _volume) {
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _volume);
+			AudioPlayer_VolumeToQueueSender(_volume, true);
 		}
 	#endif
 }
@@ -302,14 +312,11 @@ bool Bluetooth_Source_SendAudioData(uint32_t* sample) {
 	#endif
 }
 
-bool Bluetooth_Source_Connected() {
+bool Bluetooth_Device_Connected() {
 	#ifdef BLUETOOTH_ENABLE
 		// send audio data to ringbuffer
-		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()) {
-			return true;
-		} else {
-			return false;
-		}
+		return  (((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink) && a2dp_sink->is_connected()) ||
+				((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()));
 	#else
 		return false;
 	#endif
