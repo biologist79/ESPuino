@@ -203,9 +203,9 @@ void handleWifiStateScanConnect() {
 		return;
 	}
 
-	int n = WiFi.scanComplete();
+	int wifiScanCompleteResult = WiFi.scanComplete();
 
-	switch (n) {
+	switch (wifiScanCompleteResult) {
 		case -1:
 			// scan not fin
 			return;
@@ -219,7 +219,7 @@ void handleWifiStateScanConnect() {
 	}
 
 	if (connectStartTimestamp == 0) {
-		for (int i = 0; i < n; ++i) {
+		for (int i = 0; i < wifiScanCompleteResult; ++i) {
 			Log_Printf(LOGLEVEL_NOTICE, wifiScanResult, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i));
 		}
 	} else {		
@@ -231,7 +231,7 @@ void handleWifiStateScanConnect() {
 	WiFi.disconnect(true, true);
 	WiFi.mode(WIFI_STA);
 	// fortunately, scan results are already sorted by best signal
-	for (int i = scanIndex; i < n; i++) {
+	for (int i = scanIndex; i < wifiScanCompleteResult; i++) {
 		// try to connect to wifi network with index i
 		String issid = WiFi.SSID(i);
 		// check if ssid name matches any saved ssid
