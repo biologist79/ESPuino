@@ -41,6 +41,14 @@
             "placeholder": "espuino",
             "validation": "Trage einen validen Hostnamen ein"
         },
+        "static": {
+            "addr": "Statische IP-Adresse",
+            "enabled": "Statische IP-Konfiguration",
+            "gateway": "Gateway für Statische IP-Konfiguration",
+            "subnet": "Subnetz für Statische IP-Konfiguration",
+            "dns1": " DNS 1 für Statische IP-Konfiguration",
+            "dns2": "DNS 2 für Statische IP-Konfiguration"
+        },
         "restartPrompt": "Fertig?"
     },
     "control": {

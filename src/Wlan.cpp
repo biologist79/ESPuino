@@ -77,9 +77,9 @@ void Wlan_Init(void) {
 
 	// ******************* MIGRATION *******************
 	// migration from single-wifi setup. Delete some time in the future
-	String strSSID = gPrefsSettings.getString("SSID", "-1");
-	String strPassword = gPrefsSettings.getString("Password", "-1");
-	if (!strSSID.equals("-1") && !strPassword.equals("-1")) {
+	if (gPrefsSettings.isKey("SSID") && gPrefsSettings.isKey("Password")) {
+		String strSSID = gPrefsSettings.getString("SSID", "");
+		String strPassword = gPrefsSettings.getString("Password", "");
 		Log_Println("migrating from old wifi NVS settings!", LOGLEVEL_NOTICE);
 		gPrefsSettings.putString("LAST_SSID", strSSID);
 
@@ -89,13 +89,20 @@ void Wlan_Init(void) {
 		networkSettings.ssid[32] = '\0';
 		strncpy(networkSettings.password, strPassword.c_str(), 64);
 		networkSettings.password[64] = '\0';
+
+		#ifdef STATIC_IP_ENABLE
+			networkSettings.static_addr = IPAddress(LOCAL_IP);
+			networkSettings.static_gateway = IPAddress(GATEWAY_IP);
+			networkSettings.static_subnet = IPAddress(SUBNET_IP);
+			networkSettings.static_dns1 = IPAddress(DNS_IP);
+		#endif
+
 		Wlan_AddNetworkSettings(networkSettings);
 	}
 	// clean up old values from nvs
-	if (!strSSID.equals("-1") || !strPassword.equals("-1")) {
-		gPrefsSettings.remove("SSID");
-		gPrefsSettings.remove("Password");
-	}
+	gPrefsSettings.remove("SSID");
+	gPrefsSettings.remove("Password");
+	
 	// ******************* MIGRATION *******************
 
 
@@ -118,6 +125,13 @@ void connectToKnownNetwork(WiFiSettings settings) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
 	if (hostname.compareTo("-1")) {
 		WiFi.setHostname(hostname.c_str());
+	}
+
+	if (settings.use_static_ip) {
+		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
+		if (!WiFi.config(settings.static_addr, settings.static_gateway, settings.static_subnet, settings.static_dns1, settings.static_dns2)) {
+			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
+		}
 	}
 
 	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid);
@@ -213,16 +227,6 @@ void handleWifiStateScanConnect() {
 			return;
 		}
 	}
-	
-	// TODO: now that we manage multiple networks we might want to configure a static ip for each of them
-	// TODO: this is now doable using the WiFiSettings struct, assuming it can be set from the UI
-	// Add configuration of static IP (if requested)
-	#ifdef STATIC_IP_ENABLE
-		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
-		if (!WiFi.config(IPAddress(LOCAL_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_IP), IPAddress(DNS_IP))) {
-			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
-		}
-	#endif
 
 	WiFi.disconnect(true, true);
 	WiFi.mode(WIFI_STA);
