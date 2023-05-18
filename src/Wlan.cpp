@@ -199,6 +199,7 @@ void handleWifiStateScanConnect() {
 	// wait for scan results and handle them
 
 	if (WiFi.status() == WL_CONNECTED) {
+		WiFi.scanDelete();
 		wifiState = WIFI_STATE_CONN_SUCCESS;
 		return;
 	}
@@ -254,6 +255,8 @@ void handleWifiStateScanConnect() {
 			}
 		}
 	}
+
+	WiFi.scanDelete();
 	wifiState = WIFI_STATE_CONN_FAILED;
 }
 
