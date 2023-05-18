@@ -641,26 +641,7 @@ bool processJsonRequest(char *_serialJson) {
 			return false;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
-	} else if (doc.containsKey("wifiConfig")) {
-
-		JsonObject wifiConf = object["wifiConfig"];
-
-		if (wifiConf.containsKey("addWifi")){
-			const char *_ssid = wifiConf["addWifi"]["ssid"];
-			const char *_pwd = wifiConf["addWifi"]["pwd"];
-
-			return Wlan_AddNetworkSettings(String(_ssid), String(_pwd));
-		} else if (wifiConf.containsKey("removeWifi")) {
-			const char *_ssid = wifiConf["removeWifi"]["ssid"];
-
-			return Wlan_DeleteNetwork(String(_ssid));
-		} else if (wifiConf.containsKey("setHostname")) {
-			const char *_hostname = wifiConf["setHostname"]["hostname"];
-
-			return Wlan_SetHostname(String(_hostname));
-		}
-	}
-	else if (doc.containsKey("ping")) {
+	} else if (doc.containsKey("ping")) {
 		Web_SendWebsocketData(0, 20);
 		return false;
 	} else if (doc.containsKey("controls")) {
@@ -1245,7 +1226,7 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 	
 	JsonArray json_ssids = jsonBuffer.createNestedArray("ssidList");
 	uint8_t len_ids = Wlan_NumSavedNetworks();
-	Wlan_GetSSIDs(ssids);
+	Wlan_GetSSIDs(ssids, 10);
 
 	for (int i = 0; i < len_ids; i++) {
 		json_ssids.add(ssids[i]);
@@ -1259,13 +1240,39 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject& jsonObj = json.as<JsonObject>();
 
-	String ssid = jsonObj["ssid"];
-	String password = jsonObj["pwd"];
-	
-	bool succ = Wlan_AddNetworkSettings(ssid, password);
+	Serial.printf("got wifi config: %s \n", (const char*) jsonObj["ssid"]);
+	struct WiFiSettings networkSettings;
+
+	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
+	strncpy(networkSettings.ssid, (const char*) jsonObj["ssid"], 32);
+	networkSettings.ssid[32] = '\0';
+	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
+	networkSettings.password[64] = '\0';
+
+	// TODO: disabled for now; test later
+	//networkSettings.use_static_ip = jsonObj["static"];
+	networkSettings.use_static_ip = false; 
+
+	if (jsonObj.containsKey("static_addr")) {
+		networkSettings.static_addr.fromString((const char*) jsonObj["static_addr"]);
+	}
+	if (jsonObj.containsKey("static_gateway")) {
+		networkSettings.static_gateway.fromString((const char*) jsonObj["static_gateway"]);
+	}
+	if (jsonObj.containsKey("static_subnet")) {
+		networkSettings.static_subnet.fromString((const char*) jsonObj["static_subnet"]);
+	}
+	if (jsonObj.containsKey("static_dns1")) {
+		networkSettings.static_dns1.fromString((const char*) jsonObj["static_dns1"]);
+	}
+	if (jsonObj.containsKey("static_dns2")) {
+		networkSettings.static_dns2.fromString((const char*) jsonObj["static_dns2"]);
+	}
+
+	bool succ = Wlan_AddNetworkSettings(networkSettings);
 
 	if (succ) {
-		request->send(200, "text/plain; charset=utf-8", ssid);
+		request->send(200, "text/plain; charset=utf-8", networkSettings.ssid);
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error adding network");
 	}	

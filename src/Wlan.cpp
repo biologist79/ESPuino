@@ -36,17 +36,20 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 bool getWifiEnableStatusFromNVS(void);
 void writeWifiStatusToNVS(bool wifiStatus);
 
-uint8_t numSavedNetworks = 0;
-
 void handleWifiStateInit();
 
 // state for connection attempt
-uint8_t scanIndex = 0;
-uint8_t connectionAttemptCounter = 0;
-unsigned long connectStartTimestamp = 0;
-uint32_t connectionFailedTimestamp = 0;
-String knownNetworks[10];
-String hostname;
+static uint8_t scanIndex = 0;
+static uint8_t connectionAttemptCounter = 0;
+static unsigned long connectStartTimestamp = 0;
+static uint32_t connectionFailedTimestamp = 0;
+
+// state for persistent settings
+static const char* nvsWiFiNetworksKey = "SAVED_WIFIS";
+static constexpr size_t maxSavedNetworks = 10;
+static size_t numKnownNetworks = 0;
+static WiFiSettings knownNetworks[maxSavedNetworks];
+static String hostname;
 
 // state for AP
 DNSServer *dnsServer;
@@ -54,7 +57,6 @@ constexpr uint8_t DNS_PORT = 53;
 
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
-	numSavedNetworks = gPrefsSettings.getUChar("NUM_NETWORKS", 0U);
 
 	hostname = gPrefsSettings.getString("Hostname", "-1");
 	// Get (optional) hostname-configuration from NVS
@@ -64,6 +66,15 @@ void Wlan_Init(void) {
 		Log_Println(wifiHostnameNotSet, LOGLEVEL_INFO);
 	}
 
+	// load array of up to maxSavedNetworks from NVS
+	numKnownNetworks = gPrefsSettings.getBytes(nvsWiFiNetworksKey, knownNetworks, maxSavedNetworks*sizeof(WiFiSettings)) / sizeof(WiFiSettings);
+	for (int i = 0; i < numKnownNetworks; i++) {
+		knownNetworks[i].ssid[32] = '\0';
+		knownNetworks[i].password[64] = '\0';
+		Log_Printf(LOGLEVEL_NOTICE, wifiNetworkLoaded, i, knownNetworks[i].ssid);
+	}
+
+
 	// ******************* MIGRATION *******************
 	// migration from single-wifi setup. Delete some time in the future
 	String strSSID = gPrefsSettings.getString("SSID", "-1");
@@ -71,7 +82,14 @@ void Wlan_Init(void) {
 	if (!strSSID.equals("-1") && !strPassword.equals("-1")) {
 		Log_Println("migrating from old wifi NVS settings!", LOGLEVEL_NOTICE);
 		gPrefsSettings.putString("LAST_SSID", strSSID);
-		Wlan_AddNetworkSettings(strSSID, strPassword);
+
+		struct WiFiSettings networkSettings;
+		
+		strncpy(networkSettings.ssid, strSSID.c_str(), 32);
+		networkSettings.ssid[32] = '\0';
+		strncpy(networkSettings.password, strPassword.c_str(), 64);
+		networkSettings.password[64] = '\0';
+		Wlan_AddNetworkSettings(networkSettings);
 	}
 	// clean up old values from nvs
 	if (!strSSID.equals("-1") || !strPassword.equals("-1")) {
@@ -96,17 +114,15 @@ void Wlan_Init(void) {
 	handleWifiStateInit();
 }
 
-void connectToKnownNetwork(String ssid) {
-	String pwd = Wlan_GetPwd(ssid);
-
+void connectToKnownNetwork(WiFiSettings settings) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
 	if (hostname.compareTo("-1")) {
 		WiFi.setHostname(hostname.c_str());
 	}
 
-	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, ssid.c_str());
+	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid);
 
-	WiFi.begin(ssid.c_str(), pwd.c_str());
+	WiFi.begin(settings.ssid, settings.password);
 }
 
 void handleWifiStateInit() {
@@ -120,7 +136,6 @@ void handleWifiStateInit() {
 	scanIndex = 0;
 	connectionAttemptCounter = 0;
 	connectStartTimestamp = 0;
-	numSavedNetworks = Wlan_GetSSIDs(knownNetworks);
 	connectionFailedTimestamp = 0;
 	wifiState = WIFI_STATE_CONNECT_LAST;
 }
@@ -141,7 +156,16 @@ void handleWifiStateConnectLast() {
 	// for speed, try to connect to last ssid first
 	String lastSSID = gPrefsSettings.getString("LAST_SSID", "-1");
 
-	if(lastSSID.equals("-1") || connectionAttemptCounter > 1) {
+	std::optional<WiFiSettings> lastSettings = std::nullopt;
+
+	for(int i=0; i<numKnownNetworks; i++) {
+		if (strncmp(knownNetworks[i].ssid, lastSSID.c_str(), 32) == 0) {
+			lastSettings = knownNetworks[i];
+			break;
+		}
+	}
+
+	if(!lastSettings || connectionAttemptCounter > 1) {
 		// you can tweak passive/active mode and time per channel
 		// routers send a beacon msg every 100ms and passive mode with 120ms works well and is fastest here
 		WiFi.scanNetworks(true, false, true, 120);
@@ -153,7 +177,7 @@ void handleWifiStateConnectLast() {
 	}
 	
 	connectStartTimestamp = millis();
-	connectToKnownNetwork(lastSSID);
+	connectToKnownNetwork(lastSettings.value());
 	connectionAttemptCounter++;
 }
 
@@ -191,6 +215,7 @@ void handleWifiStateScanConnect() {
 	}
 	
 	// TODO: now that we manage multiple networks we might want to configure a static ip for each of them
+	// TODO: this is now doable using the WiFiSettings struct, assuming it can be set from the UI
 	// Add configuration of static IP (if requested)
 	#ifdef STATIC_IP_ENABLE
 		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
@@ -206,11 +231,10 @@ void handleWifiStateScanConnect() {
 		// try to connect to wifi network with index i
 		String issid = WiFi.SSID(i);
 		// check if ssid name matches any saved ssid
-		for (int j = 0; j < numSavedNetworks; j++) {
-			if (issid.equals(knownNetworks[j])) {
-				String ssid = WiFi.SSID(i);
+		for (int j = 0; j < numKnownNetworks; j++) {
+			if (strncmp(issid.c_str(), knownNetworks[j].ssid, 32) ==0 ) {
+				connectToKnownNetwork(knownNetworks[j]);
 
-				connectToKnownNetwork(ssid);
 				connectStartTimestamp = millis();
 
 				// prepare for next iteration
@@ -367,80 +391,50 @@ bool Wlan_SetHostname(String newHostname) {
 	return true;
 }
 
-char nvs_key[9];
-char* getSSIDKey(uint8_t index) { 
-	snprintf(nvs_key, 9, "SSID_%d", index);
-	return nvs_key;
-}
-char* getPWDKey(uint8_t index) { 
-	snprintf(nvs_key, 9, "WPWD_%d", index);
-	return nvs_key;
-}
+bool Wlan_AddNetworkSettings(WiFiSettings settings) {
+	settings.ssid[32] = '\0';
+	settings.password[64] = '\0';
 
-bool Wlan_AddNetworkSettings(String ssid, String pwd) {
-	uint8_t len = Wlan_NumSavedNetworks();
-
-	for (uint8_t i=0; i<len; i++) {
-		String issid = gPrefsSettings.getString(getSSIDKey(i));
-
-		if (ssid.equals(issid)) {
-			Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, ssid.c_str());
-			gPrefsSettings.putString(getPWDKey(i), pwd);
+	for (uint8_t i=0; i<numKnownNetworks; i++) {
+		if (strncmp(settings.ssid, knownNetworks[i].ssid, 32) == 0) {
+			Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, settings.ssid);
+			knownNetworks[i] = settings;
+			gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
 			return true;
 		}
 	}
 
-	if (len > 9) {
+	if (numKnownNetworks >= maxSavedNetworks) {
 		Log_Println(wifiAddTooManyNetworks, LOGLEVEL_ERROR);
 		return false;
 	}
 
-	Log_Printf(LOGLEVEL_NOTICE, wifiAddNetwork, ssid.c_str());
+	Log_Printf(LOGLEVEL_NOTICE, wifiAddNetwork, settings.ssid);
 
-	gPrefsSettings.putString(getSSIDKey(len), ssid);
-	gPrefsSettings.putString(getPWDKey(len), pwd);
+	knownNetworks[numKnownNetworks] = settings;
+	numKnownNetworks += 1;
 
-	numSavedNetworks++;
-	gPrefsSettings.putUChar("NUM_NETWORKS", numSavedNetworks);
+	gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
 
 	return true;
 }
 
 
 uint8_t Wlan_NumSavedNetworks() {
-	return numSavedNetworks;
+	return numKnownNetworks;
 }
 
-// write ssids from nvs into the passed array. 
-uint8_t Wlan_GetSSIDs(String* ssids) {	
-
-	uint8_t len = Wlan_NumSavedNetworks();
-	if (len > 10) {
-		Log_Printf(LOGLEVEL_ERROR, wifiTooManyNetworks, len, 10);
-		len = 10;
+// write saved ssids into the passed array. 
+size_t Wlan_GetSSIDs(String* ssids, size_t max_len) {	
+	if (numKnownNetworks > max_len) {
+		return 0;
 	}
-	
-	uint8_t i;
-	for (i=0; i<len; i++) {
-		String ssid = gPrefsSettings.getString(getSSIDKey(i));
-		Log_Printf(LOGLEVEL_NOTICE, wifiNetworkLoaded, i, ssid.c_str());
 
-		ssids[i] = ssid;
+	for (uint8_t i=0; i<numKnownNetworks; i++) {
+		ssids[i] = knownNetworks[i].ssid;
 	}
-	return i;
-}
 
-String Wlan_GetPwd(String ssid) {
-	uint8_t len = Wlan_NumSavedNetworks();
-
-	for (uint8_t i=0; i<len; i++) {
-		String issid = gPrefsSettings.getString(getSSIDKey(i));
-
-		if(ssid.equals(issid)) {
-			return gPrefsSettings.getString(getPWDKey(i));
-		}
-	}
-	return String();
+	return numKnownNetworks;
 }
 
 String Wlan_GetCurrentSSID() {
@@ -452,38 +446,26 @@ String Wlan_GetHostname() {
 }
 
 bool Wlan_DeleteNetwork(String ssid) {
-	uint8_t len = numSavedNetworks;
-	numSavedNetworks--;
-	gPrefsSettings.putUChar("NUM_NETWORKS", numSavedNetworks);
-	char* key;
-
 	Log_Printf(LOGLEVEL_NOTICE, wifiDeleteNetwork, ssid.c_str());
 
-	for (uint8_t i=0; i<len-1; i++) {
+	for (uint8_t i=0; i<numKnownNetworks; i++) {
+		if (strncmp(ssid.c_str(), knownNetworks[i].ssid, 32) == 0) {
 
-		String issid = gPrefsSettings.getString(getSSIDKey(i));
+			// delete and move all following elements to the left
+			memmove(knownNetworks+i, knownNetworks+i+1, sizeof(WiFiSettings)*(numKnownNetworks-i-1));
+			numKnownNetworks--;
 
-		if(ssid.equals(issid)) {
-			key = getSSIDKey(len-1);
-			String lastSSID = gPrefsSettings.getString(key);
-			gPrefsSettings.remove(key);
-			key = getPWDKey(len-1);
-			String lastPWD = gPrefsSettings.getString(key);
-			gPrefsSettings.remove(key);	
-
-			gPrefsSettings.putString(getSSIDKey(i), lastSSID);
-			gPrefsSettings.putString(getPWDKey(i), lastPWD);
+			gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
 			return true;
 		}
 	}
+	// ssid not found
 	return false;
 }
 
 bool Wlan_ConnectionTryInProgress(void) {
 	return wifiState == WIFI_STATE_SCAN_CONN;
 }
-
-
 
 String Wlan_GetIpAddress(void) {
 	return WiFi.localIP().toString();
