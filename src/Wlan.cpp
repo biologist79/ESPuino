@@ -58,9 +58,9 @@ constexpr uint8_t DNS_PORT = 53;
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
 
-	hostname = gPrefsSettings.getString("Hostname", "-1");
+	hostname = gPrefsSettings.getString("Hostname");
 	// Get (optional) hostname-configuration from NVS
-	if (hostname.compareTo("-1")) {
+	if (hostname) {
 		Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 	} else {
 		Log_Println(wifiHostnameNotSet, LOGLEVEL_INFO);
@@ -168,14 +168,16 @@ void handleWifiStateConnectLast() {
 	WiFi.mode(WIFI_STA);
 	
 	// for speed, try to connect to last ssid first
-	String lastSSID = gPrefsSettings.getString("LAST_SSID", "-1");
+	String lastSSID = gPrefsSettings.getString("LAST_SSID");
 
 	std::optional<WiFiSettings> lastSettings = std::nullopt;
 
-	for(int i=0; i<numKnownNetworks; i++) {
-		if (strncmp(knownNetworks[i].ssid, lastSSID.c_str(), 32) == 0) {
-			lastSettings = knownNetworks[i];
-			break;
+	if (lastSSID) {
+		for(int i=0; i<numKnownNetworks; i++) {
+			if (strncmp(knownNetworks[i].ssid, lastSSID.c_str(), 32) == 0) {
+				lastSettings = knownNetworks[i];
+				break;
+			}
 		}
 	}
 
