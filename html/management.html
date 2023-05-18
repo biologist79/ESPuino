@@ -175,24 +175,42 @@
 <div class="tab-content" id="nav-tabContent">
 	<div class="tab-pane fade" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 		<div class="container" id="wifiConfig">
-			<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
-				<div class="form-group col-md-12">
-					<legend data-i18n="wifi.title">WiFi-settings</legend>
-					<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-					<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
-					<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
-					<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-					<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required>
-					<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-					<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
-						   value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
-				</div>
-				<br>
-				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-				</div>
-			</form>
+			<div>
+				<legend data-i18n="wifi.title">WiFi-settings</legend>
+				<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
+					<div class="form-group col-md-12">
+						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
+						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
+							value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
+					</div>
+					<br>
+					<div class="text-center">
+					<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
+					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+			</div>
+			<div style="margin-top: 20px;">
+				<legend data-i18n="wifi.networks">Networks</legend>
+				<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
+					<div class="form-group col-md-12">
+						<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
+						<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
+						<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
+						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
+						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required>
+					</div>
+					<br>
+					<div class="text-center">
+					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+			</div>
+			<div class="col-md-12" style="margin-top: 20px;">
+				<legend data-i18n="wifi.savedNetworks">Saved Networks</legend>
+				<ul class="list-group" id="wifiListSavedSSIDs">
+				</ul>
+			</div>
 		</div>
 	</div>
 	<div class="tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
@@ -1241,6 +1259,86 @@
 	  };
 	}
 
+	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
+	async function rebuildSSIDList() {
+		let ssidList = await (await fetch("/savedSSIDs")).json();
+		let ssidActiveObj = await (await fetch("/activeSSID")).json();
+
+		console.log(ssidActiveObj);
+		let ssidActive = ssidActiveObj.active;
+
+		console.log(ssidList);
+		console.log(ssidActive);
+
+		wifiListSavedSSIDs.innerHTML = "";
+
+		for (let ssid of ssidList) {
+			console.log("appending ssid", ssid);
+
+			let ssidElem = document.createElement("li");
+			ssidElem.appendChild(document.createTextNode(ssid));
+
+
+			ssidElem.classList.add("list-group-item");
+			console.log("comparing ssid vs active:", ssidActive, ssid);
+			if (ssidActive && ssidActive === ssid) {
+				ssidElem.classList.add("active");
+			}
+
+			let deleteSpan = document.createElement("span");
+			deleteSpan.classList.add("float-right");
+			deleteSpan.classList.add("button-group");
+
+			let deleteButton = document.createElement("button");
+			deleteButton.classList.add("btn");
+			deleteButton.classList.add("btn-danger");
+			deleteButton.classList.add("fa");
+			deleteButton.classList.add("fa-trash");
+
+			deleteButton.addEventListener("click", async () => {
+				console.log("deleting", ssid);
+				await fetch("/savedSSIDs/"+ssid, {method: "DELETE"});
+				await rebuildSSIDList();
+			});
+			
+			deleteSpan.appendChild(deleteButton);
+			ssidElem.appendChild(deleteSpan);
+
+			wifiListSavedSSIDs.appendChild(ssidElem);
+		}	
+	}
+
+	async function updateHostnameField() {
+		let hostnameElem = document.getElementById("hostname");
+
+		let hostname = await (await fetch("/hostname")).json();
+
+		if (hostname && hostname !== "") {
+			hostnameElem.value = hostname;
+			hostnameElem.defaultValue = hostname;
+		} 
+	}
+
+	function onWifiTabOpened() {
+		console.log("wifi tab opened!")
+		rebuildSSIDList();
+		
+		updateHostnameField();
+	}
+
+    const config = {attributes: true};
+	const wifiTab = document.getElementById("nav-wifi-tab");
+	var wifiTabWasActive = false;
+	const wifiTabObserver = new MutationObserver((mutationList, observer) => {
+		if (!wifiTabWasActive && wifiTab.classList.contains("active")) {
+			wifiTabWasActive = true;
+			onWifiTabOpened();
+		} else {
+			wifiTabWasActive = false;
+		}
+	})
+	wifiTabObserver.observe(wifiTab, config);
+
 
 	function ping() {
 		var myObj = {
@@ -1373,18 +1471,33 @@
 		socket.send(myJSON);
 	}
 
-	function wifiConfig(clickedId) {
+	async function globalWifiConfig(clickedId) {
 		lastIdclicked = clickedId;
-		var myObj = {
-			"wifiConfig": {
-				ssid: document.getElementById('ssid').value,
-				pwd: document.getElementById('pwd').value,
-				hostname: document.getElementById('hostname').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
+		let hostname = document.getElementById('hostname').value;
+		
+		await fetch("/hostname", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify(hostname)
+		});
 	}
+
+	async function wifiConfig(clickedId) {
+		lastIdclicked = clickedId;
+		var myObj = { 
+			ssid: document.getElementById('ssid').value,
+			pwd: document.getElementById('pwd').value
+		};
+		
+		await fetch("/savedSSIDs", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify(myObj)
+		});
+
+		await rebuildSSIDList();
+	}
+
 	function sendControl(cmd) {
 		var myObj = {
 			"controls": {

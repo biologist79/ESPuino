@@ -45,7 +45,7 @@
 		</style>
 	</head>
 	<body>
-		<form id="settings" action="/init" class="box" method="POST">
+		<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
 			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
 			<label for="ssid" data-i18n="wifi.ssid.title">SSID</label>:<br>
 			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
@@ -71,6 +71,19 @@
             localize = locI18next.init(i18next);
             localize('body');
         });
+
+		async function wifiConfig() {
+			var myObj = { 
+				ssid: document.getElementById('ssid').value,
+				pwd: document.getElementById('pwd').value
+			};
+			
+			await fetch("/savedSSIDs", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify(myObj)
+			});
+		}
         </script>
 	</body>
 </html>
