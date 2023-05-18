@@ -257,7 +257,7 @@ void handleWifiStateScanConnect() {
 	wifiState = WIFI_STATE_CONN_FAILED;
 }
 
-bool initialStart = true;
+static bool initialStart = true;
 // executed once after successfully connecting
 void handleWifiStateConnectionSuccess() {
 	initialStart = false;
@@ -296,7 +296,7 @@ void handleWifiStateConnectionSuccess() {
 	wifiState = WIFI_STATE_CONNECTED;
 }
 
-uint32_t lastPrintRssiTimestamp = 0;
+static uint32_t lastPrintRssiTimestamp = 0;
 void handleWifiStateConnected() {
 	switch (WiFi.status()) {
 		case WL_CONNECTED:
@@ -319,10 +319,11 @@ void handleWifiStateConnected() {
 	}
 }
 
-// good candidate for a user setting
-uint32_t wifiReconnectTimeout = 600000;
-uint32_t wifiAPStartedTimestamp = 0;
+static uint32_t wifiAPStartedTimestamp = 0;
 void handleWifiStateConnectionFailed() {
+	// good candidate for a user setting
+	static constexpr uint32_t wifiReconnectTimeout = 600000;
+
 	if (connectionFailedTimestamp == 0) {
 		Log_Println(cantConnectToWifi, LOGLEVEL_INFO);
 		connectionFailedTimestamp = millis();
@@ -343,9 +344,10 @@ void handleWifiStateConnectionFailed() {
 	}
 }
 
-// good candidate for a user setting
-uint32_t closeWifiAPTimeout = 300000;
 void handleWifiStateAP() {
+	// good candidate for a user setting
+	static constexpr uint32_t closeWifiAPTimeout = 300000;
+
 	// close the AP after the desired time has passed; set to 0 to keep on forever
 	if (closeWifiAPTimeout != 0 && millis() - wifiAPStartedTimestamp > closeWifiAPTimeout) {
 		WiFi.mode(WIFI_OFF);
