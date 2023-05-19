@@ -115,7 +115,9 @@ void Wlan_Init(void) {
 	// However, the dynamic performs slightly slower than the static allocation.
 	// Use static allocation if you want to have more performance and if your application is multi-tasking.
 	// Arduino 2.0.x only, comment to use dynamic buffers.
-	WiFi.useStaticBuffers(true);
+
+	// for Arduino 2.0.9 this does not seem to bring any advantage just more memory use, so leave it outcommented
+	//WiFi.useStaticBuffers(true);
 
 	wifiState = WIFI_STATE_INIT;
 	handleWifiStateInit();

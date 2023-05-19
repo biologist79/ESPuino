@@ -237,14 +237,14 @@
 	const char wifiConnectionInProgress[] = "Versuche mit WLAN '%s' zu verbinden...";
 	const char wifiCurrentIp[] = "Aktuelle IP: %s";
 	const char jsonErrorMsg[] = "deserializeJson() fehlgeschlagen: %s";
-	const char wifiDeleteNetwork[] = "Lösche gespeichertes WLan %s";
+	const char wifiDeleteNetwork[] = "Lösche gespeichertes WLAN %s";
 	const char wifiNetworkLoaded[] = "SSID %d von NVS geladen: %s";
-	const char wifiTooManyNetworks[] = "Anzahl der WLan-Netze in NVS ist %d, aber es sind maximal %d erlaubt.";
-	const char wifiAddTooManyNetworks[] = "Kein Platz, weiteres WLan zu speichern!";
-	const char wifiAddNetwork[] = "Füge WLan hinzu: %s";
-	const char wifiUpdateNetwork[] = "Ändere Passwort für WLan %s";	
-	const char wifiScanResult[] = "WLan mit SSID %s und Signalstärke %d auf channel %d gefunden.";
-	const char cantConnectToWifi[] = "WLan-Verbindung fehlgeschlagen.";
-	const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WLan Schnellstart: %s";
+	const char wifiTooManyNetworks[] = "Anzahl der WLAN-Netze in NVS ist %d, aber es sind maximal %d erlaubt.";
+	const char wifiAddTooManyNetworks[] = "Kein Platz, weiteres WLAN zu speichern!";
+	const char wifiAddNetwork[] = "Füge WLAN hinzu: %s";
+	const char wifiUpdateNetwork[] = "Ändere Passwort für WLAN %s";	
+	const char wifiScanResult[] = "WLAN mit SSID %s und Signalstärke %d auf Kanal %d gefunden.";
+	const char cantConnectToWifi[] = "WLAN-Verbindung fehlgeschlagen.";
+	const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WLAN Schnellstart: %s";
 
 #endif

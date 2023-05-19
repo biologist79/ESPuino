@@ -44,10 +44,10 @@
         "static": {
             "addr": "Static IP-Address",
             "enabled": "Static IP-Configuration",
-            "gateway": "Gateway for Static IP-Configuration",
-            "subnet": "Subnetz for Static IP-Configuration",
-            "dns1": " DNS 1 for Static IP-Configuration",
-            "dns2": "DNS 2 for Static IP-Configuration"
+            "gateway": "Gateway for static IP-Configuration",
+            "subnet": "Subnet-mask for static IP-Configuration",
+            "dns1": " DNS 1 for static IP-Configuration",
+            "dns2": "DNS 2 for static IP-Configuration"
         },
         "restartPrompt": "Ready to go?"
     },
