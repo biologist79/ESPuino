@@ -187,6 +187,7 @@ void setup() {
 	// Software-version
 	Log_Println(softwareRevision, LOGLEVEL_NOTICE);
 	Log_Println(gitRevision, LOGLEVEL_NOTICE);
+	Log_Printf(LOGLEVEL_NOTICE, "Arduino version: %d.%d.%d", ESP_ARDUINO_VERSION_MAJOR, ESP_ARDUINO_VERSION_MINOR, ESP_ARDUINO_VERSION_PATCH);
 	Log_Printf(LOGLEVEL_NOTICE, "ESP-IDF version: %s", ESP.getSdkVersion());
 
 	// print wake-up reason

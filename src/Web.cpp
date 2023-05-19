@@ -248,6 +248,7 @@ void webserverStart(void) {
 				char buffer[128];
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
+				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + '.' + String(ESP_ARDUINO_VERSION_MINOR) + '.' + String(ESP_ARDUINO_VERSION_PATCH);
 				info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
 				#if (LANGUAGE == DE)
 					info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
