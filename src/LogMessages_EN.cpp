@@ -107,8 +107,6 @@
 	const char modificatorDoesNotExist[] = "This type of card-modificator does not exist %d!";
 	const char errorOccuredNvs[] = "Error occured while reading from NVS!";
 	const char statementsReceivedByServer[] = "Data received from server";
-	const char savedSsidInNvs[] = "Storing SSID to NVS";
-	const char savedWifiPwdInNvs[] = "Storing wifi-password to NVS";
 	const char apReady[] = "Started wifi-access-point";
 	const char httpReady[] = "Started HTTP-server.";
 	const char unableToMountSd[] = "Unable to mount sd-card.";
@@ -148,7 +146,6 @@
 	const char mqttWithPwd[] = "Try to connect to MQTT-server with user und password";
 	const char mqttWithoutPwd[] = "Try to connect to MQTT-server without user und password";
 	const char ssidNotFoundInNvs[] = "Unable to find SSID to NVS.";
-	const char wifiPwdNotFoundInNvs[] = "Unable to find wifi-password to NVS.";
 	const char wifiStaticIpConfigNotFoundInNvs[] = "Unable to find wifi-ip-configuration to NVS.";
 	const char wifiHostnameNotSet[] = "Unable to find hostname-configuration to NVS.";
 	const char mqttConnFailed[] = "Unable to establish mqtt-connection, trying again: rc=%i (%d / %d)";
@@ -161,8 +158,8 @@
 	const char batteryLowMsg[] = "Battery charge low";
 	const char batteryCriticalMsg[] = "Battery charge critical. Will go to deepsleep...";
 	const char sdBootFailedDeepsleep[] = "Failed to boot due to SD. Will go to deepsleep...";
-	const char wifiEnabledAfterRestart[] = "WiFi will be enabled.";
-	const char wifiDisabledAfterRestart[] = "WiFi will be disabled .";
+	const char wifiEnabledMsg[] = "WiFi will be enabled.";
+	const char wifiDisabledMsg[] = "WiFi will be disabled .";
 	const char voltageIndicatorLowFromNVS[] = "Restored lower voltage-level for Neopixel-display from NVS: %.2fV";
 	const char voltageIndicatorHighFromNVS[] = "Restored upper voltage-level for Neopixel-display from NVS: %.2fV";
 	const char batteryCheckIntervalFromNVS[] = "Restored interval of battery-measurement or Neopixel-display from NVS: %u minutes";
@@ -230,7 +227,6 @@
 	const char hpOn[] = "Headphones on";
 	const char hpOff[] = "Headphones off";
 	const char webTxCanceled[] = "Webtransfer canceled due to inactivity-timer.";
-	const char cantConnectToWifi[] = "Can't connect to wifi. Trying again...";
 	const char tryToPickRandomDir[] = "Try to pick randon subdirectory out of: %s";
 	const char pickedRandomDir[] = "Randomly picked subdirectory: %s";
 	const char wrongWakeUpGpio[] = "GPIO choosen as wakeup-pin isn't of type RTC and that reason for can't wake up ESP32! (GPIO: %u)";
@@ -241,4 +237,13 @@
 	const char wifiConnectionInProgress[] = "Try to connect to WiFi with SSID '%s'...";
 	const char wifiCurrentIp[] = "Current IP: %s";
 	const char jsonErrorMsg[] = "deserializeJson() failed: %s";
+	const char wifiDeleteNetwork[] = "Deleting saved WiFi %s";
+	const char wifiNetworkLoaded[] = "Loaded SSID %d from NVS: %s";
+	const char wifiTooManyNetworks[] = "Number of networks in NVS is %d, but that's more than the allowed %d";
+	const char wifiAddTooManyNetworks[] = "No space left to add another WiFi network!";
+	const char wifiAddNetwork[] = "Add WiFi network %s";
+	const char wifiUpdateNetwork[] = "Update WiFi network %s";
+	const char wifiScanResult[] = "Found WiFi with SSID %s and signal strength %d on channel %d.";
+	const char cantConnectToWifi[] = "Failed to connect to WiFi.";
+	const char wifiSetLastSSID[] = "Write last successful SSID to NVS for WiFi fast-path: %s";
 #endif

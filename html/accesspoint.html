@@ -45,7 +45,7 @@
 		</style>
 	</head>
 	<body>
-		<form id="settings" action="/init" class="box" method="POST">
+		<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
 			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
 			<label for="ssid" data-i18n="wifi.ssid.title">SSID</label>:<br>
 			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
@@ -53,6 +53,23 @@
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
 			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
 			<input type="text" id="hostname" name="hostname" value="espuino" required><br><br>
+
+			<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
+			<label for="static_enabled" data-i18n="wifi.static.enabled">Static IP</label>
+			
+			<div id="wifi_static_div" style="display:none">
+				<label for="static_addr" data-i18n="wifi.static.addr">Adresse für Statische IP-Konfiguration</label>:<br>
+				<input type="text" id="static_addr" name="static_addr" ><br><br>
+				<label for="static_gateway" data-i18n="wifi.static.gateway">Gateway für Statische IP-Konfiguration</label>:<br>
+				<input type="text" id="static_gateway" name="static_gateway" ><br><br>
+				<label for="static_subnet" data-i18n="wifi.static.subnet">Subnet für Statische IP-Konfiguration</label>:<br>
+				<input type="text" id="static_subnet" name="static_subnet" ><br><br>
+				<label for="static_dns1" data-i18n="wifi.static.dns1">DNS 1 für Statische IP-Konfiguration</label>:<br>
+				<input type="text" id="static_dns1" name="static_dns1" ><br><br>
+				<label for="static_dns2" data-i18n="wifi.static.dns2">DNS 2 für Statische IP-Konfiguration</label>:<br>
+				<input type="text" id="static_dns2" name="static_dns2" ><br><br>
+			</div>
+
 			<button type="submit" class="btn" id="save-button" data-i18n="submit">Submit</button>
 		</form>
 		<form action="/restart" class="box">
@@ -71,6 +88,36 @@
             localize = locI18next.init(i18next);
             localize('body');
         });
+
+		// disable static input fields on toggle
+	    document.getElementById('static_enabled').onchange = function() {
+			let new_style = this.checked ? null : "none";
+			document.getElementById("wifi_static_div").style.display = new_style;
+		};
+
+		async function wifiConfig() {
+			let static = document.getElementById('static_enabled').checked;
+
+			var myObj = { 
+				ssid: document.getElementById('ssid').value,
+				pwd: document.getElementById('pwd').value,
+				static: static
+			};
+			
+			if (static) {
+				myObj[static_addr] = document.getElementById('static_addr').value;
+				myObj[static_gateway] = document.getElementById('static_gateway').value;
+				myObj[static_subnet] = document.getElementById('static_subnet').value;
+				myObj[static_dns1] = document.getElementById('static_dns1').value;
+				myObj[static_dns2] = document.getElementById('static_dns2').value;
+			}
+
+			await fetch("/savedSSIDs", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify(myObj)
+			});
+		}
         </script>
 	</body>
 </html>
