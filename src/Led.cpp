@@ -185,10 +185,12 @@ void Led_SetBrightness(uint8_t value) {
 
 #ifdef NEOPIXEL_ENABLE
 	void Led_DrawControls() {
-		static CRGB::HTMLColorCode controlLedColors[NUM_CONTROL_LEDS] = CONTROL_LEDS_COLORS;
-		for (uint8_t controlLed = 0; controlLed < NUM_CONTROL_LEDS; controlLed++) {
-			controlLeds[controlLed] = controlLedColors[controlLed];
-		}
+		#if NUM_CONTROL_LEDS > 0
+			static CRGB::HTMLColorCode controlLedColors[NUM_CONTROL_LEDS] = CONTROL_LEDS_COLORS;
+			for (uint8_t controlLed = 0; controlLed < NUM_CONTROL_LEDS; controlLed++) {
+				controlLeds[controlLed] = controlLedColors[controlLed];
+			}
+		#endif
 	}
 #endif
 

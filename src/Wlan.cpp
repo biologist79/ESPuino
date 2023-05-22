@@ -465,7 +465,7 @@ bool Wlan_DeleteNetwork(String ssid) {
 		if (strncmp(ssid.c_str(), knownNetworks[i].ssid, 32) == 0) {
 
 			// delete and move all following elements to the left
-			memmove(knownNetworks+i, knownNetworks+i+1, sizeof(WiFiSettings)*(numKnownNetworks-i-1));
+			std::copy(&knownNetworks[i+1], &knownNetworks[numKnownNetworks], &knownNetworks[i]);
 			numKnownNetworks--;
 
 			gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
