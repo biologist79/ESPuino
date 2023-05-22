@@ -178,8 +178,8 @@ to (re-)enable/disable WiFi:
 ESPuino can be used as Bluetooth sink (A2DP sink). In this mode you can stream audio (e.g. from a
 mobile device) via Bluetooth to your ESPuino. This mode can be enabled/disabled via a RFID
 modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button).
-Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four slow
-rotating _blue_ LEDs.
+Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four 
+slow rotating _blue-violet_ LEDs. After the Bluetooth device is paired the LEDs turn to blue.
 
 ### ESPuino as A2DP source (stream from ESPuino)
 

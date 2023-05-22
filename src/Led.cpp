@@ -644,13 +644,10 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		// pause-animation
 		if (gPlayProperties.pausePlay) {
 			leds = CRGB::Black;
-			CRGB::HTMLColorCode generalColor;
+			CRGB::HTMLColorCode generalColor = CRGB::Orange;
 			if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 				generalColor = CRGB::Blue;
-			} else {
-				generalColor = CRGB::Orange;
 			}
-
 			if constexpr(NUM_INDICATOR_LEDS == 1) {
 				leds[0] = generalColor;
 			} else {
