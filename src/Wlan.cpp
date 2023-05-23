@@ -89,12 +89,14 @@ void Wlan_Init(void) {
 		networkSettings.ssid[32] = '\0';
 		strncpy(networkSettings.password, strPassword.c_str(), 64);
 		networkSettings.password[64] = '\0';
+		networkSettings.use_static_ip = false;
 
 		#ifdef STATIC_IP_ENABLE
 			networkSettings.static_addr = IPAddress(LOCAL_IP);
 			networkSettings.static_gateway = IPAddress(GATEWAY_IP);
 			networkSettings.static_subnet = IPAddress(SUBNET_IP);
 			networkSettings.static_dns1 = IPAddress(DNS_IP);
+			networkSettings.use_static_ip = true;
 		#endif
 
 		Wlan_AddNetworkSettings(networkSettings);
