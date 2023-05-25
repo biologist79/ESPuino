@@ -100,10 +100,10 @@ void Wlan_Init(void) {
 		#endif
 
 		Wlan_AddNetworkSettings(networkSettings);
+		// clean up old values from nvs
+		gPrefsSettings.remove("SSID");
+		gPrefsSettings.remove("Password");
 	}
-	// clean up old values from nvs
-	gPrefsSettings.remove("SSID");
-	gPrefsSettings.remove("Password");
 	
 	// ******************* MIGRATION *******************
 

@@ -472,9 +472,17 @@ String templateProcessor(const String &templ) {
 	// TODO: hide battery config
 #endif
 	} else if (templ == "MQTT_CLIENTID") {
-		return gPrefsSettings.getString("mqttClientId", "-1");
+		if (gPrefsSettings.isKey("mqttClientId")) {
+			return gPrefsSettings.getString("mqttClientId", "-1");
+		} else {
+			return "-1";
+		}
 	} else if (templ == "MQTT_SERVER") {
-		return gPrefsSettings.getString("mqttServer", "-1");
+		if (gPrefsSettings.isKey("mqttServer")) {
+			return gPrefsSettings.getString("mqttServer", "-1");
+		} else {
+			return "-1";
+		}
 	} else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
 		#ifdef MQTT_ENABLE
 			return mqttTab;
@@ -488,9 +496,17 @@ String templateProcessor(const String &templ) {
 			return String();
 		}
 	} else if (templ == "MQTT_USER") {
-		return gPrefsSettings.getString("mqttUser", "-1");
+		if (gPrefsSettings.isKey("mqttUser")) {
+			return gPrefsSettings.getString("mqttUser", "-1");
+		} else {
+			return "-1";
+		}
 	} else if (templ == "MQTT_PWD") {
-		return gPrefsSettings.getString("mqttPassword", "-1");
+		if (gPrefsSettings.isKey("mqttPassword")) {
+			return gPrefsSettings.getString("mqttPassword", "-1");
+		} else {
+			return "-1";
+		}
 	} else if (templ == "MQTT_USER_LENGTH") {
 		return String(mqttUserLength - 1);
 	} else if (templ == "MQTT_PWD_LENGTH") {
@@ -504,7 +520,9 @@ String templateProcessor(const String &templ) {
 		return String(gMqttPort);
 #endif
 	} else if (templ == "BT_SOURCE_NAME") {
-		return gPrefsSettings.getString("btDeviceName", "");
+		if (gPrefsSettings.isKey("btDeviceName")) {
+			return gPrefsSettings.getString("btDeviceName", "");
+		}
 	} else if (templ == "IPv4") {
 		return WiFi.localIP().toString();
 	} else if (templ == "RFID_TAG_ID") {
