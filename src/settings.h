@@ -1,3 +1,4 @@
+// clang-format off
 #ifndef __ESPUINO_SETTINGS_H__
 #define __ESPUINO_SETTINGS_H__
 #include "Arduino.h"
