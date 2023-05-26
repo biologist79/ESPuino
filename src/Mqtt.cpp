@@ -31,9 +31,11 @@
 // MQTT
 static bool Mqtt_Enabled = true;
 
-static void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length);
-static bool Mqtt_Reconnect(void);
-static void Mqtt_PostWiFiRssi(void);
+#ifdef MQTT_ENABLE
+	static void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length);
+	static bool Mqtt_Reconnect(void);
+	static void Mqtt_PostWiFiRssi(void);
+#endif	
 
 void Mqtt_Init() {
 	#ifdef MQTT_ENABLE
@@ -108,6 +110,8 @@ void Mqtt_Init() {
 			Mqtt_PubSubClient.setServer(gMqttServer.c_str(), gMqttPort);
 			Mqtt_PubSubClient.setCallback(Mqtt_ClientCallback);
 		}
+	#else
+		Mqtt_Enabled = false;
 	#endif
 }
 
