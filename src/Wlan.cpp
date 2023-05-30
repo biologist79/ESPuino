@@ -475,7 +475,14 @@ bool Wlan_DeleteNetwork(String ssid) {
 			std::copy(&knownNetworks[i+1], &knownNetworks[numKnownNetworks], &knownNetworks[i]);
 			numKnownNetworks--;
 
-			gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
+			size_t new_length = numKnownNetworks * sizeof(WiFiSettings);
+
+			if (new_length == 0) {
+				gPrefsSettings.remove(nvsWiFiNetworksKey);
+			} else {
+				gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, new_length);
+			}
+
 			return true;
 		}
 	}
