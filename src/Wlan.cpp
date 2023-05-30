@@ -462,7 +462,7 @@ const String Wlan_GetCurrentSSID() {
 }
 
 const String Wlan_GetHostname() {
-	return gPrefsSettings.getString("Hostname", "");
+	return gPrefsSettings.getString("Hostname", "espuino");
 }
 
 bool Wlan_DeleteNetwork(String ssid) {

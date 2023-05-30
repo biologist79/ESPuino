@@ -117,6 +117,29 @@
 				headers: {"Content-Type": "application/json"},
 				body: JSON.stringify(myObj)
 			});
+
+			let hostname = document.getElementById('hostname').value;
+
+			await fetch("/hostname", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify(hostname)
+			});
+		}
+
+
+		addEventListener("DOMContentLoaded", (event) => {
+			updateHostnameField();
+		});
+		async function updateHostnameField() {
+			let hostnameElem = document.getElementById("hostname");
+
+			let hostname = await (await fetch("/hostname")).text();
+
+			if (hostname && hostname !== "") {
+				hostnameElem.value = hostname;
+				hostnameElem.defaultValue = hostname;
+			} 
 		}
         </script>
 	</body>

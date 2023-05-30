@@ -168,6 +168,7 @@ void Web_Init(void) {
 	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
+	wServer.on("/hostname", HTTP_GET, handleGetHostname);
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -528,7 +529,7 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "RFID_TAG_ID") {
 		return String(gCurrentRfidTagId);
 	} else if (templ == "HOSTNAME") {
-		return gPrefsSettings.getString("Hostname", "-1");
+		return Wlan_GetHostname();
 	}
 
 	return String();
@@ -1322,6 +1323,8 @@ void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
 	const JsonString& jsonStr = json.as<JsonString>();
 	String hostname = String(jsonStr.c_str());
 	bool succ = Wlan_SetHostname(hostname);
+
+	Serial.printf("Setting hostname to %s\n", hostname.c_str());
 
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", hostname);
