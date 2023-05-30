@@ -92,10 +92,10 @@ void Wlan_Init(void) {
 		networkSettings.use_static_ip = false;
 
 		#ifdef STATIC_IP_ENABLE
-			networkSettings.static_addr = IPAddress(LOCAL_IP);
-			networkSettings.static_gateway = IPAddress(GATEWAY_IP);
-			networkSettings.static_subnet = IPAddress(SUBNET_IP);
-			networkSettings.static_dns1 = IPAddress(DNS_IP);
+			networkSettings.static_addr = (uint32_t) IPAddress(LOCAL_IP);
+			networkSettings.static_gateway = (uint32_t) IPAddress(GATEWAY_IP);
+			networkSettings.static_subnet = (uint32_t) IPAddress(SUBNET_IP);
+			networkSettings.static_dns1 = (uint32_t) IPAddress(DNS_IP);
 			networkSettings.use_static_ip = true;
 		#endif
 
@@ -133,7 +133,12 @@ void connectToKnownNetwork(WiFiSettings settings) {
 
 	if (settings.use_static_ip) {
 		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
-		if (!WiFi.config(settings.static_addr, settings.static_gateway, settings.static_subnet, settings.static_dns1, settings.static_dns2)) {
+		if (!WiFi.config(
+			    IPAddress(settings.static_addr),
+				IPAddress(settings.static_gateway), 
+				IPAddress(settings.static_subnet), 
+				IPAddress(settings.static_dns1), 
+				IPAddress(settings.static_dns2))) {
 			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 		}
 	}

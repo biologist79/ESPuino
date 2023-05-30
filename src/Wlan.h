@@ -5,11 +5,11 @@ struct WiFiSettings {
 	char ssid[33];
 	char password[65];
 	bool use_static_ip;
-	IPAddress static_addr;
-	IPAddress static_gateway;
-	IPAddress static_subnet;
-	IPAddress static_dns1;
-	IPAddress static_dns2;
+	uint32_t static_addr;
+	uint32_t static_gateway;
+	uint32_t static_subnet;
+	uint32_t static_dns1;
+	uint32_t static_dns2;
 };
 
 void Wlan_Init(void);
