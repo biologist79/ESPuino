@@ -1251,7 +1251,6 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject& jsonObj = json.as<JsonObject>();
 
-	Serial.printf("got wifi config: %s \n", (const char*) jsonObj["ssid"]);
 	struct WiFiSettings networkSettings;
 
 	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
@@ -1323,8 +1322,6 @@ void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
 	const JsonString& jsonStr = json.as<JsonString>();
 	String hostname = String(jsonStr.c_str());
 	bool succ = Wlan_SetHostname(hostname);
-
-	Serial.printf("Setting hostname to %s\n", hostname.c_str());
 
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", hostname);
