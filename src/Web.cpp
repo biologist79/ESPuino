@@ -168,6 +168,7 @@ void Web_Init(void) {
 	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
+	wServer.on("/hostname", HTTP_GET, handleGetHostname);
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -528,7 +529,7 @@ String templateProcessor(const String &templ) {
 	} else if (templ == "RFID_TAG_ID") {
 		return String(gCurrentRfidTagId);
 	} else if (templ == "HOSTNAME") {
-		return gPrefsSettings.getString("Hostname", "-1");
+		return Wlan_GetHostname();
 	}
 
 	return String();
@@ -1250,7 +1251,6 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject& jsonObj = json.as<JsonObject>();
 
-	Serial.printf("got wifi config: %s \n", (const char*) jsonObj["ssid"]);
 	struct WiFiSettings networkSettings;
 
 	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
@@ -1263,19 +1263,19 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
 	if (jsonObj.containsKey("static_addr")) {
-		networkSettings.static_addr.fromString((const char*) jsonObj["static_addr"]);
+		networkSettings.static_addr = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_addr"]);
 	}
 	if (jsonObj.containsKey("static_gateway")) {
-		networkSettings.static_gateway.fromString((const char*) jsonObj["static_gateway"]);
+		networkSettings.static_gateway = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_gateway"]);
 	}
 	if (jsonObj.containsKey("static_subnet")) {
-		networkSettings.static_subnet.fromString((const char*) jsonObj["static_subnet"]);
+		networkSettings.static_subnet = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_subnet"]);
 	}
 	if (jsonObj.containsKey("static_dns1")) {
-		networkSettings.static_dns1.fromString((const char*) jsonObj["static_dns1"]);
+		networkSettings.static_dns1 = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_dns1"]);
 	}
 	if (jsonObj.containsKey("static_dns2")) {
-		networkSettings.static_dns2.fromString((const char*) jsonObj["static_dns2"]);
+		networkSettings.static_dns2 = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_dns2"]);
 	}
 
 	bool succ = Wlan_AddNetworkSettings(networkSettings);
