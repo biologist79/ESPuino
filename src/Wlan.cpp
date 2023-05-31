@@ -232,7 +232,7 @@ void handleWifiStateScanConnect() {
 
 	if (connectStartTimestamp == 0) {
 		for (int i = 0; i < wifiScanCompleteResult; ++i) {
-			Log_Printf(LOGLEVEL_NOTICE, wifiScanResult, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i));
+			Log_Printf(LOGLEVEL_NOTICE, wifiScanResult, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i), WiFi.BSSIDstr(i).c_str());
 		}
 	} else {		
 		if (millis() - connectStartTimestamp < 5000) {
@@ -276,10 +276,11 @@ static bool initialStart = true;
 void handleWifiStateConnectionSuccess() {
 	initialStart = false;
 	IPAddress myIP = WiFi.localIP();
+	String mySSID = Wlan_GetCurrentSSID();
 
+	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionSuccess, mySSID.c_str(), WiFi.RSSI(), WiFi.channel(), WiFi.BSSIDstr().c_str());
 	Log_Printf(LOGLEVEL_NOTICE, wifiCurrentIp, myIP.toString().c_str());
 
-	String mySSID = Wlan_GetCurrentSSID();
 	if (!gPrefsSettings.getString("LAST_SSID").equals(mySSID)) {
 		Log_Printf(LOGLEVEL_INFO, wifiSetLastSSID, mySSID.c_str());
 		gPrefsSettings.putString("LAST_SSID", mySSID);
@@ -462,7 +463,7 @@ const String Wlan_GetCurrentSSID() {
 }
 
 const String Wlan_GetHostname() {
-	return gPrefsSettings.getString("Hostname", "espuino");
+	return gPrefsSettings.getString("Hostname", "ESPuino");
 }
 
 bool Wlan_DeleteNetwork(String ssid) {

@@ -234,6 +234,7 @@ extern const char secondsJumpForward[];
 extern const char secondsJumpBackward[];
 extern const char wroteLastTrackToNvs[];
 extern const char wifiConnectionInProgress[];
+extern const char wifiConnectionSuccess[];
 extern const char wifiCurrentIp[];
 extern const char jsonErrorMsg[];
 extern const char wifiDeleteNetwork[];

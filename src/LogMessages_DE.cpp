@@ -235,6 +235,7 @@
 	const char secondsJumpBackward[] = "%d Sekunden zurück gesprungen";
 	const char wroteLastTrackToNvs[] = "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u";
 	const char wifiConnectionInProgress[] = "Versuche mit WLAN '%s' zu verbinden...";
+	const char wifiConnectionSuccess[] = "Verbunden mit WLAN '%s' (Signalstärke: %d dBm, Kanal: %d, BSSID: %s)";
 	const char wifiCurrentIp[] = "Aktuelle IP: %s";
 	const char jsonErrorMsg[] = "deserializeJson() fehlgeschlagen: %s";
 	const char wifiDeleteNetwork[] = "Lösche gespeichertes WLAN %s";
@@ -243,7 +244,7 @@
 	const char wifiAddTooManyNetworks[] = "Kein Platz, weiteres WLAN zu speichern!";
 	const char wifiAddNetwork[] = "Füge WLAN hinzu: %s";
 	const char wifiUpdateNetwork[] = "Ändere Passwort für WLAN %s";	
-	const char wifiScanResult[] = "WLAN mit SSID %s und Signalstärke %d auf Kanal %d gefunden.";
+	const char wifiScanResult[] = "WLAN '%s'gefunden (Signalstärke: %d dBm, Kanal: %d, BSSID: %s)";
 	const char cantConnectToWifi[] = "WLAN-Verbindung fehlgeschlagen.";
 	const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WLAN Schnellstart: %s";
 
