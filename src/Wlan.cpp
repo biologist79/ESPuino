@@ -312,6 +312,7 @@ void handleWifiStateConnectionSuccess() {
 }
 
 static uint32_t lastPrintRssiTimestamp = 0;
+static int8_t lastRssiValue = 0;
 void handleWifiStateConnected() {
 	switch (WiFi.status()) {
 		case WL_CONNECTED:
@@ -330,7 +331,11 @@ void handleWifiStateConnected() {
 
 	if (millis() - lastPrintRssiTimestamp >= 60000) {
 		lastPrintRssiTimestamp = millis();
-		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
+		// show RSSI value only if it has changed by > 3 dBm
+		if (abs(lastRssiValue - Wlan_GetRssi()) <> 3) {
+			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
+			lastRssiValue = Wlan_GetRssi();
+		}
 	}
 }
 
