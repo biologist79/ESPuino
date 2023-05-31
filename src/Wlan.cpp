@@ -332,7 +332,7 @@ void handleWifiStateConnected() {
 	if (millis() - lastPrintRssiTimestamp >= 60000) {
 		lastPrintRssiTimestamp = millis();
 		// show RSSI value only if it has changed by > 3 dBm
-		if (abs(lastRssiValue - Wlan_GetRssi()) <> 3) {
+		if (abs(lastRssiValue - Wlan_GetRssi()) > 3) {
 			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 			lastRssiValue = Wlan_GetRssi();
 		}
