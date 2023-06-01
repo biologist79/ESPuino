@@ -208,10 +208,8 @@ void Led_SetButtonLedsEnabled(boolean value) {
 	}
 	CRGB::HTMLColorCode Led_GetIdleColor() {
 		CRGB::HTMLColorCode idleColor = CRGB::Black;
-		if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
-			idleColor = CRGB::Blue;
-		} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-			if (Bluetooth_Source_Connected()) {
+		if ((OPMODE_BLUETOOTH_SINK == System_GetOperationMode())  || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
+			if (Bluetooth_Device_Connected()) {
 				idleColor = CRGB::Blue;
 			} else {
 				idleColor = CRGB::BlueViolet;
@@ -649,6 +647,9 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		if (gPlayProperties.pausePlay) {
 			leds = CRGB::Black;
 			CRGB::HTMLColorCode generalColor = CRGB::Orange;
+			if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+				generalColor = CRGB::Blue;
+			}
 			if constexpr(NUM_INDICATOR_LEDS == 1) {
 				leds[0] = generalColor;
 			} else {
@@ -676,8 +677,13 @@ void Led_SetButtonLedsEnabled(boolean value) {
 					if constexpr(NUM_INDICATOR_LEDS == 1) {
 						leds[0].setHue(webstreamColor++);
 					} else {
-						leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
-						leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()].setHue(webstreamColor++);
+						if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
+							leds[Led_Address(ledPosWebstream)] = CRGB::Blue;
+							leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()] = CRGB::Blue;
+						} else {
+							leds[Led_Address(ledPosWebstream)].setHue(webstreamColor);
+							leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()].setHue(webstreamColor++);
+						}
 					}
 				}
 			refresh = true;

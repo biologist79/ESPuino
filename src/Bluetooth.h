@@ -15,4 +15,4 @@ void Bluetooth_PreviousTrack(void);
 void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary);
 
 bool Bluetooth_Source_SendAudioData(uint32_t* sample);
-bool Bluetooth_Source_Connected();
+bool Bluetooth_Device_Connected();
