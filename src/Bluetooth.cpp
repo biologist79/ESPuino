@@ -216,9 +216,12 @@ void Bluetooth_Init(void) {
 			// start bluetooth source
 			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
 			a2dp_source->start(get_data_channels);
-
-		    	btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
-			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "First device found" : btDeviceName.c_str());
+			// get device name
+			btDeviceName = nameBluetoothSourceDevice;
+			if (gPrefsSettings.isKey("btDeviceName")) {
+				btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
+			}
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "connect to first device found" : btDeviceName.c_str());
 			// connect events after startup
 			a2dp_source->set_on_connection_state_changed(connection_state_changed, a2dp_source);
 			a2dp_source->set_on_audio_state_changed(audio_state_changed, a2dp_source);
