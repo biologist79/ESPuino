@@ -73,7 +73,6 @@ static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static String templateProcessor(const String &templ);
 static void webserverStart(void);
-void Web_DeleteCachefile(const char *folderPath);
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
@@ -807,7 +806,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		convertFilenameToAscii(utf8FilePath, filePath);
 
 		Log_Printf(LOGLEVEL_INFO, writingFile, utf8FilePath.c_str());
-		Web_DeleteCachefile(utf8Folder.c_str());
 
 		// Create Parent directories
 		explorerCreateParentDirectories(filePath);
@@ -924,11 +922,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 		}
 		// delay a bit to give the webtask some time fill the ringbuffer
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
 		vTaskDelay(1u);
-		#else
-		vTaskDelay(5u);
-		#endif
 	}
 	// resume the paused tasks
 	Led_TaskResume();
@@ -974,56 +968,20 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
-	#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-		bool isDir = false;
-		String MyfileName = root.getNextFileName(&isDir);
-		while (MyfileName != "") {
-			// ignore hidden folders, e.g. MacOS spotlight files
-			if (!startsWith( MyfileName.c_str() , (char *)"/.")) {
-				JsonObject entry = obj.createNestedObject();
-				convertAsciiToUtf8(MyfileName.c_str(), filePath);
-				std::string path = filePath;
-				std::string fileName = path.substr(path.find_last_of("/") + 1);
-				entry["name"] = fileName;
-				entry["dir"].set(isDir);
-			}
-			MyfileName = root.getNextFileName(&isDir);
-		}
-    #else
-		File file = root.openNextFile();
-
-	while (file) {
+	bool isDir = false;
+	String MyfileName = root.getNextFileName(&isDir);
+	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		if (!startsWith( file.path() , "/.")) {
-		#else
-		if (!startsWith( file.name() , "/.")) {
-		#endif
+		if (!startsWith( MyfileName.c_str() , (char *)"/.")) {
 			JsonObject entry = obj.createNestedObject();
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				convertAsciiToUtf8(file.path(), filePath);
-			#else
-				convertAsciiToUtf8(file.name(), filePath);
-			#endif
+			convertAsciiToUtf8(MyfileName.c_str(), filePath);
 			std::string path = filePath;
 			std::string fileName = path.substr(path.find_last_of("/") + 1);
-
-				entry["name"] = fileName;
-				entry["dir"].set(file.isDirectory());
-			}
-			file.close();
-			file = root.openNextFile();
-
-
-			if (!gPlayProperties.pausePlay) {
-				// time critical, avoid delay with many files on SD-card!
-				feedTheDog();
-			} else {
-				// If playback is active this can (at least sometimes) prevent scattering
-				vTaskDelay(portTICK_PERIOD_MS * 5);
-			}
+			entry["name"] = fileName;
+			entry["dir"].set(isDir);
 		}
-	#endif
+		MyfileName = root.getNextFileName(&isDir);
+	}
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
@@ -1039,11 +997,7 @@ bool explorerDeleteDirectory(File dir) {
 		if (file.isDirectory()) {
 			explorerDeleteDirectory(file);
 		} else {
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				gFSystem.remove(file.path());
-			#else
-				gFSystem.remove(file.name());
-			#endif
+			gFSystem.remove(file.path());
 		}
 
 		file = dir.openNextFile();
@@ -1051,23 +1005,7 @@ bool explorerDeleteDirectory(File dir) {
 		esp_task_wdt_reset();
 	}
 
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		return gFSystem.rmdir(dir.path());
-	#else
-		return gFSystem.rmdir(dir.name());
-	#endif
-}
-
-// Handles delete-requests for cachefiles.
-// This is necessary to avoid outdated cachefiles if content of a directory changes (create, rename, delete).
-void Web_DeleteCachefile(const char *folderPath) {
-	const String cacheFile = String(folderPath) + "/" + playlistCacheFile;
-	Log_Printf(LOGLEVEL_DEBUG, "Trying to erase: %s", cacheFile.c_str());
-	if (gFSystem.exists(cacheFile)) {
-		if (gFSystem.remove(cacheFile)) {
-			Log_Printf(LOGLEVEL_DEBUG, erasePlaylistCachefile, cacheFile.c_str());
-		}
-	}
+	return gFSystem.rmdir(dir.path());
 }
 
 // Handles download request of a file
@@ -1146,7 +1084,6 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 				const String cPath = filePath;
 				if (gFSystem.remove(filePath)) {
 					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
-					Web_DeleteCachefile(cPath.substring(0, cPath.lastIndexOf('/')).c_str());
 				} else {
 					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
 				}
@@ -1196,8 +1133,6 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 		if (gFSystem.exists(srcFullFilePath)) {
 			if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
 				Log_Printf(LOGLEVEL_INFO, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
-				// Also delete cache file inside the renamed folder
-				Web_DeleteCachefile(dstFullFilePath);
 			} else {
 				Log_Printf(LOGLEVEL_ERROR, "RENAME:  Cannot rename %s", srcPath->value().c_str());
 			}

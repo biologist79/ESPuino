@@ -371,9 +371,6 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
   music-autoplay.
 - If a folder should be played that contains many MP3s, the playlist generation can take a few
   seconds.
-- For all playback modes that are not single tracks or webradio a filecache is available to speed up
-  playlist generation. The cache is generated as you apply the corresponding RFID tag for the first
-  time. Use `CACHED_PLAYLIST_ENABLE` to enable it - I really recommend to use it.
 - A file's name including path isn't allowed to exceed 255 characters.
 - While the playlist is generated Neopixel indicates BUSY-mode.
 - After the last track was played, Neopixel indicates IDLE-mode.

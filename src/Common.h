@@ -49,56 +49,9 @@ inline bool endsWith(const char *str, const char *suf) {
 }
 
 inline void convertFilenameToAscii(String utf8String, char *asciiString) {
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
-		// Arduino >= 2.0.5 filenames are already unicode, copy to result here without UTF-8 decoding
-        strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
-		asciiString[utf8String.length()] = 0;
-		return;
-	#endif
-
-	int k = 0;
-	bool f_C3_seen = false;
-
-	for (int i = 0; i < utf8String.length() && k < MAX_FILEPATH_LENTGH - 1; i++) {
-
-		if (utf8String[i] == 195) { // C3
-			f_C3_seen = true;
-			continue;
-		} else {
-			if (f_C3_seen == true) {
-				f_C3_seen = false;
-				switch (utf8String[i]) {
-					case 0x84:
-						asciiString[k++] = 0x8e;
-						break; // Ä
-					case 0xa4:
-						asciiString[k++] = 0x84;
-						break; // ä
-					case 0x9c:
-						asciiString[k++] = 0x9a;
-						break; // Ü
-					case 0xbc:
-						asciiString[k++] = 0x81;
-						break; // ü
-					case 0x96:
-						asciiString[k++] = 0x99;
-						break; // Ö
-					case 0xb6:
-						asciiString[k++] = 0x94;
-						break; // ö
-					case 0x9f:
-						asciiString[k++] = 0xe1;
-						break; // ß
-					default:
-						asciiString[k++] = 0xdb; // Unknown...
-				}
-			} else {
-				asciiString[k++] = utf8String[i];
-			}
-		}
-	}
-
-	asciiString[k] = 0;
+	// Arduino >= 2.0.5 filenames are already unicode, copy to result here without UTF-8 decoding
+    strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
+	asciiString[utf8String.length()] = 0;
 }
 
 inline void convertAsciiToUtf8(String asciiString, char *utf8String) {

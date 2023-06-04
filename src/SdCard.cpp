@@ -165,31 +165,15 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 
 	// Create linear list of subdirectories with #-delimiters
 	while (true) {
-		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-			bool isDir = false;
-			String MyfileName = directory.getNextFileName(&isDir);
-			if (MyfileName == "") {
-				break;
-			}
-			if (!isDir) {
-				continue;
-			} else {
-				strncpy(buffer, MyfileName.c_str(), 255);
-		#else
-			File fileItem = directory.openNextFile();
-			if (!fileItem) {
-				break;
-			}
-			if (!fileItem.isDirectory()) {
-				continue;
-			} else {
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				strncpy(buffer, (char *) fileItem.path(), 255);
-			#else
-				strncpy(buffer, (char *) fileItem.name(), 255);
-			#endif
-		#endif
-
+		bool isDir = false;
+		String MyfileName = directory.getNextFileName(&isDir);
+		if (MyfileName == "") {
+			break;
+		}
+		if (!isDir) {
+			continue;
+		} else {
+			strncpy(buffer, MyfileName.c_str(), 255);
 			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
 			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
 				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
@@ -249,9 +233,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	static char **files;
 	char *serializedPlaylist = NULL;
 	char fileNameBuf[255];
-	char cacheFileNameBuf[275];
-	bool readFromCacheFile = false;
-	bool enablePlaylistCaching = false;
 	bool enablePlaylistFromM3u = false;
 	uint32_t listStartTimestamp = millis();
 
@@ -267,55 +248,6 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
 		return nullptr;
 	}
-
-	// Create linear playlist of caching-file
-	#ifdef CACHED_PLAYLIST_ENABLE
-		strncpy(cacheFileNameBuf, fileName, sizeof(cacheFileNameBuf));
-		strcat(cacheFileNameBuf, "/");
-		strcat(cacheFileNameBuf, playlistCacheFile);       // Build absolute path of cacheFile
-
-		// Decide if to use cacheFile. It needs to exist first...
-		if (gFSystem.exists(cacheFileNameBuf)) {     // Check if cacheFile (already) exists
-			readFromCacheFile = true;
-		}
-
-		// ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
-		if (_playMode == SINGLE_TRACK ||
-			_playMode == SINGLE_TRACK_LOOP) {
-				readFromCacheFile = false;
-		} else {
-			enablePlaylistCaching = true;
-		}
-
-		// Read linear playlist (csv with #-delimiter) from cachefile (faster!)
-		if (readFromCacheFile) {
-			File cacheFile = gFSystem.open(cacheFileNameBuf);
-			if (cacheFile) {
-				uint32_t cacheFileSize = cacheFile.size();
-
-				if (!(cacheFileSize >= 1)) {        // Make sure it's greater than 0 bytes
-					Log_Println(playlistCacheFoundBut0, LOGLEVEL_ERROR);
-					readFromCacheFile = false;
-				} else {
-					Log_Println(playlistGenModeCached, LOGLEVEL_NOTICE);
-					serializedPlaylist = (char *) x_calloc(cacheFileSize+10, sizeof(char));
-					if (serializedPlaylist == NULL) {
-						Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-						System_IndicateError();
-						return nullptr;
-					}
-
-					char buf;
-					uint32_t fPos = 0;
-					while (cacheFile.available() > 0) {
-						buf = cacheFile.read();
-						serializedPlaylist[fPos++] = buf;
-					}
-				}
-				cacheFile.close();
-			}
-		}
-	#endif
 
 	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
@@ -374,9 +306,9 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 	}
 
-	// Don't read from cachefile or m3u-file. Means: read filenames from SD and make playlist of it
-	if (!readFromCacheFile && !enablePlaylistFromM3u) {
-		Log_Println(playlistGenModeUncached, LOGLEVEL_NOTICE);
+	// Don't read from m3u-file. Means: read filenames from SD and make playlist of it
+	if (!enablePlaylistFromM3u) {
+		Log_Println(playlistGen, LOGLEVEL_NOTICE);
 		// File-mode
 		if (!fileOrDirectory.isDirectory()) {
 			files = (char **) x_malloc(sizeof(char *) * 2);
@@ -386,11 +318,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				return nullptr;
 			}
 			Log_Println(fileModeDetected, LOGLEVEL_INFO);
-			#if ESP_ARDUINO_VERSION_MAJOR >= 2
-				strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#else
-				strncpy(fileNameBuf, fileOrDirectory.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#endif
+			strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 			if (fileValid(fileNameBuf)) {
 				files[1] = x_strdup(fileNameBuf);
 			}
@@ -407,36 +335,16 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		}
 
 		serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-		File cacheFile;
-		if (enablePlaylistCaching) {
-			cacheFile = gFSystem.open(cacheFileNameBuf, FILE_WRITE);
-		}
-
 		while (true) {
-			#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
-				bool isDir = false;
-				String MyfileName = fileOrDirectory.getNextFileName(&isDir);
-				if (MyfileName == "") {
-					break;
-				}
-				if (isDir) {
-					continue;
-				} else {
-					strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-			#else
-				File fileItem = fileOrDirectory.openNextFile();
-				if (!fileItem) {
-					break;
-				}
-				if (fileItem.isDirectory()) {
-					continue;
-				} else {
-				#if ESP_ARDUINO_VERSION_MAJOR >= 2
-					strncpy(fileNameBuf, (char *) fileItem.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-				#else
-					strncpy(fileNameBuf, (char *) fileItem.name(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
-				#endif
-			#endif
+			bool isDir = false;
+			String MyfileName = fileOrDirectory.getNextFileName(&isDir);
+			if (MyfileName == "") {
+				break;
+			}
+			if (isDir) {
+				continue;
+			} else {
+				strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", nameOfFileFound), fileNameBuf);
@@ -453,16 +361,8 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					}
 					strcat(serializedPlaylist, stringDelimiter);
 					strcat(serializedPlaylist, fileNameBuf);
-					if (cacheFile && enablePlaylistCaching) {
-						cacheFile.print(stringDelimiter);
-						cacheFile.print(fileNameBuf);       // Write linear playlist to cacheFile
-					}
 				}
 			}
-		}
-
-		if (cacheFile && enablePlaylistCaching) {
-			cacheFile.close();
 		}
 	}
 
