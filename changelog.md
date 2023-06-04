@@ -1,4 +1,56 @@
-## New (modules)
+## DEV-branch
+* 04.06.2023: FastLED 3.6.0, PlatformIO package 6.3.1
+* 01.06.2023: Improve neopixel display in Bluetooth speaker mode (BT-Sink) (#239)
+* 01.06.2023: Reduce floating the log with redundant RSSI-messages: Log RSSI value only if it has changed by > 3 dBm
+* 31.05.2023: Wifi: Log BSSID in scan and connection success, Wifi fixes (#240)
+* 26.05.2023: Fix compiler warnings if MQTT_ENABLE is not defined
+* 26.05.2023: Error in log: [E][Preferences.cpp:96] remove(): nvs_erase_key fail
+* 23.05.2023: Migration from single-wifi setup: Initialize "use_static_ip"
+* 22.05.2023: DEV branch has stricter compiler rules, fix some of (mostly harmless) warnings
+* 22.05.2023: BTSource: fix Stack canary watchpoint triggered (BtAppT)
+* 19.05.2023: Show Arduino version at startup & in web-info
+* 19.05.2023: Add support for saving multiple wifi networks (#221)
+* 09.05.2023: Bluetooth.cpp: Fix logging crash in sink mode (#238)
+* 06.05.2023: README.md: Improve formatting, style, language and content
+* 03.05.2023: Add support for control LEDs to be connected at the end of the NeoPixel Ring (#198)
+* 27.04.2023: Remove usage of pgmspace.h header 
+* 27.04.2023: Move message formatting into LogMessages 
+* 26.04.2023: Configure button with active HIGH
+* 20.04.2023: Speedup playlist generation & file listing by factor > 20 
+* 14.04.2023: Removing HAL for ESPmuse (stale development)
+* 12.04.2023: Restrict value ranges to guard array access
+* 11.04.2023: Merge pull request #226 from fschrempf/bugfix_rfid_assign
+* 08.04.2023: Enforcing uniform codestyle
+* 08.04.2023: Allow to escape from bluetooth mode with an unknown card, switch back to normal mode
+* 03.04.2023: Merge pull request #223 from laszloh/bugfix/snprintf_warning, fix for snprintf trunctation warnings
+* 03.04.2023: Add missing translations
+* 31.03.2023: build.yml: Trigger workflow for all branches
+* 27.03.2023: Merge pull request #219 from laszloh/feature/modern_cpp
+* 25.03.2023: Transition to c++17
+* 24.03.2023: Lost feature „PLAY_LAST_RFID_AFTER_REBOOT“ 
+* 23.03.2023: Change volume animation to triggered mode
+* 22.03.2023: Merge pull request #215 from fschrempf/execute-commands
+* 22.03.2023: Change rotary encoder to delta mode
+* 22.03.2023: Fix errorous indicator in case no audio is playing
+* 22.03.2023: Fix for stuck LED-Shutdown animation
+* 21.03.2023: Pause some tasks for speedup & smoother HTTP upload
+* 21.03.2023: Feature: command-execution on control-site of webserver
+* 21.03.2023: Merge pull request #210 from fschrempf/led_rework_cleaned_frieder
+* 21.03.2023: Set default environment to arduino2 on dev-branch
+* 18.03.2023: Bugfix: Corrupted files after HTTP-upload
+* 18.03.2023: Major rework of LED animation task
+* 13.03.2023: Fix for playing files via Web-UI for Arduino >=2.0.5
+* 13.03.2023: Fix captive portal, Add fallback text AP setup
+* 10.03.2023: Merge pull request #204 from laszloh/bugfix/heap_handling 
+* 10.03.2023: Always free playlist memory when SdCard_ReturnPlaylist is called
+* 10.03.2023: Fix heap corruption due to insufficent memory allocation
+* 10.03.2023: Harmonize return value of SdCard_ReturnPlaylist
+* 10.03.2023: Correct the name of the "sort" function to randomize 
+* 10.03.2023: Create DEV(eloper) branch
+
+
+## Master
+
 * 22.04.2021: Introduced refactoring-branch
 * xx.05.2021: Fixing/stabilizing code
 * 08.06.2021: Added global support for PA/HP-enable
