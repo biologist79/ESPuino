@@ -185,7 +185,7 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 		}
 		WiFi.scanDelete();
 		if(WiFi.scanComplete() == -2) {
-		WiFi.scanNetworks(true, false, true, 120);
+			WiFi.scanNetworks(true, false, true, 120);
 		}
 	}
 	json += "]";
@@ -1313,8 +1313,6 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	networkSettings.ssid[32] = '\0';
 	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
-
-	// TODO: save BSSID (jsonObj["bssid"])
 
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 

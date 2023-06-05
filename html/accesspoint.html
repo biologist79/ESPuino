@@ -75,10 +75,9 @@
 			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
 			<div id="WiFiList"></div>
 			<label for="ssid" data-i18n="wifi.ssid.title">SSID</label>:<br>
-			<input type="text" id="ssid" name="ssid" placeholder="SSID" onChange="clearBSSID()" onkeypress="clearBSSID()" required><br>
+			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
 			<label for="pwd" data-i18n="wifi.password.title">Password</label>:<br>
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
-			<input type="hidden" id="bssid" name="bssid">
 			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
 			<input type="text" id="hostname" name="hostname" value="espuino" required><br><br>
 
@@ -117,14 +116,9 @@
             localize('body');
         });
 
-		function selectWiFi(ssid, bssid) {
+		function selectWiFi(ssid) {
 			document.getElementById("ssid").value = ssid;
 			document.getElementById("ssid").focus();
-			document.getElementById("bssid").value = bssid;
-		}
-
-		function clearBSSID() {
-			document.getElementById('bssid').value = '';
 		}
 
 		async function getWiFiList() {
@@ -143,7 +137,7 @@
 			var list = document.getElementById("WiFiList");
 			var h = "";
 			data.map(function (WiFis) {
-				h += `<div class="ssid" onclick="selectWiFi('${WiFis.ssid}', '${WiFis.bssid}')"><a href="#"><div class="${WiFis.wico}" title="${WiFis.quality}% (${WiFis.rssi} dBm)"><div class="${WiFis.pico}" title="${WiFis.ssid}.(${WiFis.bssid})">${WiFis.ssid}</div></div></a></div>\n`;
+				h += `<div class="ssid" onclick="selectWiFi('${WiFis.ssid}')"><a href="#"><div class="${WiFis.wico}" title="${WiFis.quality}% (${WiFis.rssi} dBm)"><div class="${WiFis.pico}" title="${WiFis.ssid}.(${WiFis.bssid})">${WiFis.ssid}</div></div></a></div>\n`;
 			});
 			h += "<br>";
 			list.innerHTML = h;
@@ -162,7 +156,6 @@
 			var myObj = { 
 				ssid: document.getElementById('ssid').value,
 				pwd: document.getElementById('pwd').value,
-				bssid: document.getElementById('bssid').value,
 				static: static
 			};
 			
