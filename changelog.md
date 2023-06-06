@@ -1,5 +1,7 @@
 ## DEV-branch
-* 04.06.2023: FastLED 3.6.0, PlatformIO package 6.3.1
+* 06.06.2023: List available WiFi's in accesspoint view
+* 06.06.2023: Remove support for Arduino 1.0.6 & playlist cache
+* 05.06.2023: FastLED 3.6.0, PlatformIO package 6.3.1
 * 01.06.2023: Improve neopixel display in Bluetooth speaker mode (BT-Sink) (#239)
 * 01.06.2023: Reduce floating the log with redundant RSSI-messages: Log RSSI value only if it has changed by > 3 dBm
 * 31.05.2023: Wifi: Log BSSID in scan and connection success, Wifi fixes (#240)
