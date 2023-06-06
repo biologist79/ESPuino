@@ -67,6 +67,7 @@ static void handleGetActiveSSID(AsyncWebServerRequest *request);
 static void handleGetHostname(AsyncWebServerRequest *request);
 static void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
+static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 
 static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 
@@ -145,6 +146,52 @@ class OneParamRewrite : public AsyncWebRewrite
   }
 };
 
+
+
+// First request will return 0 results unless you start scan from somewhere else (loop/setup)
+// Do not request more often than 3-5 seconds
+static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
+	String json = "[";
+	int n = WiFi.scanComplete();
+	if (n == -2) {
+		// -2 if scan not triggered
+		WiFi.scanNetworks(true, false, true, 120);
+	} else if(n) {
+		for (int i = 0; i < n; ++i) {
+			if (i > 9) {
+				break;
+			}
+			// calculate RSSI as quality in percent
+			int quality;
+			if (WiFi.RSSI(i) <= -100) {
+				quality = 0;
+			} else if (WiFi.RSSI(i) >= -50) {
+				quality = 100;
+			} else {
+				quality = 2 * (WiFi.RSSI(i) + 100);
+			}
+			if (i) json += ",";
+			json += "{";
+			json += "\"ssid\":\"" + WiFi.SSID(i) + "\"";
+			json += ",\"bssid\":\"" + WiFi.BSSIDstr(i) + "\"";
+			json += ",\"rssi\":" + String(WiFi.RSSI(i));
+			json += ",\"channel\":" + String(WiFi.channel(i));
+			json += ",\"secure\":" + String(WiFi.encryptionType(i));
+			json += ",\"quality\":"+ String(quality); // WiFi strength in percent
+			json += ",\"wico\":\"w" + String(int(round(map(quality, 0, 100, 1, 4)))) + "\""; // WiFi strength icon ("w1"-"w4")
+			json += ",\"pico\":\"" + String((WIFI_AUTH_OPEN == WiFi.encryptionType(i)) ? "" : "pw") + "\""; // auth icon ("p1" for secured)
+			json += "}";
+		}
+		WiFi.scanDelete();
+		if(WiFi.scanComplete() == -2) {
+			WiFi.scanNetworks(true, false, true, 120);
+		}
+	}
+	json += "]";
+	request->send(200, "application/json", json);
+	json = String();
+}
+
 void Web_Init(void) {
 	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
@@ -188,6 +235,10 @@ void Web_Init(void) {
 		#endif
 		System_RequestSleep();
 	});
+
+	wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
+	// start a first WiFi scan (to get a WiFi list more quickly in webview)
+	WiFi.scanNetworks(true, false, true, 120);
 
 	// allow cors for local debug (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080)
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
@@ -347,6 +398,10 @@ void webserverStart(void) {
 			gPrefsRfid.clear();
 			Web_DumpNvsToSd("rfidTags", backupFile);
 		});
+
+
+		// WiFi scan
+		wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
 
 
 		// Fileexplorer (realtime)
@@ -1193,7 +1248,6 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	networkSettings.ssid[32] = '\0';
 	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
-
 
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
