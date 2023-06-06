@@ -160,12 +160,12 @@ void handleWifiStateInit() {
 	connectionAttemptCounter = 0;
 	connectStartTimestamp = 0;
 	connectionFailedTimestamp = 0;
-	#ifdef ALWAYS_SCAN_WIFI_ON_STARTUP
+	if(gPrefsSettings.getBool("alwaysScanWifiOnStartup", true)){
 		WiFi.scanNetworks(true, false, true, 120);
 		wifiState = WIFI_STATE_SCAN_CONN;
-	#else
+	} else {
 		wifiState = WIFI_STATE_CONNECT_LAST;
-	#endif
+	}
 }
 
 void handleWifiStateConnectLast() {
