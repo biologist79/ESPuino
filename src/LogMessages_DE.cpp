@@ -201,9 +201,7 @@
 	const char portExpanderNotFound[] = "Port-expander nicht gefunden";
 	const char portExpanderInterruptEnabled[] = "Interrupt für Port-Expander aktiviert";
 	const char warningRefactoring[] = "!!!!WICHTIG!!!! Beachte bitte https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510 !!!!WICHTIG!!!!";
-	const char playlistGenModeUncached[] = "Playlist-Generierung: uncached";
-	const char playlistGenModeCached[] = "Playlist-Generierung: cached";
-	const char playlistCacheFoundBut0[] = "Playlist-Cache-File gefunden, jedoch 0 Bytes groß";
+	const char playlistGen[] = "Playlist-Generierung";
 	const char bootLoopDetected[] = "Bootschleife erkannt! Letzte RFID wird nicht aufgerufen.";
 	const char noBootLoopDetected[] = "Keine Bootschleife erkannt. Wunderbar :-)";
 	const char importCountNokNvs[] = "Anzahl der ungültigen Import-Einträge: %u";
@@ -211,7 +209,6 @@
 	const char errorWritingTmpfile[] = "Beim Schreiben der temporären Importdatei ist ein Fehler aufgetreten!";
 	const char eraseRfidNvsWeb[] = "<p>Die NVS-RFID-Zuweisungen werden gel&ouml;scht...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char eraseRfidNvs[] = "NVS-RFID-Zuweisungen werden gelöscht...";
-	const char erasePlaylistCachefile[] = "Playlist-Cachefile gelöscht: %s";
 	const char fwStart[] = "Starte Firmware-update via OTA...";
 	const char fwEnd[] = "Firmware-update beendet";
 	const char otaNotSupported[] = "Firmware-update wird von diesem ESPuino nicht unterstuetzt!";

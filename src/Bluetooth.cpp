@@ -108,11 +108,7 @@
 			return 0;
 		// Receive data from ring buffer
 		size_t len{};
-		#if ESP_ARDUINO_VERSION_MAJOR >= 2
-			vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
-		#else
-			vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, &len);
-		#endif
+		vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
 		if (len < (channel_len * 4)) {
 			// Serial.println("Bluetooth source => not enough data");
 			return 0;
