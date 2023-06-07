@@ -32,8 +32,8 @@ bool gPlayLastRfIdWhenWiFiConnected = false;
 bool gTriedToConnectToHost = false;
 
 static constexpr const char *logo = R"literal(
- _____   ____    ____            _                 
-| ____| / ___|  |  _ \   _   _  (_)  _ __     ___  
+ _____   ____    ____            _
+| ____| / ___|  |  _ \   _   _  (_)  _ __     ___
 |  _|   \__  \  | |_) | | | | | | | | '_ \   / _ \
 | |___   ___) | |  __/  | |_| | | | | | | | | (_) |
 |_____| |____/  |_|      \__,_| |_| |_| |_|  \___/
@@ -220,7 +220,6 @@ void setup() {
 	if (Wlan_IsConnected()) {
 		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}
-	System_ShowUpgradeWarning();
 
 	#ifdef CONTROLS_LOCKED_BY_DEFAULT
 		System_SetLockControls(true);

@@ -200,7 +200,6 @@
 	const char portExpanderFound[] = "Port-expander gefunden";
 	const char portExpanderNotFound[] = "Port-expander nicht gefunden";
 	const char portExpanderInterruptEnabled[] = "Interrupt für Port-Expander aktiviert";
-	const char warningRefactoring[] = "!!!!WICHTIG!!!! Beachte bitte https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510 !!!!WICHTIG!!!!";
 	const char playlistGen[] = "Playlist-Generierung";
 	const char bootLoopDetected[] = "Bootschleife erkannt! Letzte RFID wird nicht aufgerufen.";
 	const char noBootLoopDetected[] = "Keine Bootschleife erkannt. Wunderbar :-)";
@@ -240,7 +239,7 @@
 	const char wifiTooManyNetworks[] = "Anzahl der WLAN-Netze in NVS ist %d, aber es sind maximal %d erlaubt.";
 	const char wifiAddTooManyNetworks[] = "Kein Platz, weiteres WLAN zu speichern!";
 	const char wifiAddNetwork[] = "Füge WLAN hinzu: %s";
-	const char wifiUpdateNetwork[] = "Ändere Passwort für WLAN %s";	
+	const char wifiUpdateNetwork[] = "Ändere Passwort für WLAN %s";
 	const char wifiScanResult[] = "WLAN '%s'gefunden (Signalstärke: %d dBm, Kanal: %d, MAC-Adresse: %s)";
 	const char cantConnectToWifi[] = "WLAN-Verbindung fehlgeschlagen.";
 	const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WLAN Schnellstart: %s";

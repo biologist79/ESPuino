@@ -200,7 +200,6 @@
 	const char portExpanderFound[] = "Port-expander found";
 	const char portExpanderNotFound[] = "Unable to detect port-expander";
 	const char portExpanderInterruptEnabled[] = "Enabled interrupt-handling for port-expander";
-	const char warningRefactoring[] = "!!!!IMPORTANT!!!! Please review https://forum.espuino.de/t/wechsel-zum-refactoring-branch-was-ist-zu-beachten/510 !!!!IMPORTANT!!!!";
 	const char playlistGen[] = "Playlist-generation";
 	const char bootLoopDetected[] = "Bootloop detected! Last RFID won't be restored.";
 	const char noBootLoopDetected[] = "No bootloop detected. Great :-)";

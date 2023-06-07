@@ -228,17 +228,6 @@ void System_DeepSleepManager(void) {
 	}
 }
 
-// Shows warning after upgrade
-void System_ShowUpgradeWarning(void) {
-	uint32_t nvsShowUpgradeWarningCount = gPrefsSettings.getUInt("wcountrefact", 0);
-	if (!nvsShowUpgradeWarningCount) {
-		gPrefsSettings.putUInt("wcountrefact", 1);
-		Log_Println(warningRefactoring, LOGLEVEL_ERROR);
-	} else if (nvsShowUpgradeWarningCount < 5) {
-		gPrefsSettings.putUInt("wcountrefact", ++nvsShowUpgradeWarningCount);
-		Log_Println(warningRefactoring, LOGLEVEL_ERROR);
-	}
-}
 
 // Print the wake-up reason why ESP32 is awake now
 void System_ShowWakeUpReason() {
