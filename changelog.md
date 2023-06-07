@@ -1,4 +1,5 @@
 ## DEV-branch
+* 07.06.2023: Use bssid to connect to best WIFI and added option to always perform a WIFI-scan #241
 * 06.06.2023: List available WiFi's in accesspoint view
 * 06.06.2023: Remove support for Arduino 1.0.6 & playlist cache
 * 05.06.2023: FastLED 3.6.0, PlatformIO package 6.3.1

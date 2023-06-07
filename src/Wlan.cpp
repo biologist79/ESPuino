@@ -125,7 +125,7 @@ void Wlan_Init(void) {
 	handleWifiStateInit();
 }
 
-void connectToKnownNetwork(WiFiSettings settings) {
+void connectToKnownNetwork(WiFiSettings settings, byte *bssid = nullptr) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
 	if (hostname.compareTo("-1")) {
 		WiFi.setHostname(hostname.c_str());
@@ -145,7 +145,7 @@ void connectToKnownNetwork(WiFiSettings settings) {
 
 	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid);
 
-	WiFi.begin(settings.ssid, settings.password);
+	WiFi.begin(settings.ssid, settings.password, 0, bssid);
 }
 
 void handleWifiStateInit() {
@@ -160,7 +160,15 @@ void handleWifiStateInit() {
 	connectionAttemptCounter = 0;
 	connectStartTimestamp = 0;
 	connectionFailedTimestamp = 0;
-	wifiState = WIFI_STATE_CONNECT_LAST;
+	bool scanWiFiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
+	if (scanWiFiOnStart) {
+		// perform a scan to find the strongest network with same ssid (e.g. for mesh/repeater networks)
+		WiFi.scanNetworks(true, false, true, 120);		
+		wifiState = WIFI_STATE_SCAN_CONN;
+	} else {
+		// quick connect without additional scan
+		wifiState = WIFI_STATE_CONNECT_LAST;
+	}
 }
 
 void handleWifiStateConnectLast() {
@@ -246,10 +254,11 @@ void handleWifiStateScanConnect() {
 	for (int i = scanIndex; i < wifiScanCompleteResult; i++) {
 		// try to connect to wifi network with index i
 		String issid = WiFi.SSID(i);
+		byte *bssid = WiFi.BSSID(i);
 		// check if ssid name matches any saved ssid
 		for (int j = 0; j < numKnownNetworks; j++) {
 			if (strncmp(issid.c_str(), knownNetworks[j].ssid, 32) ==0 ) {
-				connectToKnownNetwork(knownNetworks[j]);
+				connectToKnownNetwork(knownNetworks[j], bssid);
 
 				connectStartTimestamp = millis();
 

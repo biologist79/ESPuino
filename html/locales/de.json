@@ -49,6 +49,9 @@
             "dns1": " DNS 1 für statische IP-Konfiguration",
             "dns2": "DNS 2 für statische IP-Konfiguration"
         },
+        "scan": {
+            "enabled": "Start mit bestem WLAN"
+        },
         "restartPrompt": "Fertig?"
     },
     "control": {

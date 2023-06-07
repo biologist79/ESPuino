@@ -1249,6 +1249,10 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
 
+	// always perform perform a WiFi scan on startup?
+	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
+	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
+
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
 	if (jsonObj.containsKey("static_addr")) {

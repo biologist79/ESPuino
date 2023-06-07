@@ -49,6 +49,9 @@
             "dns1": " DNS 1 for static IP-Configuration",
             "dns2": "DNS 2 for static IP-Configuration"
         },
+        "scan": {
+            "enabled": "Start with strongest WiFi"
+        },
         "restartPrompt": "Ready to go?"
     },
     "control": {

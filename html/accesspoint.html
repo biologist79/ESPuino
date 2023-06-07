@@ -18,6 +18,10 @@
 				border: 0;
 				padding: 0 15px
 			}
+			input[type="checkbox"] {
+				width: 20px;
+				height: 20px
+			}
 			body {
 				background: #007bff;
 				font-family: sans-serif;
@@ -81,6 +85,8 @@
 			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
 			<input type="text" id="hostname" name="hostname" value="espuino" required><br><br>
 
+			<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
+			<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 			<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
 			<label for="static_enabled" data-i18n="wifi.static.enabled">Static IP</label>
 			
@@ -110,7 +116,7 @@
                 loadPath: "/locales/{{lng}}.json"
             },
             debug: true,
-            fallbackLng: 'en',
+            fallbackLng: 'de',
         }, (err, t) => {
             localize = locI18next.init(i18next);
             localize('body');
@@ -118,7 +124,7 @@
 
 		function selectWiFi(ssid) {
 			document.getElementById("ssid").value = ssid;
-			document.getElementById("ssid").focus();
+			document.getElementById("pwd").focus();
 		}
 
 		async function getWiFiList() {
@@ -152,11 +158,13 @@
 
 		async function wifiConfig() {
 			let static = document.getElementById('static_enabled').checked;
+			let scanwifionstart = document.getElementById('scan_wifi_on_start').checked;
 
 			var myObj = { 
 				ssid: document.getElementById('ssid').value,
 				pwd: document.getElementById('pwd').value,
-				static: static
+				static: static,
+				scanwifionstart: scanwifionstart
 			};
 			
 			if (static) {

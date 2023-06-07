@@ -200,6 +200,8 @@
 						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
 						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required>
 
+						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
+						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 						<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
 						<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 						<div id="wifi_static_div" style="display:none">
@@ -1507,11 +1509,13 @@
 	async function wifiConfig(clickedId) {
 		lastIdclicked = clickedId;
 		let static = document.getElementById('static_enabled').checked;
+		let scanwifionstart = document.getElementById('scan_wifi_on_start').checked;
 
 		var myObj = { 
 			ssid: document.getElementById('ssid').value,
 			pwd: document.getElementById('pwd').value,
-			static: static
+			static: static,
+			scanwifionstart: scanwifionstart
 		};
 
 		if (static) {
