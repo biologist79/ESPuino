@@ -123,6 +123,7 @@
                     "7":"Alle Titel eines Verzeichnis (sortiert, Endlosschleife)",
                     "9":"Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
                     "13":"Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
+                    "14":"Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
                     "8":"Webradio",
                     "11":"Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
                 }

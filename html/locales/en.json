@@ -123,6 +123,7 @@
                     "7":"All tracks of a directory (sorted alph., loop)",
                     "9":"All tracks of a directory (random, loop)",
                     "13":"All tracks of a random subdirectory (sorted alph.)",
+                    "14":"All tracks of a random subdirectory (random)",
                     "8":"Webradio",
                     "11":"List (files from SD and/or webstreams) from local .m3u-File"
                 }

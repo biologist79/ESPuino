@@ -261,6 +261,8 @@ It's not just simply playing music; different playback modes are supported:
 - `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
 - `All tracks of a random subdirectory (sorted alph.)` => plays of tracks in alph. order of a
   randomly picked subdirectory of a given directory
+- `All tracks of a random subdirectory (random order)` => plays all tracks in random order of a
+  randomly picked subdirectory of a given directory
 - `Webradio` => always only one "track": plays a webstream
 - `List (files from SD and/or webstreams) from local .m3u-File` => can be one or more files /
   webradio stations with local .m3u as sourcefile
