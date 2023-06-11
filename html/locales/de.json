@@ -215,7 +215,7 @@
             "configtitle": "Bluetooth Kopfhörer Einstellungen",
             "title": "Mit Bluetooth Kopfhörer verbinden",
             "desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth Kopfhörer. Nach dem Wechsel in diesen Modus wird die Weboberfläche nicht länger erreichbar sein.",  
-            "button": "Im Kophörer-Modus starten"
+            "button": "Im Kopfhörer-Modus starten"
         },
         "device": {
             "title": "Bluetooth-Gerät (Kopfhörer)",
