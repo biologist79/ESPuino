@@ -207,15 +207,20 @@ void Bluetooth_Init(void) {
 			//a2dp_source->set_task_core(1);            // task core
 			//a2dp_source->set_nvs_init(true);          // erase/initialize NVS
 			//a2dp_source->set_ssp_enabled(true);       // enable secure simple pairing
-			//a2dp_source->set_pin_code("0000");        // set pin code if needed, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30
 
+			// pairing pin-code, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30
+			String btPinCode = gPrefsSettings.getString("btPinCode", "");
+			if (btPinCode != "") {
+				a2dp_source->set_ssp_enabled(true);
+				a2dp_source->set_pin_code(btPinCode.c_str()); 
+			}
 			// start bluetooth source
 			a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
 			a2dp_source->start(get_data_channels);
 			// get device name
-			btDeviceName = nameBluetoothSourceDevice;
+			btDeviceName = "";
 			if (gPrefsSettings.isKey("btDeviceName")) {
-				btDeviceName = gPrefsSettings.getString("btDeviceName", nameBluetoothSourceDevice);
+				btDeviceName = gPrefsSettings.getString("btDeviceName", "");
 			}
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "connect to first device found" : btDeviceName.c_str());
 			// connect events after startup

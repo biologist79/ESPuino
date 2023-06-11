@@ -18,6 +18,7 @@
         "wifi": "WLAN",
         "mqtt": "MQTT",
         "ftp": "FTP",
+        "bluetooth": "Bluetooth",
         "general": "Allgemein",
         "tools": "Tools",
         "forum": "Forum"
@@ -202,6 +203,27 @@
             "title": "FTP-Server starten",
             "desc": "Aktiviert den FTP-Server bis zum Neustart des Geräts.",
             "button": "FTP-Server starten"
+        }
+    },
+    "bt": {
+        "sink": {
+            "title": "ESPuino als Bluetooth Lautsprecher",
+            "desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet. Nach dem Wechsel in diesen Modus wird die Weboberfläche nicht länger erreichbar sein.",
+            "button": "Als Bluetooth Lautsprecher starten"
+        },
+        "source": {
+            "configtitle": "Bluetooth Kopfhörer Einstellungen",
+            "title": "Mit Bluetooth Kopfhörer verbinden",
+            "desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth Kopfhörer. Nach dem Wechsel in diesen Modus wird die Weboberfläche nicht länger erreichbar sein.",  
+            "button": "Im Kophörer-Modus starten"
+        },
+        "device": {
+            "title": "Bluetooth-Gerät (Kopfhörer)",
+            "placeholder": "z.B. My POGS Wireless Headphone"
+        },
+        "pincode": {
+            "title": "Pairing PIN-Code",
+            "placeholder": "z.B. 0000"
         }
     },
     "general": {
