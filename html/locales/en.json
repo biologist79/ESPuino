@@ -66,7 +66,7 @@
         "voldown": "Volume Down",
         "volup": "Volume Up",
         "current": "Current track",
-        "command": "Excecute Modification"
+        "command": "Execute Modification"
     },
     "files": {
         "title": "Files",
@@ -92,7 +92,7 @@
             "desc": "Start Upload",
             "selectFolder": "Please select the upload location!",
             "selectFile": "Please select files to upload!",
-            "success": "Upload successfull ({{elapsed}}, {{speed}} KB/s)",
+            "success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
             "error": "Upload error",
             "timeCalc": "Remaining time is being calculated..",
             "minutes_one": "minute",
@@ -145,7 +145,7 @@
                     "111":"Loop track",
                     "120":"Dimm LEDs (nightmode)",
                     "130":"Toggle WiFi",
-                    "140":"Toggle Bluetooth Speeker",
+                    "140":"Toggle Bluetooth Speaker",
                     "141":"Toggle Bluetooth Headphones",
                     "150":"Enable FTP",
                     "0":"Remove assignment",
@@ -208,13 +208,13 @@
     "bt": {
         "sink": {
             "title": "ESPuino as Bluetooth speaker",
-            "desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be accessible.",
+            "desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
             "button": "Start as Bluetooth speaker"
         },
         "source": {
             "configtitle": "Bluetooth headphone settings",
             "title": "Connect with Bluetooth headphone",
-            "desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be accessible.",  
+            "desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",  
             "button": "Start in headphone mode"
         },
         "device": {
