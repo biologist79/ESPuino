@@ -175,7 +175,6 @@
 
     // Bluetooth
     constexpr const char nameBluetoothSinkDevice[] = "ESPuino";        // Name of your ESPuino as Bluetooth-device
-    constexpr const char nameBluetoothSourceDevice[] = "My POGS Wireless Headphone"; // Name of Bluetooth-device to connect to (BT-Headset name) (https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/)
 
     // Where to store the backup-file for NVS-records
     constexpr const char backupFile[] = "/backup.txt"; // File is written every time a (new) RFID-assignment via GUI is done

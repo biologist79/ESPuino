@@ -39,6 +39,7 @@ typedef struct {
 
 const char mqttTab[] = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i><span data-i18n=\"nav.mqtt\"></span></a>";
 const char ftpTab[] = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i><span data-i18n=\"nav.ftp\"></span></a>";
+const char bluetoothTab[] = "<a class=\"nav-item nav-link\" id=\"nav-bt-tab\" data-toggle=\"tab\" href=\"#nav-bt\" role=\"tab\" aria-controls=\"nav-bt\" aria-selected=\"false\"><i class=\"fab fa-bluetooth\"></i><span data-i18n=\"nav.bluetooth\"></span></a>";
 
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
@@ -494,6 +495,12 @@ String templateProcessor(const String &templ) {
 		#else
 			return String();
 		#endif
+	} else if (templ == "SHOW_BLUETOOTH_TAB") { // Only show Bluetooth-tab if Bluetooth-support was compiled
+		#ifdef BLUETOOTH_ENABLE
+			return bluetoothTab;
+		#else
+			return String();
+		#endif		
 	} else if (templ == "INIT_LED_BRIGHTNESS") {
 		return String(gPrefsSettings.getUChar("iLedBrightness", 0));
 	} else if (templ == "NIGHT_LED_BRIGHTNESS") {
@@ -574,10 +581,14 @@ String templateProcessor(const String &templ) {
 #ifdef MQTT_ENABLE
 		return String(gMqttPort);
 #endif
-	} else if (templ == "BT_SOURCE_NAME") {
+	} else if (templ == "BT_DEVICE_NAME") {
 		if (gPrefsSettings.isKey("btDeviceName")) {
 			return gPrefsSettings.getString("btDeviceName", "");
 		}
+	} else if (templ == "BT_PIN_CODE") {
+		if (gPrefsSettings.isKey("btPinCode")) {
+			return gPrefsSettings.getString("btPinCode", "");
+		}		
 	} else if (templ == "IPv4") {
 		return WiFi.localIP().toString();
 	} else if (templ == "RFID_TAG_ID") {
@@ -682,6 +693,12 @@ bool processJsonRequest(char *_serialJson) {
 			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
 			return false;
 		}
+	} else if (doc.containsKey("bluetooth")) {
+		// bluetooth settings
+		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
+		gPrefsSettings.putString("btDeviceName", (String)_btDeviceName);
+		const char *btPinCode = doc["bluetooth"]["pinCode"];
+		gPrefsSettings.putString("btPinCode", (String)btPinCode);
 	} else if (doc.containsKey("rfidMod")) {
 		const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
 		uint8_t _modId = object["rfidMod"]["modId"];
