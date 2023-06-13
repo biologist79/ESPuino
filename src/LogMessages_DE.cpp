@@ -69,7 +69,7 @@
 	const char modeSingleAudiobook[] = "Modus: Hoerspiel";
 	const char modeSingleAudiobookLoop[] = "Modus: Hoerspiel in Endlosschleife";
 	const char modeAllTrackAlphSorted[] = "Modus: Spiele alle Tracks (alphabetisch sortiert) des Ordners '%s'";
-	const char modeAllTrackRandom[] = "Modus: Alle Tracks eines Ordners zufällig";
+	const char modeAllTrackRandom[] = "Modus: Spiele alle Tracks (zufällig sortiert) des Ordners '%s'";
 	const char modeAllTrackAlphSortedLoop[] = "Modus: Alle Tracks eines Ordners sortiert (alphabetisch) in Endlosschleife";
 	const char modeAllTrackRandomLoop[] = "Modus: Alle Tracks eines Ordners zufällig in Endlosschleife";
 	const char modeWebstream[] = "Modus: Webstream";

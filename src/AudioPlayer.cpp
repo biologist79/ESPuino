@@ -832,7 +832,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	char **musicFiles;
 
 	if (_playMode != WEBSTREAM) {
-		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
+		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY || _playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM) {
 			char *tmp = SdCard_pickRandomSubdirectory(filename);     // *filename (input): target-directory  //   *filename (output): random subdirectory
 			if (tmp == NULL) {  // If error occured while extracting random subdirectory
 				musicFiles = NULL;
@@ -937,8 +937,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			break;
 		}
 
-		case ALL_TRACKS_OF_DIR_RANDOM: {
-			Log_Println(modeAllTrackRandom, LOGLEVEL_NOTICE);
+		case ALL_TRACKS_OF_DIR_RANDOM:
+		case RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM: {
+			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackRandom, filename);
 			AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
 			xQueueSend(gTrackQueue, &(musicFiles), 0);
 			break;

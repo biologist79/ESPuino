@@ -69,7 +69,7 @@
 	const char modeSingleAudiobook[] = "Mode: audiobook";
 	const char modeSingleAudiobookLoop[] = "Mode: audiobook as infinite loop";
 	const char modeAllTrackAlphSorted[] = "Mode: all tracks (in alph. order) of directory '%s'";
-	const char modeAllTrackRandom[] = "Mode: all tracks (in random. order) of directory";
+	const char modeAllTrackRandom[] = "Mode: all tracks (in random. order) of directory '%s";
 	const char modeAllTrackAlphSortedLoop[] = "Mode: all tracks (in alph. order) of directory as infinite loop";
 	const char modeAllTrackRandomLoop[] = "Mode: all tracks (in random order) of directory as infinite loop";
 	const char modeWebstream[] = "Mode: webstream";
