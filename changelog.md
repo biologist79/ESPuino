@@ -1,4 +1,6 @@
 ## DEV-branch
+* 13.06.2023: Bluetooth configuration tab in web-interface (#244)
+* 13.06.2023: Introduce new playmode "RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM"
 * 07.06.2023: Use bssid to connect to best WIFI and added option to always perform a WIFI-scan #241
 * 06.06.2023: List available WiFi's in accesspoint view
 * 06.06.2023: Remove support for Arduino 1.0.6 & playlist cache
