@@ -138,6 +138,10 @@
 		.fas{
 			padding-right: 0.25em;
 		}
+
+		input:invalid {
+			border: red solid 3px;
+		}
 	</style>
 </head>
 <body>
@@ -182,7 +186,7 @@
 					<div class="form-group col-md-12">
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
-							value="%HOSTNAME%" pattern="^[^-\.]{2,32}" required>
+							value="%HOSTNAME%" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
 					</div>
 					<br>
 					<div class="text-center">
