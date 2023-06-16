@@ -1311,7 +1311,7 @@ void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handleGetActiveSSID(AsyncWebServerRequest *request) {
-	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	AsyncJsonResponse *response = new AsyncJsonResponse();
 	JsonObject obj = response->getRoot();
 
 	if (Wlan_IsConnected()) {
