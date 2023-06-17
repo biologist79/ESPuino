@@ -1,4 +1,5 @@
 ## DEV-branch
+* 17.06.2023: CMD_TOGGLE_WIFI_STATUS: Escape from BT-mode, WiFi cannot coexist with BT and can cause a crash
 * 13.06.2023: Bluetooth configuration tab in web-interface (#244)
 * 13.06.2023: Introduce new playmode "RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM"
 * 07.06.2023: Use bssid to connect to best WIFI and added option to always perform a WIFI-scan #241
