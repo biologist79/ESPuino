@@ -396,7 +396,7 @@ void webserverStart(void) {
 		});
 
 		// ESP-restart
-		wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
+		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", restartWebsite);
 			Serial.flush();
 			ESP.restart();

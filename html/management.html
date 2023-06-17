@@ -907,13 +907,13 @@
 		});
 	} /* putData */
 
-	function restartDevice() {
+	async function restartDevice() {
 		console.log("restart..");
-		$.get( "/restart", function() {
-			tryRedirect();
-		});
+		await fetch("/restart", {method: "POST"});
+		tryRedirect();
 		$('.modal-title').text(i18next.t("restart"));
 		$('.modal-body').text(i18next.t("restartinfo"));
+		$(".modal-body").removeAttr("style");
 		$('#modalInfo').modal({show: true});
 	} /* restart */
 
