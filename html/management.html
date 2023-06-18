@@ -148,16 +148,50 @@
 			 width="35" height="35" class="d-inline-block align-top" alt=""/>
 		ESPuino
 	</a>
-	<a class="reboot float-right nav-link" href="/restart"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
+	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
 	<a class="reboot float-right nav-link" href="/shutdown"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
-	<a class="reboot float-right nav-link" href="/log"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-	<a class="reboot float-right nav-link" href="/info"><i class="fas fa-info"></i> <span data-i18n="info">Infos</span></a>
+	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
+	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Infos</span></a>
 	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
 		<option value="de">de</option>
 		<option value="en">en</option>
 	</select>
 	</div>
 </nav>
+<!-- Modal dialog for info / log / restart-->
+<div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+		<div class="modal-content">
+			 <div class="modal-header">
+				<h5 class="modal-title">Infos</h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body" style="white-space: pre">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal dialog for delete SSID-->
+<div class="modal fade" id="deleteSSIDModal" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+			</div>
+		</div>
+	</div>
+</div>
+
 <br/>
 	<nav>
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
@@ -196,10 +230,10 @@
 				<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 					<div class="form-group col-md-12">
 						<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-						<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
+						<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 						<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required>
+						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
 
 						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
 						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
@@ -650,11 +684,15 @@
 		<br />
 		<div class="container" id="httpUpdate">
 			<legend data-i18n="tools.fwupdate.title"></legend>
-			<form action="/update" enctype="multipart/form-data" method="POST">
+			<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 				<div class="form-group">
 					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
 					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 				</div>
+				<div class="progress">
+					<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" ></div>
+				</div>
+				<br>
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 			</form>
 		</div>
@@ -869,6 +907,97 @@
 		});
 	} /* putData */
 
+	async function restartDevice() {
+		console.log("restart..");
+		await fetch("/restart", {method: "POST"});
+		tryRedirect();
+		$('.modal-title').text(i18next.t("restart"));
+		$('.modal-body').text(i18next.t("restartinfo"));
+		$(".modal-body").removeAttr("style");
+		$('#modalInfo').modal({show: true});
+	} /* restart */
+
+
+	/* Firmware Upload (OTA) */
+	$('#firmwareUploadForm').submit(function(e){
+		e.preventDefault();
+		if(!document.getElementById('firmwareUpload').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
+		console.log("firmware upload!");
+		var data = new FormData(this);
+
+		const startTime = new Date().getTime();
+		let bytesTotal = 0;
+		$.ajax({
+			url: '/update',
+			type: 'POST',
+			data: data,
+			contentType: false,
+			processData:false,
+			xhr: function() {
+				var xhr = new window.XMLHttpRequest();
+
+				xhr.upload.addEventListener("progress", function(evt) {
+				  if (evt.lengthComputable) {
+					const now = new Date().getTime();
+					const percent = parseInt(evt.loaded * 100 / evt.total);
+					const elapsed = (now - startTime) / 1000;
+					bytesTotal = evt.total;
+
+					let progressText = i18next.t("files.upload.timeCalc");
+					if(elapsed){
+						const bps = evt.loaded / elapsed;
+						const kbps = bps / 1024;
+						const remaining = Math.round((evt.total - evt.loaded) / bps);
+
+						const data = {
+							percent: percent,
+							remaining: {
+								unit: (remaining>60) ? i18next.t("files.upload.minutes", {count: Math.round(remaining/60)}) : i18next.t("files.upload.seconds"),
+								value: (remaining>60) ? Math.round(remaining/60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+							},
+							speed: kbps.toFixed(2)
+						}
+						progressText = i18next.t("files.upload.progress", data);
+						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
+					}
+					$("#firmwareUploadProgress").css('width', percent+"%").text(progressText);
+				  }
+				}, false);
+
+				return xhr;
+			},
+			success: function(data, textStatus, jqXHR) {
+				const now = new Date().getTime();
+				const elapsed = (now - startTime) / 1000;
+
+				let transData = {
+					elapsed: "00:00",
+					speed: "0,00"
+				};
+				if(elapsed){
+					const bps = bytesTotal / elapsed;
+					const kbps = bps / 1024;
+
+					const date = new Date(null);
+					date.setSeconds(elapsed);
+					const timeText = date.toISOString().substr(11, 8);
+
+					transData = { elapsed: timeText, speed: kbps.toFixed(2) };
+				}
+				console.log("Firmware upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
+				const progressText = i18next.t("files.upload.success", transData);
+				$("#firmwareUploadProgress").text(progressText);
+				document.getElementById('uploaded_file').value = '';
+				document.getElementById('uploaded_file_text').innerHTML = '';
+				restartDevice();
+			},
+			error: function(xhr, status, error) {
+				console.log("Firmware upload ERROR: " + xhr.responseText);
+				$("#firmwareUploadProgress").text(i18next.t("files.upload.error") + ": " + xhr.responseText);
+				toastr.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
+			}
+		});
+	});
 
 	/* File Upload */
 	$('#explorerUploadForm').submit(function(e){
@@ -1354,12 +1483,9 @@
 			deleteButton.classList.add("fa");
 			deleteButton.classList.add("fa-trash");
 
-			deleteButton.addEventListener("click", async () => {
-				console.log("deleting", ssid);
-				await fetch("/savedSSIDs/"+ssid, {method: "DELETE"});
-				await rebuildSSIDList();
-			});
-			
+			deleteButton.setAttribute("data-toggle", "modal");
+			deleteButton.setAttribute("data-target", "#deleteSSIDModal");
+			deleteButton.setAttribute("data-ssid", ssid);
 			deleteSpan.appendChild(deleteButton);
 			ssidElem.appendChild(deleteSpan);
 
@@ -1384,6 +1510,14 @@
 		
 		updateHostnameField();
 	}
+
+	async function deleteSSID(ssid) {
+		console.log("deleting", ssid);
+		$('#deleteSSIDModal').modal('hide');
+		await fetch("/savedSSIDs/" + ssid, {method: "DELETE"});
+		await rebuildSSIDList();
+	}
+
 
     const config = {attributes: true};
 	const wifiTab = document.getElementById("nav-wifi-tab");
@@ -1616,15 +1750,47 @@
 		socket.send(myJSON);
 	}
 
+	async function tryRedirect() {
+		try {
+			console.log("redirect to startpage..")
+			const response = await fetch(window.location.href);
+			window.location.reload();
+		} catch (error) {
+			console.log(error);
+			setTimeout(tryRedirect, 2000);
+		}
+	}
 	$(document).ready(function () {
 		connect();
 		buildFileSystemTree("/");
 
+		$('#deleteSSIDModal').on('show.bs.modal', function (event) {
+  			var ssid = $(event.relatedTarget).data('ssid') 
+			$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
+			$(this).find('.modal-body').text(i18next.t("wifi.delete.prompt", { ssid: ssid }));
+			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
+		})
+
+		$('.openPopupInfo').on('click', function(){
+			$('.modal-title').text(i18next.t("info"));
+			$('.modal-body').load("/info", function(){
+				$('#modalInfo').modal({show: true});
+			});
+		}); 
+		$('.openPopupLog').on('click', function(){
+			$('.modal-title').text(i18next.t("log"));
+			$('.modal-body').load("/log", function(){
+				$('#modalInfo').modal({show: true});
+			});
+		}); 
+		$('.openPopupRestart').on('click', function(){
+			restartDevice();
+		}); 
 		console.log(parseInt(document.getElementById('warningLowVoltage').value));
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		});
-	});
+	});	
 </script>
 </body>
 </html>

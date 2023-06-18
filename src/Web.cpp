@@ -219,11 +219,16 @@ void Web_Init(void) {
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
-		request->send(200, "text/html", "ESPuino wird neu gestartet...");
-	#else
-		request->send(200, "text/html", "ESPuino is being restarted...");
-	#endif
+		String url = "http://" + Wlan_GetHostname() + ".local";
+		String html = "<!DOCTYPE html>";
+		#if (LANGUAGE == DE)
+			html += "Der ESPuino wird neu gestartet...<br>Management Website: ";
+		#else
+			html += "ESPuino is being restarted...<br>Management website: ";
+		#endif
+		html += "<a href=\"" + url + "\">" + url + "</a>";
+		html += "<script>async function tryRedirect() {try {var url = \"" + url + "\";const response = await fetch(url);window.location.href = url;} catch (error) {console.log(error);setTimeout(tryRedirect, 2000);}}tryRedirect();</script>";
+		request->send(200, "text/html", html);
 		Serial.flush();
 		ESP.restart();
 	});
@@ -349,21 +354,25 @@ void webserverStart(void) {
 		wServer.on(
 			"/update", HTTP_POST, [](AsyncWebServerRequest *request) {
 				#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					request->send(200, "text/html", restartWebsite); },
+					if (Update.hasError()) {
+						request->send(500, "text/plain", Update.errorString());
+					} else {
+						request->send(200, "text/html", restartWebsite); 
+					}
 				#else
-					request->send(200, "text/html", otaNotSupportedWebsite); },
+					request->send(500, "text/html", otaNotSupportedWebsite); 
 				#endif
-			[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+			}, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 				#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
 					Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
 					return;
 				#endif
 
 				if (!index) {
-					if (!gPlayProperties.pausePlay) {   // Pause playback as it sounds ugly when OTA starts
-						Cmd_Action(CMD_PLAYPAUSE);  // Pause first to possibly to save last playposition (if necessary)
-						Cmd_Action(CMD_STOP);
-					}
+					// pause some tasks to get more free CPU time for the upload
+					vTaskSuspend(AudioTaskHandle);
+					Led_TaskPause(); 
+					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
 				}
@@ -373,14 +382,21 @@ void webserverStart(void) {
 
 				if (final) {
 					Update.end(true);
+					// resume the paused tasks
+					Led_TaskResume();
+					vTaskResume(AudioTaskHandle);
+					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
+					if (Update.hasError()) {
+						Log_Println(Update.errorString(), LOGLEVEL_ERROR);
+					}	
 					Serial.flush();
-					ESP.restart();
+					//ESP.restart(); // restart is done via webpage javascript
 				}
 		});
 
 		// ESP-restart
-		wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
+		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", restartWebsite);
 			Serial.flush();
 			ESP.restart();
