@@ -1327,7 +1327,7 @@ void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handleGetActiveSSID(AsyncWebServerRequest *request) {
-	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	AsyncJsonResponse *response = new AsyncJsonResponse();
 	JsonObject obj = response->getRoot();
 
 	if (Wlan_IsConnected()) {
@@ -1346,9 +1346,33 @@ void handleGetHostname(AsyncWebServerRequest *request) {
 
 void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
 	const JsonString& jsonStr = json.as<JsonString>();
-	String hostname = String(jsonStr.c_str());
-	bool succ = Wlan_SetHostname(hostname);
+	size_t len = jsonStr.size();
+	const char *hostname = jsonStr.c_str();
 
+	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
+	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
+	bool validated = true;
+	if(len < 2 || len > 32) {
+		validated = false;
+	}
+
+	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
+		validated = false;
+	}
+
+	for(int i = 0; i < len; i++) {
+		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
+			validated = false;
+			break;
+		}
+	}
+
+	if (!validated) {
+		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
+		return;
+	}
+
+	bool succ = Wlan_SetHostname(String(hostname));
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", hostname);
 	} else {
