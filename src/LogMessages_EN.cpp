@@ -102,6 +102,7 @@
 	const char modificatorPlaylistLoopDeactive[] = "Modificator: disabled all tracks as infinite loop.";
 	const char modificatorTrackActive[] = "Modificator: adjusted to current track as infinite loop.";
 	const char modificatorTrackDeactive[] = "Modificator: disabled current track as infinite loop.";
+	const char modificatorShufflePlaylist[] = "Modificator: current playlist will be shuffled.";
 	const char modificatorNotAllowed[] = "Unable to apply modificator.";
 	const char modificatorLoopRev[] = "Modificator: infinite loop ended.";
 	const char modificatorDoesNotExist[] = "This type of card-modificator does not exist %d!";

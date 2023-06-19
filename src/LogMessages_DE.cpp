@@ -102,6 +102,7 @@
 	const char modificatorPlaylistLoopDeactive[] = "Modifikator: Alle Titel in Endlosschleife deaktiviert.";
 	const char modificatorTrackActive[] = "Modifikator: Titel in Endlosschleife aktiviert.";
 	const char modificatorTrackDeactive[] = "Modifikator: Titel in Endlosschleife deaktiviert.";
+	const char modificatorShufflePlaylist[] = "Modifikator: Aktuelle Playlist wird randomisiert.";
 	const char modificatorNotAllowed[] = "Modifikator konnte nicht angewendet werden.";
 	const char modificatorLoopRev[] = "Modifikator: Endlosschleife beendet.";
 	const char modificatorDoesNotExist[] = "Ein Karten-Modifikator existiert nicht vom Typ %d!";
