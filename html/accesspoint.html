@@ -158,13 +158,11 @@
 
 		async function wifiConfig() {
 			let static = document.getElementById('static_enabled').checked;
-			let scanwifionstart = document.getElementById('scan_wifi_on_start').checked;
 
 			var myObj = { 
 				ssid: document.getElementById('ssid').value,
 				pwd: document.getElementById('pwd').value,
-				static: static,
-				scanwifionstart: scanwifionstart
+				static: static
 			};
 			
 			if (static) {
@@ -181,29 +179,35 @@
 				body: JSON.stringify(myObj)
 			});
 
-			let hostname = document.getElementById('hostname').value;
+			var myObj = { 
+				hostname: document.getElementById('hostname').value,
+				scanwifionstart: document.getElementById('scan_wifi_on_start').checked
+			};
 
-			await fetch("/hostname", {
+			await fetch("/wificonfig", {
 				method: "POST",
 				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify(hostname)
+				body: JSON.stringify(myObj)
 			});
 		}
 
 
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
-			updateHostnameField();
+			updateWifiFields();
 		});
-		async function updateHostnameField() {
+
+		async function updateWifiFields() {
 			let hostnameElem = document.getElementById("hostname");
+			let scanWifiElem = document.getElementById("scan_wifi_on_start");
 
-			let hostname = await (await fetch("/hostname")).text();
+			let config = await (await fetch("/wificonfig")).json();
 
-			if (hostname && hostname !== "") {
-				hostnameElem.value = hostname;
-				hostnameElem.defaultValue = hostname;
+			if (config.hostname && config.hostname !== "") {
+				hostnameElem.value = config.hostname;
+				hostnameElem.defaultValue = config.hostname;
 			} 
+			scanWifiElem.checked = config.scanwifionstart;
 		}
         </script>
 	</body>
