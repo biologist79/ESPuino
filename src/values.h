@@ -45,6 +45,7 @@
 #define CMD_SLEEP_AFTER_5_TRACKS        107         // Puts uC into deepsleep after five tracks + LED-DIMM
 #define CMD_REPEAT_PLAYLIST             110         // Changes active playmode to endless-loop (for a playlist)
 #define CMD_REPEAT_TRACK                111         // Changes active playmode to endless-loop (for a single track)
+#define CMD_SHUFFLE_PLAYLIST            112         // Changes active playmode to randomized playlist
 #define CMD_DIMM_LEDS_NIGHTMODE         120         // Changes LED-brightness
 #define CMD_TOGGLE_WIFI_STATUS          130         // Toggles WiFi-status
 #define CMD_TOGGLE_BLUETOOTH_SINK_MODE  140         // Toggles Normal/Bluetooth sink Mode
