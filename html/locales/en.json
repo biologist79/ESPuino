@@ -7,6 +7,9 @@
     "shutdown": "Shutdown",
     "log": "Log",
     "info": "Info",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "restartinfo": "ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
     "toast": {
         "rfidDetect": "RFID-tag {{rfidId}} detected.",
         "success": "Action performed successfully.",
@@ -53,7 +56,11 @@
         "scan": {
             "enabled": "Start with strongest WiFi"
         },
-        "restartPrompt": "Ready to go?"
+        "delete": {
+            "title": "Delete WiFi",
+            "prompt": "Delete saved WiFi \"{{ssid}}\" ?"
+        },
+      "restartPrompt": "Ready to go?"
     },
     "control": {
         "title": "Control",

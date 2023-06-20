@@ -83,7 +83,7 @@
 			<label for="pwd" data-i18n="wifi.password.title">Password</label>:<br>
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
 			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
-			<input type="text" id="hostname" name="hostname" value="espuino" required><br><br>
+			<input type="text" id="hostname" name="hostname" value="espuino" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required><br><br>
 
 			<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
 			<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
@@ -158,13 +158,11 @@
 
 		async function wifiConfig() {
 			let static = document.getElementById('static_enabled').checked;
-			let scanwifionstart = document.getElementById('scan_wifi_on_start').checked;
 
 			var myObj = { 
 				ssid: document.getElementById('ssid').value,
 				pwd: document.getElementById('pwd').value,
-				static: static,
-				scanwifionstart: scanwifionstart
+				static: static
 			};
 			
 			if (static) {
@@ -181,29 +179,35 @@
 				body: JSON.stringify(myObj)
 			});
 
-			let hostname = document.getElementById('hostname').value;
+			var myObj = { 
+				hostname: document.getElementById('hostname').value,
+				scanwifionstart: document.getElementById('scan_wifi_on_start').checked
+			};
 
-			await fetch("/hostname", {
+			await fetch("/wificonfig", {
 				method: "POST",
 				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify(hostname)
+				body: JSON.stringify(myObj)
 			});
 		}
 
 
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
-			updateHostnameField();
+			updateWifiFields();
 		});
-		async function updateHostnameField() {
+
+		async function updateWifiFields() {
 			let hostnameElem = document.getElementById("hostname");
+			let scanWifiElem = document.getElementById("scan_wifi_on_start");
 
-			let hostname = await (await fetch("/hostname")).text();
+			let config = await (await fetch("/wificonfig")).json();
 
-			if (hostname && hostname !== "") {
-				hostnameElem.value = hostname;
-				hostnameElem.defaultValue = hostname;
+			if (config.hostname && config.hostname !== "") {
+				hostnameElem.value = config.hostname;
+				hostnameElem.defaultValue = config.hostname;
 			} 
+			scanWifiElem.checked = config.scanwifionstart;
 		}
         </script>
 	</body>

@@ -7,6 +7,9 @@
     "shutdown": "Ausschalten",
     "log": "Log",
     "info": "Info",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "restartinfo": "ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
     "toast": {
         "rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
         "success": "Aktion erfolgreich ausgeführt.",
@@ -52,6 +55,10 @@
         },
         "scan": {
             "enabled": "Start mit bestem WLAN"
+        },
+        "delete": {
+            "title": "Netzwerk entfernen",
+            "prompt": "Gespeichertes Netzwerk \"{{ssid}}\" wirklich entfernen?"
         },
         "restartPrompt": "Fertig?"
     },

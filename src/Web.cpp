@@ -65,8 +65,8 @@ static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetActiveSSID(AsyncWebServerRequest *request);
-static void handleGetHostname(AsyncWebServerRequest *request);
-static void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleGetWiFiConfig(AsyncWebServerRequest *request);
+static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 
@@ -215,15 +215,20 @@ void Web_Init(void) {
 	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
-	wServer.on("/hostname", HTTP_GET, handleGetHostname);
-	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
+	wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
+	wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
-		request->send(200, "text/html", "ESPuino wird neu gestartet...");
-	#else
-		request->send(200, "text/html", "ESPuino is being restarted...");
-	#endif
+		String url = "http://" + Wlan_GetHostname() + ".local";
+		String html = "<!DOCTYPE html>";
+		#if (LANGUAGE == DE)
+			html += "Der ESPuino wird neu gestartet...<br>Management Website: ";
+		#else
+			html += "ESPuino is being restarted...<br>Management website: ";
+		#endif
+		html += "<a href=\"" + url + "\">" + url + "</a>";
+		html += "<script>async function tryRedirect() {try {var url = \"" + url + "\";const response = await fetch(url);window.location.href = url;} catch (error) {console.log(error);setTimeout(tryRedirect, 2000);}}tryRedirect();</script>";
+		request->send(200, "text/html", html);
 		Serial.flush();
 		ESP.restart();
 	});
@@ -349,21 +354,25 @@ void webserverStart(void) {
 		wServer.on(
 			"/update", HTTP_POST, [](AsyncWebServerRequest *request) {
 				#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					request->send(200, "text/html", restartWebsite); },
+					if (Update.hasError()) {
+						request->send(500, "text/plain", Update.errorString());
+					} else {
+						request->send(200, "text/html", restartWebsite); 
+					}
 				#else
-					request->send(200, "text/html", otaNotSupportedWebsite); },
+					request->send(500, "text/html", otaNotSupportedWebsite); 
 				#endif
-			[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+			}, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 				#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
 					Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
 					return;
 				#endif
 
 				if (!index) {
-					if (!gPlayProperties.pausePlay) {   // Pause playback as it sounds ugly when OTA starts
-						Cmd_Action(CMD_PLAYPAUSE);  // Pause first to possibly to save last playposition (if necessary)
-						Cmd_Action(CMD_STOP);
-					}
+					// pause some tasks to get more free CPU time for the upload
+					vTaskSuspend(AudioTaskHandle);
+					Led_TaskPause(); 
+					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
 				}
@@ -373,14 +382,21 @@ void webserverStart(void) {
 
 				if (final) {
 					Update.end(true);
+					// resume the paused tasks
+					Led_TaskResume();
+					vTaskResume(AudioTaskHandle);
+					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
+					if (Update.hasError()) {
+						Log_Println(Update.errorString(), LOGLEVEL_ERROR);
+					}	
 					Serial.flush();
-					ESP.restart();
+					//ESP.restart(); // restart is done via webpage javascript
 				}
 		});
 
 		// ESP-restart
-		wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
+		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", restartWebsite);
 			Serial.flush();
 			ESP.restart();
@@ -431,8 +447,8 @@ void webserverStart(void) {
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
 
-		wServer.on("/hostname", HTTP_GET, handleGetHostname);
-		wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
+		wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
 
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
@@ -1266,10 +1282,6 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
 
-	// always perform perform a WiFi scan on startup?
-	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
-	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
-
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
 	if (jsonObj.containsKey("static_addr")) {
@@ -1311,7 +1323,7 @@ void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handleGetActiveSSID(AsyncWebServerRequest *request) {
-	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	AsyncJsonResponse *response = new AsyncJsonResponse();
 	JsonObject obj = response->getRoot();
 
 	if (Wlan_IsConnected()) {
@@ -1323,16 +1335,54 @@ void handleGetActiveSSID(AsyncWebServerRequest *request) {
 	request->send(response);
 }
 
-void handleGetHostname(AsyncWebServerRequest *request) {
-	String hostname = Wlan_GetHostname();
-	request->send(200, (char *) F("text/plain; charset=utf-8"), hostname);
+void handleGetWiFiConfig(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse();
+	JsonObject obj = response->getRoot();
+	bool scanWifiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
+
+	obj["hostname"] = Wlan_GetHostname();
+	obj["scanwifionstart"].set(scanWifiOnStart);
+
+	response->setLength();
+	request->send(response);
 }
 
-void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
-	const JsonString& jsonStr = json.as<JsonString>();
-	String hostname = String(jsonStr.c_str());
-	bool succ = Wlan_SetHostname(hostname);
+void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
+	const JsonObject& jsonObj = json.as<JsonObject>();
 
+	// always perform perform a WiFi scan on startup?
+	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
+	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
+
+	// hostname
+	String strHostname = jsonObj["hostname"];
+	size_t len = strHostname.length();
+	const char *hostname = strHostname.c_str();
+
+	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
+	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
+	bool validated = true;
+	if(len < 2 || len > 32) {
+		validated = false;
+	}
+
+	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
+		validated = false;
+	}
+
+	for(int i = 0; i < len; i++) {
+		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
+			validated = false;
+			break;
+		}
+	}
+
+	if (!validated) {
+		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
+		return;
+	}
+
+	bool succ = Wlan_SetHostname(String(hostname));
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", hostname);
 	} else {

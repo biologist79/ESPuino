@@ -1,4 +1,9 @@
 ## DEV-branch
+* 20.06.2023: PlatformIO package 6.3.2
+* 20.06.2023: Move ScanWiFiOnStart to global WiFi configuration (#248) 
+* 18.06.2023: Stricter hostname validation (#246). Thank's to @SZenglein !!
+* 18.06.2023: Some Web-UI improvements (#247) 
+* 17.06.2023: CMD_TOGGLE_WIFI_STATUS: Escape from BT-mode, WiFi cannot coexist with BT and can cause a crash
 * 13.06.2023: Bluetooth configuration tab in web-interface (#244)
 * 13.06.2023: Introduce new playmode "RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM"
 * 07.06.2023: Use bssid to connect to best WIFI and added option to always perform a WIFI-scan #241
