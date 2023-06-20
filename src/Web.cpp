@@ -65,8 +65,8 @@ static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetActiveSSID(AsyncWebServerRequest *request);
-static void handleGetHostname(AsyncWebServerRequest *request);
-static void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleGetWiFiConfig(AsyncWebServerRequest *request);
+static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 
@@ -215,8 +215,8 @@ void Web_Init(void) {
 	WWWData::registerRoutes(serveProgmemFiles);
 
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
-	wServer.on("/hostname", HTTP_GET, handleGetHostname);
-	wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
+	wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
+	wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
 
 	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
 		String url = "http://" + Wlan_GetHostname() + ".local";
@@ -447,8 +447,8 @@ void webserverStart(void) {
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
 
-		wServer.on("/hostname", HTTP_GET, handleGetHostname);
-		wServer.addHandler(new AsyncCallbackJsonWebHandler("/hostname", handlePostHostname));
+		wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
 
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
@@ -1282,10 +1282,6 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
 
-	// always perform perform a WiFi scan on startup?
-	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
-	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
-
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
 	if (jsonObj.containsKey("static_addr")) {
@@ -1339,15 +1335,29 @@ void handleGetActiveSSID(AsyncWebServerRequest *request) {
 	request->send(response);
 }
 
-void handleGetHostname(AsyncWebServerRequest *request) {
-	String hostname = Wlan_GetHostname();
-	request->send(200, (char *) F("text/plain; charset=utf-8"), hostname);
+void handleGetWiFiConfig(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse();
+	JsonObject obj = response->getRoot();
+	bool scanWifiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
+
+	obj["hostname"] = Wlan_GetHostname();
+	obj["scanwifionstart"].set(scanWifiOnStart);
+
+	response->setLength();
+	request->send(response);
 }
 
-void handlePostHostname(AsyncWebServerRequest *request, JsonVariant &json){
-	const JsonString& jsonStr = json.as<JsonString>();
-	size_t len = jsonStr.size();
-	const char *hostname = jsonStr.c_str();
+void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
+	const JsonObject& jsonObj = json.as<JsonObject>();
+
+	// always perform perform a WiFi scan on startup?
+	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
+	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
+
+	// hostname
+	String strHostname = jsonObj["hostname"];
+	size_t len = strHostname.length();
+	const char *hostname = strHostname.c_str();
 
 	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
 	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions

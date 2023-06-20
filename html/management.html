@@ -216,7 +216,9 @@
 					<div class="form-group col-md-12">
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
-							value="%HOSTNAME%" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required>
+							value="%HOSTNAME%" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required><br>
+						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
+						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 					</div>
 					<br>
 					<div class="text-center">
@@ -235,8 +237,6 @@
 						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
 						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
 
-						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
-						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 						<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
 						<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 						<div id="wifi_static_div" style="display:none">
@@ -1493,22 +1493,24 @@
 		}	
 	}
 
-	async function updateHostnameField() {
+	async function updateWifiFields() {
 		let hostnameElem = document.getElementById("hostname");
+		let scanWifiElem = document.getElementById("scan_wifi_on_start");
 
-		let hostname = await (await fetch("/hostname")).text();
+		let config = await (await fetch("/wificonfig")).json();
 
-		if (hostname && hostname !== "") {
-			hostnameElem.value = hostname;
-			hostnameElem.defaultValue = hostname;
+		if (config.hostname && config.hostname !== "") {
+			hostnameElem.value = config.hostname;
+			hostnameElem.defaultValue = config.hostname;
 		} 
+		scanWifiElem.checked = config.scanwifionstart;
 	}
 
 	function onWifiTabOpened() {
 		console.log("wifi tab opened!")
 		rebuildSSIDList();
 		
-		updateHostnameField();
+		updateWifiFields();
 	}
 
 	async function deleteSSID(ssid) {
@@ -1678,12 +1680,18 @@
 
 	async function globalWifiConfig(clickedId) {
 		lastIdclicked = clickedId;
-		let hostname = document.getElementById('hostname').value;
+		let hostname = document.getElementById("hostname").value;
+		let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+
+		var myObj = { 
+			hostname: hostname,
+			scanwifionstart: scanWifi
+		};
 		
-		await fetch("/hostname", {
+		await fetch("/wificonfig", {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(hostname)
+			body: JSON.stringify(myObj)
 		});
 	}
 
@@ -1696,13 +1704,11 @@
 	async function wifiConfig(clickedId) {
 		lastIdclicked = clickedId;
 		let static = document.getElementById('static_enabled').checked;
-		let scanwifionstart = document.getElementById('scan_wifi_on_start').checked;
 
 		var myObj = { 
 			ssid: document.getElementById('ssid').value,
 			pwd: document.getElementById('pwd').value,
-			static: static,
-			scanwifionstart: scanwifionstart
+			static: static
 		};
 
 		if (static) {
