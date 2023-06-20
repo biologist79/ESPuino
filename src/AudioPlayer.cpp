@@ -1042,6 +1042,14 @@ void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand) {
 	xQueueSend(gTrackControlQueue, &trackCommand, 0);
 }
 
+// Shuffles the currently running playlist and publish to track-queue
+void AudioPlayer_RandomizeActivePlaylist()
+{
+	char **musicFiles = gPlayProperties.playlist;
+	AudioPlayer_RandomizePlaylist(musicFiles, gPlayProperties.numberOfTracks);
+	xQueueSend(gTrackQueue, &(musicFiles), 0);
+}
+
 // Knuth-Fisher-Yates-algorithm to randomize playlist
 void AudioPlayer_RandomizePlaylist(char **str, const uint32_t count) {
 	if (!count) {

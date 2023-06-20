@@ -217,6 +217,18 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_SHUFFLE_PLAYLIST:{
+			if (gPlayProperties.playMode == NO_PLAYLIST) {
+				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
+				System_IndicateError();
+				return;
+			}
+			Log_Println(modificatorShufflePlaylist, LOGLEVEL_NOTICE);
+			AudioPlayer_RandomizeActivePlaylist();
+			System_IndicateOk();
+			break;
+		}
+
 		case CMD_DIMM_LEDS_NIGHTMODE: {
 			#ifdef MQTT_ENABLE
 				publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);

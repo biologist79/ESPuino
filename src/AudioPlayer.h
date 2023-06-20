@@ -53,3 +53,5 @@ void AudioPlayer_SetInitVolume(uint8_t value);
 void AudioPlayer_SetupVolumeAndAmps(void);
 bool Audio_Detect_Mode_HP(bool _state);
 void Audio_setTitle(const char *format, ...);
+
+void AudioPlayer_RandomizeActivePlaylist();
