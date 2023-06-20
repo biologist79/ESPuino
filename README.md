@@ -283,6 +283,7 @@ modification:
 - Dim Neopixel
 - Loop track
 - Loop playlist
+- Shuffle playlist
 - Toggle WiFi (enable/disable) => disabling WiFi while webstream is active will stop a running
   webstream instantly!
 - Toggle Bluetooth sink (enable/disable) => restarts ESPuino immediately. In this mode you can
