@@ -46,8 +46,15 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
+static const uint32_t chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
+static const uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two.
 
-static RingbufHandle_t explorerFileUploadRingBuffer;
+uint8_t buffer[nr_of_buffers][chunk_size];
+volatile uint32_t size_in_buffer[nr_of_buffers];
+volatile bool buffer_full[nr_of_buffers];
+uint32_t index_buffer_write = 0;
+uint32_t index_buffer_read = 0;
+
 static QueueHandle_t explorerFileUploadStatusQueue;
 static TaskHandle_t fileStorageTaskHandle;
 
@@ -898,14 +905,17 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Parent directories
 		explorerCreateParentDirectories(filePath);
 
-		// Create Ringbuffer for upload
-		if (explorerFileUploadRingBuffer == NULL) {
-			explorerFileUploadRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
-		}
-
 		// Create Queue for receiving a signal from the store task as synchronisation
 		if (explorerFileUploadStatusQueue == NULL) {
 			explorerFileUploadStatusQueue = xQueueCreate(1, sizeof(uint8_t));
+		}
+
+		// reset buffers
+		index_buffer_write = 0;
+		index_buffer_read = 0;
+		for (uint32_t i = 0; i < nr_of_buffers; i++){
+			size_in_buffer[i] = 0;
+			buffer_full[i] = false;
 		}
 
 		// Create Task for handling the storage of the data
@@ -921,11 +931,44 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	}
 
 	if (len) {
-		// stream the incoming chunk to the ringbuffer
-		xRingbufferSend(explorerFileUploadRingBuffer, data, len, portTICK_PERIOD_MS * 1000);
+		// wait till buffer is ready
+		while (buffer_full[index_buffer_write]){
+			vTaskDelay(2u); 
+		}
+
+		size_t len_to_write = len;
+		size_t space_left = chunk_size - size_in_buffer[index_buffer_write];
+		if (space_left < len_to_write){
+			len_to_write = space_left;
+		}
+		// write content to buffer
+		memcpy(buffer[index_buffer_write]+size_in_buffer[index_buffer_write], data, len_to_write);
+		size_in_buffer[index_buffer_write] += len_to_write;
+
+		// check if buffer is filled. If full, signal that ready and change buffers
+		if (size_in_buffer[index_buffer_write] == chunk_size){
+			// signal, that buffer is ready. Increment index
+			buffer_full[index_buffer_write] = true;
+			index_buffer_write = (index_buffer_write + 1) % nr_of_buffers;
+
+			// if still content left, put it into next buffer
+			if (len_to_write < len) {
+				// wait till new buffer is ready
+				while (buffer_full[index_buffer_write]){
+					vTaskDelay(2u);
+				}
+				size_t len_left_to_write = len-len_to_write;
+				memcpy(buffer[index_buffer_write], data + len_to_write, len_left_to_write);
+				size_in_buffer[index_buffer_write] = len_left_to_write;
+			}
+		}		
 	}
 
 	if (final) {
+		// if file not completely done yet, signal that buffer is filled
+		if (size_in_buffer[index_buffer_write] > 0) {
+			buffer_full[index_buffer_write] = true;
+		}
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eNoAction);
 		// watit until the storage task is sending the signal to finish
@@ -953,12 +996,10 @@ void feedTheDog(void) {
 
 void explorerHandleFileStorageTask(void *parameter) {
 	File uploadFile;
-	size_t item_size;
 	size_t bytesOk = 0;
 	size_t bytesNok = 0;
 	uint32_t chunkCount = 0;
 	uint32_t transferStartTimestamp = millis();
-	uint8_t *item;
 	uint8_t value = 0;
 	uint32_t lastUpdateTimestamp = millis();
 	uint32_t maxUploadDelay = 20;    // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
@@ -966,6 +1007,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
 	uploadFile = gFSystem.open((char *)parameter, "w");
+	uploadFile.setBufferSize(chunk_size);
+
 
 	// pause some tasks to get more free CPU time for the upload
 	vTaskSuspend(AudioTaskHandle);
@@ -973,22 +1016,27 @@ void explorerHandleFileStorageTask(void *parameter) {
 	Rfid_TaskPause();
 
 	for (;;) {
+		// check buffer is full with enough data or all data already sent
+		uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
+		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS)) {
 
-		item = (uint8_t *)xRingbufferReceive(explorerFileUploadRingBuffer, &item_size, portTICK_PERIOD_MS * 1u);
-
-		if (item != NULL) {
-			chunkCount++;
-			if (!uploadFile.write(item, item_size)) {
-				bytesNok += item_size;
-				feedTheDog();
-			} else {
-				bytesOk += item_size;
-				vRingbufferReturnItem(explorerFileUploadRingBuffer, (void *)item);
+			while (buffer_full[index_buffer_read]){
+				chunkCount++;
+				size_t item_size = size_in_buffer[index_buffer_read];
+				if (!uploadFile.write(buffer[index_buffer_read], item_size)) {
+					bytesNok += item_size;
+					feedTheDog();
+				} else {
+					bytesOk += item_size;
+				}
+				// update handling of buffers
+				size_in_buffer[index_buffer_read] = 0;
+				buffer_full[index_buffer_read] = 0;
+				index_buffer_read = (index_buffer_read + 1) % nr_of_buffers;
+				// update timestamp
+				lastUpdateTimestamp = millis();
 			}
-			lastUpdateTimestamp = millis();
-		} else {
-			// not enough data in the buffer, check if all data arrived for the file
-			uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
+
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
 				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
@@ -996,7 +1044,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 				// done exit loop to terminate
 				break;
 			}
-
+		} else {
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				// resume the paused tasks
@@ -1007,10 +1055,9 @@ void explorerHandleFileStorageTask(void *parameter) {
 				vTaskDelete(NULL);
 				return;
 			}
-
+			vTaskDelay(portTICK_PERIOD_MS * 2);
+			continue;
 		}
-		// delay a bit to give the webtask some time fill the ringbuffer
-		vTaskDelay(1u);
 	}
 	// resume the paused tasks
 	Led_TaskResume();
@@ -1397,7 +1444,6 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 	static size_t fileIndex = 0;
 	static char tmpFileName[13];
 	esp_task_wdt_reset();
-
 	if (!index) {
 		snprintf(tmpFileName, 13, "/_%lu", millis());
 		tmpFile = gFSystem.open(tmpFileName, FILE_WRITE);
