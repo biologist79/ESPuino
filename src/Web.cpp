@@ -37,9 +37,6 @@ typedef struct {
 	char nvsEntry[275];
 } nvs_t;
 
-const char mqttTab[] = "<a class=\"nav-item nav-link\" id=\"nav-mqtt-tab\" data-toggle=\"tab\" href=\"#nav-mqtt\" role=\"tab\" aria-controls=\"nav-mqtt\" aria-selected=\"false\"><i class=\"fas fa-network-wired\"></i><span data-i18n=\"nav.mqtt\"></span></a>";
-const char ftpTab[] = "<a class=\"nav-item nav-link\" id=\"nav-ftp-tab\" data-toggle=\"tab\" href=\"#nav-ftp\" role=\"tab\" aria-controls=\"nav-ftp\" aria-selected=\"false\"><i class=\"fas fa-folder\"></i><span data-i18n=\"nav.ftp\"></span></a>";
-const char bluetoothTab[] = "<a class=\"nav-item nav-link\" id=\"nav-bt-tab\" data-toggle=\"tab\" href=\"#nav-bt\" role=\"tab\" aria-controls=\"nav-bt\" aria-selected=\"false\"><i class=\"fab fa-bluetooth\"></i><span data-i18n=\"nav.bluetooth\"></span></a>";
 
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
@@ -514,15 +511,15 @@ String templateProcessor(const String &templ) {
 		return String(ftpPasswordLength - 1);
 	} else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
 		#ifdef FTP_ENABLE
-			return ftpTab;
+			return "true";
 		#else
-			return String();
+			return "false";
 		#endif
 	} else if (templ == "SHOW_BLUETOOTH_TAB") { // Only show Bluetooth-tab if Bluetooth-support was compiled
 		#ifdef BLUETOOTH_ENABLE
-			return bluetoothTab;
+			return "true";
 		#else
-			return String();
+			return "false";
 		#endif		
 	} else if (templ == "INIT_LED_BRIGHTNESS") {
 		return String(gPrefsSettings.getUChar("iLedBrightness", 0));
@@ -570,9 +567,9 @@ String templateProcessor(const String &templ) {
 		}
 	} else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
 		#ifdef MQTT_ENABLE
-			return mqttTab;
+			return "true";
 		#else
-			return String();
+			return "false";
 		#endif
 	} else if (templ == "MQTT_ENABLE") {
 		if (Mqtt_IsEnabled()) {
