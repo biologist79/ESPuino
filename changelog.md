@@ -1,4 +1,7 @@
 ## DEV-branch
+
+* 23.06.2023: web-upload improvement (#249). Thank's to @Joe91 !!
+* 23.06.2023: Refactor web: Move dependant html-code from web.cpp to management.html (#250) 
 * 20.06.2023: PlatformIO package 6.3.2
 * 20.06.2023: Move ScanWiFiOnStart to global WiFi configuration (#248) 
 * 18.06.2023: Stricter hostname validation (#246). Thank's to @SZenglein !!
