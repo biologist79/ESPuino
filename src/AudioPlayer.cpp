@@ -668,13 +668,14 @@ void AudioPlayer_Task(void *parameter) {
 		// Handle IP-announcement
 		if (gPlayProperties.tellIpAddress) {
 			gPlayProperties.tellIpAddress = false;
-			char ipBuf[16];
-			Wlan_GetIpAddress().toCharArray(ipBuf, sizeof(ipBuf));
+			String ipText = Wlan_GetIpAddress();
 			bool speechOk;
 			#if (LANGUAGE == DE)
-				speechOk = audio->connecttospeech(ipBuf, "de");
+				ipText.replace(".", "Punkt");		// make IP as text (replace thousand separator)
+				speechOk = audio->connecttospeech(ipText.c_str(), "de");
 			#else
-				speechOk = audio->connecttospeech(ipBuf, "en");
+				MyIP.replace(".", "point");
+				speechOk = audio->connecttospeech(ipText.c_str(),, "en");
 			#endif
 			if (!speechOk) {
 				System_IndicateError();

@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 23.06.2023: CMD_TELL_IP_ADDRESS: IP as text (replace thousand separator with word "point")
 * 23.06.2023: web-upload improvement (#249). Thank's to @Joe91 !!
 * 23.06.2023: Refactor web: Move dependant html-code from web.cpp to management.html (#250) 
 * 20.06.2023: PlatformIO package 6.3.2
