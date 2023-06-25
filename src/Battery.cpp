@@ -27,15 +27,8 @@
 				Battery_LogStatus();
 
 				Log_Println(batteryCriticalMsg, LOGLEVEL_NOTICE);
-
 				// Power down and enter deepsleep
-				Power_PeripheralOff();
-				delay(200);
-				#ifdef PN5180_ENABLE_LPCD
-					Rfid_Exit();
-				#endif
-				delay(1000);
-				esp_deep_sleep_start();
+				System_RequestSleep();
 			}
 		#endif
 

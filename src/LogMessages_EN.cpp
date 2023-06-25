@@ -177,7 +177,7 @@
 	const char listingDirectory[] = "Listing directory";
 	const char failedToOpenDirectory[] = "Failed to open directory";
 	const char notADirectory[] = "Not a directory";
-	const char sdMountedMmc1BitMode[] = "SD card mounted in SPI-mode configured...";
+	const char sdMountedMmc1BitMode[] = "SD card mounted in SD-MMC 1-Bit mode...";
 	const char sdMountedSpiMode[] = "Mounting SD card in SPI-mode...";
 	const char backupRecoveryWebsite[] = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 	const char restartWebsite[] = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";

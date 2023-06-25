@@ -674,7 +674,7 @@ void AudioPlayer_Task(void *parameter) {
 				ipText.replace(".", "Punkt");		// make IP as text (replace thousand separator)
 				speechOk = audio->connecttospeech(ipText.c_str(), "de");
 			#else
-				MyIP.replace(".", "point");
+				ipText.replace(".", "point");
 				speechOk = audio->connecttospeech(ipText.c_str(),, "en");
 			#endif
 			if (!speechOk) {
