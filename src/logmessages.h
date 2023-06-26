@@ -86,6 +86,8 @@ extern const char modificatorSleepTimer120[];
 extern const char ledsDimmedToNightmode[];
 extern const char ledsDimmedToInitialValue[];
 extern const char modificatorNotallowedWhenIdle[];
+extern const char modificatorNotallowedWhenAudiobook[];
+extern const char modificatorNotallowedWhenWebstream[];
 extern const char modificatorSleepAtEOT[];
 extern const char modificatorSleepAtEOTd[];
 extern const char modificatorSleepAtEOP[];

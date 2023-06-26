@@ -90,6 +90,8 @@
 	const char ledsDimmedToNightmode[] = "Dimmed LEDs to nightmode.";
 	const char ledsDimmedToInitialValue[] = "Dimmed LEDs to initial value.";
 	const char modificatorNotallowedWhenIdle[] = "Modificator cannot be applied while playlist is inactive.";
+	const char modificatorNotallowedWhenAudiobook[] = "Modificator cannot be applied for audiobooks.";
+	const char modificatorNotallowedWhenWebstream[] = "Modificator cannot be applied for webstreams.";
 	const char modificatorSleepAtEOT[] = "Modificator: adjusted sleep-timer to after end of current track.";
 	const char modificatorSleepAtEOTd[] = "Modificator: disabled sleep-timer after end of current track.";
 	const char modificatorSleepAtEOP[] = "Modificator: adjusted sleep-timer to after end of playlist.";

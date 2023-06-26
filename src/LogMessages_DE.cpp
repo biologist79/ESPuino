@@ -90,6 +90,8 @@
 	const char ledsDimmedToNightmode[] = "LEDs wurden auf Nachtmodus gedimmt.";
 	const char ledsDimmedToInitialValue[] = "LEDs wurden auf initiale Helligkeit gedimmt.";
 	const char modificatorNotallowedWhenIdle[] = "Modifikator kann bei nicht aktivierter Playlist nicht angewendet werden.";
+	const char modificatorNotallowedWhenAudiobook[] = "Modifikator kann für Hörbücher nicht angewendet werden.";
+	const char modificatorNotallowedWhenWebstream[] = "Modifikator kann für Webstreams nicht angewendet werden.";
 	const char modificatorSleepAtEOT[] = "Modifikator: Sleep-Timer am Ende des Titels aktiviert.";
 	const char modificatorSleepAtEOTd[] = "Modifikator: Sleep-Timer am Ende des Titels deaktiviert.";
 	const char modificatorSleepAtEOP[] = "Modifikator: Sleep-Timer am Ende der Playlist aktiviert.";

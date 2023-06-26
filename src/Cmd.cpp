@@ -223,6 +223,17 @@ void Cmd_Action(const uint16_t mod) {
 				System_IndicateError();
 				return;
 			}
+			if (gPlayProperties.playMode == WEBSTREAM) {
+				Log_Println(modificatorNotallowedWhenWebstream, LOGLEVEL_NOTICE);
+				System_IndicateError();
+				return;
+			}
+			if (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP) {
+				Log_Println(modificatorNotallowedWhenAudiobook, LOGLEVEL_NOTICE);
+				System_IndicateError();
+				return;
+			}
+			
 			Log_Println(modificatorShufflePlaylist, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizeActivePlaylist();
 			System_IndicateOk();
