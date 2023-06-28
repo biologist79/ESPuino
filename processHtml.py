@@ -24,13 +24,12 @@ OUTPUT_DIR = (
 )  # pylint: disable=undefined-variable
 HTML_DIR = Path("html").absolute()
 # List of files, which will only be minifed but not compressed (f.e. html files with templates)
-WWW_FILES = [
-    Path("management.html"),
-    Path("accesspoint.html"),
-]
+WWW_FILES = []
 # list of all files, which shall be compressed before embedding
 # files with ".json" ending will be minifed before compression, ".js" will not be changed!
 BINARY_FILES =[
+    Path("management.html"),
+    Path("accesspoint.html"),
     Path("js/i18next.min.js"),
     Path("js/i18nextHttpBackend.min.js"),
     Path("js/loc_i18next.min.js"),
