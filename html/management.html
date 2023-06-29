@@ -597,7 +597,7 @@
 						<div class="text-center">
 							<i class="far fa-sun fa-2x .icon-pos"></i>
 						<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-							   data-slider-value="0"  value="0" required><i class="fas fa-sun fa-2x .icon-pos"></i>
+							   data-slider-value=""  value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 
 					<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
@@ -1457,26 +1457,26 @@
 		document.getElementById("rfidIdMusic").value = settings.rfidTagId;
 		// general
 		let genSettings = settings.general;
-		document.getElementById('maxVolumeSpeaker').value = genSettings.mVolSpeaker;
-		document.getElementById('initialVolume').value = genSettings.iVol;
+		$('#initialVolume').bootstrapSlider('setValue', genSettings.iVol);
+		$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.mVolSpeaker);
 		volumeSlider.setValue(settings.volume);
-		document.getElementById('maxVolumeHeadphone').value = genSettings.mVolHeadphone;
-		document.getElementById('initBrightness').value = genSettings.iBright; 
-		document.getElementById('nightBrightness').value = genSettings.nBright;
-		document.getElementById('inactivityTime').value = genSettings.iTime;
-		document.getElementById('warningLowVoltage').value = genSettings.vWarning;
-		document.getElementById('voltageIndicatorLow').value = genSettings.vIndLow;
-		document.getElementById('voltageIndicatorHigh').value = genSettings.vIndHi;
-		document.getElementById('voltageCheckInterval').value = genSettings.vInt;
+		$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.mVolHeadphone);
+		$('#initBrightness').bootstrapSlider('setValue', genSettings.iBright);
+		$('#nightBrightness').bootstrapSlider('setValue', genSettings.nBright);
+		$('#inactivityTime').bootstrapSlider('setValue', genSettings.iTime);
+		$('#warningLowVoltage').bootstrapSlider('setValue', genSettings.vWarning);
+		$('#voltageIndicatorLow').bootstrapSlider('setValue', genSettings.vIndLow);
+		$('#voltageIndicatorHigh').bootstrapSlider('setValue', genSettings.vIndHi);
+		$('#voltageCheckInterval').bootstrapSlider('setValue', genSettings.vInt);
 
 		// ftp
 		let ftpSettings = settings.ftp;
 		if (ftpSettings) {
 			document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
 			document.getElementById("ftpUser").value = ftpSettings.ftpUser;
-			document.getElementById("ftpUser").setAttribute('max_length', ftpSettings.maxUserLength);
+			document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
 			document.getElementById("ftpPwd").value = ftpSettings.ftpPwd;
-			document.getElementById("ftpPwd").setAttribute('max_length', ftpSettings.maxPwdLength);
+			document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
 		}
 		// mqtt
 		let mqttSettings = settings.mqtt;
@@ -1485,13 +1485,13 @@
 			document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
 			document.getElementById('mqttEnable').checked = mqttSettings.mqttEnable;
 			document.getElementById('mqttClientId').value = mqttSettings.mqttClientId;
-			document.getElementById('mqttClientId').setAttribute('max_length', mqttSettings.mqttClientIdLength);
+			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.mqttClientIdLength);
 			document.getElementById('mqttServer').value = mqttSettings.mqttServer;
-			document.getElementById('mqttServer').setAttribute('max_length', mqttSettings.mqttServerLength);
+			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.mqttServerLength);
 			document.getElementById('mqttUser').value = mqttSettings.mqttUser;
-			document.getElementById('mqttUser').setAttribute('max_length', mqttSettings.maxUserLength);
+			document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
 			document.getElementById('mqttPwd').value = mqttSettings.mqttPwd;
-			document.getElementById('mqttPwd').setAttribute('max_length', mqttSettings.maxPwdLength);
+			document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 			document.getElementById('mqttPort').value = mqttSettings.mqttPort;
 		}
 		// bluetooth

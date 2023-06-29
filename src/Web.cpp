@@ -521,9 +521,9 @@ static void settingsToJSON(JsonObject obj) {
 	generalObj["iBright"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
 	generalObj["nBright"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
 	generalObj["iTime"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
-	generalObj["vWarning"].set(gPrefsSettings.getUInt("wLowVoltage", 0));
-	generalObj["vIndLow"].set(gPrefsSettings.getUInt("vIndicatorLow", 0));
-	generalObj["vIndHigh"].set(gPrefsSettings.getUInt("vIndicatorHigh", 0));
+	generalObj["vWarning"].set(gPrefsSettings.getFloat("wLowVoltage", 0.0));
+	generalObj["vIndLow"].set(gPrefsSettings.getFloat("vIndicatorLow", 0.0));
+	generalObj["vIndHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", 0.0));
 	generalObj["vInt"].set(gPrefsSettings.getUInt("vCheckIntv", 0));
 	// FTP
 	#ifdef FTP_ENABLE
@@ -579,8 +579,8 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putUInt("initVolume", iVol);
 		gPrefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
 		gPrefsSettings.putUInt("maxVolumeHp", mVolHeadphone);
-		gPrefsSettings.putUChar("iLedBrightness", iBright);
-		gPrefsSettings.putUChar("nLedBrightness", nBright);
+		gPrefsSettings.putUInt("iLedBrightness", iBright);
+		gPrefsSettings.putUInt("nLedBrightness", nBright);
 		gPrefsSettings.putUInt("mInactiviyT", iTime);
 		gPrefsSettings.putFloat("wLowVoltage", vWarning);
 		gPrefsSettings.putFloat("vIndicatorLow", vIndLow);
@@ -591,8 +591,8 @@ bool JSONToSettings(JsonObject doc) {
 		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
 			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
 			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
-			gPrefsSettings.getUChar("iLedBrightness", 0) != iBright ||
-			gPrefsSettings.getUChar("nLedBrightness", 0) != nBright ||
+			gPrefsSettings.getUInt("iLedBrightness", 0) != iBright ||
+			gPrefsSettings.getUInt("nLedBrightness", 0) != nBright ||
 			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime ||
 			gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
 			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
