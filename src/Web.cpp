@@ -530,7 +530,7 @@ bool JSONToSettings(JsonObject doc) {
 			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
 			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
 			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime) {
-				Log_Println("JSONToSettings: Failed to assign general settings", LOGLEVEL_DEBUG);
+				Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
 				return false;
 			}
 	}
@@ -543,7 +543,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (gPrefsSettings.getUInt("iLedBrightness", 0) != iBright ||
 			gPrefsSettings.getUInt("nLedBrightness", 0) != nBright) {
-				Log_Println("JSONToSettings: Failed to assign neopixel settings", LOGLEVEL_DEBUG);
+				Log_Println("Failed to save neopixel settings", LOGLEVEL_ERROR);
 				return false;
 		}
 	}
@@ -563,7 +563,7 @@ bool JSONToSettings(JsonObject doc) {
 			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
 			gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
 			gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-				Log_Println("JSONToSettings: Failed to assign battery settings", LOGLEVEL_DEBUG);
+				Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
 				return false;
 			}
 		Battery_Init();
@@ -577,7 +577,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
 			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
-			Log_Println("JSONToSettings: Failed to assign ftp settings", LOGLEVEL_DEBUG);
+			Log_Println("Failed to save ftp settings", LOGLEVEL_ERROR);
 			return false;
 		}
 	} else if (doc.containsKey("ftpStatus")) {
@@ -603,7 +603,7 @@ bool JSONToSettings(JsonObject doc) {
 
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
 			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
-			Log_Println("JSONToSettings: Failed to assign mqtt settings", LOGLEVEL_DEBUG);
+			Log_Println("Failed to save mqtt settings", LOGLEVEL_ERROR);
 			return false;
 		}
 	} 
@@ -616,7 +616,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName ||
 			gPrefsSettings.getString("btPinCode", "") != btPinCode) {
-				Log_Println("JSONToSettings: Failed to assign bluetooth settings", LOGLEVEL_DEBUG);
+				Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
 				return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
