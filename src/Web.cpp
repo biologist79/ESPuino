@@ -712,7 +712,7 @@ static void settingsToJSON(JsonObject obj, String section) {
 			batteryObj["vInt"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
 		}
 	#endif
-	if ((section == "") || (section == "defaults")) {
+	if (section == "defaults") {
 		// default factory settings
 		JsonObject defaultsObj = obj.createNestedObject("defaults");
 		defaultsObj["iVol"].set(5u);			// AUDIOPLAYER_VOLUME_INIT
