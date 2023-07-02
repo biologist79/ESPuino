@@ -78,7 +78,7 @@ static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json
 static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-static void settingsToJSON(JsonObject obj);
+static void settingsToJSON(JsonObject obj, String section);
 static bool JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
@@ -312,7 +312,6 @@ void webserverStart(void) {
 		// software/wifi/heap/psram-info
 		wServer.on(
 			"/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-				char buffer[128];
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
 				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + '.' + String(ESP_ARDUINO_VERSION_MINOR) + '.' + String(ESP_ARDUINO_VERSION_PATCH);
@@ -339,12 +338,14 @@ void webserverStart(void) {
 					}
 				#endif
 				#ifdef BATTERY_MEASURE_ENABLE
+					char buffer[128];
 					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
 					info += "\n" + String(buffer);
 					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
 					info += "\n" + String(buffer);
 				#endif
                 #ifdef HALLEFFECT_SENSOR_ENABLE
+					char buffer[128];
 					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 					int diff = sva-gHallEffectSensor.NullFieldValue();
 					snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
@@ -508,108 +509,76 @@ void webserverStart(void) {
 	}
 }
 
-// process settings to JSON object
-static void settingsToJSON(JsonObject obj) {
-	obj["volume"].set(AudioPlayer_GetCurrentVolume());
-	obj["rfidTagId"] = String(gCurrentRfidTagId);
-	obj["hostname"] = Wlan_GetHostname();
-	// general settings
-	JsonObject generalObj = obj.createNestedObject("general");
-	generalObj["iVol"].set(gPrefsSettings.getUInt("initVolume", 0));
-	generalObj["mVolSpeaker"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
-	generalObj["mVolHeadphone"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
-	generalObj["iBright"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
-	generalObj["nBright"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
-	generalObj["iTime"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
-	generalObj["vWarning"].set(gPrefsSettings.getFloat("wLowVoltage", 0.0));
-	generalObj["vIndLow"].set(gPrefsSettings.getFloat("vIndicatorLow", 0.0));
-	generalObj["vIndHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", 0.0));
-	generalObj["vInt"].set(gPrefsSettings.getUInt("vCheckIntv", 0));
-	// FTP
-	#ifdef FTP_ENABLE
-		JsonObject ftpObj = obj.createNestedObject("ftp");
-		ftpObj["ftpUser"] = gPrefsSettings.getString("ftpuser", "-1");
-		ftpObj["ftpPwd"] = gPrefsSettings.getString("ftppassword", "-1");
-		ftpObj["maxUserLength"].set(ftpUserLength - 1);
-		ftpObj["maxPwdLength"].set(ftpUserLength - 1);
-	#endif
-
-	// MQTT
-	#ifdef MQTT_ENABLE
-		JsonObject mqttObj = obj.createNestedObject("mqtt");
-		mqttObj["mqttEnable"].set(Mqtt_IsEnabled());
-		mqttObj["mqttClientId"] = gPrefsSettings.getString("mqttClientId", "-1");
-		mqttObj["mqttServer"] = gPrefsSettings.getString("mqttServer", "-1");
-		mqttObj["mqttPort"].set(gPrefsSettings.getUInt("mqttPort", 0));
-		mqttObj["mqttUser"] = gPrefsSettings.getString("mqttUser", "-1");
-		mqttObj["mqttPwd"] = gPrefsSettings.getString("mqttPassword", "-1");
-		mqttObj["maxUserLength"].set(mqttUserLength - 1);
-		mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
-		mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
-		mqttObj["maxServerLength"].set(mqttServerLength - 1);
-	#endif
-
-
-	// Bluetooth
-	#ifdef BLUETOOTH_ENABLE
-		JsonObject btObj = obj.createNestedObject("bluetooth");
-		btObj["enabled"].set(true);	
-		btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
-		btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
-	#endif
-}
 
 // process JSON to settings
 bool JSONToSettings(JsonObject doc) {
 	if (!doc)  {
+		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
 		return false;
 	}
-   if (doc.containsKey("general")) {
+	if (doc.containsKey("general")) {
 		uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
 		uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
 		uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
-		uint8_t iBright = doc["general"]["iBright"].as<uint8_t>();
-		uint8_t nBright = doc["general"]["nBright"].as<uint8_t>();
 		uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
-		float vWarning = doc["general"]["vWarning"].as<float>();
-		float vIndLow = doc["general"]["vIndLow"].as<float>();
-		float vIndHi = doc["general"]["vIndHi"].as<float>();
-		uint8_t vInt = doc["general"]["vInt"].as<uint8_t>();
 
 		gPrefsSettings.putUInt("initVolume", iVol);
 		gPrefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
 		gPrefsSettings.putUInt("maxVolumeHp", mVolHeadphone);
+		gPrefsSettings.putUInt("mInactiviyT", iTime);
+		// Check if settings were written successfully
+		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
+			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
+			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
+			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime) {
+				Log_Println("JSONToSettings: Failed to assign general settings", LOGLEVEL_DEBUG);
+				return false;
+			}
+	}
+	if (doc.containsKey("neopixel")) {
+		uint8_t iBright = doc["neopixel"]["iBright"].as<uint8_t>();
+		uint8_t nBright = doc["neopixel"]["nBright"].as<uint8_t>();
+
 		gPrefsSettings.putUInt("iLedBrightness", iBright);
 		gPrefsSettings.putUInt("nLedBrightness", nBright);
-		gPrefsSettings.putUInt("mInactiviyT", iTime);
+		// Check if settings were written successfully
+		if (gPrefsSettings.getUInt("iLedBrightness", 0) != iBright ||
+			gPrefsSettings.getUInt("nLedBrightness", 0) != nBright) {
+				Log_Println("JSONToSettings: Failed to assign neopixel settings", LOGLEVEL_DEBUG);
+				return false;
+		}
+	}
+	if (doc.containsKey("battery")) {
+		float vWarning = doc["battery"]["vWarning"].as<float>();
+		float vIndLow = doc["battery"]["vIndLow"].as<float>();
+		float vIndHi = doc["battery"]["vIndHi"].as<float>();
+		uint8_t vInt = doc["battery"]["vInt"].as<uint8_t>();
+
 		gPrefsSettings.putFloat("wLowVoltage", vWarning);
 		gPrefsSettings.putFloat("vIndicatorLow", vIndLow);
 		gPrefsSettings.putFloat("vIndicatorHigh", vIndHi);
 		gPrefsSettings.putUInt("vCheckIntv", vInt);
 
 		// Check if settings were written successfully
-		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
-			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
-			gPrefsSettings.getUInt("iLedBrightness", 0) != iBright ||
-			gPrefsSettings.getUInt("nLedBrightness", 0) != nBright ||
-			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime ||
-			gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
+		if (gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
 			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
 			gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
 			gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
+				Log_Println("JSONToSettings: Failed to assign battery settings", LOGLEVEL_DEBUG);
 				return false;
-		}
+			}
 		Battery_Init();
-	} else if (doc.containsKey("ftp")) {
+	} 
+	if (doc.containsKey("ftp")) {
 		const char *_ftpUser = doc["ftp"]["ftpUser"];
 		const char *_ftpPwd = doc["ftp"]["ftpPwd"];
 
 		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
 		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
-
+		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
 			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
+			Log_Println("JSONToSettings: Failed to assign ftp settings", LOGLEVEL_DEBUG);
 			return false;
 		}
 	} else if (doc.containsKey("ftpStatus")) {
@@ -617,7 +586,8 @@ bool JSONToSettings(JsonObject doc) {
 		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
 			Ftp_EnableServer();
 		}
-	} else if (doc.containsKey("mqtt")) {
+	} 
+	if (doc.containsKey("mqtt")) {
 		uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
 		const char *_mqttClientId = doc["mqtt"]["mqttClientId"];
 		const char *_mqttServer = doc["mqtt"]["mqttServer"];
@@ -634,14 +604,22 @@ bool JSONToSettings(JsonObject doc) {
 
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
 			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+			Log_Println("JSONToSettings: Failed to assign mqtt settings", LOGLEVEL_DEBUG);
 			return false;
 		}
-	} else if (doc.containsKey("bluetooth")) {
+	} 
+	if (doc.containsKey("bluetooth")) {
 		// bluetooth settings
 		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
 		gPrefsSettings.putString("btDeviceName", (String)_btDeviceName);
 		const char *btPinCode = doc["bluetooth"]["pinCode"];
 		gPrefsSettings.putString("btPinCode", (String)btPinCode);
+		// Check if settings were written successfully
+		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName ||
+			gPrefsSettings.getString("btPinCode", "") != btPinCode) {
+				Log_Println("JSONToSettings: Failed to assign bluetooth general settings", LOGLEVEL_DEBUG);
+				return false;
+		}
 	} else if (doc.containsKey("rfidMod")) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
 		uint8_t _modId = doc["rfidMod"]["modId"];
@@ -699,17 +677,114 @@ bool JSONToSettings(JsonObject doc) {
 	return true;
 }
 
+// process settings to JSON object
+static void settingsToJSON(JsonObject obj, String section) {
+	if ((section == "") || (section == "current")) {
+		// current values
+		JsonObject curObj = obj.createNestedObject("current");
+		curObj["volume"].set(AudioPlayer_GetCurrentVolume());
+		curObj["rfidTagId"] = String(gCurrentRfidTagId);
+		curObj["hostname"] = Wlan_GetHostname();
+	}
+	if ((section == "") || (section == "general")) {
+		// general settings
+		JsonObject generalObj = obj.createNestedObject("general");
+		generalObj["iVol"].set(gPrefsSettings.getUInt("initVolume", 0));
+		generalObj["mVolSpeaker"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
+		generalObj["mVolHeadphone"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
+		generalObj["iTime"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+	}
+	#ifdef NEOPIXEL_ENABLE
+		if ((section == "") || (section == "neopixel")) {
+			// Neopixel settings
+			JsonObject neopixelObj = obj.createNestedObject("neopixel");
+			neopixelObj["iBright"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
+			neopixelObj["nBright"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
+		}
+	#endif
+	#ifdef MEASURE_BATTERY_VOLTAGE
+		if ((section == "") || (section == "battery")) {
+			// battery settings
+			JsonObject batteryObj = obj.createNestedObject("battery");
+			batteryObj["vWarning"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
+			batteryObj["vIndLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
+			batteryObj["vIndHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+			batteryObj["vInt"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
+		}
+	#endif
+	if ((section == "") || (section == "defaults")) {
+		// default factory settings
+		JsonObject defaultsObj = obj.createNestedObject("defaults");
+		defaultsObj["iVol"].set(5u);			// AUDIOPLAYER_VOLUME_INIT
+		defaultsObj["mVolSpeaker"].set(21u);	// AUDIOPLAYER_VOLUME_MAX
+		defaultsObj["mVolHeadphone"].set(18u);	// gPrefsSettings.getUInt("maxVolumeHp", 0));
+		#ifdef NEOPIXEL_ENABLE
+			defaultsObj["iBright"].set(16u);		// LED_INITIAL_BRIGHTNESS
+			defaultsObj["nBright"].set(2u);			// LED_INITIAL_NIGHT_BRIGHTNESS
+		#endif
+		defaultsObj["iTime"].set(10u);			// System_MaxInactivityTime
+		#ifdef MEASURE_BATTERY_VOLTAGE
+			defaultsObj["vWarning"].set(s_warningLowVoltage);
+			defaultsObj["vIndLow"].set(s_voltageIndicatorLow);
+			defaultsObj["vIndHi"].set(s_voltageIndicatorHigh);
+			defaultsObj["vInt"].set(s_batteryCheckInterval);
+		#endif
+	}
+	// FTP
+	#ifdef FTP_ENABLE
+		if ((section == "") || (section == "ftp")) {
+			JsonObject ftpObj = obj.createNestedObject("ftp");
+			ftpObj["ftpUser"] = gPrefsSettings.getString("ftpuser", "-1");
+			ftpObj["ftpPwd"] = gPrefsSettings.getString("ftppassword", "-1");
+			ftpObj["maxUserLength"].set(ftpUserLength - 1);
+			ftpObj["maxPwdLength"].set(ftpUserLength - 1);
+		}
+	#endif
+
+	// MQTT
+	#ifdef MQTT_ENABLE
+		if ((section == "") || (section == "mqtt")) {
+			JsonObject mqttObj = obj.createNestedObject("mqtt");
+			mqttObj["mqttEnable"].set(Mqtt_IsEnabled());
+				mqttObj["mqttClientId"] = gPrefsSettings.getString("mqttClientId", "-1");
+			mqttObj["mqttServer"] = gPrefsSettings.getString("mqttServer", "-1");
+			mqttObj["mqttPort"].set(gPrefsSettings.getUInt("mqttPort", 0));
+			mqttObj["mqttUser"] = gPrefsSettings.getString("mqttUser", "-1");
+			mqttObj["mqttPwd"] = gPrefsSettings.getString("mqttPassword", "-1");
+			mqttObj["maxUserLength"].set(mqttUserLength - 1);
+			mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
+			mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
+			mqttObj["maxServerLength"].set(mqttServerLength - 1);
+		}
+	#endif
+
+
+	// Bluetooth
+	#ifdef BLUETOOTH_ENABLE
+		if ((section == "") || (section == "bluetooth")) {
+			JsonObject btObj = obj.createNestedObject("bluetooth");
+			btObj["enabled"].set(true);	
+			btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
+			btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
+		}
+	#endif
+}
 
 // handle get settings
 void handleGetSettings(AsyncWebServerRequest *request) {
 
+	// param to get a single settings section
+	String section = "";
+	if (request->hasParam("section")) {
+		section = request->getParam("section")->value();
+	}
 	#ifdef BOARD_HAS_PSRAM
 		SpiRamJsonDocument doc(8192);
 	#else
 		StaticJsonDocument<8192> doc;
 	#endif
 	JsonObject settingsObj = doc.createNestedObject("settings");
-	settingsToJSON(settingsObj);
+	settingsToJSON(settingsObj, section);
 	String serializedJsonString;
 	serializeJson(settingsObj, serializedJsonString);
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
@@ -747,8 +822,8 @@ bool processJsonRequest(char *_serialJson) {
 		return false;
 	}
 
-   JsonObject obj = doc.as<JsonObject>();
-   return JSONToSettings(obj);
+	JsonObject obj = doc.as<JsonObject>();
+	return JSONToSettings(obj);
 }
 
 
@@ -784,7 +859,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		object["volume"] = AudioPlayer_GetCurrentVolume();
 	} else if (code == 60) {
 		JsonObject entry = object.createNestedObject("settings");
-		settingsToJSON(entry);
+		settingsToJSON(entry, "");
 	};
 
 

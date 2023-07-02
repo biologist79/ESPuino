@@ -579,7 +579,7 @@
 					<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 						<div class="text-center">
 					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>   <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
-						data-slider-value="1"  value="1" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+					 	required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 						<br>
 					<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
@@ -590,7 +590,7 @@
 				</fieldset>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
+				<div class="form-group col-md-12" id="neopixelConfig" data-visible="false">
 					<fieldset >
 						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
 					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
@@ -618,7 +618,7 @@
 				</div>
 				<br>
 
-				<div class="form-group col-md-12">
+				<div class="form-group col-md-12" id="batteryConfig" data-visible="false">
 					<fieldset>
 						<legend data-i18n="general.battery.title"></legend>
 					<div data-i18n="general.battery.desc"></div>
@@ -653,8 +653,8 @@
 				</div>
 <br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp
+					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 		</div>
@@ -1453,22 +1453,54 @@
 	}
 
 	async function fillSettings(settings) {
-		document.getElementById("hostname").value = settings.hostname;
-		document.getElementById("rfidIdMusic").value = settings.rfidTagId;
+		if (!settings) { 
+			return false 
+		}
 		// general
 		let genSettings = settings.general;
-		$('#initialVolume').bootstrapSlider('setValue', genSettings.iVol);
-		$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.mVolSpeaker);
-		volumeSlider.setValue(settings.volume);
-		$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.mVolHeadphone);
-		$('#initBrightness').bootstrapSlider('setValue', genSettings.iBright);
-		$('#nightBrightness').bootstrapSlider('setValue', genSettings.nBright);
-		$('#inactivityTime').bootstrapSlider('setValue', genSettings.iTime);
-		$('#warningLowVoltage').bootstrapSlider('setValue', genSettings.vWarning);
-		$('#voltageIndicatorLow').bootstrapSlider('setValue', genSettings.vIndLow);
-		$('#voltageIndicatorHigh').bootstrapSlider('setValue', genSettings.vIndHi);
-		$('#voltageCheckInterval').bootstrapSlider('setValue', genSettings.vInt);
-
+		if (genSettings) {
+			$('#initialVolume').bootstrapSlider('setValue', genSettings.iVol);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.mVolSpeaker);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.mVolHeadphone);
+			$('#inactivityTime').bootstrapSlider('setValue', genSettings.iTime);
+		}
+		// current values
+		let currSettings = settings.current;
+		if (currSettings) {
+			document.getElementById("hostname").value = currSettings.hostname;
+			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
+			volumeSlider.setValue(currSettings.volume);
+		}
+		// default (factory) settings 
+		let defSettings = settings.defaults;
+		if (defSettings) {
+			$('#initialVolume').bootstrapSlider('setValue', defSettings.iVol);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.mVolSpeaker);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.mVolHeadphone);
+			$('#inactivityTime').bootstrapSlider('setValue', defSettings.iTime);
+			$('#initBrightness').bootstrapSlider('setValue', defSettings.iBright);
+			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nBright);
+			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.vWarning);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.vIndLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.vIndHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.vInt);
+		}
+		// neopixel
+		let neopixelSettings = settings.neopixel;
+		if (neopixelSettings) {
+			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
+			$('#initBrightness').bootstrapSlider('setValue', neopixelSettings.iBright);
+			$('#nightBrightness').bootstrapSlider('setValue', neopixelSettings.nBright);
+		}
+		// battery
+		let batSettings = settings.battery;
+		if (batSettings) {
+			document.getElementById('batteryConfig').setAttribute('data-visible', true);
+			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.vWarning);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.vIndLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.vIndHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.vInt);
+		}
 		// ftp
 		let ftpSettings = settings.ftp;
 		if (ftpSettings) {
@@ -1501,6 +1533,11 @@
 			document.getElementById('btDeviceName').value = btSettings.deviceName;
 			document.getElementById('btPinCode').value = btSettings.pinCode;
 		}
+	}
+
+	async function resetSettings() {
+		let defaults = await (await fetch("/settings?section=defaults")).json();
+		fillSettings(defaults);
 	}
 
 	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
@@ -1644,10 +1681,12 @@
 			"general": {
 				iVol: document.getElementById('initialVolume').value,
 				mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,
-				mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,
-				iBright: document.getElementById('initBrightness').value,
-				nBright: document.getElementById('nightBrightness').value,
+				mVolHeadphone: document.getElementById('maxVolumeHeadphone').value },
 				iTime: document.getElementById('inactivityTime').value,
+			"neopixel": {
+				iBright: document.getElementById('initBrightness').value,
+				nBright: document.getElementById('nightBrightness').value},
+			"battery": {
 				vWarning: document.getElementById('warningLowVoltage').value,
 				vIndLow: document.getElementById('voltageIndicatorLow').value,
 				vIndHi: document.getElementById('voltageIndicatorHigh').value,
