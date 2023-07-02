@@ -761,8 +761,7 @@ static void settingsToJSON(JsonObject obj, String section) {
 	// Bluetooth
 	#ifdef BLUETOOTH_ENABLE
 		if ((section == "") || (section == "bluetooth")) {
-			JsonObject btObj = obj.createNestedObject("bluetooth");
-			btObj["enabled"].set(true);	
+			JsonObject btObj = obj.createNestedObject("bluetooth");	
 			btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
 			btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
 		}
