@@ -312,6 +312,7 @@ void webserverStart(void) {
 		// software/wifi/heap/psram-info
 		wServer.on(
 			"/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+				char buffer[128];
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
 				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + '.' + String(ESP_ARDUINO_VERSION_MINOR) + '.' + String(ESP_ARDUINO_VERSION_PATCH);
@@ -338,14 +339,12 @@ void webserverStart(void) {
 					}
 				#endif
 				#ifdef BATTERY_MEASURE_ENABLE
-					char buffer[128];
 					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
 					info += "\n" + String(buffer);
 					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
 					info += "\n" + String(buffer);
 				#endif
                 #ifdef HALLEFFECT_SENSOR_ENABLE
-					char buffer[128];
 					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 					int diff = sva-gHallEffectSensor.NullFieldValue();
 					snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
@@ -617,7 +616,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName ||
 			gPrefsSettings.getString("btPinCode", "") != btPinCode) {
-				Log_Println("JSONToSettings: Failed to assign bluetooth general settings", LOGLEVEL_DEBUG);
+				Log_Println("JSONToSettings: Failed to assign bluetooth settings", LOGLEVEL_DEBUG);
 				return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
