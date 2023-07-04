@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 04.07.2023: fix volume jumping at startup when initVolume <> factory default (3u)
 * 29.06.2023: Update PN5180 library to fix compilation with DCORE_DEBUG_LEVEL=5
 * 25.06.2023: Some spelling corrections, thanks to @SciLor !
 * 23.06.2023: CMD_TELL_IP_ADDRESS: IP as text (replace thousand separator with word "point")

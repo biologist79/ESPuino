@@ -271,7 +271,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			}
 			AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;
 			AudioPlayer_HeadphoneLastDetectionTimestamp = millis();
-			Log_Printf(LOGLEVEL_INFO, "%s: %u", maxVolumeSet, AudioPlayer_MaxVolume);
+			Log_Printf(LOGLEVEL_INFO, maxVolumeSet, AudioPlayer_MaxVolume);
 		}
 	#endif
 }
@@ -297,8 +297,9 @@ void AudioPlayer_Task(void *parameter) {
 	#endif
 
 	uint8_t settleCount = 0;
+	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-	audio->setVolume(AudioPlayer_GetInitVolume());
+	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	if (gPlayProperties.currentPlayMono) {
 		audio->setTone(3, 0, 0);
