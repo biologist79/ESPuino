@@ -667,7 +667,6 @@ static void settingsToJSON(JsonObject obj, String section) {
 		JsonObject curObj = obj.createNestedObject("current");
 		curObj["volume"].set(AudioPlayer_GetCurrentVolume());
 		curObj["rfidTagId"] = String(gCurrentRfidTagId);
-		curObj["hostname"] = Wlan_GetHostname();
 	}
 	if ((section == "") || (section == "general")) {
 		// general settings

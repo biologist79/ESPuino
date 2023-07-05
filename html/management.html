@@ -1467,7 +1467,6 @@
 		// current values
 		let currSettings = settings.current;
 		if (currSettings) {
-			document.getElementById("hostname").value = currSettings.hostname;
 			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
 			volumeSlider.setValue(currSettings.volume);
 		}
@@ -1484,6 +1483,12 @@
 			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
 			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
+		}
+		// wifi
+		let wifiSettings = settings.wifi;
+		if (wifiSettings) {
+			document.getElementById("hostname").value = wifiSettings.hostname;
+			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 		}
 		// neopixel
 		let neopixelSettings = settings.neopixel;
@@ -1586,24 +1591,9 @@
 		}	
 	}
 
-	async function updateWifiFields() {
-		let hostnameElem = document.getElementById("hostname");
-		let scanWifiElem = document.getElementById("scan_wifi_on_start");
-
-		let config = await (await fetch("/wificonfig")).json();
-
-		if (config.hostname && config.hostname !== "") {
-			hostnameElem.value = config.hostname;
-			hostnameElem.defaultValue = config.hostname;
-		} 
-		scanWifiElem.checked = config.scanwifionstart;
-	}
-
 	function onWifiTabOpened() {
-		console.log("wifi tab opened!")
+		console.log("wifi tab opened!");
 		rebuildSSIDList();
-		
-		updateWifiFields();
 	}
 
 	async function deleteSSID(ssid) {
