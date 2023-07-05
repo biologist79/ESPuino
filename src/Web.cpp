@@ -516,61 +516,45 @@ bool JSONToSettings(JsonObject doc) {
 		return false;
 	}
 	if (doc.containsKey("general")) {
-		uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
-		uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
-		uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
-		uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
-
-		gPrefsSettings.putUInt("initVolume", iVol);
-		gPrefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
-		gPrefsSettings.putUInt("maxVolumeHp", mVolHeadphone);
-		gPrefsSettings.putUInt("mInactiviyT", iTime);
-		// Check if settings were written successfully
-		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
-			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
-			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime) {
+		// general settings
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 ) {
 				Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
 				return false;
 			}
 	}
+	if (doc.containsKey("wifi")) {
+		// WiFi settings
+		static String hostName = doc["wifi"]["hostname"];		
+		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0))  {
+				Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
+				return false;
+		}
+	}
 	if (doc.containsKey("neopixel")) {
-		uint8_t iBright = doc["neopixel"]["iBright"].as<uint8_t>();
-		uint8_t nBright = doc["neopixel"]["nBright"].as<uint8_t>();
-
-		gPrefsSettings.putUInt("iLedBrightness", iBright);
-		gPrefsSettings.putUInt("nLedBrightness", nBright);
-		// Check if settings were written successfully
-		if (gPrefsSettings.getUInt("iLedBrightness", 0) != iBright ||
-			gPrefsSettings.getUInt("nLedBrightness", 0) != nBright) {
+		// Neopixel settings
+		if (gPrefsSettings.putUInt("iLedBrightness", doc["neopixel"]["initBrightness"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("nLedBrightness", doc["neopixel"]["nightBrightness"].as<uint8_t>()) == 0 ) {
 				Log_Println("Failed to save neopixel settings", LOGLEVEL_ERROR);
 				return false;
 		}
 	}
 	if (doc.containsKey("battery")) {
-		float vWarning = doc["battery"]["vWarning"].as<float>();
-		float vIndLow = doc["battery"]["vIndLow"].as<float>();
-		float vIndHi = doc["battery"]["vIndHi"].as<float>();
-		uint8_t vInt = doc["battery"]["vInt"].as<uint8_t>();
-
-		gPrefsSettings.putFloat("wLowVoltage", vWarning);
-		gPrefsSettings.putFloat("vIndicatorLow", vIndLow);
-		gPrefsSettings.putFloat("vIndicatorHigh", vIndHi);
-		gPrefsSettings.putUInt("vCheckIntv", vInt);
-
-		// Check if settings were written successfully
-		if (gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
-			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
-			gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
-			gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
+		// Battery settings
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0  ||
+			gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0  ||
+			gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0  ||
+			gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0 ) {
 				Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
 				return false;
 			}
 		Battery_Init();
 	} 
 	if (doc.containsKey("ftp")) {
-		const char *_ftpUser = doc["ftp"]["ftpUser"];
-		const char *_ftpPwd = doc["ftp"]["ftpPwd"];
+		const char *_ftpUser = doc["ftp"]["username"];
+		const char *_ftpPwd = doc["ftp"]["password"];
 
 		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
 		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
@@ -587,12 +571,12 @@ bool JSONToSettings(JsonObject doc) {
 		}
 	} 
 	if (doc.containsKey("mqtt")) {
-		uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
-		const char *_mqttClientId = doc["mqtt"]["mqttClientId"];
-		const char *_mqttServer = doc["mqtt"]["mqttServer"];
-		const char *_mqttUser = doc["mqtt"]["mqttUser"];
-		const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
-		uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
+		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
+		const char *_mqttClientId = doc["mqtt"]["clientID"];
+		const char *_mqttServer = doc["mqtt"]["server"];
+		const char *_mqttUser = doc["mqtt"]["username"];
+		const char *_mqttPwd = doc["mqtt"]["password"];
+		uint16_t _mqttPort = doc["mqtt"]["port"].as<uint16_t>();
 
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
 		gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
@@ -688,53 +672,59 @@ static void settingsToJSON(JsonObject obj, String section) {
 	if ((section == "") || (section == "general")) {
 		// general settings
 		JsonObject generalObj = obj.createNestedObject("general");
-		generalObj["iVol"].set(gPrefsSettings.getUInt("initVolume", 0));
-		generalObj["mVolSpeaker"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
-		generalObj["mVolHeadphone"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
-		generalObj["iTime"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
+		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
+		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
+		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+	}
+	if ((section == "") || (section == "wifi")) {
+		// WiFi settings
+		JsonObject wifiObj = obj.createNestedObject("wifi");
+		wifiObj["hostname"] = Wlan_GetHostname();
+		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
 	}
 	#ifdef NEOPIXEL_ENABLE
 		if ((section == "") || (section == "neopixel")) {
 			// Neopixel settings
 			JsonObject neopixelObj = obj.createNestedObject("neopixel");
-			neopixelObj["iBright"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
-			neopixelObj["nBright"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
+			neopixelObj["initBrightness"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
+			neopixelObj["nightBrightness"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
 		}
 	#endif
 	#ifdef MEASURE_BATTERY_VOLTAGE
 		if ((section == "") || (section == "battery")) {
 			// battery settings
 			JsonObject batteryObj = obj.createNestedObject("battery");
-			batteryObj["vWarning"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
-			batteryObj["vIndLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
-			batteryObj["vIndHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
-			batteryObj["vInt"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
+			batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
+			batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
+			batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+			batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
 		}
 	#endif
 	if (section == "defaults") {
 		// default factory settings
 		JsonObject defaultsObj = obj.createNestedObject("defaults");
-		defaultsObj["iVol"].set(5u);			// AUDIOPLAYER_VOLUME_INIT
-		defaultsObj["mVolSpeaker"].set(21u);	// AUDIOPLAYER_VOLUME_MAX
-		defaultsObj["mVolHeadphone"].set(18u);	// gPrefsSettings.getUInt("maxVolumeHp", 0));
+		defaultsObj["initVolume"].set(3u);				// AUDIOPLAYER_VOLUME_INIT
+		defaultsObj["maxVolumeSp"].set(21u);			// AUDIOPLAYER_VOLUME_MAX
+		defaultsObj["maxVolumeHp"].set(18u);			// gPrefsSettings.getUInt("maxVolumeHp", 0));
+		defaultsObj["sleepInactivity"].set(10u);		// System_MaxInactivityTime
 		#ifdef NEOPIXEL_ENABLE
-			defaultsObj["iBright"].set(16u);		// LED_INITIAL_BRIGHTNESS
-			defaultsObj["nBright"].set(2u);			// LED_INITIAL_NIGHT_BRIGHTNESS
+			defaultsObj["initBrightness"].set(16u);		// LED_INITIAL_BRIGHTNESS
+			defaultsObj["nightBrightness"].set(2u);		// LED_INITIAL_NIGHT_BRIGHTNESS
 		#endif
-		defaultsObj["iTime"].set(10u);			// System_MaxInactivityTime
 		#ifdef MEASURE_BATTERY_VOLTAGE
-			defaultsObj["vWarning"].set(s_warningLowVoltage);
-			defaultsObj["vIndLow"].set(s_voltageIndicatorLow);
-			defaultsObj["vIndHi"].set(s_voltageIndicatorHigh);
-			defaultsObj["vInt"].set(s_batteryCheckInterval);
+			defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
+			defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
+			defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
+			defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
 		#endif
 	}
 	// FTP
 	#ifdef FTP_ENABLE
 		if ((section == "") || (section == "ftp")) {
 			JsonObject ftpObj = obj.createNestedObject("ftp");
-			ftpObj["ftpUser"] = gPrefsSettings.getString("ftpuser", "-1");
-			ftpObj["ftpPwd"] = gPrefsSettings.getString("ftppassword", "-1");
+			ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
+			ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
 			ftpObj["maxUserLength"].set(ftpUserLength - 1);
 			ftpObj["maxPwdLength"].set(ftpUserLength - 1);
 		}
@@ -744,12 +734,12 @@ static void settingsToJSON(JsonObject obj, String section) {
 	#ifdef MQTT_ENABLE
 		if ((section == "") || (section == "mqtt")) {
 			JsonObject mqttObj = obj.createNestedObject("mqtt");
-			mqttObj["mqttEnable"].set(Mqtt_IsEnabled());
-				mqttObj["mqttClientId"] = gPrefsSettings.getString("mqttClientId", "-1");
-			mqttObj["mqttServer"] = gPrefsSettings.getString("mqttServer", "-1");
-			mqttObj["mqttPort"].set(gPrefsSettings.getUInt("mqttPort", 0));
-			mqttObj["mqttUser"] = gPrefsSettings.getString("mqttUser", "-1");
-			mqttObj["mqttPwd"] = gPrefsSettings.getString("mqttPassword", "-1");
+			mqttObj["enable"].set(Mqtt_IsEnabled());
+				mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
+			mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
+			mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
+			mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
+			mqttObj["password"] = gPrefsSettings.getString("mqttPassword", "-1");
 			mqttObj["maxUserLength"].set(mqttUserLength - 1);
 			mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
 			mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);

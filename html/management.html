@@ -613,7 +613,7 @@
 
 						<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-						 data-slider-value=""  value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
+						 data-slider-value="" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
 					</fieldset>
 				</div>
 				<br>
@@ -1459,10 +1459,10 @@
 		// general
 		let genSettings = settings.general;
 		if (genSettings) {
-			$('#initialVolume').bootstrapSlider('setValue', genSettings.iVol);
-			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.mVolSpeaker);
-			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.mVolHeadphone);
-			$('#inactivityTime').bootstrapSlider('setValue', genSettings.iTime);
+			$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
+			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
 		}
 		// current values
 		let currSettings = settings.current;
@@ -1474,40 +1474,40 @@
 		// default (factory) settings 
 		let defSettings = settings.defaults;
 		if (defSettings) {
-			$('#initialVolume').bootstrapSlider('setValue', defSettings.iVol);
-			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.mVolSpeaker);
-			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.mVolHeadphone);
-			$('#inactivityTime').bootstrapSlider('setValue', defSettings.iTime);
-			$('#initBrightness').bootstrapSlider('setValue', defSettings.iBright);
-			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nBright);
-			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.vWarning);
-			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.vIndLow);
-			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.vIndHi);
-			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.vInt);
+			$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
+			$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
+			$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
+			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
+			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 		}
 		// neopixel
 		let neopixelSettings = settings.neopixel;
 		if (neopixelSettings) {
 			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
-			$('#initBrightness').bootstrapSlider('setValue', neopixelSettings.iBright);
-			$('#nightBrightness').bootstrapSlider('setValue', neopixelSettings.nBright);
+			$('#initBrightness').bootstrapSlider('setValue', neopixelSettings.initBrightness);
+			$('#nightBrightness').bootstrapSlider('setValue', neopixelSettings.nightBrightness);
 		}
 		// battery
 		let batSettings = settings.battery;
 		if (batSettings) {
 			document.getElementById('batteryConfig').setAttribute('data-visible', true);
-			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.vWarning);
-			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.vIndLow);
-			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.vIndHi);
-			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.vInt);
+			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 		}
 		// ftp
 		let ftpSettings = settings.ftp;
 		if (ftpSettings) {
 			document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
-			document.getElementById("ftpUser").value = ftpSettings.ftpUser;
+			document.getElementById("ftpUser").value = ftpSettings.username;
 			document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
-			document.getElementById("ftpPwd").value = ftpSettings.ftpPwd;
+			document.getElementById("ftpPwd").value = ftpSettings.password;
 			document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
 		}
 		// mqtt
@@ -1515,16 +1515,16 @@
 		if (mqttSettings) {
 			// todo: get the bootstrap sliders to work:
 			document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
-			document.getElementById('mqttEnable').checked = mqttSettings.mqttEnable;
-			document.getElementById('mqttClientId').value = mqttSettings.mqttClientId;
+			document.getElementById('mqttEnable').checked = mqttSettings.enable;
+			document.getElementById('mqttClientId').value = mqttSettings.clientID;
 			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.mqttClientIdLength);
-			document.getElementById('mqttServer').value = mqttSettings.mqttServer;
+			document.getElementById('mqttServer').value = mqttSettings.server;
 			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.mqttServerLength);
-			document.getElementById('mqttUser').value = mqttSettings.mqttUser;
+			document.getElementById('mqttUser').value = mqttSettings.username;
 			document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
-			document.getElementById('mqttPwd').value = mqttSettings.mqttPwd;
+			document.getElementById('mqttPwd').value = mqttSettings.password;
 			document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
-			document.getElementById('mqttPort').value = mqttSettings.mqttPort;
+			document.getElementById('mqttPort').value = mqttSettings.port;
 		}
 		// bluetooth
 		let btSettings = settings.bluetooth;
@@ -1679,18 +1679,18 @@
 		lastIdclicked = clickedId;
 		var myObj = {
 			"general": {
-				iVol: document.getElementById('initialVolume').value,
-				mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,
-				mVolHeadphone: document.getElementById('maxVolumeHeadphone').value, 
-				iTime: document.getElementById('inactivityTime').value},
+				initVolume: document.getElementById('initialVolume').value,
+				maxVolumeSp: document.getElementById('maxVolumeSpeaker').value,
+				maxVolumeHp: document.getElementById('maxVolumeHeadphone').value, 
+				sleepInactivity: document.getElementById('inactivityTime').value},
 			"neopixel": {
-				iBright: document.getElementById('initBrightness').value,
-				nBright: document.getElementById('nightBrightness').value},
+				initBrightness: document.getElementById('initBrightness').value,
+				nightBrightness: document.getElementById('nightBrightness').value},
 			"battery": {
-				vWarning: document.getElementById('warningLowVoltage').value,
-				vIndLow: document.getElementById('voltageIndicatorLow').value,
-				vIndHi: document.getElementById('voltageIndicatorHigh').value,
-				vInt: document.getElementById('voltageCheckInterval').value
+				warnLowVoltage: document.getElementById('warningLowVoltage').value,
+				indicatorLow: document.getElementById('voltageIndicatorLow').value,
+				indicatorHi: document.getElementById('voltageIndicatorHigh').value,
+				voltageCheckInterval: document.getElementById('voltageCheckInterval').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1701,8 +1701,8 @@
 		lastIdclicked = clickedId;
 		var myObj = {
 			"ftp": {
-				ftpUser: document.getElementById('ftpUser').value,
-				ftpPwd: document.getElementById('ftpPwd').value
+				username: document.getElementById('ftpUser').value,
+				password: document.getElementById('ftpPwd').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1729,12 +1729,12 @@
 		}
 		var myObj = {
 			"mqtt": {
-				mqttEnable: val,
-				mqttClientId: document.getElementById('mqttClientId').value,
-				mqttServer: document.getElementById('mqttServer').value,
-				mqttUser: document.getElementById('mqttUser').value,
-				mqttPwd: document.getElementById('mqttPwd').value,
-				mqttPort: document.getElementById('mqttPort').value
+				enable: val,
+				clientID: document.getElementById('mqttClientId').value,
+				server: document.getElementById('mqttServer').value,
+				username: document.getElementById('mqttUser').value,
+				password: document.getElementById('mqttPwd').value,
+				port: document.getElementById('mqttPort').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
