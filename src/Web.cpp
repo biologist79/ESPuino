@@ -412,7 +412,7 @@ void webserverStart(void) {
 			System_RequestSleep();
 		});
 
-		// ESP-shutdown
+		// NVS erase
 		wServer.on("/rfidnvserase", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", eraseRfidNvsWeb);
 			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);

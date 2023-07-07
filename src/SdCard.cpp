@@ -15,6 +15,11 @@
 #endif
 
 void SdCard_Init(void) {
+	#if !defined(SD_MMC_1BIT_MODE) && !defined(SD_MMC_1BIT_MODE)
+		Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
+		return
+	#endif
+	
 	#ifndef SINGLE_SPI_ENABLE
 		#ifdef SD_MMC_1BIT_MODE
 			pinMode(2, INPUT_PULLUP);
@@ -47,6 +52,9 @@ void SdCard_Init(void) {
 
 void SdCard_Exit(void) {
 	// SD card goto idle mode
+	#ifdef SINGLE_SPI_ENABLE
+		SD.end();
+	#endif
 	#ifdef SD_MMC_1BIT_MODE
 		SD_MMC.end();
 	#endif
