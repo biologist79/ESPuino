@@ -10,7 +10,6 @@
 
 #ifdef FTP_ENABLE
 	#include "ESP-FTP-Server-Lib.h"
-	#include "FTPFilesystem.h"
 #endif
 
 // FTP
