@@ -402,13 +402,9 @@ This mode is different from the others because the last playback position is sav
   adding new music, it's possible to transfer music to the SD card using FTP. Another possibility
   is to do via web GUI (webtransfer).
 - Default user and password are set to `esp32` / `esp32` but can be changed via GUI.
-- Make sure to set the max. number of parallel connections to **1** in your FTP client and the
-  charset to CP437. CP437 is important if you want to use German umlauts ('ö', 'ä', 'ü', 'ß').
 - Secured FTP is not available. So make sure to disable SSL/TLS.
 - Software: my recommendation is [Filezilla](https://filezilla-project.org/) as it's free and
   available for multiple platforms.
-- Don't expect a super fast data transfer; it's around 185 kB/s (SPI-mode) and 310-360 kB/s
-  (MMC-mode).
 - Please note: if music is played in parallel, this rate decreases dramatically! So better stop
   playback when doing file transfers.
 
