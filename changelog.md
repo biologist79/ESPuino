@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 11.07.2023: Fix regression, SD-card was not working in SPI mode
 * 09.07.2023: New ftp server by peterus #254. Thank's to @Joe91 for contribution !!
 * 08.07.2023: Allow to compile without SD-card (webplayer only)
 * 04.07.2023: fix volume jumping at startup when initVolume <> factory default (3u)

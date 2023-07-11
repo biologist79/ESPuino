@@ -15,7 +15,7 @@
 #endif
 
 void SdCard_Init(void) {
-	#if !defined(SD_MMC_1BIT_MODE) && !defined(SD_MMC_1BIT_MODE)
+	#if !defined(SD_MMC_1BIT_MODE) && !defined(SINGLE_SPI_ENABLE)
 		Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
 		return
 	#endif
