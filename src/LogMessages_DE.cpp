@@ -217,6 +217,8 @@
 	const char rfidTagReapplied[] = "RFID-Karte erneut aufgelegt";
 	const char ftpEnableTooLate[] = "FTP kann nur innerhalb der ersten 30s aktiviert werden. Kinderschutz :-)";
 	const char syncingViaNtp[] = "Synchronisiere Uhrzeit via NTP...";
+	const char ntpGotTime[] = "Datum/Uhrzeit empfangen von NTP-Server: %A, %B %d %Y %H:%M:%S";
+	const char ntpFailed[] = "NTP: Datum/Uhrzeit (noch) nicht verfügbar";
 	const char sdInfo[] = "SD-Kartengröße / freier Speicherplatz: %llu MB / %llu MB";
 	const char paOn[] = "Lautsprecher eingeschaltet";
 	const char paOff[] = "Lautsprecher ausgeschaltet";

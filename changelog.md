@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 19.07.2023: Show received timestamp of NTP request in log
 * 11.07.2023: Fix regression, SD-card was not working in SPI mode
 * 09.07.2023: New ftp server by peterus #254. Thank's to @Joe91 for contribution !!
 * 08.07.2023: Allow to compile without SD-card (webplayer only)

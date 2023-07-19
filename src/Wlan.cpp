@@ -11,6 +11,7 @@
 #include "MemX.h"
 #include "main.h"
 #include "Wlan.h"
+#include "esp_sntp.h"
 
 #define WIFI_STATE_INIT 		0u
 #define WIFI_STATE_CONNECT_LAST 1u
@@ -280,6 +281,19 @@ void handleWifiStateScanConnect() {
 	wifiState = WIFI_STATE_CONN_FAILED;
 }
 
+// Callback function (get's called when time adjusts via NTP)
+void ntpTimeAvailable(struct timeval *t)
+{
+	struct tm timeinfo;
+	if(!getLocalTime(&timeinfo)){
+		Log_Println(ntpFailed, LOGLEVEL_NOTICE);
+		return;
+	}
+	static char timeStringBuff[255];
+	strftime(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, &timeinfo);
+	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
+}
+
 static bool initialStart = true;
 // executed once after successfully connecting
 void handleWifiStateConnectionSuccess() {
@@ -300,6 +314,9 @@ void handleWifiStateConnectionSuccess() {
 	// timezone: Berlin
 	long gmtOffset_sec = 3600;
 	int daylightOffset_sec = 3600;
+	// set notification call-back function
+	sntp_set_time_sync_notification_cb(ntpTimeAvailable);
+	// start NTP request
 	configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
 	#ifdef MDNS_ENABLE
 		// zero conf, make device available as <hostname>.local

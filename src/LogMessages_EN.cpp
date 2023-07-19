@@ -217,6 +217,8 @@
 	const char rfidTagReapplied[] = "RFID-tag reapplied";
 	const char ftpEnableTooLate[] = "FTP can only be enabled within the first 30s after ESPuino-start. Child-protection :-)";
 	const char syncingViaNtp[] = "Getting current time via NTP...";
+	const char ntpGotTime[] = "Received date/time from NTP server: %A, %B %d %Y %H:%M:%S";
+	const char ntpFailed[] = "Failed to obtain NTP time";
 	const char sdInfo[] = "SD card size / free space: %llu MB / %llu MB";
 	const char paOn[] = "Loudspeaker on";
 	const char paOff[] = "Loudspeaker off";
