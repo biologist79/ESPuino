@@ -290,7 +290,7 @@ void ntpTimeAvailable(struct timeval *t)
 		return;
 	}
 	static char timeStringBuff[255];
-	strftime(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, &timeinfo);
+	snprintf(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, timeinfo.tm_mday,  timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
 }
 
@@ -311,13 +311,10 @@ void handleWifiStateConnectionSuccess() {
 
 	// get current time and date
 	Log_Println(syncingViaNtp, LOGLEVEL_NOTICE);
-	// timezone: Berlin
-	long gmtOffset_sec = 3600;
-	int daylightOffset_sec = 3600;
 	// set notification call-back function
 	sntp_set_time_sync_notification_cb(ntpTimeAvailable);
-	// start NTP request
-	configTime(gmtOffset_sec, daylightOffset_sec, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
+	// start NTP request with timezone
+	configTzTime(timeZone, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
 	#ifdef MDNS_ENABLE
 		// zero conf, make device available as <hostname>.local
 		if (MDNS.begin(hostname.c_str())) {
