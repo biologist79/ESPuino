@@ -233,8 +233,7 @@ void Web_Init(void) {
 		html += "<a href=\"" + url + "\">" + url + "</a>";
 		html += "<script>async function tryRedirect() {try {var url = \"" + url + "\";const response = await fetch(url);window.location.href = url;} catch (error) {console.log(error);setTimeout(tryRedirect, 2000);}}tryRedirect();</script>";
 		request->send(200, "text/html", html);
-		Serial.flush();
-		ESP.restart();
+		System_Restart();
 	});
 
 	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -402,8 +401,7 @@ void webserverStart(void) {
 		// ESP-restart
 		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
 			request->send_P(200, "text/html", restartWebsite);
-			Serial.flush();
-			ESP.restart();
+			System_Restart();
 		});
 
 		// ESP-shutdown

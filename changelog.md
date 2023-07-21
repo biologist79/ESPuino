@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 21.07.2023: Refactor shutdown procedure, add new command CMD_RESTARTSYSTEM
 * 20.07.2023: Allow to configure the timezone in settings.h
 * 19.07.2023: Show received timestamp of NTP request in log
 * 11.07.2023: Fix regression, SD-card was not working in SPI mode

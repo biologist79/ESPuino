@@ -65,6 +65,7 @@
 #define CMD_SEEK_FORWARDS               180         // Command: jump forwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
 #define CMD_SEEK_BACKWARDS              181         // Command: jump backwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
 #define CMD_STOP                        182         // Command: stops playback
+#define CMD_RESTARTSYSTEM               183         // Command: restart System
 
 // Repeat-Modes
 #define NO_REPEAT                       0           // No repeat

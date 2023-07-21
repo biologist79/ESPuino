@@ -53,9 +53,11 @@ void SdCard_Init(void) {
 void SdCard_Exit(void) {
 	// SD card goto idle mode
 	#ifdef SINGLE_SPI_ENABLE
+		Log_Println("shutdown SD card (SPI)..", LOGLEVEL_NOTICE);
 		SD.end();
 	#endif
 	#ifdef SD_MMC_1BIT_MODE
+		Log_Println("shutdown SD card (SD_MMC)..", LOGLEVEL_NOTICE);
 		SD_MMC.end();
 	#endif
 }

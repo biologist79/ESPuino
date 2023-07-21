@@ -122,6 +122,19 @@ void AudioPlayer_Init(void) {
 	}
 }
 
+void AudioPlayer_Exit(void) {
+	Log_Println("shutdown audioplayer..", LOGLEVEL_NOTICE);
+	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
+	#ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+			AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+			while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
+				vTaskDelay(portTICK_RATE_MS * 100u);
+			}
+		}
+	#endif
+}
+
 void AudioPlayer_Cyclic(void) {
 	AudioPlayer_HeadphoneVolumeManager();
 }
