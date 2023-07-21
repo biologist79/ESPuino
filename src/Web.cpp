@@ -266,6 +266,31 @@ void notFound(AsyncWebServerRequest *request) {
 	request->send(404, "text/plain", "Not found");
 }
 
+String formatTimeToStr(time_t t) {
+
+	String sTime;
+	uint32_t s = (t / 1000);
+	static char buf[32];
+
+	// days
+	int days = (s / 86400UL);
+	if (days > 0) {
+		#if (LANGUAGE == DE)
+			sprintf(buf, "%d Tage, ", days);
+		#else
+			sprintf(buf, "%d days, ", days);
+		#endif
+		sTime = buf;
+	}
+	// hours, minues & seconds
+	int hours = (s % 86400UL) / 3600UL;
+	int minutes = (s / 60UL) % 3600UL;
+	int seconds = (s % 60UL);
+	sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
+	sTime+= buf;
+	return sTime;
+}
+
 void webserverStart(void) {
 	if (Wlan_IsConnected() && !webserverStarted) {
 		// attach AsyncWebSocket for Mgmt-Interface
@@ -308,8 +333,8 @@ void webserverStart(void) {
 				char buffer[128];
 				String info = "ESPuino " + (String) softwareRevision;
 				info += "\nESPuino " + (String) gitRevision;
-				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + '.' + String(ESP_ARDUINO_VERSION_MINOR) + '.' + String(ESP_ARDUINO_VERSION_PATCH);
-				info += "\nESP-IDF version: " + String(ESP.getSdkVersion());
+				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH) + " (ESP-IDF " + String(ESP.getSdkVersion()) + ")";
+				info += "\nHardware: " + String(ESP.getChipModel()) +  ", Revision " + String(ESP.getChipRevision()) + ", CPU: " + String((unsigned long)ESP.getCpuFreqMHz()) + "MHZ";
 				#if (LANGUAGE == DE)
 					info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
 					info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
@@ -320,6 +345,7 @@ void webserverStart(void) {
 						info += "\nAktuelle IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
 						info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
 					}
+					info += "\nAudio-Gesamtspielzeit: " + formatTimeToStr(AudioPlayer_GetPlayTimeAllTime()) + " (seit letztem Start: " + formatTimeToStr(AudioPlayer_GetPlayTimeSinceStart()) + ")";
 				#else
 					info += "\nFree heap: " + String(ESP.getFreeHeap()) + " bytes";
 					info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
@@ -330,6 +356,7 @@ void webserverStart(void) {
 						info += "\nCurrent IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
 						info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
 					}
+					info += "\nAudio total playtime: " + secondsToTimeStr(AudioPlayer_GetPlayTimeSecsAllTime()) + " (since last start: " + secondsToTimeStr(AudioPlayer_GetPlayTimeSecsSinceStart()) + ")";
 				#endif
 				#ifdef BATTERY_MEASURE_ENABLE
 					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
