@@ -66,9 +66,6 @@ void System_RequestSleep(void) {
 	System_GoToSleep = true;
 }
 
-bool System_IsSleepRequested(void) {
-	return System_GoToSleep;
-}
 
 bool System_SetSleepTimer(uint8_t minutes) {
 	bool sleepTimerEnabled = false;
@@ -177,6 +174,46 @@ void System_SleepHandler(void) {
 	}
 }
 
+// prepare power down
+void System_PreparePowerDown(void) {
+
+	AudioPlayer_Exit();
+	// Disable amps in order to avoid ugly noises when powering off
+	#ifdef GPIO_PA_EN
+		Log_Println("shutdown amplifier..", LOGLEVEL_NOTICE);
+		Port_Write(GPIO_PA_EN, false, false);
+	#endif
+	#ifdef GPIO_HP_EN
+		Log_Println("shutdown headphone..", LOGLEVEL_NOTICE);
+		Port_Write(GPIO_HP_EN, false, false);
+	#endif
+
+	Mqtt_Exit();
+	Led_Exit();
+
+	#ifdef USE_LAST_VOLUME_AFTER_REBOOT
+		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
+	#endif
+	SdCard_Exit();
+
+	Serial.flush();
+	// switch off power
+	Power_PeripheralOff();
+	delay(200);
+	#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+		Rfid_Exit();
+	#endif
+	#ifdef PORT_EXPANDER_ENABLE
+		Port_Exit();
+	#endif
+}
+
+void System_Restart(void) {
+	System_PreparePowerDown();
+	Log_Println("restarting..", LOGLEVEL_NOTICE);
+	ESP.restart();
+}
+
 // Puts uC to deep-sleep if flag is set
 void System_DeepSleepManager(void) {
 	if (System_GoToSleep) {
@@ -187,42 +224,8 @@ void System_DeepSleepManager(void) {
 		System_Sleeping = true;
 		Log_Println(goToSleepNow, LOGLEVEL_NOTICE);
 
-		// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-		#ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
-			if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-				while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
-					vTaskDelay(portTICK_RATE_MS * 100u);
-				}
-			}
-		#endif
+		System_PreparePowerDown();
 
-		// Disable amps in order to avoid ugly noises when powering off
-		#ifdef GPIO_PA_EN
-			Port_Write(GPIO_PA_EN, false, false);
-		#endif
-		#ifdef GPIO_HP_EN
-			Port_Write(GPIO_HP_EN, false, false);
-		#endif
-
-		Mqtt_Exit();
-		Led_Exit();
-
-		#ifdef USE_LAST_VOLUME_AFTER_REBOOT
-			gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
-		#endif
-		SdCard_Exit();
-
-		Serial.flush();
-		// switch off power
-		Power_PeripheralOff();
-		delay(200);
-		#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-			Rfid_Exit();
-		#endif
-		#ifdef PORT_EXPANDER_ENABLE
-			Port_Exit();
-		#endif
 		Log_Println("deep-sleep, good night.......", LOGLEVEL_NOTICE);
 		esp_deep_sleep_start();
 	}

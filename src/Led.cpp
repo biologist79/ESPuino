@@ -108,6 +108,12 @@ void Led_Init(void) {
 
 void Led_Exit(void) {
 	#ifdef NEOPIXEL_ENABLE
+		Log_Println("shutdown LED..", LOGLEVEL_NOTICE);
+		if (Led_TaskHandle) {
+			vTaskDelete(Led_TaskHandle);
+			Led_TaskHandle = NULL;
+		}
+		// Turn off LEDs in order to avoid LEDs still glowing when ESP32 is in deepsleep
 		FastLED.clear(true);
 	#endif
 }
@@ -245,7 +251,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 #ifdef NEOPIXEL_ENABLE
 	static void Led_Task(void *parameter) {
-		static bool turnedOffLeds = false;
 		static uint8_t lastLedBrightness = Led_Brightness;
 		FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, leds.size()).setCorrection(TypicalSMD5050);
 		FastLED.setBrightness(Led_Brightness);
@@ -259,14 +264,6 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		for (;;) {
 			// special handling
 			if (Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
-				vTaskDelay(portTICK_RATE_MS * 10);
-				continue;
-			}
-			if (System_IsSleepRequested()) { // If deepsleep is planned, turn off LEDs first in order to avoid LEDs still glowing when ESP32 is in deepsleep
-				if (!turnedOffLeds) {
-					FastLED.clear(true);
-					turnedOffLeds = true;
-				}
 				vTaskDelay(portTICK_RATE_MS * 10);
 				continue;
 			}

@@ -127,6 +127,7 @@ void Mqtt_Cyclic(void) {
 
 void Mqtt_Exit(void) {
 	#ifdef MQTT_ENABLE
+		Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 		publishMqtt(topicState, "Offline", false);
 		publishMqtt(topicTrackState, "---", false);
 		Mqtt_PubSubClient.disconnect();

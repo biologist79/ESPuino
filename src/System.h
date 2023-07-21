@@ -10,7 +10,7 @@ void System_Init(void);
 void System_Cyclic(void);
 void System_UpdateActivityTimer(void);
 void System_RequestSleep(void);
-bool System_IsSleepRequested(void);
+void System_Restart(void);
 bool System_SetSleepTimer(uint8_t minutes);
 void System_DisableSleepTimer();
 bool System_IsSleepTimerEnabled(void);

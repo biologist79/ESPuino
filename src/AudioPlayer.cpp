@@ -36,6 +36,10 @@ static uint8_t AudioPlayer_MaxVolumeSpeaker = AUDIOPLAYER_VOLUME_MAX;
 static uint8_t AudioPlayer_MinVolume = AUDIOPLAYER_VOLUME_MIN;
 static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
 
+// Playtime stats
+uint32_t playTimeSecTotal = 0;
+uint32_t playTimeSecSinceStart = 0;
+
 #ifdef HEADPHONE_ADJUST_ENABLE
 	static bool AudioPlayer_HeadphoneLastDetectionState;
 	static uint32_t AudioPlayer_HeadphoneLastDetectionTimestamp = 0u;
@@ -52,6 +56,9 @@ static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const cha
 static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
+	// load playtime total from NVS
+	playTimeSecTotal = gPrefsSettings.getULong("playTimeTotal", 0);
+
 	#ifndef USE_LAST_VOLUME_AFTER_REBOOT
 		// Get initial volume from NVS
 		uint32_t nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
@@ -122,8 +129,31 @@ void AudioPlayer_Init(void) {
 	}
 }
 
+void AudioPlayer_Exit(void) {
+	Log_Println("shutdown audioplayer..", LOGLEVEL_NOTICE);
+	// save playtime total to NVS
+	playTimeSecTotal += playTimeSecSinceStart;
+	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
+	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
+	#ifdef SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+			AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+			while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
+				vTaskDelay(portTICK_RATE_MS * 100u);
+			}
+		}
+	#endif
+}
+
+static uint32_t lastPlayingTimestamp = 0;
+
 void AudioPlayer_Cyclic(void) {
 	AudioPlayer_HeadphoneVolumeManager();
+	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !gPlayProperties.pausePlay) {
+		// audio is playing, update the playtime since start
+		lastPlayingTimestamp = millis();
+		playTimeSecSinceStart+= 1;
+	}
 }
 
 // Wrapper-function to reverse detection of connected headphones.
@@ -174,6 +204,14 @@ uint8_t AudioPlayer_GetInitVolume(void) {
 
 void AudioPlayer_SetInitVolume(uint8_t value) {
 	AudioPlayer_InitVolume = value;
+}
+
+time_t AudioPlayer_GetPlayTimeAllTime(void) {
+	return (playTimeSecTotal + playTimeSecSinceStart) * 1000;
+}
+
+time_t AudioPlayer_GetPlayTimeSinceStart(void) {
+	return (playTimeSecSinceStart * 1000);
 }
 
 void Audio_setTitle(const char *format, ...) {
@@ -271,7 +309,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			}
 			AudioPlayer_HeadphoneLastDetectionState = currentHeadPhoneDetectionState;
 			AudioPlayer_HeadphoneLastDetectionTimestamp = millis();
-			Log_Printf(LOGLEVEL_INFO, "%s: %u", maxVolumeSet, AudioPlayer_MaxVolume);
+			Log_Printf(LOGLEVEL_INFO, maxVolumeSet, AudioPlayer_MaxVolume);
 		}
 	#endif
 }
@@ -297,8 +335,9 @@ void AudioPlayer_Task(void *parameter) {
 	#endif
 
 	uint8_t settleCount = 0;
+	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-	audio->setVolume(AudioPlayer_GetInitVolume());
+	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	if (gPlayProperties.currentPlayMono) {
 		audio->setTone(3, 0, 0);

@@ -33,6 +33,7 @@ typedef struct { // Bit field
 extern playProps gPlayProperties;
 
 void AudioPlayer_Init(void);
+void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
@@ -53,3 +54,5 @@ void AudioPlayer_SetInitVolume(uint8_t value);
 void AudioPlayer_SetupVolumeAndAmps(void);
 bool Audio_Detect_Mode_HP(bool _state);
 void Audio_setTitle(const char *format, ...);
+time_t AudioPlayer_GetPlayTimeSinceStart(void);
+time_t AudioPlayer_GetPlayTimeAllTime(void);

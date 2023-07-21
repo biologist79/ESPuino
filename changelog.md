@@ -1,5 +1,14 @@
 ## DEV-branch
 
+* 21.07.2023: Show overall playtime total in web-ui
+* 21.07.2023: Refactor shutdown procedure, add new command CMD_RESTARTSYSTEM
+* 20.07.2023: Allow to configure the timezone in settings.h
+* 19.07.2023: Show received timestamp of NTP request in log
+* 11.07.2023: Fix regression, SD-card was not working in SPI mode
+* 09.07.2023: New ftp server by peterus #254. Thank's to @Joe91 for contribution !!
+* 08.07.2023: Allow to compile without SD-card (webplayer only)
+* 04.07.2023: fix volume jumping at startup when initVolume <> factory default (3u)
+* 29.06.2023: Update PN5180 library to fix compilation with DCORE_DEBUG_LEVEL=5
 * 25.06.2023: Some spelling corrections, thanks to @SciLor !
 * 23.06.2023: CMD_TELL_IP_ADDRESS: IP as text (replace thousand separator with word "point")
 * 23.06.2023: web-upload improvement (#249). Thank's to @Joe91 !!

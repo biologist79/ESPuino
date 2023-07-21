@@ -360,6 +360,11 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_RESTARTSYSTEM: {
+			System_Restart();
+			break;
+		}
+
 		case CMD_SEEK_FORWARDS: {
 			gPlayProperties.seekmode = SEEK_FORWARDS;
 			break;
