@@ -284,7 +284,7 @@ String formatTimeToStr(time_t t) {
 	}
 	// hours, minues & seconds
 	int hours = (s % 86400UL) / 3600UL;
-	int minutes = (s / 60UL) % 3600UL;
+	int minutes = (s / 60UL) % 60UL;
 	int seconds = (s % 60UL);
 	sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
 	sTime+= buf;
