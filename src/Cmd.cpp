@@ -275,7 +275,20 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_TELL_IP_ADDRESS: {
 			if (Wlan_IsConnected()) {
-				gPlayProperties.tellIpAddress = true;
+				gPlayProperties.tellMode = TTS_IP_ADDRESS;
+				gPlayProperties.currentSpeechActive = true;
+				gPlayProperties.lastSpeechActive = true;
+				System_IndicateOk();
+			} else {
+				Log_Println(unableToTellIpAddress, LOGLEVEL_ERROR);
+				System_IndicateError();
+			}
+			break;
+		}
+		
+		case CMD_TELL_CURRENT_TIME: {
+			if (Wlan_IsConnected()) {
+				gPlayProperties.tellMode = TTS_CURRENT_TIME;
 				gPlayProperties.currentSpeechActive = true;
 				gPlayProperties.lastSpeechActive = true;
 				System_IndicateOk();

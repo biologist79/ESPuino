@@ -37,8 +37,8 @@ static uint8_t AudioPlayer_MinVolume = AUDIOPLAYER_VOLUME_MIN;
 static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
 
 // Playtime stats
-uint32_t playTimeSecTotal = 0;
-uint32_t playTimeSecSinceStart = 0;
+time_t playTimeSecTotal = 0;
+time_t playTimeSecSinceStart = 0;
 
 #ifdef HEADPHONE_ADJUST_ENABLE
 	static bool AudioPlayer_HeadphoneLastDetectionState;
@@ -705,8 +705,8 @@ void AudioPlayer_Task(void *parameter) {
 		}
 
 		// Handle IP-announcement
-		if (gPlayProperties.tellIpAddress) {
-			gPlayProperties.tellIpAddress = false;
+		if (gPlayProperties.tellMode == TTS_IP_ADDRESS) {
+			gPlayProperties.tellMode = TTS_NONE;
 			String ipText = Wlan_GetIpAddress();
 			bool speechOk;
 			#if (LANGUAGE == DE)
@@ -715,6 +715,29 @@ void AudioPlayer_Task(void *parameter) {
 			#else
 				ipText.replace(".", "point");
 				speechOk = audio->connecttospeech(ipText.c_str(),, "en");
+			#endif
+			if (!speechOk) {
+				System_IndicateError();
+			}
+		}
+
+		// Handle time-announcement
+		if (gPlayProperties.tellMode == TTS_CURRENT_TIME) {
+			gPlayProperties.tellMode = TTS_NONE;
+			struct tm timeinfo;
+			getLocalTime(&timeinfo);
+			static char timeStringBuff[64];
+			bool speechOk;
+			#if (LANGUAGE == DE)
+				snprintf(timeStringBuff, sizeof(timeStringBuff), "Es ist %02d:%02d Uhr", timeinfo.tm_hour, timeinfo.tm_min);
+				speechOk = audio->connecttospeech(timeStringBuff, "de");
+			#else
+				if (timeinfo.tm_hour > 12) {
+					snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d PM", timeinfo.tm_hour - 12, timeinfo.tm_min);
+				} else {
+					snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d AM", timeinfo.tm_hour, timeinfo.tm_min);
+				}
+				speechOk = audio->connecttospeech(timeStringBuff,, "en");
 			#endif
 			if (!speechOk) {
 				System_IndicateError();
