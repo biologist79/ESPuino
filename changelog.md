@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 31.07.2023: Restart system: avoid peripheral power down while restarting
 * 31.07.2023: increase stacksize for audio-task (audio-streams with SSL)
 * 22.07.2023: New command CMD_TELL_CURRENT_TIME for announcing the current time
 * 21.07.2023: Show overall playtime total in web-ui
