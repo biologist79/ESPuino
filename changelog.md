@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 31.07.2023: increase stacksize for audio-task (audio-streams with SSL)
 * 22.07.2023: New command CMD_TELL_CURRENT_TIME for announcing the current time
 * 21.07.2023: Show overall playtime total in web-ui
 * 21.07.2023: Refactor shutdown procedure, add new command CMD_RESTARTSYSTEM
