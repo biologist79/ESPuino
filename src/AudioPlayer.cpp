@@ -494,47 +494,55 @@ void AudioPlayer_Task(void *parameter) {
 							publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
 						#endif
 					}
-					if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
-						if (audio->getAudioCurrentTime() < 5) { // play previous track when current track time is small, else play current track again
-							if (gPlayProperties.currentTrackNumber == 0 && gPlayProperties.repeatPlaylist) {
-								gPlayProperties.currentTrackNumber = gPlayProperties.numberOfTracks - 1;    // Go back to last track in loop-mode when first track is played
-							} else {
-								gPlayProperties.currentTrackNumber--;
-							}
-						}
-
-						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
-						}
-
+					if (gPlayProperties.playMode == WEBSTREAM) {
+						Log_Println(trackChangeWebstream, LOGLEVEL_INFO);
+						System_IndicateError();
+						continue;
+					} else if (gPlayProperties.playMode == LOCAL_M3U) {
 						Log_Println(cmndPrevTrack, LOGLEVEL_INFO);
-						if (!gPlayProperties.playlistFinished) {
-							audio->stopSong();
+						if (gPlayProperties.currentTrackNumber > 0) {
+							gPlayProperties.currentTrackNumber--;
+						} else {
+							System_IndicateError();
+							continue;
 						}
 					} else {
-						if (gPlayProperties.playMode == WEBSTREAM) {
-							Log_Println(trackChangeWebstream, LOGLEVEL_INFO);
-							System_IndicateError();
+						if (gPlayProperties.currentTrackNumber > 0 || gPlayProperties.repeatPlaylist) {
+							if (audio->getAudioCurrentTime() < 5) { // play previous track when current track time is small, else play current track again
+								if (gPlayProperties.currentTrackNumber == 0 && gPlayProperties.repeatPlaylist) {
+									gPlayProperties.currentTrackNumber = gPlayProperties.numberOfTracks - 1;    // Go back to last track in loop-mode when first track is played
+								} else {
+									gPlayProperties.currentTrackNumber--;
+								}
+							}
+
+							if (gPlayProperties.saveLastPlayPosition) {
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+								Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
+							}
+
+							Log_Println(cmndPrevTrack, LOGLEVEL_INFO);
+							if (!gPlayProperties.playlistFinished) {
+								audio->stopSong();
+							}
+						} else {
+							if (gPlayProperties.saveLastPlayPosition) {
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+							}
+							audio->stopSong();
+							Led_Indicate(LedIndicatorType::Rewind);
+							audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+							// consider track as finished, when audio lib call was not successful
+							if (!audioReturnCode) {
+								System_IndicateError();
+								gPlayProperties.trackFinished = true;
+								continue;
+							}
+							Log_Println(trackStart, LOGLEVEL_INFO);
 							continue;
 						}
-						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
-						}
-						audio->stopSong();
-						Led_Indicate(LedIndicatorType::Rewind);
-						audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
-						// consider track as finished, when audio lib call was not successful
-						if (!audioReturnCode) {
-							System_IndicateError();
-							gPlayProperties.trackFinished = true;
-							continue;
-						}
-						Log_Println(trackStart, LOGLEVEL_INFO);
-						continue;
 					}
 					break;
-
 				case FIRSTTRACK:
 					trackCommand = NO_ACTION;
 					if (gPlayProperties.pausePlay) {
