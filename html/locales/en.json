@@ -156,6 +156,8 @@
                     "140":"Toggle Bluetooth Speaker",
                     "141":"Toggle Bluetooth Headphones",
                     "150":"Enable FTP",
+                    "151":"Announce IP-Address",
+                    "152":"Announce current time",
                     "0":"Remove assignment",
                     "170":"Toggle Play/Pause",
                     "171":"Previous track",

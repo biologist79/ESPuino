@@ -51,6 +51,7 @@
 #define CMD_TOGGLE_BLUETOOTH_SOURCE_MODE 141        // Toggles Normal/Bluetooth source Mode
 #define CMD_ENABLE_FTP_SERVER           150         // Enables FTP-server
 #define CMD_TELL_IP_ADDRESS             151         // Command: ESPuino announces its IP-address via speech
+#define CMD_TELL_CURRENT_TIME           152         // Command: ESPuino announces current time via speech
 
 #define CMD_PLAYPAUSE                   170         // Command: play/pause
 #define CMD_PREVTRACK                   171         // Command: previous track
@@ -77,6 +78,11 @@
 #define SEEK_NORMAL                     0           // Normal play
 #define SEEK_FORWARDS                   1           // Seek forwards
 #define SEEK_BACKWARDS                  2           // Seek backwards
+
+// TTS
+#define TTS_NONE                        0           // Do nothng (IDLE)
+#define TTS_IP_ADDRESS                  1           // Tell IP-address
+#define TTS_CURRENT_TIME                2           // Tell current time
 
 // supported languages
 #define DE                              1

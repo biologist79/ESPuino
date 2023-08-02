@@ -20,6 +20,7 @@ size_t Wlan_GetSSIDs(String*, size_t);
 const String Wlan_GetCurrentSSID();
 const String Wlan_GetHostname();
 bool Wlan_DeleteNetwork(String);
+bool Wlan_ValidateHostname(String);
 bool Wlan_SetHostname(String);
 bool Wlan_IsConnected(void);
 void Wlan_ToggleEnable(void);

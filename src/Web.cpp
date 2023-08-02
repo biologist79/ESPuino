@@ -288,7 +288,7 @@ String formatTimeToStr(time_t t) {
 	}
 	// hours, minues & seconds
 	int hours = (s % 86400UL) / 3600UL;
-	int minutes = (s / 60UL) % 3600UL;
+	int minutes = (s / 60UL) % 60UL;
 	int seconds = (s % 60UL);
 	sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
 	sTime+= buf;
@@ -553,16 +553,20 @@ bool JSONToSettings(JsonObject doc) {
 	if (doc.containsKey("wifi")) {
 		// WiFi settings
 		static String hostName = doc["wifi"]["hostname"];		
-		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0))  {
+		if (!Wlan_ValidateHostname(hostName)) {
+				Log_Println("Invalid hostname", LOGLEVEL_ERROR);
+				return false;
+		}
+		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
 				Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
 				return false;
 		}
 	}
-	if (doc.containsKey("neopixel")) {
+	if (doc.containsKey("led")) {
 		// Neopixel settings
-		if (gPrefsSettings.putUInt("iLedBrightness", doc["neopixel"]["initBrightness"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUInt("nLedBrightness", doc["neopixel"]["nightBrightness"].as<uint8_t>()) == 0 ) {
-				Log_Println("Failed to save neopixel settings", LOGLEVEL_ERROR);
+		if (gPrefsSettings.putUInt("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0 ) {
+				Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
 				return false;
 		}
 	}
@@ -708,11 +712,11 @@ static void settingsToJSON(JsonObject obj, String section) {
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
 	}
 	#ifdef NEOPIXEL_ENABLE
-		if ((section == "") || (section == "neopixel")) {
-			// Neopixel settings
-			JsonObject neopixelObj = obj.createNestedObject("neopixel");
-			neopixelObj["initBrightness"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
-			neopixelObj["nightBrightness"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
+		if ((section == "") || (section == "led")) {
+			// LED settings
+			JsonObject ledObj = obj.createNestedObject("led");
+			ledObj["initBrightness"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
+			ledObj["nightBrightness"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
 		}
 	#endif
 	#ifdef MEASURE_BATTERY_VOLTAGE
@@ -753,7 +757,6 @@ static void settingsToJSON(JsonObject obj, String section) {
 			ftpObj["maxPwdLength"].set(ftpUserLength - 1);
 		}
 	#endif
-
 	// MQTT
 	#ifdef MQTT_ENABLE
 		if ((section == "") || (section == "mqtt")) {
@@ -770,8 +773,6 @@ static void settingsToJSON(JsonObject obj, String section) {
 			mqttObj["maxServerLength"].set(mqttServerLength - 1);
 		}
 	#endif
-
-
 	// Bluetooth
 	#ifdef BLUETOOTH_ENABLE
 		if ((section == "") || (section == "bluetooth")) {
@@ -1452,7 +1453,7 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 	bool scanWifiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
 
 	obj["hostname"] = Wlan_GetHostname();
-	obj["scanwifionstart"].set(scanWifiOnStart);
+	obj["scanOnStart"].set(scanWifiOnStart);
 
 	response->setLength();
 	request->send(response);
@@ -1462,41 +1463,23 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
 	const JsonObject& jsonObj = json.as<JsonObject>();
 
 	// always perform perform a WiFi scan on startup?
-	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
+	bool alwaysScan = jsonObj["scanOnStart"];
 	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
 
 	// hostname
 	String strHostname = jsonObj["hostname"];
-	size_t len = strHostname.length();
-	const char *hostname = strHostname.c_str();
-
-	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
-	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
-	bool validated = true;
-	if(len < 2 || len > 32) {
-		validated = false;
-	}
-
-	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
-		validated = false;
-	}
-
-	for(int i = 0; i < len; i++) {
-		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
-			validated = false;
-			break;
-		}
-	}
-
-	if (!validated) {
+	if (!Wlan_ValidateHostname(strHostname)) {
+		Log_Println("hostname validation failed", LOGLEVEL_ERROR);
 		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
 		return;
 	}
 
-	bool succ = Wlan_SetHostname(String(hostname));
+	bool succ = Wlan_SetHostname(strHostname);
 	if (succ) {
-		request->send(200, "text/plain; charset=utf-8", hostname);
+		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
+		request->send(200, "text/plain; charset=utf-8", strHostname);
 	} else {
+		Log_Println("error setting hostname", LOGLEVEL_ERROR);
 		request->send(500, "text/plain; charset=utf-8", "error setting hostname");
 	}
 }

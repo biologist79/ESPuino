@@ -197,19 +197,12 @@ void System_PreparePowerDown(void) {
 	SdCard_Exit();
 
 	Serial.flush();
-	// switch off power
-	Power_PeripheralOff();
-	delay(200);
-	#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-		Rfid_Exit();
-	#endif
-	#ifdef PORT_EXPANDER_ENABLE
-		Port_Exit();
-	#endif
 }
 
 void System_Restart(void) {
+	// prepare power down (shutdown common modules)
 	System_PreparePowerDown();
+	// restart the ESP-32
 	Log_Println("restarting..", LOGLEVEL_NOTICE);
 	ESP.restart();
 }
@@ -223,9 +216,20 @@ void System_DeepSleepManager(void) {
 
 		System_Sleeping = true;
 		Log_Println(goToSleepNow, LOGLEVEL_NOTICE);
-
+		// prepare power down (shutdown common modules)
 		System_PreparePowerDown();
-
+		// switch off power
+		Power_PeripheralOff();
+		// time to settle down..
+		delay(200);
+		// .. for LPCD
+		#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+			Rfid_Exit();
+		#endif
+		#ifdef PORT_EXPANDER_ENABLE
+			Port_Exit();
+		#endif
+		// goto sleep now
 		Log_Println("deep-sleep, good night.......", LOGLEVEL_NOTICE);
 		esp_deep_sleep_start();
 	}

@@ -334,6 +334,8 @@
 							<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
 							<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
 							<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
+							<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
+							<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
 							<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
 							<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
 							<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
@@ -438,6 +440,8 @@
 								<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
 								<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
 								<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
+								<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
+								<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
 								<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
 								<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
 								<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
@@ -1382,7 +1386,7 @@
 
 		socket.onopen = function () {
 			setInterval(ping, 15000);
-			getSettings();
+			requestSettings();
 			getTrack();
 			getCoverimage();
 		};
@@ -1490,12 +1494,12 @@
 			document.getElementById("hostname").value = wifiSettings.hostname;
 			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 		}
-		// neopixel
-		let neopixelSettings = settings.neopixel;
-		if (neopixelSettings) {
+		// led
+		let ledSettings = settings.led;
+		if (ledSettings) {
 			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
-			$('#initBrightness').bootstrapSlider('setValue', neopixelSettings.initBrightness);
-			$('#nightBrightness').bootstrapSlider('setValue', neopixelSettings.nightBrightness);
+			$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
+			$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
 		}
 		// battery
 		let batSettings = settings.battery;
@@ -1522,9 +1526,9 @@
 			document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
 			document.getElementById('mqttEnable').checked = mqttSettings.enable;
 			document.getElementById('mqttClientId').value = mqttSettings.clientID;
-			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.mqttClientIdLength);
+			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
 			document.getElementById('mqttServer').value = mqttSettings.server;
-			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.mqttServerLength);
+			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
 			document.getElementById('mqttUser').value = mqttSettings.username;
 			document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
 			document.getElementById('mqttPwd').value = mqttSettings.password;
@@ -1655,7 +1659,7 @@
 		socket.send(myJSON);
 	}
 
-	function getSettings() {
+	function requestSettings() {
 		var myObj = {
 			"settings": {
 				settings: 'settings'
@@ -1673,7 +1677,7 @@
 				maxVolumeSp: document.getElementById('maxVolumeSpeaker').value,
 				maxVolumeHp: document.getElementById('maxVolumeHeadphone').value, 
 				sleepInactivity: document.getElementById('inactivityTime').value},
-			"neopixel": {
+			"led": {
 				initBrightness: document.getElementById('initBrightness').value,
 				nightBrightness: document.getElementById('nightBrightness').value},
 			"battery": {
@@ -1779,7 +1783,7 @@
 
 		var myObj = { 
 			hostname: hostname,
-			scanwifionstart: scanWifi
+			scanOnStart: scanWifi
 		};
 		
 		await fetch("/wificonfig", {
