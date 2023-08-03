@@ -154,7 +154,7 @@
 	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
 	<a class="reboot float-right nav-link" href="/shutdown"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
 	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Infos</span></a>
+	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
 	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
 		<option value="de">de</option>
 		<option value="en">en</option>
@@ -1386,9 +1386,10 @@
 
 		socket.onopen = function () {
 			setInterval(ping, 15000);
-			requestSettings();
-			getTrack();
-			getCoverimage();
+			socket.send('{"settings":{}}');		// request settings
+			socket.send('{"ssids":{}}');		// request SSIDs
+			socket.send('{"trackinfo":{}}');	// get current track
+			socket.send('{"coverimg":{}}');		// get cover image
 		};
 
 		socket.onclose = function (e) {
@@ -1494,6 +1495,11 @@
 			document.getElementById("hostname").value = wifiSettings.hostname;
 			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 		}
+		// ssids
+		let ssidSettings = settings.ssids;
+		if (ssidSettings) {	
+			rebuildSSIDList(ssidSettings);
+		}
 		// led
 		let ledSettings = settings.led;
 		if (ledSettings) {
@@ -1549,17 +1555,19 @@
 		fillSettings(defaults);
 	}
 
-	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
-	async function rebuildSSIDList() {
-		let ssidList = await (await fetch("/savedSSIDs")).json();
-		let ssidActiveObj = await (await fetch("/activeSSID")).json();
-
-		console.log(ssidActiveObj);
-		let ssidActive = ssidActiveObj.active;
-
-		console.log(ssidList);
-		console.log(ssidActive);
-
+	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");	
+	async function rebuildSSIDList(data) {		
+		var ssidList;
+		var ssidActive;
+		if (data) {
+			ssidList = data.savedSSIDs;
+			ssidActive = data.active;
+		} else {
+			ssidList = await (await fetch("/savedSSIDs")).json();
+			let ssidActiveObj = await (await fetch("/activeSSID")).json();
+			console.log(ssidActiveObj);
+			ssidActive = ssidActiveObj.active;
+		}			
 		wifiListSavedSSIDs.innerHTML = "";
 
 		for (let ssid of ssidList) {
@@ -1592,12 +1600,7 @@
 			ssidElem.appendChild(deleteSpan);
 
 			wifiListSavedSSIDs.appendChild(ssidElem);
-		}	
-	}
-
-	function onWifiTabOpened() {
-		console.log("wifi tab opened!");
-		rebuildSSIDList();
+		}
 	}
 
 	async function deleteSSID(ssid) {
@@ -1606,20 +1609,6 @@
 		await fetch("/savedSSIDs/" + ssid, {method: "DELETE"});
 		await rebuildSSIDList();
 	}
-
-
-    const config = {attributes: true};
-	const wifiTab = document.getElementById("nav-wifi-tab");
-	var wifiTabWasActive = false;
-	const wifiTabObserver = new MutationObserver((mutationList, observer) => {
-		if (!wifiTabWasActive && wifiTab.classList.contains("active")) {
-			wifiTabWasActive = true;
-			onWifiTabOpened();
-		} else {
-			wifiTabWasActive = false;
-		}
-	})
-	wifiTabObserver.observe(wifiTab, config);
 
 
 	function ping() {
@@ -1637,36 +1626,6 @@
 
 	function pong() {
 		clearTimeout(tm);
-	}
-
-	function getTrack() {
-		var myObj = {
-			"trackinfo": {
-				trackinfo: 'trackinfo'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function getCoverimage() {
-		var myObj = {
-			"coverimg": {
-				coverimg: 'coverimg'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function requestSettings() {
-		var myObj = {
-			"settings": {
-				settings: 'settings'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
 	}
 
 	function genSettings(clickedId) {

@@ -684,6 +684,8 @@ bool JSONToSettings(JsonObject doc) {
 		Web_SendWebsocketData(0, 50);
 	} else if (doc.containsKey("settings")) {
 		Web_SendWebsocketData(0, 60);
+	} else if (doc.containsKey("ssids")) {
+		Web_SendWebsocketData(0, 70);
 	}
 
 	return true;
@@ -710,6 +712,23 @@ static void settingsToJSON(JsonObject obj, String section) {
 		JsonObject wifiObj = obj.createNestedObject("wifi");
 		wifiObj["hostname"] = Wlan_GetHostname();
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
+	}
+	if (section == "ssids") {
+		// saved SSID's
+		JsonObject ssidsObj = obj.createNestedObject("ssids");
+		static String ssids[10];
+		
+		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
+		size_t len = Wlan_GetSSIDs(ssids, 10);
+		if (len > 0) {
+			for (int i = 0; i < len; i++) {
+				ssidArr.add(ssids[i]);
+			}
+		}
+		// active SSID
+		if (Wlan_IsConnected()) {
+			ssidsObj["active"] = Wlan_GetCurrentSSID();
+		}
 	}
 	#ifdef NEOPIXEL_ENABLE
 		if ((section == "") || (section == "led")) {
@@ -873,6 +892,9 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	} else if (code == 60) {
 		JsonObject entry = object.createNestedObject("settings");
 		settingsToJSON(entry, "");
+	} else if (code == 70) {
+		JsonObject entry = object.createNestedObject("settings");
+		settingsToJSON(entry, "ssids");
 	};
 
 
