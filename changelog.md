@@ -1,5 +1,7 @@
 ## DEV-branch
 
+* 04.08.2023: Support for .oga audio files (Ogg Vorbis Audio container)
+* 04.08.2023: Web-UI: Replace the template processor (#253)
 * 02.08.2023: Bugfix M3U-playlist + PREVIOUSTRACK, thank's to @Niko!
 * 31.07.2023: Restart system: avoid peripheral power down while restarting
 * 31.07.2023: increase stacksize for audio-task (audio-streams with SSL)

@@ -58,7 +58,9 @@
 	}
 
 	void Rfid_Task(void *parameter) {
-		uint8_t control = 0x00;
+		#ifdef PAUSE_WHEN_RFID_REMOVED
+			uint8_t control = 0x00;
+		#endif
 
 		for (;;) {
 			if (RFID_SCAN_INTERVAL/2 >= 20) {
