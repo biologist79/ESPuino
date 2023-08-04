@@ -436,10 +436,37 @@ void Wlan_Cyclic(void) {
 	}
 }
 
+
+bool Wlan_ValidateHostname(String newHostname) {
+	size_t len = newHostname.length();
+	const char *hostname = newHostname.c_str();
+
+	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
+	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
+	bool validated = true;
+	if(len < 2 || len > 32) {
+		validated = false;
+	}
+
+	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
+		validated = false;
+	}
+
+	for(int i = 0; i < len; i++) {
+		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
+			validated = false;
+			break;
+		}
+	}
+
+	return validated;
+}
+
 bool Wlan_SetHostname(String newHostname) {
 	// hostname should just be applied after reboot
 	gPrefsSettings.putString("Hostname", newHostname);
-	return true;
+	// check if hostname is written
+	return (gPrefsSettings.getString("Hostname", "-1") == newHostname);
 }
 
 bool Wlan_AddNetworkSettings(WiFiSettings settings) {

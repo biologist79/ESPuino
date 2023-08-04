@@ -28,8 +28,6 @@
 #include "Rfid.h"
 #include "HallEffectSensor.h"
 
-#include "HTMLaccesspoint.h"
-#include "HTMLmanagement.h"
 #include "HTMLbinary.h"
 
 typedef struct {
@@ -73,11 +71,15 @@ static void handleGetWiFiConfig(AsyncWebServerRequest *request);
 static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
+static void handleGetSettings(AsyncWebServerRequest *request);
+static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
+
 
 static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-static String templateProcessor(const String &templ);
+static void settingsToJSON(JsonObject obj, String section);
+static bool JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
 // If PSRAM is available use it allocate memory for JSON-objects
@@ -205,8 +207,10 @@ void Web_Init(void) {
 		const bool etag = false;
 		if (etag)
 			response = request->beginResponse(304);
-		else
-			response = request->beginResponse_P(200, "text/html", accesspoint_HTML);
+		else {
+			response = request->beginResponse_P(200, "text/html", (const uint8_t *)accesspoint_BIN, sizeof(accesspoint_BIN));
+			response->addHeader("Content-Encoding", "gzip");
+		}
 		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
 		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 		request->send(response);
@@ -311,9 +315,11 @@ void webserverStart(void) {
 				response = request->beginResponse(304);
 			else {
 				if (gFSystem.exists("/.html/index.htm"))
-					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false, templateProcessor);
-				else
-					response = request->beginResponse_P(200, "text/html", management_HTML, templateProcessor);
+					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
+				else {
+					response = request->beginResponse_P(200, "text/html",  (const uint8_t *)management_BIN, sizeof(management_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+				}
 			}
 			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
 			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
@@ -504,7 +510,10 @@ void webserverStart(void) {
 			};
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
-        // Init HallEffectSensor Value
+		// ESPuino settings
+		wServer.on("/settings", HTTP_GET, handleGetSettings);
+ 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/settings", handlePostSettings));
+       // Init HallEffectSensor Value
         #ifdef HALLEFFECT_SENSOR_ENABLE
             wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
                 bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
@@ -524,126 +533,307 @@ void webserverStart(void) {
 	}
 }
 
-// Used for substitution of some variables/templates of html-files. Is called by webserver's template-engine
-String templateProcessor(const String &templ) {
-	if (templ == "FTP_USER") {
-		return gPrefsSettings.getString("ftpuser", "-1");
-	} else if (templ == "FTP_PWD") {
-		return gPrefsSettings.getString("ftppassword", "-1");
-	} else if (templ == "FTP_USER_LENGTH") {
-		return String(ftpUserLength - 1);
-	} else if (templ == "FTP_PWD_LENGTH") {
-		return String(ftpPasswordLength - 1);
-	} else if (templ == "SHOW_FTP_TAB") { // Only show FTP-tab if FTP-support was compiled
-		#ifdef FTP_ENABLE
-			return "true";
-		#else
-			return "false";
+
+// process JSON to settings
+bool JSONToSettings(JsonObject doc) {
+	if (!doc)  {
+		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
+		return false;
+	}
+	if (doc.containsKey("general")) {
+		// general settings
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 ) {
+				Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
+				return false;
+			}
+	}
+	if (doc.containsKey("wifi")) {
+		// WiFi settings
+		static String hostName = doc["wifi"]["hostname"];		
+		if (!Wlan_ValidateHostname(hostName)) {
+				Log_Println("Invalid hostname", LOGLEVEL_ERROR);
+				return false;
+		}
+		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
+				Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
+				return false;
+		}
+	}
+	if (doc.containsKey("led")) {
+		// Neopixel settings
+		if (gPrefsSettings.putUInt("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUInt("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0 ) {
+				Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
+				return false;
+		}
+	}
+	if (doc.containsKey("battery")) {
+		// Battery settings
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0  ||
+			gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0  ||
+			gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0  ||
+			gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0 ) {
+				Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
+				return false;
+			}
+		Battery_Init();
+	} 
+	if (doc.containsKey("ftp")) {
+		const char *_ftpUser = doc["ftp"]["username"];
+		const char *_ftpPwd = doc["ftp"]["password"];
+
+		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
+		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
+		// Check if settings were written successfully
+		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
+			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
+			Log_Println("Failed to save ftp settings", LOGLEVEL_ERROR);
+			return false;
+		}
+	} else if (doc.containsKey("ftpStatus")) {
+		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
+		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
+			Ftp_EnableServer();
+		}
+	} 
+	if (doc.containsKey("mqtt")) {
+		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
+		const char *_mqttClientId = doc["mqtt"]["clientID"];
+		const char *_mqttServer = doc["mqtt"]["server"];
+		const char *_mqttUser = doc["mqtt"]["username"];
+		const char *_mqttPwd = doc["mqtt"]["password"];
+		uint16_t _mqttPort = doc["mqtt"]["port"].as<uint16_t>();
+
+		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
+		gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
+		gPrefsSettings.putString("mqttServer", (String)_mqttServer);
+		gPrefsSettings.putString("mqttUser", (String)_mqttUser);
+		gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);
+		gPrefsSettings.putUInt("mqttPort", _mqttPort);
+
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
+			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+			Log_Println("Failed to save mqtt settings", LOGLEVEL_ERROR);
+			return false;
+		}
+	} 
+	if (doc.containsKey("bluetooth")) {
+		// bluetooth settings
+		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
+		gPrefsSettings.putString("btDeviceName", (String)_btDeviceName);
+		const char *btPinCode = doc["bluetooth"]["pinCode"];
+		gPrefsSettings.putString("btPinCode", (String)btPinCode);
+		// Check if settings were written successfully
+		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName ||
+			gPrefsSettings.getString("btPinCode", "") != btPinCode) {
+				Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
+				return false;
+		}
+	} else if (doc.containsKey("rfidMod")) {
+		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
+		uint8_t _modId = doc["rfidMod"]["modId"];
+		char rfidString[12];
+		if (_modId <= 0) {
+			gPrefsRfid.remove(_rfidIdModId);
+		} else {
+			snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
+			gPrefsRfid.putString(_rfidIdModId, rfidString);
+
+			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
+			if (s.compareTo(rfidString)) {
+				return false;
+			}
+		}
+		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
+	} else if (doc.containsKey("rfidAssign")) {
+		const char *_rfidIdAssinId = doc["rfidAssign"]["rfidIdMusic"];
+		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
+		convertFilenameToAscii(doc["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
+		uint8_t _playMode = doc["rfidAssign"]["playMode"];
+		char rfidString[275];
+		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
+		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
+		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+			strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
 		#endif
-	} else if (templ == "SHOW_BLUETOOTH_TAB") { // Only show Bluetooth-tab if Bluetooth-support was compiled
-		#ifdef BLUETOOTH_ENABLE
-			return "true";
-		#else
-			return "false";
-		#endif		
-	} else if (templ == "INIT_LED_BRIGHTNESS") {
-		return String(gPrefsSettings.getUChar("iLedBrightness", 0));
-	} else if (templ == "NIGHT_LED_BRIGHTNESS") {
-		return String(gPrefsSettings.getUChar("nLedBrightness", 0));
-	} else if (templ == "MAX_INACTIVITY") {
-		return String(gPrefsSettings.getUInt("mInactiviyT", 0));
-	} else if (templ == "INIT_VOLUME") {
-		return String(gPrefsSettings.getUInt("initVolume", 0));
-	} else if (templ == "CURRENT_VOLUME") {
-		return String(AudioPlayer_GetCurrentVolume());
-	} else if (templ == "MAX_VOLUME_SPEAKER") {
-		return String(gPrefsSettings.getUInt("maxVolumeSp", 0));
-	} else if (templ == "MAX_VOLUME_HEADPHONE") {
-		return String(gPrefsSettings.getUInt("maxVolumeHp", 0));
-#ifdef BATTERY_MEASURE_ENABLE
-	#ifdef MEASURE_BATTERY_VOLTAGE
-		} else if (templ == "WARNING_LOW_VOLTAGE") {
-			return String(gPrefsSettings.getFloat("wLowVoltage", warningLowVoltage));
-		} else if (templ == "VOLTAGE_INDICATOR_LOW") {
-			return String(gPrefsSettings.getFloat("vIndicatorLow", voltageIndicatorLow));
-		} else if (templ == "VOLTAGE_INDICATOR_HIGH") {
-			return String(gPrefsSettings.getFloat("vIndicatorHigh", voltageIndicatorHigh));
-	#endif
-	#ifdef MEASURE_BATTERY_OTHER // placeholder
-		} else if (templ == "todo") {
-			return "todo";
-	#endif
-	} else if (templ == "BATTERY_CHECK_INTERVAL") {
-		return String(gPrefsSettings.getUInt("vCheckIntv", batteryCheckInterval));
-#else
-	// TODO: hide battery config
-#endif
-	} else if (templ == "MQTT_CLIENTID") {
-		if (gPrefsSettings.isKey("mqttClientId")) {
-			return gPrefsSettings.getString("mqttClientId", "-1");
-		} else {
-			return "-1";
+
+		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
+		if (s.compareTo(rfidString)) {
+			return false;
 		}
-	} else if (templ == "MQTT_SERVER") {
-		if (gPrefsSettings.isKey("mqttServer")) {
-			return gPrefsSettings.getString("mqttServer", "-1");
-		} else {
-			return "-1";
+		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
+	} else if (doc.containsKey("ping")) {
+		Web_SendWebsocketData(0, 20);
+		return false;
+	} else if (doc.containsKey("controls")) {
+		if (doc["controls"].containsKey("set_volume")) {
+			uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
+			AudioPlayer_VolumeToQueueSender(new_vol, true);
+		} if (doc["controls"].containsKey("action")) {
+			uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
+			Cmd_Action(cmd);
 		}
-	} else if (templ == "SHOW_MQTT_TAB") { // Only show MQTT-tab if MQTT-support was compiled
-		#ifdef MQTT_ENABLE
-			return "true";
-		#else
-			return "false";
-		#endif
-	} else if (templ == "MQTT_ENABLE") {
-		if (Mqtt_IsEnabled()) {
-			return "checked=\"checked\"";
-		} else {
-			return String();
-		}
-	} else if (templ == "MQTT_USER") {
-		if (gPrefsSettings.isKey("mqttUser")) {
-			return gPrefsSettings.getString("mqttUser", "-1");
-		} else {
-			return "-1";
-		}
-	} else if (templ == "MQTT_PWD") {
-		if (gPrefsSettings.isKey("mqttPassword")) {
-			return gPrefsSettings.getString("mqttPassword", "-1");
-		} else {
-			return "-1";
-		}
-	} else if (templ == "MQTT_USER_LENGTH") {
-		return String(mqttUserLength - 1);
-	} else if (templ == "MQTT_PWD_LENGTH") {
-		return String(mqttPasswordLength - 1);
-	} else if (templ == "MQTT_CLIENTID_LENGTH") {
-		return String(mqttClientIdLength - 1);
-	} else if (templ == "MQTT_SERVER_LENGTH") {
-		return String(mqttServerLength - 1);
-	} else if (templ == "MQTT_PORT") {
-#ifdef MQTT_ENABLE
-		return String(gMqttPort);
-#endif
-	} else if (templ == "BT_DEVICE_NAME") {
-		if (gPrefsSettings.isKey("btDeviceName")) {
-			return gPrefsSettings.getString("btDeviceName", "");
-		}
-	} else if (templ == "BT_PIN_CODE") {
-		if (gPrefsSettings.isKey("btPinCode")) {
-			return gPrefsSettings.getString("btPinCode", "");
-		}		
-	} else if (templ == "IPv4") {
-		return WiFi.localIP().toString();
-	} else if (templ == "RFID_TAG_ID") {
-		return String(gCurrentRfidTagId);
-	} else if (templ == "HOSTNAME") {
-		return Wlan_GetHostname();
+	} else if (doc.containsKey("trackinfo")) {
+		Web_SendWebsocketData(0, 30);
+	} else if (doc.containsKey("coverimg")) {
+		Web_SendWebsocketData(0, 40);
+	} else if (doc.containsKey("volume")) {
+		Web_SendWebsocketData(0, 50);
+	} else if (doc.containsKey("settings")) {
+		Web_SendWebsocketData(0, 60);
+	} else if (doc.containsKey("ssids")) {
+		Web_SendWebsocketData(0, 70);
 	}
 
-	return String();
+	return true;
 }
+
+// process settings to JSON object
+static void settingsToJSON(JsonObject obj, String section) {
+	if ((section == "") || (section == "current")) {
+		// current values
+		JsonObject curObj = obj.createNestedObject("current");
+		curObj["volume"].set(AudioPlayer_GetCurrentVolume());
+		curObj["rfidTagId"] = String(gCurrentRfidTagId);
+	}
+	if ((section == "") || (section == "general")) {
+		// general settings
+		JsonObject generalObj = obj.createNestedObject("general");
+		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
+		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
+		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
+		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+	}
+	if ((section == "") || (section == "wifi")) {
+		// WiFi settings
+		JsonObject wifiObj = obj.createNestedObject("wifi");
+		wifiObj["hostname"] = Wlan_GetHostname();
+		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
+	}
+	if (section == "ssids") {
+		// saved SSID's
+		JsonObject ssidsObj = obj.createNestedObject("ssids");
+		static String ssids[10];
+		
+		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
+		size_t len = Wlan_GetSSIDs(ssids, 10);
+		if (len > 0) {
+			for (int i = 0; i < len; i++) {
+				ssidArr.add(ssids[i]);
+			}
+		}
+		// active SSID
+		if (Wlan_IsConnected()) {
+			ssidsObj["active"] = Wlan_GetCurrentSSID();
+		}
+	}
+	#ifdef NEOPIXEL_ENABLE
+		if ((section == "") || (section == "led")) {
+			// LED settings
+			JsonObject ledObj = obj.createNestedObject("led");
+			ledObj["initBrightness"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
+			ledObj["nightBrightness"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
+		}
+	#endif
+	#ifdef MEASURE_BATTERY_VOLTAGE
+		if ((section == "") || (section == "battery")) {
+			// battery settings
+			JsonObject batteryObj = obj.createNestedObject("battery");
+			batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
+			batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
+			batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+			batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
+		}
+	#endif
+	if (section == "defaults") {
+		// default factory settings
+		JsonObject defaultsObj = obj.createNestedObject("defaults");
+		defaultsObj["initVolume"].set(3u);				// AUDIOPLAYER_VOLUME_INIT
+		defaultsObj["maxVolumeSp"].set(21u);			// AUDIOPLAYER_VOLUME_MAX
+		defaultsObj["maxVolumeHp"].set(18u);			// gPrefsSettings.getUInt("maxVolumeHp", 0));
+		defaultsObj["sleepInactivity"].set(10u);		// System_MaxInactivityTime
+		#ifdef NEOPIXEL_ENABLE
+			defaultsObj["initBrightness"].set(16u);		// LED_INITIAL_BRIGHTNESS
+			defaultsObj["nightBrightness"].set(2u);		// LED_INITIAL_NIGHT_BRIGHTNESS
+		#endif
+		#ifdef MEASURE_BATTERY_VOLTAGE
+			defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
+			defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
+			defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
+			defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
+		#endif
+	}
+	// FTP
+	#ifdef FTP_ENABLE
+		if ((section == "") || (section == "ftp")) {
+			JsonObject ftpObj = obj.createNestedObject("ftp");
+			ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
+			ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
+			ftpObj["maxUserLength"].set(ftpUserLength - 1);
+			ftpObj["maxPwdLength"].set(ftpUserLength - 1);
+		}
+	#endif
+	// MQTT
+	#ifdef MQTT_ENABLE
+		if ((section == "") || (section == "mqtt")) {
+			JsonObject mqttObj = obj.createNestedObject("mqtt");
+			mqttObj["enable"].set(Mqtt_IsEnabled());
+				mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
+			mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
+			mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
+			mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
+			mqttObj["password"] = gPrefsSettings.getString("mqttPassword", "-1");
+			mqttObj["maxUserLength"].set(mqttUserLength - 1);
+			mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
+			mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
+			mqttObj["maxServerLength"].set(mqttServerLength - 1);
+		}
+	#endif
+	// Bluetooth
+	#ifdef BLUETOOTH_ENABLE
+		if ((section == "") || (section == "bluetooth")) {
+			JsonObject btObj = obj.createNestedObject("bluetooth");	
+			btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
+			btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
+		}
+	#endif
+}
+
+// handle get settings
+void handleGetSettings(AsyncWebServerRequest *request) {
+
+	// param to get a single settings section
+	String section = "";
+	if (request->hasParam("section")) {
+		section = request->getParam("section")->value();
+	}
+	#ifdef BOARD_HAS_PSRAM
+		SpiRamJsonDocument doc(8192);
+	#else
+		StaticJsonDocument<8192> doc;
+	#endif
+	JsonObject settingsObj = doc.createNestedObject("settings");
+	settingsToJSON(settingsObj, section);
+	String serializedJsonString;
+	serializeJson(settingsObj, serializedJsonString);
+	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+}
+
+// handle post settings
+void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
+	const JsonObject& jsonObj = json.as<JsonObject>();
+	bool succ = JSONToSettings(jsonObj);
+	if (succ) {
+		request->send(200);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error saving settings");
+	}
+}
+
+
 
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
@@ -664,149 +854,17 @@ bool processJsonRequest(char *_serialJson) {
 		return false;
 	}
 
-   JsonObject object = doc.as<JsonObject>();
-
-   if (doc.containsKey("general")) {
-		uint8_t iVol = doc["general"]["iVol"].as<uint8_t>();
-		uint8_t mVolSpeaker = doc["general"]["mVolSpeaker"].as<uint8_t>();
-		uint8_t mVolHeadphone = doc["general"]["mVolHeadphone"].as<uint8_t>();
-		uint8_t iBright = doc["general"]["iBright"].as<uint8_t>();
-		uint8_t nBright = doc["general"]["nBright"].as<uint8_t>();
-		uint8_t iTime = doc["general"]["iTime"].as<uint8_t>();
-		float vWarning = doc["general"]["vWarning"].as<float>();
-		float vIndLow = doc["general"]["vIndLow"].as<float>();
-		float vIndHi = doc["general"]["vIndHi"].as<float>();
-		uint8_t vInt = doc["general"]["vInt"].as<uint8_t>();
-
-		gPrefsSettings.putUInt("initVolume", iVol);
-		gPrefsSettings.putUInt("maxVolumeSp", mVolSpeaker);
-		gPrefsSettings.putUInt("maxVolumeHp", mVolHeadphone);
-		gPrefsSettings.putUChar("iLedBrightness", iBright);
-		gPrefsSettings.putUChar("nLedBrightness", nBright);
-		gPrefsSettings.putUInt("mInactiviyT", iTime);
-		gPrefsSettings.putFloat("wLowVoltage", vWarning);
-		gPrefsSettings.putFloat("vIndicatorLow", vIndLow);
-		gPrefsSettings.putFloat("vIndicatorHigh", vIndHi);
-		gPrefsSettings.putUInt("vCheckIntv", vInt);
-
-		// Check if settings were written successfully
-		if (gPrefsSettings.getUInt("initVolume", 0) != iVol ||
-			gPrefsSettings.getUInt("maxVolumeSp", 0) != mVolSpeaker ||
-			gPrefsSettings.getUInt("maxVolumeHp", 0) != mVolHeadphone ||
-			gPrefsSettings.getUChar("iLedBrightness", 0) != iBright ||
-			gPrefsSettings.getUChar("nLedBrightness", 0) != nBright ||
-			gPrefsSettings.getUInt("mInactiviyT", 0) != iTime ||
-			gPrefsSettings.getFloat("wLowVoltage", 999.99) != vWarning ||
-			gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
-			gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
-			gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-				return false;
-		}
-		Battery_Init();
-	} else if (doc.containsKey("ftp")) {
-		const char *_ftpUser = doc["ftp"]["ftpUser"];
-		const char *_ftpPwd = doc["ftp"]["ftpPwd"];
-
-		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
-		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
-
-		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
-			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
-			return false;
-		}
-	} else if (doc.containsKey("ftpStatus")) {
-		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
-		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
-			Ftp_EnableServer();
-		}
-	} else if (doc.containsKey("mqtt")) {
-		uint8_t _mqttEnable = doc["mqtt"]["mqttEnable"].as<uint8_t>();
-		const char *_mqttClientId = object["mqtt"]["mqttClientId"];
-		const char *_mqttServer = object["mqtt"]["mqttServer"];
-		const char *_mqttUser = doc["mqtt"]["mqttUser"];
-		const char *_mqttPwd = doc["mqtt"]["mqttPwd"];
-		uint16_t _mqttPort = doc["mqtt"]["mqttPort"].as<uint16_t>();
-
-		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-		gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
-		gPrefsSettings.putString("mqttServer", (String)_mqttServer);
-		gPrefsSettings.putString("mqttUser", (String)_mqttUser);
-		gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);
-		gPrefsSettings.putUInt("mqttPort", _mqttPort);
-
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
-			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
-			return false;
-		}
-	} else if (doc.containsKey("bluetooth")) {
-		// bluetooth settings
-		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
-		gPrefsSettings.putString("btDeviceName", (String)_btDeviceName);
-		const char *btPinCode = doc["bluetooth"]["pinCode"];
-		gPrefsSettings.putString("btPinCode", (String)btPinCode);
-	} else if (doc.containsKey("rfidMod")) {
-		const char *_rfidIdModId = object["rfidMod"]["rfidIdMod"];
-		uint8_t _modId = object["rfidMod"]["modId"];
-		char rfidString[12];
-		if (_modId <= 0) {
-			gPrefsRfid.remove(_rfidIdModId);
-		} else {
-			snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
-			gPrefsRfid.putString(_rfidIdModId, rfidString);
-
-			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
-			if (s.compareTo(rfidString)) {
-				return false;
-			}
-		}
-		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
-	} else if (doc.containsKey("rfidAssign")) {
-		const char *_rfidIdAssinId = object["rfidAssign"]["rfidIdMusic"];
-		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
-		convertFilenameToAscii(object["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
-		uint8_t _playMode = object["rfidAssign"]["playMode"];
-		char rfidString[275];
-		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
-		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
-		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-			strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
-		#endif
-
-		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
-		if (s.compareTo(rfidString)) {
-			return false;
-		}
-		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
-	} else if (doc.containsKey("ping")) {
-		Web_SendWebsocketData(0, 20);
-		return false;
-	} else if (doc.containsKey("controls")) {
-		if (object["controls"].containsKey("set_volume")) {
-			uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
-			AudioPlayer_VolumeToQueueSender(new_vol, true);
-		} if (object["controls"].containsKey("action")) {
-			uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
-			Cmd_Action(cmd);
-		}
-	} else if (doc.containsKey("trackinfo")) {
-		Web_SendWebsocketData(0, 30);
-	} else if (doc.containsKey("coverimg")) {
-		Web_SendWebsocketData(0, 40);
-	} else if (doc.containsKey("volume")) {
-		Web_SendWebsocketData(0, 50);
-	}
-
-	return true;
+	JsonObject obj = doc.as<JsonObject>();
+	return JSONToSettings(obj);
 }
+
 
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	if (!webserverStarted)
 		return;
-	char *jBuf = (char *) x_calloc(255, sizeof(char));
-
-	const size_t CAPACITY = JSON_OBJECT_SIZE(1) + 200;
-	StaticJsonDocument<CAPACITY> doc;
+	char *jBuf = (char *) x_calloc(1024, sizeof(char));
+	StaticJsonDocument<1024> doc;
 	JsonObject object = doc.to<JsonObject>();
 
 	if (code == 1) {
@@ -831,9 +889,16 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		object["coverimg"] = "coverimg";
 	} else if (code == 50) {
 		object["volume"] = AudioPlayer_GetCurrentVolume();
+	} else if (code == 60) {
+		JsonObject entry = object.createNestedObject("settings");
+		settingsToJSON(entry, "");
+	} else if (code == 70) {
+		JsonObject entry = object.createNestedObject("settings");
+		settingsToJSON(entry, "ssids");
 	};
 
-	serializeJson(doc, jBuf, 255);
+
+	serializeJson(doc, jBuf, 1024);
 
 	if (client == 0) {
 		ws.printfAll(jBuf);
@@ -1410,7 +1475,7 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 	bool scanWifiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
 
 	obj["hostname"] = Wlan_GetHostname();
-	obj["scanwifionstart"].set(scanWifiOnStart);
+	obj["scanOnStart"].set(scanWifiOnStart);
 
 	response->setLength();
 	request->send(response);
@@ -1420,41 +1485,23 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
 	const JsonObject& jsonObj = json.as<JsonObject>();
 
 	// always perform perform a WiFi scan on startup?
-	static bool alwaysScan = (bool) jsonObj["scanwifionstart"];
+	bool alwaysScan = jsonObj["scanOnStart"];
 	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
 
 	// hostname
 	String strHostname = jsonObj["hostname"];
-	size_t len = strHostname.length();
-	const char *hostname = strHostname.c_str();
-
-	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
-	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
-	bool validated = true;
-	if(len < 2 || len > 32) {
-		validated = false;
-	}
-
-	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
-		validated = false;
-	}
-
-	for(int i = 0; i < len; i++) {
-		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
-			validated = false;
-			break;
-		}
-	}
-
-	if (!validated) {
+	if (!Wlan_ValidateHostname(strHostname)) {
+		Log_Println("hostname validation failed", LOGLEVEL_ERROR);
 		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
 		return;
 	}
 
-	bool succ = Wlan_SetHostname(String(hostname));
+	bool succ = Wlan_SetHostname(strHostname);
 	if (succ) {
-		request->send(200, "text/plain; charset=utf-8", hostname);
+		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
+		request->send(200, "text/plain; charset=utf-8", strHostname);
 	} else {
+		Log_Println("error setting hostname", LOGLEVEL_ERROR);
 		request->send(500, "text/plain; charset=utf-8", "error setting hostname");
 	}
 }

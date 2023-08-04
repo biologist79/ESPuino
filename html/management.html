@@ -154,7 +154,7 @@
 	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
 	<a class="reboot float-right nav-link" href="/shutdown"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
 	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Infos</span></a>
+	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
 	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
 		<option value="de">de</option>
 		<option value="en">en</option>
@@ -201,9 +201,9 @@
 			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
 			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
 			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></a>
-			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="%SHOW_MQTT_TAB%" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
-			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="%SHOW_FTP_TAB%" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
-			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="%SHOW_BLUETOOTH_TAB%" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
+			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
+			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
+			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
 			<a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
 			<a class="nav-item nav-link" id="nav-tools-tab" data-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools">Tools</span></a>
 			<a class="nav-item nav-link" id="nav-forum-tab" data-toggle="tab" href="#nav-forum" role="tab" aria-controls="nav-forum" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.forum">Forum</span></span></a>
@@ -219,7 +219,7 @@
 					<div class="form-group col-md-12">
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
-							value="%HOSTNAME%" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required><br>
+							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
 						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 					</div>
@@ -301,7 +301,7 @@
 							<span class="fas fa-volume-down"></span>
 						</button>
 						</i><input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-							data-slider-value="%CURRENT_VOLUME%" value="%CURRENT_VOLUME%" onchange="sendVolume(this.value)">
+							data-slider-value="" value="" onchange="sendVolume(this.value)">
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
@@ -387,7 +387,7 @@
 				<div class="form-group col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
-						   placeholder="%RFID_TAG_ID%" name="rfidIdMusic" required>
+						   placeholder="" name="rfidIdMusic" required>
 					<br>
 					<ul class="nav nav-tabs" id="SubTab" role="tablist">
 						<li class="nav-item">
@@ -471,25 +471,25 @@
 				  onsubmit="mqttSettings('mqttConfig'); return false">
 				<div class="form-check col-md-12">
 					<legend data-i18n="mqtt.title"></legend>
-					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable" %MQTT_ENABLE%>
+					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 				</div>
 				<div class="form-group my-2 col-md-12">
 					<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="%MQTT_CLIENTID_LENGTH%"
-						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="%MQTT_CLIENTID%">
+					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
+						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 					<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-					<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="%MQTT_SERVER_LENGTH%"
-						   data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="%MQTT_SERVER%">
+					<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
+						   data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
 					<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-					<input type="text" class="form-control" id="mqttUser" maxlength="%MQTT_USER_LENGTH%"
-						   data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="%MQTT_USER%">
+					<input type="text" class="form-control" id="mqttUser" maxlength=""
+						   data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
 					<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-					<input type="password" class="form-control" id="mqttPwd" maxlength="%MQTT_PWD_LENGTH%"
-						   data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="%MQTT_PWD%">
+					<input type="password" class="form-control" id="mqttPwd" maxlength=""
+						   data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
 					<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
 					<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
-							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="%MQTT_PORT%" required>
+							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 				</div>
 				<br>
 				<div class="text-center">
@@ -506,11 +506,10 @@
 				<div class="form-group col-md-12">
 					<legend data-i18n="ftp.title"></legend>
 					<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-					<input type="text" class="form-control" id="ftpUser" maxlength="%FTP_USER_LENGTH%"
-						data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="%FTP_USER%" required>
+					<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 					<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-					<input type="password" class="form-control" id="ftpPwd" maxlength="%FTP_PWD_LENGTH%" data-i18n="[placeholder]ftp.pwd.placeholder"
-						   name="ftpPwd" value="%FTP_PWD%" required>
+					<input type="password" class="form-control" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder"
+						   name="ftpPwd" value="" required>
 				</div>
 				<br>
 				<div class="text-center">
@@ -537,10 +536,10 @@
 					<legend data-i18n="bt.source.configtitle"></legend>
 					<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
 					<input type="text" class="form-control" id="btDeviceName"
-						data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="%BT_DEVICE_NAME%"><br>
+						data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
 					<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
 					<input type="text" class="form-control" id="btPinCode"
-						data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="%BT_PINCODE%">
+						data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 				</div>
 				<br>
 				<div class="text-center">
@@ -579,35 +578,35 @@
 					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-						data-slider-value="%INIT_VOLUME%"  value="%INIT_VOLUME%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
+						data-slider-value=""  value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
 						<br>
 					<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 						<div class="text-center">
 					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>   <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
-						data-slider-value="%MAX_VOLUME_SPEAKER%"  value="%MAX_VOLUME_SPEAKER%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+					 	required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 						<br>
 					<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone"
-						 data-slider-value="%MAX_VOLUME_HEADPHONE%" value="%MAX_VOLUME_HEADPHONE%" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						 data-slider-value="" value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 				</fieldset>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
+				<div class="form-group col-md-12" id="neopixelConfig" data-visible="false">
 					<fieldset >
 						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
 					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
 						<div class="text-center">
 							<i class="far fa-sun fa-2x .icon-pos"></i>
 						<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-							   data-slider-value="%INIT_LED_BRIGHTNESS%"  value="%INIT_LED_BRIGHTNESS%" required><i class="fas fa-sun fa-2x .icon-pos"></i>
+							   data-slider-value=""  value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 
 					<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
 						<div class="text-center">
-						<i class="far fa-sun fa-2x .icon-pos"></i><input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="%NIGHT_LED_BRIGHTNESS%" value="%NIGHT_LED_BRIGHTNESS%" required><i class="fas fa-sun fa-2x .icon-pos"></i>
+						<i class="far fa-sun fa-2x .icon-pos"></i><input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="" value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 					</fieldset>
 				</div>
@@ -618,12 +617,12 @@
 
 						<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-						 data-slider-value="%MAX_INACTIVITY%"  value="%MAX_INACTIVITY%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
+						 data-slider-value="" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
 					</fieldset>
 				</div>
 				<br>
 
-				<div class="form-group col-md-12">
+				<div class="form-group col-md-12" id="batteryConfig" data-visible="false">
 					<fieldset>
 						<legend data-i18n="general.battery.title"></legend>
 					<div data-i18n="general.battery.desc"></div>
@@ -631,34 +630,34 @@
 					<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
 						<div class="text-center">
 						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input  data-provide="slider"  data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0"  min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage"
-						data-slider-value="%WARNING_LOW_VOLTAGE%" value="%WARNING_LOW_VOLTAGE%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+						data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 					<br>
 					<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 						<div class="text-center">
 						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
-						  data-slider-value="%VOLTAGE_INDICATOR_LOW%"  value="%VOLTAGE_INDICATOR_LOW%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+						  data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 						<br>
 						<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 
 							<div class="text-center">
 								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
-						   data-slider-value="%VOLTAGE_INDICATOR_HIGH%"  value="%VOLTAGE_INDICATOR_HIGH%" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 
 						<br>
 					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
-								   data-slider-value="%BATTERY_CHECK_INTERVAL%"  name="voltageCheckInterval" value="%BATTERY_CHECK_INTERVAL%" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+								   data-slider-value=""  name="voltageCheckInterval" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
 					</div>
 
 					</fieldset>
 				</div>
 <br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
+				<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
@@ -1387,8 +1386,10 @@
 
 		socket.onopen = function () {
 			setInterval(ping, 15000);
-			getTrack();
-			getCoverimage();
+			socket.send('{"settings":{}}');		// request settings
+			socket.send('{"ssids":{}}');		// request SSIDs
+			socket.send('{"trackinfo":{}}');	// get current track
+			socket.send('{"coverimg":{}}');		// get cover image
 		};
 
 		socket.onclose = function (e) {
@@ -1450,21 +1451,123 @@
 				}
 			} if ("coverimg" in socketMsg) {
 				document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
-		  }
+			} if ("settings" in socketMsg) {
+				fillSettings(socketMsg.settings);
+		  	}
 	  };
 	}
 
-	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
-	async function rebuildSSIDList() {
-		let ssidList = await (await fetch("/savedSSIDs")).json();
-		let ssidActiveObj = await (await fetch("/activeSSID")).json();
+	async function fillSettings(settings) {
+		if (!settings) { 
+			return false 
+		}
+		// general
+		let genSettings = settings.general;
+		if (genSettings) {
+			$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
+			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+		}
+		// current values
+		let currSettings = settings.current;
+		if (currSettings) {
+			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
+			volumeSlider.setValue(currSettings.volume);
+		}
+		// default (factory) settings 
+		let defSettings = settings.defaults;
+		if (defSettings) {
+			$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
+			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
+			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
+			$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
+			$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
+			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
+			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
+		}
+		// wifi
+		let wifiSettings = settings.wifi;
+		if (wifiSettings) {
+			document.getElementById("hostname").value = wifiSettings.hostname;
+			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+		}
+		// ssids
+		let ssidSettings = settings.ssids;
+		if (ssidSettings) {	
+			rebuildSSIDList(ssidSettings);
+		}
+		// led
+		let ledSettings = settings.led;
+		if (ledSettings) {
+			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
+			$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
+			$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
+		}
+		// battery
+		let batSettings = settings.battery;
+		if (batSettings) {
+			document.getElementById('batteryConfig').setAttribute('data-visible', true);
+			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
+			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
+			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
+			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
+		}
+		// ftp
+		let ftpSettings = settings.ftp;
+		if (ftpSettings) {
+			document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
+			document.getElementById("ftpUser").value = ftpSettings.username;
+			document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
+			document.getElementById("ftpPwd").value = ftpSettings.password;
+			document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
+		}
+		// mqtt
+		let mqttSettings = settings.mqtt;
+		if (mqttSettings) {
+			// todo: get the bootstrap sliders to work:
+			document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
+			document.getElementById('mqttEnable').checked = mqttSettings.enable;
+			document.getElementById('mqttClientId').value = mqttSettings.clientID;
+			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
+			document.getElementById('mqttServer').value = mqttSettings.server;
+			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
+			document.getElementById('mqttUser').value = mqttSettings.username;
+			document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
+			document.getElementById('mqttPwd').value = mqttSettings.password;
+			document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
+			document.getElementById('mqttPort').value = mqttSettings.port;
+		}
+		// bluetooth
+		let btSettings = settings.bluetooth;
+		if (btSettings) {
+			document.getElementById('nav-bt-tab').setAttribute('data-visible', true);
+			document.getElementById('btDeviceName').value = btSettings.deviceName;
+			document.getElementById('btPinCode').value = btSettings.pinCode;
+		}
+	}
 
-		console.log(ssidActiveObj);
-		let ssidActive = ssidActiveObj.active;
+	async function resetSettings() {
+		let defaults = await (await fetch("/settings?section=defaults")).json();
+		fillSettings(defaults);
+	}
 
-		console.log(ssidList);
-		console.log(ssidActive);
-
+	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");	
+	async function rebuildSSIDList(data) {		
+		var ssidList;
+		var ssidActive;
+		if (data) {
+			ssidList = data.savedSSIDs;
+			ssidActive = data.active;
+		} else {
+			ssidList = await (await fetch("/savedSSIDs")).json();
+			let ssidActiveObj = await (await fetch("/activeSSID")).json();
+			console.log(ssidActiveObj);
+			ssidActive = ssidActiveObj.active;
+		}			
 		wifiListSavedSSIDs.innerHTML = "";
 
 		for (let ssid of ssidList) {
@@ -1497,27 +1600,7 @@
 			ssidElem.appendChild(deleteSpan);
 
 			wifiListSavedSSIDs.appendChild(ssidElem);
-		}	
-	}
-
-	async function updateWifiFields() {
-		let hostnameElem = document.getElementById("hostname");
-		let scanWifiElem = document.getElementById("scan_wifi_on_start");
-
-		let config = await (await fetch("/wificonfig")).json();
-
-		if (config.hostname && config.hostname !== "") {
-			hostnameElem.value = config.hostname;
-			hostnameElem.defaultValue = config.hostname;
-		} 
-		scanWifiElem.checked = config.scanwifionstart;
-	}
-
-	function onWifiTabOpened() {
-		console.log("wifi tab opened!")
-		rebuildSSIDList();
-		
-		updateWifiFields();
+		}
 	}
 
 	async function deleteSSID(ssid) {
@@ -1526,20 +1609,6 @@
 		await fetch("/savedSSIDs/" + ssid, {method: "DELETE"});
 		await rebuildSSIDList();
 	}
-
-
-    const config = {attributes: true};
-	const wifiTab = document.getElementById("nav-wifi-tab");
-	var wifiTabWasActive = false;
-	const wifiTabObserver = new MutationObserver((mutationList, observer) => {
-		if (!wifiTabWasActive && wifiTab.classList.contains("active")) {
-			wifiTabWasActive = true;
-			onWifiTabOpened();
-		} else {
-			wifiTabWasActive = false;
-		}
-	})
-	wifiTabObserver.observe(wifiTab, config);
 
 
 	function ping() {
@@ -1559,41 +1628,22 @@
 		clearTimeout(tm);
 	}
 
-	function getTrack() {
-		var myObj = {
-			"trackinfo": {
-				trackinfo: 'trackinfo'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function getCoverimage() {
-		var myObj = {
-			"coverimg": {
-				coverimg: 'coverimg'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-
 	function genSettings(clickedId) {
 		lastIdclicked = clickedId;
 		var myObj = {
 			"general": {
-				iVol: document.getElementById('initialVolume').value,
-				mVolSpeaker: document.getElementById('maxVolumeSpeaker').value,
-				mVolHeadphone: document.getElementById('maxVolumeHeadphone').value,
-				iBright: document.getElementById('initBrightness').value,
-				nBright: document.getElementById('nightBrightness').value,
-				iTime: document.getElementById('inactivityTime').value,
-				vWarning: document.getElementById('warningLowVoltage').value,
-				vIndLow: document.getElementById('voltageIndicatorLow').value,
-				vIndHi: document.getElementById('voltageIndicatorHigh').value,
-				vInt: document.getElementById('voltageCheckInterval').value
+				initVolume: document.getElementById('initialVolume').value,
+				maxVolumeSp: document.getElementById('maxVolumeSpeaker').value,
+				maxVolumeHp: document.getElementById('maxVolumeHeadphone').value, 
+				sleepInactivity: document.getElementById('inactivityTime').value},
+			"led": {
+				initBrightness: document.getElementById('initBrightness').value,
+				nightBrightness: document.getElementById('nightBrightness').value},
+			"battery": {
+				warnLowVoltage: document.getElementById('warningLowVoltage').value,
+				indicatorLow: document.getElementById('voltageIndicatorLow').value,
+				indicatorHi: document.getElementById('voltageIndicatorHigh').value,
+				voltageCheckInterval: document.getElementById('voltageCheckInterval').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1604,8 +1654,8 @@
 		lastIdclicked = clickedId;
 		var myObj = {
 			"ftp": {
-				ftpUser: document.getElementById('ftpUser').value,
-				ftpPwd: document.getElementById('ftpPwd').value
+				username: document.getElementById('ftpUser').value,
+				password: document.getElementById('ftpPwd').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1632,12 +1682,12 @@
 		}
 		var myObj = {
 			"mqtt": {
-				mqttEnable: val,
-				mqttClientId: document.getElementById('mqttClientId').value,
-				mqttServer: document.getElementById('mqttServer').value,
-				mqttUser: document.getElementById('mqttUser').value,
-				mqttPwd: document.getElementById('mqttPwd').value,
-				mqttPort: document.getElementById('mqttPort').value
+				enable: val,
+				clientID: document.getElementById('mqttClientId').value,
+				server: document.getElementById('mqttServer').value,
+				username: document.getElementById('mqttUser').value,
+				password: document.getElementById('mqttPwd').value,
+				port: document.getElementById('mqttPort').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1692,7 +1742,7 @@
 
 		var myObj = { 
 			hostname: hostname,
-			scanwifionstart: scanWifi
+			scanOnStart: scanWifi
 		};
 		
 		await fetch("/wificonfig", {
