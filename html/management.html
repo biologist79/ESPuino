@@ -799,7 +799,7 @@
 			var lastFolder = cur['id'].split('/').filter(function (el) {
 				return el.trim().length > 0;
 			}).pop();
-			if ((/\.(mp3|ogg|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
+			if ((/\.(mp3|ogg|oga|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
 				data.instance.set_type(data.instance._model.data[key], 'audio');
 			} else
 			if ((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
@@ -1189,7 +1189,7 @@
 
 		if(data.dir) {
 			type = "folder";
-		} else if ((/\.(mp3|ogg|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
+		} else if ((/\.(mp3|ogg|oga|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
 			type = "audio";
 		} else if ((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
 			type = "playlist";

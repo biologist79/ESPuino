@@ -1,5 +1,11 @@
 ## DEV-branch
 
+* 04.08.2023: Support for .oga audio files (Ogg Vorbis Audio container)
+* 04.08.2023: Web-UI: Replace the template processor (#253)
+* 02.08.2023: Bugfix M3U-playlist + PREVIOUSTRACK, thank's to @Niko!
+* 31.07.2023: Restart system: avoid peripheral power down while restarting
+* 31.07.2023: increase stacksize for audio-task (audio-streams with SSL)
+* 22.07.2023: New command CMD_TELL_CURRENT_TIME for announcing the current time
 * 21.07.2023: Show overall playtime total in web-ui
 * 21.07.2023: Refactor shutdown procedure, add new command CMD_RESTARTSYSTEM
 * 20.07.2023: Allow to configure the timezone in settings.h

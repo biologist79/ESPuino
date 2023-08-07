@@ -138,6 +138,7 @@ bool fileValid(const char *_fileItem) {
 			endsWith(lFileItem, ".wav") || 
 			endsWith(lFileItem, ".flac") || 
 			endsWith(lFileItem, ".ogg") || 
+			endsWith(lFileItem, ".oga") || 
 			endsWith(lFileItem, ".opus") || 
 			// playlist file formats
 			endsWith(lFileItem, ".m3u") || 
