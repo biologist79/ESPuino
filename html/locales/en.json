@@ -279,5 +279,31 @@
     "forum": {
         "title": "Forum",
         "desc": "Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
+    },
+    "datetime": {
+        "day": "day",
+        "days": "days",
+        "hour": "hour",
+        "hours": "hours",
+        "minute": "minute",
+        "minutes": "minutes",
+        "second": "second",
+        "seconds": "seconds"
+    },
+    "systeminfo": {
+        "title": "Information",
+        "softwareversion": "ESPuino {{softwareversion}}",
+        "gitversion": "ESPuino {{gitversion}}",
+        "arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
+        "hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
+        "freeheap": "Free heap: {{freeheap}} Bytes",
+        "largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
+        "freepsram": "Free PS-RAM: {{freepsram}} Bytes",
+        "currentip": "Current IP-Address: {{currentip}}",
+        "rssi": "WiFi signal strength: {{rssi}} dBm",
+        "audiotime": "Total audio playtime: {{audiotimetotal}} (Since last start: {{audiotimesincestart}})", 
+        "currvoltage": "Current battery voltage: {{currvoltage}} V", 
+        "chargelevel": "Current charge level: {{chargelevel}} %", 
+        "hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)" 
     }
 }

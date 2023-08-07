@@ -71,6 +71,7 @@ static void handleGetWiFiConfig(AsyncWebServerRequest *request);
 static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
+static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
 
@@ -270,31 +271,6 @@ void notFound(AsyncWebServerRequest *request) {
 	request->send(404, "text/plain", "Not found");
 }
 
-String formatTimeToStr(time_t t) {
-
-	String sTime;
-	uint32_t s = (t / 1000);
-	static char buf[32];
-
-	// days
-	int days = (s / 86400UL);
-	if (days > 0) {
-		#if (LANGUAGE == DE)
-			sprintf(buf, "%d Tage, ", days);
-		#else
-			sprintf(buf, "%d days, ", days);
-		#endif
-		sTime = buf;
-	}
-	// hours, minues & seconds
-	int hours = (s % 86400UL) / 3600UL;
-	int minutes = (s / 60UL) % 60UL;
-	int seconds = (s % 60UL);
-	sprintf(buf, "%02d:%02d:%02d", hours, minutes, seconds);
-	sTime+= buf;
-	return sTime;
-}
-
 void webserverStart(void) {
 	if (Wlan_IsConnected() && !webserverStarted) {
 		// attach AsyncWebSocket for Mgmt-Interface
@@ -333,51 +309,8 @@ void webserverStart(void) {
 			request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
 		});
 
-		// software/wifi/heap/psram-info
-		wServer.on(
-			"/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-				char buffer[128];
-				String info = "ESPuino " + (String) softwareRevision;
-				info += "\nESPuino " + (String) gitRevision;
-				info += "\nArduino version: " + String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH) + " (ESP-IDF " + String(ESP.getSdkVersion()) + ")";
-				info += "\nHardware: " + String(ESP.getChipModel()) +  ", Revision " + String(ESP.getChipRevision()) + ", CPU: " + String((unsigned long)ESP.getCpuFreqMHz()) + "MHZ";
-				#if (LANGUAGE == DE)
-					info += "\nFreier Heap: " + String(ESP.getFreeHeap()) + " Bytes";
-					info += "\nGroesster freier Heap-Block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " Bytes";
-					info += "\nFreier PSRAM: ";
-					info += (!psramInit()) ? "nicht verfuegbar" : String(ESP.getFreePsram());
-					if (Wlan_IsConnected()) {
-						IPAddress myIP = WiFi.localIP();
-						info += "\nAktuelle IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
-						info += "\nWLAN-Signalstaerke: " + String((int8_t)Wlan_GetRssi()) + " dBm";
-					}
-					info += "\nAudio-Gesamtspielzeit: " + formatTimeToStr(AudioPlayer_GetPlayTimeAllTime()) + " (seit letztem Start: " + formatTimeToStr(AudioPlayer_GetPlayTimeSinceStart()) + ")";
-				#else
-					info += "\nFree heap: " + String(ESP.getFreeHeap()) + " bytes";
-					info += "\nLargest free heap-block: " + String((uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)) + " bytes";
-					info += "\nFree PSRAM: ";
-					info += (!psramInit()) ? "not available" : String(ESP.getFreePsram());
-					if (Wlan_IsConnected()) {
-						IPAddress myIP = WiFi.localIP();
-						info += "\nCurrent IP: " + String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
-						info += "\nWiFi signal-strength: " + String((int8_t)Wlan_GetRssi()) + " dBm";
-					}
-					info += "\nAudio total playtime: " + secondsToTimeStr(AudioPlayer_GetPlayTimeSecsAllTime()) + " (since last start: " + secondsToTimeStr(AudioPlayer_GetPlayTimeSecsSinceStart()) + ")";
-				#endif
-				#ifdef BATTERY_MEASURE_ENABLE
-					snprintf(buffer, sizeof(buffer), currentVoltageMsg, Battery_GetVoltage());
-					info += "\n" + String(buffer);
-					snprintf(buffer, sizeof(buffer), currentChargeMsg, Battery_EstimateLevel() * 100);
-					info += "\n" + String(buffer);
-				#endif
-                #ifdef HALLEFFECT_SENSOR_ENABLE
-					uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
-					int diff = sva-gHallEffectSensor.NullFieldValue();
-					snprintf(buffer, sizeof(buffer), "\nHallEffectSensor NullFieldValue:%d, actual:%d, diff:%d, LastWaitFor_State:%d (waited:%d ms)", gHallEffectSensor.NullFieldValue(), sva, diff, gHallEffectSensor.LastWaitForState(), gHallEffectSensor.LastWaitForStateMS());
-					info += buffer;
-                #endif
-				request->send_P(200, "text/plain", info.c_str());
-			});
+		// info
+		wServer.on("/info", HTTP_GET, handleGetInfo);
 
 		// NVS-backup-upload
 		wServer.on(
@@ -801,6 +734,87 @@ static void settingsToJSON(JsonObject obj, String section) {
 		}
 	#endif
 }
+
+// handle get info
+void handleGetInfo(AsyncWebServerRequest *request) {
+
+	// param to get a single info section
+	String section = "";
+	if (request->hasParam("section")) {
+		section = request->getParam("section")->value();
+	}
+	#ifdef BOARD_HAS_PSRAM
+		SpiRamJsonDocument doc(512);
+	#else
+		StaticJsonDocument<512> doc;
+	#endif
+	JsonObject infoObj = doc.createNestedObject("info");
+	// software
+	if ((section == "") || (section == "software")) {
+		JsonObject softwareObj = infoObj.createNestedObject("software");
+		softwareObj["version"] = (String) softwareRevision;
+		softwareObj["git"] = (String) gitRevision;
+		softwareObj["arduino"] = String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH);
+		softwareObj["idf"] = String(ESP.getSdkVersion());
+	}
+	// hardware
+	if ((section == "") || (section == "hardware")) {
+		JsonObject hardwareObj = infoObj.createNestedObject("hardware");
+		hardwareObj["model"] = String(ESP.getChipModel());
+		hardwareObj["revision"] = ESP.getChipRevision();
+		hardwareObj["freq"] = ESP.getCpuFreqMHz();
+	}
+	// memory
+	if ((section == "") || (section == "memory")) {
+		JsonObject memoryObj = infoObj.createNestedObject("memory");
+		memoryObj["freeHeap"] = ESP.getFreeHeap();
+		memoryObj["largestFreeBlock"] = (uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+		if (psramInit()) {
+			memoryObj["freePSRam"] = ESP.getFreePsram();
+		}
+	}
+	// wifi
+	if ((section == "") || (section == "wifi")) {
+		JsonObject wifiObj = infoObj.createNestedObject("wifi");
+		IPAddress myIP = WiFi.localIP();
+		wifiObj["ip"] = String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
+		wifiObj["rssi"] = (int8_t)Wlan_GetRssi();
+	}
+	// audio
+	if ((section == "") || (section == "audio")) {
+		JsonObject audioObj = infoObj.createNestedObject("audio");
+		audioObj["playtimeTotal"] = AudioPlayer_GetPlayTimeAllTime();
+		audioObj["playtimeSinceStart"] = AudioPlayer_GetPlayTimeSinceStart();
+	}
+	#ifdef BATTERY_MEASURE_ENABLE
+		// battery
+		if ((section == "") || (section == "battery")) {
+			JsonObject batteryObj = infoObj.createNestedObject("battery");
+			batteryObj["currVoltage"] = Battery_GetVoltage();
+			batteryObj["chargeLevel"] = Battery_EstimateLevel() * 100;
+		}
+	#endif
+    #ifdef HALLEFFECT_SENSOR_ENABLE
+		if ((section == "") || (section == "hallsensor")) {
+			// hallsensor
+			JsonObject hallObj = infoObj.createNestedObject("hallsensor");
+			uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
+			int diff = sva-gHallEffectSensor.NullFieldValue();
+
+			hallObj["nullFieldValue"] =gHallEffectSensor.NullFieldValue();
+			hallObj["actual"] = sva;
+			hallObj["diff"] = diff;
+			hallObj["lastWaitState"] = gHallEffectSensor.LastWaitForState();
+			hallObj["lastWaitMS"] = gHallEffectSensor.LastWaitForStateMS();
+		}
+    #endif
+
+	String serializedJsonString;
+	serializeJson(infoObj, serializedJsonString);
+	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+}
+
+
 
 // handle get settings
 void handleGetSettings(AsyncWebServerRequest *request) {
