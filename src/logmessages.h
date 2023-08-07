@@ -245,3 +245,5 @@ extern const char wifiUpdateNetwork[];
 extern const char wifiScanResult[];
 extern const char cantConnectToWifi[];
 extern const char wifiSetLastSSID[];
+extern const char mDNSStarted[];
+extern const char mDNSFailed[];

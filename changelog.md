@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 07.08.2023: LOG message for starting mDNS service
 * 04.08.2023: Support for .oga audio files (Ogg Vorbis Audio container)
 * 04.08.2023: Web-UI: Replace the template processor (#253)
 * 02.08.2023: Bugfix M3U-playlist + PREVIOUSTRACK, thank's to @Niko!

@@ -321,6 +321,9 @@ void handleWifiStateConnectionSuccess() {
 		// zero conf, make device available as <hostname>.local
 		if (MDNS.begin(hostname.c_str())) {
 			MDNS.addService("http", "tcp", 80);
+			Log_Printf(LOGLEVEL_NOTICE, mDNSStarted, hostname.c_str());
+		} else {
+			Log_Printf(LOGLEVEL_ERROR, mDNSFailed, hostname.c_str());
 		}
 	#endif
 	delete dnsServer;
