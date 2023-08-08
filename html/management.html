@@ -169,7 +169,7 @@
 				<h5 class="modal-title">Infos</h5>
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
 			</div>
-			<div class="modal-body" style="white-space: pre">
+			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
@@ -1823,6 +1823,53 @@
 			setTimeout(tryRedirect, 2000);
 		}
 	}
+
+	function timestampToDuration(ms, withSeconds) {
+		if (ms == 0) {
+			return "--";
+		}
+		seconds = Number(ms/1000);
+		var d = Math.floor(seconds / (3600*24));
+		var h = Math.floor(seconds % (3600*24) / 3600);
+		var m = Math.floor(seconds % 3600 / 60);
+		var s = Math.floor(seconds % 60);
+
+		var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
+		var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
+		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") + ", " : " " + i18next.t("datetime.minutes") + ", ") : "";
+		if (withSeconds) {
+			var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
+			return dDisplay + hDisplay + mDisplay + sDisplay;
+		}
+		return dDisplay + hDisplay + mDisplay;
+	}
+
+	async function showInfoDialog() {
+		$('.modal-title').text(i18next.t("systeminfo.title"));
+		let info = await (await fetch("/info")).json();
+		console.log(info);
+		let content = i18next.t("systeminfo.softwareversion", { softwareversion: info.software.version }) + "\n";
+		content += i18next.t("systeminfo.gitversion", { gitversion: info.software.git }) + "\n";
+		content += i18next.t("systeminfo.arduinoversion", { arduinoversion: info.software.arduino, idfversion: info.software.idf }) + "\n";
+		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "\n";
+		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "\n";
+		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "\n";
+		content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
+		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
+		content += i18next.t("systeminfo.audiotime", { audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false), audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
+		if (info.battery) {
+			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
+			content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
+		}
+		if (info.hallsensor) {
+			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff, 
+				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
+		}
+		$('#modalInfoContent').text(content);
+		$('#modalInfo').modal({show: true});
+	}
+
 	$(document).ready(function () {
 		connect();
 		buildFileSystemTree("/");
@@ -1834,12 +1881,7 @@
 			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
 		})
 
-		$('.openPopupInfo').on('click', function(){
-			$('.modal-title').text(i18next.t("info"));
-			$('.modal-body').load("/info", function(){
-				$('#modalInfo').modal({show: true});
-			});
-		}); 
+		$('.openPopupInfo').on('click', showInfoDialog); 
 		$('.openPopupLog').on('click', function(){
 			$('.modal-title').text(i18next.t("log"));
 			$('.modal-body').load("/log", function(){
