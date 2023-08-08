@@ -337,7 +337,7 @@ void AudioPlayer_Task(void *parameter) {
 	uint8_t settleCount = 0;
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
-	audio->setVolume(AudioPlayer_CurrentVolume);
+	audio->setVolume(AudioPlayer_CurrentVolume,VOLUMECURVE);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	if (gPlayProperties.currentPlayMono) {
 		audio->setTone(3, 0, 0);
@@ -356,7 +356,7 @@ void AudioPlayer_Task(void *parameter) {
 		*/
 		if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
 			Log_Printf(LOGLEVEL_INFO, newLoudnessReceivedQueue, currentVolume);
-			audio->setVolume(currentVolume);
+			audio->setVolume(currentVolume,VOLUMECURVE);
 			Web_SendWebsocketData(0, 50);
 			#ifdef MQTT_ENABLE
 				publishMqtt(topicLoudnessState, currentVolume, false);
