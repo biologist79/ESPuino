@@ -1,5 +1,7 @@
 ## DEV-branch
 
+* 08.08.2023: Configurable volumecurve #256, thank's to @Niko & @Wolle
+* 08.08.2023: Refactor "/info" endpoint to make frontend/backend more independant #257 
 * 07.08.2023: LOG message for starting mDNS service
 * 04.08.2023: Support for .oga audio files (Ogg Vorbis Audio container)
 * 04.08.2023: Web-UI: Replace the template processor (#253)
