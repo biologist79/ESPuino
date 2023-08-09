@@ -38,6 +38,7 @@
 	const char repeatPlaylistDueToPlaymode[] = "Repeating playlist due to playmode configured.";
 	const char cmndStop[] = "Command: stop";
 	const char cmndPause[] = "Command: pause";
+	const char cmndResumeFromPause[] = "Command: resume";
 	const char cmndNextTrack[] = "Command: next track";
 	const char cmndPrevTrack[] = "Command: previous track";
 	const char cmndFirstTrack[] = "Command: first track of playlist";

@@ -438,7 +438,11 @@ void AudioPlayer_Task(void *parameter) {
 				case PAUSEPLAY:
 					trackCommand = NO_ACTION;
 					audio->pauseResume();
-					Log_Println(cmndPause, LOGLEVEL_INFO);
+					if (gPlayProperties.pausePlay) {
+						Log_Println(cmndResumeFromPause, LOGLEVEL_INFO);
+					} else {
+						Log_Println(cmndPause, LOGLEVEL_INFO);
+					}
 					if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 						Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);

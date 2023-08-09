@@ -38,6 +38,7 @@
 	const char repeatPlaylistDueToPlaymode[] = "Wiederhole Playlist aufgrund von Playmode.";
 	const char cmndStop[] = "Kommando: Stop";
 	const char cmndPause[] = "Kommando: Pause";
+	const char cmndResumeFromPause[] = "Kommando: Fortsetzen";
 	const char cmndNextTrack[] = "Kommando: Nächster Titel";
 	const char cmndPrevTrack[] = "Kommando: Vorheriger Titel";
 	const char cmndFirstTrack[] = "Kommando: Erster Titel von Playlist";

@@ -1173,8 +1173,6 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
-	uint32_t listStartTimestamp = millis();
-	//DynamicJsonDocument jsonBuffer(8192);
 	#ifdef BOARD_HAS_PSRAM
 		SpiRamJsonDocument jsonBuffer(65636);
 	#else
@@ -1221,7 +1219,6 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
-	Log_Printf(LOGLEVEL_DEBUG, "build filelist finished: %lu ms", (millis() - listStartTimestamp));
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 

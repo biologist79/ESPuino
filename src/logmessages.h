@@ -34,6 +34,7 @@ extern const char repeatTrackDueToPlaymode[];
 extern const char repeatPlaylistDueToPlaymode[];
 extern const char cmndStop[];
 extern const char cmndPause[];
+extern const char cmndResumeFromPause[];
 extern const char cmndNextTrack[];
 extern const char cmndPrevTrack[];
 extern const char cmndFirstTrack[];
