@@ -76,7 +76,7 @@
 	const char modeWebstream[] = "Modus: Webstream";
 	const char modeWebstreamM3u[] = "Modus: Webstream (lokale .m3u-Datei)";
 	const char webstreamNotAvailable[] = "Aktuell kein Webstream möglich, da keine WLAN-Verbindung vorhanden!";
-	const char modeDoesNotExist[] = "Abspielmodus existiert nicht!";
+	const char modeInvalid[] = "Ungültiger Abspielmodus %d!";
 	const char modeRepeatNone[] = "Repeatmodus: Kein Repeat";
 	const char modeRepeatTrack[] = "Repeatmodus: Aktueller Titel";
 	const char modeRepeatPlaylist[] = "Repeatmodus: Gesamte Playlist";

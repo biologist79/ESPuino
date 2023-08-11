@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 08.08.2023: check & avoid excessive "PING" calls from web-ui
 * 08.08.2023: Configurable volumecurve #256, thank's to @Niko & @Wolle
 * 08.08.2023: Refactor "/info" endpoint to make frontend/backend more independant #257 
 * 07.08.2023: LOG message for starting mDNS service

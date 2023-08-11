@@ -134,7 +134,8 @@
                     "14":"Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
                     "8":"Webradio",
                     "11":"Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
-                }
+                },
+                "error": "Kein gültiger Abspielmodus"
             },
             "mod": {
                 "title": "Modifikation",

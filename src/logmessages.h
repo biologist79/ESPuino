@@ -72,7 +72,7 @@ extern const char modeAllTrackRandomLoop[];
 extern const char modeWebstream[];
 extern const char modeWebstreamM3u[];
 extern const char webstreamNotAvailable[];
-extern const char modeDoesNotExist[];
+extern const char modeInvalid[];
 extern const char modeRepeatNone[];
 extern const char modeRepeatTrack[];
 extern const char modeRepeatPlaylist[];

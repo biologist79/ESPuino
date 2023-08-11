@@ -765,7 +765,7 @@
     }, (err, t) => {	
 		localize = locI18next.init(i18next);
 		localize('body');
-
+		toastr.clear();
 		// change the language if we found it in the local storage
 		const lang = localStorage.getItem("language");
 		if(lang === null){
@@ -787,6 +787,7 @@
 		const lang = e.target.value;
 		console.log(lang);
 		if(lang !== i18next.language){
+			toastr.clear();
 			localStorage.setItem("language", lang);
 			i18next.changeLanguage(lang);
 		}
@@ -872,7 +873,7 @@
 			}
 		};
 		obj.error    = function(jqXHR, textStatus, errorThrown) {
-			console.log("AJAX error");
+			console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url );
 			/*debugger; */
 		};
 		jQuery.ajax(obj);
@@ -1385,11 +1386,13 @@
 		socket = new WebSocket("ws://" + host + "/ws");
 
 		socket.onopen = function () {
-			setInterval(ping, 15000);
-			socket.send('{"settings":{}}');		// request settings
-			socket.send('{"ssids":{}}');		// request SSIDs
-			socket.send('{"trackinfo":{}}');	// get current track
-			socket.send('{"coverimg":{}}');		// get cover image
+			setInterval(ping, 15000);	
+			// clear old socket messages
+    		socket.sendBuffer = [];
+			socket.send('{"settings":{"settings":"settings"}}');	// request settings
+			socket.send('{"ssids":{"ssids":"ssids"}}');				// get ssids
+			socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}');	// get trackinfo
+			socket.send('{"coverimg":{"coverimg":"coverimg"}}');	// get cover image
 		};
 
 		socket.onclose = function (e) {
@@ -1716,6 +1719,10 @@
 	function rfidAssign(clickedId) {
 		lastIdclicked = clickedId;
 		if (ActiveSubTab == 'rfid-music-tab') {
+			if (document.getElementById('playMode').value <= 0) {
+				console.log("rfidAssign error: no playmode selected");
+				toastr.error(i18next.t("rfid.playmode.error"));
+			}				
 			var myObj = {
 				"rfidAssign": {
 					rfidIdMusic: document.getElementById('rfidIdMusic').value,

@@ -1055,7 +1055,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		}
 
 		default:
-			Log_Println(modeDoesNotExist, LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, modeInvalid, gPlayProperties.playMode);
 			gPlayProperties.playMode = NO_PLAYLIST;
 			System_IndicateError();
 	}

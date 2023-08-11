@@ -134,7 +134,8 @@
                     "14":"All tracks of a random subdirectory (random)",
                     "8":"Webradio",
                     "11":"List (files from SD and/or webstreams) from local .m3u-File"
-                }
+                },
+                "error": "Invalid playmode"
             },
             "mod": {
                 "title": "Mod",
