@@ -10,7 +10,7 @@
     "delete": "Löschen",
     "cancel": "Abbrechen",
     "restartinfo": "ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
-    "shutdowninfo": "ESPuino wird jetzt neu ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
+    "shutdowninfo": "ESPuino wird jetzt ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
     "toast": {
         "rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
         "success": "Aktion erfolgreich ausgeführt.",
