@@ -10,6 +10,7 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "restartinfo": "ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
+    "shutdowninfo": "ESPuino is now switched off...\n\nPage reloads automatically when the ESPuino is switched on again..",
     "toast": {
         "rfidDetect": "RFID-tag {{rfidId}} detected.",
         "success": "Action performed successfully.",
@@ -266,7 +267,8 @@
         "nvserase": {
             "title": "Erase NVS RFID-assignments",
             "desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
-            "button": "Delete assignments"
+            "button": "Delete assignments",
+            "prompt": "Erase all saved NVS RFID-assignments?"
         },
         "nvsimport": {
             "title": "NVS RFID-Importer",

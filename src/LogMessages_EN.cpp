@@ -76,7 +76,7 @@
 	const char modeWebstream[] = "Mode: webstream";
 	const char modeWebstreamM3u[] = "Mode: Webstream (local .m3u-file)";
 	const char webstreamNotAvailable[] = "Unable to access webstream as no wifi-connection is available!";
-	const char modeInvalid[] = "Invalid playmode %d!";
+	const char modeDoesNotExist[] = "Playmode does not exist!";
 	const char modeRepeatNone[] = "Repeatmode: no repeat";
 	const char modeRepeatTrack[] = "Repeatmode: current track";
 	const char modeRepeatPlaylist[] = "Repeatmode: whole playlist";
@@ -182,7 +182,7 @@
 	const char sdMountedSpiMode[] = "Mounting SD card in SPI-mode...";
 	const char backupRecoveryWebsite[] = "<p>Backup-file is being applied...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 	const char restartWebsite[] = "<p>ESPuino is being restarted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
-	const char shutdownWebsite[] = "<p>Der ESPuino is being shutdown...</p>";
+	const char shutdownWebsite[] = "Der ESPuino is being shutdown...";
 	const char mqttMsgReceived[] = "MQTT-message received: [Topic: %s] [Command: %s]";
 	const char trackPausedAtPos[] = "Track paused at position: %u (%u)";
 	const char freeHeapWithoutFtp[] = "Free heap before FTP-allocation: %u";
@@ -207,7 +207,6 @@
 	const char importCountNokNvs[] = "Number of invalid import-entries: %u";
 	const char errorReadingTmpfile[] = "Error occured while reading from import-tmpfile";
 	const char errorWritingTmpfile[] = "Error occured while writing to import-tmpfile";
-	const char eraseRfidNvsWeb[] = "<p>NVS-RFID-assignments are being deleted...<br />Back to <a href=\"javascript:history.back()\">last page</a>.</p>";
 	const char eraseRfidNvs[] = "NVS-RFID-assignments are being deleted...";
 	const char fwStart[] = "Starting firmware-update via OTA...";
 	const char fwEnd[] = "Firmware-update finished";

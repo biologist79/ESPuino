@@ -10,6 +10,7 @@
     "delete": "Löschen",
     "cancel": "Abbrechen",
     "restartinfo": "ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
+    "shutdowninfo": "ESPuino wird jetzt neu ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
     "toast": {
         "rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
         "success": "Aktion erfolgreich ausgeführt.",
@@ -266,7 +267,8 @@
         "nvserase": {
             "title": "NVS RFID-Zuweisungen löschen",
             "desc": "Über den Importer werden lediglich neue Einträge importiert, jedoch keine bestehenden Einträge aktiv gelöscht. Im Falle einer doppelten Zuweisung wird ein Eintrag allenfalls überschrieben. Mit dieser Funktion können alle bestehenden NVS-RFID-Zuweisungen gelöscht werden, so dass der ESPuino im Anschluss keinerlei Karten mehr kennt. Wird im Anschluss der Importer gestartet, befinden sich im Speicher des ESPuino anschließend exakt nur solche Zuweisungen, die Teil der Backup-Datei sind. Weitere Infos gibt es <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">hier</a>.",
-            "button": "Zuweisungen löschen"
+            "button": "Zuweisungen löschen",
+            "prompt": "Alle RFID-Zuweisungen wirklich löschen?"
         },
         "nvsimport": {
             "title": "NVS RFID-Importer",

@@ -182,7 +182,7 @@
 	const char sdMountedSpiMode[] = "Versuche SD-Karte im SPI-Modus zu mounten...";
 	const char backupRecoveryWebsite[] = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char restartWebsite[] = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
-	const char shutdownWebsite[] = "<p>Der ESPuino wird ausgeschaltet...</p>";
+	const char shutdownWebsite[] = "Der ESPuino wird ausgeschaltet...";
 	const char mqttMsgReceived[] = "MQTT-Nachricht empfangen: [Topic: %s] [Command: %s]";
 	const char trackPausedAtPos[] = "Titel pausiert bei Position: %u (%u)";
 	const char freeHeapWithoutFtp[] = "Freier Heap-Speicher vor FTP-Instanzierung: %u";
@@ -207,7 +207,6 @@
 	const char importCountNokNvs[] = "Anzahl der ungültigen Import-Einträge: %u";
 	const char errorReadingTmpfile[] = "Beim Lesen der temporären Importdatei ist ein Fehler aufgetreten!";
 	const char errorWritingTmpfile[] = "Beim Schreiben der temporären Importdatei ist ein Fehler aufgetreten!";
-	const char eraseRfidNvsWeb[] = "<p>Die NVS-RFID-Zuweisungen werden gel&ouml;scht...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char eraseRfidNvs[] = "NVS-RFID-Zuweisungen werden gelöscht...";
 	const char fwStart[] = "Starte Firmware-update via OTA...";
 	const char fwEnd[] = "Firmware-update beendet";

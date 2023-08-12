@@ -4,16 +4,17 @@
 	<title data-i18n="title">ESPuino-Settings</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon">
-	<link rel="stylesheet" href="https://espuino.de/espuino/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
-	<script src="https://espuino.de/espuino/js/jquery.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
-	<script src="https://espuino.de/espuino/js/popper.min.js"></script>
-	<script src="https://espuino.de/espuino/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
@@ -152,7 +153,7 @@
 		ESPuino
 	</a>
 	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
-	<a class="reboot float-right nav-link" href="/shutdown"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
+	<a class="reboot float-right nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
 	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
 	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
 	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
@@ -190,6 +191,24 @@
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal dialog for delete NVS RFID assignments -->
+<div class="modal fade" id="deleteNVSRFIDModal" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<label data-i18n="tools.nvserase.prompt"></label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<a class="btn btn-danger btn-ok" data-i18n="delete" href="javascript:eraseNVSRFID();"></a>
 			</div>
 		</div>
 	</div>
@@ -354,7 +373,7 @@
 	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 		<div class="container" id="filetreeContainer">
 			<fieldset>
-				<legend data-i18n="files.title">Files</legend>
+				<legend id="fileslegend" data-i18n="files.title">Files</legend>
 				<div class="filetree-container">
 				<div id="filebrowser">
 					<div class="filetree demo" id="explorerTree"></div>
@@ -373,7 +392,7 @@
 					</form>
 					<br>
 					<div class="progress">
-						<div id="explorerUploadProgress" class="progress-bar" role="progressbar" ></div>
+						<div id="explorerUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="fileslegend"></div>
 					</div>
 				</div>
 				<br>
@@ -382,19 +401,19 @@
 		</div>
 		<div class="container" id="rfidMusicTags">
 			<fieldset>
-				<legend data-i18n="files.rfid.title">RFID-Assignments</legend>
+				<legend id="rfidMusicTagsAssignment"" data-i18n="files.rfid.title">RFID-Assignments</legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 				<div class="form-group col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 						   placeholder="" name="rfidIdMusic" required>
 					<br>
-					<ul class="nav nav-tabs" id="SubTab" role="tablist">
-						<li class="nav-item">
-							<a class="nav-link active" id="rfid-music-tab" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
+					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">>
+						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
+							<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
 						</li>
-						<li class="nav-item">
-							<a class="nav-link" id="rfid-mod-tab" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
+						<li class="nav-item" role="tab" aria-labelledby="rfid-mod-tab">
+							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
 						</li>
 					</ul>
 					<div class="tab-content" id="SubTabContent">
@@ -667,12 +686,10 @@
 	<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 		<div class="container" id="eraseNvs">
 			<legend data-i18n="tools.nvserase.title"></legend>
-			<form action="/rfidnvserase" enctype="multipart/form-data" method="GET">
 				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button"></button>
-			</form>
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>				
 		</div>
 		<br />
 		<br />
@@ -689,14 +706,14 @@
 		<br />
 		<br />
 		<div class="container" id="httpUpdate">
-			<legend data-i18n="tools.fwupdate.title"></legend>
+			<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 			<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 				<div class="form-group">
 					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
 					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 				</div>
 				<div class="progress">
-					<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" ></div>
+					<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
 				</div>
 				<br>
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
@@ -924,6 +941,17 @@
 		$('#modalInfo').modal({show: true});
 	} /* restart */
 
+	async function shutdownDevice() {
+		console.log("shutdown..");
+		await fetch("/shutdown", {method: "POST"});
+		$('.modal-title').text(i18next.t("shutdown"));
+		$('.modal-body').text(i18next.t("shutdowninfo"));
+		$(".modal-body").removeAttr("style");
+		$('#modalInfo').modal({show: true});
+		setTimeout(function() {
+			tryRedirect();
+		}, 2000);
+	} /* restart */
 
 	/* Firmware Upload (OTA) */
 	$('#firmwareUploadForm').submit(function(e){
@@ -1386,7 +1414,7 @@
 		socket = new WebSocket("ws://" + host + "/ws");
 
 		socket.onopen = function () {
-			setInterval(ping, 15000);	
+			setInterval(ping, 15000);
 			// clear old socket messages
     		socket.sendBuffer = [];
 			socket.send('{"settings":{"settings":"settings"}}');	// request settings
@@ -1613,6 +1641,16 @@
 		await rebuildSSIDList();
 	}
 
+	async function eraseNVSRFID(ssid) {
+		console.log("erase all NVS RFIDs");
+		$('#deleteNVSRFIDModal').modal('hide');
+		var response = await fetch("/rfidnvserase", {method: "POST"});
+		if (response.ok) {
+			toastr.success(i18next.t("toast.success"));
+		} else {
+			toastr.error(response.statusText);
+		}
+	}
 
 	function ping() {
 		var myObj = {
@@ -1719,10 +1757,6 @@
 	function rfidAssign(clickedId) {
 		lastIdclicked = clickedId;
 		if (ActiveSubTab == 'rfid-music-tab') {
-			if (document.getElementById('playMode').value <= 0) {
-				console.log("rfidAssign error: no playmode selected");
-				toastr.error(i18next.t("rfid.playmode.error"));
-			}				
 			var myObj = {
 				"rfidAssign": {
 					rfidIdMusic: document.getElementById('rfidIdMusic').value,
@@ -1898,6 +1932,10 @@
 		$('.openPopupRestart').on('click', function(){
 			restartDevice();
 		}); 
+		$('.openPopupShutdown').on('click', function(){
+			shutdownDevice();
+		}); 
+		
 		console.log(parseInt(document.getElementById('warningLowVoltage').value));
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();

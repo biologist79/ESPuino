@@ -241,12 +241,8 @@ void Web_Init(void) {
 		System_Restart();
 	});
 
-	wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
-	#if (LANGUAGE == DE)
+	wServer.on("/shutdown", HTTP_POST, [](AsyncWebServerRequest *request) {
 		request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
-	#else
-		request->send(200, "text/html", "ESPuino is being shutdown...");
-		#endif
 		System_RequestSleep();
 	});
 
@@ -307,6 +303,7 @@ void webserverStart(void) {
 		// Log
 		wServer.on("/log", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->send(200, "text/plain; charset=utf-8", Log_GetRingBuffer());
+			System_UpdateActivityTimer();
 		});
 
 		// info
@@ -371,17 +368,22 @@ void webserverStart(void) {
 		});
 
 		// ESP-shutdown
-		wServer.on("/shutdown", HTTP_GET, [](AsyncWebServerRequest *request) {
-			request->send_P(200, "text/html", shutdownWebsite);
+		wServer.on("/shutdown", HTTP_POST, [](AsyncWebServerRequest *request) {
+			request->send(200, "text/html", shutdownWebsite);
 			System_RequestSleep();
 		});
 
-		// NVS erase
-		wServer.on("/rfidnvserase", HTTP_GET, [](AsyncWebServerRequest *request) {
-			request->send_P(200, "text/html", eraseRfidNvsWeb);
+		// erase all RFID-assignments from NVS
+		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
 			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);
-			gPrefsRfid.clear();
-			Web_DumpNvsToSd("rfidTags", backupFile);
+			if (gPrefsRfid.clear()) {
+				request->send(200);
+			} else {
+				request->send(500);
+			}
+			// make a backup
+			Web_DumpNvsToSd("rfidTags", backupFile);	
+			System_UpdateActivityTimer();		
 		});
 
 
@@ -432,7 +434,7 @@ void webserverStart(void) {
 				request->send(gFSystem, "/.html/logo.svg", "image/svg+xml");
 				return;
 			};
-			request->redirect("https://www.espuino.de/espuino/Espuino32.png");
+			request->redirect("https://www.espuino.de/Espuino.webp");
 		});
 		// ESPuino favicon
 		wServer.on("/favicon", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -743,8 +745,8 @@ static void settingsToJSON(JsonObject obj, String section) {
 			} else {
 				btObj["deviceName"] = "";
 			}
-			if (gPrefsSettings.isKey("pinCode")) {
-				btObj["pinCode"] = gPrefsSettings.getString("pinCode", "");
+			if (gPrefsSettings.isKey("btPinCode")) {
+				btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
 			} else {
 				btObj["pinCode"] = "";
 			}
@@ -829,6 +831,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	String serializedJsonString;
 	serializeJson(infoObj, serializedJsonString);
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+	System_UpdateActivityTimer();
 }
 
 
