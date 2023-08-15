@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 15.08.2023: Web-ui: Change /restart endpoint to POST, refresh button for info & log modal
 * 12.08.2023: Web-ui improvements
 * 08.08.2023: check & avoid excessive "PING" calls from web-ui
 * 08.08.2023: Configurable volumecurve #256, thank's to @Niko & @Wolle

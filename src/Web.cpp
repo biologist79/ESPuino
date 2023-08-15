@@ -227,7 +227,7 @@ void Web_Init(void) {
 	wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
 	wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
 
-	wServer.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {
+	wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
 		String url = "http://" + Wlan_GetHostname() + ".local";
 		String html = "<!DOCTYPE html>";
 		#if (LANGUAGE == DE)
@@ -465,6 +465,7 @@ void webserverStart(void) {
 		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 		wServer.begin();
 		webserverStarted = true;
+		Log_Println(httpReady, LOGLEVEL_NOTICE);
 	}
 }
 
@@ -804,6 +805,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject audioObj = infoObj.createNestedObject("audio");
 		audioObj["playtimeTotal"] = AudioPlayer_GetPlayTimeAllTime();
 		audioObj["playtimeSinceStart"] = AudioPlayer_GetPlayTimeSinceStart();
+		audioObj["firstStart"] = gPrefsSettings.getULong("firstStart", 0); 
 	}
 	#ifdef BATTERY_MEASURE_ENABLE
 		// battery

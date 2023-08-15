@@ -9,6 +9,7 @@
     "info": "Info",
     "delete": "Löschen",
     "cancel": "Abbrechen",
+    "refresh": "Aktualisieren",
     "restartinfo": "ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
     "shutdowninfo": "ESPuino wird jetzt ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
     "toast": {
@@ -304,7 +305,8 @@
         "freepsram": "Freier PS-RAM: {{freepsram}} Bytes",
         "currentip": "Aktuelle IP-Adresse: {{currentip}}",
         "rssi": "WLAN Signalstärke: {{rssi}} dBm",
-        "audiotime": "Audio-Gesamtspielzeit: {{audiotimetotal}} (seit letztem Start: {{audiotimesincestart}})", 
+        "audiotimetotal": "Audio-Gesamtspielzeit seit {{firststart}}: {{audiotimetotal}}",
+        "audiotimesincestart": "Spielzeit seit letztem Start: {{audiotimesincestart}}", 
         "currvoltage": "Aktuelle Batteriespannung: {{currvoltage}} V", 
         "chargelevel": "Aktuelle Batterieladung: {{chargelevel}} %", 
         "hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)" 

@@ -173,6 +173,7 @@
 			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 			</div>
 			<div class="modal-footer">
+				<button type="button" id="modalInfoRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
 				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
 			</div>
 		</div>
@@ -689,7 +690,7 @@
 				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>				
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" xx></button>				
 		</div>
 		<br />
 		<br />
@@ -1865,6 +1866,13 @@
 		}
 	}
 
+	function secondsToDate(seconds) {
+		if (seconds == 0) {
+			return "--";
+		}
+		return new Date(seconds * 1000).toLocaleDateString(i18next.lang);
+	}
+
 	function timestampToDuration(ms, withSeconds) {
 		if (ms == 0) {
 			return "--";
@@ -1877,7 +1885,7 @@
 
 		var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
 		var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
-		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") + ", " : " " + i18next.t("datetime.minutes") + ", ") : "";
+		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") + ", " : " " + i18next.t("datetime.minutes")) : "";
 		if (withSeconds) {
 			var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
 			return dDisplay + hDisplay + mDisplay + sDisplay;
@@ -1885,8 +1893,7 @@
 		return dDisplay + hDisplay + mDisplay;
 	}
 
-	async function showInfoDialog() {
-		$('.modal-title').text(i18next.t("systeminfo.title"));
+	async function fetchInfo() {
 		let info = await (await fetch("/info")).json();
 		console.log(info);
 		let content = i18next.t("systeminfo.softwareversion", { softwareversion: info.software.version }) + "\n";
@@ -1898,7 +1905,10 @@
 		content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
 		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
 		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
-		content += i18next.t("systeminfo.audiotime", { audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false), audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
+		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
+		if (info.audio.playtimeSinceStart > 0) {
+			content += i18next.t("systeminfo.audiotimesincestart", { audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
+		}	
 		if (info.battery) {
 			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
 			content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
@@ -1908,7 +1918,11 @@
 				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
 		}
 		$('#modalInfoContent').text(content);
-		$('#modalInfo').modal({show: true});
+	}
+
+	async function fetchLog() {
+		let logtext = await (await fetch("/log")).text();
+		$('#modalInfoContent').text(logtext);
 	}
 
 	$(document).ready(function () {
@@ -1922,13 +1936,18 @@
 			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
 		})
 
-		$('.openPopupInfo').on('click', showInfoDialog); 
-		$('.openPopupLog').on('click', function(){
+		$('.openPopupInfo').on('click', function () {
+			fetchInfo();
+			$('.modal-title').text(i18next.t("systeminfo.title"));
+			$('#modalInfoRefresh').on('click', fetchInfo); 
+			$('#modalInfo').modal({show: true});
+		})
+		$('.openPopupLog').on('click', function () {
+			fetchLog();
 			$('.modal-title').text(i18next.t("log"));
-			$('.modal-body').load("/log", function(){
-				$('#modalInfo').modal({show: true});
-			});
-		}); 
+			$('#modalInfoRefresh').on('click', fetchLog); 
+			$('#modalInfo').modal({show: true});
+		})
 		$('.openPopupRestart').on('click', function(){
 			restartDevice();
 		}); 

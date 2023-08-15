@@ -285,13 +285,17 @@ void handleWifiStateScanConnect() {
 void ntpTimeAvailable(struct timeval *t)
 {
 	struct tm timeinfo;
-	if(!getLocalTime(&timeinfo)){
+	if(!getLocalTime(&timeinfo)) {
 		Log_Println(ntpFailed, LOGLEVEL_NOTICE);
 		return;
 	}
 	static char timeStringBuff[255];
 	snprintf(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, timeinfo.tm_mday,  timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
+	// set ESPuino's very first start date
+	if (!gPrefsSettings.isKey("firstStart")) {
+		gPrefsSettings.putULong("firstStart", t->tv_sec);
+	}
 }
 
 static bool initialStart = true;
