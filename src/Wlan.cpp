@@ -582,8 +582,6 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 
 	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
 	dnsServer->start(DNS_PORT, "*", ip);
-
-	Web_Init();
 }
 
 // Reads stored WiFi-status from NVS

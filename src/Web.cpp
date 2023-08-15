@@ -200,64 +200,6 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 	json = String();
 }
 
-void Web_Init(void) {
-	wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-		AsyncWebServerResponse *response;
-
-		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-		const bool etag = false;
-		if (etag)
-			response = request->beginResponse(304);
-		else {
-			response = request->beginResponse_P(200, "text/html", (const uint8_t *)accesspoint_BIN, sizeof(accesspoint_BIN));
-			response->addHeader("Content-Encoding", "gzip");
-		}
-		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
-		request->send(response);
-	});
-
-	wServer.onNotFound([](AsyncWebServerRequest *request) {
-		request->redirect("/");
-	});
-
-	WWWData::registerRoutes(serveProgmemFiles);
-
-	wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
-	wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
-	wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
-
-	wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
-		String url = "http://" + Wlan_GetHostname() + ".local";
-		String html = "<!DOCTYPE html>";
-		#if (LANGUAGE == DE)
-			html += "Der ESPuino wird neu gestartet...<br>Management Website: ";
-		#else
-			html += "ESPuino is being restarted...<br>Management website: ";
-		#endif
-		html += "<a href=\"" + url + "\">" + url + "</a>";
-		html += "<script>async function tryRedirect() {try {var url = \"" + url + "\";const response = await fetch(url);window.location.href = url;} catch (error) {console.log(error);setTimeout(tryRedirect, 2000);}}tryRedirect();</script>";
-		request->send(200, "text/html", html);
-		System_Restart();
-	});
-
-	wServer.on("/shutdown", HTTP_POST, [](AsyncWebServerRequest *request) {
-		request->send(200, "text/html", "ESPuino wird ausgeschaltet...");
-		System_RequestSleep();
-	});
-
-	wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
-	// start a first WiFi scan (to get a WiFi list more quickly in webview)
-	WiFi.scanNetworks(true, false, true, 120);
-
-	// allow cors for local debug (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080)
-	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
-	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
-	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-	wServer.begin();
-	Log_Println(httpReady, LOGLEVEL_NOTICE);
-}
-
 void Web_Cyclic(void) {
 	webserverStart();
 	ws.cleanupClients();
@@ -268,7 +210,7 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void webserverStart(void) {
-	if (Wlan_IsConnected() && !webserverStarted) {
+	if (!webserverStarted && (Wlan_IsConnected() || (WiFi.getMode() == WIFI_AP))) {
 		// attach AsyncWebSocket for Mgmt-Interface
 		ws.onEvent(onWebsocketEvent);
 		wServer.addHandler(&ws);
@@ -286,10 +228,17 @@ void webserverStart(void) {
 			if (etag)
 				response = request->beginResponse(304);
 			else {
-				if (gFSystem.exists("/.html/index.htm"))
-					response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
-				else {
-					response = request->beginResponse_P(200, "text/html",  (const uint8_t *)management_BIN, sizeof(management_BIN));
+				if (WiFi.getMode() == WIFI_STA) {
+					// server management.html in station-mode
+					if (gFSystem.exists("/.html/index.htm"))
+						response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
+					else {
+						response = request->beginResponse_P(200, "text/html",  (const uint8_t *)management_BIN, sizeof(management_BIN));
+						response->addHeader("Content-Encoding", "gzip");
+				}
+				} else {
+					// server accesspoint.html in AP-mode
+					response = request->beginResponse_P(200, "text/html", (const uint8_t *)accesspoint_BIN, sizeof(accesspoint_BIN));
 					response->addHeader("Content-Encoding", "gzip");
 				}
 			}
@@ -461,7 +410,9 @@ void webserverStart(void) {
 
 		wServer.onNotFound(notFound);
 
-		// allow cors for local debug
+		// allow cors for local debug (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080)
+		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
+		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
 		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 		wServer.begin();
 		webserverStarted = true;
