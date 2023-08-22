@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 22.08.2023: Unify endpoints for accesspoint.html/management.html (#258)
 * 15.08.2023: Web-ui: Change /restart endpoint to POST, refresh button for info & log modal
 * 12.08.2023: Web-ui improvements
 * 08.08.2023: check & avoid excessive "PING" calls from web-ui

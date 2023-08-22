@@ -229,7 +229,7 @@ void webserverStart(void) {
 				response = request->beginResponse(304);
 			else {
 				if (WiFi.getMode() == WIFI_STA) {
-					// server management.html in station-mode
+					// serve management.html in station-mode
 					if (gFSystem.exists("/.html/index.htm"))
 						response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
 					else {
@@ -237,7 +237,7 @@ void webserverStart(void) {
 						response->addHeader("Content-Encoding", "gzip");
 				}
 				} else {
-					// server accesspoint.html in AP-mode
+					// serve accesspoint.html in AP-mode
 					response = request->beginResponse_P(200, "text/html", (const uint8_t *)accesspoint_BIN, sizeof(accesspoint_BIN));
 					response->addHeader("Content-Encoding", "gzip");
 				}
