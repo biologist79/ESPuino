@@ -452,8 +452,8 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("led")) {
 		// Neopixel settings
-		if (gPrefsSettings.putUInt("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUInt("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0 ) {
+		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0  ||
+			gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0 ) {
 				Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
 				return false;
 		}
@@ -630,8 +630,8 @@ static void settingsToJSON(JsonObject obj, String section) {
 		if ((section == "") || (section == "led")) {
 			// LED settings
 			JsonObject ledObj = obj.createNestedObject("led");
-			ledObj["initBrightness"].set(gPrefsSettings.getUInt("iLedBrightness", 0));
-			ledObj["nightBrightness"].set(gPrefsSettings.getUInt("nLedBrightness", 0));
+			ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
+			ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 		}
 	#endif
 	#ifdef MEASURE_BATTERY_VOLTAGE
