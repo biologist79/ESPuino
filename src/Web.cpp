@@ -71,6 +71,9 @@ static void handleGetWiFiConfig(AsyncWebServerRequest *request);
 static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
+static void handleGetRFIDRequest(AsyncWebServerRequest *request);
+static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
@@ -335,6 +338,11 @@ void webserverStart(void) {
 			System_UpdateActivityTimer();		
 		});
 
+		// RFID
+		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
+		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}") );
+		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
 
 		// WiFi scan
 		wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
@@ -1489,6 +1497,128 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
 		request->send(500, "text/plain; charset=utf-8", "error setting hostname");
 	}
 }
+
+static bool tagIdToJSON(String tagId, JsonObject entry)  {
+	String s = gPrefsRfid.getString(tagId.c_str(), "-1"); // Try to lookup rfidId in NVS
+	if (!s.compareTo("-1")) {
+		return false;
+	}
+	char _file[255];
+	uint32_t _lastPlayPos = 0;
+	uint16_t _trackLastPlayed = 0;
+	uint32_t _mode = 1;
+	char *token;
+	uint8_t i = 1;
+	token = strtok((char *)s.c_str(), stringDelimiter);
+	while (token != NULL) { // Try to extract data from string after lookup
+		if (i == 1) {
+			strncpy(_file, token, sizeof(_file) / sizeof(_file[0]));
+		} else if (i == 2) {
+			_lastPlayPos = strtoul(token, NULL, 10);
+		} else if (i == 3) {
+			_mode = strtoul(token, NULL, 10);
+		} else if (i == 4) {
+			_trackLastPlayed = strtoul(token, NULL, 10);
+		}
+		i++;
+		token = strtok(NULL, stringDelimiter);
+	}
+	entry["id"] = tagId; 
+	if (_mode >= 100) {
+		entry["modId"] = _mode; 
+	} else {
+		entry["fileOrUrl"] = _file;
+		entry["playMode"] = _mode; 
+		entry["lastPlayPos"] = _lastPlayPos;
+		entry["trackLastPlayed"] = _trackLastPlayed;
+	}
+	return true;
+}
+
+static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
+	String tagId = "";
+	if (request->hasParam("id")) {
+		tagId = request->getParam("id")->value();
+	}
+	if (tagId == "") {
+		// return all RFID assignments
+		AsyncJsonResponse *response = new AsyncJsonResponse(true);
+		JsonArray Arr = response->getRoot();
+		Web_DumpNvsToSd("rfidTags", backupFile);
+		File f = gFSystem.open(backupFile, FILE_READ);
+		while (f.available() > 0) {
+			String sLine = f.readStringUntil('\n');
+			tagId = sLine.substring(1, sLine.lastIndexOf(stringOuterDelimiter));
+			JsonObject obj = Arr.createNestedObject();
+			tagIdToJSON(tagId, obj);
+		}
+		f.close();
+		response->setLength();
+		request->send(response);
+	} else {
+		if (gPrefsRfid.isKey(tagId.c_str())) {
+			// return single RFID assignment
+			AsyncJsonResponse *response = new AsyncJsonResponse(false);
+			JsonObject obj = response->getRoot();
+			tagIdToJSON(tagId, obj);
+			response->setLength();
+			request->send(response);
+		} else {
+			// RFID assignment not found
+			request->send(404);
+		}
+	}
+}
+
+static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
+	const JsonObject& jsonObj = json.as<JsonObject>();
+
+	String tagId = jsonObj["id"];
+	String fileOrUrl = jsonObj["fileOrUrl"];
+	if (fileOrUrl.isEmpty()) {
+		fileOrUrl = "0";
+	}
+	char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
+	convertFilenameToAscii(fileOrUrl, _fileOrUrlAscii);	
+	uint8_t _playModeOrModId;
+	if (jsonObj.containsKey("modId")) {
+		_playModeOrModId = jsonObj["modId"];
+	} else {
+		_playModeOrModId = jsonObj["playMode"];
+	} 	
+	if (_playModeOrModId <= 0) {
+		Log_Println("rfidAssign: Invalid playMode or modId", LOGLEVEL_ERROR);
+		request->send(500, "text/plain; charset=utf-8", "rfidAssign: Invalid playMode or modId");
+		return;
+	}
+	char rfidString[275];
+	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playModeOrModId, stringDelimiter);
+	gPrefsRfid.putString(tagId.c_str(), rfidString);
+
+	String s = gPrefsRfid.getString(tagId.c_str(), "-1");
+	if (s.compareTo(rfidString)) {
+		request->send(500, "text/plain; charset=utf-8", "rfidAssign: cannot save assignment to NVS");
+		return;
+	}
+	Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
+}
+
+static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
+	String tagId = "";
+	if (request->hasParam("id")) {
+		tagId = request->getParam("id")->value();
+	}
+	if ((tagId != "") && (gPrefsRfid.isKey(tagId.c_str()))) {
+		if (gPrefsRfid.remove(tagId.c_str())) {
+			request->send(200, "text/plain; charset=utf-8", tagId);
+		} else {
+			request->send(500, "text/plain; charset=utf-8", "error removing tag from NVS");
+		}
+	} else {
+		request->send(404, "text/plain; charset=utf-8", "error removing tag from NVS: Tag not exists");
+	}
+}
+
 
 
 // Takes stream from file-upload and writes payload into a temporary sd-file.
