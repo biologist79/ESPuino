@@ -78,9 +78,6 @@ static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
 
-
-static bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile);
-
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, String section);
 static bool JSONToSettings(JsonObject obj);
@@ -158,6 +155,85 @@ class OneParamRewrite : public AsyncWebRewrite
 };
 
 
+// List all key in NVS for a given namespace
+// callback function is called for every key with userdefined data object
+bool listNVSKeys(const char *_namespace, void* data, bool (*callback)(const char * key, void* data)) {
+	Led_SetPause(true);          // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+	esp_partition_iterator_t pi; // Iterator for find
+	const esp_partition_t *nvs;  // Pointer to partition struct
+	esp_err_t result = ESP_OK;
+	const char *partname = "nvs";
+	uint8_t pagenr = 0;   // Page number in NVS
+	uint8_t i;            // Index in Entry 0..125
+	uint8_t bm;           // Bitmap for an entry
+	uint32_t offset = 0;  // Offset in nvs partition
+	uint8_t namespace_ID; // Namespace ID found
+
+	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA,   // Get partition iterator for
+							ESP_PARTITION_SUBTYPE_ANY, // this partition
+							partname);
+	if (pi) {
+		nvs = esp_partition_get(pi);        // Get partition struct
+		esp_partition_iterator_release(pi); // Release the iterator
+		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
+	} else {
+		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
+		return NULL;
+	}
+	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
+	while (offset < nvs->size) {
+		result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition
+									&buf,
+									sizeof(nvs_page));
+		if (result != ESP_OK) {
+			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
+			return false;
+		}
+
+		i = 0;
+
+		while (i < 126) {
+			bm = (buf.Bitmap[i / 4] >> ((i % 4) * 2)) & 0x03; // Get bitmap for this entry
+			if (bm == 2) {
+				if ((namespace_ID == 0xFF) || // Show all if ID = 0xFF
+					(buf.Entry[i].Ns == namespace_ID)) { // otherwise just my namespace
+					if (isNumber(buf.Entry[i].Key)) {
+						if (!callback(buf.Entry[i].Key, data)) {
+							return false;
+						}
+					}
+				}
+				i += buf.Entry[i].Span; // Next entry
+			} else {
+				i++;
+			}
+		}
+		offset += sizeof(nvs_page); // Prepare to read next page in nvs
+		pagenr++;
+	}
+	Led_SetPause(false);
+
+	return true;
+}
+
+// callback for writing a NVS entry to file
+bool DumpNvsToSdCallback(const char * key, void* data) {
+	String s = gPrefsRfid.getString(key);
+	File *file = (File *) data;
+	file->printf("%s%s%s%s\n", stringOuterDelimiter, key, stringOuterDelimiter, s.c_str());
+  	return true;
+}
+
+// Dumps all RFID-entries from NVS into a file on SD-card
+bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
+	File file = gFSystem.open(_destFile, FILE_WRITE);
+	if (!file) {
+		return false;
+	}
+	bool success = listNVSKeys(_namespace, &file, DumpNvsToSdCallback);
+	file.close();
+	return success;
+}
 
 // First request will return 0 results unless you start scan from somewhere else (loop/setup)
 // Do not request more often than 3-5 seconds
@@ -1535,6 +1611,13 @@ static bool tagIdToJSON(String tagId, JsonObject entry)  {
 	return true;
 }
 
+// callback for writing a NVS entry to JSON
+bool DumpNvsToJSONCallback(const char * key, void* data) {
+	JsonArray *myArr = (JsonArray*) data;
+	JsonObject obj = myArr->createNestedObject();
+	return tagIdToJSON(key, obj);
+}
+
 static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	String tagId = "";
 	if (request->hasParam("id")) {
@@ -1544,17 +1627,12 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 		// return all RFID assignments
 		AsyncJsonResponse *response = new AsyncJsonResponse(true);
 		JsonArray Arr = response->getRoot();
-		Web_DumpNvsToSd("rfidTags", backupFile);
-		File f = gFSystem.open(backupFile, FILE_READ);
-		while (f.available() > 0) {
-			String sLine = f.readStringUntil('\n');
-			tagId = sLine.substring(1, sLine.lastIndexOf(stringOuterDelimiter));
-			JsonObject obj = Arr.createNestedObject();
-			tagIdToJSON(tagId, obj);
+		if (listNVSKeys("rfidTags", &Arr, DumpNvsToJSONCallback)) {
+			response->setLength();
+			request->send(response);
+		} else {
+			request->send(500, "error reading entries from NVS");
 		}
-		f.close();
-		response->setLength();
-		request->send(response);
 	} else {
 		if (gPrefsRfid.isKey(tagId.c_str())) {
 			// return single RFID assignment
@@ -1706,72 +1784,6 @@ void Web_DumpSdToNvs(const char *_filename) {
 	tmpFile.close();
 	gFSystem.remove(_filename);
 }
-
-// Dumps all RFID-entries from NVS into a file on SD-card
-bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
-	Led_SetPause(true);          // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
-	esp_partition_iterator_t pi; // Iterator for find
-	const esp_partition_t *nvs;  // Pointer to partition struct
-	esp_err_t result = ESP_OK;
-	const char *partname = "nvs";
-	uint8_t pagenr = 0;   // Page number in NVS
-	uint8_t i;            // Index in Entry 0..125
-	uint8_t bm;           // Bitmap for an entry
-	uint32_t offset = 0;  // Offset in nvs partition
-	uint8_t namespace_ID; // Namespace ID found
-
-	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA,   // Get partition iterator for
-							ESP_PARTITION_SUBTYPE_ANY, // this partition
-							partname);
-	if (pi) {
-		nvs = esp_partition_get(pi);        // Get partition struct
-		esp_partition_iterator_release(pi); // Release the iterator
-		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
-	} else {
-		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
-		return NULL;
-	}
-	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
-	File backupFile = gFSystem.open(_destFile, FILE_WRITE);
-	if (!backupFile) {
-		return false;
-	}
-	while (offset < nvs->size) {
-		result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition
-									&buf,
-									sizeof(nvs_page));
-		if (result != ESP_OK) {
-			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
-			return false;
-		}
-
-		i = 0;
-
-		while (i < 126) {
-			bm = (buf.Bitmap[i / 4] >> ((i % 4) * 2)) & 0x03; // Get bitmap for this entry
-			if (bm == 2) {
-				if ((namespace_ID == 0xFF) || // Show all if ID = 0xFF
-					(buf.Entry[i].Ns == namespace_ID)) { // otherwise just my namespace
-					if (isNumber(buf.Entry[i].Key)) {
-						String s = gPrefsRfid.getString((const char *)buf.Entry[i].Key);
-						backupFile.printf("%s%s%s%s\n", stringOuterDelimiter, buf.Entry[i].Key, stringOuterDelimiter, s.c_str());
-					}
-				}
-				i += buf.Entry[i].Span; // Next entry
-			} else {
-				i++;
-			}
-		}
-		offset += sizeof(nvs_page); // Prepare to read next page in nvs
-		pagenr++;
-	}
-
-	backupFile.close();
-	Led_SetPause(false);
-
-	return true;
-}
-
 
 // handle album cover image request
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
