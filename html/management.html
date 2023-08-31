@@ -196,6 +196,24 @@
 		</div>
 	</div>
 </div>
+
+<!-- Modal dialog for delete NVS RFID assignment-->
+<div class="modal fade" id="deleteRFIDModal" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+			</div>
+		</div>
+	</div>
+</div>
 <!-- Modal dialog for delete NVS RFID assignments -->
 <div class="modal fade" id="deleteNVSRFIDModal" role="dialog">
 	<div class="modal-dialog" role="document">
@@ -685,19 +703,26 @@
 		<br />
 	</div>
 	<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
+		<div class="container" id="savedAssignments">
+			<legend data-i18n="files.rfid.savedassignments"></legend>
+			<ul class="list-group" id="rfidListSavedAssignments">
+			</ul>
+		</div>
+		<br />
+		<br />
 		<div class="container" id="eraseNvs">
 			<legend data-i18n="tools.nvserase.title"></legend>
 				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" xx></button>				
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>				
 		</div>
 		<br />
 		<br />
 		<div class="container" id="importNvs">
 			<legend data-i18n="tools.nvsimport.title"></legend>
-			<form action="/upload" enctype="multipart/form-data" method="POST">
-				<div class="form-group">
+			<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
+					<div class="form-group">
 					<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
 					<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
 				</div>
@@ -1443,6 +1468,9 @@
 			  document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
 			  toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
 			  $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
+			  if (toolsTabActive) {
+			  	rebuildRFIDList();
+			  }
 		  } if ("status" in socketMsg) {
 			  if (socketMsg.status == "ok") {
 				  toastr.success(i18next.t("toast.success"));
@@ -1642,17 +1670,118 @@
 		await rebuildSSIDList();
 	}
 
-	async function eraseNVSRFID(ssid) {
+	const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");	
+	async function rebuildRFIDList() {
+		var rfidList = await (await fetch("/rfid")).json();
+		var rfidActive = document.getElementById('rfidIdMusic').value;
+
+		rfidListSavedAssignments.innerHTML = "";
+
+		for (let rfid of rfidList) {
+			console.log("appending rfid", rfid);
+
+			let rfidElem = document.createElement("li");
+			rfidElem.appendChild(document.createTextNode(rfid.id));
+			if (rfid.playMode) {
+				rfidElem.appendChild(document.createElement("div"));
+				rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.playmode.mode." + rfid.playMode)));
+			} else
+			if (rfid.modId) {
+				rfidElem.appendChild(document.createElement("div"));
+				rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.mod.cmd." + rfid.modId)));
+			}
+			rfidElem.classList.add("list-group-item");
+			console.log("comparing rfid vs active:", rfidActive, rfid.id);
+			if (rfidActive && rfidActive === rfid.id) {
+				rfidElem.classList.add("active");
+			}
+			if (rfid.fileOrUrl) {
+				rfidElem.appendChild(document.createElement("br"));
+				rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
+			}
+			let deleteSpan = document.createElement("span");
+			deleteSpan.classList.add("float-right");
+			deleteSpan.classList.add("button-group");
+
+			let deleteButton = document.createElement("button");
+			deleteButton.classList.add("btn");
+			deleteButton.classList.add("btn-danger");
+			deleteButton.classList.add("fa");
+			deleteButton.classList.add("fa-trash");
+
+			deleteButton.setAttribute("data-toggle", "modal");
+			deleteButton.setAttribute("data-target", "#deleteRFIDModal");
+			deleteButton.setAttribute("data-rfid", rfid.id);
+			deleteSpan.appendChild(deleteButton);
+			rfidElem.appendChild(deleteSpan);
+
+			rfidListSavedAssignments.appendChild(rfidElem);
+		}
+		document.getElementById('savedAssignments').setAttribute('data-visible', (rfidList.length > 0));
+		document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
+	}
+	
+
+	async function deleteRFID(tagId) {
+		console.log("deleting", tagId);
+		$('#deleteRFIDModal').modal('hide');
+		var response = await fetch("/rfid?id=" + encodeURIComponent(tagId), {method: "DELETE"});
+		if (response.ok) {
+			toastr.success(i18next.t("toast.success"));
+			rebuildRFIDList();
+		} else {
+			toastr.error(response.statusText);
+		}	
+		console.log(response.statusText);
+	}
+
+	async function eraseNVSRFID() {
 		console.log("erase all NVS RFIDs");
 		$('#deleteNVSRFIDModal').modal('hide');
 		var response = await fetch("/rfidnvserase", {method: "POST"});
 		if (response.ok) {
 			toastr.success(i18next.t("toast.success"));
+			await rebuildRFIDList();
 		} else {
 			toastr.error(response.statusText);
 		}
 	}
 
+	async function uploadNVSRFID() {
+		if(!document.getElementById('nvsUpload').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
+		console.log("upload NVS RFIDs");
+		let formData = new FormData(); 
+		formData.append("file", document.getElementById('nvsUpload').files[0]);
+		var response = await fetch('/upload', {
+			method: "POST", 
+			body: formData
+		});    
+		if (response.ok) {
+			toastr.success(i18next.t("toast.success"));
+			rebuildRFIDList();
+		} else {
+			toastr.error(response.statusText);
+		}	
+	}
+
+	function onToolsTabOpened() {
+		console.log("tools tab opened!");
+		rebuildRFIDList();
+	}	
+
+	const config = {attributes: true};
+	const toolsTab = document.getElementById("nav-tools-tab");
+	var toolsTabActive = false;
+	const toolsTabObserver = new MutationObserver((mutationList, observer) => {
+		if (!toolsTabActive && toolsTab.classList.contains("active")) {
+			toolsTabActive = true;
+			onToolsTabOpened();
+		} else {
+			toolsTabActive = false;
+		}
+	})
+	toolsTabObserver.observe(toolsTab, config);
+	
 	function ping() {
 		var myObj = {
 			"ping": {
@@ -1934,6 +2063,13 @@
 			$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
 			$(this).find('.modal-body').text(i18next.t("wifi.delete.prompt", { ssid: ssid }));
 			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
+		})
+
+		$('#deleteRFIDModal').on('show.bs.modal', function (event) {
+  			var rfid = $(event.relatedTarget).data('rfid') 
+			$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
+			$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", { rfid: rfid }));
+			$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
 		})
 
 		$('.openPopupInfo').on('click', function () {

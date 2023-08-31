@@ -1,5 +1,7 @@
 ## DEV-branch
 
+* 31.08.2023: Show nvs rfid assignments in web-ui & allow to delete single tags
+* 31.08.2023: invoke "/rfid" endpoint (#260)
 * 22.08.2023: Unify endpoints for accesspoint.html/management.html (#258)
 * 15.08.2023: Web-ui: Change /restart endpoint to POST, refresh button for info & log modal
 * 12.08.2023: Web-ui improvements

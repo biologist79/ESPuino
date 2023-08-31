@@ -115,6 +115,7 @@
             "idNumber": "RFID-Chip-Nummer (12-stellig)",
             "music": "Musik",
             "modification": "Modifikation",
+            "savedassignments": "Gespeicherte RFID-Zuweisungen",
             "fileurl": {
                 "title": "Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)",
                 "placeholder": "z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3"
@@ -270,6 +271,10 @@
             "desc": "Über den Importer werden lediglich neue Einträge importiert, jedoch keine bestehenden Einträge aktiv gelöscht. Im Falle einer doppelten Zuweisung wird ein Eintrag allenfalls überschrieben. Mit dieser Funktion können alle bestehenden NVS-RFID-Zuweisungen gelöscht werden, so dass der ESPuino im Anschluss keinerlei Karten mehr kennt. Wird im Anschluss der Importer gestartet, befinden sich im Speicher des ESPuino anschließend exakt nur solche Zuweisungen, die Teil der Backup-Datei sind. Weitere Infos gibt es <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">hier</a>.",
             "button": "Zuweisungen löschen",
             "prompt": "Alle RFID-Zuweisungen wirklich löschen?"
+        },
+        "nvsdelete": {
+            "title": "NVS RFID-Zuweisung entfernen",
+            "prompt": "Gespeicherte Zuweisung \"{{rfid}}\" wirklich entfernen?"
         },
         "nvsimport": {
             "title": "NVS RFID-Importer",
