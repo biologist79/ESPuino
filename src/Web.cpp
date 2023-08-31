@@ -1687,8 +1687,10 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 		tagId = request->getParam("id")->value();
 	}
 	if ((tagId != "") && (gPrefsRfid.isKey(tagId.c_str()))) {
+		// stop playback, tag to delete might be in use
+		Cmd_Action(CMD_STOP);
 		if (gPrefsRfid.remove(tagId.c_str())) {
-			request->send(200, "text/plain; charset=utf-8", tagId);
+			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
 		} else {
 			request->send(500, "text/plain; charset=utf-8", "error removing tag from NVS");
 		}
