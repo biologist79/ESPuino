@@ -180,7 +180,6 @@
 	const char notADirectory[] = "Kein Verzeichnis";
 	const char sdMountedMmc1BitMode[] = "Versuche SD-Karte im SD_MMC-Modus (1 Bit) zu mounten...";
 	const char sdMountedSpiMode[] = "Versuche SD-Karte im SPI-Modus zu mounten...";
-	const char backupRecoveryWebsite[] = "<p>Das Backup-File wird eingespielt...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char restartWebsite[] = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 	const char shutdownWebsite[] = "Der ESPuino wird ausgeschaltet...";
 	const char mqttMsgReceived[] = "MQTT-Nachricht empfangen: [Topic: %s] [Command: %s]";

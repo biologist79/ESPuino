@@ -179,7 +179,6 @@ extern const char failedToOpenDirectory[];
 extern const char notADirectory[];
 extern const char sdMountedMmc1BitMode[];
 extern const char sdMountedSpiMode[];
-extern const char backupRecoveryWebsite[];
 extern const char restartWebsite[];
 extern const char shutdownWebsite[];
 extern const char mqttMsgReceived[];

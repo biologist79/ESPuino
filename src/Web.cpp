@@ -345,7 +345,7 @@ void webserverStart(void) {
 		// NVS-backup-upload
 		wServer.on(
 			"/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
-				request->send_P(200, "text/html", backupRecoveryWebsite);
+				request->send(200);
 			},
 			handleUpload);
 
