@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 01.09.2023: Regression: start an initial WiFi scan on startup, fix redirect to captive portal
 * 31.08.2023: Show nvs rfid assignments in web-ui & allow to delete single tags
 * 31.08.2023: invoke "/rfid" endpoint (#260)
 * 22.08.2023: Unify endpoints for accesspoint.html/management.html (#258)

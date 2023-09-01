@@ -178,7 +178,7 @@ bool listNVSKeys(const char *_namespace, void* data, bool (*callback)(const char
 		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
 	} else {
 		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
-		return NULL;
+		return false;
 	}
 	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
 	while (offset < nvs->size) {
@@ -284,8 +284,13 @@ void Web_Cyclic(void) {
 	ws.cleanupClients();
 }
 
+// handle not found
 void notFound(AsyncWebServerRequest *request) {
-	request->send(404, "text/plain", "Not found");
+	Log_Printf(LOGLEVEL_ERROR, "%s not found, redirect to startpage", request->url().c_str());
+	String html = "<!DOCTYPE html>Ooups - page \"" + request->url() + "\" not found (404)";
+	html += "<script>async function tryRedirect() {try {var url = \"/\";const response = await fetch(url);window.location.href = url;} catch (error) {console.log(error);setTimeout(tryRedirect, 2000);}}tryRedirect();</script>";
+	// for captive portal, send statuscode 200 & auto redirect to startpage
+	request->send(200, "text/html", html);
 }
 
 void webserverStart(void) {
@@ -501,6 +506,8 @@ void webserverStart(void) {
 		wServer.begin();
 		webserverStarted = true;
 		Log_Println(httpReady, LOGLEVEL_NOTICE);
+		// start a first WiFi scan (to get a WiFi list more quickly in webview)
+		WiFi.scanNetworks(true, false, true, 120);
 	}
 }
 
