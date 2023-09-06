@@ -406,6 +406,28 @@ void webserverStart(void) {
 			System_RequestSleep();
 		});
 
+	#ifdef ENABLE_ESPUINO_DEBUG
+		// runtime task statistics
+		wServer.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request){
+			AsyncResponseStream *response = request->beginResponseStream("text/html");
+			response->println("<!DOCTYPE html><html><head> <meta charset='utf-8'><title>ESPuino runtime stats</title>");
+			response->println("<meta http-equiv='refresh' content='2'>"); // refresh page every 2 seconds
+			response->println("</head><body>Tasklist:<div class='text'><pre>");
+			// show tasklist
+			char *pbuffer = (char *)calloc(2048, 1);
+			vTaskList(pbuffer);
+			response->println(pbuffer);
+			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
+			// show vTaskGetRunTimeStats()
+			vTaskGetRunTimeStats(pbuffer);
+			response->println(pbuffer);
+			response->println("</pre></div></body></html>");
+			free(pbuffer);
+			//send the response last
+			request->send(response);
+		});
+	#endif
+
 		// erase all RFID-assignments from NVS
 		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
 			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);

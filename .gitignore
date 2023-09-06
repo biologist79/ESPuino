@@ -6,11 +6,12 @@ venv/
 .vscode/ipch
 .DS_Store
 .idea/
-CMakeLists.txt
 CMakeListsPrivate.txt
 cmake-build-az-delivery-devkit-v4/
 cmake-build-debug/
 platformio-override.ini
+sdkconfig.*
+!sdkconfig.defaults
 src/settings-override.h
 src/settings-custom-override.h
 node_modules/
