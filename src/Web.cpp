@@ -406,7 +406,7 @@ void webserverStart(void) {
 			System_RequestSleep();
 		});
 
-	#ifdef ENABLE_ESPUINO_DEBUG
+	#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 		// runtime task statistics
 		wServer.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request){
 			AsyncResponseStream *response = request->beginResponseStream("text/html");
@@ -497,8 +497,7 @@ void webserverStart(void) {
 			request->redirect("https://www.espuino.de/Espuino.webp");
 		});
 		// ESPuino favicon
-		wServer.on("/favicon", HTTP_GET, [](AsyncWebServerRequest *request) {
-			Log_Println("favicon request", LOGLEVEL_DEBUG);
+		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
 			if (gFSystem.exists("/.html/favicon.ico")) {
 				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
 				return;
@@ -860,8 +859,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	// wifi
 	if ((section == "") || (section == "wifi")) {
 		JsonObject wifiObj = infoObj.createNestedObject("wifi");
-		IPAddress myIP = WiFi.localIP();
-		wifiObj["ip"] = String(myIP[0]) + '.' + String(myIP[1]) + '.' + String(myIP[2]) + '.' + String(myIP[3]);
+		wifiObj["ip"] = Wlan_GetIpAddress();
 		wifiObj["rssi"] = (int8_t)Wlan_GetRssi();
 	}
 	// audio
