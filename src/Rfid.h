@@ -12,7 +12,7 @@ extern char gCurrentRfidTagId[cardIdStringSize];
 #endif
 
 #ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-	extern char gOldRfidTagId[cardIdStringSize];
+	void Rfid_ResetOldRfid(void);
 #endif
 
 void Rfid_Init(void);
