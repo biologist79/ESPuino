@@ -817,8 +817,14 @@ void AudioPlayer_Task(void *parameter) {
 		//esp_task_wdt_reset(); // Don't forget to feed the dog!
 
 		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+			static uint8_t resetOnNextIdle = false;
 			if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
-				strncpy(gOldRfidTagId, "X", cardIdStringSize-1);     // Set old rfid-id to crap in order to allow to re-apply an rfid-tag after playback is finished
+				if (resetOnNextIdle) {
+					Rfid_ResetOldRfid();
+					resetOnNextIdle = false;
+				}
+			} else {
+				resetOnNextIdle = true;
 			}
 		#endif
 	}

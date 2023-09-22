@@ -104,6 +104,12 @@ void Rfid_PreferenceLookupHandler(void) {
 	#endif
 }
 
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+void Rfid_ResetOldRfid(){
+	strncpy(gOldRfidTagId, "X", cardIdStringSize-1);
+}
+#endif
+
 #if defined (RFID_READER_ENABLED)
 	extern TaskHandle_t rfidTaskHandle;
 #endif
