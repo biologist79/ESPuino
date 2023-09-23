@@ -1676,10 +1676,13 @@
 		var rfidActive = document.getElementById('rfidIdMusic').value;
 
 		rfidListSavedAssignments.innerHTML = "";
-
+		console.log(rfidList.length + ' nvs rfid entries received.');
 		for (let rfid of rfidList) {
-			console.log("appending rfid", rfid);
-
+			if (!rfid.id) {
+				console.log("empty tag id");
+				break;
+			}
+			console.log("appending rfid ", rfid);
 			let rfidElem = document.createElement("li");
 			rfidElem.appendChild(document.createTextNode(rfid.id));
 			if (rfid.playMode) {

@@ -157,7 +157,7 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	// Look if file/folder requested really exists. If not => break.
 	File directory = gFSystem.open(_directory);
 	if (!directory) {
-		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
+		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, _directory);
 		return NULL;
 	}
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);

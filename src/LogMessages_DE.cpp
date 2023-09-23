@@ -195,6 +195,7 @@
 	const char rememberLastVolume[] = "Lautstärke vor dem letzten Shutdown wird wiederhergestellt. Dies überschreibt die Einstellung der initialen Lautstärke aus der GUI.";
 	const char unableToStartFtpServer[] = "Der FTP-Server konnte nicht gestartet werden. Entweder weil er ist bereits gestartet oder kein WLAN verfügbar ist.";
 	const char unableToTellIpAddress[] = "IP-Adresse kann nicht angesagt werden, da keine WLAN-Verbindung besteht.";
+	const char unableToTellTime[] = "Uhrzeit kann nicht angesagt werden, da keine WLAN-Verbindung besteht.";
 	const char newPlayModeStereo[] = "Neuer Modus: stereo";
 	const char newPlayModeMono[] = "Neuer Modus: mono";
 	const char portExpanderFound[] = "Port-expander gefunden";

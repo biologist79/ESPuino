@@ -214,6 +214,7 @@ extern const char noPlaylist[];
 extern const char rfidTagRemoved[];
 extern const char rfidTagReapplied[];
 extern const char unableToTellIpAddress[];
+extern const char unableToTellTime[];
 extern const char ftpEnableTooLate[];
 extern const char syncingViaNtp[];
 extern const char ntpGotTime[];

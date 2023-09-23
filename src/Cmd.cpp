@@ -293,7 +293,7 @@ void Cmd_Action(const uint16_t mod) {
 				gPlayProperties.lastSpeechActive = true;
 				System_IndicateOk();
 			} else {
-				Log_Println(unableToTellIpAddress, LOGLEVEL_ERROR);
+				Log_Println(unableToTellTime, LOGLEVEL_ERROR);
 				System_IndicateError();
 			}
 			break;

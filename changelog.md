@@ -1,5 +1,7 @@
 ## DEV-branch
 
+* 23.09.2023: Fix some log messages, update FTP & A2DP libraries
+* 22.09.2023: Bugfix_same_rfid_twice init (#262) - Thank's to @Joe91 !! 
 * 06.09.2023: Arduino as component #261 - Thank's to @Joe91 !! 
 * 01.09.2023: Regression: start an initial WiFi scan on startup, fix redirect to captive portal
 * 31.08.2023: Show nvs rfid assignments in web-ui & allow to delete single tags

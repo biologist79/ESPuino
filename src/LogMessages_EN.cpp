@@ -195,6 +195,7 @@
 	const char rememberLastVolume[] = "Restored volume used before last shutdown. This overwrites the initial volume configured via webgui.";
 	const char unableToStartFtpServer[] = "FTP-server cannot be started. This is because FTP-service is already active or because WiFi is unavailable.";
 	const char unableToTellIpAddress[] = "IP-address can't be announced as there's no WiFi-connection available.";
+	const char unableToTellTime[] = "Time can't be announced as there's no WiFi-connection available.";
 	const char newPlayModeStereo[] = "New mode: stereo";
 	const char newPlayModeMono[] = "New mode: mono";
 	const char portExpanderFound[] = "Port-expander found";
