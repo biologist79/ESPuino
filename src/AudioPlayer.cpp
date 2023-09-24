@@ -1070,6 +1070,11 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 /* Wraps putString for writing settings into NVS for RFID-cards.
    Returns number of characters written. */
 size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
+	if (_playMode == NO_PLAYLIST) {
+		// writing back to NVS with NO_PLAYLIST seems to be a bug - Todo: Find the cause here
+		Log_Printf(LOGLEVEL_ERROR, modeInvalid, _playMode);
+		return 0;
+	}
 	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
 	char prefBuf[275];
 	char trackBuf[255];

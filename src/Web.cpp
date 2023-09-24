@@ -1801,6 +1801,10 @@ void Web_DumpSdToNvs(const char *_filename) {
 
 	Led_SetPause(true);
 	while (tmpFile.available() > 0) {
+		if (j >= sizeof(ebuf)) {
+			Log_Println(errorReadingTmpfile, LOGLEVEL_ERROR);
+			return;
+		}
 		buf = tmpFile.read();
 		if (buf != '\n') {
 			ebuf[j++] = buf;
