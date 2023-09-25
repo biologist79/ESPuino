@@ -230,6 +230,11 @@ bool Web_DumpNvsToSd(const char *_namespace, const char *_destFile) {
 	if (!file) {
 		return false;
 	}
+	// write UTF-8 BOM
+	file.write(0xEF);
+	file.write(0xBB);
+	file.write(0xBF);
+	// list all NVS keys
 	bool success = listNVSKeys(_namespace, &file, DumpNvsToSdCallback);
 	file.close();
 	return success;
@@ -431,13 +436,13 @@ void webserverStart(void) {
 		// erase all RFID-assignments from NVS
 		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
 			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);
+			// make a backup first
+			Web_DumpNvsToSd("rfidTags", backupFile);	
 			if (gPrefsRfid.clear()) {
 				request->send(200);
 			} else {
 				request->send(500);
 			}
-			// make a backup
-			Web_DumpNvsToSd("rfidTags", backupFile);	
 			System_UpdateActivityTimer();		
 		});
 
@@ -1794,12 +1799,19 @@ void Web_DumpSdToNvs(const char *_filename) {
 	char buf;
 	File tmpFile = gFSystem.open(_filename);
 
-	if (!tmpFile) {
+	if (!tmpFile || (tmpFile.available() < 3)) {
 		Log_Println(errorReadingTmpfile, LOGLEVEL_ERROR);
 		return;
 	}
 
 	Led_SetPause(true);
+	// try to read UTF-8 BOM marker
+	bool isUtf8 = (tmpFile.read() == 0xEF) && (tmpFile.read() == 0xBB) && (tmpFile.read() == 0xBF);
+	if (!isUtf8) {
+		// no BOM found, reset to start of file
+		tmpFile.seek(0);
+	}
+
 	while (tmpFile.available() > 0) {
 		if (j >= sizeof(ebuf)) {
 			Log_Println(errorReadingTmpfile, LOGLEVEL_ERROR);
@@ -1819,8 +1831,12 @@ void Web_DumpSdToNvs(const char *_filename) {
 					nvsEntry[0].nvsKey[strlen(token)] = '\0';
 				} else {
 					count = false;
-					memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
-					nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+					if (isUtf8) {
+						memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
+						nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+					} else {
+						convertAsciiToUtf8(String(token), nvsEntry[0].nvsEntry);
+					}
 				}
 				token = strtok(NULL, stringOuterDelimiter);
 			}
