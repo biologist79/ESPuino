@@ -225,7 +225,7 @@
 	const char hpOn[] = "Kopfhörer eingeschaltet";
 	const char hpOff[] = "Kopfhörer ausgeschaltet";
 	const char webTxCanceled[] = "Der Webtransfer wurde aufgrund von Inaktivität beendet.";
-	const char tryToPickRandomDir[] = "Versuche ein zufälliges Unterzeichnis zu finden aus: %s";
+	const char tryToPickRandomDir[] = "Versuche ein zufälliges Unterverzeichnis zu finden aus: %s";
 	const char pickedRandomDir[] = "Zufällig ausgewähltes Unterverzeichnis: %s";
 	const char wrongWakeUpGpio[] = "Der gewählte GPIO ist nicht vom Typ RTC und unterstützt daher das Aufwecken des ESP32 nicht! (GPIO: %u)";
 	const char currentlyPlaying[] = "'%s' wird abgespielt (%d von %d)";

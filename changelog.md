@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 05.10.2023: Enable "Arduino as component" by default
 * 02.10.2023: Optimize Arduino as component (Disable BLE, BT-HFP & SPI ethernet)
 * 25.09.2023: Handle unicode characters in NVS backup, write UTF-8 BOM in backup.txt
 * 23.09.2023: Fix some log messages, update FTP & A2DP libraries

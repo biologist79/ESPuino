@@ -172,7 +172,7 @@ void Bluetooth_Init(void) {
             // bluetooth in sink mode (player acts as a BT-Speaker)
 			a2dp_sink = new BluetoothA2DPSink();
 			i2s_pin_config_t pin_config = {
-				#ifdef ESP_IDF_4
+				#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
             	.mck_io_num = 0,
             	#endif
 				.bck_io_num = I2S_BCLK,
