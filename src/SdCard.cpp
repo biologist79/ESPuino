@@ -15,7 +15,8 @@
 #endif
 
 void SdCard_Init(void) {
-	#if !defined(SD_MMC_1BIT_MODE) && !defined(SINGLE_SPI_ENABLE)
+	#ifdef NO_SDCARD 
+		// Initialize without any SD card, e.g. for webplayer only
 		Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
 		return
 	#endif
@@ -256,7 +257,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
-		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
+		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, fileName);
 		return nullptr;
 	}
 
