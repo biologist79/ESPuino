@@ -726,7 +726,7 @@ void AudioPlayer_Task(void *parameter) {
 				speechOk = audio->connecttospeech(ipText.c_str(), "de");
 			#else
 				ipText.replace(".", "point");
-				speechOk = audio->connecttospeech(ipText.c_str(),, "en");
+				speechOk = audio->connecttospeech(ipText.c_str(), "en");
 			#endif
 			if (!speechOk) {
 				System_IndicateError();
@@ -749,7 +749,7 @@ void AudioPlayer_Task(void *parameter) {
 				} else {
 					snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d AM", timeinfo.tm_hour, timeinfo.tm_min);
 				}
-				speechOk = audio->connecttospeech(timeStringBuff,, "en");
+				speechOk = audio->connecttospeech(timeStringBuff, "en");
 			#endif
 			if (!speechOk) {
 				System_IndicateError();
