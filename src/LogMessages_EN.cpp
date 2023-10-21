@@ -19,10 +19,10 @@
 	const char noPlaymodeChangeIfIdle[] = "Playlist cannot be adjusted while no playlist is active.";
 	const char noValidTopic[] = "No valid MQTT-topic: %s";
 	const char freePtr[] = "Releasing Pointer: %s (0x%04x)";
-	const char freeMemory[] = "Free memory: %u";
+	const char freeMemory[] = "Free memory: %u Bytes";
 	const char writeEntryToNvs[] = "[%u] Storing data to NVS: %s => %s";
-	const char freeMemoryAfterFree[] = "Free memory after cleaning: %u";
-	const char releaseMemoryOfOldPlaylist[] = "Releasing memory of old playlist.";
+	const char freeMemoryAfterFree[] = "Free memory after cleaning: %u Bytes";
+	const char releaseMemoryOfOldPlaylist[] = "Releasing memory of old playlist (Free memory: %u Bytes).";
 	const char dirOrFileDoesNotExist[] = "File of directory does not exist: %s";
 	const char unableToAllocateMemForPlaylist[] = "Unable to allocate memory for playlist!";
 	const char unableToAllocateMem[] = "Unable to allocate memory!";
@@ -76,7 +76,6 @@
 	const char modeWebstream[] = "Mode: webstream";
 	const char modeWebstreamM3u[] = "Mode: Webstream (local .m3u-file)";
 	const char webstreamNotAvailable[] = "Unable to access webstream as no wifi-connection is available!";
-	const char modeInvalid[] = "Invalid play mode %d!";
 	const char modeDoesNotExist[] = "Playmode does not exist!";
 	const char modeRepeatNone[] = "Repeatmode: no repeat";
 	const char modeRepeatTrack[] = "Repeatmode: current track";

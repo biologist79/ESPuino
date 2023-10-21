@@ -19,10 +19,10 @@
 	const char noPlaymodeChangeIfIdle[] = "Playmode kann nicht verändert werden, wenn keine Playlist aktiv ist.";
 	const char noValidTopic[] = "Kein gültiges Topic: %s";
 	const char freePtr[] = "Ptr-Freigabe: %s (0x%04x)";
-	const char freeMemory[] = "Freier Speicher: %u";
+	const char freeMemory[] = "Freier Speicher: %u Bytes";
 	const char writeEntryToNvs[] = "[%u] Schreibe Eintrag in NVS: %s => %s";
-	const char freeMemoryAfterFree[] = "Freier Speicher nach Aufräumen: %u";
-	const char releaseMemoryOfOldPlaylist[] = "Gebe Speicher der alten Playlist frei.";
+	const char freeMemoryAfterFree[] = "Freier Speicher nach Aufräumen: %u Bytes";
+	const char releaseMemoryOfOldPlaylist[] = "Gebe Speicher der alten Playlist frei (Freier Speicher: %u Bytes)";
 	const char dirOrFileDoesNotExist[] = "Datei oder Verzeichnis existiert nicht: %s";
 	const char unableToAllocateMemForPlaylist[] = "Speicher für Playlist konnte nicht allokiert werden!";
 	const char unableToAllocateMem[] = "Speicher konnte nicht allokiert werden!";

@@ -246,10 +246,10 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	char *serializedPlaylist = NULL;
 	char fileNameBuf[255];
 	bool enablePlaylistFromM3u = false;
-	uint32_t listStartTimestamp = millis();
+	//uint32_t listStartTimestamp = millis();
 
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
-		Log_Println(releaseMemoryOfOldPlaylist, LOGLEVEL_DEBUG);
+		Log_Printf(LOGLEVEL_DEBUG, releaseMemoryOfOldPlaylist, ESP.getFreeHeap());
 		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
 		Log_Printf(LOGLEVEL_DEBUG, freeMemoryAfterFree, ESP.getFreeHeap());
 	}
@@ -416,7 +416,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	}
 	snprintf(files[0], 5,  "%u", cnt);
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
-	Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
+	// Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 
 	return &(files[1]); // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
 }
