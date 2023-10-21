@@ -11,6 +11,21 @@ void Log_Init(void){
 	Log_RingBuffer = new LogRingBuffer();
 }
 
+String getLoglevel(const uint8_t logLevel) {
+	switch (logLevel) {
+		case LOGLEVEL_ERROR:
+			return "E"; 
+		case LOGLEVEL_NOTICE:
+			return "N"; 
+		case LOGLEVEL_INFO:
+			return "I"; 
+		case LOGLEVEL_DEBUG:
+			return "D"; 
+		default:
+			return " "; 
+	}
+}
+
 /* Wrapper-function for serial-logging (with newline)
    _logBuffer: char* to log
    _minLogLevel: loglevel configured for this message.
@@ -19,11 +34,10 @@ void Log_Init(void){
 void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
 		uint32_t ctime = millis();
-		Serial.printf("[ %u ]  ", ctime);
+		static String sLogLevel = getLoglevel(_minLogLevel);
+		Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
 		Serial.println(_logBuffer);
-		Log_RingBuffer->print("[ ");
-		Log_RingBuffer->print(ctime);
-		Log_RingBuffer->print(" ]  ");
+		Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);
 		Log_RingBuffer->println(_logBuffer);
 	}
 }
@@ -33,14 +47,12 @@ void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTim
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
 		if (printTimestamp) {
 			uint32_t ctime = millis();
-			Serial.printf("[ %u ]  ", ctime);
+			static String sLogLevel = getLoglevel(_minLogLevel);
+			Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
 			Serial.print(_logBuffer);
-			Log_RingBuffer->print("[ ");
-			Log_RingBuffer->print(ctime);
-			Log_RingBuffer->print(" ]  ");
+			Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);
 		} else {
 			Serial.print(_logBuffer);
-
 		}
 		Log_RingBuffer->print(_logBuffer);
 	}

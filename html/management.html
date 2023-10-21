@@ -2050,11 +2050,13 @@
 				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
 		}
 		$('#modalInfoContent').text(content);
+		$("#modalInfoContent").css("font-family","inherit");
 	}
 
 	async function fetchLog() {
 		let logtext = await (await fetch("/log")).text();
 		$('#modalInfoContent').text(logtext);
+		$("#modalInfoContent").css("font-family","monospace");
 	}
 
 	$(document).ready(function () {
