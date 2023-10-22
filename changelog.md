@@ -1,5 +1,6 @@
 ## DEV-branch
 
+* 22.10.2023: bugfix PortExpander: beginTransmission()/endTransmission() must be balanced
 * 21.10.2023: Enhanced logging: Show Loglevel
 * 14.10.2023: New define NO_SDCARD, enable to start without any SD card, e.g. for a webplayer only.
 * 05.10.2023: Enable "Arduino as component" by default

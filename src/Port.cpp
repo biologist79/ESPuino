@@ -335,10 +335,14 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 			}
 		#endif
 
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		for (uint8_t i = 0; i < 2; i++) {
+			i2cBusTwo.beginTransmission(expanderI2cAddress);
 			i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
-			i2cBusTwo.endTransmission();
+			uint8_t error = i2cBusTwo.endTransmission();
+			if (error != 0) {
+				Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
+				return;	
+			}
 			i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
 
 			if (i2cBusTwo.available()) {
@@ -361,8 +365,8 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 	// Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
 	void Port_Exit(void) {
 		Port_MakeSomeChannelsOutputForShutdown();
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		for (uint8_t i = 0; i < 2; i++) {
+			i2cBusTwo.beginTransmission(expanderI2cAddress);
 			i2cBusTwo.write(0x00 + i);                      // Pointer to input-register...
 			i2cBusTwo.endTransmission();
 			i2cBusTwo.requestFrom(expanderI2cAddress, 1u);   // ...and read its byte
