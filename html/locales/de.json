@@ -2,6 +2,7 @@
     "submit": "Absenden",
     "restart": "Neustart",
     "reset": "Reset",
+    "execute": "Ausführen",
     "title": "ESPuino-Konfiguration",
     "shutdown": "Ausschalten",
     "log": "Log",
@@ -50,7 +51,8 @@
         "volume": "Lautstärke",
         "voldown": "Leiser",
         "volup": "Lauter",
-        "current": "Aktueller Titel"
+        "current": "Aktueller Titel",
+        "command": "Modifikation Ausführen"
     },
     "files": {
         "title": "Dateien",
@@ -109,7 +111,8 @@
                     "9":"Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
                     "13":"Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
                     "8":"Webradio",
-                    "11":"Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+                    "11":"Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei",
+                    "14":"Gesprochener Text"
                 }
             },
             "mod": {
@@ -139,7 +142,8 @@
                     "173":"Erster Titel",
                     "174":"Letzter Titel",
                     "180":"Springe vorwärts (n Sekunden)",
-                    "181":"Springe rückwärts (n Sekunden)"
+                    "181":"Springe rückwärts (n Sekunden)",
+                    "152":"Lese Benutzertext"
                 }
             }
         }
@@ -212,6 +216,12 @@
             "lowCritical": "Eine LED leuchtet bei dieser Spannung",
             "high": "Alle LEDs leuchten bei dieser Spannung",
             "measureInterval": "Zeitabstand der Messung (in Minuten)"
+        },
+		"customtext": {
+            "title": "Benutzerdefinierte Ansage",
+            "desc": "Benuterdefinierte Ansage des ESPUINO",
+			"textLabel": "Text der Ansage",
+			"textDefault": "Dies ist der ESPUINO von Torsten"
         }
     },
     "tools": {
