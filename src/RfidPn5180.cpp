@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <freertos/task.h>
 #include <esp_task_wdt.h>
+#include <driver/gpio.h>
 #include "settings.h"
 #include "Rfid.h"
 #include "Log.h"
@@ -8,7 +9,6 @@
 #include "Queues.h"
 #include "System.h"
 #include "Port.h"
-#include <esp_task_wdt.h>
 #include "AudioPlayer.h"
 #include "HallEffectSensor.h"
 
@@ -104,13 +104,13 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 		}
 
 		for (;;) {
-			vTaskDelay(portTICK_RATE_MS * 10u);
+			vTaskDelay(portTICK_PERIOD_MS * 10u);
 			#ifdef PN5180_ENABLE_LPCD
 				if (Rfid_GetLpcdShutdownStatus()) {
 					Rfid_EnableLpcd();
 					Rfid_SetLpcdShutdownStatus(false);          // give feedback that execution is complete
 					while (true) {
-						vTaskDelay(portTICK_RATE_MS * 100u);    // there's no way back if shutdown was initiated
+						vTaskDelay(portTICK_PERIOD_MS * 100u);    // there's no way back if shutdown was initiated
 					}
 				}
 			#endif
@@ -300,7 +300,7 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 		#ifdef PN5180_ENABLE_LPCD
 			Rfid_SetLpcdShutdownStatus(true);
 			while (Rfid_GetLpcdShutdownStatus()) {          // Make sure init of LPCD is complete!
-				vTaskDelay(portTICK_RATE_MS * 10u);
+				vTaskDelay(portTICK_PERIOD_MS * 10u);
 			}
 		#endif
 		vTaskDelete(rfidTaskHandle);
@@ -332,15 +332,16 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 			Log_Printf("IRQ_PIN_CONFIG=0x%02X", irqConfig)
 			*/
 			nfc.prepareLPCD();
-			Log_Println("PN5180 IRQ PIN: ", LOGLEVEL_NOTICE);
-			Serial.println(Port_Read(RFID_IRQ));
+			Log_Printf(LOGLEVEL_DEBUG, "PN5180 IRQ PIN (%d) state: %d", RFID_IRQ, Port_Read(RFID_IRQ));
 			// turn on LPCD
 			uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 			if (nfc.switchToLPCD(wakeupCounterInMs)) {
 				Log_Println("switch to low power card detection: success", LOGLEVEL_NOTICE);
-				// configure wakeup pin for deep-sleep wake-up, use ext1
+				// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
 				#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+					if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW)) {
+						Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, RFID_IRQ);
+					}
 				#endif
 				// freeze pin states in deep sleep
 				gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
@@ -373,7 +374,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 				if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
 					Log_Println(lowPowerCardSuccess, LOGLEVEL_INFO);
 					// configure wakeup pin for deep-sleep wake-up, use ext1
-					esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+					#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+						// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
+						esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+					#endif
 					// freeze pin states in deep sleep
 					gpio_hold_en(gpio_num_t(RFID_CS));  // CS/NSS
 					gpio_hold_en(gpio_num_t(RFID_RST)); // RST

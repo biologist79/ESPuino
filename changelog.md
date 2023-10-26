@@ -1,6 +1,10 @@
 ## DEV-branch
 
-* 22.10.2023: bugfix PortExpander: beginTransmission()/endTransmission() must be balanced
+* 26.10.2023: PlatformIO package 6.4.0 (Arduino Version remains 2.0.11)
+* 26.10.2023: LPCD, RFID_IRQ on port-expander: fix compiler warning
+* 26.10.2023: portTICK_RATE_MS is deprecated, use portTICK_PERIOD_MS instead (https://github.com/espressif/esp-idf/issues/51)
+* 26.10.2023: Cppcheck: Fix some warnings/hints
+* 22.10.2023: Bugfix PortExpander: beginTransmission()/endTransmission() must be balanced
 * 21.10.2023: Enhanced logging: Show Loglevel
 * 14.10.2023: New define NO_SDCARD, enable to start without any SD card, e.g. for a webplayer only.
 * 05.10.2023: Enable "Arduino as component" by default

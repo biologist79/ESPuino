@@ -64,9 +64,9 @@
 
 		for (;;) {
 			if (RFID_SCAN_INTERVAL/2 >= 20) {
-				vTaskDelay(portTICK_RATE_MS * (RFID_SCAN_INTERVAL/2));
+				vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL/2));
 			} else {
-			   vTaskDelay(portTICK_RATE_MS * 20);
+			   vTaskDelay(portTICK_PERIOD_MS * 20);
 			}
 			byte cardId[cardIdSize];
 			String cardIdString;
@@ -146,9 +146,9 @@
 					// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
 					while (true) {
 						if (RFID_SCAN_INTERVAL/2 >= 20) {
-							vTaskDelay(portTICK_RATE_MS * (RFID_SCAN_INTERVAL/2));
+							vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL/2));
 						} else {
-							vTaskDelay(portTICK_RATE_MS * 20);
+							vTaskDelay(portTICK_PERIOD_MS * 20);
 						}
 						control=0;
 						for (uint8_t i=0u; i<3; i++) {

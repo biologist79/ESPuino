@@ -256,7 +256,7 @@ void loop() {
 	#endif
 
 	IrReceiver_Cyclic();
-	vTaskDelay(portTICK_RATE_MS * 5u);
+	vTaskDelay(portTICK_PERIOD_MS * 5u);
 
 	#ifdef HALLEFFECT_SENSOR_ENABLE
 		gHallEffectSensor.cyclic();

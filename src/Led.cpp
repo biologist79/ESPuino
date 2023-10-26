@@ -264,7 +264,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 		for (;;) {
 			// special handling
 			if (Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
-				vTaskDelay(portTICK_RATE_MS * 10);
+				vTaskDelay(portTICK_PERIOD_MS * 10);
 				continue;
 			}
 
@@ -417,7 +417,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 				taskDelay = animationTimer;
 			}
 			animationTimer -= taskDelay;
-			vTaskDelay(portTICK_RATE_MS * taskDelay);
+			vTaskDelay(portTICK_PERIOD_MS * taskDelay);
 		}
 		vTaskDelete(NULL);
 	}

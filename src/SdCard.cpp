@@ -244,7 +244,6 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	static char **files;
 	char *serializedPlaylist = NULL;
-	char fileNameBuf[255];
 	bool enablePlaylistFromM3u = false;
 	//uint32_t listStartTimestamp = millis();
 
@@ -321,6 +320,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	// Don't read from m3u-file. Means: read filenames from SD and make playlist of it
 	if (!enablePlaylistFromM3u) {
 		Log_Println(playlistGen, LOGLEVEL_NOTICE);
+		char fileNameBuf[255];
 		// File-mode
 		if (!fileOrDirectory.isDirectory()) {
 			files = (char **) x_malloc(sizeof(char *) * 2);

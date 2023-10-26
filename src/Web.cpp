@@ -640,10 +640,10 @@ bool JSONToSettings(JsonObject doc) {
 	} else if (doc.containsKey("rfidMod")) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
 		uint8_t _modId = doc["rfidMod"]["modId"];
-		char rfidString[12];
 		if (_modId <= 0) {
 			gPrefsRfid.remove(_rfidIdModId);
 		} else {
+			char rfidString[12];
 			snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
 			gPrefsRfid.putString(_rfidIdModId, rfidString);
 
@@ -1031,7 +1031,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
 	} else if (type == WS_EVT_DATA) {
 		//data packet
-		AwsFrameInfo *info = (AwsFrameInfo *)arg;
+		const AwsFrameInfo *info = (AwsFrameInfo *)arg;
 		if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
 			//the whole message is in a single frame and we got all of it's data
 			//Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
@@ -1083,7 +1083,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		String utf8FilePath;
 		static char filePath[MAX_FILEPATH_LENTGH];
 		if (request->hasParam("path")) {
-			AsyncWebParameter *param = request->getParam("path");
+			const AsyncWebParameter *param = request->getParam("path");
 			utf8Folder = param->value() + "/";
 		}
 		utf8FilePath = utf8Folder + filename;
@@ -1269,11 +1269,11 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	#endif
 
 	String serializedJsonString;
-	AsyncWebParameter *param;
 	char filePath[MAX_FILEPATH_LENTGH];
 	JsonArray obj = jsonBuffer.createNestedArray();
 	File root;
 	if (request->hasParam("path")) {
+		AsyncWebParameter *param;
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		root = gFSystem.open(filePath);
@@ -1389,9 +1389,9 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the file or directory
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	File file;
-	AsyncWebParameter *param;
 	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path")) {
+		AsyncWebParameter *param;
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.exists(filePath)) {
@@ -1425,9 +1425,9 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 // Handles create request of a directory
 // requires a GET parameter path to the new directory
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
-	AsyncWebParameter *param;
-	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path")) {
+		AsyncWebParameter *param;
+		char filePath[MAX_FILEPATH_LENTGH];
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		if (gFSystem.mkdir(filePath)) {
@@ -1445,11 +1445,11 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter srcpath to the old file or directory name
 // requires a GET parameter dstpath to the new file or directory name
 void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
-	AsyncWebParameter *srcPath;
-	AsyncWebParameter *dstPath;
-	char srcFullFilePath[MAX_FILEPATH_LENTGH];
-	char dstFullFilePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
+		AsyncWebParameter *srcPath;
+		AsyncWebParameter *dstPath;
+		char srcFullFilePath[MAX_FILEPATH_LENTGH];
+		char dstFullFilePath[MAX_FILEPATH_LENTGH];
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
 		convertFilenameToAscii(srcPath->value(), srcFullFilePath);
@@ -1477,9 +1477,9 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 	AsyncWebParameter *param;
 	String playModeString;
 	uint32_t playMode;
-	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path") && request->hasParam("playmode")) {
 		param = request->getParam("path");
+		char filePath[MAX_FILEPATH_LENTGH];
 		convertFilenameToAscii(param->value(), filePath);
 		param = request->getParam("playmode");
 		playModeString = param->value();
@@ -1546,8 +1546,8 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 }
 
 void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
-	AsyncWebParameter* p = request->getParam("ssid");
-	String ssid = p->value();
+	const AsyncWebParameter* p = request->getParam("ssid");
+	const String ssid = p->value();
 
 	bool succ = Wlan_DeleteNetwork(ssid);
 
@@ -1796,7 +1796,6 @@ void Web_DumpSdToNvs(const char *_filename) {
 	uint16_t importCount = 0;
 	uint16_t invalidCount = 0;
 	nvs_t nvsEntry[1];
-	char buf;
 	File tmpFile = gFSystem.open(_filename);
 
 	if (!tmpFile || (tmpFile.available() < 3)) {
@@ -1817,7 +1816,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 			Log_Println(errorReadingTmpfile, LOGLEVEL_ERROR);
 			return;
 		}
-		buf = tmpFile.read();
+		char buf = tmpFile.read();
 		if (buf != '\n') {
 			ebuf[j++] = buf;
 		} else {
