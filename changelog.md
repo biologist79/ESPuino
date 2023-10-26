@@ -1,6 +1,5 @@
 ## DEV-branch
 
-* 26.10.2023: PlatformIO package 6.4.0 (Arduino Version remains 2.0.11)
 * 26.10.2023: LPCD, RFID_IRQ on port-expander: fix compiler warning
 * 26.10.2023: portTICK_RATE_MS is deprecated, use portTICK_PERIOD_MS instead (https://github.com/espressif/esp-idf/issues/51)
 * 26.10.2023: Cppcheck: Fix some warnings/hints
