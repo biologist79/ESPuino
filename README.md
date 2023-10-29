@@ -14,8 +14,9 @@
 
 ## Current development
 
-Previous master branch forked into branch Arduino1. Previous dev branch is new master branch now.
-Development of this branch (Arduino1) is discontinued officially.
+There is a [development branch (dev)](https://github.com/biologist79/ESPuino/tree/dev) that contains
+new features, that will be introduced and tested there first until they become part of the master
+branch. Feel free to try but be advised this could be unstable.
 
 ## Known bugs
 
@@ -177,7 +178,7 @@ to (re-)enable/disable WiFi:
 ESPuino can be used as Bluetooth sink (A2DP sink). In this mode you can stream audio (e.g. from a
 mobile device) via Bluetooth to your ESPuino. This mode can be enabled/disabled via a RFID
 modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button).
-Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four
+Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four 
 slow rotating _blue-violet_ LEDs. After the Bluetooth device is paired the LEDs turn to blue.
 
 ### ESPuino as A2DP source (stream from ESPuino)
