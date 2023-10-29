@@ -1,32 +1,34 @@
 #include <Arduino.h>
 #include "settings.h"
+
 #include "System.h"
+
+#include "Audio.h"
 #include "AudioPlayer.h"
-#include "Rfid.h"
 #include "Led.h"
 #include "Log.h"
 #include "Mqtt.h"
-#include "SdCard.h"
 #include "Port.h"
+#include "Power.h"
+#include "Rfid.h"
+#include "SdCard.h"
+#include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
-#include "Audio.h"
-#include "Power.h"
 
-constexpr const char prefsRfidNamespace[] = "rfidTags";     // Namespace used to save IDs of rfid-tags
+constexpr const char prefsRfidNamespace[] = "rfidTags"; // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used for generic settings
 
 Preferences gPrefsRfid;
 Preferences gPrefsSettings;
 
-unsigned long System_LastTimeActiveTimestamp = 0u;  // Timestamp of last user-interaction
+unsigned long System_LastTimeActiveTimestamp = 0u; // Timestamp of last user-interaction
 unsigned long System_SleepTimerStartTimestamp = 0u; // Flag if sleep-timer is active
-bool System_GoToSleep = false;                      // Flag for turning uC immediately into deepsleep
-bool System_Sleeping = false;                       // Flag for turning into deepsleep is in progress
-bool System_LockControls = false;                   // Flag if buttons and rotary encoder is locked
-uint8_t System_MaxInactivityTime = 10u;             // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
-uint8_t System_SleepTimer = 30u;                    // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
+bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
+bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
+bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
+uint8_t System_MaxInactivityTime = 10u; // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
+uint8_t System_SleepTimer = 30u; // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
 
 // Operation Mode
 volatile uint8_t System_OperationMode;
@@ -66,7 +68,6 @@ void System_RequestSleep(void) {
 	System_GoToSleep = true;
 }
 
-
 bool System_SetSleepTimer(uint8_t minutes) {
 	bool sleepTimerEnabled = false;
 
@@ -92,10 +93,10 @@ bool System_SetSleepTimer(uint8_t minutes) {
 		}
 	}
 
-	#ifdef MQTT_ENABLE
-		publishMqtt(topicSleepTimerState, System_GetSleepTimer(), false);
-		publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
-	#endif
+#ifdef MQTT_ENABLE
+	publishMqtt(topicSleepTimerState, System_GetSleepTimer(), false);
+	publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
+#endif
 
 	return sleepTimerEnabled;
 }
@@ -178,22 +179,22 @@ void System_SleepHandler(void) {
 void System_PreparePowerDown(void) {
 
 	AudioPlayer_Exit();
-	// Disable amps in order to avoid ugly noises when powering off
-	#ifdef GPIO_PA_EN
-		Log_Println("shutdown amplifier..", LOGLEVEL_NOTICE);
-		Port_Write(GPIO_PA_EN, false, false);
-	#endif
-	#ifdef GPIO_HP_EN
-		Log_Println("shutdown headphone..", LOGLEVEL_NOTICE);
-		Port_Write(GPIO_HP_EN, false, false);
-	#endif
+// Disable amps in order to avoid ugly noises when powering off
+#ifdef GPIO_PA_EN
+	Log_Println("shutdown amplifier..", LOGLEVEL_NOTICE);
+	Port_Write(GPIO_PA_EN, false, false);
+#endif
+#ifdef GPIO_HP_EN
+	Log_Println("shutdown headphone..", LOGLEVEL_NOTICE);
+	Port_Write(GPIO_HP_EN, false, false);
+#endif
 
 	Mqtt_Exit();
 	Led_Exit();
 
-	#ifdef USE_LAST_VOLUME_AFTER_REBOOT
-		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
-	#endif
+#ifdef USE_LAST_VOLUME_AFTER_REBOOT
+	gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
+#endif
 	SdCard_Exit();
 
 	Serial.flush();
@@ -222,19 +223,18 @@ void System_DeepSleepManager(void) {
 		Power_PeripheralOff();
 		// time to settle down..
 		delay(200);
-		// .. for LPCD
-		#if defined (RFID_READER_TYPE_MFRC522_SPI) || defined (RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-			Rfid_Exit();
-		#endif
-		#ifdef PORT_EXPANDER_ENABLE
-			Port_Exit();
-		#endif
+// .. for LPCD
+#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+		Rfid_Exit();
+#endif
+#ifdef PORT_EXPANDER_ENABLE
+		Port_Exit();
+#endif
 		// goto sleep now
 		Log_Println("deep-sleep, good night.......", LOGLEVEL_NOTICE);
 		esp_deep_sleep_start();
 	}
 }
-
 
 // Print the wake-up reason why ESP32 is awake now
 void System_ShowWakeUpReason() {
@@ -264,10 +264,10 @@ void System_ShowWakeUpReason() {
 }
 
 #ifdef ENABLE_ESPUINO_DEBUG
-	void System_esp_print_tasks(void) {
-		char *pbuffer = (char *)calloc(2048, 1);
-		vTaskGetRunTimeStats(pbuffer);
-		Serial.printf("=====\n%s\n=====", pbuffer);
-		free(pbuffer);
-	}
+void System_esp_print_tasks(void) {
+	char *pbuffer = (char *) calloc(2048, 1);
+	vTaskGetRunTimeStats(pbuffer);
+	Serial.printf("=====\n%s\n=====", pbuffer);
+	free(pbuffer);
+}
 #endif

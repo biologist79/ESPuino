@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include "settings.h"
+
 #include "Log.h"
-#include "MemX.h"
+
 #include "LogRingBuffer.h"
+#include "MemX.h"
 
 static LogRingBuffer *Log_RingBuffer = NULL;
 
-void Log_Init(void){
+void Log_Init(void) {
 	Serial.begin(115200);
 	Log_RingBuffer = new LogRingBuffer();
 }
@@ -14,15 +16,15 @@ void Log_Init(void){
 String getLoglevel(const uint8_t logLevel) {
 	switch (logLevel) {
 		case LOGLEVEL_ERROR:
-			return "E"; 
+			return "E";
 		case LOGLEVEL_NOTICE:
-			return "N"; 
+			return "N";
 		case LOGLEVEL_INFO:
-			return "I"; 
+			return "I";
 		case LOGLEVEL_DEBUG:
-			return "D"; 
+			return "D";
 		default:
-			return " "; 
+			return " ";
 	}
 }
 
@@ -59,7 +61,7 @@ void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTim
 }
 
 int Log_Printf(const uint8_t _minLogLevel, const char *format, ...) {
-	char loc_buf[201];	// Allow a maximum buffer of 200 characters in a single log message
+	char loc_buf[201]; // Allow a maximum buffer of 200 characters in a single log message
 
 	int len;
 	va_list arg;
@@ -77,7 +79,7 @@ int Log_Printf(const uint8_t _minLogLevel, const char *format, ...) {
 
 	va_end(arg);
 
-	return std::min<int>(len, sizeof(loc_buf)-1);
+	return std::min<int>(len, sizeof(loc_buf) - 1);
 }
 
 String Log_GetRingBuffer(void) {

@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "settings.h"
+
 #include "SdCard.h"
+
 #include "Common.h"
 #include "Led.h"
 #include "Log.h"
@@ -8,94 +10,94 @@
 #include "System.h"
 
 #ifdef SD_MMC_1BIT_MODE
-	fs::FS gFSystem = (fs::FS)SD_MMC;
+fs::FS gFSystem = (fs::FS) SD_MMC;
 #else
-	SPIClass spiSD(HSPI);
-	fs::FS gFSystem = (fs::FS)SD;
+SPIClass spiSD(HSPI);
+fs::FS gFSystem = (fs::FS) SD;
 #endif
 
 void SdCard_Init(void) {
-	#ifdef NO_SDCARD 
-		// Initialize without any SD card, e.g. for webplayer only
-		Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
-		return
-	#endif
-	
-	#ifndef SINGLE_SPI_ENABLE
-		#ifdef SD_MMC_1BIT_MODE
-			pinMode(2, INPUT_PULLUP);
-			while (!SD_MMC.begin("/sdcard", true)) {
-		#else
-			pinMode(SPISD_CS, OUTPUT);
-			digitalWrite(SPISD_CS, HIGH);
-			spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
-			spiSD.setFrequency(1000000);
-			while (!SD.begin(SPISD_CS, spiSD)) {
-		#endif
+#ifdef NO_SDCARD
+	// Initialize without any SD card, e.g. for webplayer only
+	Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
+	return
+#endif
+
+#ifndef SINGLE_SPI_ENABLE
+	#ifdef SD_MMC_1BIT_MODE
+		pinMode(2, INPUT_PULLUP);
+	while (!SD_MMC.begin("/sdcard", true)) {
 	#else
-		#ifdef SD_MMC_1BIT_MODE
-			pinMode(2, INPUT_PULLUP);
-			while (!SD_MMC.begin("/sdcard", true)) {
-		#else
-			while (!SD.begin(SPISD_CS)) {
-		#endif
+		pinMode(SPISD_CS, OUTPUT);
+	digitalWrite(SPISD_CS, HIGH);
+	spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
+	spiSD.setFrequency(1000000);
+	while (!SD.begin(SPISD_CS, spiSD)) {
 	#endif
-				Log_Println(unableToMountSd, LOGLEVEL_ERROR);
-				delay(500);
-	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
-				if (millis() >= deepsleepTimeAfterBootFails * 1000) {
-					Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
-					esp_deep_sleep_start();
-				}
+#else
+	#ifdef SD_MMC_1BIT_MODE
+	pinMode(2, INPUT_PULLUP);
+	while (!SD_MMC.begin("/sdcard", true)) {
+	#else
+	while (!SD.begin(SPISD_CS)) {
 	#endif
-			}
+#endif
+		Log_Println(unableToMountSd, LOGLEVEL_ERROR);
+		delay(500);
+#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
+		if (millis() >= deepsleepTimeAfterBootFails * 1000) {
+			Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
+			esp_deep_sleep_start();
+		}
+#endif
+	}
 }
 
 void SdCard_Exit(void) {
-	// SD card goto idle mode
-	#ifdef SINGLE_SPI_ENABLE
-		Log_Println("shutdown SD card (SPI)..", LOGLEVEL_NOTICE);
-		SD.end();
-	#endif
-	#ifdef SD_MMC_1BIT_MODE
-		Log_Println("shutdown SD card (SD_MMC)..", LOGLEVEL_NOTICE);
-		SD_MMC.end();
-	#endif
+// SD card goto idle mode
+#ifdef SINGLE_SPI_ENABLE
+	Log_Println("shutdown SD card (SPI)..", LOGLEVEL_NOTICE);
+	SD.end();
+#endif
+#ifdef SD_MMC_1BIT_MODE
+	Log_Println("shutdown SD card (SD_MMC)..", LOGLEVEL_NOTICE);
+	SD_MMC.end();
+#endif
 }
 
 sdcard_type_t SdCard_GetType(void) {
 	sdcard_type_t cardType;
-	#ifdef SD_MMC_1BIT_MODE
-		Log_Println(sdMountedMmc1BitMode, LOGLEVEL_NOTICE);
-		cardType = SD_MMC.cardType();
-	#else
-		Log_Println(sdMountedSpiMode, LOGLEVEL_NOTICE);
-		cardType = SD.cardType();
-	#endif
-		return cardType;
+#ifdef SD_MMC_1BIT_MODE
+	Log_Println(sdMountedMmc1BitMode, LOGLEVEL_NOTICE);
+	cardType = SD_MMC.cardType();
+#else
+	Log_Println(sdMountedSpiMode, LOGLEVEL_NOTICE);
+	cardType = SD.cardType();
+#endif
+	return cardType;
 }
 
 uint64_t SdCard_GetSize() {
-	#ifdef SD_MMC_1BIT_MODE
-		return SD_MMC.cardSize();
-	#else
-		return SD.cardSize();
-	#endif
+#ifdef SD_MMC_1BIT_MODE
+	return SD_MMC.cardSize();
+#else
+	return SD.cardSize();
+#endif
 }
 
 uint64_t SdCard_GetFreeSize() {
-	#ifdef SD_MMC_1BIT_MODE
-		return SD_MMC.cardSize() - SD_MMC.usedBytes();
-	#else
-		return SD.cardSize() - SD.usedBytes();
-	#endif
+#ifdef SD_MMC_1BIT_MODE
+	return SD_MMC.cardSize() - SD_MMC.usedBytes();
+#else
+	return SD.cardSize() - SD.usedBytes();
+#endif
 }
 
 void SdCard_PrintInfo() {
 	// show SD card type
 	sdcard_type_t cardType = SdCard_GetType();
 	const char *type = "UNKNOWN";
-	switch(cardType) {
+	switch (cardType) {
 		case CARD_MMC:
 			type = "MMC";
 			break;
@@ -114,10 +116,10 @@ void SdCard_PrintInfo() {
 	Log_Printf(LOGLEVEL_DEBUG, "SD card type: %s", type);
 	// show SD card size / free space
 	uint64_t cardSize = SdCard_GetSize() / (1024 * 1024);
-	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);;
+	uint64_t freeSize = SdCard_GetFreeSize() / (1024 * 1024);
+	;
 	Log_Printf(LOGLEVEL_NOTICE, sdInfo, cardSize, freeSize);
 }
-
 
 // Check if file-type is correct
 bool fileValid(const char *_fileItem) {
@@ -132,24 +134,13 @@ bool fileValid(const char *_fileItem) {
 	char *subst;
 	subst = strrchr(lFileItem, ch); // Don't use files that start with .
 	bool isValid = (!startsWith(subst, (char *) "/.")) && (
-			// audio file formats
-			endsWith(lFileItem, ".mp3") || 
-			endsWith(lFileItem, ".aac") || 
-			endsWith(lFileItem, ".m4a") || 
-			endsWith(lFileItem, ".wav") || 
-			endsWith(lFileItem, ".flac") || 
-			endsWith(lFileItem, ".ogg") || 
-			endsWith(lFileItem, ".oga") || 
-			endsWith(lFileItem, ".opus") || 
-			// playlist file formats
-			endsWith(lFileItem, ".m3u") || 
-			endsWith(lFileItem, ".m3u8") || 
-			endsWith(lFileItem, ".pls") || 
-			endsWith(lFileItem, ".asx"));
+					   // audio file formats
+					   endsWith(lFileItem, ".mp3") || endsWith(lFileItem, ".aac") || endsWith(lFileItem, ".m4a") || endsWith(lFileItem, ".wav") || endsWith(lFileItem, ".flac") || endsWith(lFileItem, ".ogg") || endsWith(lFileItem, ".oga") || endsWith(lFileItem, ".opus") ||
+					   // playlist file formats
+					   endsWith(lFileItem, ".m3u") || endsWith(lFileItem, ".m3u8") || endsWith(lFileItem, ".pls") || endsWith(lFileItem, ".asx"));
 	free(lFileItem);
 	return isValid;
 }
-
 
 // Takes a directory as input and returns a random subdirectory from it
 char *SdCard_pickRandomSubdirectory(char *_directory) {
@@ -164,9 +155,9 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);
 
 	static uint8_t allocCount = 1;
-	uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
+	uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
 	uint16_t directoryCount = 0;
-	char *buffer = _directory;  // input char* is reused as it's content no longer needed
+	char *buffer = _directory; // input char* is reused as it's content no longer needed
 	char *subdirectoryList = (char *) x_calloc(allocSize, sizeof(char));
 
 	if (subdirectoryList == NULL) {
@@ -210,25 +201,25 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 		return NULL;
 	}
 
-	uint16_t randomNumber = random(directoryCount) + 1;     // Create random-number with max = subdirectory-count
+	uint16_t randomNumber = random(directoryCount) + 1; // Create random-number with max = subdirectory-count
 	uint16_t delimiterFoundCount = 0;
-	uint32_t a=0;
-	uint8_t b=0;
+	uint32_t a = 0;
+	uint8_t b = 0;
 
 	// Walk through subdirectory-array and extract randomized subdirectory
 	while (subdirectoryList[a] != '\0') {
 		if (subdirectoryList[a] == '#') {
 			delimiterFoundCount++;
 		} else {
-			if (delimiterFoundCount == randomNumber) {  // Pick subdirectory of linear char* according to random number
+			if (delimiterFoundCount == randomNumber) { // Pick subdirectory of linear char* according to random number
 				buffer[b++] = subdirectoryList[a];
 			}
 		}
-		if (delimiterFoundCount > randomNumber || (b == 254)) {  // It's over when next delimiter is found or buffer is full
+		if (delimiterFoundCount > randomNumber || (b == 254)) { // It's over when next delimiter is found or buffer is full
 			buffer[b] = '\0';
 			free(subdirectoryList);
 			Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, _directory);
-			return buffer;  // Full path of random subdirectory
+			return buffer; // Full path of random subdirectory
 		}
 		a++;
 	}
@@ -238,14 +229,13 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	return NULL;
 }
 
-
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
 char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	static char **files;
 	char *serializedPlaylist = NULL;
 	bool enablePlaylistFromM3u = false;
-	//uint32_t listStartTimestamp = millis();
+	// uint32_t listStartTimestamp = millis();
 
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
 		Log_Printf(LOGLEVEL_DEBUG, releaseMemoryOfOldPlaylist, ESP.getFreeHeap());
@@ -267,7 +257,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
 			enablePlaylistFromM3u = true;
 			uint16_t allocCount = 1;
-			uint16_t allocSize = psramInit() ? 65535 : 1024;   // There's enough PSRAM. So we don't have to care...
+			uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
 
 			serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
 			if (serializedPlaylist == NULL) {
@@ -286,8 +276,8 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					// skip M3U comment lines starting with #
 					fileOrDirectory.readStringUntil('\n');
 					continue;
-				}				
-				if (fPos+1 >= allocCount * allocSize) {
+				}
+				if (fPos + 1 >= allocCount * allocSize) {
 					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
 					Log_Println(reallocCalled, LOGLEVEL_DEBUG);
 					if (tmp == NULL) {
@@ -303,14 +293,14 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 					serializedPlaylist[fPos++] = buf;
 					lastBuf = buf;
 				} else {
-					if (lastBuf != '#') {   // Strip empty lines from m3u
+					if (lastBuf != '#') { // Strip empty lines from m3u
 						serializedPlaylist[fPos++] = '#';
 						lastBuf = '#';
 					}
 				}
 			}
-			if (serializedPlaylist[fPos-1] == '#') {    // Remove trailing delimiter if set
-				serializedPlaylist[fPos-1] = '\0';
+			if (serializedPlaylist[fPos - 1] == '#') { // Remove trailing delimiter if set
+				serializedPlaylist[fPos - 1] = '\0';
 			}
 		} else {
 			return nullptr;
@@ -414,7 +404,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		freeMultiCharArray(files, cnt + 1);
 		return nullptr;
 	}
-	snprintf(files[0], 5,  "%u", cnt);
+	snprintf(files[0], 5, "%u", cnt);
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
 	// Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 

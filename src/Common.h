@@ -3,11 +3,10 @@
 // FilePathLength
 #define MAX_FILEPATH_LENTGH 256
 
-constexpr char stringDelimiter[] = "#";      // Character used to encapsulate data in linear NVS-strings (don't change)
+constexpr char stringDelimiter[] = "#"; // Character used to encapsulate data in linear NVS-strings (don't change)
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
-inline bool isNumber(const char *str)
-{
+inline bool isNumber(const char *str) {
 	int i = 0;
 
 	while (*(str + i) != '\0') {
@@ -18,7 +17,7 @@ inline bool isNumber(const char *str)
 
 	if (i > 0) {
 		return true;
-	} else{
+	} else {
 		return false;
 	}
 }
@@ -50,7 +49,7 @@ inline bool endsWith(const char *str, const char *suf) {
 
 inline void convertFilenameToAscii(String utf8String, char *asciiString) {
 	// Arduino >= 2.0.5 filenames are already unicode, copy to result here without UTF-8 decoding
-    strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
+	strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
 	asciiString[utf8String.length()] = 0;
 }
 
