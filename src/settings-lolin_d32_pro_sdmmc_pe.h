@@ -1,3 +1,5 @@
+// clang-format off
+
 #ifndef __ESPUINO_SETTINGS_LOLIN_D32_PRO_H__
 #define __ESPUINO_SETTINGS_LOLIN_D32_PRO_H__
     #include "Arduino.h"
