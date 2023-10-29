@@ -7,7 +7,7 @@
 ![build workflow](https://github.com/biologist79/ESPuino/actions/workflows/build.yml/badge.svg)
 
 ## Current Development
-A [dev](https://github.com/biologist79/ESPuino/tree/dev)-branch was created. Any new features will be introduced and tested there first until they become part of the master-branch. Feel free to test but be advised this could be unstable.
+Previous master branch forked into branch Arduino1. Previous dev branch is new master branch now. Development of this branch (Arduino1) is discontinued officially.
 
 ## Known bugs
 * For ESPuinos making use of SPI to connect SD, there's an unsolved problem that occasionally leads to incomplete file-transfers via webtransfer or FTP-transfer. Solution: use SD_MMC instead (by the way: it's faster and needs one GPIO less).
