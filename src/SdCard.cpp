@@ -9,7 +9,6 @@
 #include "MemX.h"
 #include "System.h"
 
-#include "playlists/CacheFilePlaylist.hpp"
 #include "playlists/FolderPlaylist.hpp"
 #include "playlists/WebstreamPlaylist.hpp"
 
@@ -231,42 +230,12 @@ static std::optional<std::unique_ptr<Playlist>> SdCard_ParseM3UPlaylist(File f, 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
 std::optional<std::unique_ptr<Playlist>> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
-	bool rebuildCacheFile = false;
-
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
 		Log_Println(dirOrFileDoesNotExist, LOGLEVEL_ERROR);
 		return std::nullopt;
 	}
-
-	// Create linear playlist of caching-file
-	#ifdef CACHED_PLAYLIST_ENABLE
-		// Build absolute path of cacheFile
-		auto cacheFilePath = CacheFilePlaylist::getCachefilePath(fileOrDirectory);
-
-		// Decide if to use cacheFile. It needs to exist first check if cacheFile (already) exists
-		// ...and playmode has to be != random/single (as random along with caching doesn't make sense at all)
-		if (cacheFilePath && gFSystem.exists(cacheFilePath.value()) && _playMode != SINGLE_TRACK && _playMode != SINGLE_TRACK_LOOP) {
-			// Read linear playlist (csv with #-delimiter) from cachefile (faster!)
-
-			File cacheFile = gFSystem.open(cacheFilePath.value());
-			if (cacheFile && cacheFile.size()) {
-				auto cachePlaylist = std::make_unique<CacheFilePlaylist>();
-				
-				bool success = cachePlaylist->deserialize(cacheFile);
-				if(success) {
-					// always first assume a current playlist format
-					return cachePlaylist;
-				}
-				// we had some error reading the cache file, wait for the other to rebuild it
-				// we do not need the class anymore, so destroy it
-				cachePlaylist.release();
-			}
-			// we failed to read the cache file... set the flag to rebuild it
-			rebuildCacheFile = true;
-		}
-	#endif
 
 	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
@@ -279,9 +248,6 @@ std::optional<std::unique_ptr<Playlist>> SdCard_ReturnPlaylist(const char *fileN
 		// if we reach here, we failed
 		return std::nullopt;
 	}
-
-	// If we reached here, we did not read a cache file nor an m3u file. Means: read filenames from SD and make playlist of it
-	Log_Println(playlistGenModeUncached, LOGLEVEL_NOTICE);
 
 	// File-mode
 	if (!fileOrDirectory.isDirectory()) {
@@ -300,16 +266,6 @@ std::optional<std::unique_ptr<Playlist>> SdCard_ReturnPlaylist(const char *fileN
 		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
 		return std::nullopt;
 	}
-
-	#ifdef CACHED_PLAYLIST_ENABLE
-		if(cacheFilePath && rebuildCacheFile) {
-			File cacheFile = gFSystem.open(cacheFilePath.value(), FILE_WRITE);
-			if(cacheFile) {
-				CacheFilePlaylist::serialize(cacheFile, *playlist);
-			}
-			cacheFile.close();
-		}
-	#endif
 
 	// we are finished
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
