@@ -2017,10 +2017,18 @@
 
 		var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
 		var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
-		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") + ", " : " " + i18next.t("datetime.minutes")) : "";
+		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute"): " " + i18next.t("datetime.minutes")) : "";
 		if (withSeconds) {
 			var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
-			return dDisplay + hDisplay + mDisplay + sDisplay;
+			if (dDisplay + hDisplay + mDisplay == "") {
+				return sDisplay;
+			} else {
+				if (sDisplay == "") {
+					return dDisplay + hDisplay + mDisplay;
+				} else {
+					return dDisplay + hDisplay + mDisplay + ", " + sDisplay;
+				}
+			}
 		}
 		return dDisplay + hDisplay + mDisplay;
 	}
