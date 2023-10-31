@@ -178,7 +178,7 @@ to (re-)enable/disable WiFi:
 ESPuino can be used as Bluetooth sink (A2DP sink). In this mode you can stream audio (e.g. from a
 mobile device) via Bluetooth to your ESPuino. This mode can be enabled/disabled via a RFID
 modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button).
-Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four 
+Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four
 slow rotating _blue-violet_ LEDs. After the Bluetooth device is paired the LEDs turn to blue.
 
 ### ESPuino as A2DP source (stream from ESPuino)
@@ -486,3 +486,26 @@ described as follows.
 | topicBatterySOC         | float           | Current battery charge in percent (e.g. 83.0)                                                                                                          |
 | topicWiFiRssiState      | int             | Numeric WiFi signal-strength (dBm)                                                                                                                     |
 | topicSRevisionState     | String          | Software-revision                                                                                                                                      |
+
+## Development and Contributions
+
+### Code Formatting
+
+Automatic code formatting via `clang-format` is used. The configuration/rules can be found in
+`.clang-format`. If you use Visual Studio Code as IDE, the support for this is automatically
+available through the C++ extension.
+
+When editing source code, use Ctrl+Shift+I to run the auto-formatting on the file or Ctrl+K Ctrl+F
+for the selected code.
+
+See the [documentation](https://code.visualstudio.com/docs/cpp/cpp-ide#_code-formatting) for more
+options like run auto-formatting on saving or editing the file.
+
+The CI (via "GitHub Actions") checks changes when they are pushed in order to keep the source code
+clean and provide feedback to the developers and maintainers.
+
+To keep the output of `git blame` clean despite the massive changes when introducing new formatting
+rules, we have a `.git-blame-ignore-revs` that lists the commits to ignore. In VSCode this should be
+used automatically if you use the "GitLens" extension. Otherwise make sure you apply the config
+fragment for git by running `git config --local include.path ../.gitconfig` once in your local
+clone.

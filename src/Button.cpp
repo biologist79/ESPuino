@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include "settings.h"
-#include "Log.h"
+
 #include "Button.h"
+
 #include "Cmd.h"
+#include "Log.h"
 #include "Port.h"
 #include "System.h"
 
@@ -42,12 +44,12 @@ bool gButtonInitComplete = false;
 	#define EXPANDER_5_ENABLE
 #endif
 
-t_button gButtons[7];         // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
 uint16_t gLongPressTime = 0;
 
 #ifdef PORT_EXPANDER_ENABLE
-	extern bool Port_AllowReadFromPortExpander;
+extern bool Port_AllowReadFromPortExpander;
 #endif
 
 static volatile SemaphoreHandle_t Button_TimerSemaphore;
@@ -57,82 +59,88 @@ static void IRAM_ATTR onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
-	#if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
-		if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0)) {
-			Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, WAKEUP_BUTTON);
-		}
-	#endif
+#if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
+	if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0)) {
+		Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, WAKEUP_BUTTON);
+	}
+#endif
 
-	#ifdef NEOPIXEL_ENABLE // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
-		#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
-			#if (BUTTON_0_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 0;
-			#endif
-		#endif
-		#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
-			#if (BUTTON_1_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 1;
-			#endif
-		#endif
-		#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
-			#if (BUTTON_2_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 2;
-			#endif
-		#endif
-		#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-			#if (BUTTON_3_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 3;
-			#endif
-		#endif
-		#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
-			#if (BUTTON_4_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 4;
-			#endif
-		#endif
-		#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
-			#if (BUTTON_5_LONG == CMD_SLEEPMODE)
-				gShutdownButton = 5;
-			#endif
+#ifdef NEOPIXEL_ENABLE // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
+	#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
+		#if (BUTTON_0_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 0;
 		#endif
 	#endif
+	#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
+		#if (BUTTON_1_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 1;
+		#endif
+	#endif
+	#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
+		#if (BUTTON_2_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 2;
+		#endif
+	#endif
+	#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
+		#if (BUTTON_3_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 3;
+		#endif
+	#endif
+	#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
+		#if (BUTTON_4_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 4;
+		#endif
+	#endif
+	#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
+		#if (BUTTON_5_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 5;
+		#endif
+	#endif
+#endif
 
-	// Activate internal pullups for all enabled buttons connected to GPIOs
-	#ifdef BUTTON_0_ENABLE
-		if (BUTTON_0_ACTIVE_STATE)
-			pinMode(NEXT_BUTTON, INPUT);
-		else
-			pinMode(NEXT_BUTTON, INPUT_PULLUP);
-	#endif
-	#ifdef BUTTON_1_ENABLE
-		if (BUTTON_1_ACTIVE_STATE)
-			pinMode(PREVIOUS_BUTTON, INPUT);
-		else
-			pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
-	#endif
-	#ifdef BUTTON_2_ENABLE
-		if (BUTTON_2_ACTIVE_STATE)
-			pinMode(PAUSEPLAY_BUTTON, INPUT);
-		else
-			pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
-	#endif
-	#ifdef BUTTON_3_ENABLE
-		if (BUTTON_3_ACTIVE_STATE)
-			pinMode(ROTARYENCODER_BUTTON, INPUT);
-		else
-			pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
-	#endif
-	#ifdef BUTTON_4_ENABLE
-		if (BUTTON_4_ACTIVE_STATE)
-			pinMode(BUTTON_4, INPUT);
-		else
-			pinMode(BUTTON_4, INPUT_PULLUP);
-	#endif
-	#ifdef BUTTON_5_ENABLE
-		if (BUTTON_5_ACTIVE_STATE)
-			pinMode(BUTTON_5, INPUT);
-		else
-			pinMode(BUTTON_5, INPUT_PULLUP);
-	#endif
+// Activate internal pullups for all enabled buttons connected to GPIOs
+#ifdef BUTTON_0_ENABLE
+	if (BUTTON_0_ACTIVE_STATE) {
+		pinMode(NEXT_BUTTON, INPUT);
+	} else {
+		pinMode(NEXT_BUTTON, INPUT_PULLUP);
+	}
+#endif
+#ifdef BUTTON_1_ENABLE
+	if (BUTTON_1_ACTIVE_STATE) {
+		pinMode(PREVIOUS_BUTTON, INPUT);
+	} else {
+		pinMode(PREVIOUS_BUTTON, INPUT_PULLUP);
+	}
+#endif
+#ifdef BUTTON_2_ENABLE
+	if (BUTTON_2_ACTIVE_STATE) {
+		pinMode(PAUSEPLAY_BUTTON, INPUT);
+	} else {
+		pinMode(PAUSEPLAY_BUTTON, INPUT_PULLUP);
+	}
+#endif
+#ifdef BUTTON_3_ENABLE
+	if (BUTTON_3_ACTIVE_STATE) {
+		pinMode(ROTARYENCODER_BUTTON, INPUT);
+	} else {
+		pinMode(ROTARYENCODER_BUTTON, INPUT_PULLUP);
+	}
+#endif
+#ifdef BUTTON_4_ENABLE
+	if (BUTTON_4_ACTIVE_STATE) {
+		pinMode(BUTTON_4, INPUT);
+	} else {
+		pinMode(BUTTON_4, INPUT_PULLUP);
+	}
+#endif
+#ifdef BUTTON_5_ENABLE
+	if (BUTTON_5_ACTIVE_STATE) {
+		pinMode(BUTTON_5, INPUT);
+	} else {
+		pinMode(BUTTON_5, INPUT_PULLUP);
+	}
+#endif
 
 	// Create 1000Hz-HW-Timer (currently only used for buttons)
 	Button_TimerSemaphore = xSemaphoreCreateBinary();
@@ -146,34 +154,34 @@ void Button_Init() {
 void Button_Cyclic() {
 	if (xSemaphoreTake(Button_TimerSemaphore, 0) == pdTRUE) {
 		unsigned long currentTimestamp = millis();
-		#ifdef PORT_EXPANDER_ENABLE
-			Port_Cyclic();
-		#endif
+#ifdef PORT_EXPANDER_ENABLE
+		Port_Cyclic();
+#endif
 
 		if (System_AreControlsLocked()) {
 			return;
 		}
 
-		// Buttons can be mixed between GPIO and port-expander.
-		// But at the same time only one of them can be for example NEXT_BUTTON
-		#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
-				gButtons[0].currentState = Port_Read(NEXT_BUTTON) ^ BUTTON_0_ACTIVE_STATE;
-		#endif
-		#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
-				gButtons[1].currentState = Port_Read(PREVIOUS_BUTTON) ^ BUTTON_1_ACTIVE_STATE;
-		#endif
-		#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
-				gButtons[2].currentState = Port_Read(PAUSEPLAY_BUTTON) ^ BUTTON_2_ACTIVE_STATE;
-		#endif
-		#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-				gButtons[3].currentState = Port_Read(ROTARYENCODER_BUTTON) ^ BUTTON_3_ACTIVE_STATE;
-		#endif
-		#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
-				gButtons[4].currentState = Port_Read(BUTTON_4) ^ BUTTON_4_ACTIVE_STATE;
-		#endif
-		#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
-				gButtons[5].currentState = Port_Read(BUTTON_5) ^ BUTTON_5_ACTIVE_STATE;
-		#endif
+// Buttons can be mixed between GPIO and port-expander.
+// But at the same time only one of them can be for example NEXT_BUTTON
+#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
+		gButtons[0].currentState = Port_Read(NEXT_BUTTON) ^ BUTTON_0_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
+		gButtons[1].currentState = Port_Read(PREVIOUS_BUTTON) ^ BUTTON_1_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
+		gButtons[2].currentState = Port_Read(PAUSEPLAY_BUTTON) ^ BUTTON_2_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
+		gButtons[3].currentState = Port_Read(ROTARYENCODER_BUTTON) ^ BUTTON_3_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
+		gButtons[4].currentState = Port_Read(BUTTON_4) ^ BUTTON_4_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
+		gButtons[5].currentState = Port_Read(BUTTON_5) ^ BUTTON_5_ACTIVE_STATE;
+#endif
 
 		// Iterate over all buttons in struct-array
 		for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {

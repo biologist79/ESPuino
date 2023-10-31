@@ -1,3 +1,5 @@
+// clang-format off
+
 #ifndef __ESPUINO_COMPLETE
 	#define __ESPUINO_COMPLETE
 	#include "Arduino.h"

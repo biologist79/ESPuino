@@ -1,0 +1,58 @@
+name: build-all
+run-name: Build all boards
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+    paths:
+      - 'src/*'
+      - 'html/*'
+      - 'test/*'
+      - '**.ini'
+      - '**.py'
+      - '**.csv'
+
+jobs:
+  test_builds:
+    name: Run all Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant:
+          - esp32-a1s
+          - lolin32
+          - lolin_d32
+          - lolin_d32_pro
+          - lolin_d32_pro_sdmmc_pe
+          - nodemcu-32s
+          - az-delivery-devkit-v4
+          - ttgo_t8
+          - complete
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v3
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: |
+          pip install -U setuptools platformio
+          pio upgrade --dev
+          pio pkg update --global
+      - name: Build ${{ matrix.variant }}
+        run: platformio run -e ${{ matrix.variant }}

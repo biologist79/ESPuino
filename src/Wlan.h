@@ -16,7 +16,7 @@ void Wlan_Init(void);
 void Wlan_Cyclic(void);
 bool Wlan_AddNetworkSettings(WiFiSettings);
 uint8_t Wlan_NumSavedNetworks();
-size_t Wlan_GetSSIDs(String*, size_t);
+size_t Wlan_GetSSIDs(String *, size_t);
 const String Wlan_GetCurrentSSID();
 const String Wlan_GetHostname();
 bool Wlan_DeleteNetwork(String);
@@ -27,5 +27,3 @@ void Wlan_ToggleEnable(void);
 String Wlan_GetIpAddress(void);
 int8_t Wlan_GetRssi(void);
 bool Wlan_ConnectionTryInProgress(void);
-
-

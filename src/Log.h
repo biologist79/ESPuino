@@ -2,10 +2,10 @@
 #include "logmessages.h"
 
 // Loglevels available (don't change!)
-#define LOGLEVEL_ERROR 1  // only errors
+#define LOGLEVEL_ERROR	1 // only errors
 #define LOGLEVEL_NOTICE 2 // errors + important messages
-#define LOGLEVEL_INFO 3   // infos + errors + important messages
-#define LOGLEVEL_DEBUG 4  // almost everything
+#define LOGLEVEL_INFO	3 // infos + errors + important messages
+#define LOGLEVEL_DEBUG	4 // almost everything
 
 /* Wrapper-function for serial-logging (with newline)
    _logBuffer: char* to log

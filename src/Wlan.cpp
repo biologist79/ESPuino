@@ -1,34 +1,37 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <DNSServer.h>
 #include "settings.h"
+
+#include "Wlan.h"
+
 #include "AudioPlayer.h"
-#include "RotaryEncoder.h"
 #include "Log.h"
+#include "MemX.h"
+#include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
-#include "MemX.h"
-#include "main.h"
-#include "Wlan.h"
 #include "esp_sntp.h"
+#include "main.h"
 
-#define WIFI_STATE_INIT 		0u
+#include <DNSServer.h>
+#include <ESPmDNS.h>
+#include <WiFi.h>
+
+#define WIFI_STATE_INIT			0u
 #define WIFI_STATE_CONNECT_LAST 1u
 #define WIFI_STATE_SCAN_CONN	2u
 #define WIFI_STATE_CONN_SUCCESS 3u
 #define WIFI_STATE_CONNECTED	4u
-#define WIFI_STATE_DISCONNECTED	5u
+#define WIFI_STATE_DISCONNECTED 5u
 #define WIFI_STATE_CONN_FAILED	6u
-#define WIFI_STATE_AP	 		7u
-#define WIFI_STATE_END	 		8u
+#define WIFI_STATE_AP			7u
+#define WIFI_STATE_END			8u
 
 uint8_t wifiState = WIFI_STATE_INIT;
 
 #define RECONNECT_INTERVAL 600000
 
 // AP-WiFi
-IPAddress apIP(192, 168, 4, 1);        // Access-point's static IP
+IPAddress apIP(192, 168, 4, 1); // Access-point's static IP
 IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
 
 bool wifiEnabled; // Current status if wifi is enabled
@@ -46,7 +49,7 @@ static unsigned long connectStartTimestamp = 0;
 static uint32_t connectionFailedTimestamp = 0;
 
 // state for persistent settings
-static const char* nvsWiFiNetworksKey = "SAVED_WIFIS";
+static const char *nvsWiFiNetworksKey = "SAVED_WIFIS";
 static constexpr size_t maxSavedNetworks = 10;
 static size_t numKnownNetworks = 0;
 static WiFiSettings knownNetworks[maxSavedNetworks];
@@ -68,13 +71,12 @@ void Wlan_Init(void) {
 	}
 
 	// load array of up to maxSavedNetworks from NVS
-	numKnownNetworks = gPrefsSettings.getBytes(nvsWiFiNetworksKey, knownNetworks, maxSavedNetworks*sizeof(WiFiSettings)) / sizeof(WiFiSettings);
+	numKnownNetworks = gPrefsSettings.getBytes(nvsWiFiNetworksKey, knownNetworks, maxSavedNetworks * sizeof(WiFiSettings)) / sizeof(WiFiSettings);
 	for (int i = 0; i < numKnownNetworks; i++) {
 		knownNetworks[i].ssid[32] = '\0';
 		knownNetworks[i].password[64] = '\0';
 		Log_Printf(LOGLEVEL_NOTICE, wifiNetworkLoaded, i, knownNetworks[i].ssid);
 	}
-
 
 	// ******************* MIGRATION *******************
 	// migration from single-wifi setup. Delete some time in the future
@@ -85,31 +87,30 @@ void Wlan_Init(void) {
 		gPrefsSettings.putString("LAST_SSID", strSSID);
 
 		struct WiFiSettings networkSettings;
-		
+
 		strncpy(networkSettings.ssid, strSSID.c_str(), 32);
 		networkSettings.ssid[32] = '\0';
 		strncpy(networkSettings.password, strPassword.c_str(), 64);
 		networkSettings.password[64] = '\0';
 		networkSettings.use_static_ip = false;
 
-		#ifdef STATIC_IP_ENABLE
-			networkSettings.static_addr = (uint32_t) IPAddress(LOCAL_IP);
-			networkSettings.static_gateway = (uint32_t) IPAddress(GATEWAY_IP);
-			networkSettings.static_subnet = (uint32_t) IPAddress(SUBNET_IP);
-			networkSettings.static_dns1 = (uint32_t) IPAddress(DNS_IP);
-			networkSettings.use_static_ip = true;
-		#endif
+#ifdef STATIC_IP_ENABLE
+		networkSettings.static_addr = (uint32_t) IPAddress(LOCAL_IP);
+		networkSettings.static_gateway = (uint32_t) IPAddress(GATEWAY_IP);
+		networkSettings.static_subnet = (uint32_t) IPAddress(SUBNET_IP);
+		networkSettings.static_dns1 = (uint32_t) IPAddress(DNS_IP);
+		networkSettings.use_static_ip = true;
+#endif
 
 		Wlan_AddNetworkSettings(networkSettings);
 		// clean up old values from nvs
 		gPrefsSettings.remove("SSID");
 		gPrefsSettings.remove("Password");
 	}
-	
+
 	// ******************* MIGRATION *******************
 
-
-   	if (OPMODE_NORMAL != System_GetOperationMode()) {
+	if (OPMODE_NORMAL != System_GetOperationMode()) {
 		wifiState = WIFI_STATE_END;
 		return;
 	}
@@ -120,7 +121,7 @@ void Wlan_Init(void) {
 	// Arduino 2.0.x only, comment to use dynamic buffers.
 
 	// for Arduino 2.0.9 this does not seem to bring any advantage just more memory use, so leave it outcommented
-	//WiFi.useStaticBuffers(true);
+	// WiFi.useStaticBuffers(true);
 
 	wifiState = WIFI_STATE_INIT;
 	handleWifiStateInit();
@@ -135,10 +136,10 @@ void connectToKnownNetwork(WiFiSettings settings, byte *bssid = nullptr) {
 	if (settings.use_static_ip) {
 		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
 		if (!WiFi.config(
-			    IPAddress(settings.static_addr),
-				IPAddress(settings.static_gateway), 
-				IPAddress(settings.static_subnet), 
-				IPAddress(settings.static_dns1), 
+				IPAddress(settings.static_addr),
+				IPAddress(settings.static_gateway),
+				IPAddress(settings.static_subnet),
+				IPAddress(settings.static_dns1),
 				IPAddress(settings.static_dns2))) {
 			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 		}
@@ -164,7 +165,7 @@ void handleWifiStateInit() {
 	bool scanWiFiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
 	if (scanWiFiOnStart) {
 		// perform a scan to find the strongest network with same ssid (e.g. for mesh/repeater networks)
-		WiFi.scanNetworks(true, false, true, 120);		
+		WiFi.scanNetworks(true, false, true, 120);
 		wifiState = WIFI_STATE_SCAN_CONN;
 	} else {
 		// quick connect without additional scan
@@ -184,14 +185,14 @@ void handleWifiStateConnectLast() {
 
 	WiFi.disconnect(true, true);
 	WiFi.mode(WIFI_STA);
-	
+
 	// for speed, try to connect to last ssid first
 	String lastSSID = gPrefsSettings.getString("LAST_SSID");
 
 	std::optional<WiFiSettings> lastSettings = std::nullopt;
 
 	if (lastSSID) {
-		for(int i=0; i<numKnownNetworks; i++) {
+		for (int i = 0; i < numKnownNetworks; i++) {
 			if (strncmp(knownNetworks[i].ssid, lastSSID.c_str(), 32) == 0) {
 				lastSettings = knownNetworks[i];
 				break;
@@ -199,7 +200,7 @@ void handleWifiStateConnectLast() {
 		}
 	}
 
-	if(!lastSettings || connectionAttemptCounter > 1) {
+	if (!lastSettings || connectionAttemptCounter > 1) {
 		// you can tweak passive/active mode and time per channel
 		// routers send a beacon msg every 100ms and passive mode with 120ms works well and is fastest here
 		WiFi.scanNetworks(true, false, true, 120);
@@ -209,7 +210,7 @@ void handleWifiStateConnectLast() {
 		wifiState = WIFI_STATE_SCAN_CONN;
 		return;
 	}
-	
+
 	connectStartTimestamp = millis();
 	connectToKnownNetwork(lastSettings.value());
 	connectionAttemptCounter++;
@@ -243,7 +244,7 @@ void handleWifiStateScanConnect() {
 		for (int i = 0; i < wifiScanCompleteResult; ++i) {
 			Log_Printf(LOGLEVEL_NOTICE, wifiScanResult, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i), WiFi.BSSIDstr(i).c_str());
 		}
-	} else {		
+	} else {
 		if (millis() - connectStartTimestamp < 5000) {
 			return;
 		}
@@ -258,14 +259,14 @@ void handleWifiStateScanConnect() {
 		byte *bssid = WiFi.BSSID(i);
 		// check if ssid name matches any saved ssid
 		for (int j = 0; j < numKnownNetworks; j++) {
-			if (strncmp(issid.c_str(), knownNetworks[j].ssid, 32) ==0 ) {
+			if (strncmp(issid.c_str(), knownNetworks[j].ssid, 32) == 0) {
 				connectToKnownNetwork(knownNetworks[j], bssid);
 
 				connectStartTimestamp = millis();
 
 				// prepare for next iteration
 				if (connectionAttemptCounter > 0) {
-					scanIndex = i+1;
+					scanIndex = i + 1;
 					connectionAttemptCounter = 0;
 				} else {
 					scanIndex = i;
@@ -282,15 +283,14 @@ void handleWifiStateScanConnect() {
 }
 
 // Callback function (get's called when time adjusts via NTP)
-void ntpTimeAvailable(struct timeval *t)
-{
+void ntpTimeAvailable(struct timeval *t) {
 	struct tm timeinfo;
-	if(!getLocalTime(&timeinfo)) {
+	if (!getLocalTime(&timeinfo)) {
 		Log_Println(ntpFailed, LOGLEVEL_NOTICE);
 		return;
 	}
 	static char timeStringBuff[255];
-	snprintf(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, timeinfo.tm_mday,  timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+	snprintf(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
 	// set ESPuino's very first start date
 	if (!gPrefsSettings.isKey("firstStart")) {
@@ -321,24 +321,24 @@ void handleWifiStateConnectionSuccess() {
 	sntp_set_time_sync_notification_cb(ntpTimeAvailable);
 	// start NTP request with timezone
 	configTzTime(timeZone, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
-	#ifdef MDNS_ENABLE
-		// zero conf, make device available as <hostname>.local
-		if (MDNS.begin(hostname.c_str())) {
-			MDNS.addService("http", "tcp", 80);
-			Log_Printf(LOGLEVEL_NOTICE, mDNSStarted, hostname.c_str());
-		} else {
-			Log_Printf(LOGLEVEL_ERROR, mDNSFailed, hostname.c_str());
-		}
-	#endif
+#ifdef MDNS_ENABLE
+	// zero conf, make device available as <hostname>.local
+	if (MDNS.begin(hostname.c_str())) {
+		MDNS.addService("http", "tcp", 80);
+		Log_Printf(LOGLEVEL_NOTICE, mDNSStarted, hostname.c_str());
+	} else {
+		Log_Printf(LOGLEVEL_ERROR, mDNSFailed, hostname.c_str());
+	}
+#endif
 	delete dnsServer;
 	dnsServer = nullptr;
-	
-	#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-		if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost ) {
-			gPlayLastRfIdWhenWiFiConnected=false;
-			recoverLastRfidPlayedFromNvs(true);
-		}
-	#endif
+
+#ifdef PLAY_LAST_RFID_AFTER_REBOOT
+	if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost) {
+		gPlayLastRfIdWhenWiFiConnected = false;
+		recoverLastRfidPlayedFromNvs(true);
+	}
+#endif
 
 	wifiState = WIFI_STATE_CONNECTED;
 }
@@ -443,7 +443,6 @@ void Wlan_Cyclic(void) {
 	}
 }
 
-
 bool Wlan_ValidateHostname(String newHostname) {
 	size_t len = newHostname.length();
 	const char *hostname = newHostname.c_str();
@@ -451,16 +450,16 @@ bool Wlan_ValidateHostname(String newHostname) {
 	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
 	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
 	bool validated = true;
-	if(len < 2 || len > 32) {
+	if (len < 2 || len > 32) {
 		validated = false;
 	}
 
-	if(!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len-1])) {
+	if (!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len - 1])) {
 		validated = false;
 	}
 
-	for(int i = 0; i < len; i++) {
-		if(!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
+	for (int i = 0; i < len; i++) {
+		if (!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
 			validated = false;
 			break;
 		}
@@ -480,7 +479,7 @@ bool Wlan_AddNetworkSettings(WiFiSettings settings) {
 	settings.ssid[32] = '\0';
 	settings.password[64] = '\0';
 
-	for (uint8_t i=0; i<numKnownNetworks; i++) {
+	for (uint8_t i = 0; i < numKnownNetworks; i++) {
 		if (strncmp(settings.ssid, knownNetworks[i].ssid, 32) == 0) {
 			Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, settings.ssid);
 			knownNetworks[i] = settings;
@@ -504,18 +503,17 @@ bool Wlan_AddNetworkSettings(WiFiSettings settings) {
 	return true;
 }
 
-
 uint8_t Wlan_NumSavedNetworks() {
 	return numKnownNetworks;
 }
 
-// write saved ssids into the passed array. 
-size_t Wlan_GetSSIDs(String* ssids, size_t max_len) {	
+// write saved ssids into the passed array.
+size_t Wlan_GetSSIDs(String *ssids, size_t max_len) {
 	if (numKnownNetworks > max_len) {
 		return 0;
 	}
 
-	for (uint8_t i=0; i<numKnownNetworks; i++) {
+	for (uint8_t i = 0; i < numKnownNetworks; i++) {
 		ssids[i] = knownNetworks[i].ssid;
 	}
 
@@ -533,11 +531,11 @@ const String Wlan_GetHostname() {
 bool Wlan_DeleteNetwork(String ssid) {
 	Log_Printf(LOGLEVEL_NOTICE, wifiDeleteNetwork, ssid.c_str());
 
-	for (uint8_t i=0; i<numKnownNetworks; i++) {
+	for (uint8_t i = 0; i < numKnownNetworks; i++) {
 		if (strncmp(ssid.c_str(), knownNetworks[i].ssid, 32) == 0) {
 
 			// delete and move all following elements to the left
-			std::copy(&knownNetworks[i+1], &knownNetworks[numKnownNetworks], &knownNetworks[i]);
+			std::copy(&knownNetworks[i + 1], &knownNetworks[numKnownNetworks], &knownNetworks[i]);
 			numKnownNetworks--;
 
 			size_t new_length = numKnownNetworks * sizeof(WiFiSettings);
@@ -577,8 +575,9 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	Log_Println(apReady, LOGLEVEL_NOTICE);
 	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
 
-	if (!dnsServer)
+	if (!dnsServer) {
 		dnsServer = new DNSServer();
+	}
 
 	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
 	dnsServer->start(DNS_PORT, "*", ip);
@@ -607,7 +606,7 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 
 	gPrefsSettings.putUInt("enableWifi", wifiEnabled ? 1 : 0);
 
-	if(wifiEnabled) {
+	if (wifiEnabled) {
 		Log_Println(wifiEnabledMsg, LOGLEVEL_NOTICE);
 	} else {
 		Log_Println(wifiDisabledMsg, LOGLEVEL_NOTICE);

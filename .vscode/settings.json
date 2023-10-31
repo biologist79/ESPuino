@@ -1,3 +1,7 @@
 {
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "editor.tabSize": 4,
+    "gitlens.advanced.blame.customArguments": [
+	"--ignore-revs-file", ".git-blame-ignore-revs"
+    ]
 }

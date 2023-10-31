@@ -1,0 +1,41 @@
+---
+BasedOnStyle: WebKit
+AlignArrayOfStructures: Right
+AlignConsecutiveBitFields:
+  Enabled: true
+AlignConsecutiveMacros:
+  Enabled: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+BreakBeforeBraces: Attach
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: Arduino.h
+    Priority: -1
+    SortPriority: -2
+    CaseSensitive: true
+  - Regex: settings.h
+    Priority: -1
+    SortPriority: -1
+    CaseSensitive: true
+  - Regex: ^"
+    Priority: 1
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: .*
+    Priority: 4
+    SortPriority: 0
+    CaseSensitive: false
+IncludeIsMainRegex: (_test)?$
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+InsertBraces: true
+InsertNewlineAtEOF: true
+NamespaceIndentation: None
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
+Standard: Auto
+TabWidth: 4
+UseTab: Always

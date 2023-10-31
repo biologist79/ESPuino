@@ -1,10 +1,10 @@
 #pragma once
 
 typedef struct {
-	bool lastState : 1;
+	bool lastState	  : 1;
 	bool currentState : 1;
-	bool isPressed : 1;
-	bool isReleased : 1;
+	bool isPressed	  : 1;
+	bool isReleased	  : 1;
 	unsigned long lastPressedTimestamp;
 	unsigned long lastReleasedTimestamp;
 	unsigned long firstPressedTimestamp;

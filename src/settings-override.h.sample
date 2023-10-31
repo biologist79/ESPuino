@@ -1,3 +1,5 @@
+// clang-format off
+
 #ifndef __ESPUINO_SETTINGS_OVERRIDE_H__
     #define __ESPUINO_SETTINGS_OVERRIDE_H__
         #include "Arduino.h"

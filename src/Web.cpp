@@ -1,20 +1,18 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <Update.h>
-#include <nvsDump.h>
-#include <esp_task_wdt.h>
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
-#include "freertos/ringbuf.h"
-#include "ESPAsyncWebServer.h"
-#include "AsyncJson.h"
-#include "ArduinoJson.h"
 #include "settings.h"
+
+#include "Web.h"
+
+#include "ArduinoJson.h"
+#include "AsyncJson.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Cmd.h"
 #include "Common.h"
+#include "ESPAsyncWebServer.h"
 #include "Ftp.h"
+#include "HTMLbinary.h"
+#include "HallEffectSensor.h"
 #include "Led.h"
 #include "Log.h"
 #include "MemX.h"
@@ -22,19 +20,21 @@
 #include "Rfid.h"
 #include "SdCard.h"
 #include "System.h"
-#include "Web.h"
 #include "Wlan.h"
+#include "freertos/ringbuf.h"
 #include "revision.h"
-#include "Rfid.h"
-#include "HallEffectSensor.h"
+#include "soc/timer_group_reg.h"
+#include "soc/timer_group_struct.h"
 
-#include "HTMLbinary.h"
+#include <Update.h>
+#include <WiFi.h>
+#include <esp_task_wdt.h>
+#include <nvsDump.h>
 
 typedef struct {
 	char nvsKey[13];
 	char nvsEntry[275];
 } nvs_t;
-
 
 AsyncWebServer wServer(80);
 AsyncWebSocket ws("/ws");
@@ -85,25 +85,24 @@ static void webserverStart(void);
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
-	void* allocate(size_t size) {
+	void *allocate(size_t size) {
 		return ps_malloc(size);
-
 	}
-	void deallocate(void* pointer) {
+	void deallocate(void *pointer) {
 		free(pointer);
 	}
 };
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
-static void serveProgmemFiles(const String& uri, const String& contentType, const uint8_t *content, size_t len) {
+static void serveProgmemFiles(const String &uri, const String &contentType, const uint8_t *content, size_t len) {
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
 		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 		const bool etag = false;
-		if (etag)
+		if (etag) {
 			response = request->beginResponse(304);
-		else {
+		} else {
 			response = request->beginResponse_P(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
@@ -113,67 +112,64 @@ static void serveProgmemFiles(const String& uri, const String& contentType, cons
 	});
 }
 
+class OneParamRewrite : public AsyncWebRewrite {
+protected:
+	String _urlPrefix;
+	int _paramIndex;
+	String _paramsBackup;
 
-class OneParamRewrite : public AsyncWebRewrite
-{
-  protected:
-    String _urlPrefix;
-    int _paramIndex;
-    String _paramsBackup;
+public:
+	OneParamRewrite(const char *from, const char *to)
+		: AsyncWebRewrite(from, to) {
 
-  public:
-  OneParamRewrite(const char* from, const char* to)
-    : AsyncWebRewrite(from, to) {
+		_paramIndex = _from.indexOf('{');
 
-      _paramIndex = _from.indexOf('{');
+		if (_paramIndex >= 0 && _from.endsWith("}")) {
+			_urlPrefix = _from.substring(0, _paramIndex);
+			int index = _params.indexOf('{');
+			if (index >= 0) {
+				_params = _params.substring(0, index);
+			}
+		} else {
+			_urlPrefix = _from;
+		}
+		_paramsBackup = _params;
+	}
 
-      if( _paramIndex >=0 && _from.endsWith("}")) {
-        _urlPrefix = _from.substring(0, _paramIndex);
-        int index = _params.indexOf('{');
-        if(index >= 0) {
-          _params = _params.substring(0, index);
-        }
-      } else {
-        _urlPrefix = _from;
-      }
-      _paramsBackup = _params;
-  }
+	bool match(AsyncWebServerRequest *request) override {
+		if (request->url().startsWith(_urlPrefix)) {
+			if (_paramIndex >= 0) {
+				_params = _paramsBackup + request->url().substring(_paramIndex);
+			} else {
+				_params = _paramsBackup;
+			}
+			return true;
 
-  bool match(AsyncWebServerRequest *request) override {
-    if(request->url().startsWith(_urlPrefix)) {
-      if(_paramIndex >= 0) {
-        _params = _paramsBackup + request->url().substring(_paramIndex);
-      } else {
-        _params = _paramsBackup;
-      }
-    return true;
-
-    } else {
-      return false;
-    }
-  }
+		} else {
+			return false;
+		}
+	}
 };
-
 
 // List all key in NVS for a given namespace
 // callback function is called for every key with userdefined data object
-bool listNVSKeys(const char *_namespace, void* data, bool (*callback)(const char * key, void* data)) {
-	Led_SetPause(true);          // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char *key, void *data)) {
+	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
 	esp_partition_iterator_t pi; // Iterator for find
-	const esp_partition_t *nvs;  // Pointer to partition struct
+	const esp_partition_t *nvs; // Pointer to partition struct
 	esp_err_t result = ESP_OK;
 	const char *partname = "nvs";
-	uint8_t pagenr = 0;   // Page number in NVS
-	uint8_t i;            // Index in Entry 0..125
-	uint8_t bm;           // Bitmap for an entry
-	uint32_t offset = 0;  // Offset in nvs partition
+	uint8_t pagenr = 0; // Page number in NVS
+	uint8_t i; // Index in Entry 0..125
+	uint8_t bm; // Bitmap for an entry
+	uint32_t offset = 0; // Offset in nvs partition
 	uint8_t namespace_ID; // Namespace ID found
 
-	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA,   // Get partition iterator for
-							ESP_PARTITION_SUBTYPE_ANY, // this partition
-							partname);
+	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA, // Get partition iterator for
+		ESP_PARTITION_SUBTYPE_ANY, // this partition
+		partname);
 	if (pi) {
-		nvs = esp_partition_get(pi);        // Get partition struct
+		nvs = esp_partition_get(pi); // Get partition struct
 		esp_partition_iterator_release(pi); // Release the iterator
 		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
 	} else {
@@ -183,8 +179,8 @@ bool listNVSKeys(const char *_namespace, void* data, bool (*callback)(const char
 	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
 	while (offset < nvs->size) {
 		result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition
-									&buf,
-									sizeof(nvs_page));
+			&buf,
+			sizeof(nvs_page));
 		if (result != ESP_OK) {
 			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
 			return false;
@@ -217,11 +213,11 @@ bool listNVSKeys(const char *_namespace, void* data, bool (*callback)(const char
 }
 
 // callback for writing a NVS entry to file
-bool DumpNvsToSdCallback(const char * key, void* data) {
+bool DumpNvsToSdCallback(const char *key, void *data) {
 	String s = gPrefsRfid.getString(key);
 	File *file = (File *) data;
 	file->printf("%s%s%s%s\n", stringOuterDelimiter, key, stringOuterDelimiter, s.c_str());
-  	return true;
+	return true;
 }
 
 // Dumps all RFID-entries from NVS into a file on SD-card
@@ -248,7 +244,7 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 	if (n == -2) {
 		// -2 if scan not triggered
 		WiFi.scanNetworks(true, false, true, 120);
-	} else if(n) {
+	} else if (n) {
 		for (int i = 0; i < n; ++i) {
 			if (i > 9) {
 				break;
@@ -262,20 +258,22 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 			} else {
 				quality = 2 * (WiFi.RSSI(i) + 100);
 			}
-			if (i) json += ",";
+			if (i) {
+				json += ",";
+			}
 			json += "{";
 			json += "\"ssid\":\"" + WiFi.SSID(i) + "\"";
 			json += ",\"bssid\":\"" + WiFi.BSSIDstr(i) + "\"";
 			json += ",\"rssi\":" + String(WiFi.RSSI(i));
 			json += ",\"channel\":" + String(WiFi.channel(i));
 			json += ",\"secure\":" + String(WiFi.encryptionType(i));
-			json += ",\"quality\":"+ String(quality); // WiFi strength in percent
+			json += ",\"quality\":" + String(quality); // WiFi strength in percent
 			json += ",\"wico\":\"w" + String(int(round(map(quality, 0, 100, 1, 4)))) + "\""; // WiFi strength icon ("w1"-"w4")
 			json += ",\"pico\":\"" + String((WIFI_AUTH_OPEN == WiFi.encryptionType(i)) ? "" : "pw") + "\""; // auth icon ("p1" for secured)
 			json += "}";
 		}
 		WiFi.scanDelete();
-		if(WiFi.scanComplete() == -2) {
+		if (WiFi.scanComplete() == -2) {
 			WiFi.scanNetworks(true, false, true, 120);
 		}
 	}
@@ -309,25 +307,24 @@ void webserverStart(void) {
 
 		// Default
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-
 			AsyncWebServerResponse *response;
 
 			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
 			const bool etag = false;
-			if (etag)
+			if (etag) {
 				response = request->beginResponse(304);
-			else {
+			} else {
 				if (WiFi.getMode() == WIFI_STA) {
 					// serve management.html in station-mode
-					if (gFSystem.exists("/.html/index.htm"))
+					if (gFSystem.exists("/.html/index.htm")) {
 						response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
-					else {
-						response = request->beginResponse_P(200, "text/html",  (const uint8_t *)management_BIN, sizeof(management_BIN));
+					} else {
+						response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
 						response->addHeader("Content-Encoding", "gzip");
-				}
+					}
 				} else {
 					// serve accesspoint.html in AP-mode
-					response = request->beginResponse_P(200, "text/html", (const uint8_t *)accesspoint_BIN, sizeof(accesspoint_BIN));
+					response = request->beginResponse_P(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
 					response->addHeader("Content-Encoding", "gzip");
 				}
 			}
@@ -357,25 +354,26 @@ void webserverStart(void) {
 		// OTA-upload
 		wServer.on(
 			"/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-				#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					if (Update.hasError()) {
-						request->send(500, "text/plain", Update.errorString());
-					} else {
-						request->send(200, "text/html", restartWebsite); 
-					}
-				#else
-					request->send(500, "text/html", otaNotSupportedWebsite); 
-				#endif
-			}, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-				#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
-					Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
-					return;
-				#endif
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+				if (Update.hasError()) {
+					request->send(500, "text/plain", Update.errorString());
+				} else {
+					request->send(200, "text/html", restartWebsite);
+				}
+#else
+				request->send(500, "text/html", otaNotSupportedWebsite);
+#endif
+			},
+			[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+#ifndef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+				Log_Println(otaNotSupported, LOGLEVEL_NOTICE);
+				return;
+#endif
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
 					vTaskSuspend(AudioTaskHandle);
-					Led_TaskPause(); 
+					Led_TaskPause();
 					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -393,11 +391,11 @@ void webserverStart(void) {
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
 						Log_Println(Update.errorString(), LOGLEVEL_ERROR);
-					}	
+					}
 					Serial.flush();
-					//ESP.restart(); // restart is done via webpage javascript
+					// ESP.restart(); // restart is done via webpage javascript
 				}
-		});
+			});
 
 		// ESP-restart
 		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -411,15 +409,15 @@ void webserverStart(void) {
 			System_RequestSleep();
 		});
 
-	#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 		// runtime task statistics
-		wServer.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request){
+		wServer.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request) {
 			AsyncResponseStream *response = request->beginResponseStream("text/html");
 			response->println("<!DOCTYPE html><html><head> <meta charset='utf-8'><title>ESPuino runtime stats</title>");
 			response->println("<meta http-equiv='refresh' content='2'>"); // refresh page every 2 seconds
 			response->println("</head><body>Tasklist:<div class='text'><pre>");
 			// show tasklist
-			char *pbuffer = (char *)calloc(2048, 1);
+			char *pbuffer = (char *) calloc(2048, 1);
 			vTaskList(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
@@ -428,33 +426,32 @@ void webserverStart(void) {
 			response->println(pbuffer);
 			response->println("</pre></div></body></html>");
 			free(pbuffer);
-			//send the response last
+			// send the response last
 			request->send(response);
 		});
-	#endif
+#endif
 
 		// erase all RFID-assignments from NVS
 		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
 			Log_Println(eraseRfidNvs, LOGLEVEL_NOTICE);
 			// make a backup first
-			Web_DumpNvsToSd("rfidTags", backupFile);	
+			Web_DumpNvsToSd("rfidTags", backupFile);
 			if (gPrefsRfid.clear()) {
 				request->send(200);
 			} else {
 				request->send(500);
 			}
-			System_UpdateActivityTimer();		
+			System_UpdateActivityTimer();
 		});
 
 		// RFID
 		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
-		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}") );
+		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
 
 		// WiFi scan
 		wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
-
 
 		// Fileexplorer (realtime)
 		wServer.on("/explorer", HTTP_GET, explorerHandleListRequest);
@@ -478,7 +475,7 @@ void webserverStart(void) {
 		wServer.on("/savedSSIDs", HTTP_GET, handleGetSavedSSIDs);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
 
-		wServer.addRewrite(new OneParamRewrite("/savedSSIDs/{ssid}", "/savedSSIDs?ssid={ssid}") );
+		wServer.addRewrite(new OneParamRewrite("/savedSSIDs/{ssid}", "/savedSSIDs?ssid={ssid}"));
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
 
@@ -511,17 +508,17 @@ void webserverStart(void) {
 		});
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
- 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/settings", handlePostSettings));
-       // Init HallEffectSensor Value
-        #ifdef HALLEFFECT_SENSOR_ENABLE
-            wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
-                bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
-				char buffer[128];
-				snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
-                Log_Println(buffer, LOGLEVEL_INFO);
-                request->send(200, "text/html", buffer);
-            });
-        #endif
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/settings", handlePostSettings));
+		// Init HallEffectSensor Value
+#ifdef HALLEFFECT_SENSOR_ENABLE
+		wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
+			bool bres = gHallEffectSensor.saveActualFieldValue2NVS();
+			char buffer[128];
+			snprintf(buffer, sizeof(buffer), "WebRequest>HallEffectSensor FieldValue: %d => NVS, Status: %s", gHallEffectSensor.NullFieldValue(), bres ? "OK" : "ERROR");
+			Log_Println(buffer, LOGLEVEL_INFO);
+			request->send(200, "text/html", buffer);
+		});
+#endif
 
 		wServer.onNotFound(notFound);
 
@@ -541,60 +538,52 @@ unsigned long lastPongTimestamp;
 
 // process JSON to settings
 bool JSONToSettings(JsonObject doc) {
-	if (!doc)  {
+	if (!doc) {
 		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
 		return false;
 	}
 	if (doc.containsKey("general")) {
 		// general settings
-		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 ) {
-				Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
-				return false;
-			}
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0) {
+			Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
+			return false;
+		}
 	}
 	if (doc.containsKey("wifi")) {
 		// WiFi settings
-		static String hostName = doc["wifi"]["hostname"];		
+		static String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
-				Log_Println("Invalid hostname", LOGLEVEL_ERROR);
-				return false;
+			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
+			return false;
 		}
 		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
-				Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
-				return false;
+			Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
+			return false;
 		}
 	}
 	if (doc.containsKey("led")) {
 		// Neopixel settings
-		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0  ||
-			gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0 ) {
-				Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
-				return false;
+		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0 || gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0) {
+			Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
+			return false;
 		}
 	}
 	if (doc.containsKey("battery")) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0  ||
-			gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0  ||
-			gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0  ||
-			gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0 ) {
-				Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
-				return false;
-			}
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+			Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
+			return false;
+		}
 		Battery_Init();
-	} 
+	}
 	if (doc.containsKey("ftp")) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
 
-		gPrefsSettings.putString("ftpuser", (String)_ftpUser);
-		gPrefsSettings.putString("ftppassword", (String)_ftpPwd);
+		gPrefsSettings.putString("ftpuser", (String) _ftpUser);
+		gPrefsSettings.putString("ftppassword", (String) _ftpPwd);
 		// Check if settings were written successfully
-		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) ||
-			  String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
+		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
 			Log_Println("Failed to save ftp settings", LOGLEVEL_ERROR);
 			return false;
 		}
@@ -603,7 +592,7 @@ bool JSONToSettings(JsonObject doc) {
 		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
 			Ftp_EnableServer();
 		}
-	} 
+	}
 	if (doc.containsKey("mqtt")) {
 		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
 		const char *_mqttClientId = doc["mqtt"]["clientID"];
@@ -613,29 +602,27 @@ bool JSONToSettings(JsonObject doc) {
 		uint16_t _mqttPort = doc["mqtt"]["port"].as<uint16_t>();
 
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-		gPrefsSettings.putString("mqttClientId", (String)_mqttClientId);
-		gPrefsSettings.putString("mqttServer", (String)_mqttServer);
-		gPrefsSettings.putString("mqttUser", (String)_mqttUser);
-		gPrefsSettings.putString("mqttPassword", (String)_mqttPwd);
+		gPrefsSettings.putString("mqttClientId", (String) _mqttClientId);
+		gPrefsSettings.putString("mqttServer", (String) _mqttServer);
+		gPrefsSettings.putString("mqttUser", (String) _mqttUser);
+		gPrefsSettings.putString("mqttPassword", (String) _mqttPwd);
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) ||
-			(!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
 			Log_Println("Failed to save mqtt settings", LOGLEVEL_ERROR);
 			return false;
 		}
-	} 
+	}
 	if (doc.containsKey("bluetooth")) {
 		// bluetooth settings
 		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
-		gPrefsSettings.putString("btDeviceName", (String)_btDeviceName);
+		gPrefsSettings.putString("btDeviceName", (String) _btDeviceName);
 		const char *btPinCode = doc["bluetooth"]["pinCode"];
-		gPrefsSettings.putString("btPinCode", (String)btPinCode);
+		gPrefsSettings.putString("btPinCode", (String) btPinCode);
 		// Check if settings were written successfully
-		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName ||
-			gPrefsSettings.getString("btPinCode", "") != btPinCode) {
-				Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
-				return false;
+		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName || gPrefsSettings.getString("btPinCode", "") != btPinCode) {
+			Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
+			return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
@@ -665,9 +652,9 @@ bool JSONToSettings(JsonObject doc) {
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
 		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
-		#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-			Rfid_ResetOldRfid();     // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
-		#endif
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+		Rfid_ResetOldRfid(); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
+#endif
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
@@ -685,7 +672,8 @@ bool JSONToSettings(JsonObject doc) {
 		if (doc["controls"].containsKey("set_volume")) {
 			uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
 			AudioPlayer_VolumeToQueueSender(new_vol, true);
-		} if (doc["controls"].containsKey("action")) {
+		}
+		if (doc["controls"].containsKey("action")) {
 			uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
 			Cmd_Action(cmd);
 		}
@@ -730,7 +718,7 @@ static void settingsToJSON(JsonObject obj, String section) {
 		// saved SSID's
 		JsonObject ssidsObj = obj.createNestedObject("ssids");
 		static String ssids[10];
-		
+
 		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
 		size_t len = Wlan_GetSSIDs(ssids, 10);
 		if (len > 0) {
@@ -743,84 +731,84 @@ static void settingsToJSON(JsonObject obj, String section) {
 			ssidsObj["active"] = Wlan_GetCurrentSSID();
 		}
 	}
-	#ifdef NEOPIXEL_ENABLE
-		if ((section == "") || (section == "led")) {
-			// LED settings
-			JsonObject ledObj = obj.createNestedObject("led");
-			ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
-			ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
-		}
-	#endif
-	#ifdef MEASURE_BATTERY_VOLTAGE
-		if ((section == "") || (section == "battery")) {
-			// battery settings
-			JsonObject batteryObj = obj.createNestedObject("battery");
-			batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
-			batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
-			batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
-			batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
-		}
-	#endif
+#ifdef NEOPIXEL_ENABLE
+	if ((section == "") || (section == "led")) {
+		// LED settings
+		JsonObject ledObj = obj.createNestedObject("led");
+		ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
+		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
+	}
+#endif
+#ifdef MEASURE_BATTERY_VOLTAGE
+	if ((section == "") || (section == "battery")) {
+		// battery settings
+		JsonObject batteryObj = obj.createNestedObject("battery");
+		batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
+		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
+		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+		batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
+	}
+#endif
 	if (section == "defaults") {
 		// default factory settings
 		JsonObject defaultsObj = obj.createNestedObject("defaults");
-		defaultsObj["initVolume"].set(3u);				// AUDIOPLAYER_VOLUME_INIT
-		defaultsObj["maxVolumeSp"].set(21u);			// AUDIOPLAYER_VOLUME_MAX
-		defaultsObj["maxVolumeHp"].set(18u);			// gPrefsSettings.getUInt("maxVolumeHp", 0));
-		defaultsObj["sleepInactivity"].set(10u);		// System_MaxInactivityTime
-		#ifdef NEOPIXEL_ENABLE
-			defaultsObj["initBrightness"].set(16u);		// LED_INITIAL_BRIGHTNESS
-			defaultsObj["nightBrightness"].set(2u);		// LED_INITIAL_NIGHT_BRIGHTNESS
-		#endif
-		#ifdef MEASURE_BATTERY_VOLTAGE
-			defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
-			defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
-			defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
-			defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
-		#endif
+		defaultsObj["initVolume"].set(3u); // AUDIOPLAYER_VOLUME_INIT
+		defaultsObj["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
+		defaultsObj["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
+		defaultsObj["sleepInactivity"].set(10u); // System_MaxInactivityTime
+#ifdef NEOPIXEL_ENABLE
+		defaultsObj["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
+		defaultsObj["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
+#endif
+#ifdef MEASURE_BATTERY_VOLTAGE
+		defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
+		defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
+		defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
+		defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
+#endif
 	}
-	// FTP
-	#ifdef FTP_ENABLE
-		if ((section == "") || (section == "ftp")) {
-			JsonObject ftpObj = obj.createNestedObject("ftp");
-			ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
-			ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
-			ftpObj["maxUserLength"].set(ftpUserLength - 1);
-			ftpObj["maxPwdLength"].set(ftpUserLength - 1);
+// FTP
+#ifdef FTP_ENABLE
+	if ((section == "") || (section == "ftp")) {
+		JsonObject ftpObj = obj.createNestedObject("ftp");
+		ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
+		ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
+		ftpObj["maxUserLength"].set(ftpUserLength - 1);
+		ftpObj["maxPwdLength"].set(ftpUserLength - 1);
+	}
+#endif
+// MQTT
+#ifdef MQTT_ENABLE
+	if ((section == "") || (section == "mqtt")) {
+		JsonObject mqttObj = obj.createNestedObject("mqtt");
+		mqttObj["enable"].set(Mqtt_IsEnabled());
+		mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
+		mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
+		mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
+		mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
+		mqttObj["password"] = gPrefsSettings.getString("mqttPassword", "-1");
+		mqttObj["maxUserLength"].set(mqttUserLength - 1);
+		mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
+		mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
+		mqttObj["maxServerLength"].set(mqttServerLength - 1);
+	}
+#endif
+// Bluetooth
+#ifdef BLUETOOTH_ENABLE
+	if ((section == "") || (section == "bluetooth")) {
+		JsonObject btObj = obj.createNestedObject("bluetooth");
+		if (gPrefsSettings.isKey("btDeviceName")) {
+			btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
+		} else {
+			btObj["deviceName"] = "";
 		}
-	#endif
-	// MQTT
-	#ifdef MQTT_ENABLE
-		if ((section == "") || (section == "mqtt")) {
-			JsonObject mqttObj = obj.createNestedObject("mqtt");
-			mqttObj["enable"].set(Mqtt_IsEnabled());
-				mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
-			mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
-			mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
-			mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
-			mqttObj["password"] = gPrefsSettings.getString("mqttPassword", "-1");
-			mqttObj["maxUserLength"].set(mqttUserLength - 1);
-			mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
-			mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
-			mqttObj["maxServerLength"].set(mqttServerLength - 1);
+		if (gPrefsSettings.isKey("btPinCode")) {
+			btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
+		} else {
+			btObj["pinCode"] = "";
 		}
-	#endif
-	// Bluetooth
-	#ifdef BLUETOOTH_ENABLE
-		if ((section == "") || (section == "bluetooth")) {
-			JsonObject btObj = obj.createNestedObject("bluetooth");	
-			if (gPrefsSettings.isKey("btDeviceName")) {
-				btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
-			} else {
-				btObj["deviceName"] = "";
-			}
-			if (gPrefsSettings.isKey("btPinCode")) {
-				btObj["pinCode"] = gPrefsSettings.getString("btPinCode", "");
-			} else {
-				btObj["pinCode"] = "";
-			}
-		}
-	#endif
+	}
+#endif
 }
 
 // handle get info
@@ -831,11 +819,11 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if (request->hasParam("section")) {
 		section = request->getParam("section")->value();
 	}
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument doc(512);
-	#else
-		StaticJsonDocument<512> doc;
-	#endif
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(512);
+#else
+	StaticJsonDocument<512> doc;
+#endif
 	JsonObject infoObj = doc.createNestedObject("info");
 	// software
 	if ((section == "") || (section == "software")) {
@@ -856,7 +844,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if ((section == "") || (section == "memory")) {
 		JsonObject memoryObj = infoObj.createNestedObject("memory");
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
-		memoryObj["largestFreeBlock"] = (uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 		if (psramInit()) {
 			memoryObj["freePSRam"] = ESP.getFreePsram();
 		}
@@ -865,45 +853,43 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if ((section == "") || (section == "wifi")) {
 		JsonObject wifiObj = infoObj.createNestedObject("wifi");
 		wifiObj["ip"] = Wlan_GetIpAddress();
-		wifiObj["rssi"] = (int8_t)Wlan_GetRssi();
+		wifiObj["rssi"] = (int8_t) Wlan_GetRssi();
 	}
 	// audio
 	if ((section == "") || (section == "audio")) {
 		JsonObject audioObj = infoObj.createNestedObject("audio");
 		audioObj["playtimeTotal"] = AudioPlayer_GetPlayTimeAllTime();
 		audioObj["playtimeSinceStart"] = AudioPlayer_GetPlayTimeSinceStart();
-		audioObj["firstStart"] = gPrefsSettings.getULong("firstStart", 0); 
+		audioObj["firstStart"] = gPrefsSettings.getULong("firstStart", 0);
 	}
-	#ifdef BATTERY_MEASURE_ENABLE
-		// battery
-		if ((section == "") || (section == "battery")) {
-			JsonObject batteryObj = infoObj.createNestedObject("battery");
-			batteryObj["currVoltage"] = Battery_GetVoltage();
-			batteryObj["chargeLevel"] = Battery_EstimateLevel() * 100;
-		}
-	#endif
-    #ifdef HALLEFFECT_SENSOR_ENABLE
-		if ((section == "") || (section == "hallsensor")) {
-			// hallsensor
-			JsonObject hallObj = infoObj.createNestedObject("hallsensor");
-			uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
-			int diff = sva-gHallEffectSensor.NullFieldValue();
+#ifdef BATTERY_MEASURE_ENABLE
+	// battery
+	if ((section == "") || (section == "battery")) {
+		JsonObject batteryObj = infoObj.createNestedObject("battery");
+		batteryObj["currVoltage"] = Battery_GetVoltage();
+		batteryObj["chargeLevel"] = Battery_EstimateLevel() * 100;
+	}
+#endif
+#ifdef HALLEFFECT_SENSOR_ENABLE
+	if ((section == "") || (section == "hallsensor")) {
+		// hallsensor
+		JsonObject hallObj = infoObj.createNestedObject("hallsensor");
+		uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
+		int diff = sva - gHallEffectSensor.NullFieldValue();
 
-			hallObj["nullFieldValue"] =gHallEffectSensor.NullFieldValue();
-			hallObj["actual"] = sva;
-			hallObj["diff"] = diff;
-			hallObj["lastWaitState"] = gHallEffectSensor.LastWaitForState();
-			hallObj["lastWaitMS"] = gHallEffectSensor.LastWaitForStateMS();
-		}
-    #endif
+		hallObj["nullFieldValue"] = gHallEffectSensor.NullFieldValue();
+		hallObj["actual"] = sva;
+		hallObj["diff"] = diff;
+		hallObj["lastWaitState"] = gHallEffectSensor.LastWaitForState();
+		hallObj["lastWaitMS"] = gHallEffectSensor.LastWaitForStateMS();
+	}
+#endif
 
 	String serializedJsonString;
 	serializeJson(infoObj, serializedJsonString);
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 	System_UpdateActivityTimer();
 }
-
-
 
 // handle get settings
 void handleGetSettings(AsyncWebServerRequest *request) {
@@ -913,11 +899,11 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	if (request->hasParam("section")) {
 		section = request->getParam("section")->value();
 	}
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument doc(8192);
-	#else
-		StaticJsonDocument<8192> doc;
-	#endif
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(8192);
+#else
+	StaticJsonDocument<8192> doc;
+#endif
 	JsonObject settingsObj = doc.createNestedObject("settings");
 	settingsToJSON(settingsObj, section);
 	String serializedJsonString;
@@ -927,7 +913,7 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 
 // handle post settings
 void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject& jsonObj = json.as<JsonObject>();
+	const JsonObject &jsonObj = json.as<JsonObject>();
 	bool succ = JSONToSettings(jsonObj);
 	if (succ) {
 		request->send(200);
@@ -936,19 +922,17 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	}
 }
 
-
-
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
 bool processJsonRequest(char *_serialJson) {
-	if (!_serialJson)  {
+	if (!_serialJson) {
 		return false;
 	}
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument doc(1000);
-	#else
-		StaticJsonDocument<1000> doc;
-	#endif
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(1000);
+#else
+	StaticJsonDocument<1000> doc;
+#endif
 
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
@@ -961,11 +945,11 @@ bool processJsonRequest(char *_serialJson) {
 	return JSONToSettings(obj);
 }
 
-
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
-	if (!webserverStarted)
+	if (!webserverStarted) {
 		return;
+	}
 	char *jBuf = (char *) x_calloc(1024, sizeof(char));
 	StaticJsonDocument<1024> doc;
 	JsonObject object = doc.to<JsonObject>();
@@ -980,7 +964,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
 		// todo: battery percent + loading status +++
-		//object["battery"] = Battery_GetVoltage();
+		// object["battery"] = Battery_GetVoltage();
 	} else if (code == 30) {
 		JsonObject entry = object.createNestedObject("trackinfo");
 		entry["pausePlay"] = gPlayProperties.pausePlay;
@@ -1000,7 +984,6 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		settingsToJSON(entry, "ssids");
 	};
 
-
 	serializeJson(doc, jBuf, 1024);
 
 	if (client == 0) {
@@ -1011,63 +994,62 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	free(jBuf);
 }
 
-
 // Processes websocket-requests
 void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
 
 	if (type == WS_EVT_CONNECT) {
-		//client connected
+		// client connected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
-		//client->printf("Hello Client %u :)", client->id());
-		//client->ping();
+		// client->printf("Hello Client %u :)", client->id());
+		// client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {
-		//client disconnected
+		// client disconnected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] disconnect", server->url(), client->id());
 	} else if (type == WS_EVT_ERROR) {
-		//error was received from the other end
-		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *)arg), (char *)data);
+		// error was received from the other end
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t *) arg), (char *) data);
 	} else if (type == WS_EVT_PONG) {
-		//pong message was received (in response to a ping request maybe)
-		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *)data : "");
+		// pong message was received (in response to a ping request maybe)
+		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len) ? (char *) data : "");
 	} else if (type == WS_EVT_DATA) {
-		//data packet
-		const AwsFrameInfo *info = (AwsFrameInfo *)arg;
+		// data packet
+		const AwsFrameInfo *info = (AwsFrameInfo *) arg;
 		if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
-			//the whole message is in a single frame and we got all of it's data
-			//Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+			// the whole message is in a single frame and we got all of it's data
+			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
-			if (processJsonRequest((char *)data)) {
-				if (data && (strncmp((char *)data, "getTrack", 8))) {   // Don't send back ok-feedback if track's name is requested in background
+			if (processJsonRequest((char *) data)) {
+				if (data && (strncmp((char *) data, "getTrack", 8))) { // Don't send back ok-feedback if track's name is requested in background
 					Web_SendWebsocketData(client->id(), 1);
 				}
 			}
 
 			if (info->opcode == WS_TEXT) {
 				data[len] = 0;
-				//Serial.printf("%s\n", (char *)data);
+				// Serial.printf("%s\n", (char *)data);
 			} else {
 				for (size_t i = 0; i < info->len; i++) {
 					Serial.printf("%02x ", data[i]);
 				}
-				//Serial.printf("\n");
+				// Serial.printf("\n");
 			}
 		}
 	}
 }
 
-void explorerCreateParentDirectories(const char* filePath) {
+void explorerCreateParentDirectories(const char *filePath) {
 	char tmpPath[MAX_FILEPATH_LENTGH];
 	char *rest;
 
 	rest = strchr(filePath, '/');
 	while (rest) {
-		if (rest-filePath != 0){
-			memcpy(tmpPath, filePath, rest-filePath);
-			tmpPath[rest-filePath] = '\0';
+		if (rest - filePath != 0) {
+			memcpy(tmpPath, filePath, rest - filePath);
+			tmpPath[rest - filePath] = '\0';
 			Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
 			gFSystem.mkdir(tmpPath);
 		}
-		rest = strchr(rest+1, '/');
+		rest = strchr(rest + 1, '/');
 	}
 }
 
@@ -1103,7 +1085,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// reset buffers
 		index_buffer_write = 0;
 		index_buffer_read = 0;
-		for (uint32_t i = 0; i < nr_of_buffers; i++){
+		for (uint32_t i = 0; i < nr_of_buffers; i++) {
 			size_in_buffer[i] = 0;
 			buffer_full[i] = false;
 		}
@@ -1111,32 +1093,32 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Task for handling the storage of the data
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
-			"fileStorageTask",             /* Name of the task */
-			4000,                          /* Stack size in words */
-			filePath,                      /* Task input parameter */
-			2 | portPRIVILEGE_BIT,         /* Priority of the task */
-			&fileStorageTaskHandle,        /* Task handle. */
-			1                              /* Core where the task should run */
+			"fileStorageTask", /* Name of the task */
+			4000, /* Stack size in words */
+			filePath, /* Task input parameter */
+			2 | portPRIVILEGE_BIT, /* Priority of the task */
+			&fileStorageTaskHandle, /* Task handle. */
+			1 /* Core where the task should run */
 		);
 	}
 
 	if (len) {
 		// wait till buffer is ready
-		while (buffer_full[index_buffer_write]){
-			vTaskDelay(2u); 
+		while (buffer_full[index_buffer_write]) {
+			vTaskDelay(2u);
 		}
 
 		size_t len_to_write = len;
 		size_t space_left = chunk_size - size_in_buffer[index_buffer_write];
-		if (space_left < len_to_write){
+		if (space_left < len_to_write) {
 			len_to_write = space_left;
 		}
 		// write content to buffer
-		memcpy(buffer[index_buffer_write]+size_in_buffer[index_buffer_write], data, len_to_write);
+		memcpy(buffer[index_buffer_write] + size_in_buffer[index_buffer_write], data, len_to_write);
 		size_in_buffer[index_buffer_write] += len_to_write;
 
 		// check if buffer is filled. If full, signal that ready and change buffers
-		if (size_in_buffer[index_buffer_write] == chunk_size){
+		if (size_in_buffer[index_buffer_write] == chunk_size) {
 			// signal, that buffer is ready. Increment index
 			buffer_full[index_buffer_write] = true;
 			index_buffer_write = (index_buffer_write + 1) % nr_of_buffers;
@@ -1144,14 +1126,14 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			// if still content left, put it into next buffer
 			if (len_to_write < len) {
 				// wait till new buffer is ready
-				while (buffer_full[index_buffer_write]){
+				while (buffer_full[index_buffer_write]) {
 					vTaskDelay(2u);
 				}
-				size_t len_left_to_write = len-len_to_write;
+				size_t len_left_to_write = len - len_to_write;
 				memcpy(buffer[index_buffer_write], data + len_to_write, len_left_to_write);
 				size_in_buffer[index_buffer_write] = len_left_to_write;
 			}
-		}		
+		}
 	}
 
 	if (final) {
@@ -1169,19 +1151,19 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 // feed the watchdog timer without delay
 void feedTheDog(void) {
-	#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
-		// feed dog 0
-		TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-		TIMERG0.wdt_feed=1;                       // feed dog
-		TIMERG0.wdt_wprotect=0;                   // write protect
-		// feed dog 1
-		TIMERG1.wdt_wprotect=TIMG_WDT_WKEY_VALUE; // write enable
-		TIMERG1.wdt_feed=1;                       // feed dog
-		TIMERG1.wdt_wprotect=0;                   // write protect
-	#else
+#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
+	// feed dog 0
+	TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
+	TIMERG0.wdt_feed = 1; // feed dog
+	TIMERG0.wdt_wprotect = 0; // write protect
+	// feed dog 1
+	TIMERG1.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
+	TIMERG1.wdt_feed = 1; // feed dog
+	TIMERG1.wdt_wprotect = 0; // write protect
+#else
 	// Without delay upload-feature is broken for SD via SPI (for whatever reason...)
-		vTaskDelay(portTICK_PERIOD_MS * 11);
-	#endif
+	vTaskDelay(portTICK_PERIOD_MS * 11);
+#endif
 }
 
 void explorerHandleFileStorageTask(void *parameter) {
@@ -1192,17 +1174,16 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uint32_t transferStartTimestamp = millis();
 	uint8_t value = 0;
 	uint32_t lastUpdateTimestamp = millis();
-	uint32_t maxUploadDelay = 20;    // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
+	uint32_t maxUploadDelay = 20; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open((char *)parameter, "w");
+	uploadFile = gFSystem.open((char *) parameter, "w");
 	uploadFile.setBufferSize(chunk_size);
-
 
 	// pause some tasks to get more free CPU time for the upload
 	vTaskSuspend(AudioTaskHandle);
-	Led_TaskPause(); 
+	Led_TaskPause();
 	Rfid_TaskPause();
 
 	for (;;) {
@@ -1210,7 +1191,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 		uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS)) {
 
-			while (buffer_full[index_buffer_read]){
+			while (buffer_full[index_buffer_read]) {
 				chunkCount++;
 				size_t item_size = size_in_buffer[index_buffer_read];
 				if (!uploadFile.write(buffer[index_buffer_read], item_size)) {
@@ -1229,7 +1210,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *)parameter, bytesNok+bytesOk, (millis() - transferStartTimestamp), (bytesNok+bytesOk)/(millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *) parameter, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
 				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
 				// done exit loop to terminate
 				break;
@@ -1258,15 +1239,14 @@ void explorerHandleFileStorageTask(void *parameter) {
 	vTaskDelete(NULL);
 }
 
-
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
-	#ifdef BOARD_HAS_PSRAM
-		SpiRamJsonDocument jsonBuffer(65636);
-	#else
-		StaticJsonDocument<8192> jsonBuffer;
-	#endif
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument jsonBuffer(65636);
+#else
+	StaticJsonDocument<8192> jsonBuffer;
+#endif
 
 	String serializedJsonString;
 	char filePath[MAX_FILEPATH_LENTGH];
@@ -1295,7 +1275,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	String MyfileName = root.getNextFileName(&isDir);
 	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
-		if (!startsWith( MyfileName.c_str() , (char *)"/.")) {
+		if (!startsWith(MyfileName.c_str(), (char *) "/.")) {
 			JsonObject entry = obj.createNestedObject();
 			convertAsciiToUtf8(MyfileName.c_str(), filePath);
 			std::string path = filePath;
@@ -1368,10 +1348,10 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	};
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
-	request->_tempObject = (void*)fileObj;
+	request->_tempObject = (void *) fileObj;
 
 	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
-		fileBlk *fileObj = (fileBlk*)request->_tempObject;
+		fileBlk *fileObj = (fileBlk *) request->_tempObject;
 		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
 		if ((index + thisSize) >= fileObj->dataFile.size()) {
 			fileObj->dataFile.close();
@@ -1508,32 +1488,32 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject& jsonObj = json.as<JsonObject>();
+	const JsonObject &jsonObj = json.as<JsonObject>();
 
 	struct WiFiSettings networkSettings;
 
 	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
-	strncpy(networkSettings.ssid, (const char*) jsonObj["ssid"], 32);
+	strncpy(networkSettings.ssid, (const char *) jsonObj["ssid"], 32);
 	networkSettings.ssid[32] = '\0';
-	strncpy(networkSettings.password, (const char*) jsonObj["pwd"], 64);
+	strncpy(networkSettings.password, (const char *) jsonObj["pwd"], 64);
 	networkSettings.password[64] = '\0';
 
 	networkSettings.use_static_ip = (bool) jsonObj["static"];
 
 	if (jsonObj.containsKey("static_addr")) {
-		networkSettings.static_addr = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_addr"]);
+		networkSettings.static_addr = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_addr"]);
 	}
 	if (jsonObj.containsKey("static_gateway")) {
-		networkSettings.static_gateway = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_gateway"]);
+		networkSettings.static_gateway = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_gateway"]);
 	}
 	if (jsonObj.containsKey("static_subnet")) {
-		networkSettings.static_subnet = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_subnet"]);
+		networkSettings.static_subnet = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_subnet"]);
 	}
 	if (jsonObj.containsKey("static_dns1")) {
-		networkSettings.static_dns1 = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_dns1"]);
+		networkSettings.static_dns1 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns1"]);
 	}
 	if (jsonObj.containsKey("static_dns2")) {
-		networkSettings.static_dns2 = (uint32_t) IPAddress().fromString((const char*) jsonObj["static_dns2"]);
+		networkSettings.static_dns2 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns2"]);
 	}
 
 	bool succ = Wlan_AddNetworkSettings(networkSettings);
@@ -1542,11 +1522,11 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 		request->send(200, "text/plain; charset=utf-8", networkSettings.ssid);
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error adding network");
-	}	
+	}
 }
 
 void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
-	const AsyncWebParameter* p = request->getParam("ssid");
+	const AsyncWebParameter *p = request->getParam("ssid");
 	const String ssid = p->value();
 
 	bool succ = Wlan_DeleteNetwork(ssid);
@@ -1583,8 +1563,8 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 	request->send(response);
 }
 
-void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
-	const JsonObject& jsonObj = json.as<JsonObject>();
+void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
+	const JsonObject &jsonObj = json.as<JsonObject>();
 
 	// always perform perform a WiFi scan on startup?
 	bool alwaysScan = jsonObj["scanOnStart"];
@@ -1608,7 +1588,7 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json){
 	}
 }
 
-static bool tagIdToJSON(String tagId, JsonObject entry)  {
+static bool tagIdToJSON(String tagId, JsonObject entry) {
 	String s = gPrefsRfid.getString(tagId.c_str(), "-1"); // Try to lookup rfidId in NVS
 	if (!s.compareTo("-1")) {
 		return false;
@@ -1619,7 +1599,7 @@ static bool tagIdToJSON(String tagId, JsonObject entry)  {
 	uint32_t _mode = 1;
 	char *token;
 	uint8_t i = 1;
-	token = strtok((char *)s.c_str(), stringDelimiter);
+	token = strtok((char *) s.c_str(), stringDelimiter);
 	while (token != NULL) { // Try to extract data from string after lookup
 		if (i == 1) {
 			strncpy(_file, token, sizeof(_file) / sizeof(_file[0]));
@@ -1633,12 +1613,12 @@ static bool tagIdToJSON(String tagId, JsonObject entry)  {
 		i++;
 		token = strtok(NULL, stringDelimiter);
 	}
-	entry["id"] = tagId; 
+	entry["id"] = tagId;
 	if (_mode >= 100) {
-		entry["modId"] = _mode; 
+		entry["modId"] = _mode;
 	} else {
 		entry["fileOrUrl"] = _file;
-		entry["playMode"] = _mode; 
+		entry["playMode"] = _mode;
 		entry["lastPlayPos"] = _lastPlayPos;
 		entry["trackLastPlayed"] = _trackLastPlayed;
 	}
@@ -1646,8 +1626,8 @@ static bool tagIdToJSON(String tagId, JsonObject entry)  {
 }
 
 // callback for writing a NVS entry to JSON
-bool DumpNvsToJSONCallback(const char * key, void* data) {
-	JsonArray *myArr = (JsonArray*) data;
+bool DumpNvsToJSONCallback(const char *key, void *data) {
+	JsonArray *myArr = (JsonArray *) data;
 	JsonObject obj = myArr->createNestedObject();
 	return tagIdToJSON(key, obj);
 }
@@ -1683,7 +1663,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 }
 
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject& jsonObj = json.as<JsonObject>();
+	const JsonObject &jsonObj = json.as<JsonObject>();
 
 	String tagId = jsonObj["id"];
 	if (tagId.isEmpty()) {
@@ -1696,13 +1676,13 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 		fileOrUrl = "0";
 	}
 	char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
-	convertFilenameToAscii(fileOrUrl, _fileOrUrlAscii);	
+	convertFilenameToAscii(fileOrUrl, _fileOrUrlAscii);
 	uint8_t _playModeOrModId;
 	if (jsonObj.containsKey("modId")) {
 		_playModeOrModId = jsonObj["modId"];
 	} else {
 		_playModeOrModId = jsonObj["playMode"];
-	} 	
+	}
 	if (_playModeOrModId <= 0) {
 		Log_Println("/rfid (POST): Invalid playMode or modId", LOGLEVEL_ERROR);
 		request->send(500, "text/plain; charset=utf-8", "/rfid (POST): Invalid playMode or modId");
@@ -1752,8 +1732,6 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 	}
 }
 
-
-
 // Takes stream from file-upload and writes payload into a temporary sd-file.
 void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 	static File tmpFile;
@@ -1773,7 +1751,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 	}
 
 	size_t wrote = tmpFile.write(data, len);
-	if(wrote != len) {
+	if (wrote != len) {
 		// we did not write all bytes --> fail
 		Log_Printf(LOGLEVEL_ERROR, "Error writing %s. Expected %u, wrote %u (error: %u)!", tmpFile.path(), len, wrote, tmpFile.getWriteError());
 		return;
@@ -1904,18 +1882,17 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	}
 
 	int imageSize = gPlayProperties.coverFileSize;
-	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile,imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-
+	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
 		if (maxLen > 1024) {
 			maxLen = 1024;
 		}
 
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
-		if (! leftToWrite) {
-			return 0; //end of transfer
+		if (!leftToWrite) {
+			return 0; // end of transfer
 		}
-		size_t willWrite = (leftToWrite > maxLen)?maxLen:leftToWrite;
+		size_t willWrite = (leftToWrite > maxLen) ? maxLen : leftToWrite;
 		file.read(buffer, willWrite);
 		index += willWrite;
 		return willWrite;
