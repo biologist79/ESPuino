@@ -1,7 +1,7 @@
 ## DEV-branch
 
 * 31.10.2023: Code Formatting via clang-format #264, thank's to @laszloh & @fschrempf !! 
-
+* 01.11.2023: Fix folder upload with special chars & playtime formatting
 
 
 ## Version 2 (29.10.2023)

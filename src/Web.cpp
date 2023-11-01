@@ -1046,8 +1046,10 @@ void explorerCreateParentDirectories(const char *filePath) {
 		if (rest - filePath != 0) {
 			memcpy(tmpPath, filePath, rest - filePath);
 			tmpPath[rest - filePath] = '\0';
-			Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
-			gFSystem.mkdir(tmpPath);
+			if (!gFSystem.exists(tmpPath)) {
+				Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
+				gFSystem.mkdir(tmpPath);
+			}
 		}
 		rest = strchr(rest + 1, '/');
 	}

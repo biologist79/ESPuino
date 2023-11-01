@@ -1075,6 +1075,7 @@
 		selectedNode = ref.get_node(sel);
 		if(selectedNode.data.directory){
 			path = selectedNode.data.path
+			console.log("Directory: " + path);
 		} else {
 			/* remap sel to parent folder */
 			sel = ref.get_node(ref.get_parent(sel));
@@ -1085,7 +1086,7 @@
 		const startTime = new Date().getTime();
 		let bytesTotal = 0;
 		$.ajax({
-			url: '/explorer?path=' + path,
+			url: '/explorer?path=' + encodeURIComponent(path),
 			type: 'POST',
 			data: data,
 			contentType: false,
