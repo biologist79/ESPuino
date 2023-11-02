@@ -25,11 +25,11 @@ inline bool isNumber(const char *str) {
 }
 
 inline const char *getPath(File &f) {
-	#if ESP_ARDUINO_VERSION_MAJOR >= 2
+	if constexpr (ESP_ARDUINO_VERSION_MAJOR >= 2) {
 		return f.path();
-	#else
+	} else {
 		return f.name();
-	#endif
+	}
 }
 
 // Checks if string starts with prefix

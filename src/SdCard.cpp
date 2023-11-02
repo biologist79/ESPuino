@@ -8,7 +8,6 @@
 #include "Log.h"
 #include "MemX.h"
 #include "System.h"
-
 #include "playlists/FolderPlaylist.hpp"
 #include "playlists/WebstreamPlaylist.hpp"
 
@@ -126,7 +125,8 @@ void SdCard_PrintInfo() {
 
 // Takes a directory as input and returns a random subdirectory from it
 std::optional<const String> SdCard_pickRandomSubdirectory(const char *_directory) {
-	uint32_t listStartTimestamp = millis();
+	constexpr bool fileNameSupport = (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8));
+	const uint32_t listStartTimestamp = millis();
 
 	// Look if file/folder requested really exists. If not => break.
 	File directory = gFSystem.open(_directory);
@@ -138,53 +138,53 @@ std::optional<const String> SdCard_pickRandomSubdirectory(const char *_directory
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);
 
 	size_t dirCount = 0;
-	while(true) {
+	while (true) {
 		bool isDir;
-		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+		if constexpr (fileNameSupport) {
 			const String path = directory.getNextFileName(&isDir);
-			if(path.isEmpty()) {
+			if (path.isEmpty()) {
 				break;
 			}
-		#else
+		} else {
 			File fileItem = directory.openNextFile();
-			if(!fileItem) {
+			if (!fileItem) {
 				break;
 			}
 			isDir = fileItem.isDirectory();
-		#endif
-		if(isDir) {
+		}
+		if (isDir) {
 			dirCount++;
 		}
 	}
-	if(!dirCount) {
+	if (!dirCount) {
 		// no paths in folder
 		return std::nullopt;
 	}
 
 	const uint32_t randomNumber = esp_random() % dirCount;
 	String path;
-	for(size_t i=0;i<randomNumber;) {
+	for (size_t i = 0; i < randomNumber;) {
 		bool isDir;
-		#if defined(HAS_FILEEXPLORER_SPEEDUP) || (ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2, 0, 8))
+		if constexpr (fileNameSupport) {
 			path = directory.getNextFileName(&isDir);
-		#else
+		} else {
 			File fileItem = directory.openNextFile();
-			if(!fileItem) {
+			if (!fileItem) {
 				path = "";
 			} else {
 				path = getPath(fileItem);
 				isDir = fileItem.isDirectory();
 			}
-		#endif
-		if(path.isEmpty()) {
+		}
+		if (path.isEmpty()) {
 			// we reached the end before finding the correct dir!
 			return std::nullopt;
 		}
-		if(isDir) {
+		if (isDir) {
 			i++;
 		}
 	}
-	Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, path.c_str());	
+	Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, path.c_str());
 	Log_Printf(LOGLEVEL_DEBUG, "pick random directory from SD-card finished: %lu ms", (millis() - listStartTimestamp));
 	return path;
 }
@@ -194,31 +194,31 @@ static std::optional<std::unique_ptr<Playlist>> SdCard_ParseM3UPlaylist(File f, 
 	bool extended = line.startsWith("#EXTM3U") || forceExtended;
 	auto playlist = std::make_unique<FolderPlaylist>();
 
-	if(extended) {
-        // extended m3u file format
-        // ignore all lines starting with '#'
+	if (extended) {
+		// extended m3u file format
+		// ignore all lines starting with '#'
 
-        while(f.available()) {
-            String line = f.readStringUntil('\n');
-            if(!line.startsWith("#")){
-                // this something we have to save
-                line.trim(); 
-                if(!playlist->push_back(line)) {
-                    return std::nullopt;
-                }
-            }
-        }
-        // resize memory to fit our count
+		while (f.available()) {
+			String line = f.readStringUntil('\n');
+			if (!line.startsWith("#")) {
+				// this something we have to save
+				line.trim();
+				if (!playlist->push_back(line)) {
+					return std::nullopt;
+				}
+			}
+		}
+		// resize memory to fit our count
 		playlist->compress();
-        return playlist;
+		return playlist;
 	}
 
 	// normal m3u is just a bunch of filenames, 1 / line
 	f.seek(0);
-	while(f.available()) {
+	while (f.available()) {
 		String line = f.readStringUntil('\n');
 		line.trim();
-		if(!playlist->push_back(line)) {
+		if (!playlist->push_back(line)) {
 			return std::nullopt;
 		}
 	}

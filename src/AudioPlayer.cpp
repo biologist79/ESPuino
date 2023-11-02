@@ -24,6 +24,7 @@
 
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
+#include <mutex>
 
 #define AUDIOPLAYER_VOLUME_MAX	21u
 #define AUDIOPLAYER_VOLUME_MIN	0u
@@ -31,7 +32,7 @@
 
 playProps gPlayProperties;
 TaskHandle_t AudioTaskHandle;
-//uint32_t cnt123 = 0;
+// uint32_t cnt123 = 0;
 
 // Playlist
 static std::unique_ptr<Playlist> playlist;
@@ -249,7 +250,7 @@ void Audio_setTitle(const char *format, ...) {
 
 const String AudioPlayer_getCurrentTrackPath(size_t track) {
 	std::lock_guard guard(playlist_mutex);
-	if(track >= playlist->size()) {
+	if (track >= playlist->size()) {
 		// requested track is larger than the array
 		return String();
 	}
@@ -936,15 +937,15 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
-	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
-	#ifdef SAVE_PLAYPOS_WHEN_RFID_CHANGE
-		if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
-			AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-			while (!gPlayProperties.pausePlay) {    // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
-				vTaskDelay(portTICK_PERIOD_MS * 100u);
-			}
+// Make sure last playposition for audiobook is saved when new RFID-tag is applied
+#ifdef SAVE_PLAYPOS_WHEN_RFID_CHANGE
+	if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
+			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
-	#endif
+	}
+#endif
 
 	gPlayProperties.startAtFilePos = _lastPlayPos;
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;
@@ -953,9 +954,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	if (_playMode != WEBSTREAM) {
 		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
-			auto tmp = SdCard_pickRandomSubdirectory(_itemToPlay);     // *filename (input): target-directory  //   *filename (output): random subdirectory
-			if (tmp) {  // If error occured while extracting random subdirectory
-				newPlaylist = SdCard_ReturnPlaylist(tmp.value().c_str(), _playMode);    // Provide random subdirectory in order to enter regular playlist-generation
+			auto tmp = SdCard_pickRandomSubdirectory(_itemToPlay); // get a random subdirectory
+			if (tmp) { // If error occured while extracting random subdirectory
+				newPlaylist = SdCard_ReturnPlaylist(tmp.value().c_str(), _playMode); // Provide random subdirectory in order to enter regular playlist-generation
 			}
 		} else {
 			newPlaylist = SdCard_ReturnPlaylist(_itemToPlay, _playMode);
@@ -1077,10 +1078,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		default:
 			Log_Println(modeInvalid, LOGLEVEL_ERROR);
 			error = true;
-
 	}
 
-	if(!error) {
+	if (!error) {
 		// transfer ownership of the new playlist to the audio thread
 		std::lock_guard guard(playlist_mutex);
 		playlist = std::move(newPlaylist.value());
