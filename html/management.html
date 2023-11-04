@@ -162,7 +162,7 @@
 	</select>
 	</div>
 </nav>
-<!-- Modal dialog for info / log / restart-->
+<!-- Modal dialog for info / shutdown / restart-->
 <div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
 	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
 		<div class="modal-content">
@@ -174,6 +174,23 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" id="modalInfoRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal dialog for log-->
+<div class="modal fade bd-info-modal-xl" id="modalLog" role="dialog">
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+		<div class="modal-content">
+			 <div class="modal-header">
+				<h5 class="modal-title">Infos</h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body" style="white-space: pre" id="modalLogContent">
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="modalLogRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
 				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
 			</div>
 		</div>
@@ -2059,13 +2076,11 @@
 				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
 		}
 		$('#modalInfoContent').text(content);
-		$("#modalInfoContent").css("font-family","inherit");
 	}
 
 	async function fetchLog() {
 		let logtext = await (await fetch("/log")).text();
-		$('#modalInfoContent').text(logtext);
-		$("#modalInfoContent").css("font-family","monospace");
+		$('#modalLogContent').text(logtext);
 	}
 
 	$(document).ready(function () {
@@ -2095,13 +2110,16 @@
 		$('.openPopupLog').on('click', function () {
 			fetchLog();
 			$('.modal-title').text(i18next.t("log"));
-			$('#modalInfoRefresh').on('click', fetchLog); 
-			$('#modalInfo').modal({show: true});
+			$("#modalLogContent").css("font-family", "monospace");
+			$('#modalLogRefresh').on('click', fetchLog); 
+			$('#modalLog').modal({show: true});
 		})
 		$('.openPopupRestart').on('click', function(){
+			$('#modalInfoRefresh').hide();
 			restartDevice();
 		}); 
 		$('.openPopupShutdown').on('click', function(){
+			$('#modalInfoRefresh').hide();
 			shutdownDevice();
 		}); 
 		

@@ -1,7 +1,8 @@
 ## DEV-branch
 
-* 31.10.2023: Code Formatting via clang-format #264, thank's to @laszloh & @fschrempf !! 
+* 03.11.2023: Web-ui: Fix overlapping info/log after pressing refresh button
 * 01.11.2023: Fix folder upload with special chars & playtime formatting
+* 31.10.2023: Code Formatting via clang-format #264, thank's to @laszloh & @fschrempf !! 
 
 
 ## Version 2 (29.10.2023)
