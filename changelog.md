@@ -1,5 +1,7 @@
 ## DEV-branch
 
+* 04.11.2023: LPCD: wakeup check for ISO-14443 cards also with IRQ connected to port-expander
+* 04.11.2023: Bugfix for showing wrong loglevel
 * 03.11.2023: Web-ui: Fix overlapping info/log after pressing refresh button
 * 01.11.2023: Fix folder upload with special chars & playtime formatting
 * 31.10.2023: Code Formatting via clang-format #264, thank's to @laszloh & @fschrempf !! 

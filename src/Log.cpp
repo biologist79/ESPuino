@@ -36,7 +36,7 @@ String getLoglevel(const uint8_t logLevel) {
 void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
 		uint32_t ctime = millis();
-		static String sLogLevel = getLoglevel(_minLogLevel);
+		const String sLogLevel = getLoglevel(_minLogLevel);
 		Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
 		Serial.println(_logBuffer);
 		Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);
@@ -49,7 +49,7 @@ void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTim
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
 		if (printTimestamp) {
 			uint32_t ctime = millis();
-			static String sLogLevel = getLoglevel(_minLogLevel);
+			const String sLogLevel = getLoglevel(_minLogLevel);
 			Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
 			Serial.print(_logBuffer);
 			Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);

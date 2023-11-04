@@ -79,7 +79,7 @@ static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-static void settingsToJSON(JsonObject obj, String section);
+static void settingsToJSON(JsonObject obj, const String section);
 static bool JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
@@ -693,7 +693,7 @@ bool JSONToSettings(JsonObject doc) {
 }
 
 // process settings to JSON object
-static void settingsToJSON(JsonObject obj, String section) {
+static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "current")) {
 		// current values
 		JsonObject curObj = obj.createNestedObject("current");
@@ -1590,7 +1590,7 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 	}
 }
 
-static bool tagIdToJSON(String tagId, JsonObject entry) {
+static bool tagIdToJSON(const String tagId, JsonObject entry) {
 	String s = gPrefsRfid.getString(tagId.c_str(), "-1"); // Try to lookup rfidId in NVS
 	if (!s.compareTo("-1")) {
 		return false;

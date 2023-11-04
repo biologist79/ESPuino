@@ -10,6 +10,7 @@
 #include "Rfid.h"
 #include "System.h"
 
+#include <Wire.h>
 #include <driver/gpio.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
@@ -34,6 +35,10 @@
 #define RFID_PN5180_NFC15693_STATE_ACTIVE				100u
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
+
+#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+extern TwoWire i2cBusTwo;
+#endif
 
 #ifdef RFID_READER_TYPE_PN5180
 static void Rfid_Task(void *parameter);
@@ -60,6 +65,22 @@ void Rfid_Init(void) {
 	if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
 		Rfid_WakeupCheck();
 	}
+
+	// wakeup-check if IRQ is connected to port-expander, signal arrives as pushbutton
+	#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+	if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
+		// read IRQ state from port-expander
+		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
+		delay(50);
+		Port_Init();
+		uint8_t irqState = Port_Read(RFID_IRQ);
+		if (irqState == LOW) {
+			Log_Println("Wakeup caused by low power card-detection on port-expander", LOGLEVEL_NOTICE);
+			Rfid_WakeupCheck();
+		}
+	}
+	#endif
+
 	// disable pin hold from deep sleep
 	gpio_deep_sleep_hold_dis();
 	gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
@@ -379,6 +400,10 @@ void Rfid_WakeupCheck(void) {
 		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 			// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
 			esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+		#endif
+		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+			// reset IRQ state on port-expander
+			Port_Exit();
 		#endif
 			// freeze pin states in deep sleep
 			gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
