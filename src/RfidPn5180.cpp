@@ -66,8 +66,8 @@ void Rfid_Init(void) {
 		Rfid_WakeupCheck();
 	}
 
-	// wakeup-check if IRQ is connected to port-expander, signal arrives as pushbutton
-	#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+		// wakeup-check if IRQ is connected to port-expander, signal arrives as pushbutton
+		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
 	if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
 		// read IRQ state from port-expander
 		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
@@ -79,7 +79,7 @@ void Rfid_Init(void) {
 			Rfid_WakeupCheck();
 		}
 	}
-	#endif
+		#endif
 
 	// disable pin hold from deep sleep
 	gpio_deep_sleep_hold_dis();
