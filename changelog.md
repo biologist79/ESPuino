@@ -1,17 +1,19 @@
+# Changelog
+
 ## DEV-branch
+
+* more to come...
+
+## Version 2 (07.11.2023)
 
 * 04.11.2023: LPCD: wakeup check for ISO-14443 cards also with IRQ connected to port-expander
 * 04.11.2023: Bugfix for showing wrong loglevel
 * 03.11.2023: Web-ui: Fix overlapping info/log after pressing refresh button
 * 01.11.2023: Fix folder upload with special chars & playtime formatting
-* 31.10.2023: Code Formatting via clang-format #264, thank's to @laszloh & @fschrempf !! 
-
-
-## Version 2 (29.10.2023)
-
+* 31.10.2023: Code Formatting via clang-format #264, thanks to @laszloh & @fschrempf !!
 * 27.10.2023: PlatformIO package 6.4.0, Arduino version stays at 2.0.11
 * 26.10.2023: LPCD, RFID_IRQ on port-expander: fix compiler warning
-* 26.10.2023: portTICK_RATE_MS is deprecated, use portTICK_PERIOD_MS instead (https://github.com/espressif/esp-idf/issues/51)
+* 26.10.2023: portTICK_RATE_MS is deprecated, use portTICK_PERIOD_MS instead (<https://github.com/espressif/esp-idf/issues/51>)
 * 26.10.2023: Cppcheck: Fix some warnings/hints
 * 22.10.2023: Bugfix PortExpander: beginTransmission()/endTransmission() must be balanced
 * 21.10.2023: Enhanced logging: Show Loglevel
@@ -20,8 +22,8 @@
 * 02.10.2023: Optimize Arduino as component (Disable BLE, BT-HFP & SPI ethernet)
 * 25.09.2023: Handle unicode characters in NVS backup, write UTF-8 BOM in backup.txt
 * 23.09.2023: Fix some log messages, update FTP & A2DP libraries
-* 22.09.2023: Bugfix_same_rfid_twice init (#262) - Thank's to @Joe91 !! 
-* 06.09.2023: Arduino as component #261 - Thank's to @Joe91 !! 
+* 22.09.2023: Bugfix_same_rfid_twice init (#262) - Thanks to @Joe91 !!
+* 06.09.2023: Arduino as component #261 - Thanks to @Joe91 !!
 * 01.09.2023: Regression: start an initial WiFi scan on startup, fix redirect to captive portal
 * 31.08.2023: Show nvs rfid assignments in web-ui & allow to delete single tags
 * 31.08.2023: invoke "/rfid" endpoint (#260)
@@ -29,12 +31,12 @@
 * 15.08.2023: Web-ui: Change /restart endpoint to POST, refresh button for info & log modal
 * 12.08.2023: Web-ui improvements
 * 08.08.2023: check & avoid excessive "PING" calls from web-ui
-* 08.08.2023: Configurable volumecurve #256, thank's to @Niko & @Wolle
-* 08.08.2023: Refactor "/info" endpoint to make frontend/backend more independant #257 
+* 08.08.2023: Configurable volumecurve #256, thanks to @Niko & @Wolle
+* 08.08.2023: Refactor "/info" endpoint to make frontend/backend more independant #257
 * 07.08.2023: LOG message for starting mDNS service
 * 04.08.2023: Support for .oga audio files (Ogg Vorbis Audio container)
 * 04.08.2023: Web-UI: Replace the template processor (#253)
-* 02.08.2023: Bugfix M3U-playlist + PREVIOUSTRACK, thank's to @Niko!
+* 02.08.2023: Bugfix M3U-playlist + PREVIOUSTRACK, thanks to @Niko!
 * 31.07.2023: Restart system: avoid peripheral power down while restarting
 * 31.07.2023: increase stacksize for audio-task (audio-streams with SSL)
 * 22.07.2023: New command CMD_TELL_CURRENT_TIME for announcing the current time
@@ -43,18 +45,18 @@
 * 20.07.2023: Allow to configure the timezone in settings.h
 * 19.07.2023: Show received timestamp of NTP request in log
 * 11.07.2023: Fix regression, SD-card was not working in SPI mode
-* 09.07.2023: New ftp server by peterus #254. Thank's to @Joe91 for contribution !!
+* 09.07.2023: New ftp server by peterus #254. Thanks to @Joe91 for contribution !!
 * 08.07.2023: Allow to compile without SD-card (webplayer only)
 * 04.07.2023: fix volume jumping at startup when initVolume <> factory default (3u)
 * 29.06.2023: Update PN5180 library to fix compilation with DCORE_DEBUG_LEVEL=5
 * 25.06.2023: Some spelling corrections, thanks to @SciLor !
 * 23.06.2023: CMD_TELL_IP_ADDRESS: IP as text (replace thousand separator with word "point")
-* 23.06.2023: web-upload improvement (#249). Thank's to @Joe91 !!
-* 23.06.2023: Refactor web: Move dependant html-code from web.cpp to management.html (#250) 
+* 23.06.2023: web-upload improvement (#249). Thanks to @Joe91 !!
+* 23.06.2023: Refactor web: Move dependant html-code from web.cpp to management.html (#250)
 * 20.06.2023: PlatformIO package 6.3.2
-* 20.06.2023: Move ScanWiFiOnStart to global WiFi configuration (#248) 
-* 18.06.2023: Stricter hostname validation (#246). Thank's to @SZenglein !!
-* 18.06.2023: Some Web-UI improvements (#247) 
+* 20.06.2023: Move ScanWiFiOnStart to global WiFi configuration (#248)
+* 18.06.2023: Stricter hostname validation (#246). Thanks to @SZenglein !!
+* 18.06.2023: Some Web-UI improvements (#247)
 * 17.06.2023: CMD_TOGGLE_WIFI_STATUS: Escape from BT-mode, WiFi cannot coexist with BT and can cause a crash
 * 13.06.2023: Bluetooth configuration tab in web-interface (#244)
 * 13.06.2023: Introduce new playmode "RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM"
@@ -66,7 +68,7 @@
 * 01.06.2023: Reduce floating the log with redundant RSSI-messages: Log RSSI value only if it has changed by > 3 dBm
 * 31.05.2023: Wifi: Log BSSID in scan and connection success, Wifi fixes (#240)
 * 26.05.2023: Fix compiler warnings if MQTT_ENABLE is not defined
-* 26.05.2023: Error in log: [E][Preferences.cpp:96] remove(): nvs_erase_key fail
+* 26.05.2023: Error in log: `[E][Preferences.cpp:96]` remove(): nvs_erase_key fail
 * 23.05.2023: Migration from single-wifi setup: Initialize "use_static_ip"
 * 22.05.2023: DEV branch has stricter compiler rules, fix some of (mostly harmless) warnings
 * 22.05.2023: BTSource: fix Stack canary watchpoint triggered (BtAppT)
@@ -75,10 +77,10 @@
 * 09.05.2023: Bluetooth.cpp: Fix logging crash in sink mode (#238)
 * 06.05.2023: README.md: Improve formatting, style, language and content
 * 03.05.2023: Add support for control LEDs to be connected at the end of the NeoPixel Ring (#198)
-* 27.04.2023: Remove usage of pgmspace.h header 
-* 27.04.2023: Move message formatting into LogMessages 
+* 27.04.2023: Remove usage of pgmspace.h header
+* 27.04.2023: Move message formatting into LogMessages
 * 26.04.2023: Configure button with active HIGH
-* 20.04.2023: Speedup playlist generation & file listing by factor > 20 
+* 20.04.2023: Speedup playlist generation & file listing by factor > 20
 * 14.04.2023: Removing HAL for ESPmuse (stale development)
 * 12.04.2023: Restrict value ranges to guard array access
 * 11.04.2023: Merge pull request #226 from fschrempf/bugfix_rfid_assign
@@ -89,7 +91,7 @@
 * 31.03.2023: build.yml: Trigger workflow for all branches
 * 27.03.2023: Merge pull request #219 from laszloh/feature/modern_cpp
 * 25.03.2023: Transition to c++17
-* 24.03.2023: Lost feature „PLAY_LAST_RFID_AFTER_REBOOT“ 
+* 24.03.2023: Lost feature „PLAY_LAST_RFID_AFTER_REBOOT“
 * 23.03.2023: Change volume animation to triggered mode
 * 22.03.2023: Merge pull request #215 from fschrempf/execute-commands
 * 22.03.2023: Change rotary encoder to delta mode
@@ -103,13 +105,12 @@
 * 18.03.2023: Major rework of LED animation task
 * 13.03.2023: Fix for playing files via Web-UI for Arduino >=2.0.5
 * 13.03.2023: Fix captive portal, Add fallback text AP setup
-* 10.03.2023: Merge pull request #204 from laszloh/bugfix/heap_handling 
+* 10.03.2023: Merge pull request #204 from laszloh/bugfix/heap_handling
 * 10.03.2023: Always free playlist memory when SdCard_ReturnPlaylist is called
 * 10.03.2023: Fix heap corruption due to insufficent memory allocation
 * 10.03.2023: Harmonize return value of SdCard_ReturnPlaylist
-* 10.03.2023: Correct the name of the "sort" function to randomize 
+* 10.03.2023: Correct the name of the "sort" function to randomize
 * 10.03.2023: Create DEV(eloper) branch
-
 
 ## Version 1
 
@@ -136,6 +137,7 @@
 * 08.01.2023: New feature: `PAUSE_ON_MIN_VOLUME`. Playback is paused automatically if volume reaches minVolume (usually 0).
 
 ## Old (monolithic main.cpp)
+
 * 11.07.2020: Added support for reversed Neopixel addressing.
 * 09.10.2020: mqttUser / mqttPassword can now be configured via webgui.
 * 16.10.2020: Added English as supported lanuage.
@@ -154,7 +156,6 @@
 * 18.12.2020: Added SD-MMC 1 Bit-mode (`SD_MMC_1BIT_MODE`). This mode needs one GPIO less and provides almost doubled speed (compared to SPI) for FTP-transfers (thanks @tueddy for contribution!)
 * 18.12.2020: Added support for RFID-reader PN5180 (`RFID_READER_TYPE_PN5180`). PN5180 has better RFID-range/sensitivity and can read ISO-15693 / iCode SLIX2-tags aka 'Tonies' (thanks @tueddy for contribution!)
 * 20.12.2020: Due to memory-issues with webstreams, FTP needs to be activated by pressing pause+next-button now
-<br />More to come...
 * 23.12.2020: User-config is now split into general part (settings.h) and develboard-specific part (e.g. settings-lolin32.h)
 * 13.01.2021: Added fileexlorer to webgui (thanks @grch87 for contribution!). Now files and directories can be renamed, uploaded and deleted via webgui.
 * 17.01.2021: Added directive `STATIC_IP_ENABLE`: (optional) static IPv4-configuration

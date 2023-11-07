@@ -5,24 +5,18 @@
 ## Forum
 
 - EN: I've set up a primarily German-speaking community with much documentation. Also an
-  international corner for non-German-speakers is available at https://forum.espuino.de.
+  international corner for non-German-speakers is available at <https://forum.espuino.de>.
   GitHub login can be used for signing in there (optional).
 - DE: Ich habe ein primär deutschsprachiges Forum aufgesetzt, welches ich mit reichlich Doku
-  versehen habe. Würde mich freuen, euch dort zu sehen: https://forum.espuino.de. Ihr könnt euch
+  versehen habe. Würde mich freuen, euch dort zu sehen: <https://forum.espuino.de>. Ihr könnt euch
   dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr
-  insbesondere hier: https://forum.espuino.de/c/dokumentation/anleitungen/10.
+  insbesondere hier: <https://forum.espuino.de/c/dokumentation/anleitungen/10>.
 
 ## Current development
 
 There is a [development branch (dev)](https://github.com/biologist79/ESPuino/tree/dev) that contains
 new features, that will be introduced and tested there first until they become part of the master
 branch. Feel free to try but be advised this could be unstable.
-
-## Known bugs
-
-- For ESPuinos making use of SPI to interface the SD card, there's an unsolved problem that
-  occasionally leads to incomplete file transfers via web interface or FTP. Solution: use SD_MMC
-  instead (by the way: it's faster and needs one GPIO less).
 
 ## ESPuino - what's that?
 
@@ -52,11 +46,9 @@ Especially this is true for
 ## Hardware setup
 
 You could start on a breadboard with jumper wires but I _strongly_ recommend to start right away
-with a PCB like [ESPuino-mini 4L](https://forum.espuino.de/t/espuino-mini-4layer/1661). Several PCBs
-are available. Please click on the links below for more informations and pictures.
+with a PCB (several are available). Please click on the links below for more informations and pictures.
 
-- [Lolin D32 / Lolin D32 pro + PN5180/RC522 + port-expander
-  (SMD)](https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
+- [ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661)
 - [Lolin32 + SD_MMC + PN5180/RC522
   (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
 - [NodeMCU ESP32 + SD_MMC + PN5180/RC522
@@ -103,16 +95,16 @@ are available. Please click on the links below for more informations and picture
 - Now have a look at the serial output at the bottom of Visual Studio Code's window. At the first
   run there might appear a few error messages (related to missing entries in NVS). Don't worry, this
   is just normal. However, make sure the SD card is detected as this is mandatory!
-- If everything ran fine, at the first run, ESPuino should open an access-point with the name
-  "ESPuino". Join this WiFi with your computer (or mobile) and enter `http://192.168.4.1` to your
-  webbrowser. Enter WiFi credentials and the hostname. After saving the configuration, restart
-  ESPuino.
+- If everything ran fine, at the first run, ESPuino should open an access-point and ESPuino offers a
+  captive portal that is shown on your computer. If that's not the case, join a WiFi called
+  "ESPuino" and enter `http://192.168.4.1` to your webbrowser. Enter WiFi credentials and the
+  hostname there (or in the captive portal). After saving the configuration, restart ESPuino.
 - After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that
   was successful, an IP is shown in the serial console. You can access ESPuino's GUI using a
   webbrowser via this IP; make sure to allow Javascript. If the mDNS feature is active in
   `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you
   configured `espuino` as hostname, you can use `http://espuino.local` for web GUI and FTP.
-- Via FTP and web GUI you can upload data (but don't expect it to be super fast).
+- Via FTP and web GUI you can upload data (expect a throughput like 320 kB/s up to 700 kB/s).
 - FTP needs to be activated after boot if you need it! Don't forget to assign action
   `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if
   enabling was successful. It'll be disabled automatically after next reboot. Means: you have to
@@ -124,10 +116,10 @@ are available. Please click on the links below for more informations and picture
 
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
 
-Having the SD card working is mandatory, ESPuino doesn't start without working SD card! However,
-there are two modes available to interface SD cards: SPI and SDMMC (1 bit). Advice: don't use SPI as
-there's a bug that often leading to broken files due to interrupted file transfers. Beside of that,
-SDMMC is twice as fast as SPI and needs one GPIO less.
+Having the SD card working is mandatory, ESPuino doesn't start without working SD card (at least
+unless `NO_SDCARD` hasn't been enabled previously). However, there are two modes available to
+interface SD cards: SPI and SDMMC (1 bit). Be advised that SDMMC is twice as fast as SPI and
+needs one GPIO less.
 
 ## Which RFID-reader: RC522 or PN5180?
 
@@ -211,6 +203,7 @@ your router (or the configured hostname). Using this GUI you can:
 - configure FTP (if enabled)
 - configure initial volume, maximum volume (speaker / headphone), brightness of Neopixel (night mode
   / default) and inactivity time
+- configure voltage levels for battery mode
 - view logs / status / current track
 - control player
 - run modifications (like modification card)
@@ -292,7 +285,7 @@ modification:
 
 > :information_source: All sleep modes do dimming (Neopixel) automatically because it's supposed to
   be used in the evening when going to bed. Well, at least that's my children's indication :-)
-
+>
 > :information_source: Track and playlist loop mode can both be activated at the same time, but
   unless track loop isn't deactivated, playlist loop won't be effective
 
