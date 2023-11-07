@@ -218,6 +218,17 @@ void setup() {
 	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", freeHeapAfterSetup, ESP.getFreeHeap());
 	Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
 	Log_Printf(LOGLEVEL_DEBUG, "Flash-size: %u bytes", ESP.getFlashChipSize());
+
+	// setup timezone & show internal RTC date/time if available
+	setenv("TZ", timeZone, 1);
+	tzset();
+	struct tm timeinfo;
+	if (getLocalTime(&timeinfo)) {
+		static char timeStringBuff[255];
+		snprintf(timeStringBuff, sizeof(timeStringBuff), dateTimeRTC, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+		Log_Println(timeStringBuff, LOGLEVEL_DEBUG);
+	}
+
 	if (Wlan_IsConnected()) {
 		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}

@@ -216,6 +216,7 @@ const char noPlaylist[] = "No active playlist.";
 const char rfidTagRemoved[] = "RFID-tag removed";
 const char rfidTagReapplied[] = "RFID-tag reapplied";
 const char ftpEnableTooLate[] = "FTP can only be enabled within the first 30s after ESPuino-start. Child-protection :-)";
+const char dateTimeRTC[] = "Date/time (Internal RTC)): %02d.%02d.%4d, %02d:%02d:%02d";
 const char syncingViaNtp[] = "Getting current time via NTP...";
 const char ntpGotTime[] = "Received date/time from NTP server: %02d.%02d.%4d, %02d:%02d:%02d";
 const char ntpFailed[] = "Failed to obtain NTP time";

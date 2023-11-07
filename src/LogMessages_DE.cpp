@@ -216,6 +216,7 @@ const char noPlaylist[] = "Keine Playlist aktiv.";
 const char rfidTagRemoved[] = "RFID-Karte wurde entfernt";
 const char rfidTagReapplied[] = "RFID-Karte erneut aufgelegt";
 const char ftpEnableTooLate[] = "FTP kann nur innerhalb der ersten 30s aktiviert werden. Kinderschutz :-)";
+const char dateTimeRTC[] = "Datum/Uhrzeit (Interne RTC): %02d.%02d.%4d, %02d:%02d:%02d";
 const char syncingViaNtp[] = "Synchronisiere Uhrzeit via NTP...";
 const char ntpGotTime[] = "Datum/Uhrzeit empfangen von NTP-Server: %02d.%02d.%4d, %02d:%02d:%02d";
 const char ntpFailed[] = "NTP: Datum/Uhrzeit (noch) nicht verfügbar";

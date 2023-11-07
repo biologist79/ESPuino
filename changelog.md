@@ -2,7 +2,7 @@
 
 ## DEV-branch
 
-* more to come...
+* 07.11.2023: Set timezone after startup, thank's to @Joe91 !
 
 ## Version 2 (07.11.2023)
 

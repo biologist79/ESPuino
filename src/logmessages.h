@@ -216,6 +216,7 @@ extern const char rfidTagReapplied[];
 extern const char unableToTellIpAddress[];
 extern const char unableToTellTime[];
 extern const char ftpEnableTooLate[];
+extern const char dateTimeRTC[];
 extern const char syncingViaNtp[];
 extern const char ntpGotTime[];
 extern const char ntpFailed[];
