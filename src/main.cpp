@@ -220,7 +220,7 @@ void setup() {
 		Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
 	} else {
 		Log_Println("PSRAM: --", LOGLEVEL_DEBUG);
-	}	
+	}
 	Log_Printf(LOGLEVEL_DEBUG, "Flash-size: %u bytes", ESP.getFlashChipSize());
 
 	// setup timezone & show internal RTC date/time if available
