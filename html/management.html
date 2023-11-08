@@ -2060,7 +2060,9 @@
 		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "\n";
 		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "\n";
 		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "\n";
-		content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		if (info.memory.freePSRam) {
+			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		}
 		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
 		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
 		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";

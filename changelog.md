@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 08.11.2023: Better logging for boards without PSRAM, fewer logs when compiling with NO_SDCARD
 * 07.11.2023: Set timezone after startup, thank's to @Joe91 !
 
 ## Version 2 (07.11.2023)

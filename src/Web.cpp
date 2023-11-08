@@ -316,12 +316,17 @@ void webserverStart(void) {
 			} else {
 				if (WiFi.getMode() == WIFI_STA) {
 					// serve management.html in station-mode
+#ifdef NO_SDCARD
+					response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+#else
 					if (gFSystem.exists("/.html/index.htm")) {
-						response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
+						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
 					} else {
 						response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
 						response->addHeader("Content-Encoding", "gzip");
 					}
+#endif
 				} else {
 					// serve accesspoint.html in AP-mode
 					response = request->beginResponse_P(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
@@ -487,6 +492,7 @@ void webserverStart(void) {
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
 			Log_Println("logo request", LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/logo.png")) {
 				request->send(gFSystem, "/.html/logo.png", "image/png");
@@ -496,14 +502,17 @@ void webserverStart(void) {
 				request->send(gFSystem, "/.html/logo.svg", "image/svg+xml");
 				return;
 			};
+#endif
 			request->redirect("https://www.espuino.de/Espuino.webp");
 		});
 		// ESPuino favicon
 		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
 			if (gFSystem.exists("/.html/favicon.ico")) {
 				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
 				return;
 			};
+#endif
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
 		// ESPuino settings
@@ -845,7 +854,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject memoryObj = infoObj.createNestedObject("memory");
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-		if (psramInit()) {
+		if (psramFound()) {
 			memoryObj["freePSRam"] = ESP.getFreePsram();
 		}
 	}
@@ -1244,6 +1253,10 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
+#ifdef NO_SDCARD
+	request->send(200, "application/json; charset=utf-8", "[]"); // maybe better to send 404 here?
+	return;
+#endif
 #ifdef BOARD_HAS_PSRAM
 	SpiRamJsonDocument jsonBuffer(65636);
 #else
