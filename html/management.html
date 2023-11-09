@@ -255,7 +255,7 @@
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
 			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
 			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
 			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
 			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
@@ -275,7 +275,7 @@
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
 							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
+						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
 						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 					</div>
 					<br>
@@ -295,7 +295,7 @@
 						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
 						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
 
-						<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
+						<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
 						<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 						<div id="wifi_static_div" style="display:none">
 							<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
@@ -355,8 +355,8 @@
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
-						</i><input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-							data-slider-value="" value="" onchange="sendVolume(this.value)">
+							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
+								data-slider-value="" value="" onchange="sendVolume(this.value)">
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
@@ -437,14 +437,14 @@
 		</div>
 		<div class="container" id="rfidMusicTags">
 			<fieldset>
-				<legend id="rfidMusicTagsAssignment"" data-i18n="files.rfid.title">RFID-Assignments</legend>
+				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 				<div class="form-group col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 						   placeholder="" name="rfidIdMusic" required>
 					<br>
-					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">>
+					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
 							<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
 						</li>
