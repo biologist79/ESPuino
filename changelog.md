@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 13.11.2023: Update third party libraries
 * 08.11.2023: Fix HTML syntax errors, found with static code analysis tool "HtmlHint"
 * 08.11.2023: Better logging for boards without PSRAM, fewer logs when compiling with NO_SDCARD
 * 07.11.2023: Set timezone after startup, thanks to @Joe91 !
