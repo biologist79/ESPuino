@@ -560,7 +560,7 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("wifi")) {
 		// WiFi settings
-		static String hostName = doc["wifi"]["hostname"];
+		String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
 			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
 			return false;
@@ -726,15 +726,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if (section == "ssids") {
 		// saved SSID's
 		JsonObject ssidsObj = obj.createNestedObject("ssids");
-		static String ssids[10];
-
 		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
-		size_t len = Wlan_GetSSIDs(ssids, 10);
-		if (len > 0) {
-			for (int i = 0; i < len; i++) {
-				ssidArr.add(ssids[i]);
-			}
-		}
+		Wlan_GetSavedNetworks([ssidArr](const WiFiSettings &network) {
+			ssidArr.add(network.ssid);
+		});
+
 		// active SSID
 		if (Wlan_IsConnected()) {
 			ssidsObj["active"] = Wlan_GetCurrentSSID();
@@ -1491,12 +1487,9 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 	AsyncJsonResponse *response = new AsyncJsonResponse(true);
 	JsonArray json_ssids = response->getRoot();
-	static String ssids[10];
-
-	size_t len = Wlan_GetSSIDs(ssids, 10);
-	for (int i = 0; i < len; i++) {
-		json_ssids.add(ssids[i]);
-	}
+	Wlan_GetSavedNetworks([json_ssids](const WiFiSettings &network) {
+		json_ssids.add(network.ssid);
+	});
 
 	response->setLength();
 	request->send(response);
