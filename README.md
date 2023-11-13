@@ -12,6 +12,12 @@
   dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr
   insbesondere hier: <https://forum.espuino.de/c/dokumentation/anleitungen/10>.
 
+## News
+
+> :warning: By the end of october 2023, ESPuino switched framework from ESP32-Arduino1 to ESP32-Arduino2.
+This brought lots of improvements but as it turned out, due to memory restrictions this version
+no longer runs safely on ESP32 without PSRAM. So please make sure to use an ESP32-WROVER!
+
 ## Current development
 
 There is a [development branch (dev)](https://github.com/biologist79/ESPuino/tree/dev) that contains
@@ -46,19 +52,25 @@ Especially this is true for
 ## Hardware setup
 
 You could start on a breadboard with jumper wires but I _strongly_ recommend to start right away
-with a PCB (several are available). Please click on the links below for more informations and pictures.
+with a PCB that was especially developed for ESPuino. There are several available, but
+[ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661) can be considered as
+being the latest generation. Furthermore you need a ESP32-develboard like (or another one that's
+pin compatible):
 
-- [ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661)
-- [Lolin32 + SD_MMC + PN5180/RC522
-  (THT)](https://forum.espuino.de/t/lolin32-mit-sd-sd-mmc-und-pn5180-als-rfid-leser/77/)
-- [NodeMCU ESP32 + SD_MMC + PN5180/RC522
-  (THT)](https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
-- And some more... please have a look [here](https://forum.espuino.de/c/hardware/pcbs/11).
-- All of these platforms are compatible with [headphone-pcb
-  #1](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and
-  [headphone-pcb #2](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-uda1334-pj306b/705)
-  and [headphone-pcb
-  #3](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308).
+- [D32 pro LiFePO4](https://forum.espuino.de/t/esp32-develboard-d32-pro-lifepo4/1109)
+- [E32 LiPo](https://forum.espuino.de/t/esp32-develboard-e32-lipo/1135)
+- [Wemos Lolin D32 pro](https://www.wemos.cc/en/latest/d32/d32_pro.html)
+
+> :warning: **Due to memory restrictions meanwhile it's mandatory to use ESP32 with
+PSRAM.** This being said you need to make sure that your develboard carries an ESP32-WROVER.
+And you should make sure that 16 MB flash memory is available (both is true for all
+develboards named above).
+
+Optionally a [headphone-pcb](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/)
+can be attached to [ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661).
+
+However, feel free to develop PCBs yourself. But again, be advised your ESP32 needs PSRAM in order to
+run ESPuino properly.
 
 ## Getting started
 
@@ -119,7 +131,7 @@ with a PCB (several are available). Please click on the links below for more inf
 Having the SD card working is mandatory, ESPuino doesn't start without working SD card (at least
 unless `NO_SDCARD` hasn't been enabled previously). However, there are two modes available to
 interface SD cards: SPI and SDMMC (1 bit). Be advised that SDMMC is twice as fast as SPI and
-needs one GPIO less.
+needs one GPIO less. So basically it's a no-brainer.
 
 ## Which RFID-reader: RC522 or PN5180?
 
