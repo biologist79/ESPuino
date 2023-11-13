@@ -620,5 +620,5 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 }
 
 bool Wlan_IsConnected(void) {
-	return (WiFi.status() == WL_CONNECTED);
+	return (wifiState == WIFI_STATE_CONNECTED);
 }
