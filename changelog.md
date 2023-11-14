@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 14.11.2023: Multi Wlan improvements (#266), thanks to @laszloh !
 * 13.11.2023: Update third party libraries
 * 08.11.2023: Fix HTML syntax errors, found with static code analysis tool "HtmlHint"
 * 08.11.2023: Better logging for boards without PSRAM, fewer logs when compiling with NO_SDCARD
