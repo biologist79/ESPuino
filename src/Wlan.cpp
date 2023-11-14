@@ -507,17 +507,10 @@ uint8_t Wlan_NumSavedNetworks() {
 	return numKnownNetworks;
 }
 
-// write saved ssids into the passed array.
-size_t Wlan_GetSSIDs(String *ssids, size_t max_len) {
-	if (numKnownNetworks > max_len) {
-		return 0;
-	}
-
+void Wlan_GetSavedNetworks(std::function<void(const WiFiSettings &)> handler) {
 	for (uint8_t i = 0; i < numKnownNetworks; i++) {
-		ssids[i] = knownNetworks[i].ssid;
+		handler(knownNetworks[i]);
 	}
-
-	return numKnownNetworks;
 }
 
 const String Wlan_GetCurrentSSID() {
@@ -620,5 +613,5 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 }
 
 bool Wlan_IsConnected(void) {
-	return (WiFi.status() == WL_CONNECTED);
+	return (wifiState == WIFI_STATE_CONNECTED);
 }
