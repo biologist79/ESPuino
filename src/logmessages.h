@@ -232,6 +232,7 @@ extern const char wrongWakeUpGpio[];
 extern const char currentlyPlaying[];
 extern const char secondsJumpForward[];
 extern const char secondsJumpBackward[];
+extern const char JumpToPosition[];
 extern const char wroteLastTrackToNvs[];
 extern const char wifiConnectionInProgress[];
 extern const char wifiConnectionSuccess[];

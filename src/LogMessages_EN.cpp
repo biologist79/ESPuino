@@ -232,6 +232,7 @@ const char wrongWakeUpGpio[] = "GPIO choosen as wakeup-pin isn't of type RTC and
 const char currentlyPlaying[] = "'%s' is being played (%d of %d)";
 const char secondsJumpForward[] = "Jumped %d seconds forwards";
 const char secondsJumpBackward[] = "Jumped %d seconds backward";
+const char JumpToPosition[] = "Jumped to position %u/%u";
 const char wroteLastTrackToNvs[] = "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u";
 const char wifiConnectionInProgress[] = "Try to connect to WiFi with SSID '%s'...";
 const char wifiConnectionSuccess[] = "Connected with WiFi '%s' (signal strength: %d dBm, channel: %d, BSSID: %s)";

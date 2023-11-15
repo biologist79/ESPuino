@@ -39,6 +39,10 @@ static uint8_t AudioPlayer_MaxVolumeSpeaker = AUDIOPLAYER_VOLUME_MAX;
 static uint8_t AudioPlayer_MinVolume = AUDIOPLAYER_VOLUME_MIN;
 static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
 
+// current playtime
+uint32_t AudioPlayer_CurrentTime;
+uint32_t AudioPlayer_FileDuration;
+
 // Playtime stats
 time_t playTimeSecTotal = 0;
 time_t playTimeSecSinceStart = 0;
@@ -217,6 +221,14 @@ time_t AudioPlayer_GetPlayTimeSinceStart(void) {
 	return (playTimeSecSinceStart * 1000);
 }
 
+uint32_t AudioPlayer_GetCurrentTime(void) {
+	return AudioPlayer_CurrentTime;
+}
+
+uint32_t AudioPlayer_GetFileDuration(void) {
+	return AudioPlayer_FileDuration;
+}
+
 void Audio_setTitle(const char *format, ...) {
 	char buf[256];
 	va_list args;
@@ -350,6 +362,8 @@ void AudioPlayer_Task(void *parameter) {
 	static BaseType_t trackQStatus;
 	static uint8_t trackCommand = NO_ACTION;
 	bool audioReturnCode;
+	AudioPlayer_CurrentTime = 0;
+	AudioPlayer_FileDuration = 0;
 
 	for (;;) {
 		/*
@@ -370,6 +384,9 @@ void AudioPlayer_Task(void *parameter) {
 			Log_Printf(LOGLEVEL_INFO, newCntrlReceivedQueue, trackCommand);
 		}
 
+		// update current playtime and duration
+		AudioPlayer_CurrentTime = audio->getAudioCurrentTime();
+		AudioPlayer_FileDuration = audio->getAudioFileDuration();
 		trackQStatus = xQueueReceive(gTrackQueue, &gPlayProperties.playlist, 0);
 		if (trackQStatus == pdPASS || gPlayProperties.trackFinished || trackCommand != NO_ACTION) {
 			if (trackQStatus == pdPASS) {
@@ -714,6 +731,13 @@ void AudioPlayer_Task(void *parameter) {
 				} else {
 					System_IndicateError();
 				}
+			} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
+				uint32_t newFilePos = uint32_t((double) (gPlayProperties.currentRelPos / 100) * audio->getFileSize());
+				if (audio->setFilePos(newFilePos)) {
+					Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getFileSize());
+				} else {
+					System_IndicateError();
+				}
 			}
 			gPlayProperties.seekmode = SEEK_NORMAL;
 		}
@@ -782,7 +806,7 @@ void AudioPlayer_Task(void *parameter) {
 		// Calculate relative position in file (for neopixel) for SD-card-mode
 		if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
 			if (millis() % 20 == 0) { // Keep it simple
-				if (!gPlayProperties.pausePlay && (audio->getFileSize() > 0)) { // To progress necessary when paused
+				if (!gPlayProperties.pausePlay && (audio->getFileSize() > 0) && (gPlayProperties.seekmode != SEEK_POS_PERCENT)) { // To progress necessary when paused
 					gPlayProperties.currentRelPos = ((double) (audio->getFilePos() - audio->inBufferFilled()) / (double) audio->getFileSize()) * 100;
 				}
 			}
