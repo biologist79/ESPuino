@@ -227,7 +227,7 @@ void setup() {
 	setenv("TZ", timeZone, 1);
 	tzset();
 	struct tm timeinfo;
-	if (getLocalTime(&timeinfo)) {
+	if (getLocalTime(&timeinfo, 5)) {
 		static char timeStringBuff[255];
 		snprintf(timeStringBuff, sizeof(timeStringBuff), dateTimeRTC, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 		Log_Println(timeStringBuff, LOGLEVEL_DEBUG);
