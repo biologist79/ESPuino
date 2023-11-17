@@ -113,6 +113,10 @@
 			width: 100%;
 		}
 
+		.progress-sm {
+  			height: 0.4rem!important;
+		}
+
 		#SubTabContent.tab-content {
 			display: flex;
 		}
@@ -365,6 +369,11 @@
 				<div class="form-group col-md-12">
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
+					<div></div>
+					<div id="trackProgressDiv" class="progress progress-sm">
+						<div id="trackProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>
+					<div id="playtime"> </div>
 				</div>
 				<br/>
 				<div class="form-group col-md-12">
@@ -775,21 +784,31 @@
 <script type="text/javascript">
 	var DEBUG = false;
 	var lastIdclicked = '';
+	var ActiveTab = 'nav-rfid-tab';
 	var ActiveSubTab = 'rfid-music-tab';
 	var host = $(location).attr('hostname');
 	var language = navigator.language || navigator.userLanguage;
 	var localize;
 
 	/* show active / selected tab */
+	$('#nav-tab.nav-tabs a').on('shown.bs.tab', function (e) {
+		ActiveTab = $(e.target).attr('id');
+		console.log ("ActiveTab: " + ActiveTab);
+		if (ActiveTab == 'nav-control-tab') {
+			getTrackProgress();
+		}
+	});
+
+	/* show active / selected subtab */
 	$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
 		ActiveSubTab = $(e.target).attr('id');
-		console.log ( ActiveSubTab);
+		console.log ("ActiveSubTab: " + ActiveSubTab);
 		if (ActiveSubTab == 'rfid-music-tab') {
 			document.getElementById("fileOrUrl").required = true;
 		} else {
 			document.getElementById("fileOrUrl").required = false;
 		}
-});
+	});
 
 	if (DEBUG) {
 		host = "192.168.178.114";
@@ -852,6 +871,21 @@
 			i18next.changeLanguage(lang);
 		}
 	});
+
+	document.getElementById('trackProgressDiv').addEventListener('click', function (e) {
+		var bounds = this.getBoundingClientRect();
+    	var max = bounds.width;
+    	var pos = e.pageX - bounds.left; 
+    	var percent = Math.round(pos / max * 100); 
+    	console.log('track progress percentage:', percent);
+		var myObj = {
+			"trackProgress": {
+				posPercent: percent
+			}
+		};
+		var myJSON = JSON.stringify(myObj);
+		socket.send(myJSON);
+ 	});
 
 	function postRendering(event, data) {
 		Object.keys(data.instance._model.data).forEach(function (key, index) {
@@ -1459,6 +1493,7 @@
 
 		socket.onopen = function () {
 			setInterval(ping, 15000);
+			setInterval(getTrackProgress, 1000);
 			// clear old socket messages
     		socket.sendBuffer = [];
 			socket.send('{"settings":{"settings":"settings"}}');	// request settings
@@ -1501,7 +1536,7 @@
 				volumeSlider.setValue(parseInt(socketMsg.volume));
 			} if ("trackinfo" in socketMsg) {
 				document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
-
+				setTrackProgress(socketMsg.trackinfo);
 				var btnTrackPlayPause = document.getElementById('nav-btn-play');
 				if (socketMsg.trackinfo.pausePlay) {
 					btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
@@ -1527,6 +1562,8 @@
 					btnTrackLast.classList.remove("disabled");
 					btnTrackNext.classList.remove("disabled");
 				}
+			} if ("trackProgress" in socketMsg) {
+				setTrackProgress(socketMsg.trackProgress);
 			} if ("coverimg" in socketMsg) {
 				document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
 			} if ("settings" in socketMsg) {
@@ -1820,6 +1857,32 @@
 		clearTimeout(tm);
 	}
 
+	function getTrackProgress() {
+		if (ActiveTab !== 'nav-control-tab') {
+			return;
+		};
+
+		var myObj = {
+			"trackProgress": {
+				trackProgress: 'trackProgress'
+			}
+		};
+		var myJSON = JSON.stringify(myObj);
+		socket.send(myJSON);
+	}
+
+	function setTrackProgress(msg) {
+		// console.log(msg);
+		$("#trackProgress").css('width', msg.posPercent + "%");
+		if (msg.duration > 0) {
+			document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
+		} else {
+			document.getElementById('playtime').innerHTML = "-- / --";
+		}
+	}
+
+
+
 	function genSettings(clickedId) {
 		lastIdclicked = clickedId;
 		var myObj = {
@@ -2013,6 +2076,14 @@
 		} catch (error) {
 			console.log(error);
 			setTimeout(tryRedirect, 2000);
+		}
+	}
+
+	function secondsToTime(seconds) {
+		if (seconds < 3600) {
+			return new Date(seconds * 1000).toISOString().substring(14, 19);
+		} else {
+			return new Date(seconds * 1000).toISOString().slice(11, 19);
 		}
 	}
 

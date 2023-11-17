@@ -232,6 +232,7 @@ const char wrongWakeUpGpio[] = "Der gewählte GPIO ist nicht vom Typ RTC und unt
 const char currentlyPlaying[] = "'%s' wird abgespielt (%d von %d)";
 const char secondsJumpForward[] = "%d Sekunden nach vorne gesprungen";
 const char secondsJumpBackward[] = "%d Sekunden zurück gesprungen";
+const char JumpToPosition[] = "Sprung zu Position %u/%u";
 const char wroteLastTrackToNvs[] = "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u";
 const char wifiConnectionInProgress[] = "Versuche mit WLAN '%s' zu verbinden...";
 const char wifiConnectionSuccess[] = "Verbunden mit WLAN '%s' (Signalstärke: %d dBm, Kanal: %d, MAC-Adresse: %s)";

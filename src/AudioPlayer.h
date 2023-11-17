@@ -56,3 +56,5 @@ bool Audio_Detect_Mode_HP(bool _state);
 void Audio_setTitle(const char *format, ...);
 time_t AudioPlayer_GetPlayTimeSinceStart(void);
 time_t AudioPlayer_GetPlayTimeAllTime(void);
+uint32_t AudioPlayer_GetCurrentTime(void);
+uint32_t AudioPlayer_GetFileDuration(void);
