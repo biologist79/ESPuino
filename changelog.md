@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 17.11.2023: Show track progress, current playtime & duration in web-ui (#267)
 * 16.11.2023: Fix delay with getLocalTime()
 * 14.11.2023: Multi Wlan improvements (#266), thanks to @laszloh !
 * 13.11.2023: Update third party libraries
