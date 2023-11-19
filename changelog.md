@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 19.11.2023: Give audiotask a higher task priority, fixes crackling sound
 * 19.11.2023: bugfix_same_rfid_twice init #262, see Github comments 
 * 17.11.2023: Show track progress, current playtime & duration in web-ui (#267)
 * 16.11.2023: Fix delay with getLocalTime()
