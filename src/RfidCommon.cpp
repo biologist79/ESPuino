@@ -46,9 +46,6 @@ void Rfid_PreferenceLookupHandler(void) {
 		if (!s.compareTo("-1")) {
 			Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 			System_IndicateError();
-	#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-			strncpy(gOldRfidTagId, gCurrentRfidTagId, cardIdStringSize - 1); // Even if not found in NVS: accept it as card last applied
-	#endif
 			// allow to escape from bluetooth mode with an unknown card, switch back to normal mode
 			System_SetOperationMode(OPMODE_NORMAL);
 			return;
