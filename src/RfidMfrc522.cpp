@@ -8,7 +8,7 @@
 #include "Queues.h"
 #include "Rfid.h"
 #include "System.h"
-
+#include "CardMan.h"
 #include <esp_task_wdt.h>
 
 #if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
@@ -91,6 +91,10 @@ void Rfid_Task(void *parameter) {
 			if (!mfrc522.PICC_ReadCardSerial()) {
 				continue;
 			}
+			#ifdef RFID_CARDMAN_ENABLE
+                cardData.cardType = 0;
+                CardMan_filldata(&mfrc522, &cardData);
+            #endif
 	#ifdef PAUSE_WHEN_RFID_REMOVED
 			cardAppliedCurrentRun = true;
 	#endif
