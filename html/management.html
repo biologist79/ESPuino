@@ -7,7 +7,7 @@
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
@@ -15,7 +15,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
     
@@ -23,6 +23,11 @@
     <script src="/js/i18nextHttpBackend.min.js"></script>
     <script src="/js/loc_i18next.min.js"></script>
 	<style type="text/css">
+		.jstree-default .jstree-search {
+			font-style: italic;
+			color:  #007bff; /* change searchresult theme-color to bootstrap blue */
+			font-weight: bold;
+		}
 		.filetree {
 			border: 1px solid black;
 			height: 200px;
@@ -423,7 +428,15 @@
 				<div id="filebrowser">
 					<div class="filetree demo" id="explorerTree"></div>
 				</div>
+				<div class="input-group input-focus">
+					<div class="input-group-prepend">
+					  <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+					</div>
+					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-left-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+				</div>
 				<div>
+				<br>
+				<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 						<div class="input-group">
 							<span class="form-control" id="uploaded_file_text"></span>&nbsp
@@ -1361,7 +1374,11 @@
 							'icon': "fa fa-folder"
 						}
 					},
-				plugins: ["contextmenu", "themes", "types"],
+				plugins: ["contextmenu", "themes", "types", "search"],
+                "search": {
+                    "case_sensitive": false,
+                    "show_only_matches": true
+                },
 				contextmenu: {
 					items: function(nodeId) {
 						var ref = $('#explorerTree').jstree(true);
@@ -2040,6 +2057,10 @@
 		await rebuildSSIDList();
 	}
 
+	function searchFiles(searchText) {
+		$('#explorerTree').jstree('search', searchText);
+	}
+
 	function sendControl(cmd) {
 		var myObj = {
 			"controls": {
@@ -2196,7 +2217,6 @@
 			shutdownDevice();
 		}); 
 		
-		console.log(parseInt(document.getElementById('warningLowVoltage').value));
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		});

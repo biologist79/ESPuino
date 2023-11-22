@@ -96,6 +96,9 @@
             "title": "Ordner",
             "desc": "Einen Ordner samt Inhalt (und allen Unterordnern) hochladen"
         },
+        "search": {
+            "placeholder": "Dateien suchen.."
+        },
         "upload": {
             "title": "Upload",
             "desc": "Upload starten",

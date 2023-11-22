@@ -96,6 +96,9 @@
             "title": "Directory",
             "desc": "Upload directory with all files and subdirectories"
         },
+        "search": {
+            "placeholder": "Search files.."
+        },
         "upload": {
             "title": "Upload",
             "desc": "Start Upload",
