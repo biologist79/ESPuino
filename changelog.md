@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 22.11.2023: Web-UI: Search for files feature #268 
+* 21.11.2023: New command CMD_TOGGLE_MODE to switch Normal => BT-Sink => BT-Source
+* 21.11.2023: Bugfix: Some commands e.g. Play/Pause did not work in BT-Source mode
+* 21.11.2023: Faster pairing animation in BT-Source mode to better distinguish between the two BT modes
 * 19.11.2023: Give audiotask a higher task priority, fixes crackling sound
 * 19.11.2023: bugfix_same_rfid_twice init #262, see Github comments 
 * 17.11.2023: Show track progress, current playtime & duration in web-ui (#267)

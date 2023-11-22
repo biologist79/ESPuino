@@ -261,6 +261,21 @@ void Cmd_Action(const uint16_t mod) {
 			}
 			break;
 		}
+		case CMD_TOGGLE_MODE: {
+			if (System_GetOperationModeFromNvs() == OPMODE_NORMAL) {
+				System_IndicateOk();
+				System_SetOperationMode(OPMODE_BLUETOOTH_SINK);
+			} else if (System_GetOperationModeFromNvs() == OPMODE_BLUETOOTH_SINK) {
+				System_IndicateOk();
+				System_SetOperationMode(OPMODE_BLUETOOTH_SOURCE);
+			} else if (System_GetOperationModeFromNvs() == OPMODE_BLUETOOTH_SOURCE) {
+				System_IndicateOk();
+				System_SetOperationMode(OPMODE_NORMAL);
+			} else {
+				System_IndicateError();
+			}
+			break;
+		}
 #endif
 
 #ifdef FTP_ENABLE

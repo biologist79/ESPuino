@@ -294,6 +294,8 @@ modification:
   stream to your ESPuino via BT.
 - Toggle Bluetooth source (enable/disable) => restarts ESPuino immediately. In this mode your
   ESPuino can stream via BT to an external device.
+- Toggle through the different modes (Normal => BT-Sink => BT-Source => Normal)
+- Speech output of IP-address or current time
 
 > :information_source: All sleep modes do dimming (Neopixel) automatically because it's supposed to
   be used in the evening when going to bed. Well, at least that's my children's indication :-)

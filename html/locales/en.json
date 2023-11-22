@@ -162,6 +162,7 @@
                     "130":"Toggle WiFi",
                     "140":"Toggle Bluetooth Speaker",
                     "141":"Toggle Bluetooth Headphones",
+                    "142":"Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
                     "150":"Enable FTP",
                     "151":"Announce IP-Address",
                     "152":"Announce current time",

@@ -743,7 +743,12 @@ AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGBSet &leds) 
 		CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
 		leds = CRGB::Black;
 		Led_DrawIdleDots(leds, ledIndex, idleColor);
-		animationDelay = 50 * 10;
+		if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
+			// animate a bit faster in BT-Source to distinguish between the bluetooth modes
+			animationDelay = 30 * 10;
+		} else {
+			animationDelay = 50 * 10;
+		}
 		ledIndex++;
 	} else {
 		animationActive = false;
