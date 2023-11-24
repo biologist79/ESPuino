@@ -74,7 +74,6 @@ void Rfid_Task(void *parameter) {
 		String cardIdString;
 	#ifdef PAUSE_WHEN_RFID_REMOVED
 		byte lastValidcardId[cardIdSize];
-		bool cardAppliedCurrentRun = false;
 		bool sameCardReapplied = false;
 	#endif
 		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
@@ -91,9 +90,6 @@ void Rfid_Task(void *parameter) {
 			if (!mfrc522.PICC_ReadCardSerial()) {
 				continue;
 			}
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-			cardAppliedCurrentRun = true;
-	#endif
 
 	#ifndef PAUSE_WHEN_RFID_REMOVED
 			mfrc522.PICC_HaltA();
@@ -180,7 +176,6 @@ void Rfid_Task(void *parameter) {
 			}
 			mfrc522.PICC_HaltA();
 			mfrc522.PCD_StopCrypto1();
-			cardAppliedCurrentRun = false;
 	#endif
 		}
 	}
