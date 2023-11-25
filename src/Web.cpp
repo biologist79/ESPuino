@@ -1743,8 +1743,10 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	if (gPrefsRfid.isKey(tagId.c_str())) {
-		// stop playback, tag to delete might be in use
-		Cmd_Action(CMD_STOP);
+		if (tagId.equals(gCurrentRfidTagId) {
+			// stop playback, tag to delete is in use
+			Cmd_Action(CMD_STOP);
+		}
 		if (gPrefsRfid.remove(tagId.c_str())) {
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");

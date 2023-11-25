@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 25.11.2023: Save some cpu time in audio task by only updating the playtime statistics every 250ms
 * 22.11.2023: Web-UI: Search for files feature #268 
 * 21.11.2023: New command CMD_TOGGLE_MODE to switch Normal => BT-Sink => BT-Source
 * 21.11.2023: Bugfix: Some commands e.g. Play/Pause did not work in BT-Source mode
