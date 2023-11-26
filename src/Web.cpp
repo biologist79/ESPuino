@@ -1743,7 +1743,7 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	if (gPrefsRfid.isKey(tagId.c_str())) {
-		if (tagId.equals(gCurrentRfidTagId) {
+		if (tagId.equals(gCurrentRfidTagId)) {
 			// stop playback, tag to delete is in use
 			Cmd_Action(CMD_STOP);
 		}
