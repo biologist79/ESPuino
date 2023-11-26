@@ -401,7 +401,6 @@ void AudioPlayer_Task(void *parameter) {
 			}
 		}
 
-
 		trackQStatus = xQueueReceive(gTrackQueue, &gPlayProperties.playlist, 0);
 		if (trackQStatus == pdPASS || gPlayProperties.trackFinished || trackCommand != NO_ACTION) {
 			if (trackQStatus == pdPASS) {
@@ -819,7 +818,6 @@ void AudioPlayer_Task(void *parameter) {
 				audio->setTone(0, 0, 0);
 			}
 		}
-
 
 		audio->loop();
 		if (gPlayProperties.playlistFinished || gPlayProperties.pausePlay) {
