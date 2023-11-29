@@ -5,7 +5,6 @@
 #include "Rfid.h"
 
 QueueHandle_t gVolumeQueue;
-QueueHandle_t gTrackQueue;
 QueueHandle_t gTrackControlQueue;
 QueueHandle_t gRfidCardQueue;
 
@@ -24,11 +23,5 @@ void Queues_Init(void) {
 	gTrackControlQueue = xQueueCreate(1, sizeof(uint8_t));
 	if (gTrackControlQueue == NULL) {
 		Log_Println(unableToCreateMgmtQ, LOGLEVEL_ERROR);
-	}
-
-	char **playlistArray;
-	gTrackQueue = xQueueCreate(1, sizeof(playlistArray));
-	if (gTrackQueue == NULL) {
-		Log_Println(unableToCreatePlayQ, LOGLEVEL_ERROR);
 	}
 }
