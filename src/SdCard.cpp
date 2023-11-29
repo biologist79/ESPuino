@@ -240,6 +240,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	if (files != NULL) { // If **ptr already exists, de-allocate its memory
 		Log_Printf(LOGLEVEL_DEBUG, releaseMemoryOfOldPlaylist, ESP.getFreeHeap());
 		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
+		files = nullptr;
 		Log_Printf(LOGLEVEL_DEBUG, freeMemoryAfterFree, ESP.getFreeHeap());
 	}
 
@@ -402,6 +403,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 		Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
 		System_IndicateError();
 		freeMultiCharArray(files, cnt + 1);
+		files = nullptr;
 		return nullptr;
 	}
 	snprintf(files[0], 5, "%u", cnt);
