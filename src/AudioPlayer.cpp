@@ -947,15 +947,14 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	}
 #endif
 
-	gPlayProperties.startAtFilePos = _lastPlayPos;
-	gPlayProperties.currentTrackNumber = _trackLastPlayed;
 	std::optional<std::unique_ptr<Playlist>> newPlaylist = std::nullopt;
 	bool error = false;
 
 	if (_playMode != WEBSTREAM) {
 		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY) {
 			auto tmp = SdCard_pickRandomSubdirectory(_itemToPlay); // get a random subdirectory
-			if (tmp) { // If error occured while extracting random subdirectory
+			if (tmp) {
+				// If no error occured while extracting random subdirectory
 				newPlaylist = SdCard_ReturnPlaylist(tmp.value().c_str(), _playMode); // Provide random subdirectory in order to enter regular playlist-generation
 			}
 		} else {
@@ -964,6 +963,9 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	} else {
 		newPlaylist = AudioPlayer_ReturnPlaylistFromWebstream(_itemToPlay);
 	}
+
+	// get the lock, since from here on we are modifying a shared variable between two Threads (IDLE & mp3play)
+	std::lock_guard guard(playlist_mutex);
 
 	// Catch if error occured (e.g. file not found)
 	gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
@@ -981,6 +983,8 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		return;
 	}
 
+	gPlayProperties.startAtFilePos = _lastPlayPos;
+	gPlayProperties.currentTrackNumber = _trackLastPlayed;
 	gPlayProperties.playMode = _playMode;
 	gPlayProperties.numberOfTracks = newPlaylist.value()->size();
 	// Set some default-values
@@ -996,7 +1000,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	gPrefsSettings.putString("lastRfid", gCurrentRfidTagId);
 #endif
 
-	switch (gPlayProperties.playMode) {
+	switch (_playMode) {
 		case SINGLE_TRACK: {
 			Log_Println(modeSingleTrack, LOGLEVEL_NOTICE);
 			break;
@@ -1082,7 +1086,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	if (!error) {
 		// transfer ownership of the new playlist to the audio thread
-		std::lock_guard guard(playlist_mutex);
 		playlist = std::move(newPlaylist.value());
 		playlistChanged = true;
 		return;
