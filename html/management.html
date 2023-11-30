@@ -1896,7 +1896,11 @@
 		if (msg.duration > 0) {
 			document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
 		} else {
-			document.getElementById('playtime').innerHTML = "-- / --";
+			if (msg.time > 0) {
+				document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
+			} else {
+				document.getElementById('playtime').innerHTML = "-- / --";
+			}
 		}
 	}
 
