@@ -442,7 +442,8 @@ void AudioPlayer_Task(void *parameter) {
 			}
 		}
 
-		trackQStatus = xQueueReceive(gTrackQueue, &gPlayProperties.playlist, 0);
+		Playlist *newPlaylist;
+		trackQStatus = xQueueReceive(gTrackQueue, &newPlaylist, 0);
 		if (trackQStatus == pdPASS || gPlayProperties.trackFinished || trackCommand != NO_ACTION) {
 			if (trackQStatus == pdPASS) {
 				audio->stopSong();
@@ -452,6 +453,10 @@ void AudioPlayer_Task(void *parameter) {
 				gPlayProperties.pausePlay = false;
 				gPlayProperties.trackFinished = false;
 				gPlayProperties.playlistFinished = false;
+
+				// destory the old playlist and assign the new
+				freePlaylist(gPlayProperties.playlist);
+				gPlayProperties.playlist = newPlaylist;
 
 #ifdef MQTT_ENABLE
 				publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
@@ -473,7 +478,7 @@ void AudioPlayer_Task(void *parameter) {
 				if (gPlayProperties.saveLastPlayPosition) { // Don't save for AUDIOBOOK_LOOP because not necessary
 					if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.numberOfTracks) {
 						// Only save if there's another track, otherwise it will be saved at end of playlist anyway
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1, gPlayProperties.numberOfTracks);
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1, gPlayProperties.numberOfTracks);
 					}
 				}
 				if (gPlayProperties.sleepAfterCurrentTrack) { // Go to sleep if "sleep after track" was requested
@@ -522,7 +527,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 					if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 						Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 					}
 					gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
 					Web_SendWebsocketData(0, 30);
@@ -549,7 +554,7 @@ void AudioPlayer_Task(void *parameter) {
 							gPlayProperties.currentTrackNumber++;
 						}
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 						Log_Println(cmndNextTrack, LOGLEVEL_INFO);
@@ -598,7 +603,7 @@ void AudioPlayer_Task(void *parameter) {
 							}
 
 							if (gPlayProperties.saveLastPlayPosition) {
-								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 								Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 							}
 
@@ -608,11 +613,11 @@ void AudioPlayer_Task(void *parameter) {
 							}
 						} else {
 							if (gPlayProperties.saveLastPlayPosition) {
-								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 							}
 							audio->stopSong();
 							Led_Indicate(LedIndicatorType::Rewind);
-							audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+							audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 							// consider track as finished, when audio lib call was not successful
 							if (!audioReturnCode) {
 								System_IndicateError();
@@ -632,7 +637,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 						Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 					}
 					Log_Println(cmndFirstTrack, LOGLEVEL_INFO);
@@ -650,7 +655,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.numberOfTracks) {
 						gPlayProperties.currentTrackNumber = gPlayProperties.numberOfTracks - 1;
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 						Log_Println(cmndLastTrack, LOGLEVEL_INFO);
@@ -676,7 +681,7 @@ void AudioPlayer_Task(void *parameter) {
 
 			if (gPlayProperties.playUntilTrackNumber == gPlayProperties.currentTrackNumber && gPlayProperties.playUntilTrackNumber > 0) {
 				if (gPlayProperties.saveLastPlayPosition) {
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
 				}
 				gPlayProperties.playlistFinished = true;
 				gPlayProperties.playMode = NO_PLAYLIST;
@@ -689,7 +694,7 @@ void AudioPlayer_Task(void *parameter) {
 				if (!gPlayProperties.repeatPlaylist) {
 					if (gPlayProperties.saveLastPlayPosition) {
 						// Set back to first track
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, 0, gPlayProperties.numberOfTracks);
 					}
 					gPlayProperties.playlistFinished = true;
 					gPlayProperties.playMode = NO_PLAYLIST;
@@ -714,12 +719,12 @@ void AudioPlayer_Task(void *parameter) {
 					Log_Println(repeatPlaylistDueToPlaymode, LOGLEVEL_NOTICE);
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *(gPlayProperties.playlist + 0), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.numberOfTracks);
 					}
 				}
 			}
 
-			if (!strncmp("http", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), 4)) {
+			if (!strncmp("http", gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 4)) {
 				gPlayProperties.isWebstream = true;
 			} else {
 				gPlayProperties.isWebstream = false;
@@ -728,17 +733,17 @@ void AudioPlayer_Task(void *parameter) {
 			audioReturnCode = false;
 
 			if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-				audioReturnCode = audio->connecttohost(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+				audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 				gPlayProperties.playlistFinished = false;
 				gTriedToConnectToHost = true;
 			} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 				// Files from SD
-				if (!gFSystem.exists(*(gPlayProperties.playlist + gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
-					Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+				if (!gFSystem.exists(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
+					Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 					gPlayProperties.trackFinished = true;
 					continue;
 				} else {
-					audioReturnCode = audio->connecttoFS(gFSystem, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+					audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 					// consider track as finished, when audio lib call was not successful
 				}
 			}
@@ -764,13 +769,13 @@ void AudioPlayer_Task(void *parameter) {
 					}
 				} else {
 					if (gPlayProperties.numberOfTracks > 1) {
-						Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.numberOfTracks, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+						Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.numberOfTracks, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 					} else {
-						Audio_setTitle("%s", *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber));
+						Audio_setTitle("%s", gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 					}
 				}
 				AudioPlayer_ClearCover();
-				Log_Printf(LOGLEVEL_NOTICE, currentlyPlaying, *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
+				Log_Printf(LOGLEVEL_NOTICE, currentlyPlaying, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.numberOfTracks);
 				gPlayProperties.playlistFinished = false;
 			}
 		}
@@ -1200,10 +1205,11 @@ std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_w
 	if (!entry) {
 		// OOM
 		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
+		freePlaylist(playlist);
 		return std::nullopt;
 	}
 	strncpy(entry, _webUrl, len);
-	entry[len] = '\0';
+	entry[len - 1] = '\0';
 	playlist->push_back(entry);
 
 	return playlist;
