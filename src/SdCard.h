@@ -8,6 +8,8 @@
 
 extern fs::FS gFSystem;
 
+#include "Playlist.h"
+
 void SdCard_Init(void);
 void SdCard_Exit(void);
 sdcard_type_t SdCard_GetType(void);

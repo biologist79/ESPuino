@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Playlist.h"
+
 #ifndef AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT
 	#define AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT playlistSortMode::STRNATCASECMP
 #endif
