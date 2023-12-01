@@ -2,6 +2,7 @@
 #include "settings.h"
 
 #include "Log.h"
+#include "Playlist.h"
 #include "Rfid.h"
 
 QueueHandle_t gVolumeQueue;
@@ -26,8 +27,7 @@ void Queues_Init(void) {
 		Log_Println(unableToCreateMgmtQ, LOGLEVEL_ERROR);
 	}
 
-	char **playlistArray;
-	gTrackQueue = xQueueCreate(1, sizeof(playlistArray));
+	gTrackQueue = xQueueCreate(1, sizeof(Playlist *));
 	if (gTrackQueue == NULL) {
 		Log_Println(unableToCreatePlayQ, LOGLEVEL_ERROR);
 	}
