@@ -17,4 +17,4 @@ uint64_t SdCard_GetSize();
 uint64_t SdCard_GetFreeSize();
 void SdCard_PrintInfo();
 std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode);
-char *SdCard_pickRandomSubdirectory(char *_directory);
+const String SdCard_pickRandomSubdirectory(const char *_directory);

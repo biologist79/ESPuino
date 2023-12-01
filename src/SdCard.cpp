@@ -143,90 +143,51 @@ bool fileValid(const char *_fileItem) {
 }
 
 // Takes a directory as input and returns a random subdirectory from it
-char *SdCard_pickRandomSubdirectory(char *_directory) {
-	uint32_t listStartTimestamp = millis();
-
-	// Look if file/folder requested really exists. If not => break.
+const String SdCard_pickRandomSubdirectory(const char *_directory) {
+	// Look if folder requested really exists and is a folder. If not => break.
 	File directory = gFSystem.open(_directory);
-	if (!directory) {
+	if (!directory || !directory.isDirectory()) {
 		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, _directory);
-		return NULL;
+		return String();
 	}
 	Log_Printf(LOGLEVEL_NOTICE, tryToPickRandomDir, _directory);
 
-	static uint8_t allocCount = 1;
-	uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
-	uint16_t directoryCount = 0;
-	char *buffer = _directory; // input char* is reused as it's content no longer needed
-	char *subdirectoryList = (char *) x_calloc(allocSize, sizeof(char));
-
-	if (subdirectoryList == NULL) {
-		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		return NULL;
-	}
-
-	// Create linear list of subdirectories with #-delimiters
-	while (true) {
-		bool isDir = false;
-		String MyfileName = directory.getNextFileName(&isDir);
-		if (MyfileName == "") {
+	// iterate through and count all dirs
+	size_t dirCount = 0;
+	while (1) {
+		bool isDir;
+		const String name = directory.getNextFileName(&isDir);
+		if (name.isEmpty()) {
 			break;
 		}
-		if (!isDir) {
-			continue;
-		} else {
-			strncpy(buffer, MyfileName.c_str(), 255);
-			// Log_Printf(LOGLEVEL_INFO, nameOfFileFound, buffer);
-			if ((strlen(subdirectoryList) + strlen(buffer) + 2) >= allocCount * allocSize) {
-				char *tmp = (char *) realloc(subdirectoryList, ++allocCount * allocSize);
-				Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-				if (tmp == NULL) {
-					Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-					System_IndicateError();
-					free(subdirectoryList);
-					return NULL;
-				}
-				subdirectoryList = tmp;
+		if (isDir) {
+			dirCount++;
+		}
+	}
+	if (!dirCount) {
+		// no paths in folder
+		return String();
+	}
+
+	const uint32_t randomNumber = esp_random() % dirCount;
+	directory.rewindDirectory();
+	dirCount = 0;
+	while (1) {
+		bool isDir;
+		const String name = directory.getNextFileName(&isDir);
+		if (name.isEmpty()) {
+			break;
+		}
+		if (isDir) {
+			if (dirCount == randomNumber) {
+				return name;
 			}
-			strcat(subdirectoryList, stringDelimiter);
-			strcat(subdirectoryList, buffer);
-			directoryCount++;
+			dirCount++;
 		}
 	}
-	strcat(subdirectoryList, stringDelimiter);
 
-	if (!directoryCount) {
-		free(subdirectoryList);
-		return NULL;
-	}
-
-	uint16_t randomNumber = random(directoryCount) + 1; // Create random-number with max = subdirectory-count
-	uint16_t delimiterFoundCount = 0;
-	uint32_t a = 0;
-	uint8_t b = 0;
-
-	// Walk through subdirectory-array and extract randomized subdirectory
-	while (subdirectoryList[a] != '\0') {
-		if (subdirectoryList[a] == '#') {
-			delimiterFoundCount++;
-		} else {
-			if (delimiterFoundCount == randomNumber) { // Pick subdirectory of linear char* according to random number
-				buffer[b++] = subdirectoryList[a];
-			}
-		}
-		if (delimiterFoundCount > randomNumber || (b == 254)) { // It's over when next delimiter is found or buffer is full
-			buffer[b] = '\0';
-			free(subdirectoryList);
-			Log_Printf(LOGLEVEL_NOTICE, pickedRandomDir, _directory);
-			return buffer; // Full path of random subdirectory
-		}
-		a++;
-	}
-
-	free(subdirectoryList);
-	Log_Printf(LOGLEVEL_DEBUG, "pick random directory from SD-card finished: %lu ms", (millis() - listStartTimestamp));
-	return NULL;
+	// if we reached here, something went wrong
+	return String();
 }
 
 static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
@@ -243,7 +204,7 @@ static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
 	return true;
 };
 
-static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
+static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
 	const String line = f.readStringUntil('\n');
 	const bool extended = line.startsWith("#EXTM3U") || forceExtended;
 	Playlist *playlist = new Playlist();
@@ -286,7 +247,7 @@ static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtend
 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
-std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
+std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
