@@ -88,7 +88,7 @@ void Cmd_Action(const uint16_t mod) {
 #ifdef MQTT_ENABLE
 				publishMqtt(topicSleepTimerState, "0", false);
 #endif
-				Led_ResetToInitialBrightness();
+				Led_SetNightmode(false);
 			} else {
 				System_DisableSleepTimer();
 				gPlayProperties.sleepAfterCurrentTrack = true;
@@ -96,7 +96,7 @@ void Cmd_Action(const uint16_t mod) {
 #ifdef MQTT_ENABLE
 				publishMqtt(topicSleepTimerState, "EOT", false);
 #endif
-				Led_ResetToNightBrightness();
+				Led_SetNightmode(true);
 			}
 
 #ifdef MQTT_ENABLE
@@ -118,11 +118,11 @@ void Cmd_Action(const uint16_t mod) {
 #ifdef MQTT_ENABLE
 				publishMqtt(topicSleepTimerState, "0", false);
 #endif
-				Led_ResetToInitialBrightness();
+				Led_SetNightmode(false);
 				Log_Println(modificatorSleepAtEOPd, LOGLEVEL_NOTICE);
 			} else {
 				gPlayProperties.sleepAfterPlaylist = true;
-				Led_ResetToNightBrightness();
+				Led_SetNightmode(true);
 				Log_Println(modificatorSleepAtEOP, LOGLEVEL_NOTICE);
 #ifdef MQTT_ENABLE
 				publishMqtt(topicSleepTimerState, "EOP", false);
@@ -155,7 +155,7 @@ void Cmd_Action(const uint16_t mod) {
 #ifdef MQTT_ENABLE
 				publishMqtt(topicSleepTimerState, "0", false);
 #endif
-				Led_ResetToInitialBrightness();
+				Led_SetNightmode(false);
 				Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
 			} else {
 				gPlayProperties.sleepAfter5Tracks = true;
@@ -170,7 +170,7 @@ void Cmd_Action(const uint16_t mod) {
 					publishMqtt(topicSleepTimerState, "EO5T", false);
 #endif
 				}
-				Led_ResetToNightBrightness();
+				Led_SetNightmode(true);
 				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 			}
 
@@ -224,7 +224,7 @@ void Cmd_Action(const uint16_t mod) {
 			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 #endif
 			Log_Println(ledsDimmedToNightmode, LOGLEVEL_INFO);
-			Led_ResetToNightBrightness();
+			Led_SetNightmode(true);
 			System_IndicateOk();
 			break;
 		}

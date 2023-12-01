@@ -74,14 +74,14 @@ bool System_SetSleepTimer(uint8_t minutes) {
 	if (System_SleepTimerStartTimestamp && (System_SleepTimer == minutes)) {
 		System_SleepTimerStartTimestamp = 0u;
 		System_SleepTimer = 0u;
-		Led_ResetToInitialBrightness();
+		Led_SetNightmode(false);
 		Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
 	} else {
 		System_SleepTimerStartTimestamp = millis();
 		System_SleepTimer = minutes;
 		sleepTimerEnabled = true;
 
-		Led_ResetToNightBrightness();
+		Led_SetNightmode(true);
 		if (minutes == 15) {
 			Log_Println(modificatorSleepTimer15, LOGLEVEL_NOTICE);
 		} else if (minutes == 30) {
@@ -103,7 +103,7 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 void System_DisableSleepTimer(void) {
 	System_SleepTimerStartTimestamp = 0u;
-	Led_ResetToInitialBrightness();
+	Led_SetNightmode(false);
 }
 
 bool System_IsSleepTimerEnabled(void) {
