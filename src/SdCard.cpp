@@ -229,189 +229,116 @@ char *SdCard_pickRandomSubdirectory(char *_directory) {
 	return NULL;
 }
 
-/* Puts SD-file(s) or directory into a playlist
-	First element of array always contains the number of payload-items. */
-char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
-	static char **files;
-	char *serializedPlaylist = NULL;
-	bool enablePlaylistFromM3u = false;
-	// uint32_t listStartTimestamp = millis();
+static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
+	const size_t len = s.length() + 1;
+	char *entry = static_cast<char *>(x_malloc(len));
+	if (!entry) {
+		// OOM, free playlist and return
+		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
+		freePlaylist(playlist);
+		return false;
+	}
+	s.toCharArray(entry, len);
+	playlist->push_back(entry);
+	return true;
+};
 
-	if (files != NULL) { // If **ptr already exists, de-allocate its memory
-		Log_Printf(LOGLEVEL_DEBUG, releaseMemoryOfOldPlaylist, ESP.getFreeHeap());
-		freeMultiCharArray(files, strtoul(files[0], NULL, 10) + 1);
-		files = nullptr;
-		Log_Printf(LOGLEVEL_DEBUG, freeMemoryAfterFree, ESP.getFreeHeap());
+static std::optional<Playlist*> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
+	const String line = f.readStringUntil('\n');
+	const bool extended = line.startsWith("#EXTM3U") || forceExtended;
+	Playlist *playlist = new Playlist();
+
+	// reserve a sane amount of memory to reduce heap fragmentation
+	playlist->reserve(64);
+	if (extended) {
+		// extended m3u file format
+		// ignore all lines starting with '#'
+
+		while (f.available()) {
+			String line = f.readStringUntil('\n');
+			if (!line.startsWith("#")) {
+				// this something we have to save
+				line.trim();
+				// save string
+				if (!SdCard_allocAndSave(playlist, line)) {
+					return std::nullopt;
+				}
+			}
+		}
+		// resize std::vector memory to fit our count
+		playlist->shrink_to_fit();
+		return playlist;
 	}
 
+	// normal m3u is just a bunch of filenames, 1 / line
+	f.seek(0);
+	while (f.available()) {
+		String line = f.readStringUntil('\n');
+		// save string
+		if (!SdCard_allocAndSave(playlist, line)) {
+			return std::nullopt;
+		}
+	}
+	// resize memory to fit our count
+	playlist->shrink_to_fit();
+	return playlist;
+}
+
+/* Puts SD-file(s) or directory into a playlist
+	First element of array always contains the number of payload-items. */
+std::optional<Playlist*> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
 		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, fileName);
-		return nullptr;
+		return std::nullopt;
 	}
 
 	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
-		if (!fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
-			enablePlaylistFromM3u = true;
-			uint16_t allocCount = 1;
-			uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
-
-			serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-			if (serializedPlaylist == NULL) {
-				Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-				System_IndicateError();
-				return nullptr;
-			}
-			char buf;
-			char lastBuf = '#';
-			uint32_t fPos = 1;
-
-			serializedPlaylist[0] = '#';
-			while (fileOrDirectory.available() > 0) {
-				buf = fileOrDirectory.read();
-				if (buf == '#') {
-					// skip M3U comment lines starting with #
-					fileOrDirectory.readStringUntil('\n');
-					continue;
-				}
-				if (fPos + 1 >= allocCount * allocSize) {
-					char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
-					Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-					if (tmp == NULL) {
-						Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-						System_IndicateError();
-						free(serializedPlaylist);
-						return nullptr;
-					}
-					serializedPlaylist = tmp;
-				}
-
-				if (buf != '\n' && buf != '\r') {
-					serializedPlaylist[fPos++] = buf;
-					lastBuf = buf;
-				} else {
-					if (lastBuf != '#') { // Strip empty lines from m3u
-						serializedPlaylist[fPos++] = '#';
-						lastBuf = '#';
-					}
-				}
-			}
-			if (serializedPlaylist[fPos - 1] == '#') { // Remove trailing delimiter if set
-				serializedPlaylist[fPos - 1] = '\0';
-			}
-		} else {
-			return nullptr;
+		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
+			// function takes care of everything
+			return SdCard_ParseM3UPlaylist(fileOrDirectory);
 		}
 	}
 
-	// Don't read from m3u-file. Means: read filenames from SD and make playlist of it
-	if (!enablePlaylistFromM3u) {
-		Log_Println(playlistGen, LOGLEVEL_NOTICE);
-		const char *fileNameBuf;
-		// File-mode
-		if (!fileOrDirectory.isDirectory()) {
-			files = (char **) x_malloc(sizeof(char *) * 2);
-			if (files == nullptr) {
-				Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-				System_IndicateError();
-				return nullptr;
-			}
-			Log_Println(fileModeDetected, LOGLEVEL_INFO);
-			fileNameBuf = fileOrDirectory.path();
-			if (fileValid(fileNameBuf)) {
-				files[1] = x_strdup(fileNameBuf);
-				files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
-			} else {
-				files[0] = x_strdup("0"); // empty playlist
-				Log_Printf(LOGLEVEL_ERROR, fileInvalid, fileNameBuf);
-			}
+	// if we reach here, this was not a m3u
+	Log_Println(playlistGen, LOGLEVEL_NOTICE);
+	Playlist *playlist = new Playlist;
 
-			return &(files[1]);
+	// File-mode
+	if (!fileOrDirectory.isDirectory()) {
+		if (!SdCard_allocAndSave(playlist, fileOrDirectory.path())) {
+			// OOM, function already took care of house cleaning
+			return std::nullopt;
 		}
+		return playlist;
+	}
 
-		// Directory-mode (linear-playlist)
-		uint16_t allocCount = 1;
-		uint16_t allocSize = 4096;
-		if (psramInit()) {
-			allocSize = 65535; // There's enough PSRAM. So we don't have to care...
+	// Directory-mode (linear-playlist)
+	playlist->reserve(64); // reserve a sane amount of memory to reduce the number of reallocs
+	while (true) {
+		bool isDir;
+		const String name = fileOrDirectory.getNextFileName(&isDir);
+		if (name.isEmpty()) {
+			break;
 		}
-
-		serializedPlaylist = (char *) x_calloc(allocSize, sizeof(char));
-		while (true) {
-			bool isDir = false;
-			String MyfileName = fileOrDirectory.getNextFileName(&isDir);
-			if (MyfileName == "") {
-				break;
-			}
-			if (isDir) {
-				continue;
-			} else {
-				fileNameBuf = MyfileName.c_str();
-				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
-				if (fileValid(fileNameBuf)) {
-					// Log_Printf(LOGLEVEL_INFO, "%s: %s", nameOfFileFound), fileNameBuf);
-					if ((strlen(serializedPlaylist) + strlen(fileNameBuf) + 2) >= allocCount * allocSize) {
-						char *tmp = (char *) realloc(serializedPlaylist, ++allocCount * allocSize);
-						Log_Println(reallocCalled, LOGLEVEL_DEBUG);
-						if (tmp == nullptr) {
-							Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-							System_IndicateError();
-							free(serializedPlaylist);
-							return nullptr;
-						}
-						serializedPlaylist = tmp;
-					}
-					strcat(serializedPlaylist, stringDelimiter);
-					strcat(serializedPlaylist, fileNameBuf);
-				}
+		if (isDir) {
+			continue;
+		}
+		// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
+		if (fileValid(name.c_str())) {
+			// save it to the vector
+			if (!SdCard_allocAndSave(playlist, name)) {
+				// OOM, function already took care of house cleaning
+				return std::nullopt;
 			}
 		}
 	}
+	playlist->shrink_to_fit();
 
-	// Get number of elements out of serialized playlist
-	uint32_t cnt = 0;
-	for (uint32_t k = 0; k < (strlen(serializedPlaylist)); k++) {
-		if (serializedPlaylist[k] == '#') {
-			cnt++;
-		}
-	}
-
-	// Alloc only necessary number of playlist-pointers
-	files = (char **) x_malloc(sizeof(char *) * (cnt + 1));
-	if (files == nullptr) {
-		Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		free(serializedPlaylist);
-		return nullptr;
-	}
-
-	// Extract elements out of serialized playlist and copy to playlist
-	char *token;
-	token = strtok(serializedPlaylist, stringDelimiter);
-	uint32_t pos = 1;
-	while (token != NULL) {
-		files[pos++] = x_strdup(token);
-		token = strtok(NULL, stringDelimiter);
-	}
-
-	free(serializedPlaylist);
-
-	files[0] = (char *) x_malloc(sizeof(char) * 5);
-
-	if (files[0] == nullptr) {
-		Log_Println(unableToAllocateMemForPlaylist, LOGLEVEL_ERROR);
-		System_IndicateError();
-		freeMultiCharArray(files, cnt + 1);
-		files = nullptr;
-		return nullptr;
-	}
-	snprintf(files[0], 5, "%u", cnt);
-	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, cnt);
-	// Log_Printf(LOGLEVEL_DEBUG, "build playlist from SD-card finished: %lu ms", (millis() - listStartTimestamp));
-
-	return &(files[1]); // return ptr+1 (starting at 1st payload-item); ptr+0 contains number of items
+	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
+	return playlist;
 }

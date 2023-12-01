@@ -18,12 +18,9 @@ char *x_strdup(const char *_str) {
 }
 
 // Wraps ps_malloc() and malloc(). Selection depends on whether PSRAM is available or not.
-char *x_malloc(uint32_t _allocSize) {
-	if (psramInit()) {
-		return (char *) ps_malloc(_allocSize);
-	} else {
-		return (char *) malloc(_allocSize);
-	}
+void *x_malloc(uint32_t _allocSize) {
+	// prefer SPIRAM if avaliable
+	return heap_caps_malloc_prefer(_allocSize, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 }
 
 // Wraps ps_calloc() and calloc(). Selection depends on whether PSRAM is available or not.
