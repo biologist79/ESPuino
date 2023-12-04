@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
+* 04.12.2023: change trackprogress communication from websocket to http to improve stability
 * 04.12.2023: Remove some convertAsciiToUtf8() #272 
 * 30.11.2023: Fix a nullptr access after trying to replay an invalid filename (#271), thanks to Olaf!
 * 29.11.2023: Updated audio library to play more MP3s, faster track change & delivery of the cover image
