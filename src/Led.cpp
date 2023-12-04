@@ -1057,7 +1057,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 	LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
 
 	if (startNewAnimation) {
-	#ifdef MEASURE_BATTERY_VOLTAGE
+	#ifdef BATTERY_MEASURE_ENABLE
 		float batteryLevel = Battery_EstimateLevel();
 	#else
 		float batteryLevel = 1.0f;
