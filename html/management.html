@@ -1876,18 +1876,19 @@
 		clearTimeout(tm);
 	}
 
-	function getTrackProgress() {
+	async function getTrackProgress() {
 		if (ActiveTab !== 'nav-control-tab') {
 			return;
 		};
-
-		var myObj = {
-			"trackProgress": {
-				trackProgress: 'trackProgress'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
+		// use http request here, websocket comminication seems to be unstable with many messages
+		let data = await (await fetch("/trackprogress")).json();
+		if (data && data.trackProgress) {
+			// console.log(data.trackProgress);
+			setTrackProgress(data.trackProgress);
+		} else {
+			console.log("failed to fetch trackprogress: " + data);
+		}
+		return;
 	}
 
 	function setTrackProgress(msg) {
