@@ -30,7 +30,11 @@ void Battery_Init(void) {
 
 		Log_Println(batteryCriticalMsg, LOGLEVEL_NOTICE);
 		// Power down and enter deepsleep
-		System_RequestSleep();
+		// Don't call System_RequestSleep() here: If the battery is critial, we want to avoid as much init work as possible
+		// and also any blinking lights or sounds. The goal is to just stay off.
+		// Additionally, LPCD will not be enabled. This is intentional to avoid battery drain.
+		delay(200);
+		esp_deep_sleep_start();
 	}
 	#endif
 }
