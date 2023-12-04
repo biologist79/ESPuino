@@ -230,12 +230,10 @@ uint32_t AudioPlayer_GetFileDuration(void) {
 }
 
 void Audio_setTitle(const char *format, ...) {
-	char buf[256];
 	va_list args;
 	va_start(args, format);
-	vsnprintf(buf, sizeof(buf) / sizeof(buf[0]), format, args);
+	vsnprintf(gPlayProperties.title, sizeof(gPlayProperties.title) / sizeof(gPlayProperties.title[0]), format, args);
 	va_end(args);
-	convertAsciiToUtf8(buf, gPlayProperties.title);
 
 	// notify web ui and mqtt
 	Web_SendWebsocketData(0, 30);
