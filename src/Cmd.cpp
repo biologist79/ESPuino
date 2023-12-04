@@ -131,7 +131,7 @@ void Cmd_Action(const uint16_t mod) {
 			gPlayProperties.sleepAfter5Tracks = !gPlayProperties.sleepAfter5Tracks;
 
 			if (gPlayProperties.sleepAfter5Tracks) {
-				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.numberOfTracks) {
+				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.playlist->size()) {
 					// execute a sleep after end of playlist
 					Cmd_Action(CMD_SLEEP_AFTER_END_OF_PLAYLIST);
 					break;
