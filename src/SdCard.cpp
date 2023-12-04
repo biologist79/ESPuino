@@ -123,23 +123,83 @@ void SdCard_PrintInfo() {
 
 // Check if file-type is correct
 bool fileValid(const char *_fileItem) {
-	// make file extension to lowercase (compare case insenstive)
-	char *lFileItem;
-	lFileItem = x_strdup(_fileItem);
-	if (lFileItem == NULL) {
+	// clang-format off
+	// all supported extension
+	constexpr std::array audioFileSufix = {
+		".mp3",
+		".aac",
+		".m4a",
+		".wav",
+		".flac",
+		".ogg",
+		".oga",
+		".opus",
+		// playlists
+		".m3u",
+		".m3u8",
+		".pls",
+		".asx"
+	};
+	// clang-format on
+	constexpr size_t maxExtLen = strlen(*std::max_element(audioFileSufix.begin(), audioFileSufix.end(), [](const char *a, const char *b) {
+		return strlen(a) < strlen(b);
+	}));
+
+	if (!_fileItem || !strlen(_fileItem)) {
+		// invalid entry
 		return false;
 	}
-	lFileItem = strlwr(lFileItem);
-	const char ch = '/';
-	char *subst;
-	subst = strrchr(lFileItem, ch); // Don't use files that start with .
-	bool isValid = (!startsWith(subst, (char *) "/.")) && (
-					   // audio file formats
-					   endsWith(lFileItem, ".mp3") || endsWith(lFileItem, ".aac") || endsWith(lFileItem, ".m4a") || endsWith(lFileItem, ".wav") || endsWith(lFileItem, ".flac") || endsWith(lFileItem, ".ogg") || endsWith(lFileItem, ".oga") || endsWith(lFileItem, ".opus") ||
-					   // playlist file formats
-					   endsWith(lFileItem, ".m3u") || endsWith(lFileItem, ".m3u8") || endsWith(lFileItem, ".pls") || endsWith(lFileItem, ".asx"));
-	free(lFileItem);
-	return isValid;
+
+	// check for streams
+	if (strncmp(_fileItem, "http://", strlen("http://")) == 0 || strncmp(_fileItem, "https://", strlen("https://")) == 0) {
+		// this is a stream
+		return true;
+	}
+
+	// check for files which start with "/."
+	const char *lastSlashPtr = strrchr(_fileItem, '/');
+	if (lastSlashPtr == nullptr) {
+		// we have a relative filename without any slashes...
+		// set the pointer so that it points to the first character AFTER a +1
+		lastSlashPtr = _fileItem - 1;
+	}
+	if (*(lastSlashPtr + 1) == '.') {
+		// we have a hidden file
+		Log_Printf(LOGLEVEL_DEBUG, "File is hidden: %s", _fileItem);
+		return false;
+	}
+
+	// extract the file extension
+	const char *extStartPtr = strrchr(_fileItem, '.');
+	if (extStartPtr == nullptr) {
+		// no extension found
+		Log_Printf(LOGLEVEL_DEBUG, "File has no extension: %s", _fileItem);
+		return false;
+	}
+	const size_t extLen = strlen(extStartPtr);
+	if (extLen > maxExtLen) {
+		// extension too long, we do not care anymore
+		Log_Printf(LOGLEVEL_DEBUG, "File not supported (extension to long): %s", _fileItem);
+		return false;
+	}
+	char extBuffer[maxExtLen + 1] = {0};
+	memcpy(extBuffer, extStartPtr, extLen);
+
+	// make the extension lower case (without using non standard C functions)
+	for (size_t i = 0; i < extLen; i++) {
+		extBuffer[i] = tolower(extBuffer[i]);
+	}
+
+	// check extension against all supported values
+	for (const auto &e : audioFileSufix) {
+		if (strcmp(extBuffer, e) == 0) {
+			// hit we found the extension
+			return true;
+		}
+	}
+	// miss, we did not found nothing
+	Log_Printf(LOGLEVEL_DEBUG, "File not supported: %s", _fileItem);
+	return false;
 }
 
 // Takes a directory as input and returns a random subdirectory from it
