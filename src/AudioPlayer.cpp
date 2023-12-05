@@ -132,10 +132,15 @@ void AudioPlayer_Init(void) {
 	// Adjust volume depending on headphone is connected and volume-adjustment is enabled
 	AudioPlayer_SetupVolumeAndAmps();
 
+	// initialize gPlayProperties
+	memset(&gPlayProperties, 0, sizeof(gPlayProperties));
+	gPlayProperties.playlistFinished = true;
+
 	// clear title and cover image
 	gPlayProperties.title[0] = '\0';
 	gPlayProperties.coverFilePos = 0;
 	AudioPlayer_StationLogoUrl = "";
+	gPlayProperties.playlist = new Playlist();
 
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
@@ -392,12 +397,12 @@ void AudioPlayer_Task(void *parameter) {
 	}
 
 	uint8_t currentVolume;
-	static BaseType_t trackQStatus;
-	static uint8_t trackCommand = NO_ACTION;
+	BaseType_t trackQStatus = pdFAIL;
+	uint8_t trackCommand = NO_ACTION;
 	bool audioReturnCode;
 	AudioPlayer_CurrentTime = 0;
 	AudioPlayer_FileDuration = 0;
-	static uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
+	uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 
 	for (;;) {
 		/*
@@ -448,7 +453,7 @@ void AudioPlayer_Task(void *parameter) {
 			if (trackQStatus == pdPASS) {
 				audio->stopSong();
 
-				// destory the old playlist and assign the new
+				// destroy the old playlist and assign the new
 				freePlaylist(gPlayProperties.playlist);
 				gPlayProperties.playlist = newPlaylist;
 				Log_Printf(LOGLEVEL_NOTICE, newPlaylistReceived, gPlayProperties.playlist->size());
@@ -703,7 +708,6 @@ void AudioPlayer_Task(void *parameter) {
 					publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
 #endif
 					gPlayProperties.currentTrackNumber = 0;
-					// gPlayProperties.numberOfTracks = 0;
 					if (gPlayProperties.sleepAfterPlaylist) {
 						System_RequestSleep();
 					}

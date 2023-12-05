@@ -120,7 +120,7 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_SLEEP_AFTER_5_TRACKS: {
-			if (gPlayProperties.playMode == NO_PLAYLIST) {
+			if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
 				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
 				System_IndicateError();
 				return;

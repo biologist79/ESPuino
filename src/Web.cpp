@@ -1144,7 +1144,7 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		JsonObject entry = object.createNestedObject("trackinfo");
 		entry["pausePlay"] = gPlayProperties.pausePlay;
 		entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
-		entry["numberOfTracks"] = gPlayProperties.playlist->size();
+		entry["numberOfTracks"] = (gPlayProperties.playlist) ? gPlayProperties.playlist->size() : 0;
 		entry["volume"] = AudioPlayer_GetCurrentVolume();
 		entry["name"] = gPlayProperties.title;
 		entry["posPercent"] = gPlayProperties.currentRelPos;
@@ -2071,7 +2071,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 // handle album cover image request
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 
-	if (!gPlayProperties.coverFilePos) {
+	if (!gPlayProperties.coverFilePos || !gPlayProperties.playlist) {
 		String stationLogoUrl = AudioPlayer_GetStationLogoUrl();
 		if (stationLogoUrl != "") {
 			// serve station logo
