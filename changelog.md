@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 07.12.2023: Show RC522 firmware version at startup, same as PN5180
 * 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
 * 04.12.2023: change trackprogress communication from websocket to http to improve stability
 * 04.12.2023: Remove some convertAsciiToUtf8() #272 
