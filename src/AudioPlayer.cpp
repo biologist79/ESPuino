@@ -347,7 +347,9 @@ void AudioPlayer_Task(void *parameter) {
 	audio->setI2SCommFMT_LSB(true);
 #endif
 
-	uint8_t settleCount = 0;
+	constexpr uint32_t playbackTimeout = 2000;
+	uint32_t playbackTimeoutStart = 0;
+
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolume(AudioPlayer_CurrentVolume, VOLUMECURVE);
@@ -827,15 +829,16 @@ void AudioPlayer_Task(void *parameter) {
 		}
 
 		if (audio->isRunning()) {
-			settleCount = 0;
+			playbackTimeoutStart = millis();
 		}
 
-		// If error occured: remove playlist from ESPuino
+		// If error occured: move to the next track in the playlist
 		if (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !audio->isRunning() && !gPlayProperties.pausePlay) {
-			if (settleCount++ == 50) { // Hack to give audio some time to settle down after playlist was generated
-				gPlayProperties.playlistFinished = true;
-				gPlayProperties.playMode = NO_PLAYLIST;
-				settleCount = 0;
+			if ((millis() - playbackTimeoutStart) > playbackTimeout) {
+				// Audio playback timed out, move on to the next
+				System_IndicateError();
+				gPlayProperties.trackFinished = true;
+				playbackTimeoutStart = millis();
 			}
 		}
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && audio->isRunning()) {
