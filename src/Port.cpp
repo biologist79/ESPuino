@@ -20,7 +20,7 @@
 extern TwoWire i2cBusTwo;
 
 uint8_t Port_ExpanderPortsInputChannelStatus[2];
-static uint8_t Port_ExpanderPortsOutputChannelStatus[2] = {255, 255}; // Stores current configuration of output-channels locally
+static uint8_t Port_ExpanderPortsOutputChannelStatus[2]; // Stores current configuration of output-channels locally
 void Port_ExpanderHandler(void);
 uint8_t Port_ChannelToBit(const uint8_t _channel);
 void Port_WriteInitMaskForOutputChannels(void);
@@ -192,7 +192,17 @@ void Port_WriteInitMaskForOutputChannels(void) {
 	const uint8_t portBaseValueBitMask = 255;
 	const uint8_t portsToWrite = 2;
 	uint8_t OutputBitMaskInOutAsPerPort[portsToWrite] = {portBaseValueBitMask, portBaseValueBitMask}; // 255 => all channels set to input; [0]: port0, [1]: port1
-	uint8_t OutputBitMaskLowHighAsPerPort[portsToWrite] = {0x00, 0x00}; // Bit configured as 0 for an output-channels means: logic LOW
+
+	// init status cache with values from HW
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x02); // Pointer to first output-register
+	i2cBusTwo.endTransmission(false);
+	i2cBusTwo.requestFrom(expanderI2cAddress, static_cast<size_t>(portsToWrite), true); // ...and read the contents
+	if (i2cBusTwo.available()) {
+		for (unsigned int i = 0; i < portsToWrite; i++) {
+			Port_ExpanderPortsOutputChannelStatus[i] = i2cBusTwo.read();
+		}
+	}
 
 	#ifdef GPIO_PA_EN // Set as output to enable/disable amp for loudspeaker
 	if (GPIO_PA_EN >= 100 && GPIO_PA_EN <= 107) {
@@ -230,9 +240,13 @@ void Port_WriteInitMaskForOutputChannels(void) {
 
 	// Only change port-config if necessary (at least bitmask changed from base-default for one port)
 	if ((OutputBitMaskInOutAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskInOutAsPerPort[1] != portBaseValueBitMask)) {
+		// all outputs to LOW
+		Port_ExpanderPortsOutputChannelStatus[0] &= OutputBitMaskInOutAsPerPort[0];
+		Port_ExpanderPortsOutputChannelStatus[1] &= OutputBitMaskInOutAsPerPort[1];
+
 		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		i2cBusTwo.write(0x06); // Pointer to configuration of input/output
-		for (uint8_t i = 0; i < portsToWrite; i++) {
+		for (unsigned int i = 0; i < portsToWrite; i++) {
 			i2cBusTwo.write(OutputBitMaskInOutAsPerPort[i]);
 			// Serial.printf("Register %u - Mask: %u\n", 0x06+i, OutputBitMaskInOutAsPerPort[i]);
 		}
@@ -241,8 +255,7 @@ void Port_WriteInitMaskForOutputChannels(void) {
 		// Write low/high-config to all output-channels. Channels that are configured as input are silently/automatically ignored by PCA9555
 		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		i2cBusTwo.write(0x02); // Pointer to configuration of output-channels (high/low)
-		i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[0]); // port0
-		i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[1]); // port1
+		i2cBusTwo.write(Port_ExpanderPortsOutputChannelStatus, static_cast<size_t>(portsToWrite));
 		i2cBusTwo.endTransmission();
 	}
 }

@@ -20,7 +20,7 @@ void SdCard_Init(void) {
 #ifdef NO_SDCARD
 	// Initialize without any SD card, e.g. for webplayer only
 	Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
-	return
+	return;
 #endif
 
 #ifndef SINGLE_SPI_ENABLE
