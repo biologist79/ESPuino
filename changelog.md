@@ -2,7 +2,7 @@
 
 ## DEV-branch
 
-* 08.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
+* 09.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
 * 07.12.2023: Show RC522 firmware version at startup, same as PN5180
 * 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
 * 04.12.2023: change trackprogress communication from websocket to http to improve stability
