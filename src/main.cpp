@@ -258,11 +258,13 @@ void loop() {
 		RotaryEncoder_Cyclic();
 		Mqtt_Cyclic();
 	}
-
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	AudioPlayer_Cyclic();
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	Battery_Cyclic();
 	// Port_Cyclic(); // called by button (controlled via hw-timer)
 	Button_Cyclic();
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
@@ -272,7 +274,7 @@ void loop() {
 #endif
 
 	IrReceiver_Cyclic();
-	vTaskDelay(portTICK_PERIOD_MS * 5u);
+	vTaskDelay(portTICK_PERIOD_MS * 2u);
 
 #ifdef HALLEFFECT_SENSOR_ENABLE
 	gHallEffectSensor.cyclic();
