@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 10.12.2023: Fix wrong states on PE output pins (and SD-card failure on restart) #278, thanks to @36b6fp6s ! 
 * 09.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
 * 07.12.2023: Show RC522 firmware version at startup, same as PN5180
 * 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
