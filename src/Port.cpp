@@ -199,7 +199,7 @@ void Port_WriteInitMaskForOutputChannels(void) {
 	i2cBusTwo.endTransmission(false);
 	i2cBusTwo.requestFrom(expanderI2cAddress, static_cast<size_t>(portsToWrite), true); // ...and read the contents
 	if (i2cBusTwo.available()) {
-		for (unsigned int i = 0; i < portsToWrite; i++) {
+		for (uint8_t i = 0; i < portsToWrite; i++) {
 			Port_ExpanderPortsOutputChannelStatus[i] = i2cBusTwo.read();
 		}
 	}
@@ -246,7 +246,7 @@ void Port_WriteInitMaskForOutputChannels(void) {
 
 		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		i2cBusTwo.write(0x06); // Pointer to configuration of input/output
-		for (unsigned int i = 0; i < portsToWrite; i++) {
+		for (uint8_t i = 0; i < portsToWrite; i++) {
 			i2cBusTwo.write(OutputBitMaskInOutAsPerPort[i]);
 			// Serial.printf("Register %u - Mask: %u\n", 0x06+i, OutputBitMaskInOutAsPerPort[i]);
 		}
