@@ -268,6 +268,7 @@ void Button_DoButtonActions(void) {
 		gButtons[5].isPressed = false;
 		Cmd_Action(BUTTON_MULTI_45);
 	} else {
+		unsigned long currentTimestamp = millis();
 		for (uint8_t i = 0; i <= 5; i++) {
 			if (gButtons[i].isPressed) {
 				uint8_t Cmd_Short = 0;
@@ -318,8 +319,6 @@ void Button_DoButtonActions(void) {
 					gButtons[i].isPressed = false;
 
 				} else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) { // volume-buttons
-					unsigned long currentTimestamp = millis();
-
 					// only start action if intervalToLongPress has been reached
 					if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
 
@@ -335,8 +334,6 @@ void Button_DoButtonActions(void) {
 					}
 
 				} else if (Cmd_Long != CMD_SLEEPMODE) { // long action, if not sleep-mode
-					unsigned long currentTimestamp = millis();
-
 					// start action if intervalToLongPress has been reached
 					if ((currentTimestamp - gButtons[i].lastPressedTimestamp) > intervalToLongPress) {
 						gButtons[i].isPressed = false;
