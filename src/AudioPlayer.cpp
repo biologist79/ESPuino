@@ -840,13 +840,19 @@ void AudioPlayer_Task(void *parameter) {
 		}
 
 		// If error occured: move to the next track in the playlist
-		if (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !audio->isRunning() && !gPlayProperties.pausePlay) {
-			if ((millis() - playbackTimeoutStart) > playbackTimeout) {
-				// Audio playback timed out, move on to the next
-				System_IndicateError();
-				gPlayProperties.trackFinished = true;
-				playbackTimeoutStart = millis();
+		if (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+			// we check for timeout
+			if (!audio->isRunning() && !gPlayProperties.pausePlay) {
+				if ((millis() - playbackTimeoutStart) > playbackTimeout) {
+					// Audio playback timed out, move on to the next
+					System_IndicateError();
+					gPlayProperties.trackFinished = true;
+					playbackTimeoutStart = millis();
+				}
 			}
+		} else {
+			// we are idle, update timeout so that we do not get a spurious error when launching into a playlist
+			playbackTimeoutStart = millis();
 		}
 		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && audio->isRunning()) {
 			// do not delay here, audio task is time critical in BT-Source mode

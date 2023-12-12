@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 ! 
+* 12.12.2023: Fix false-positive error (Audio playback timeout)
 * 10.12.2023: Distribute vTaskDelay() in main loop to avoid rare audio dropouts
 * 10.12.2023: Fix wrong states on PE output pins (and SD-card failure on restart) #278, thanks to @36b6fp6s ! 
 * 09.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
