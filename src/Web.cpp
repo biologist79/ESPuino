@@ -1685,34 +1685,81 @@ bool DumpNvsToJSONCallback(const char *key, void *data) {
 	return tagIdToJSON(key, obj);
 }
 
+// callback for writing a NVS entry to list
+bool DumpNvsToArrayCallback(const char *key, void *data) {
+	std::vector<String> *keys = (std::vector<String> *) data;
+	keys->push_back(key);
+	return true;
+}
+
+static String tagIdToJsonStr(const char *key) {
+	StaticJsonDocument<512> doc;
+	JsonObject entry = doc.createNestedObject(key);
+	if (!tagIdToJSON(key, entry)) {
+		return "";
+	}
+	String serializedJsonString;
+	serializeJson(entry, serializedJsonString);
+	return serializedJsonString;
+}
+
+uint16_t nvsIndex;
+
 static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
-	String tagId = "";
+
+	String tagId, json = "";
+
 	if (request->hasParam("id")) {
 		tagId = request->getParam("id")->value();
 	}
-	if (tagId == "") {
-		// return all RFID assignments
-		AsyncJsonResponse *response = new AsyncJsonResponse(true, 8192);
-		JsonArray Arr = response->getRoot();
-		if (listNVSKeys("rfidTags", &Arr, DumpNvsToJSONCallback)) {
-			response->setLength();
-			request->send(response);
-		} else {
-			request->send(500, "error reading entries from NVS");
-		}
-	} else {
-		if (gPrefsRfid.isKey(tagId.c_str())) {
-			// return single RFID assignment
-			AsyncJsonResponse *response = new AsyncJsonResponse(false);
-			JsonObject obj = response->getRoot();
-			tagIdToJSON(tagId, obj);
-			response->setLength();
-			request->send(response);
-		} else {
-			// RFID assignment not found
-			request->send(404);
-		}
+
+	if ((tagId != "") && gPrefsRfid.isKey(tagId.c_str())) {
+		// return single RFID entry
+		json = tagIdToJsonStr(tagId.c_str());
+		request->send(200, "application/json", json);
+		return;
 	}
+	static std::vector<String> nvsKeys {};
+
+	nvsKeys.clear();
+	// Dumps all RFID-keys from NVS into key array
+	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
+	if (nvsKeys.size() == 0) {
+		// no entries
+		request->send(200, "application/json", "[]");
+		return;
+	}
+	// construct chunked repsonse
+	nvsIndex = 0;
+	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
+		[](uint8_t *buffer, size_t maxLen, size_t index) {
+			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
+			size_t len = 0;
+			static String json;
+
+			if (nvsIndex == 0) {
+				// start, write first tag
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str());
+				len += sprintf(((char *) buffer), "[%s", json.c_str());
+				nvsIndex++;
+			}
+			while (nvsIndex < nvsKeys.size()) {
+				// write tags as long we have enough room
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str());
+				if ((len + json.length()) > maxLen) {
+					break;
+				}
+				len += sprintf(((char *) buffer + len), ",%s", json.c_str());
+				nvsIndex++;
+			}
+			if (nvsIndex == nvsKeys.size()) {
+				// finish
+				len += sprintf(((char *) buffer + len), "]");
+				nvsIndex++;
+			}
+			return len;
+		});
+	request->send(response);
 }
 
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
