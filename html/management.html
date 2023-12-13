@@ -1746,7 +1746,7 @@
 
 	const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");	
 	async function rebuildRFIDList() {
-		var rfidList = await (await fetch("/rfid")).json();
+		var rfidList = await (await fetch("/rfid/details")).json();
 		var rfidActive = document.getElementById('rfidIdMusic').value;
 
 		rfidListSavedAssignments.innerHTML = "";
