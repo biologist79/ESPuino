@@ -1708,7 +1708,6 @@ static String tagIdToJsonStr(const char *key, const bool withDetails) {
 	}
 }
 
-
 // Handles rfid-assignments requests (GET)
 // /rfid returns an array of tag-id keys
 // /rfid/details returns an array of tag-ids and details. Optional GET param "id" to list only a single assignment.
