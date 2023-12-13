@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 13.12.2023: Immediately go to sleep if battery is critical (#274), thanks to @SZenglein ! 
 * 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 ! 
 * 12.12.2023: Fix false-positive error (Audio playback timeout)
 * 10.12.2023: Distribute vTaskDelay() in main loop to avoid rare audio dropouts

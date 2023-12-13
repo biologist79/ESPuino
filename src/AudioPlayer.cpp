@@ -840,15 +840,16 @@ void AudioPlayer_Task(void *parameter) {
 		}
 
 		// If error occured: move to the next track in the playlist
-		if (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+		const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY);
+		const bool noAudio = (!audio->isRunning() && !gPlayProperties.pausePlay);
+		const bool timeout = ((millis() - playbackTimeoutStart) > playbackTimeout); 
+		if (activeMode) { 
 			// we check for timeout
-			if (!audio->isRunning() && !gPlayProperties.pausePlay) {
-				if ((millis() - playbackTimeoutStart) > playbackTimeout) {
-					// Audio playback timed out, move on to the next
-					System_IndicateError();
-					gPlayProperties.trackFinished = true;
-					playbackTimeoutStart = millis();
-				}
+			if (noAudio && timeout) {
+				// Audio playback timed out, move on to the next
+				System_IndicateError();
+				gPlayProperties.trackFinished = true;
+				playbackTimeoutStart = millis();
 			}
 		} else {
 			// we are idle, update timeout so that we do not get a spurious error when launching into a playlist
