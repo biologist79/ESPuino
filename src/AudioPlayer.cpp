@@ -842,8 +842,8 @@ void AudioPlayer_Task(void *parameter) {
 		// If error occured: move to the next track in the playlist
 		const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY);
 		const bool noAudio = (!audio->isRunning() && !gPlayProperties.pausePlay);
-		const bool timeout = ((millis() - playbackTimeoutStart) > playbackTimeout); 
-		if (activeMode) { 
+		const bool timeout = ((millis() - playbackTimeoutStart) > playbackTimeout);
+		if (activeMode) {
 			// we check for timeout
 			if (noAudio && timeout) {
 				// Audio playback timed out, move on to the next
