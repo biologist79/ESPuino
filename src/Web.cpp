@@ -457,7 +457,7 @@ void webserverStart(void) {
 
 		// RFID
 		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
-		wServer.addRewrite(new OneParamRewrite("/rfid/details", "/rfid?details=true"));
+		wServer.addRewrite(new OneParamRewrite("/rfid/ids", "/rfid?ids=true"));
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
@@ -1693,8 +1693,10 @@ bool DumpNvsToArrayCallback(const char *key, void *data) {
 	return true;
 }
 
-static String tagIdToJsonStr(const char *key, const bool withDetails) {
-	if (withDetails) {
+static String tagIdToJsonStr(const char *key, const bool nameOnly) {
+	if (nameOnly) {
+		return "\"" + String(key) + "\"";
+	} else {
 		StaticJsonDocument<512> doc;
 		JsonObject entry = doc.createNestedObject(key);
 		if (!tagIdToJSON(key, entry)) {
@@ -1703,8 +1705,6 @@ static String tagIdToJsonStr(const char *key, const bool withDetails) {
 		String serializedJsonString;
 		serializeJson(entry, serializedJsonString);
 		return serializedJsonString;
-	} else {
-		return "\"" + String(key) + "\"";
 	}
 }
 
@@ -1725,8 +1725,8 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 		request->send(200, "application/json", json);
 		return;
 	}
-	// get tag details or just an array of key names
-	bool withDetails = request->hasParam("details");
+	// get tag details or just an array of id's
+	bool idsOnly = request->hasParam("ids");
 
 	std::vector<String> nvsKeys {};
 	static uint16_t nvsIndex;
@@ -1741,33 +1741,33 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	// construct chunked repsonse
 	nvsIndex = 0;
 	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
-		[nvsKeys = std::move(nvsKeys), withDetails](uint8_t *buffer, size_t maxLen, size_t index) {
+		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) {
 			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
 			size_t len = 0;
 			String json;
 
 			if (nvsIndex == 0) {
 				// start, write first tag
-				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), withDetails);
-				if (json.length() > maxLen) {
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if (json.length() >= maxLen) {
 					Log_Println("/rfid: Buffer too small", LOGLEVEL_ERROR);
-					return len;
+					return 0;
 				}
-				len += snprintf(((char *) buffer), maxLen, "[%s", json.c_str());
+				len += snprintf(((char *) buffer), maxLen-len, "[%s", json.c_str());
 				nvsIndex++;
 			}
 			while (nvsIndex < nvsKeys.size()) {
 				// write tags as long we have enough room
-				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), withDetails);
-				if ((len + json.length()) > maxLen) {
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if ((len + json.length()) >= maxLen) {
 					break;
 				}
-				len += snprintf(((char *) buffer + len), maxLen, ",%s", json.c_str());
+				len += snprintf(((char *) buffer + len), maxLen-len, ",%s", json.c_str());
 				nvsIndex++;
 			}
 			if (nvsIndex == nvsKeys.size()) {
 				// finish
-				len += snprintf(((char *) buffer + len), maxLen, "]");
+				len += snprintf(((char *) buffer + len), maxLen-len, "]");
 				nvsIndex++;
 			}
 			return len;
