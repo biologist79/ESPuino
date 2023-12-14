@@ -1751,7 +1751,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
 				if (json.length() >= maxLen) {
 					Log_Println("/rfid: Buffer too small", LOGLEVEL_ERROR);
-					return 0;
+					return len;
 				}
 				len += snprintf(((char *) buffer), maxLen - len, "[%s", json.c_str());
 				nvsIndex++;
