@@ -1753,7 +1753,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 					Log_Println("/rfid: Buffer too small", LOGLEVEL_ERROR);
 					return 0;
 				}
-				len += snprintf(((char *) buffer), maxLen-len, "[%s", json.c_str());
+				len += snprintf(((char *) buffer), maxLen - len, "[%s", json.c_str());
 				nvsIndex++;
 			}
 			while (nvsIndex < nvsKeys.size()) {
@@ -1762,12 +1762,12 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 				if ((len + json.length()) >= maxLen) {
 					break;
 				}
-				len += snprintf(((char *) buffer + len), maxLen-len, ",%s", json.c_str());
+				len += snprintf(((char *) buffer + len), maxLen - len, ",%s", json.c_str());
 				nvsIndex++;
 			}
 			if (nvsIndex == nvsKeys.size()) {
 				// finish
-				len += snprintf(((char *) buffer + len), maxLen-len, "]");
+				len += snprintf(((char *) buffer + len), maxLen - len, "]");
 				nvsIndex++;
 			}
 			return len;
