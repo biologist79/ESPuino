@@ -1936,20 +1936,17 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		coverFile.read();
 	}
 
-	int imageSize = gPlayProperties.coverFileSize;
-	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-		// some kind of webserver bug with actual size available, reduce the len
-		maxLen = maxLen >> 1;
-
+	size_t imageSize = gPlayProperties.coverFileSize;
+	AsyncWebServerResponse *response = request->beginResponse(mimeType, imageSize, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
 		File file = coverFile; // local copy of file pointer
-		size_t leftToWrite = imageSize - index;
-		if (!leftToWrite) {
-			return 0; // end of transfer
-		}
-		size_t willWrite = (leftToWrite > maxLen) ? maxLen : leftToWrite;
-		file.read(buffer, willWrite);
-		index += willWrite;
-		return willWrite;
+
+		// read a maximum of 512 bytes to avoid blocking too long
+		// higher values result in higher performance at the cost of stability
+		size_t willWrite = min((size_t) 512, min(maxLen, imageSize - index));
+
+		size_t readLen = file.read(buffer, willWrite);
+
+		return readLen;
 	});
 	response->addHeader("Cache Control", "no-cache, must-revalidate");
 	request->send(response);
