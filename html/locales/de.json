@@ -102,7 +102,7 @@
         "upload": {
             "title": "Upload",
             "desc": "Upload starten",
-            "selectFolder": "Wähle den Ordner für den Upload!",
+            "selectFolder": "Wähle den Zielordner für den Upload!",
             "selectFile": "Wähle eine Datei zum Hochladen!",
             "success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
             "error": "Upload fehlgeschlagen",
