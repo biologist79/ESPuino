@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 23.12.2023: Update audio library, avoid waiting in i2s_channel_write() to have more time in other tasks #636
+* 22.12.2023: Web-UI: Preselection of root folder after load to avoid nasty warning when uploading files
 * 17.12.2023: Update audio library, fixes click-noise seeking in file 
 * 13.12.2023: Immediately go to sleep if battery is critical (#274), thanks to @SZenglein ! 
 * 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 ! 
