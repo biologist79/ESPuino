@@ -406,7 +406,10 @@ void Port_Test(void) {
 
 	#ifdef PE_INTERRUPT_PIN_ENABLE
 void IRAM_ATTR PORT_ExpanderISR(void) {
-	Port_AllowReadFromPortExpander = true;
+	// check if the interrupt pin is actually low and only if it is
+	// trigger the handler (there are a lot of false calls to this ISR
+	// where the interrupt pin isn't low...)
+	Port_AllowReadFromPortExpander = !digitalRead(PE_INTERRUPT_PIN);
 }
 	#endif
 #endif
