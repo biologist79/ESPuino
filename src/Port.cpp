@@ -38,13 +38,16 @@ void Port_Init(void) {
 #ifdef PORT_EXPANDER_ENABLE
 	Port_Test();
 	Port_WriteInitMaskForOutputChannels();
-	Port_ExpanderHandler();
 #endif
 
 #ifdef PE_INTERRUPT_PIN_ENABLE
 	pinMode(PE_INTERRUPT_PIN, INPUT_PULLUP);
-	attachInterrupt(PE_INTERRUPT_PIN, PORT_ExpanderISR, FALLING);
+	// ISR gets enabled in Port_ExpanderHandler()
 	Log_Println(portExpanderInterruptEnabled, LOGLEVEL_NOTICE);
+#endif
+
+#ifdef PORT_EXPANDER_ENABLE
+	Port_ExpanderHandler();
 #endif
 }
 
@@ -357,6 +360,11 @@ void Port_ExpanderHandler(void) {
 		uint8_t error = i2cBusTwo.endTransmission();
 		if (error != 0) {
 			Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
+
+			#ifdef PE_INTERRUPT_PIN_ENABLE
+			Port_AllowReadFromPortExpander = true;
+			#endif
+
 			return;
 		}
 		i2cBusTwo.requestFrom(expanderI2cAddress, 1u); // ...and read its byte
@@ -376,6 +384,13 @@ void Port_ExpanderHandler(void) {
 			// Serial.printf("%u Debug: PE-Port: %u  Status: %u\n", millis(), i, Port_ExpanderPortsInputChannelStatus[i]);
 		}
 	}
+
+	#ifdef PE_INTERRUPT_PIN_ENABLE
+	// input is stable; go back to interrupt mode
+	if (!verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
+		attachInterrupt(digitalPinToInterrupt(PE_INTERRUPT_PIN), PORT_ExpanderISR, ONLOW);
+	}
+	#endif
 }
 
 // Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
@@ -410,6 +425,10 @@ void IRAM_ATTR PORT_ExpanderISR(void) {
 	// trigger the handler (there are a lot of false calls to this ISR
 	// where the interrupt pin isn't low...)
 	Port_AllowReadFromPortExpander = !digitalRead(PE_INTERRUPT_PIN);
+	// until the interrupt is handled we don't need any more ISR calls
+	if (Port_AllowReadFromPortExpander) {
+		detachInterrupt(digitalPinToInterrupt(PE_INTERRUPT_PIN));
+	}
 }
 	#endif
 #endif
