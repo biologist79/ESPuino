@@ -30,7 +30,6 @@ void Port_Test(void);
 		#define PE_INTERRUPT_PIN_ENABLE
 void IRAM_ATTR PORT_ExpanderISR(void);
 bool Port_AllowReadFromPortExpander = false;
-bool Port_AllowInitReadFromPortExpander = true;
 	#endif
 #endif
 
@@ -47,6 +46,7 @@ void Port_Init(void) {
 #endif
 
 #ifdef PORT_EXPANDER_ENABLE
+	Port_AllowReadFromPortExpander = true;
 	Port_ExpanderHandler();
 #endif
 }
@@ -340,17 +340,18 @@ void Port_MakeSomeChannelsOutputForShutdown(void) {
 // Reads input-registers from port-expander and writes output into global cache-array
 // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 void Port_ExpanderHandler(void) {
-	static bool verifyChangeOfInputRegister[2] = {false, false}; // Used to debounce once in case of register-change
-	static uint8_t inputRegisterBuffer[2];
+	static uint32_t inputChanged = 0; // Used to debounce once in case of register-change
+	static uint32_t inputPrev = 0;
 
 	// If interrupt-handling is active, only read port-expander's registers if interrupt was fired
+	// or the next time if there was a change
 	#ifdef PE_INTERRUPT_PIN_ENABLE
-	if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander && !verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
-		return;
-	} else if (Port_AllowInitReadFromPortExpander) {
-		Port_AllowInitReadFromPortExpander = false;
-	} else if (Port_AllowReadFromPortExpander || Port_AllowInitReadFromPortExpander) {
+	if (Port_AllowReadFromPortExpander) {
 		Port_AllowReadFromPortExpander = false;
+	}
+	else if (!inputChanged)
+	{
+		return;
 	}
 	#endif
 
@@ -370,26 +371,36 @@ void Port_ExpanderHandler(void) {
 	i2cBusTwo.requestFrom(expanderI2cAddress, 2u); // ...and read its bytes
 
 	if (i2cBusTwo.available() == 2) {
+		uint32_t inputCurr = 0;
 		for (uint8_t i = 0; i < 2; i++) {
-			inputRegisterBuffer[i] = i2cBusTwo.read(); // Cache current readout
+			inputCurr |= i2cBusTwo.read() << 8*i; // Cache current readout
+		}
 
-			// Check if input-register changed. If so, don't use the value immediately
-			// but wait another cycle instead (=> rudimentary debounce).
-			// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
-			if (inputRegisterBuffer[i] != Port_ExpanderPortsInputChannelStatus[i] && millis() >= 10000 && !verifyChangeOfInputRegister[i]) {
-				verifyChangeOfInputRegister[i] = true;
-				// Serial.println("Verify set!");
-			} else {
-				verifyChangeOfInputRegister[i] = false;
-				Port_ExpanderPortsInputChannelStatus[i] = inputRegisterBuffer[i];
-			}
+		// Check if input-register changed. If so, don't use the changed bits immediately
+		// but wait another cycle instead (=> rudimentary debounce).
+		// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
+		inputChanged = inputPrev ^ inputCurr;
+
+		uint32_t inputStable = 0;
+		for (uint8_t i = 0; i < 2; i++) {
+			inputStable |= Port_ExpanderPortsInputChannelStatus[i] << 8*i;
+		}
+
+		// update bits that were stable since the last run
+		inputStable &= inputChanged;
+		inputStable |= (~inputChanged & inputCurr);
+
+		for (uint8_t i = 0; i < 2; i++) {
+			Port_ExpanderPortsInputChannelStatus[i] = (inputStable >> 8*i) & 0xff;
 			// Serial.printf("%u Debug: PE-Port: %u  Status: %u\n", millis(), i, Port_ExpanderPortsInputChannelStatus[i]);
 		}
+
+		inputPrev = inputCurr;
 	}
 
 	#ifdef PE_INTERRUPT_PIN_ENABLE
 	// input is stable; go back to interrupt mode
-	if (!verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
+	if (!inputChanged) {
 		attachInterrupt(digitalPinToInterrupt(PE_INTERRUPT_PIN), PORT_ExpanderISR, ONLOW);
 	}
 	#endif
