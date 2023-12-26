@@ -201,7 +201,7 @@ void Port_WriteInitMaskForOutputChannels(void) {
 	i2cBusTwo.write(0x02); // Pointer to first output-register
 	i2cBusTwo.endTransmission(false);
 	i2cBusTwo.requestFrom(expanderI2cAddress, static_cast<size_t>(portsToWrite), true); // ...and read the contents
-	if (i2cBusTwo.available()) {
+	if (i2cBusTwo.available() == portsToWrite) {
 		for (unsigned int i = 0; i < portsToWrite; i++) {
 			Port_ExpanderPortsOutputChannelStatus[i] = i2cBusTwo.read();
 		}
@@ -354,23 +354,25 @@ void Port_ExpanderHandler(void) {
 	}
 	#endif
 
-	for (uint8_t i = 0; i < 2; i++) {
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
-		i2cBusTwo.write(0x00 + i); // Pointer to input-register...
-		uint8_t error = i2cBusTwo.endTransmission();
-		if (error != 0) {
-			Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x00); // Pointer to input-register...
+	uint8_t error = i2cBusTwo.endTransmission(false);
+	if (error != 0) {
+		Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
+		i2cBusTwo.endTransmission(true);
 
-			#ifdef PE_INTERRUPT_PIN_ENABLE
-			Port_AllowReadFromPortExpander = true;
-			#endif
+		#ifdef PE_INTERRUPT_PIN_ENABLE
+		Port_AllowReadFromPortExpander = true;
+		#endif
 
-			return;
-		}
-		i2cBusTwo.requestFrom(expanderI2cAddress, 1u); // ...and read its byte
+		return;
+	}
+	i2cBusTwo.requestFrom(expanderI2cAddress, 2u); // ...and read its bytes
 
-		if (i2cBusTwo.available()) {
+	if (i2cBusTwo.available() == 2) {
+		for (uint8_t i = 0; i < 2; i++) {
 			inputRegisterBuffer[i] = i2cBusTwo.read(); // Cache current readout
+
 			// Check if input-register changed. If so, don't use the value immediately
 			// but wait another cycle instead (=> rudimentary debounce).
 			// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
@@ -396,13 +398,13 @@ void Port_ExpanderHandler(void) {
 // Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
 void Port_Exit(void) {
 	Port_MakeSomeChannelsOutputForShutdown();
-	for (uint8_t i = 0; i < 2; i++) {
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
-		i2cBusTwo.write(0x00 + i); // Pointer to input-register...
-		i2cBusTwo.endTransmission();
-		i2cBusTwo.requestFrom(expanderI2cAddress, 1u); // ...and read its byte
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x00); // Pointer to input-registers...
+	i2cBusTwo.endTransmission();
+	i2cBusTwo.requestFrom(expanderI2cAddress, 2u); // ...and read its bytes
 
-		if (i2cBusTwo.available()) {
+	if (i2cBusTwo.available() == 2) {
+		for (uint8_t i = 0; i < 2; i++) {
 			Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
 		}
 	}
