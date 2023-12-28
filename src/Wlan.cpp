@@ -333,13 +333,6 @@ void handleWifiStateConnectionSuccess() {
 	delete dnsServer;
 	dnsServer = nullptr;
 
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	if (gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost) {
-		gPlayLastRfIdWhenWiFiConnected = false;
-		recoverLastRfidPlayedFromNvs(true);
-	}
-#endif
-
 	wifiState = WIFI_STATE_CONNECTED;
 }
 
@@ -547,7 +540,7 @@ bool Wlan_DeleteNetwork(String ssid) {
 }
 
 bool Wlan_ConnectionTryInProgress(void) {
-	return wifiState == WIFI_STATE_SCAN_CONN;
+	return wifiState == WIFI_STATE_INIT || wifiState == WIFI_STATE_CONNECT_LAST || wifiState == WIFI_STATE_SCAN_CONN;
 }
 
 String Wlan_GetIpAddress(void) {
