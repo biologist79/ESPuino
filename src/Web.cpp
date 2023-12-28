@@ -587,7 +587,7 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("battery")) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
 			return false;
 		}
@@ -758,13 +758,19 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 	}
 #endif
-#ifdef MEASURE_BATTERY_VOLTAGE
+#ifdef BATTERY_MEASURE_ENABLE
 	if ((section == "") || (section == "battery")) {
 		// battery settings
 		JsonObject batteryObj = obj.createNestedObject("battery");
+	#ifdef MEASURE_BATTERY_VOLTAGE
 		batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
 		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+		#ifdef SHUTDOWN_ON_BAT_CRITICAL
+		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
+		#endif
+	#endif
+
 		batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
 	}
 #endif
@@ -779,10 +785,15 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		defaultsObj["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
 #endif
-#ifdef MEASURE_BATTERY_VOLTAGE
+#ifdef BATTERY_MEASURE_ENABLE
+	#ifdef MEASURE_BATTERY_VOLTAGE
 		defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
 		defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
 		defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
+		#ifdef SHUTDOWN_ON_BAT_CRITICAL
+		defaultsObj["criticalVoltage"].set(s_voltageIndicatorHigh);
+		#endif
+	#endif
 		defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif
 	}

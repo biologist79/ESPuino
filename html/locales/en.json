@@ -265,6 +265,7 @@
             "desc": "Show voltage-status via Neopixel",
             "lowWarning": "Show warning below this threshold",
             "lowCritical": "Lowest voltage, that is indicated by one LED",
+            "criticalShutoff": "Below this voltage, ESPuino turns off.",
             "high": "Voltage, that is indicated by all LEDs",
             "measureInterval": "Interval between measurements (in minutes)"
         }

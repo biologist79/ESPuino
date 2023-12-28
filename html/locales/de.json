@@ -265,6 +265,7 @@
             "desc": "Status über Neopixel anzeigen",
             "lowWarning": "Unter dieser Spannung wird eine Warnung angezeigt",
             "lowCritical": "Eine LED leuchtet bei dieser Spannung",
+            "criticalShutoff": "Unter dieser Spannung schaltet der ESPuino ab.",
             "high": "Alle LEDs leuchten bei dieser Spannung",
             "measureInterval": "Zeitabstand der Messung (in Minuten)"
         }
