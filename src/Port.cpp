@@ -348,9 +348,7 @@ void Port_ExpanderHandler(void) {
 	#ifdef PE_INTERRUPT_PIN_ENABLE
 	if (Port_AllowReadFromPortExpander) {
 		Port_AllowReadFromPortExpander = false;
-	}
-	else if (!inputChanged)
-	{
+	} else if (!inputChanged) {
 		return;
 	}
 	#endif
@@ -362,9 +360,9 @@ void Port_ExpanderHandler(void) {
 		Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
 		i2cBusTwo.endTransmission(true);
 
-		#ifdef PE_INTERRUPT_PIN_ENABLE
+	#ifdef PE_INTERRUPT_PIN_ENABLE
 		Port_AllowReadFromPortExpander = true;
-		#endif
+	#endif
 
 		return;
 	}
@@ -373,7 +371,7 @@ void Port_ExpanderHandler(void) {
 	if (i2cBusTwo.available() == 2) {
 		uint32_t inputCurr = 0;
 		for (uint8_t i = 0; i < 2; i++) {
-			inputCurr |= i2cBusTwo.read() << 8*i; // Cache current readout
+			inputCurr |= i2cBusTwo.read() << 8 * i; // Cache current readout
 		}
 
 		// Check if input-register changed. If so, don't use the changed bits immediately
@@ -383,7 +381,7 @@ void Port_ExpanderHandler(void) {
 
 		uint32_t inputStable = 0;
 		for (uint8_t i = 0; i < 2; i++) {
-			inputStable |= Port_ExpanderPortsInputChannelStatus[i] << 8*i;
+			inputStable |= Port_ExpanderPortsInputChannelStatus[i] << 8 * i;
 		}
 
 		// update bits that were stable since the last run
@@ -391,7 +389,7 @@ void Port_ExpanderHandler(void) {
 		inputStable |= (~inputChanged & inputCurr);
 
 		for (uint8_t i = 0; i < 2; i++) {
-			Port_ExpanderPortsInputChannelStatus[i] = (inputStable >> 8*i) & 0xff;
+			Port_ExpanderPortsInputChannelStatus[i] = (inputStable >> 8 * i) & 0xff;
 			// Serial.printf("%u Debug: PE-Port: %u  Status: %u\n", millis(), i, Port_ExpanderPortsInputChannelStatus[i]);
 		}
 
