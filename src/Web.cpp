@@ -1522,6 +1522,9 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playModeString = param->value();
 
 		playMode = atoi(playModeString.c_str());
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+		Rfid_ResetOldRfid();
+#endif
 		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
