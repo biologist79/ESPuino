@@ -1554,6 +1554,9 @@
 			  if (socketMsg.status == "ok") {
 				  toastr.success(i18next.t("toast.success"));
 			  }
+			  if (socketMsg.status == "dropout") {
+				  toastr.warning(i18next.t("toast.dropout"));
+			  }
 		  } if ("pong" in socketMsg) {
 			if (socketMsg.pong == 'pong') {
 				  pong();

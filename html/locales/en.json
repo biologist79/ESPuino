@@ -15,7 +15,8 @@
     "toast": {
         "rfidDetect": "RFID-tag {{rfidId}} detected.",
         "success": "Action performed successfully.",
-        "conlost": "Connection to ESPuino broken! Please reload website."
+        "conlost": "Connection to ESPuino broken! Please reload website.",
+        "dropout": "slow stream, dropouts are possible."
     },
     "nav": {
         "control": "Control",

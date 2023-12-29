@@ -15,7 +15,8 @@
     "toast": {
         "rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
         "success": "Aktion erfolgreich ausgeführt.",
-        "conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden."
+        "conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
+        "dropout": "Langsamer Stream, Aussetzer möglich."
     },
     "nav": {
         "control": "Steuerung",
