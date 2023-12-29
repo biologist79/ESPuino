@@ -2072,6 +2072,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
 		if (!leftToWrite) {
+			file.close();
 			return 0; // end of transfer
 		}
 		size_t willWrite = (leftToWrite > maxLen) ? maxLen : leftToWrite;
