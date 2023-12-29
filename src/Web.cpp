@@ -78,6 +78,7 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDebugRequest(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, const String section);
@@ -426,13 +427,21 @@ void webserverStart(void) {
 			AsyncResponseStream *response = request->beginResponseStream("text/html");
 			response->println("<!DOCTYPE html><html><head> <meta charset='utf-8'><title>ESPuino runtime stats</title>");
 			response->println("<meta http-equiv='refresh' content='2'>"); // refresh page every 2 seconds
-			response->println("</head><body>Tasklist:<div class='text'><pre>");
+			response->print("</head><body>");
+			// show memory usage
+			response->println("Memory:<div class='text'><pre>");
+			response->println("Free heap: " + String(ESP.getFreeHeap()));
+			response->println("Largest free block: " + String(ESP.getMaxAllocHeap()));
+			response->println("</pre></div><br>");
 			// show tasklist
+			response->println("Tasklist:<div class='text'><pre>");
+			response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
 			char *pbuffer = (char *) calloc(2048, 1);
 			vTaskList(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
-			// show vTaskGetRunTimeStats()
+			response->println("Taskname\tRuntime\tPercentage");
+			// show runtime stats
 			vTaskGetRunTimeStats(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div></body></html>");
@@ -441,6 +450,8 @@ void webserverStart(void) {
 			request->send(response);
 		});
 #endif
+		// debug info
+		wServer.on("/debug", HTTP_GET, handleDebugRequest);
 
 		// erase all RFID-assignments from NVS
 		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -950,6 +961,49 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error saving settings");
 	}
+}
+
+// handle debug request
+// returns memory and task runtime information as JSON
+void handleDebugRequest(AsyncWebServerRequest *request) {
+
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(1000);
+#else
+	StaticJsonDocument<1000> doc;
+#endif
+
+	JsonObject infoObj = doc.createNestedObject("info");
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+	// task runtime info
+	TaskStatus_t task_status_arr[20];
+	uint32_t pulTotalRunTime;
+	uint32_t taskNum = uxTaskGetNumberOfTasks();
+
+	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskNum);
+
+	uxTaskGetSystemState(task_status_arr, 20, &pulTotalRunTime);
+
+	JsonObject tasksObj = infoObj.createNestedObject("tasks");
+	tasksObj["taskCount"] = taskNum;
+	tasksObj["totalRunTime"] = pulTotalRunTime;
+	JsonArray tasksList = tasksObj.createNestedArray("tasksList");
+
+	for (int i = 0; i < taskNum; i++) {
+		JsonObject taskObj = tasksList.createNestedObject();
+
+		float ulStatsAsPercentage = 100.f * ((float) task_status_arr[i].ulRunTimeCounter / (float) pulTotalRunTime);
+
+		taskObj["name"] = task_status_arr[i].pcTaskName;
+		taskObj["runtimeCounter"] = task_status_arr[i].ulRunTimeCounter;
+		taskObj["core"] = task_status_arr[i].xCoreID;
+		taskObj["runtimePercentage"] = ulStatsAsPercentage;
+		taskObj["stackHighWaterMark"] = task_status_arr[i].usStackHighWaterMark;
+	}
+#endif
+	String serializedJsonString;
+	serializeJson(infoObj, serializedJsonString);
+	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
 // Takes inputs from webgui, parses JSON and saves values in NVS

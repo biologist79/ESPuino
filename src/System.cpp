@@ -263,11 +263,13 @@ void System_ShowWakeUpReason() {
 	}
 }
 
-#ifdef ENABLE_ESPUINO_DEBUG
 void System_esp_print_tasks(void) {
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 	char *pbuffer = (char *) calloc(2048, 1);
 	vTaskGetRunTimeStats(pbuffer);
 	Serial.printf("=====\n%s\n=====", pbuffer);
 	free(pbuffer);
-}
+#else
+	Serial.println("Enable CONFIG_FREERTOS_USE_TRACE_FACILITY to use vTaskGetRunTimeStats()!");
 #endif
+}
