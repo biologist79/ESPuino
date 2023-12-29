@@ -468,6 +468,7 @@ void webserverStart(void) {
 
 		// RFID
 		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
+		wServer.addRewrite(new OneParamRewrite("/rfid/ids-only", "/rfid?ids-only=true"));
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
@@ -1753,34 +1754,93 @@ bool DumpNvsToJSONCallback(const char *key, void *data) {
 	return tagIdToJSON(key, obj);
 }
 
+// callback for writing a NVS entry to list
+bool DumpNvsToArrayCallback(const char *key, void *data) {
+	std::vector<String> *keys = (std::vector<String> *) data;
+	keys->push_back(key);
+	return true;
+}
+
+static String tagIdToJsonStr(const char *key, const bool nameOnly) {
+	if (nameOnly) {
+		return "\"" + String(key) + "\"";
+	} else {
+		StaticJsonDocument<512> doc;
+		JsonObject entry = doc.createNestedObject(key);
+		if (!tagIdToJSON(key, entry)) {
+			return "";
+		}
+		String serializedJsonString;
+		serializeJson(entry, serializedJsonString);
+		return serializedJsonString;
+	}
+}
+
+// Handles rfid-assignments requests (GET)
+// /rfid returns an array of tag-ids and details. Optional GET param "id" to list only a single assignment.
+// /rfid/ids-only returns an array of tag-id keys
 static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
+
 	String tagId = "";
+
 	if (request->hasParam("id")) {
 		tagId = request->getParam("id")->value();
 	}
-	if (tagId == "") {
-		// return all RFID assignments
-		AsyncJsonResponse *response = new AsyncJsonResponse(true, 8192);
-		JsonArray Arr = response->getRoot();
-		if (listNVSKeys("rfidTags", &Arr, DumpNvsToJSONCallback)) {
-			response->setLength();
-			request->send(response);
-		} else {
-			request->send(500, "error reading entries from NVS");
-		}
-	} else {
-		if (gPrefsRfid.isKey(tagId.c_str())) {
-			// return single RFID assignment
-			AsyncJsonResponse *response = new AsyncJsonResponse(false);
-			JsonObject obj = response->getRoot();
-			tagIdToJSON(tagId, obj);
-			response->setLength();
-			request->send(response);
-		} else {
-			// RFID assignment not found
-			request->send(404);
-		}
+
+	if ((tagId != "") && gPrefsRfid.isKey(tagId.c_str())) {
+		// return single RFID entry
+		String json = tagIdToJsonStr(tagId.c_str(), true);
+		request->send(200, "application/json", json);
+		return;
 	}
+	// get tag details or just an array of id's
+	bool idsOnly = request->hasParam("ids-only");
+
+	std::vector<String> nvsKeys {};
+	static size_t nvsIndex;
+	nvsKeys.clear();
+	// Dumps all RFID-keys from NVS into key array
+	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
+	if (nvsKeys.size() == 0) {
+		// no entries
+		request->send(200, "application/json", "[]");
+		return;
+	}
+	// construct chunked repsonse
+	nvsIndex = 0;
+	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
+		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
+			size_t len = 0;
+			String json;
+
+			if (nvsIndex == 0) {
+				// start, write first tag
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if (json.length() >= maxLen) {
+					Log_Println("/rfid: Buffer too small", LOGLEVEL_ERROR);
+					return len;
+				}
+				len += snprintf(((char *) buffer), maxLen - len, "[%s", json.c_str());
+				nvsIndex++;
+			}
+			while (nvsIndex < nvsKeys.size()) {
+				// write tags as long we have enough room
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if ((len + json.length()) >= maxLen) {
+					break;
+				}
+				len += snprintf(((char *) buffer + len), maxLen - len, ",%s", json.c_str());
+				nvsIndex++;
+			}
+			if (nvsIndex == nvsKeys.size()) {
+				// finish
+				len += snprintf(((char *) buffer + len), maxLen - len, "]");
+				nvsIndex++;
+			}
+			return len;
+		});
+	request->send(response);
 }
 
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
