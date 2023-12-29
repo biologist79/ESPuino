@@ -457,7 +457,7 @@ void webserverStart(void) {
 
 		// RFID
 		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
-		wServer.addRewrite(new OneParamRewrite("/rfid/ids", "/rfid?ids=true"));
+		wServer.addRewrite(new OneParamRewrite("/rfid/ids-only", "/rfid?ids-only=true"));
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
@@ -1709,8 +1709,8 @@ static String tagIdToJsonStr(const char *key, const bool nameOnly) {
 }
 
 // Handles rfid-assignments requests (GET)
-// /rfid returns an array of tag-id keys
-// /rfid/details returns an array of tag-ids and details. Optional GET param "id" to list only a single assignment.
+// /rfid returns an array of tag-ids and details. Optional GET param "id" to list only a single assignment.
+// /rfid/ids-only returns an array of tag-id keys
 static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 
 	String tagId = "";
@@ -1726,7 +1726,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	// get tag details or just an array of id's
-	bool idsOnly = request->hasParam("ids");
+	bool idsOnly = request->hasParam("ids-only");
 
 	std::vector<String> nvsKeys {};
 	static size_t nvsIndex;
