@@ -1729,7 +1729,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	bool idsOnly = request->hasParam("ids");
 
 	std::vector<String> nvsKeys {};
-	static uint16_t nvsIndex;
+	static size_t nvsIndex;
 	nvsKeys.clear();
 	// Dumps all RFID-keys from NVS into key array
 	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
@@ -1741,7 +1741,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	// construct chunked repsonse
 	nvsIndex = 0;
 	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
-		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) {
+		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
 			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
 			size_t len = 0;
 			String json;
@@ -1772,7 +1772,6 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 			}
 			return len;
 		});
-	nvsKeys.clear();
 	request->send(response);
 }
 
