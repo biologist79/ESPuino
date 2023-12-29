@@ -2076,8 +2076,9 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
 		// some kind of webserver bug with actual size available, reduce the len
-		maxLen = maxLen >> 1;
-
+		if (maxLen > 1024) {
+			maxLen = 1024;
+		}
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
 		if (!leftToWrite) {

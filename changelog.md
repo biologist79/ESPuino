@@ -2,6 +2,13 @@
 
 ## DEV-branch
 
+* 29.12.2023: Show station logo in Web-UI (if available)
+* 29.12.2023: /rfid endpoint: List all assigned nvs entries (#280)
+* 29.12.2023: Enhanced capabilities for task runtime debugging
+* 28.12.2023: Bugfix 1: DONT_ACCEPT_SAME_RFID_TWICE_ENABLE and web frontend, thanks to @sfields !
+* 28.12.2023: Add configuration for critical (shutoff) voltage in Web-UI, thanks to @SZenglein ! 
+* 28.12.2023: New official PlatformIO package 6.5.0 (Arduino 2.0.14, ESP-IDF 4.4.6)
+* 28.12.2023: Improve port expander handling (#283), thanks to @r-schmidt !
 * 23.12.2023: Update audio library, avoid waiting in i2s_channel_write() to have more time in other tasks #636
 * 22.12.2023: Web-UI: Preselection of root folder after load to avoid nasty warning when uploading files
 * 17.12.2023: Update audio library, fixes click-noise seeking in file 
