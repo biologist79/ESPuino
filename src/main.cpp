@@ -27,6 +27,7 @@
 #include "Web.h"
 #include "Wlan.h"
 #include "revision.h"
+#include "CardMan.h"
 
 #include <Wire.h>
 
@@ -221,6 +222,7 @@ void setup() {
 	if (Wlan_IsConnected()) {
 		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}
+	CardMan_Init();
 
 #ifdef CONTROLS_LOCKED_BY_DEFAULT
 	System_SetLockControls(true);

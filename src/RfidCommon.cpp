@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "settings.h"
-
+#ifdef RFID_CARDMAN_ENABLE
+	#include "CardMan.h"
+#endif
 #include "AudioPlayer.h"
 #include "Cmd.h"
 #include "Common.h"
@@ -39,10 +41,16 @@ void Rfid_PreferenceLookupHandler(void) {
 		strncpy(gCurrentRfidTagId, rfidTagId, cardIdStringSize - 1);
 		Log_Printf(LOGLEVEL_INFO, "%s: %s", rfidTagReceived, gCurrentRfidTagId);
 		Web_SendWebsocketData(0, 10); // Push new rfidTagId to all websocket-clients
+		
 		String s = "-1";
 		if (gPrefsRfid.isKey(gCurrentRfidTagId)) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 		}
+		#ifdef RFID_CARDMAN_ENABLE
+		if (!s.compareTo("-1")) {
+			s = CardMan_Handle(&cardData); // Try to lookup rfidId in NVS
+		}
+		#endif
 		if (!s.compareTo("-1")) {
 			Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 			System_IndicateError();
