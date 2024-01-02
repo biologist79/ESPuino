@@ -422,12 +422,6 @@ void AudioPlayer_Task(void *parameter) {
 				Log_Printf(LOGLEVEL_DEBUG, "Free heap: %u", ESP.getFreeHeap());
 				playbackTimeoutStart = millis();
 				gPlayProperties.pausePlay = false;
-				gPlayProperties.repeatCurrentTrack = false;
-				gPlayProperties.repeatPlaylist = false;
-				gPlayProperties.sleepAfterCurrentTrack = false;
-				gPlayProperties.sleepAfterPlaylist = false;
-				gPlayProperties.saveLastPlayPosition = false;
-				gPlayProperties.playUntilTrackNumber = 0;
 				gPlayProperties.trackFinished = false;
 				gPlayProperties.playlistFinished = false;
 
@@ -1011,6 +1005,13 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	gPlayProperties.playMode = _playMode;
 	gPlayProperties.numberOfTracks = strtoul(*(musicFiles - 1), NULL, 10);
+	// Set some default-values
+	gPlayProperties.repeatCurrentTrack = false;
+	gPlayProperties.repeatPlaylist = false;
+	gPlayProperties.sleepAfterCurrentTrack = false;
+	gPlayProperties.sleepAfterPlaylist = false;
+	gPlayProperties.saveLastPlayPosition = false;
+	gPlayProperties.playUntilTrackNumber = 0;
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
 	// Store last RFID-tag to NVS
