@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 02.01.2024: Show critical voltage slider only if SHUTDOWN_ON_BAT_CRITICAL defined
 * 29.12.2023: Show station logo in Web-UI (if available)
 * 29.12.2023: /rfid endpoint: List all assigned nvs entries (#280)
 * 29.12.2023: Enhanced capabilities for task runtime debugging

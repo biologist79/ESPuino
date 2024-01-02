@@ -803,7 +803,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
 		defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
 		#ifdef SHUTDOWN_ON_BAT_CRITICAL
-		defaultsObj["criticalVoltage"].set(s_voltageIndicatorHigh);
+		defaultsObj["criticalVoltage"].set(s_warningCriticalVoltage);
 		#endif
 	#endif
 		defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
