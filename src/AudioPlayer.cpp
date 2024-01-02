@@ -725,8 +725,8 @@ void AudioPlayer_Task(void *parameter) {
 				}
 				if (gPlayProperties.startAtFilePos > 0) {
 					audio->setFilePos(gPlayProperties.startAtFilePos);
+					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
-					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, audio->getFilePos());
 				}
 				if (gPlayProperties.isWebstream) {
 					if (gPlayProperties.numberOfTracks > 1) {
