@@ -1,0 +1,515 @@
+openapi: 3.0.0
+info:
+  title: ESPuino API
+  version: 1.0.5
+  description: API for the ESPuino, a DIY Smart Speaker project. ESPuino is a DIY Smart Speaker that uses software-based audio decoding, supports various music sources, and offers a user-friendly web interface. It simplifies audio processing and enhances user feedback with Neopixel rings.
+
+servers:
+  - url: http://espuino.local/
+    description: Development ESPuino
+
+paths:
+  /explorer:
+    get:
+      summary: List the contents of a directory.
+      description: Get a list of files and directories in the specified path.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+            default: "/"
+          description: Path to the directory to be listed.
+      responses:
+        '200':
+          description: Directory content successfully listed.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    isDir:
+                      type: boolean
+                      description: True if item is a directory.
+    post:
+      summary: Upload a file to a directory.
+      description: Upload a file to the specified directory.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          description: Directory path to upload the file.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File successfully uploaded.
+    delete:
+      summary: Delete a file or directory.
+      description: Delete a file or directory in the specified path.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          description: Path to the file or directory to be deleted.
+      responses:
+        '200':
+          description: File or directory successfully deleted.
+    put:
+      summary: Create a new directory.
+      description: Create a new directory in the specified path.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          description: Path for the new directory to be created.
+      responses:
+        '200':
+          description: Directory successfully created.
+    patch:
+      summary: Rename a file.
+      description: Rename a file from the source path to the destination path.
+      parameters:
+        - in: query
+          name: srcpath
+          schema:
+            type: string
+          description: Current path of the file to be renamed.
+        - in: query
+          name: dstpath
+          schema:
+            type: string
+          description: New path for the file.
+      responses:
+        '200':
+          description: File successfully renamed.
+  /exploreraudio:
+    post:
+      summary: Play an audio file.
+      description: Play an audio file specified by the path.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          description: Path to the audio file or directory.
+        - in: query
+          name: playmode
+          schema:
+            type: string
+          description: Play mode for audio.
+      responses:
+        '200':
+          description: Successful audio play.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /explorerdownload:
+    get:
+      summary: Download a file.
+      description: Download a file specified by the path.
+      parameters:
+        - in: query
+          name: path
+          schema:
+            type: string
+          description: Path of the file to download.
+      responses:
+        '200':
+          description: Successful download.
+  /savedSSIDs:
+    get:
+      summary: Get a list of saved networks.
+      description: Get a list of saved Wi-Fi networks.
+      responses:
+        '200':
+          description: Successful response with saved networks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+    post:
+      summary: Save a new network.
+      description: Save a new Wi-Fi network.
+      requestBody:
+        description: Network details to save.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                SSID:
+                  type: string
+                pwd:
+                  type: string
+                static:
+                  type: boolean
+                static_addr:
+                  type: string
+                static_gateway:
+                  type: string
+                static_subnet:
+                  type: string
+                static_dns1:
+                  type: string
+                static_dns2:
+                  type: string
+              required:
+                - SSID
+                - pwd
+      responses:
+        '200':
+          description: Successful network save.
+    delete:
+      summary: Delete a saved network.
+      description: Delete a saved Wi-Fi network by SSID.
+      parameters:
+        - in: query
+          name: ssid
+          schema:
+            type: string
+          description: SSID of the network to delete.
+      responses:
+        '200':
+          description: Successful network deletion.
+  /activeSSID:
+    get:
+      summary: Get the current active network name.
+      description: Get the SSID of the currently active network.
+      responses:
+        '200':
+          description: Successful response with active network name.
+          content:
+            application/json:
+              schema:
+                type: string
+  /wificonfig:
+    get:
+      summary: Get current common Wi-Fi configuration.
+      description: Get the current common Wi-Fi configuration settings.
+      responses:
+        '200':
+          description: Successful response with Wi-Fi configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hostname:
+                    type: string
+                  ScanWiFiOnStart:
+                    type: boolean
+    post:
+      summary: Save current common Wi-Fi configuration.
+      description: Save the current common Wi-Fi configuration settings.
+      requestBody:
+        description: Common Wi-Fi configuration to save.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hostname:
+                  type: string
+                ScanWiFiOnStart:
+                  type: boolean
+              required:
+                - hostname
+                - ScanWiFiOnStart
+      responses:
+        '200':
+          description: Successful Wi-Fi configuration save.
+  /settings:
+    get:
+      summary: Get common settings.
+      description: Get common settings, optionally for a specific section.
+      parameters:
+        - in: query
+          name: section
+          schema:
+            type: string
+          description: Optional section to retrieve specific settings.
+      responses:
+        '200':
+          description: Successful response with common settings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Include your common settings properties here.
+    post:
+      summary: Save settings.
+      description: Save common settings.
+      requestBody:
+        description: Settings to save.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                general:
+                  type: object
+                  # Include all general settings properties here
+                defaults:
+                  type: object
+                  # Include all defaults settings properties here
+                wifi:
+                  type: object
+                  # Include all Wi-Fi settings properties here
+                led:
+                  type: object
+                  # Include all LED settings properties here
+                battery:
+                  type: object
+                  # Include all battery settings properties here
+                ftp:
+                  type: object
+                  # Include all FTP settings properties here
+                mqtt:
+                  type: object
+                  # Include all MQTT settings properties here
+                bluetooth:
+                  type: object
+                  # Include all Bluetooth settings properties here
+              required:
+                - general
+      responses:
+        '200':
+          description: Successful settings save.
+  /rfid:
+    get:
+      summary: List all saved RFID-tag assignments with details.
+      description: Get a list of saved RFID-tag assignments with details. Optionally, provide an ID to list only a single assignment.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: Optional ID to list only a single assignment.
+      responses:
+        '200':
+          description: Successful response with RFID-tag assignments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    # Include your RFID-tag assignment properties here.
+    post:
+      summary: Save or overwrite RFID-tag assignment.
+      description: Save a new RFID-tag assignment or overwrite an existing one.
+      requestBody:
+        description: RFID-tag assignment details to save.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                fileOrUrl:
+                  type: string
+                modId:
+                  type: string
+                playMode:
+                  type: string
+              required:
+                - id
+                - fileOrUrl
+      responses:
+        '200':
+          description: Successful RFID-tag assignment save.
+    delete:
+      summary: Delete an RFID-tag assignment.
+      description: Delete an RFID-tag assignment by providing its ID.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: ID of the RFID-tag assignment to delete.
+      responses:
+        '200':
+          description: Successful RFID-tag assignment deletion.
+  /rfid/ids-only:
+    get:
+      summary: Get an array of RFID tag ID names.
+      description: Returns an array of RFID tag IDs without additional details.
+      responses:
+        '200':
+          description: Successful response with RFID tag IDs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /cover:
+    get:
+      summary: Get album cover image.
+      description: Handle album cover image requests and serve the current cover art image.
+      responses:
+        '200':
+          description: Successful response with album cover image.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+
+  /info:
+    get:
+      summary: Get common information.
+      description: Returns a JSON object with common information about ESPuino.
+      responses:
+        '200':
+          description: Successful response with common information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Include your common information properties here.
+
+  /log:
+    get:
+      summary: Get current log.
+      description: Returns the current log as text.
+      responses:
+        '200':
+          description: Successful response with log text.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /stats:
+    get:
+      summary: Get task runtime information.
+      description: Returns an HTML webpage with task runtime information.
+      responses:
+        '200':
+          description: Successful response with task runtime information.
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /debug:
+    get:
+      summary: Get debug information.
+      description: Returns task runtime and debug information as JSON.
+      responses:
+        '200':
+          description: Successful response with debug information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Include your debug information properties here.
+
+  /upload:
+    post:
+      summary: Upload NVS backup.
+      description: Uploads a NVS backup file.
+      responses:
+        '200':
+          description: Successful response for NVS backup upload.
+
+  /update:
+    post:
+      summary: Upload new firmware.
+      description: Uploads new firmware to ESPuino.
+      responses:
+        '200':
+          description: Successful response for firmware update.
+
+  /restart:
+    post:
+      summary: Restart ESPuino.
+      description: Performs a restart of ESPuino. No parameters required.
+      responses:
+        '200':
+          description: Successful response for ESPuino restart.
+
+  /shutdown:
+    post:
+      summary: Shutdown ESPuino.
+      description: Performs a shutdown (deep-sleep) of ESPuino. No parameters required.
+      responses:
+        '200':
+          description: Successful response for ESPuino shutdown.
+
+  /rfidnvserase:
+    post:
+      summary: Erase RFID assignments from NVS.
+      description: Erases all RFID assignments from NVS.
+      responses:
+        '200':
+          description: Successful response for RFID assignments erasure.
+
+  /wifiscan:
+    get:
+      summary: Get nearby WiFi networks.
+      description: Get a list of available nearby WiFi networks. The first request will return 0 results unless you start the scan from somewhere else (loop/setup). Do not request more often than 3-5 seconds!
+      responses:
+        '200':
+          description: Successful response with nearby WiFi networks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /trackprogress:
+    get:
+      summary: Get current track progress.
+      description: Get current track progress, time, and duration.
+      responses:
+        '200':
+          description: Successful response with track progress information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  # Include your track progress information properties here.
+
+  /inithalleffectsensor:
+    get:
+      summary: Initialize Hall Effect Sensor Value.
+      description: Initializes the Hall Effect Sensor Value.
+      responses:
+        '200':
+          description: Successful response for initializing Hall Effect Sensor Value.
