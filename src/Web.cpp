@@ -1790,8 +1790,8 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	}
 
 	if ((tagId != "") && gPrefsRfid.isKey(tagId.c_str())) {
-		// return single RFID entry
-		String json = tagIdToJsonStr(tagId.c_str(), true);
+		// return single RFID entry with details
+		String json = tagIdToJsonStr(tagId.c_str(), false);
 		request->send(200, "application/json", json);
 		return;
 	}
