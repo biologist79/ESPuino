@@ -39,7 +39,7 @@ const char *getType() {
 #ifdef BLUETOOTH_ENABLE
 // for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
-	Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s", getType(), ((BluetoothA2DPCommon *) ptr)->to_str(state));
+	Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s (Free heap: %u Bytes)", getType(), ((BluetoothA2DPCommon *) ptr)->to_str(state), ESP.getFreeHeap());
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 		// for Neopixel (indicator LEDs) use the webstream mode
 		gPlayProperties.isWebstream = false;
@@ -52,7 +52,7 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 #ifdef BLUETOOTH_ENABLE
 // for esp_a2d_audio_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv421esp_a2d_audio_state_t
 void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
-	Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s", getType(), ((BluetoothA2DPCommon *) ptr)->to_str(state));
+	Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => audio state: %s (Free heap: %u Bytes)", getType(), ((BluetoothA2DPCommon *) ptr)->to_str(state), ESP.getFreeHeap());
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 		// set play/pause status
 		gPlayProperties.pausePlay = (state != ESP_A2D_AUDIO_STATE_STARTED);
