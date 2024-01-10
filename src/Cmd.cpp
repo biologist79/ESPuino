@@ -13,6 +13,22 @@
 #include "System.h"
 #include "Wlan.h"
 
+static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char *enMqttMsg) {
+	Led_SetNightmode(enable);
+	if (enable) {
+		Log_Println(enLogMsg, LOGLEVEL_INFO);
+#ifdef MQTT_ENABLE
+		publishMqtt(topicSleepTimerState, enMqttMsg, false);
+#endif
+	} else {
+		System_DisableSleepTimer();
+		Log_Println(modificatorSleepd, LOGLEVEL_INFO);
+#ifdef MQTT_ENABLE
+		publishMqtt(topicSleepTimerState, "0", false);
+#endif
+	}
+}
+
 void Cmd_Action(const uint16_t mod) {
 	switch (mod) {
 		case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
@@ -81,23 +97,9 @@ void Cmd_Action(const uint16_t mod) {
 
 			gPlayProperties.sleepAfterPlaylist = false;
 			gPlayProperties.playUntilTrackNumber = 0;
+			gPlayProperties.sleepAfterCurrentTrack = !gPlayProperties.sleepAfterCurrentTrack;
 
-			if (gPlayProperties.sleepAfterCurrentTrack) {
-				gPlayProperties.sleepAfterCurrentTrack = false;
-				Log_Println(modificatorSleepAtEOTd, LOGLEVEL_NOTICE);
-#ifdef MQTT_ENABLE
-				publishMqtt(topicSleepTimerState, "0", false);
-#endif
-				Led_SetNightmode(false);
-			} else {
-				System_DisableSleepTimer();
-				gPlayProperties.sleepAfterCurrentTrack = true;
-				Log_Println(modificatorSleepAtEOT, LOGLEVEL_NOTICE);
-#ifdef MQTT_ENABLE
-				publishMqtt(topicSleepTimerState, "EOT", false);
-#endif
-				Led_SetNightmode(true);
-			}
+			Cmd_HandleSleepAction(gPlayProperties.sleepAfterCurrentTrack, modificatorSleepAtEOT, "EOT");
 			System_IndicateOk();
 			break;
 		}
@@ -108,25 +110,11 @@ void Cmd_Action(const uint16_t mod) {
 				System_IndicateError();
 				return;
 			}
-			if (gPlayProperties.sleepAfterPlaylist) {
-				System_DisableSleepTimer();
-				gPlayProperties.sleepAfterPlaylist = false;
-#ifdef MQTT_ENABLE
-				publishMqtt(topicSleepTimerState, "0", false);
-#endif
-				Led_SetNightmode(false);
-				Log_Println(modificatorSleepAtEOPd, LOGLEVEL_NOTICE);
-			} else {
-				gPlayProperties.sleepAfterPlaylist = true;
-				Led_SetNightmode(true);
-				Log_Println(modificatorSleepAtEOP, LOGLEVEL_NOTICE);
-#ifdef MQTT_ENABLE
-				publishMqtt(topicSleepTimerState, "EOP", false);
-#endif
-			}
-
 			gPlayProperties.sleepAfterCurrentTrack = false;
 			gPlayProperties.playUntilTrackNumber = 0;
+			gPlayProperties.sleepAfterPlaylist = !gPlayProperties.sleepAfterPlaylist;
+
+			Cmd_HandleSleepAction(gPlayProperties.sleepAfterCurrentTrack, modificatorSleepAtEOP, "EOP");
 			System_IndicateOk();
 			break;
 		}
@@ -140,32 +128,16 @@ void Cmd_Action(const uint16_t mod) {
 
 			gPlayProperties.sleepAfterCurrentTrack = false;
 			gPlayProperties.sleepAfterPlaylist = false;
-			System_DisableSleepTimer();
+			gPlayProperties.sleepAfter5Tracks = !gPlayProperties.sleepAfter5Tracks;
 
 			if (gPlayProperties.sleepAfter5Tracks) {
-				gPlayProperties.sleepAfter5Tracks = false;
-				gPlayProperties.playUntilTrackNumber = 0;
-#ifdef MQTT_ENABLE
-				publishMqtt(topicSleepTimerState, "0", false);
-#endif
-				Led_SetNightmode(false);
-				Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
-			} else {
-				gPlayProperties.sleepAfter5Tracks = true;
-				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.numberOfTracks) { // If currentTrack + 5 exceeds number of tracks in playlist, sleep after end of playlist
-					gPlayProperties.sleepAfterPlaylist = true;
-#ifdef MQTT_ENABLE
-					publishMqtt(topicSleepTimerState, "EOP", false);
-#endif
-				} else {
-					gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
-#ifdef MQTT_ENABLE
-					publishMqtt(topicSleepTimerState, "EO5T", false);
-#endif
+				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.numberOfTracks) {
+					// execute a sleep after end of playlist
+					Cmd_Action(CMD_SLEEP_AFTER_END_OF_PLAYLIST);
+					break;
 				}
-				Led_SetNightmode(true);
-				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 			}
+			Cmd_HandleSleepAction(gPlayProperties.sleepAfter5Tracks, sleepTimerEO5, "EO5T");
 			System_IndicateOk();
 			break;
 		}
