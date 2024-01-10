@@ -321,7 +321,6 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 			Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
 			publishMqtt(topicSleepTimerState, "EOP", false);
 			Led_SetNightmode(true);
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 			System_IndicateOk();
 			free(receivedString);
 			return;
@@ -330,7 +329,6 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 			Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
 			publishMqtt(topicSleepTimerState, "EOT", false);
 			Led_SetNightmode(true);
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 			System_IndicateOk();
 			free(receivedString);
 			return;
@@ -343,7 +341,6 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 			Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 			publishMqtt(topicSleepTimerState, "EO5T", false);
 			Led_SetNightmode(true);
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 			System_IndicateOk();
 			free(receivedString);
 			return;
@@ -354,7 +351,6 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				System_IndicateOk();
 				Led_SetNightmode(false);
 				publishMqtt(topicSleepState, 0, false);
-				publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 				gPlayProperties.sleepAfterPlaylist = false;
 				gPlayProperties.sleepAfterCurrentTrack = false;
 				gPlayProperties.playUntilTrackNumber = 0;
@@ -448,7 +444,6 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	// Check if LEDs should be dimmed
 	else if (strcmp_P(topic, topicLedBrightnessCmnd) == 0) {
 		Led_SetBrightness(strtoul(receivedString, NULL, 10));
-		publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 	}
 
 	// Requested something that isn't specified?

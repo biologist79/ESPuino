@@ -98,10 +98,6 @@ void Cmd_Action(const uint16_t mod) {
 #endif
 				Led_SetNightmode(true);
 			}
-
-#ifdef MQTT_ENABLE
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
-#endif
 			System_IndicateOk();
 			break;
 		}
@@ -131,9 +127,6 @@ void Cmd_Action(const uint16_t mod) {
 
 			gPlayProperties.sleepAfterCurrentTrack = false;
 			gPlayProperties.playUntilTrackNumber = 0;
-#ifdef MQTT_ENABLE
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
-#endif
 			System_IndicateOk();
 			break;
 		}
@@ -173,10 +166,6 @@ void Cmd_Action(const uint16_t mod) {
 				Led_SetNightmode(true);
 				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 			}
-
-#ifdef MQTT_ENABLE
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
-#endif
 			System_IndicateOk();
 			break;
 		}
@@ -220,9 +209,6 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_DIMM_LEDS_NIGHTMODE: {
-#ifdef MQTT_ENABLE
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
-#endif
 			Led_ToggleNightmode();
 			System_IndicateOk();
 			break;

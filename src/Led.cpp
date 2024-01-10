@@ -8,6 +8,7 @@
 #include "Bluetooth.h"
 #include "Button.h"
 #include "Log.h"
+#include "Mqtt.h"
 #include "Port.h"
 #include "System.h"
 #include "Wlan.h"
@@ -173,6 +174,10 @@ void Led_SetBrightness(uint8_t value) {
 	#ifdef BUTTONS_LED
 	Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
 	#endif
+
+	#ifdef MQTT_ENABLE
+	publishMqtt(topicLedBrightnessState, Led_Brightness, false);
+	#endif
 #endif
 }
 
@@ -191,7 +196,7 @@ void Led_SetNightmode(bool enabled) {
 		newValue = Led_NightBrightness;
 	}
 	Led_NightMode = enabled;
-	Led_Brightness = newValue;
+	Led_SetBrightness(newValue);
 	Log_Println(msg, LOGLEVEL_INFO);
 }
 
