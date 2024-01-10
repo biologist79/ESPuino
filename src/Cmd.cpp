@@ -223,8 +223,7 @@ void Cmd_Action(const uint16_t mod) {
 #ifdef MQTT_ENABLE
 			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
 #endif
-			Log_Println(ledsDimmedToNightmode, LOGLEVEL_INFO);
-			Led_SetNightmode(true);
+			Led_ToggleNightmode();
 			System_IndicateOk();
 			break;
 		}
