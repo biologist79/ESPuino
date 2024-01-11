@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
+* 10.01.2024: LPCD for ISO-15693 cards
 * 05.01.2024: REST-API specification, thanks to @pauel !
 * 02.01.2024: Partly revert: Fix webstream playlist abort when track fails (#285), thanks to @sfields !
 * 02.01.2024: Show critical voltage slider only if SHUTDOWN_ON_BAT_CRITICAL defined
