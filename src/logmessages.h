@@ -189,7 +189,7 @@ extern const char ftpServerStarted[];
 extern const char freeHeapAfterSetup[];
 extern const char tryStaticIpConfig[];
 extern const char staticIPConfigFailed[];
-extern const char wakeUpRfidNoIso14443[];
+extern const char wakeUpRfidNoCard[];
 extern const char lowPowerCardSuccess[];
 extern const char rememberLastVolume[];
 extern const char unableToStartFtpServer[];
