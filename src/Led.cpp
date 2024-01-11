@@ -182,7 +182,7 @@ void Led_SetNightmode(bool enabled) {
 		return;
 	}
 
-	const char *msg = ledsDimmedToInitialValue; // TODO: change to "restored"
+	const char *msg = ledsBrightnessRestored;
 	uint8_t newValue = Led_savedBrightness;
 	if (enabled) {
 		// we are switching to night mode

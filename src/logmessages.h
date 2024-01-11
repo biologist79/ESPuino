@@ -86,6 +86,7 @@ extern const char modificatorSleepTimer60[];
 extern const char modificatorSleepTimer120[];
 extern const char ledsDimmedToNightmode[];
 extern const char ledsDimmedToInitialValue[];
+extern const char ledsBrightnessRestored[];
 extern const char modificatorNotallowedWhenIdle[];
 extern const char modificatorSleepAtEOT[];
 extern const char modificatorSleepAtEOTd[];
