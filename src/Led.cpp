@@ -8,6 +8,7 @@
 #include "Bluetooth.h"
 #include "Button.h"
 #include "Log.h"
+#include "Mqtt.h"
 #include "Port.h"
 #include "System.h"
 #include "Wlan.h"
@@ -45,6 +46,9 @@ static bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NV
 static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+static bool Led_NightMode = false;
+static uint8_t Led_savedBrightness;
+
 constexpr uint8_t Led_IdleDotDistance = NUM_INDICATOR_LEDS / NUM_LEDS_IDLE_DOTS;
 
 static CRGBArray<NUM_INDICATOR_LEDS + NUM_CONTROL_LEDS> leds;
@@ -170,7 +174,38 @@ void Led_SetBrightness(uint8_t value) {
 	#ifdef BUTTONS_LED
 	Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
 	#endif
+
+	#ifdef MQTT_ENABLE
+	publishMqtt(topicLedBrightnessState, Led_Brightness, false);
+	#endif
 #endif
+}
+
+void Led_SetNightmode(bool enabled) {
+	if (Led_NightMode == enabled) {
+		// we don't need to do anything
+		return;
+	}
+
+	const char *msg = ledsBrightnessRestored;
+	uint8_t newValue = Led_savedBrightness;
+	if (enabled) {
+		// we are switching to night mode
+		Led_savedBrightness = Led_Brightness;
+		msg = ledsDimmedToNightmode;
+		newValue = Led_NightBrightness;
+	}
+	Led_NightMode = enabled;
+	Led_SetBrightness(newValue);
+	Log_Println(msg, LOGLEVEL_INFO);
+}
+
+bool Led_GetNightmode() {
+	return Led_NightMode;
+}
+
+void Led_ToggleNightmode() {
+	Led_SetNightmode(!Led_NightMode);
 }
 
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
