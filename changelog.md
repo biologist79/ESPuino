@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
 * 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
 * 10.01.2024: LPCD for ISO-15693 cards
 * 05.01.2024: REST-API specification, thanks to @pauel !
