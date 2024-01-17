@@ -216,8 +216,23 @@ void setup() {
 	Led_Indicate(LedIndicatorType::BootComplete);
 
 	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", freeHeapAfterSetup, ESP.getFreeHeap());
-	Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
+	if (psramFound()) {
+		Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());
+	} else {
+		Log_Println("PSRAM: --", LOGLEVEL_DEBUG);
+	}
 	Log_Printf(LOGLEVEL_DEBUG, "Flash-size: %u bytes", ESP.getFlashChipSize());
+
+	// setup timezone & show internal RTC date/time if available
+	setenv("TZ", timeZone, 1);
+	tzset();
+	struct tm timeinfo;
+	if (getLocalTime(&timeinfo, 5)) {
+		static char timeStringBuff[255];
+		snprintf(timeStringBuff, sizeof(timeStringBuff), dateTimeRTC, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+		Log_Println(timeStringBuff, LOGLEVEL_DEBUG);
+	}
+
 	if (Wlan_IsConnected()) {
 		Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 	}
@@ -243,11 +258,13 @@ void loop() {
 		RotaryEncoder_Cyclic();
 		Mqtt_Cyclic();
 	}
-
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	AudioPlayer_Cyclic();
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	Battery_Cyclic();
 	// Port_Cyclic(); // called by button (controlled via hw-timer)
 	Button_Cyclic();
+	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
@@ -257,7 +274,7 @@ void loop() {
 #endif
 
 	IrReceiver_Cyclic();
-	vTaskDelay(portTICK_PERIOD_MS * 5u);
+	vTaskDelay(portTICK_PERIOD_MS * 2u);
 
 #ifdef HALLEFFECT_SENSOR_ENABLE
 	gHallEffectSensor.cyclic();

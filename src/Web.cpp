@@ -63,6 +63,7 @@ static void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
 static void explorerHandleCreateRequest(AsyncWebServerRequest *request);
 static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
+static void handleTrackProgressRequest(AsyncWebServerRequest *request);
 static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
@@ -77,6 +78,7 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDebugRequest(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, const String section);
@@ -282,11 +284,16 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 	json = String();
 }
 
+unsigned long lastCleanupClientsTimestamp;
+
 void Web_Cyclic(void) {
 	webserverStart();
-	ws.cleanupClients();
+	if ((millis() - lastCleanupClientsTimestamp) > 1000u) {
+		// cleanup closed/deserted websocket clients once per second
+		lastCleanupClientsTimestamp = millis();
+		ws.cleanupClients();
+	}
 }
-
 // handle not found
 void notFound(AsyncWebServerRequest *request) {
 	Log_Printf(LOGLEVEL_ERROR, "%s not found, redirect to startpage", request->url().c_str());
@@ -316,12 +323,17 @@ void webserverStart(void) {
 			} else {
 				if (WiFi.getMode() == WIFI_STA) {
 					// serve management.html in station-mode
+#ifdef NO_SDCARD
+					response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+#else
 					if (gFSystem.exists("/.html/index.htm")) {
-						response = request->beginResponse(gFSystem, "/.html/index.htm", String(), false);
+						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
 					} else {
 						response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
 						response->addHeader("Content-Encoding", "gzip");
 					}
+#endif
 				} else {
 					// serve accesspoint.html in AP-mode
 					response = request->beginResponse_P(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
@@ -415,13 +427,21 @@ void webserverStart(void) {
 			AsyncResponseStream *response = request->beginResponseStream("text/html");
 			response->println("<!DOCTYPE html><html><head> <meta charset='utf-8'><title>ESPuino runtime stats</title>");
 			response->println("<meta http-equiv='refresh' content='2'>"); // refresh page every 2 seconds
-			response->println("</head><body>Tasklist:<div class='text'><pre>");
+			response->print("</head><body>");
+			// show memory usage
+			response->println("Memory:<div class='text'><pre>");
+			response->println("Free heap: " + String(ESP.getFreeHeap()));
+			response->println("Largest free block: " + String(ESP.getMaxAllocHeap()));
+			response->println("</pre></div><br>");
 			// show tasklist
+			response->println("Tasklist:<div class='text'><pre>");
+			response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
 			char *pbuffer = (char *) calloc(2048, 1);
 			vTaskList(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
-			// show vTaskGetRunTimeStats()
+			response->println("Taskname\tRuntime\tPercentage");
+			// show runtime stats
 			vTaskGetRunTimeStats(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div></body></html>");
@@ -430,6 +450,8 @@ void webserverStart(void) {
 			request->send(response);
 		});
 #endif
+		// debug info
+		wServer.on("/debug", HTTP_GET, handleDebugRequest);
 
 		// erase all RFID-assignments from NVS
 		wServer.on("/rfidnvserase", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -446,6 +468,7 @@ void webserverStart(void) {
 
 		// RFID
 		wServer.on("/rfid", HTTP_GET, handleGetRFIDRequest);
+		wServer.addRewrite(new OneParamRewrite("/rfid/ids-only", "/rfid?ids-only=true"));
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
@@ -472,6 +495,8 @@ void webserverStart(void) {
 
 		wServer.on("/exploreraudio", HTTP_POST, explorerHandleAudioRequest);
 
+		wServer.on("/trackprogress", HTTP_GET, handleTrackProgressRequest);
+
 		wServer.on("/savedSSIDs", HTTP_GET, handleGetSavedSSIDs);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/savedSSIDs", handlePostSavedSSIDs));
 
@@ -487,6 +512,7 @@ void webserverStart(void) {
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
 			Log_Println("logo request", LOGLEVEL_DEBUG);
 			if (gFSystem.exists("/.html/logo.png")) {
 				request->send(gFSystem, "/.html/logo.png", "image/png");
@@ -496,14 +522,17 @@ void webserverStart(void) {
 				request->send(gFSystem, "/.html/logo.svg", "image/svg+xml");
 				return;
 			};
+#endif
 			request->redirect("https://www.espuino.de/Espuino.webp");
 		});
 		// ESPuino favicon
 		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
 			if (gFSystem.exists("/.html/favicon.ico")) {
 				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
 				return;
 			};
+#endif
 			request->redirect("https://espuino.de/espuino/favicon.ico");
 		});
 		// ESPuino settings
@@ -545,33 +574,33 @@ bool JSONToSettings(JsonObject doc) {
 	if (doc.containsKey("general")) {
 		// general settings
 		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
 	}
 	if (doc.containsKey("wifi")) {
 		// WiFi settings
-		static String hostName = doc["wifi"]["hostname"];
+		String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
 			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
 			return false;
 		}
 		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
-			Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "wifi");
 			return false;
 		}
 	}
 	if (doc.containsKey("led")) {
 		// Neopixel settings
 		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0 || gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
 		}
 	}
 	if (doc.containsKey("battery")) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return false;
 		}
 		Battery_Init();
@@ -584,7 +613,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putString("ftppassword", (String) _ftpPwd);
 		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
-			Log_Println("Failed to save ftp settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp");
 			return false;
 		}
 	} else if (doc.containsKey("ftpStatus")) {
@@ -609,7 +638,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
-			Log_Println("Failed to save mqtt settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
 	}
@@ -621,7 +650,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putString("btPinCode", (String) btPinCode);
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName || gPrefsSettings.getString("btPinCode", "") != btPinCode) {
-			Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "bluetooth");
 			return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
@@ -687,6 +716,12 @@ bool JSONToSettings(JsonObject doc) {
 		Web_SendWebsocketData(0, 60);
 	} else if (doc.containsKey("ssids")) {
 		Web_SendWebsocketData(0, 70);
+	} else if (doc.containsKey("trackProgress")) {
+		if (doc["trackProgress"].containsKey("posPercent")) {
+			gPlayProperties.seekmode = SEEK_POS_PERCENT;
+			gPlayProperties.currentRelPos = doc["trackProgress"]["posPercent"].as<uint8_t>();
+		}
+		Web_SendWebsocketData(0, 80);
 	}
 
 	return true;
@@ -717,15 +752,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if (section == "ssids") {
 		// saved SSID's
 		JsonObject ssidsObj = obj.createNestedObject("ssids");
-		static String ssids[10];
-
 		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
-		size_t len = Wlan_GetSSIDs(ssids, 10);
-		if (len > 0) {
-			for (int i = 0; i < len; i++) {
-				ssidArr.add(ssids[i]);
-			}
-		}
+		Wlan_GetSavedNetworks([ssidArr](const WiFiSettings &network) {
+			ssidArr.add(network.ssid);
+		});
+
 		// active SSID
 		if (Wlan_IsConnected()) {
 			ssidsObj["active"] = Wlan_GetCurrentSSID();
@@ -739,13 +770,19 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 	}
 #endif
-#ifdef MEASURE_BATTERY_VOLTAGE
+#ifdef BATTERY_MEASURE_ENABLE
 	if ((section == "") || (section == "battery")) {
 		// battery settings
 		JsonObject batteryObj = obj.createNestedObject("battery");
+	#ifdef MEASURE_BATTERY_VOLTAGE
 		batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
 		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
+		#ifdef SHUTDOWN_ON_BAT_CRITICAL
+		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
+		#endif
+	#endif
+
 		batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
 	}
 #endif
@@ -760,10 +797,15 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		defaultsObj["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
 #endif
-#ifdef MEASURE_BATTERY_VOLTAGE
+#ifdef BATTERY_MEASURE_ENABLE
+	#ifdef MEASURE_BATTERY_VOLTAGE
 		defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
 		defaultsObj["indicatorLow"].set(s_voltageIndicatorLow);
 		defaultsObj["indicatorHi"].set(s_voltageIndicatorHigh);
+		#ifdef SHUTDOWN_ON_BAT_CRITICAL
+		defaultsObj["criticalVoltage"].set(s_warningCriticalVoltage);
+		#endif
+	#endif
 		defaultsObj["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif
 	}
@@ -845,7 +887,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject memoryObj = infoObj.createNestedObject("memory");
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-		if (psramInit()) {
+		if (psramFound()) {
 			memoryObj["freePSRam"] = ESP.getFreePsram();
 		}
 	}
@@ -887,6 +929,10 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 
 	String serializedJsonString;
 	serializeJson(infoObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 	System_UpdateActivityTimer();
 }
@@ -900,14 +946,18 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 		section = request->getParam("section")->value();
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(8192);
+	SpiRamJsonDocument doc(2048);
 #else
-	StaticJsonDocument<8192> doc;
+	StaticJsonDocument<2048> doc;
 #endif
 	JsonObject settingsObj = doc.createNestedObject("settings");
 	settingsToJSON(settingsObj, section);
 	String serializedJsonString;
 	serializeJson(settingsObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -920,6 +970,53 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error saving settings");
 	}
+}
+
+// handle debug request
+// returns memory and task runtime information as JSON
+void handleDebugRequest(AsyncWebServerRequest *request) {
+
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(1000);
+#else
+	StaticJsonDocument<1000> doc;
+#endif
+
+	JsonObject infoObj = doc.createNestedObject("info");
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+	// task runtime info
+	TaskStatus_t task_status_arr[20];
+	uint32_t pulTotalRunTime;
+	uint32_t taskNum = uxTaskGetNumberOfTasks();
+
+	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskNum);
+
+	uxTaskGetSystemState(task_status_arr, 20, &pulTotalRunTime);
+
+	JsonObject tasksObj = infoObj.createNestedObject("tasks");
+	tasksObj["taskCount"] = taskNum;
+	tasksObj["totalRunTime"] = pulTotalRunTime;
+	JsonArray tasksList = tasksObj.createNestedArray("tasksList");
+
+	for (int i = 0; i < taskNum; i++) {
+		JsonObject taskObj = tasksList.createNestedObject();
+
+		float ulStatsAsPercentage = 100.f * ((float) task_status_arr[i].ulRunTimeCounter / (float) pulTotalRunTime);
+
+		taskObj["name"] = task_status_arr[i].pcTaskName;
+		taskObj["runtimeCounter"] = task_status_arr[i].ulRunTimeCounter;
+		taskObj["core"] = task_status_arr[i].xCoreID;
+		taskObj["runtimePercentage"] = ulStatsAsPercentage;
+		taskObj["stackHighWaterMark"] = task_status_arr[i].usStackHighWaterMark;
+	}
+#endif
+	String serializedJsonString;
+	serializeJson(infoObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
+	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
 // Takes inputs from webgui, parses JSON and saves values in NVS
@@ -948,7 +1045,24 @@ bool processJsonRequest(char *_serialJson) {
 // Sends JSON-answers via websocket
 void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	if (!webserverStarted) {
+		// webserver not yet started
 		return;
+	}
+	if (ws.count() == 0) {
+		// we do not have any webclient connected
+		return;
+	}
+	// check if we can send message to the client(s)
+	if (client == 0) {
+		if (!ws.availableForWriteAll()) {
+			Log_Println("Websocket: Cannot send data (Too many messages queued)!", LOGLEVEL_ERROR);
+			return;
+		}
+	} else {
+		if (!ws.availableForWrite(client)) {
+			Log_Printf(LOGLEVEL_ERROR, "Websocket: Cannot send data to client %d (Too many messages queued)!", client);
+			return;
+		}
 	}
 	char *jBuf = (char *) x_calloc(1024, sizeof(char));
 	StaticJsonDocument<1024> doc;
@@ -958,6 +1072,8 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		object["status"] = "ok";
 	} else if (code == 2) {
 		object["status"] = "error";
+	} else if (code == 3) {
+		object["status"] = "dropout";
 	} else if (code == 10) {
 		object["rfidId"] = gCurrentRfidTagId;
 	} else if (code == 20) {
@@ -972,6 +1088,8 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		entry["numberOfTracks"] = gPlayProperties.numberOfTracks;
 		entry["volume"] = AudioPlayer_GetCurrentVolume();
 		entry["name"] = gPlayProperties.title;
+		entry["posPercent"] = gPlayProperties.currentRelPos;
+		entry["playMode"] = gPlayProperties.playMode;
 	} else if (code == 40) {
 		object["coverimg"] = "coverimg";
 	} else if (code == 50) {
@@ -982,9 +1100,18 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	} else if (code == 70) {
 		JsonObject entry = object.createNestedObject("settings");
 		settingsToJSON(entry, "ssids");
+	} else if (code == 80) {
+		JsonObject entry = object.createNestedObject("trackProgress");
+		entry["posPercent"] = gPlayProperties.currentRelPos;
+		entry["time"] = AudioPlayer_GetCurrentTime();
+		entry["duration"] = AudioPlayer_GetFileDuration();
 	};
 
 	serializeJson(doc, jBuf, 1024);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 
 	if (client == 0) {
 		ws.printfAll(jBuf);
@@ -1019,7 +1146,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
 			if (processJsonRequest((char *) data)) {
-				if (data && (strncmp((char *) data, "getTrack", 8))) { // Don't send back ok-feedback if track's name is requested in background
+				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
 					Web_SendWebsocketData(client->id(), 1);
 				}
 			}
@@ -1244,6 +1371,10 @@ void explorerHandleFileStorageTask(void *parameter) {
 // Sends a list of the content of a directory as JSON file
 // requires a GET parameter path for the directory
 void explorerHandleListRequest(AsyncWebServerRequest *request) {
+#ifdef NO_SDCARD
+	request->send(200, "application/json; charset=utf-8", "[]"); // maybe better to send 404 here?
+	return;
+#endif
 #ifdef BOARD_HAS_PSRAM
 	SpiRamJsonDocument jsonBuffer(65636);
 #else
@@ -1251,11 +1382,11 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 #endif
 
 	String serializedJsonString;
-	char filePath[MAX_FILEPATH_LENTGH];
 	JsonArray obj = jsonBuffer.createNestedArray();
 	File root;
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
+		char filePath[MAX_FILEPATH_LENTGH];
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		root = gFSystem.open(filePath);
@@ -1277,12 +1408,9 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	String MyfileName = root.getNextFileName(&isDir);
 	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
-		if (!startsWith(MyfileName.c_str(), (char *) "/.")) {
+		if (!MyfileName.startsWith("/.")) {
 			JsonObject entry = obj.createNestedObject();
-			convertAsciiToUtf8(MyfileName.c_str(), filePath);
-			std::string path = filePath;
-			std::string fileName = path.substr(path.find_last_of("/") + 1);
-			entry["name"] = fileName;
+			entry["name"] = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
 			if (isDir) {
 				entry["dir"].set(true);
 			}
@@ -1292,6 +1420,10 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
+	if (jsonBuffer.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -1467,6 +1599,9 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playModeString = param->value();
 
 		playMode = atoi(playModeString.c_str());
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
+		Rfid_ResetOldRfid();
+#endif
 		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
@@ -1475,15 +1610,22 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 	request->send(200);
 }
 
+// Handles track progress requests
+void handleTrackProgressRequest(AsyncWebServerRequest *request) {
+	String json = "{\"trackProgress\":{";
+	json += "\"posPercent\":" + String(gPlayProperties.currentRelPos);
+	json += ",\"time\":" + String(AudioPlayer_GetCurrentTime());
+	json += ",\"duration\":" + String(AudioPlayer_GetFileDuration());
+	json += "}}";
+	request->send(200, "application/json", json);
+}
+
 void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 	AsyncJsonResponse *response = new AsyncJsonResponse(true);
 	JsonArray json_ssids = response->getRoot();
-	static String ssids[10];
-
-	size_t len = Wlan_GetSSIDs(ssids, 10);
-	for (int i = 0; i < len; i++) {
-		json_ssids.add(ssids[i]);
-	}
+	Wlan_GetSavedNetworks([json_ssids](const WiFiSettings &network) {
+		json_ssids.add(network.ssid);
+	});
 
 	response->setLength();
 	request->send(response);
@@ -1627,41 +1769,93 @@ static bool tagIdToJSON(const String tagId, JsonObject entry) {
 	return true;
 }
 
-// callback for writing a NVS entry to JSON
-bool DumpNvsToJSONCallback(const char *key, void *data) {
-	JsonArray *myArr = (JsonArray *) data;
-	JsonObject obj = myArr->createNestedObject();
-	return tagIdToJSON(key, obj);
+// callback for writing a NVS entry to list
+bool DumpNvsToArrayCallback(const char *key, void *data) {
+	std::vector<String> *keys = (std::vector<String> *) data;
+	keys->push_back(key);
+	return true;
 }
 
+static String tagIdToJsonStr(const char *key, const bool nameOnly) {
+	if (nameOnly) {
+		return "\"" + String(key) + "\"";
+	} else {
+		StaticJsonDocument<512> doc;
+		JsonObject entry = doc.createNestedObject(key);
+		if (!tagIdToJSON(key, entry)) {
+			return "";
+		}
+		String serializedJsonString;
+		serializeJson(entry, serializedJsonString);
+		return serializedJsonString;
+	}
+}
+
+// Handles rfid-assignments requests (GET)
+// /rfid returns an array of tag-ids and details. Optional GET param "id" to list only a single assignment.
+// /rfid/ids-only returns an array of tag-id keys
 static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
+
 	String tagId = "";
+
 	if (request->hasParam("id")) {
 		tagId = request->getParam("id")->value();
 	}
-	if (tagId == "") {
-		// return all RFID assignments
-		AsyncJsonResponse *response = new AsyncJsonResponse(true, 8192);
-		JsonArray Arr = response->getRoot();
-		if (listNVSKeys("rfidTags", &Arr, DumpNvsToJSONCallback)) {
-			response->setLength();
-			request->send(response);
-		} else {
-			request->send(500, "error reading entries from NVS");
-		}
-	} else {
-		if (gPrefsRfid.isKey(tagId.c_str())) {
-			// return single RFID assignment
-			AsyncJsonResponse *response = new AsyncJsonResponse(false);
-			JsonObject obj = response->getRoot();
-			tagIdToJSON(tagId, obj);
-			response->setLength();
-			request->send(response);
-		} else {
-			// RFID assignment not found
-			request->send(404);
-		}
+
+	if ((tagId != "") && gPrefsRfid.isKey(tagId.c_str())) {
+		// return single RFID entry with details
+		String json = tagIdToJsonStr(tagId.c_str(), false);
+		request->send(200, "application/json", json);
+		return;
 	}
+	// get tag details or just an array of id's
+	bool idsOnly = request->hasParam("ids-only");
+
+	std::vector<String> nvsKeys {};
+	static size_t nvsIndex;
+	nvsKeys.clear();
+	// Dumps all RFID-keys from NVS into key array
+	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
+	if (nvsKeys.size() == 0) {
+		// no entries
+		request->send(200, "application/json", "[]");
+		return;
+	}
+	// construct chunked repsonse
+	nvsIndex = 0;
+	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
+		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
+			size_t len = 0;
+			String json;
+
+			if (nvsIndex == 0) {
+				// start, write first tag
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if (json.length() >= maxLen) {
+					Log_Println("/rfid: Buffer too small", LOGLEVEL_ERROR);
+					return len;
+				}
+				len += snprintf(((char *) buffer), maxLen - len, "[%s", json.c_str());
+				nvsIndex++;
+			}
+			while (nvsIndex < nvsKeys.size()) {
+				// write tags as long we have enough room
+				json = tagIdToJsonStr(nvsKeys[nvsIndex].c_str(), idsOnly);
+				if ((len + json.length()) >= maxLen) {
+					break;
+				}
+				len += snprintf(((char *) buffer + len), maxLen - len, ",%s", json.c_str());
+				nvsIndex++;
+			}
+			if (nvsIndex == nvsKeys.size()) {
+				// finish
+				len += snprintf(((char *) buffer + len), maxLen - len, "]");
+				nvsIndex++;
+			}
+			return len;
+		});
+	request->send(response);
 }
 
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
@@ -1719,8 +1913,10 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	if (gPrefsRfid.isKey(tagId.c_str())) {
-		// stop playback, tag to delete might be in use
-		Cmd_Action(CMD_STOP);
+		if (tagId.equals(gCurrentRfidTagId)) {
+			// stop playback, tag to delete is in use
+			Cmd_Action(CMD_STOP);
+		}
 		if (gPrefsRfid.remove(tagId.c_str())) {
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
@@ -1838,19 +2034,26 @@ void Web_DumpSdToNvs(const char *_filename) {
 static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 
 	if (!gPlayProperties.coverFilePos) {
-		// empty image:
-		// request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
-		if (gPlayProperties.playMode == WEBSTREAM) {
-			// no cover -> send placeholder icon for webstream (fa-soundcloud)
-			Log_Println("no cover image for webstream", LOGLEVEL_NOTICE);
-			request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>");
-		} else {
-			// no cover -> send placeholder icon for playing music from SD-card (fa-music)
-			if (gPlayProperties.playMode != NO_PLAYLIST) {
-				Log_Println("no cover image for SD-card audio", LOGLEVEL_DEBUG);
+		String stationLogoUrl = AudioPlayer_GetStationLogoUrl();
+		if (stationLogoUrl != "") {
+			// serve station logo
+			Log_Printf(LOGLEVEL_NOTICE, "serve station logo: '%s'", stationLogoUrl.c_str());
+			request->redirect(stationLogoUrl);
+			return;
+		} else
+			// empty image:
+			// request->send(200, "image/svg+xml", "<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>");
+			if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) {
+				// no cover -> send placeholder icon for webstream (fa-soundcloud)
+				Log_Println("no cover image for webstream", LOGLEVEL_NOTICE);
+				request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"2304\" height=\"1792\" viewBox=\"0 0 2304 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M784 1372l16-241-16-523q-1-10-7.5-17t-16.5-7q-9 0-16 7t-7 17l-14 523 14 241q1 10 7.5 16.5t15.5 6.5q22 0 24-23zm296-29l11-211-12-586q0-16-13-24-8-5-16-5t-16 5q-13 8-13 24l-1 6-10 579q0 1 11 236v1q0 10 6 17 9 11 23 11 11 0 20-9 9-7 9-20zm-1045-340l20 128-20 126q-2 9-9 9t-9-9l-17-126 17-128q2-9 9-9t9 9zm86-79l26 207-26 203q-2 9-10 9-9 0-9-10l-23-202 23-207q0-9 9-9 8 0 10 9zm280 453zm-188-491l25 245-25 237q0 11-11 11-10 0-12-11l-21-237 21-245q2-12 12-12 11 0 11 12zm94-7l23 252-23 244q-2 13-14 13-13 0-13-13l-21-244 21-252q0-13 13-13 12 0 14 13zm94 18l21 234-21 246q-2 16-16 16-6 0-10.5-4.5t-4.5-11.5l-20-246 20-234q0-6 4.5-10.5t10.5-4.5q14 0 16 15zm383 475zm-289-621l21 380-21 246q0 7-5 12.5t-12 5.5q-16 0-18-18l-18-246 18-380q2-18 18-18 7 0 12 5.5t5 12.5zm94-86l19 468-19 244q0 8-5.5 13.5t-13.5 5.5q-18 0-20-19l-16-244 16-468q2-19 20-19 8 0 13.5 5.5t5.5 13.5zm98-40l18 506-18 242q-2 21-22 21-19 0-21-21l-16-242 16-506q0-9 6.5-15.5t14.5-6.5q9 0 15 6.5t7 15.5zm392 742zm-198-746l15 510-15 239q0 10-7.5 17.5t-17.5 7.5-17-7-8-18l-14-239 14-510q0-11 7.5-18t17.5-7 17.5 7 7.5 18zm99 19l14 492-14 236q0 11-8 19t-19 8-19-8-9-19l-12-236 12-492q1-12 9-20t19-8 18.5 8 8.5 20zm212 492l-14 231q0 13-9 22t-22 9-22-9-10-22l-6-114-6-117 12-636v-3q2-15 12-24 9-7 20-7 8 0 15 5 14 8 16 26zm1112-19q0 117-83 199.5t-200 82.5h-786q-13-2-22-11t-9-22v-899q0-23 28-33 85-34 181-34 195 0 338 131.5t160 323.5q53-22 110-22 117 0 200 83t83 201z\"/></svg>");
+			} else {
+				// no cover -> send placeholder icon for playing music from SD-card (fa-music)
+				if (gPlayProperties.playMode != NO_PLAYLIST) {
+					Log_Println("no cover image for SD-card audio", LOGLEVEL_DEBUG);
+				}
+				request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
 			}
-			request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
-		}
 		return;
 	}
 	char *coverFileName = *(gPlayProperties.playlist + gPlayProperties.currentTrackNumber);
@@ -1885,13 +2088,14 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+		// some kind of webserver bug with actual size available, reduce the len
 		if (maxLen > 1024) {
 			maxLen = 1024;
 		}
-
 		File file = coverFile; // local copy of file pointer
 		size_t leftToWrite = imageSize - index;
 		if (!leftToWrite) {
+			file.close();
 			return 0; // end of transfer
 		}
 		size_t willWrite = (leftToWrite > maxLen) ? maxLen : leftToWrite;

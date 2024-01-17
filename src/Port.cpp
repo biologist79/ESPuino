@@ -20,7 +20,7 @@
 extern TwoWire i2cBusTwo;
 
 uint8_t Port_ExpanderPortsInputChannelStatus[2];
-static uint8_t Port_ExpanderPortsOutputChannelStatus[2] = {255, 255}; // Stores current configuration of output-channels locally
+static uint8_t Port_ExpanderPortsOutputChannelStatus[2]; // Stores current configuration of output-channels locally
 void Port_ExpanderHandler(void);
 uint8_t Port_ChannelToBit(const uint8_t _channel);
 void Port_WriteInitMaskForOutputChannels(void);
@@ -30,7 +30,6 @@ void Port_Test(void);
 		#define PE_INTERRUPT_PIN_ENABLE
 void IRAM_ATTR PORT_ExpanderISR(void);
 bool Port_AllowReadFromPortExpander = false;
-bool Port_AllowInitReadFromPortExpander = true;
 	#endif
 #endif
 
@@ -38,13 +37,17 @@ void Port_Init(void) {
 #ifdef PORT_EXPANDER_ENABLE
 	Port_Test();
 	Port_WriteInitMaskForOutputChannels();
-	Port_ExpanderHandler();
 #endif
 
 #ifdef PE_INTERRUPT_PIN_ENABLE
 	pinMode(PE_INTERRUPT_PIN, INPUT_PULLUP);
-	attachInterrupt(PE_INTERRUPT_PIN, PORT_ExpanderISR, FALLING);
+	// ISR gets enabled in Port_ExpanderHandler()
 	Log_Println(portExpanderInterruptEnabled, LOGLEVEL_NOTICE);
+#endif
+
+#ifdef PORT_EXPANDER_ENABLE
+	Port_AllowReadFromPortExpander = true;
+	Port_ExpanderHandler();
 #endif
 }
 
@@ -192,7 +195,17 @@ void Port_WriteInitMaskForOutputChannels(void) {
 	const uint8_t portBaseValueBitMask = 255;
 	const uint8_t portsToWrite = 2;
 	uint8_t OutputBitMaskInOutAsPerPort[portsToWrite] = {portBaseValueBitMask, portBaseValueBitMask}; // 255 => all channels set to input; [0]: port0, [1]: port1
-	uint8_t OutputBitMaskLowHighAsPerPort[portsToWrite] = {0x00, 0x00}; // Bit configured as 0 for an output-channels means: logic LOW
+
+	// init status cache with values from HW
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x02); // Pointer to first output-register
+	i2cBusTwo.endTransmission(false);
+	i2cBusTwo.requestFrom(expanderI2cAddress, static_cast<size_t>(portsToWrite), true); // ...and read the contents
+	if (i2cBusTwo.available() == portsToWrite) {
+		for (uint8_t i = 0; i < portsToWrite; i++) {
+			Port_ExpanderPortsOutputChannelStatus[i] = i2cBusTwo.read();
+		}
+	}
 
 	#ifdef GPIO_PA_EN // Set as output to enable/disable amp for loudspeaker
 	if (GPIO_PA_EN >= 100 && GPIO_PA_EN <= 107) {
@@ -230,6 +243,10 @@ void Port_WriteInitMaskForOutputChannels(void) {
 
 	// Only change port-config if necessary (at least bitmask changed from base-default for one port)
 	if ((OutputBitMaskInOutAsPerPort[0] != portBaseValueBitMask) || (OutputBitMaskInOutAsPerPort[1] != portBaseValueBitMask)) {
+		// all outputs to LOW
+		Port_ExpanderPortsOutputChannelStatus[0] &= OutputBitMaskInOutAsPerPort[0];
+		Port_ExpanderPortsOutputChannelStatus[1] &= OutputBitMaskInOutAsPerPort[1];
+
 		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		i2cBusTwo.write(0x06); // Pointer to configuration of input/output
 		for (uint8_t i = 0; i < portsToWrite; i++) {
@@ -241,8 +258,7 @@ void Port_WriteInitMaskForOutputChannels(void) {
 		// Write low/high-config to all output-channels. Channels that are configured as input are silently/automatically ignored by PCA9555
 		i2cBusTwo.beginTransmission(expanderI2cAddress);
 		i2cBusTwo.write(0x02); // Pointer to configuration of output-channels (high/low)
-		i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[0]); // port0
-		i2cBusTwo.write(OutputBitMaskLowHighAsPerPort[1]); // port1
+		i2cBusTwo.write(Port_ExpanderPortsOutputChannelStatus, static_cast<size_t>(portsToWrite));
 		i2cBusTwo.endTransmission();
 	}
 }
@@ -324,57 +340,80 @@ void Port_MakeSomeChannelsOutputForShutdown(void) {
 // Reads input-registers from port-expander and writes output into global cache-array
 // Datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 void Port_ExpanderHandler(void) {
-	static bool verifyChangeOfInputRegister[2] = {false, false}; // Used to debounce once in case of register-change
-	static uint8_t inputRegisterBuffer[2];
+	static uint32_t inputChanged = 0; // Used to debounce once in case of register-change
+	static uint32_t inputPrev = 0;
 
 	// If interrupt-handling is active, only read port-expander's registers if interrupt was fired
+	// or the next time if there was a change
 	#ifdef PE_INTERRUPT_PIN_ENABLE
-	if (!Port_AllowReadFromPortExpander && !Port_AllowInitReadFromPortExpander && !verifyChangeOfInputRegister[0] && !verifyChangeOfInputRegister[1]) {
-		return;
-	} else if (Port_AllowInitReadFromPortExpander) {
-		Port_AllowInitReadFromPortExpander = false;
-	} else if (Port_AllowReadFromPortExpander || Port_AllowInitReadFromPortExpander) {
+	if (Port_AllowReadFromPortExpander) {
 		Port_AllowReadFromPortExpander = false;
+	} else if (!inputChanged) {
+		return;
 	}
 	#endif
 
-	for (uint8_t i = 0; i < 2; i++) {
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
-		i2cBusTwo.write(0x00 + i); // Pointer to input-register...
-		uint8_t error = i2cBusTwo.endTransmission();
-		if (error != 0) {
-			Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
-			return;
-		}
-		i2cBusTwo.requestFrom(expanderI2cAddress, 1u); // ...and read its byte
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x00); // Pointer to input-register...
+	uint8_t error = i2cBusTwo.endTransmission(false);
+	if (error != 0) {
+		Log_Printf(LOGLEVEL_ERROR, "Error in endTransmission(): %d", error);
+		i2cBusTwo.endTransmission(true);
 
-		if (i2cBusTwo.available()) {
-			inputRegisterBuffer[i] = i2cBusTwo.read(); // Cache current readout
-			// Check if input-register changed. If so, don't use the value immediately
-			// but wait another cycle instead (=> rudimentary debounce).
-			// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
-			if (inputRegisterBuffer[i] != Port_ExpanderPortsInputChannelStatus[i] && millis() >= 10000 && !verifyChangeOfInputRegister[i]) {
-				verifyChangeOfInputRegister[i] = true;
-				// Serial.println("Verify set!");
-			} else {
-				verifyChangeOfInputRegister[i] = false;
-				Port_ExpanderPortsInputChannelStatus[i] = inputRegisterBuffer[i];
-			}
+	#ifdef PE_INTERRUPT_PIN_ENABLE
+		Port_AllowReadFromPortExpander = true;
+	#endif
+
+		return;
+	}
+	i2cBusTwo.requestFrom(expanderI2cAddress, 2u); // ...and read its bytes
+
+	if (i2cBusTwo.available() == 2) {
+		uint32_t inputCurr = 0;
+		for (uint8_t i = 0; i < 2; i++) {
+			inputCurr |= i2cBusTwo.read() << 8 * i; // Cache current readout
+		}
+
+		// Check if input-register changed. If so, don't use the changed bits immediately
+		// but wait another cycle instead (=> rudimentary debounce).
+		// Added because there've been "ghost"-events occasionally with Arduino2 (https://forum.espuino.de/t/aktueller-stand-esp32-arduino-2/1389/55)
+		inputChanged = inputPrev ^ inputCurr;
+
+		uint32_t inputStable = 0;
+		for (uint8_t i = 0; i < 2; i++) {
+			inputStable |= Port_ExpanderPortsInputChannelStatus[i] << 8 * i;
+		}
+
+		// update bits that were stable since the last run
+		inputStable &= inputChanged;
+		inputStable |= (~inputChanged & inputCurr);
+
+		for (uint8_t i = 0; i < 2; i++) {
+			Port_ExpanderPortsInputChannelStatus[i] = (inputStable >> 8 * i) & 0xff;
 			// Serial.printf("%u Debug: PE-Port: %u  Status: %u\n", millis(), i, Port_ExpanderPortsInputChannelStatus[i]);
 		}
+
+		inputPrev = inputCurr;
 	}
+
+	#ifdef PE_INTERRUPT_PIN_ENABLE
+	// input is stable; go back to interrupt mode
+	if (!inputChanged) {
+		attachInterrupt(digitalPinToInterrupt(PE_INTERRUPT_PIN), PORT_ExpanderISR, ONLOW);
+	}
+	#endif
 }
 
 // Make sure ports are read finally at shutdown in order to clear any active IRQs that could cause re-wakeup immediately
 void Port_Exit(void) {
 	Port_MakeSomeChannelsOutputForShutdown();
-	for (uint8_t i = 0; i < 2; i++) {
-		i2cBusTwo.beginTransmission(expanderI2cAddress);
-		i2cBusTwo.write(0x00 + i); // Pointer to input-register...
-		i2cBusTwo.endTransmission();
-		i2cBusTwo.requestFrom(expanderI2cAddress, 1u); // ...and read its byte
+	i2cBusTwo.beginTransmission(expanderI2cAddress);
+	i2cBusTwo.write(0x00); // Pointer to input-registers...
+	i2cBusTwo.endTransmission();
+	i2cBusTwo.requestFrom(expanderI2cAddress, 2u); // ...and read its bytes
 
-		if (i2cBusTwo.available()) {
+	if (i2cBusTwo.available() == 2) {
+		for (uint8_t i = 0; i < 2; i++) {
 			Port_ExpanderPortsInputChannelStatus[i] = i2cBusTwo.read();
 		}
 	}
@@ -393,7 +432,14 @@ void Port_Test(void) {
 
 	#ifdef PE_INTERRUPT_PIN_ENABLE
 void IRAM_ATTR PORT_ExpanderISR(void) {
-	Port_AllowReadFromPortExpander = true;
+	// check if the interrupt pin is actually low and only if it is
+	// trigger the handler (there are a lot of false calls to this ISR
+	// where the interrupt pin isn't low...)
+	Port_AllowReadFromPortExpander = !digitalRead(PE_INTERRUPT_PIN);
+	// until the interrupt is handled we don't need any more ISR calls
+	if (Port_AllowReadFromPortExpander) {
+		detachInterrupt(digitalPinToInterrupt(PE_INTERRUPT_PIN));
+	}
 }
 	#endif
 #endif

@@ -7,7 +7,7 @@
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
@@ -15,14 +15,19 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
     
-    <script src="/js/i18next.min.js"></script>
-    <script src="/js/i18nextHttpBackend.min.js"></script>
-    <script src="/js/loc_i18next.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<style type="text/css">
+		.jstree-default .jstree-search {
+			font-style: italic;
+			color:  #007bff; /* change searchresult theme-color to bootstrap blue */
+			font-weight: bold;
+		}
 		.filetree {
 			border: 1px solid black;
 			height: 200px;
@@ -111,6 +116,10 @@
 			height: 200px;
 			display: none;
 			width: 100%;
+		}
+
+		.progress-sm {
+  			height: 0.4rem!important;
 		}
 
 		#SubTabContent.tab-content {
@@ -255,7 +264,7 @@
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
 			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
 			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
 			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
 			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
@@ -275,7 +284,7 @@
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
 							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value=false>
+						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
 						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
 					</div>
 					<br>
@@ -295,7 +304,7 @@
 						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
 						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
 
-						<input type="checkbox" id="static_enabled" name="static_enabled" value=false>
+						<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
 						<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 						<div id="wifi_static_div" style="display:none">
 							<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
@@ -355,8 +364,8 @@
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
-						</i><input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-							data-slider-value="" value="" onchange="sendVolume(this.value)">
+							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
+								data-slider-value="" value="" onchange="sendVolume(this.value)">
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
@@ -365,6 +374,11 @@
 				<div class="form-group col-md-12">
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
+					<div></div>
+					<div id="trackProgressDiv" class="progress progress-sm">
+						<div id="trackProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>
+					<div id="playtime"> </div>
 				</div>
 				<br/>
 				<div class="form-group col-md-12">
@@ -388,6 +402,7 @@
 							<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
 							<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
 							<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
+							<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
 							<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
 							<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
 							<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
@@ -414,7 +429,15 @@
 				<div id="filebrowser">
 					<div class="filetree demo" id="explorerTree"></div>
 				</div>
+				<div class="input-group input-focus">
+					<div class="input-group-prepend">
+					  <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+					</div>
+					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-left-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+				</div>
 				<div>
+				<br>
+				<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 						<div class="input-group">
 							<span class="form-control" id="uploaded_file_text"></span>&nbsp
@@ -437,14 +460,14 @@
 		</div>
 		<div class="container" id="rfidMusicTags">
 			<fieldset>
-				<legend id="rfidMusicTagsAssignment"" data-i18n="files.rfid.title">RFID-Assignments</legend>
+				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 				<div class="form-group col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 						   placeholder="" name="rfidIdMusic" required>
 					<br>
-					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">>
+					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
 							<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
 						</li>
@@ -494,6 +517,7 @@
 								<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
 								<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
 								<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
+								<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
 								<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
 								<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
 								<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
@@ -700,8 +724,16 @@
 								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
 						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
-
 						<br>
+					<div id="criticalVoltageSection" data-visible="false">
+					<label for="criticalVoltage" data-i18n="[prepend]general.battery.criticalShutoff">:</label>
+						<div class="text-center">
+							<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="criticalVoltage" name="criticalVoltage"
+						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+						</div>
+						<br>
+					</div>
+						
 					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
@@ -775,21 +807,31 @@
 <script type="text/javascript">
 	var DEBUG = false;
 	var lastIdclicked = '';
+	var ActiveTab = 'nav-rfid-tab';
 	var ActiveSubTab = 'rfid-music-tab';
 	var host = $(location).attr('hostname');
 	var language = navigator.language || navigator.userLanguage;
 	var localize;
 
 	/* show active / selected tab */
+	$('#nav-tab.nav-tabs a').on('shown.bs.tab', function (e) {
+		ActiveTab = $(e.target).attr('id');
+		console.log ("ActiveTab: " + ActiveTab);
+		if (ActiveTab == 'nav-control-tab') {
+			getTrackProgress();
+		}
+	});
+
+	/* show active / selected subtab */
 	$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
 		ActiveSubTab = $(e.target).attr('id');
-		console.log ( ActiveSubTab);
+		console.log ("ActiveSubTab: " + ActiveSubTab);
 		if (ActiveSubTab == 'rfid-music-tab') {
 			document.getElementById("fileOrUrl").required = true;
 		} else {
 			document.getElementById("fileOrUrl").required = false;
 		}
-});
+	});
 
 	if (DEBUG) {
 		host = "192.168.178.114";
@@ -852,6 +894,21 @@
 			i18next.changeLanguage(lang);
 		}
 	});
+
+	document.getElementById('trackProgressDiv').addEventListener('click', function (e) {
+		var bounds = this.getBoundingClientRect();
+    	var max = bounds.width;
+    	var pos = e.pageX - bounds.left; 
+    	var percent = Math.round(pos / max * 100); 
+    	console.log('track progress percentage:', percent);
+		var myObj = {
+			"trackProgress": {
+				posPercent: percent
+			}
+		};
+		var myJSON = JSON.stringify(myObj);
+		socket.send(myJSON);
+ 	});
 
 	function postRendering(event, data) {
 		Object.keys(data.instance._model.data).forEach(function (key, index) {
@@ -1298,7 +1355,8 @@
 						"themes" : { "stripes" : true },
 						'data' : {	text: '/',
 									state: {
-										opened: true
+										opened: true,
+										selected: true
 									},
 									type: 'folder',
 									children: [],
@@ -1327,7 +1385,11 @@
 							'icon': "fa fa-folder"
 						}
 					},
-				plugins: ["contextmenu", "themes", "types"],
+				plugins: ["contextmenu", "themes", "types", "search"],
+                "search": {
+                    "case_sensitive": false,
+                    "show_only_matches": true
+                },
 				contextmenu: {
 					items: function(nodeId) {
 						var ref = $('#explorerTree').jstree(true);
@@ -1459,6 +1521,7 @@
 
 		socket.onopen = function () {
 			setInterval(ping, 15000);
+			setInterval(getTrackProgress, 1000);
 			// clear old socket messages
     		socket.sendBuffer = [];
 			socket.send('{"settings":{"settings":"settings"}}');	// request settings
@@ -1493,6 +1556,9 @@
 			  if (socketMsg.status == "ok") {
 				  toastr.success(i18next.t("toast.success"));
 			  }
+			  if (socketMsg.status == "dropout") {
+				  toastr.warning(i18next.t("toast.dropout"));
+			  }
 		  } if ("pong" in socketMsg) {
 			if (socketMsg.pong == 'pong') {
 				  pong();
@@ -1501,7 +1567,7 @@
 				volumeSlider.setValue(parseInt(socketMsg.volume));
 			} if ("trackinfo" in socketMsg) {
 				document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
-
+				setTrackProgress(socketMsg.trackinfo);
 				var btnTrackPlayPause = document.getElementById('nav-btn-play');
 				if (socketMsg.trackinfo.pausePlay) {
 					btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
@@ -1527,6 +1593,8 @@
 					btnTrackLast.classList.remove("disabled");
 					btnTrackNext.classList.remove("disabled");
 				}
+			} if ("trackProgress" in socketMsg) {
+				setTrackProgress(socketMsg.trackProgress);
 			} if ("coverimg" in socketMsg) {
 				document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
 			} if ("settings" in socketMsg) {
@@ -1566,6 +1634,7 @@
 			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
 			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
+			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -1592,6 +1661,12 @@
 			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
 			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
+			if (batSettings.criticalVoltage) {
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', true);
+				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
+			} else {
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', false);
+			}
 			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 		}
 		// ftp
@@ -1820,6 +1895,37 @@
 		clearTimeout(tm);
 	}
 
+	async function getTrackProgress() {
+		if (ActiveTab !== 'nav-control-tab') {
+			return;
+		};
+		// use http request here, websocket comminication seems to be unstable with many messages
+		let data = await (await fetch("/trackprogress")).json();
+		if (data && data.trackProgress) {
+			// console.log(data.trackProgress);
+			setTrackProgress(data.trackProgress);
+		} else {
+			console.log("failed to fetch trackprogress: " + data);
+		}
+		return;
+	}
+
+	function setTrackProgress(msg) {
+		// console.log(msg);
+		$("#trackProgress").css('width', msg.posPercent + "%");
+		if (msg.duration > 0) {
+			document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
+		} else {
+			if (msg.time > 0) {
+				document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
+			} else {
+				document.getElementById('playtime').innerHTML = "-- / --";
+			}
+		}
+	}
+
+
+
 	function genSettings(clickedId) {
 		lastIdclicked = clickedId;
 		var myObj = {
@@ -1835,6 +1941,7 @@
 				warnLowVoltage: document.getElementById('warningLowVoltage').value,
 				indicatorLow: document.getElementById('voltageIndicatorLow').value,
 				indicatorHi: document.getElementById('voltageIndicatorHigh').value,
+				criticalVoltage: document.getElementById('criticalVoltage').value,
 				voltageCheckInterval: document.getElementById('voltageCheckInterval').value
 			}
 		};
@@ -1977,6 +2084,10 @@
 		await rebuildSSIDList();
 	}
 
+	function searchFiles(searchText) {
+		$('#explorerTree').jstree('search', searchText);
+	}
+
 	function sendControl(cmd) {
 		var myObj = {
 			"controls": {
@@ -2013,6 +2124,14 @@
 		} catch (error) {
 			console.log(error);
 			setTimeout(tryRedirect, 2000);
+		}
+	}
+
+	function secondsToTime(seconds) {
+		if (seconds < 3600) {
+			return new Date(seconds * 1000).toISOString().substring(14, 19);
+		} else {
+			return new Date(seconds * 1000).toISOString().slice(11, 19);
 		}
 	}
 
@@ -2060,7 +2179,9 @@
 		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "\n";
 		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "\n";
 		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "\n";
-		content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		if (info.memory.freePSRam) {
+			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		}
 		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
 		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
 		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
@@ -2123,7 +2244,6 @@
 			shutdownDevice();
 		}); 
 		
-		console.log(parseInt(document.getElementById('warningLowVoltage').value));
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		});

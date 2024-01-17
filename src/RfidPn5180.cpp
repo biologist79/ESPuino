@@ -73,6 +73,7 @@ void Rfid_Init(void) {
 		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
 		delay(50);
 		Port_Init();
+		Port_Cyclic();
 		uint8_t irqState = Port_Read(RFID_IRQ);
 		if (irqState == LOW) {
 			Log_Println("Wakeup caused by low power card-detection on port-expander", LOGLEVEL_NOTICE);
@@ -391,7 +392,18 @@ void Rfid_WakeupCheck(void) {
 	nfc14443.reset();
 	// enable RF field
 	nfc14443.setupRF();
-	if (!nfc14443.isCardPresent()) {
+	// 1.check for ISO-14443 card present
+	bool isCardPresent = nfc14443.isCardPresent();
+	if (!isCardPresent) {
+		// 2.check for ISO-15693 card present
+		static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
+		nfc15693.begin();
+		nfc15693.setupRF();
+		uint8_t uid[10];
+		isCardPresent = nfc15693.getInventory(uid) == ISO15693_EC_OK;
+	}
+	if (!isCardPresent) {
+		// no card found, go back to deep sleep
 		nfc14443.reset();
 		uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 		if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
@@ -409,7 +421,7 @@ void Rfid_WakeupCheck(void) {
 			gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
 			gpio_hold_en(gpio_num_t(RFID_RST)); // RST
 			gpio_deep_sleep_hold_en();
-			Log_Println(wakeUpRfidNoIso14443, LOGLEVEL_ERROR);
+			Log_Println(wakeUpRfidNoCard, LOGLEVEL_ERROR);
 			esp_deep_sleep_start();
 		} else {
 			Log_Println("switchToLPCD failed", LOGLEVEL_ERROR);

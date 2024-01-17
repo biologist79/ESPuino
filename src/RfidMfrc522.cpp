@@ -43,6 +43,11 @@ void Rfid_Init(void) {
 	// Init RC522 Card-Reader
 	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
 	mfrc522.PCD_Init();
+	delay(10);
+	// Get the MFRC522 firmware version, should be 0x91 or 0x92
+	byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
+	Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
+
 	mfrc522.PCD_SetAntennaGain(rfidGain);
 	delay(50);
 	Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
@@ -74,7 +79,6 @@ void Rfid_Task(void *parameter) {
 		String cardIdString;
 	#ifdef PAUSE_WHEN_RFID_REMOVED
 		byte lastValidcardId[cardIdSize];
-		bool cardAppliedCurrentRun = false;
 		bool sameCardReapplied = false;
 	#endif
 		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
@@ -91,9 +95,6 @@ void Rfid_Task(void *parameter) {
 			if (!mfrc522.PICC_ReadCardSerial()) {
 				continue;
 			}
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-			cardAppliedCurrentRun = true;
-	#endif
 
 	#ifndef PAUSE_WHEN_RFID_REMOVED
 			mfrc522.PICC_HaltA();
@@ -180,7 +181,6 @@ void Rfid_Task(void *parameter) {
 			}
 			mfrc522.PICC_HaltA();
 			mfrc522.PCD_StopCrypto1();
-			cardAppliedCurrentRun = false;
 	#endif
 		}
 	}

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 // be very careful changing this struct, as it is used for NVS storage and will corrupt existing entries
 struct WiFiSettings {
 	char ssid[33];
@@ -16,7 +18,7 @@ void Wlan_Init(void);
 void Wlan_Cyclic(void);
 bool Wlan_AddNetworkSettings(WiFiSettings);
 uint8_t Wlan_NumSavedNetworks();
-size_t Wlan_GetSSIDs(String *, size_t);
+void Wlan_GetSavedNetworks(std::function<void(const WiFiSettings &)>);
 const String Wlan_GetCurrentSSID();
 const String Wlan_GetHostname();
 bool Wlan_DeleteNetwork(String);

@@ -15,7 +15,8 @@
     "toast": {
         "rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
         "success": "Aktion erfolgreich ausgeführt.",
-        "conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden."
+        "conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
+        "dropout": "Langsamer Stream, Aussetzer möglich."
     },
     "nav": {
         "control": "Steuerung",
@@ -96,10 +97,13 @@
             "title": "Ordner",
             "desc": "Einen Ordner samt Inhalt (und allen Unterordnern) hochladen"
         },
+        "search": {
+            "placeholder": "Dateien suchen.."
+        },
         "upload": {
             "title": "Upload",
             "desc": "Upload starten",
-            "selectFolder": "Wähle den Ordner für den Upload!",
+            "selectFolder": "Wähle den Zielordner für den Upload!",
             "selectFile": "Wähle eine Datei zum Hochladen!",
             "success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
             "error": "Upload fehlgeschlagen",
@@ -159,6 +163,7 @@
                     "130":"Aktiviere/deaktiviere WLAN",
                     "140":"Bluetooth-Lautsprecher aktivieren/deaktivieren",
                     "141":"Bluetooth-Kopfhörer aktivieren/deaktivieren",
+                    "142":"Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
                     "150":"Aktiviere FTP",
                     "151":"IP-Adresse ansagen",
                     "152":"Uhrzeit ansagen",
@@ -261,6 +266,7 @@
             "desc": "Status über Neopixel anzeigen",
             "lowWarning": "Unter dieser Spannung wird eine Warnung angezeigt",
             "lowCritical": "Eine LED leuchtet bei dieser Spannung",
+            "criticalShutoff": "Unter dieser Spannung schaltet der ESPuino ab.",
             "high": "Alle LEDs leuchten bei dieser Spannung",
             "measureInterval": "Zeitabstand der Messung (in Minuten)"
         }

@@ -268,6 +268,7 @@ void Button_DoButtonActions(void) {
 		gButtons[5].isPressed = false;
 		Cmd_Action(BUTTON_MULTI_45);
 	} else {
+		unsigned long currentTimestamp = millis();
 		for (uint8_t i = 0; i <= 5; i++) {
 			if (gButtons[i].isPressed) {
 				uint8_t Cmd_Short = 0;
@@ -305,20 +306,19 @@ void Button_DoButtonActions(void) {
 						break;
 				}
 
-				if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) {
+				if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) { // short action
 					if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < intervalToLongPress) {
 						Cmd_Action(Cmd_Short);
 					} else {
-						// if not volume buttons than start action after button release
-						if (Cmd_Long != CMD_VOLUMEUP && Cmd_Long != CMD_VOLUMEDOWN) {
+						// sleep-mode should only be triggered on release, otherwise it will wake it up directly again
+						if (Cmd_Long == CMD_SLEEPMODE) {
 							Cmd_Action(Cmd_Long);
 						}
 					}
 
 					gButtons[i].isPressed = false;
-				} else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
-					unsigned long currentTimestamp = millis();
 
+				} else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) { // volume-buttons
 					// only start action if intervalToLongPress has been reached
 					if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
 
@@ -331,6 +331,13 @@ void Button_DoButtonActions(void) {
 						}
 
 						gLongPressTime = remainder;
+					}
+
+				} else if (Cmd_Long != CMD_SLEEPMODE) { // long action, if not sleep-mode
+					// start action if intervalToLongPress has been reached
+					if ((currentTimestamp - gButtons[i].lastPressedTimestamp) > intervalToLongPress) {
+						gButtons[i].isPressed = false;
+						Cmd_Action(Cmd_Long);
 					}
 				}
 			}

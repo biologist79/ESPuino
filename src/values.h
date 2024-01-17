@@ -48,6 +48,7 @@
 #define CMD_TOGGLE_WIFI_STATUS			 130 // Toggles WiFi-status
 #define CMD_TOGGLE_BLUETOOTH_SINK_MODE	 140 // Toggles Normal/Bluetooth sink Mode
 #define CMD_TOGGLE_BLUETOOTH_SOURCE_MODE 141 // Toggles Normal/Bluetooth source Mode
+#define CMD_TOGGLE_MODE					 142 // Toggles Normal => Bluetooth sink => Bluetooth source => Normal Mode
 #define CMD_ENABLE_FTP_SERVER			 150 // Enables FTP-server
 #define CMD_TELL_IP_ADDRESS				 151 // Command: ESPuino announces its IP-address via speech
 #define CMD_TELL_CURRENT_TIME			 152 // Command: ESPuino announces current time via speech
@@ -74,9 +75,10 @@
 #define TRACK_N_PLAYLIST 3 // Repeat both (infinite loop)
 
 // Seek-modes
-#define SEEK_NORMAL	   0 // Normal play
-#define SEEK_FORWARDS  1 // Seek forwards
-#define SEEK_BACKWARDS 2 // Seek backwards
+#define SEEK_NORMAL		 0 // Normal play
+#define SEEK_FORWARDS	 1 // Seek forwards
+#define SEEK_BACKWARDS	 2 // Seek backwards
+#define SEEK_POS_PERCENT 3 // Seek to position (0-100)
 
 // TTS
 #define TTS_NONE		 0 // Do nothng (IDLE)
@@ -88,4 +90,4 @@
 #define EN 2
 
 // Debug
-#define PRINT_TASK_STATS 900 // Prints task stats for debugging, needs CONFIG_FREERTOS_USE_TRACE_FACILITY=y and CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y in sdkconfig.defaults
+#define PRINT_TASK_STATS 199 // Prints task stats for debugging, needs CONFIG_FREERTOS_USE_TRACE_FACILITY=y and CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y in sdkconfig.defaults

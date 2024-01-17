@@ -2,7 +2,49 @@
 
 ## DEV-branch
 
-* more to come...
+* 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
+* 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
+* 10.01.2024: LPCD for ISO-15693 cards
+* 05.01.2024: REST-API specification, thanks to @pauel !
+* 02.01.2024: Partly revert: Fix webstream playlist abort when track fails (#285), thanks to @sfields !
+* 02.01.2024: Show critical voltage slider only if SHUTDOWN_ON_BAT_CRITICAL defined
+* 29.12.2023: Show station logo in Web-UI (if available)
+* 29.12.2023: /rfid endpoint: List all assigned nvs entries (#280)
+* 29.12.2023: Enhanced capabilities for task runtime debugging
+* 28.12.2023: Bugfix 1: DONT_ACCEPT_SAME_RFID_TWICE_ENABLE and web frontend, thanks to @sfields !
+* 28.12.2023: Add configuration for critical (shutoff) voltage in Web-UI, thanks to @SZenglein ! 
+* 28.12.2023: New official PlatformIO package 6.5.0 (Arduino 2.0.14, ESP-IDF 4.4.6)
+* 28.12.2023: Improve port expander handling (#283), thanks to @r-schmidt !
+* 23.12.2023: Update audio library, avoid waiting in i2s_channel_write() to have more time in other tasks #636
+* 22.12.2023: Web-UI: Preselection of root folder after load to avoid nasty warning when uploading files
+* 17.12.2023: Update audio library, fixes click-noise seeking in file 
+* 13.12.2023: Immediately go to sleep if battery is critical (#274), thanks to @SZenglein ! 
+* 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 ! 
+* 12.12.2023: Fix false-positive error (Audio playback timeout)
+* 10.12.2023: Distribute vTaskDelay() in main loop to avoid rare audio dropouts
+* 10.12.2023: Fix wrong states on PE output pins (and SD-card failure on restart) #278, thanks to @36b6fp6s ! 
+* 09.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
+* 07.12.2023: Show RC522 firmware version at startup, same as PN5180
+* 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
+* 04.12.2023: change trackprogress communication from websocket to http to improve stability
+* 04.12.2023: Remove some convertAsciiToUtf8() #272 
+* 30.11.2023: Fix a nullptr access after trying to replay an invalid filename (#271), thanks to Olaf!
+* 29.11.2023: Updated audio library to play more MP3s, faster track change & delivery of the cover image
+* 25.11.2023: Save some cpu time in audio task by only updating the playtime statistics every 250ms
+* 22.11.2023: Web-UI: Search for files feature #268 
+* 21.11.2023: New command CMD_TOGGLE_MODE to switch Normal => BT-Sink => BT-Source
+* 21.11.2023: Bugfix: Some commands e.g. Play/Pause did not work in BT-Source mode
+* 21.11.2023: Faster pairing animation in BT-Source mode to better distinguish between the two BT modes
+* 19.11.2023: Give audiotask a higher task priority, fixes crackling sound
+* 19.11.2023: bugfix_same_rfid_twice init #262, see Github comments 
+* 17.11.2023: Show track progress, current playtime & duration in web-ui (#267)
+* 16.11.2023: Fix delay with getLocalTime()
+* 14.11.2023: Multi Wlan improvements (#266), thanks to @laszloh !
+* 13.11.2023: Update third party libraries
+* 08.11.2023: Fix HTML syntax errors, found with static code analysis tool "HtmlHint"
+* 08.11.2023: Better logging for boards without PSRAM, fewer logs when compiling with NO_SDCARD
+* 07.11.2023: Set timezone after startup, thanks to @Joe91 !
+
 
 ## Version 2 (07.11.2023)
 

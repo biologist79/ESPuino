@@ -15,7 +15,8 @@
     "toast": {
         "rfidDetect": "RFID-tag {{rfidId}} detected.",
         "success": "Action performed successfully.",
-        "conlost": "Connection to ESPuino broken! Please reload website."
+        "conlost": "Connection to ESPuino broken! Please reload website.",
+        "dropout": "slow stream, dropouts are possible."
     },
     "nav": {
         "control": "Control",
@@ -96,6 +97,9 @@
             "title": "Directory",
             "desc": "Upload directory with all files and subdirectories"
         },
+        "search": {
+            "placeholder": "Search files.."
+        },
         "upload": {
             "title": "Upload",
             "desc": "Start Upload",
@@ -159,6 +163,7 @@
                     "130":"Toggle WiFi",
                     "140":"Toggle Bluetooth Speaker",
                     "141":"Toggle Bluetooth Headphones",
+                    "142":"Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
                     "150":"Enable FTP",
                     "151":"Announce IP-Address",
                     "152":"Announce current time",
@@ -261,6 +266,7 @@
             "desc": "Show voltage-status via Neopixel",
             "lowWarning": "Show warning below this threshold",
             "lowCritical": "Lowest voltage, that is indicated by one LED",
+            "criticalShutoff": "Below this voltage, ESPuino turns off.",
             "high": "Voltage, that is indicated by all LEDs",
             "measureInterval": "Interval between measurements (in minutes)"
         }

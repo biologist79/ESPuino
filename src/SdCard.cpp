@@ -255,7 +255,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
-		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
+		if (!fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
 			enablePlaylistFromM3u = true;
 			uint16_t allocCount = 1;
 			uint16_t allocSize = psramInit() ? 65535 : 1024; // There's enough PSRAM. So we don't have to care...
