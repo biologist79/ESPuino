@@ -1,6 +1,7 @@
 # Changelog
 
-## DEV-branch
+
+## Version 2.2 (17.01.2024)
 
 * 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
 * 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
@@ -46,7 +47,7 @@
 * 07.11.2023: Set timezone after startup, thanks to @Joe91 !
 
 
-## Version 2 (07.11.2023)
+## Version 2.1 (07.11.2023)
 
 * 04.11.2023: LPCD: wakeup check for ISO-14443 cards also with IRQ connected to port-expander
 * 04.11.2023: Bugfix for showing wrong loglevel
