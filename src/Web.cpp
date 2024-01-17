@@ -574,7 +574,7 @@ bool JSONToSettings(JsonObject doc) {
 	if (doc.containsKey("general")) {
 		// general settings
 		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save general settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
 	}
@@ -586,21 +586,21 @@ bool JSONToSettings(JsonObject doc) {
 			return false;
 		}
 		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
-			Log_Println("Failed to save wifi settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "wifi");
 			return false;
 		}
 	}
 	if (doc.containsKey("led")) {
 		// Neopixel settings
 		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0 || gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save LED settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
 		}
 	}
 	if (doc.containsKey("battery")) {
 		// Battery settings
 		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
-			Log_Println("Failed to save battery settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return false;
 		}
 		Battery_Init();
@@ -613,7 +613,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putString("ftppassword", (String) _ftpPwd);
 		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
-			Log_Println("Failed to save ftp settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp");
 			return false;
 		}
 	} else if (doc.containsKey("ftpStatus")) {
@@ -638,7 +638,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
-			Log_Println("Failed to save mqtt settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
 	}
@@ -650,7 +650,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPrefsSettings.putString("btPinCode", (String) btPinCode);
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName || gPrefsSettings.getString("btPinCode", "") != btPinCode) {
-			Log_Println("Failed to save bluetooth settings", LOGLEVEL_ERROR);
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "bluetooth");
 			return false;
 		}
 	} else if (doc.containsKey("rfidMod")) {
@@ -929,6 +929,10 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 
 	String serializedJsonString;
 	serializeJson(infoObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 	System_UpdateActivityTimer();
 }
@@ -942,14 +946,18 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 		section = request->getParam("section")->value();
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(8192);
+	SpiRamJsonDocument doc(2048);
 #else
-	StaticJsonDocument<8192> doc;
+	StaticJsonDocument<2048> doc;
 #endif
 	JsonObject settingsObj = doc.createNestedObject("settings");
 	settingsToJSON(settingsObj, section);
 	String serializedJsonString;
 	serializeJson(settingsObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -1004,6 +1012,10 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 #endif
 	String serializedJsonString;
 	serializeJson(infoObj, serializedJsonString);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -1096,6 +1108,10 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 	};
 
 	serializeJson(doc, jBuf, 1024);
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 
 	if (client == 0) {
 		ws.printfAll(jBuf);
@@ -1366,11 +1382,11 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 #endif
 
 	String serializedJsonString;
-	char filePath[MAX_FILEPATH_LENTGH];
 	JsonArray obj = jsonBuffer.createNestedArray();
 	File root;
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
+		char filePath[MAX_FILEPATH_LENTGH];
 		param = request->getParam("path");
 		convertFilenameToAscii(param->value(), filePath);
 		root = gFSystem.open(filePath);
@@ -1404,6 +1420,10 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	root.close();
 
 	serializeJson(obj, serializedJsonString);
+	if (jsonBuffer.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
 	request->send(200, "application/json; charset=utf-8", serializedJsonString);
 }
 
@@ -1749,12 +1769,6 @@ static bool tagIdToJSON(const String tagId, JsonObject entry) {
 	return true;
 }
 
-// callback for writing a NVS entry to JSON
-bool DumpNvsToJSONCallback(const char *key, void *data) {
-	JsonArray *myArr = (JsonArray *) data;
-	JsonObject obj = myArr->createNestedObject();
-	return tagIdToJSON(key, obj);
-}
 
 // callback for writing a NVS entry to list
 bool DumpNvsToArrayCallback(const char *key, void *data) {

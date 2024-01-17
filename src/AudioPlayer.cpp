@@ -1135,7 +1135,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 	if (_numberOfTracks > 1) {
 		const char s = '/';
 		const char *last = strrchr(_track, s);
-		char *first = strchr(_track, s);
+		const char *first = strchr(_track, s);
 		unsigned long substr = last - first + 1;
 		if (substr <= sizeof(trackBuf) / sizeof(trackBuf[0])) {
 			snprintf(trackBuf, substr, _track); // save substring basename(_track)

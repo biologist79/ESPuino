@@ -969,7 +969,6 @@ AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRG
 	static bool animationActive = false; // signals if the animation is currently active
 	int32_t animationDelay = 0;
 	// static variables for animation
-	static LedPlaylistProgressStates animationState = LedPlaylistProgressStates::Done; // Statemachine-variable of this animation
 	static uint32_t animationCounter = 0; // counter-variable to loop through leds or to wait
 	static uint32_t staticLastBarLenghtPlaylist = 0; // variable to remember the last length of the progress-bar (for connecting animations)
 	static uint32_t staticLastTrack = 0; // variable to remember the last track (for connecting animations)
@@ -979,6 +978,7 @@ AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRG
 			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
 			const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 			const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+			static LedPlaylistProgressStates animationState = LedPlaylistProgressStates::Done; // Statemachine-variable of this animation
 
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
 				LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
