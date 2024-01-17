@@ -1769,7 +1769,6 @@ static bool tagIdToJSON(const String tagId, JsonObject entry) {
 	return true;
 }
 
-
 // callback for writing a NVS entry to list
 bool DumpNvsToArrayCallback(const char *key, void *data) {
 	std::vector<String> *keys = (std::vector<String> *) data;
