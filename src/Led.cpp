@@ -182,6 +182,7 @@ void Led_SetBrightness(uint8_t value) {
 }
 
 void Led_SetNightmode(bool enabled) {
+#ifdef NEOPIXEL_ENABLE
 	if (Led_NightMode == enabled) {
 		// we don't need to do anything
 		return;
@@ -198,14 +199,19 @@ void Led_SetNightmode(bool enabled) {
 	Led_NightMode = enabled;
 	Led_SetBrightness(newValue);
 	Log_Println(msg, LOGLEVEL_INFO);
+#endif
 }
 
 bool Led_GetNightmode() {
+#ifdef NEOPIXEL_ENABLE
 	return Led_NightMode;
+#endif
 }
 
 void Led_ToggleNightmode() {
+#ifdef NEOPIXEL_ENABLE
 	Led_SetNightmode(!Led_NightMode);
+#endif
 }
 
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
