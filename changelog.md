@@ -2,6 +2,12 @@
 
 ## DEV-branch
 
+* 21.01.2024: Build (tag 2.2) is broken when NEOPIXEL_ENABLE is not set #289, thanks to @RolinBert !
+* 21.01.2024: PN5180: Save about 500 Bytes of RAM
+
+
+## Version 2.2 (17.01.2024)
+
 * 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
 * 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
 * 10.01.2024: LPCD for ISO-15693 cards
