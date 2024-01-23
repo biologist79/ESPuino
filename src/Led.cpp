@@ -205,6 +205,8 @@ void Led_SetNightmode(bool enabled) {
 bool Led_GetNightmode() {
 #ifdef NEOPIXEL_ENABLE
 	return Led_NightMode;
+#else
+	return false;
 #endif
 }
 

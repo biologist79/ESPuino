@@ -317,6 +317,5 @@
 		#include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 	#endif
 
-	//#define ENABLE_ESPUINO_DEBUG                            // Needs modification of platformio.ini (https://forum.espuino.de/t/rfid-mit-oder-ohne-task/353/21); better don't enable unless you know what you're doing :-)
 	#endif //settings_override
 #endif
