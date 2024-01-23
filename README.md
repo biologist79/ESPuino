@@ -138,7 +138,7 @@ needs one GPIO less. So basically it's a no-brainer.
 RC522 is so to say the ESPuino standard. It's cheap and works, but RFID tags have to be placed close
 to the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode
 SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake up ESPuino with
-the a ISO-14443 card (after flashing PN5180 with a new firmware). This feature is called LPCD.
+the a RFID tag (after flashing PN5180 with a new firmware). This feature is called LPCD.
 Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4). In my opinion
 it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3 V
 only make sure to connect these 3.3 V to PN5180's 5 V AND 3.3 V. Sounds weird but it's necessary.
