@@ -75,7 +75,6 @@ const char modeAllTrackAlphSortedLoop[] = "Modus: Alle Tracks eines Ordners sort
 const char modeAllTrackRandomLoop[] = "Modus: Alle Tracks eines Ordners zufällig in Endlosschleife";
 const char modeWebstream[] = "Modus: Webstream";
 const char modeWebstreamM3u[] = "Modus: Webstream (lokale .m3u-Datei)";
-const char webstreamNotAvailable[] = "Aktuell kein Webstream möglich, da keine WLAN-Verbindung vorhanden!";
 const char modeInvalid[] = "Ungültiger Abspielmodus %d!";
 const char modeRepeatNone[] = "Repeatmodus: Kein Repeat";
 const char modeRepeatTrack[] = "Repeatmodus: Aktueller Titel";
