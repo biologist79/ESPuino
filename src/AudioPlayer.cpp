@@ -777,13 +777,19 @@ void AudioPlayer_Task(void *parameter) {
 			gPlayProperties.tellMode = TTS_NONE;
 			String ipText = Wlan_GetIpAddress();
 			bool speechOk;
-#if (LANGUAGE == DE)
-			ipText.replace(".", "Punkt"); // make IP as text (replace thousand separator)
-			speechOk = audio->connecttospeech(ipText.c_str(), "de");
-#else
-			ipText.replace(".", "point");
-			speechOk = audio->connecttospeech(ipText.c_str(), "en");
-#endif
+			switch (LANGUAGE) {
+				case DE:
+					ipText.replace(".", "Punkt"); // make IP as text (replace thousand separator)
+					speechOk = audio->connecttospeech(ipText.c_str(), "de");
+					break;
+				case FR:
+					ipText.replace(".", "point");
+					speechOk = audio->connecttospeech(ipText.c_str(), "fr");
+					break;
+				default:
+					ipText.replace(".", "point");
+					speechOk = audio->connecttospeech(ipText.c_str(), "en");
+			}
 			if (!speechOk) {
 				System_IndicateError();
 			}
@@ -796,17 +802,23 @@ void AudioPlayer_Task(void *parameter) {
 			getLocalTime(&timeinfo);
 			static char timeStringBuff[64];
 			bool speechOk;
-#if (LANGUAGE == DE)
-			snprintf(timeStringBuff, sizeof(timeStringBuff), "Es ist %02d:%02d Uhr", timeinfo.tm_hour, timeinfo.tm_min);
-			speechOk = audio->connecttospeech(timeStringBuff, "de");
-#else
-			if (timeinfo.tm_hour > 12) {
-				snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d PM", timeinfo.tm_hour - 12, timeinfo.tm_min);
-			} else {
-				snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d AM", timeinfo.tm_hour, timeinfo.tm_min);
+			switch (LANGUAGE) {
+				case DE:
+					snprintf(timeStringBuff, sizeof(timeStringBuff), "Es ist %02d:%02d Uhr", timeinfo.tm_hour, timeinfo.tm_min);
+					speechOk = audio->connecttospeech(timeStringBuff, "de");
+					break;
+				case FR:
+					snprintf(timeStringBuff, sizeof(timeStringBuff), "Il est %02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
+					speechOk = audio->connecttospeech(timeStringBuff, "fr");
+					break;
+				default:
+					if (timeinfo.tm_hour > 12) {
+						snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d PM", timeinfo.tm_hour - 12, timeinfo.tm_min);
+					} else {
+						snprintf(timeStringBuff, sizeof(timeStringBuff), "It is %02d:%02d AM", timeinfo.tm_hour, timeinfo.tm_min);
+					}
+					speechOk = audio->connecttospeech(timeStringBuff, "en");
 			}
-			speechOk = audio->connecttospeech(timeStringBuff, "en");
-#endif
 			if (!speechOk) {
 				System_IndicateError();
 			}
