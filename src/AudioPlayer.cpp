@@ -777,13 +777,20 @@ void AudioPlayer_Task(void *parameter) {
 			gPlayProperties.tellMode = TTS_NONE;
 			String ipText = Wlan_GetIpAddress();
 			bool speechOk;
-#if (LANGUAGE == DE)
-			ipText.replace(".", "Punkt"); // make IP as text (replace thousand separator)
-			speechOk = audio->connecttospeech(ipText.c_str(), "de");
-#else
-			ipText.replace(".", "point");
-			speechOk = audio->connecttospeech(ipText.c_str(), "en");
-#endif
+			// make IP as text (replace thousand separator with locale text)
+			switch (LANGUAGE) {
+				case DE:
+					ipText.replace(".", "Punkt");
+					speechOk = audio->connecttospeech(ipText.c_str(), "de");
+					break;
+				case FR:
+					ipText.replace(".", "point");
+					speechOk = audio->connecttospeech(ipText.c_str(), "fr");
+					break;
+				default:
+					ipText.replace(".", "point");
+					speechOk = audio->connecttospeech(ipText.c_str(), "en");
+			}
 			if (!speechOk) {
 				System_IndicateError();
 			}

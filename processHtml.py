@@ -34,7 +34,8 @@ BINARY_FILES =[
     Path("js/i18nextHttpBackend.min.js"),
     Path("js/loc_i18next.min.js"),
     Path("locales/de.json"),
-    Path("locales/en.json")
+    Path("locales/en.json"),
+    Path("locales/fr.json")
 ]
 
 
