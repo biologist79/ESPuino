@@ -2,6 +2,9 @@
 
 ## DEV-branch
 
+* 30.01.2024: Add French Language (#292), thanks to @damda58 !
+* 30.01.2024: Fix some audio dropouts with high-quality OPUS files
+* 30.01.2024: Keep original mtime for gzip compressed files, avoiding uneccesary Web.o rebuilds (#293), thanks to @freddy36 !
 * 23.01.2024: Updated documentation on LPCD setting, thanks to @derpicknicker1 !
 * 21.01.2024: Build (tag 2.2) is broken when NEOPIXEL_ENABLE is not set #289, thanks to @RolinBert !
 * 21.01.2024: PN5180: Save about 500 Bytes of RAM
