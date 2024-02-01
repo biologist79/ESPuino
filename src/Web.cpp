@@ -41,16 +41,24 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
-static const uint32_t chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
-static const uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two.
 
-uint8_t buffer[nr_of_buffers][chunk_size];
+#ifdef BOARD_HAS_PSRAM
+static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
+#else
+static const uint32_t start_chunk_size = 4096; // save memory if no PSRAM is available
+#endif
+
+static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two.
+static constexpr size_t retry_count = 2; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
+
+uint8_t *buffer[nr_of_buffers];
+size_t chunk_size;
 volatile uint32_t size_in_buffer[nr_of_buffers];
 volatile bool buffer_full[nr_of_buffers];
 uint32_t index_buffer_write = 0;
 uint32_t index_buffer_read = 0;
 
-static QueueHandle_t explorerFileUploadStatusQueue;
+static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
 
 void Web_DumpSdToNvs(const char *_filename);
@@ -95,6 +103,59 @@ struct SpiRamAllocator {
 	}
 };
 using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
+
+static void destroyDoubleBuffer() {
+	for (size_t i = 0; i < nr_of_buffers; i++) {
+		free(buffer[i]);
+		buffer[i] = nullptr;
+	}
+}
+
+static bool allocateDoubleBuffer() {
+	const auto checkAndAlloc = [](uint8_t *&ptr, const size_t memSize) -> bool {
+		if (ptr) {
+			// memory is there, so nothing to do
+			return true;
+		}
+		// try to allocate buffer in faster internal RAM, not in PSRAM
+		//ptr = (uint8_t *) malloc(memSize);
+		ptr = (uint8_t *) heap_caps_aligned_alloc(32, memSize, MALLOC_CAP_DEFAULT | MALLOC_CAP_INTERNAL);
+		return (ptr != nullptr);
+	};
+
+	chunk_size = start_chunk_size;
+	size_t retries = retry_count;
+	while (retries) {
+		if (chunk_size < 256) {
+			// give up, since there is not even 256 bytes of memory left
+			break;
+		}
+		bool success = true;
+		for (size_t i = 0; i < nr_of_buffers; i++) {
+			success &= checkAndAlloc(buffer[i], chunk_size);
+		}
+		if (success) {
+			return true;
+		} else {
+			// one of our buffer went OOM --> free all buffer and retry with less chunk size
+			destroyDoubleBuffer();
+			chunk_size /= 2;
+			retries--;
+		}
+	}
+	destroyDoubleBuffer();
+	return false;
+}
+
+void handleUploadError(AsyncWebServerRequest *request, int code) {
+	if (request->_tempObject) {
+		// we already have an error entered
+		return;
+	}
+	// send the error to the client and record it in the request
+	request->_tempObject = new int(code);
+	request->send(code);
+}
 
 static void serveProgmemFiles(const String &uri, const String &contentType, const uint8_t *content, size_t len) {
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
@@ -481,7 +542,11 @@ void webserverStart(void) {
 
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
-				request->send(200);
+				// we are finished with the upload
+				if (!request->_tempObject) {
+					request->onDisconnect([]() { destroyDoubleBuffer(); });
+					request->send(200);
+				}
 			},
 			explorerHandleFileUpload);
 
@@ -1206,9 +1271,16 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Parent directories
 		explorerCreateParentDirectories(filePath);
 
+		if (!allocateDoubleBuffer()) {
+			// we failed to allocate enough memory
+			Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
+			handleUploadError(request, 500);
+			return;
+		}
+
 		// Create Queue for receiving a signal from the store task as synchronisation
-		if (explorerFileUploadStatusQueue == NULL) {
-			explorerFileUploadStatusQueue = xQueueCreate(1, sizeof(uint8_t));
+		if (explorerFileUploadFinished == NULL) {
+			explorerFileUploadFinished = xSemaphoreCreateBinary();
 		}
 
 		// reset buffers
@@ -1229,6 +1301,13 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			&fileStorageTaskHandle, /* Task handle. */
 			1 /* Core where the task should run */
 		);
+
+		// register for early disconnect events
+		request->onDisconnect([]() {
+			// client went away before we were finished...
+			// trigger task suicide, since we can not use Log_Println here
+			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+		});
 	}
 
 	if (len) {
@@ -1271,10 +1350,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			buffer_full[index_buffer_write] = true;
 		}
 		// notify storage task that last data was stored on the ring buffer
-		xTaskNotify(fileStorageTaskHandle, 1u, eNoAction);
+		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
 		// watit until the storage task is sending the signal to finish
-		uint8_t signal;
-		xQueueReceive(explorerFileUploadStatusQueue, &signal, portMAX_DELAY);
+		xSemaphoreTake(explorerFileUploadFinished, portMAX_DELAY);
 	}
 }
 
@@ -1301,7 +1379,6 @@ void explorerHandleFileStorageTask(void *parameter) {
 	size_t bytesNok = 0;
 	uint32_t chunkCount = 0;
 	uint32_t transferStartTimestamp = millis();
-	uint8_t value = 0;
 	uint32_t lastUpdateTimestamp = millis();
 	uint32_t maxUploadDelay = 20; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
@@ -1318,7 +1395,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	for (;;) {
 		// check buffer is full with enough data or all data already sent
 		uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
-		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS)) {
+		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 1u)) {
 
 			while (buffer_full[index_buffer_read]) {
 				chunkCount++;
@@ -1345,12 +1422,14 @@ void explorerHandleFileStorageTask(void *parameter) {
 				break;
 			}
 		} else {
-			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis()) {
+			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis() || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 2u)) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				// resume the paused tasks
 				Led_TaskResume();
 				vTaskResume(AudioTaskHandle);
 				Rfid_TaskResume();
+				// destroy double buffer memory, since the upload was interrupted
+				destroyDoubleBuffer();
 				// just delete task without signaling (abort)
 				vTaskDelete(NULL);
 				return;
@@ -1364,7 +1443,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	vTaskResume(AudioTaskHandle);
 	Rfid_TaskResume();
 	// send signal to upload function to terminate
-	xQueueSend(explorerFileUploadStatusQueue, &value, 0);
+	xSemaphoreGive(explorerFileUploadFinished);
 	vTaskDelete(NULL);
 }
 

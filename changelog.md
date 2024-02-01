@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 01.02.2024: Use dynamically allocated buffer for file upload , thanks to @laszloh !
 * 30.01.2024: Add French Language (#292), thanks to @damda58 !
 * 30.01.2024: Fix some audio dropouts with high-quality OPUS files
 * 30.01.2024: Keep original mtime for gzip compressed files, avoiding uneccesary Web.o rebuilds (#293), thanks to @freddy36 !
