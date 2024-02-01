@@ -1132,9 +1132,9 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 		// fill all needed LEDs
 		if (filledLedCount < numLedsToLight) {
-			if (staticBatteryLevel < 0.3) {
+			if (staticBatteryLevel < 0.3f) {
 				leds[Led_Address(filledLedCount)] = CRGB::Red;
-			} else if (staticBatteryLevel < 0.6) {
+			} else if (staticBatteryLevel < 0.6f) {
 				leds[Led_Address(filledLedCount)] = CRGB::Orange;
 			} else {
 				leds[Led_Address(filledLedCount)] = CRGB::Green;
