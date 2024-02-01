@@ -118,7 +118,7 @@ static bool allocateDoubleBuffer() {
 			return true;
 		}
 		// try to allocate buffer in faster internal RAM, not in PSRAM
-		//ptr = (uint8_t *) malloc(memSize);
+		// ptr = (uint8_t *) malloc(memSize);
 		ptr = (uint8_t *) heap_caps_aligned_alloc(32, memSize, MALLOC_CAP_DEFAULT | MALLOC_CAP_INTERNAL);
 		return (ptr != nullptr);
 	};
@@ -491,8 +491,12 @@ void webserverStart(void) {
 			response->print("</head><body>");
 			// show memory usage
 			response->println("Memory:<div class='text'><pre>");
-			response->println("Free heap: " + String(ESP.getFreeHeap()));
-			response->println("Largest free block: " + String(ESP.getMaxAllocHeap()));
+			response->println("Free heap:           " + String(ESP.getFreeHeap()));
+			response->println("Largest free block:  " + String(ESP.getMaxAllocHeap()));
+	#ifdef BOARD_HAS_PSRAM
+			response->println("Free PSRAM heap:     " + String(ESP.getFreePsram()));
+			response->println("Largest PSRAM block: " + String(ESP.getMaxAllocPsram()));
+	#endif
 			response->println("</pre></div><br>");
 			// show tasklist
 			response->println("Tasklist:<div class='text'><pre>");
@@ -952,9 +956,10 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject memoryObj = infoObj.createNestedObject("memory");
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-		if (psramFound()) {
-			memoryObj["freePSRam"] = ESP.getFreePsram();
-		}
+#ifdef BOARD_HAS_PSRAM
+		memoryObj["freePSRam"] = ESP.getFreePsram();
+		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
+#endif
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
