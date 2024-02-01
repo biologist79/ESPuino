@@ -29,7 +29,7 @@
 #include <Update.h>
 #include <WiFi.h>
 #include <esp_task_wdt.h>
-#include <nvsDump.h>
+#include <nvs.h>
 
 typedef struct {
 	char nvsKey[13];
@@ -217,61 +217,25 @@ public:
 // List all key in NVS for a given namespace
 // callback function is called for every key with userdefined data object
 bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char *key, void *data)) {
-	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
-	esp_partition_iterator_t pi; // Iterator for find
-	const esp_partition_t *nvs; // Pointer to partition struct
-	esp_err_t result = ESP_OK;
-	const char *partname = "nvs";
-	uint8_t pagenr = 0; // Page number in NVS
-	uint8_t i; // Index in Entry 0..125
-	uint8_t bm; // Bitmap for an entry
-	uint32_t offset = 0; // Offset in nvs partition
-	uint8_t namespace_ID; // Namespace ID found
+	constexpr const char *partname = "nvs";
 
-	pi = esp_partition_find(ESP_PARTITION_TYPE_DATA, // Get partition iterator for
-		ESP_PARTITION_SUBTYPE_ANY, // this partition
-		partname);
-	if (pi) {
-		nvs = esp_partition_get(pi); // Get partition struct
-		esp_partition_iterator_release(pi); // Release the iterator
-		Log_Printf(LOGLEVEL_DEBUG, "Partition %s found, %d bytes", partname, nvs->size);
-	} else {
-		Log_Printf(LOGLEVEL_ERROR, "Partition %s not found!", partname);
+	nvs_iterator_t it = nvs_entry_find(partname, _namespace, NVS_TYPE_ANY);
+	if (it == nullptr) {
+		// no entries found
 		return false;
 	}
-	namespace_ID = FindNsID(nvs, _namespace); // Find ID of our namespace in NVS
-	while (offset < nvs->size) {
-		result = esp_partition_read(nvs, offset, // Read 1 page in nvs partition
-			&buf,
-			sizeof(nvs_page));
-		if (result != ESP_OK) {
-			Log_Println("Error reading NVS!", LOGLEVEL_ERROR);
-			return false;
-		}
-
-		i = 0;
-
-		while (i < 126) {
-			bm = (buf.Bitmap[i / 4] >> ((i % 4) * 2)) & 0x03; // Get bitmap for this entry
-			if (bm == 2) {
-				if ((namespace_ID == 0xFF) || // Show all if ID = 0xFF
-					(buf.Entry[i].Ns == namespace_ID)) { // otherwise just my namespace
-					if (isNumber(buf.Entry[i].Key)) {
-						if (!callback(buf.Entry[i].Key, data)) {
-							return false;
-						}
-					}
-				}
-				i += buf.Entry[i].Span; // Next entry
-			} else {
-				i++;
+	while (it != nullptr) {
+		nvs_entry_info_t info;
+		nvs_entry_info(it, &info); // we got the key name here
+		// some basic sanity checks
+		if (isNumber(info.key)) {
+			if (!callback(info.key, data)) {
+				return false;
 			}
 		}
-		offset += sizeof(nvs_page); // Prepare to read next page in nvs
-		pagenr++;
+		// finished, NEXT!
+		it = nvs_entry_next(it);
 	}
-	Led_SetPause(false);
-
 	return true;
 }
 
