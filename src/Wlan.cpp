@@ -14,6 +14,7 @@
 
 #include <DNSServer.h>
 #include <ESPmDNS.h>
+#include <FastLED.h>
 #include <WiFi.h>
 
 #define WIFI_STATE_INIT			0u
@@ -53,17 +54,20 @@ static const char *nvsWiFiNetworksKey = "SAVED_WIFIS";
 static constexpr size_t maxSavedNetworks = 10;
 static size_t numKnownNetworks = 0;
 static WiFiSettings knownNetworks[maxSavedNetworks];
-static String hostname;
 
 // state for AP
 DNSServer *dnsServer;
 constexpr uint8_t DNS_PORT = 53;
 
+const String getHostname() {
+	return gPrefsSettings.getString("Hostname");
+}
+
 void Wlan_Init(void) {
 	wifiEnabled = getWifiEnableStatusFromNVS();
 
-	hostname = gPrefsSettings.getString("Hostname");
 	// Get (optional) hostname-configuration from NVS
+	const String hostname = getHostname();
 	if (hostname) {
 		Log_Printf(LOGLEVEL_INFO, restoredHostnameFromNvs, hostname.c_str());
 	} else {
@@ -129,7 +133,8 @@ void Wlan_Init(void) {
 
 void connectToKnownNetwork(WiFiSettings settings, byte *bssid = nullptr) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
-	if (hostname.compareTo("-1")) {
+	const String hostname = getHostname();
+	if (hostname) {
 		WiFi.setHostname(hostname.c_str());
 	}
 
@@ -323,11 +328,14 @@ void handleWifiStateConnectionSuccess() {
 	configTzTime(timeZone, "de.pool.ntp.org", "0.pool.ntp.org", "ptbtime1.ptb.de");
 #ifdef MDNS_ENABLE
 	// zero conf, make device available as <hostname>.local
-	if (MDNS.begin(hostname.c_str())) {
-		MDNS.addService("http", "tcp", 80);
-		Log_Printf(LOGLEVEL_NOTICE, mDNSStarted, hostname.c_str());
-	} else {
-		Log_Printf(LOGLEVEL_ERROR, mDNSFailed, hostname.c_str());
+	const String hostname = getHostname();
+	if (hostname) {
+		if (MDNS.begin(hostname.c_str())) {
+			MDNS.addService("http", "tcp", 80);
+			Log_Printf(LOGLEVEL_NOTICE, mDNSStarted, hostname.c_str());
+		} else {
+			Log_Printf(LOGLEVEL_ERROR, mDNSFailed, hostname.c_str());
+		}
 	}
 #endif
 	delete dnsServer;
@@ -343,9 +351,9 @@ void handleWifiStateConnectionSuccess() {
 	wifiState = WIFI_STATE_CONNECTED;
 }
 
-static uint32_t lastPrintRssiTimestamp = 0;
-static int8_t lastRssiValue = 0;
 void handleWifiStateConnected() {
+	static int8_t lastRssiValue = 0;
+
 	switch (WiFi.status()) {
 		case WL_CONNECTED:
 			break;
@@ -361,8 +369,8 @@ void handleWifiStateConnected() {
 			break;
 	}
 
-	if (millis() - lastPrintRssiTimestamp >= 60000) {
-		lastPrintRssiTimestamp = millis();
+	static CEveryNSeconds printRssiValue(60);
+	if (printRssiValue) {
 		// show RSSI value only if it has changed by > 3 dBm
 		if (abs(lastRssiValue - Wlan_GetRssi()) > 3) {
 			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
@@ -398,7 +406,7 @@ void handleWifiStateConnectionFailed() {
 
 void handleWifiStateAP() {
 	// good candidate for a user setting
-	static constexpr uint32_t closeWifiAPTimeout = 300000;
+	constexpr uint32_t closeWifiAPTimeout = 300000;
 
 	// close the AP after the desired time has passed; set to 0 to keep on forever
 	if (closeWifiAPTimeout != 0 && millis() - wifiAPStartedTimestamp > closeWifiAPTimeout) {
@@ -444,35 +452,38 @@ void Wlan_Cyclic(void) {
 }
 
 bool Wlan_ValidateHostname(String newHostname) {
-	size_t len = newHostname.length();
-	const char *hostname = newHostname.c_str();
-
-	// validation: first char alphanumerical, then alphanumerical or '-', last char alphanumerical
-	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
-	bool validated = true;
+	// correct lenght check
+	const size_t len = newHostname.length();
 	if (len < 2 || len > 32) {
-		validated = false;
+		return false;
 	}
 
-	if (!isAlphaNumeric(hostname[0]) || !isAlphaNumeric(hostname[len - 1])) {
-		validated = false;
+	// rules:
+	//   - first character:  alphanumerical
+	//   - last character:   alphanumerical
+	//   - other characters: alphanumerical or '-'
+	//
+	// These rules are mainly for mDNS purposes, a "pretty" hostname could have far fewer restrictions
+
+	// check first and last character
+	if (!isAlphaNumeric(newHostname[0]) || !isAlphaNumeric(newHostname[len - 1])) {
+		return false;
 	}
 
-	for (int i = 0; i < len; i++) {
-		if (!isAlphaNumeric(hostname[i]) && hostname[i] != '-') {
-			validated = false;
-			break;
+	// check all characters in the string
+	for (const auto &c : newHostname) {
+		if (!isAlphaNumeric(c) && c != '-') {
+			return false;
 		}
 	}
 
-	return validated;
+	// all checks passed
+	return true;
 }
 
 bool Wlan_SetHostname(String newHostname) {
-	// hostname should just be applied after reboot
-	gPrefsSettings.putString("Hostname", newHostname);
-	// check if hostname is written
-	return (gPrefsSettings.getString("Hostname", "-1") == newHostname);
+	// check if the correct lenght was written to nvs
+	return gPrefsSettings.putString("Hostname", newHostname) == newHostname.length();
 }
 
 bool Wlan_AddNetworkSettings(WiFiSettings settings) {
