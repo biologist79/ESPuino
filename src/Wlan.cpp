@@ -31,8 +31,8 @@ uint8_t wifiState = WIFI_STATE_INIT;
 #define RECONNECT_INTERVAL 600000
 
 // AP-WiFi
-IPAddress apIP(192, 168, 4, 1); // Access-point's static IP
-IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
+const IPAddress apIP(192, 168, 4, 1); // Access-point's static IP
+const IPAddress apNetmask(255, 255, 255, 0); // Access-point's netmask
 
 bool wifiEnabled; // Current status if wifi is enabled
 
@@ -566,7 +566,7 @@ void accessPointStart(const char *SSID, const char *password, IPAddress ip, IPAd
 	delay(500);
 
 	Log_Println(apReady, LOGLEVEL_NOTICE);
-	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", apIP.toString().c_str());
+	Log_Printf(LOGLEVEL_NOTICE, "IP-Adresse: %s", ip.toString().c_str());
 
 	if (!dnsServer) {
 		dnsServer = new DNSServer();
