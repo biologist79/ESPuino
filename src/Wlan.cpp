@@ -16,6 +16,7 @@
 #include <ESPmDNS.h>
 #include <FastLED.h>
 #include <WiFi.h>
+#include <list>
 
 #define WIFI_STATE_INIT			0u
 #define WIFI_STATE_CONNECT_LAST 1u
@@ -50,10 +51,9 @@ static unsigned long connectStartTimestamp = 0;
 static uint32_t connectionFailedTimestamp = 0;
 
 // state for persistent settings
-static const char *nvsWiFiNetworksKey = "SAVED_WIFIS";
+static constexpr const char *nvsWiFiNetworksKey = "SAVED_WIFIS";
 static constexpr size_t maxSavedNetworks = 10;
-static size_t numKnownNetworks = 0;
-static WiFiSettings knownNetworks[maxSavedNetworks];
+static std::list<WiFiSettings> knownNetworks;
 
 // state for AP
 DNSServer *dnsServer;
@@ -61,6 +61,14 @@ constexpr uint8_t DNS_PORT = 53;
 
 const String getHostname() {
 	return gPrefsSettings.getString("Hostname");
+}
+
+std::list<WiFiSettings>::iterator getWifiSetting(const char *ssid) {
+	return std::find_if(knownNetworks.begin(), knownNetworks.end(), [&ssid](const WiFiSettings &s) { return strncmp(s.ssid, ssid, 32) == 0; });
+}
+
+std::list<WiFiSettings>::iterator getWifiSetting(const String ssid) {
+	return getWifiSetting(ssid.c_str());
 }
 
 void Wlan_Init(void) {
@@ -75,12 +83,16 @@ void Wlan_Init(void) {
 	}
 
 	// load array of up to maxSavedNetworks from NVS
-	numKnownNetworks = gPrefsSettings.getBytes(nvsWiFiNetworksKey, knownNetworks, maxSavedNetworks * sizeof(WiFiSettings)) / sizeof(WiFiSettings);
-	for (int i = 0; i < numKnownNetworks; i++) {
-		knownNetworks[i].ssid[32] = '\0';
-		knownNetworks[i].password[64] = '\0';
-		Log_Printf(LOGLEVEL_NOTICE, wifiNetworkLoaded, i, knownNetworks[i].ssid);
+	const size_t numNetworks = gPrefsSettings.getBytesLength(nvsWiFiNetworksKey) / sizeof(WiFiSettings);
+	WiFiSettings *networks = new WiFiSettings[numNetworks];
+	gPrefsSettings.getBytes(nvsWiFiNetworksKey, networks, numNetworks * sizeof(WiFiSettings));
+	for (size_t i = 0; i < numNetworks; i++) {
+		networks[i].ssid[32] = '\0';
+		networks[i].password[64] = '\0';
+		Log_Printf(LOGLEVEL_NOTICE, wifiNetworkLoaded, i, networks[i].ssid);
+		knownNetworks.push_front(networks[i]);
 	}
+	delete networks;
 
 	// ******************* MIGRATION *******************
 	// migration from single-wifi setup. Delete some time in the future
@@ -131,7 +143,7 @@ void Wlan_Init(void) {
 	handleWifiStateInit();
 }
 
-void connectToKnownNetwork(WiFiSettings settings, byte *bssid = nullptr) {
+void connectToKnownNetwork(const WiFiSettings &settings, byte *bssid = nullptr) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
 	const String hostname = getHostname();
 	if (hostname) {
@@ -197,11 +209,9 @@ void handleWifiStateConnectLast() {
 	std::optional<WiFiSettings> lastSettings = std::nullopt;
 
 	if (lastSSID) {
-		for (int i = 0; i < numKnownNetworks; i++) {
-			if (strncmp(knownNetworks[i].ssid, lastSSID.c_str(), 32) == 0) {
-				lastSettings = knownNetworks[i];
-				break;
-			}
+		auto it = getWifiSetting(lastSSID);
+		if (it != knownNetworks.end()) {
+			lastSettings = *it;
 		}
 	}
 
@@ -263,11 +273,9 @@ void handleWifiStateScanConnect() {
 		String issid = WiFi.SSID(i);
 		byte *bssid = WiFi.BSSID(i);
 		// check if ssid name matches any saved ssid
-		for (int j = 0; j < numKnownNetworks; j++) {
-			if (strncmp(issid.c_str(), knownNetworks[j].ssid, 32) == 0) {
-				connectToKnownNetwork(knownNetworks[j], bssid);
-
-				connectStartTimestamp = millis();
+		for (const auto &el : knownNetworks) {
+			if (issid.equals(el.ssid)) {
+				connectToKnownNetwork(el, bssid);
 
 				// prepare for next iteration
 				if (connectionAttemptCounter > 0) {
@@ -486,41 +494,61 @@ bool Wlan_SetHostname(String newHostname) {
 	return gPrefsSettings.putString("Hostname", newHostname) == newHostname.length();
 }
 
+// write wifi settings into NVS using the current storage version
+void writeWifiSettingsToNvs() {
+	if (knownNetworks.size() == 0) {
+		// just remove the key
+		gPrefsSettings.remove(nvsWiFiNetworksKey);
+		return;
+	}
+
+	// create a POD array of WiFiSettings, which we then can dump into the NVS
+	WiFiSettings *nvsBlob = new WiFiSettings[knownNetworks.size()];
+	size_t i = 0;
+	for (const auto &el : knownNetworks) {
+		nvsBlob[i] = el;
+		i++;
+	}
+	// and dump
+	gPrefsSettings.putBytes(nvsWiFiNetworksKey, nvsBlob, knownNetworks.size() * sizeof(WiFiSettings));
+
+	// clean up dyanmic array
+	delete nvsBlob;
+}
+
 bool Wlan_AddNetworkSettings(WiFiSettings settings) {
 	settings.ssid[32] = '\0';
 	settings.password[64] = '\0';
 
-	for (uint8_t i = 0; i < numKnownNetworks; i++) {
-		if (strncmp(settings.ssid, knownNetworks[i].ssid, 32) == 0) {
-			Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, settings.ssid);
-			knownNetworks[i] = settings;
-			gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
-			return true;
+	// check if we are updating
+	auto it = getWifiSetting(settings.ssid);
+	if (it != knownNetworks.end()) {
+		// we already have the ssid int he list, so update it is
+		*it = settings;
+	} else {
+		// we did not have it, so add a new entry
+
+		if (knownNetworks.size() >= maxSavedNetworks) {
+			// or not
+			Log_Println(wifiAddTooManyNetworks, LOGLEVEL_ERROR);
+			return false;
 		}
+
+		knownNetworks.push_front(settings); // linked list, so push_front is more performant
 	}
 
-	if (numKnownNetworks >= maxSavedNetworks) {
-		Log_Println(wifiAddTooManyNetworks, LOGLEVEL_ERROR);
-		return false;
-	}
-
-	Log_Printf(LOGLEVEL_NOTICE, wifiAddNetwork, settings.ssid);
-
-	knownNetworks[numKnownNetworks] = settings;
-	numKnownNetworks += 1;
-
-	gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, numKnownNetworks * sizeof(WiFiSettings));
-
+	// if we reached here, we have to save the data to NVS
+	writeWifiSettingsToNvs();
 	return true;
 }
 
 uint8_t Wlan_NumSavedNetworks() {
-	return numKnownNetworks;
+	return knownNetworks.size();
 }
 
 void Wlan_GetSavedNetworks(std::function<void(const WiFiSettings &)> handler) {
-	for (uint8_t i = 0; i < numKnownNetworks; i++) {
-		handler(knownNetworks[i]);
+	for (const auto &el : knownNetworks) {
+		handler(el);
 	}
 }
 
@@ -535,24 +563,13 @@ const String Wlan_GetHostname() {
 bool Wlan_DeleteNetwork(String ssid) {
 	Log_Printf(LOGLEVEL_NOTICE, wifiDeleteNetwork, ssid.c_str());
 
-	for (uint8_t i = 0; i < numKnownNetworks; i++) {
-		if (strncmp(ssid.c_str(), knownNetworks[i].ssid, 32) == 0) {
-
-			// delete and move all following elements to the left
-			std::copy(&knownNetworks[i + 1], &knownNetworks[numKnownNetworks], &knownNetworks[i]);
-			numKnownNetworks--;
-
-			size_t new_length = numKnownNetworks * sizeof(WiFiSettings);
-
-			if (new_length == 0) {
-				gPrefsSettings.remove(nvsWiFiNetworksKey);
-			} else {
-				gPrefsSettings.putBytes(nvsWiFiNetworksKey, knownNetworks, new_length);
-			}
-
-			return true;
-		}
+	auto it = getWifiSetting(ssid);
+	if (it != knownNetworks.end()) {
+		knownNetworks.erase(it);
+		writeWifiSettingsToNvs();
+		return true;
 	}
+
 	// ssid not found
 	return false;
 }
