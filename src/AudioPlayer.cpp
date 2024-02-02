@@ -400,13 +400,16 @@ void AudioPlayer_Task(void *parameter) {
 			AudioPlayer_CurrentTime = audio->getAudioCurrentTime();
 			AudioPlayer_FileDuration = audio->getAudioFileDuration();
 			// Calculate relative position in file (for trackprogress neopixel & web-ui)
-			if (!gPlayProperties.playlistFinished && !gPlayProperties.isWebstream) {
-				if (!gPlayProperties.pausePlay && (gPlayProperties.seekmode != SEEK_POS_PERCENT) && (audio->getFileSize() > 0)) { // To progress necessary when paused
-					gPlayProperties.currentRelPos = ((double) (audio->getFilePos() - audio->inBufferFilled()) / (double) audio->getFileSize()) * 100;
+			uint32_t fileSize = audio->getFileSize();
+			gPlayProperties.audioFileSize = fileSize;
+			if (!gPlayProperties.playlistFinished && fileSize > 0) {
+				// for local files and web files with known size
+				if (!gPlayProperties.pausePlay && (gPlayProperties.seekmode != SEEK_POS_PERCENT)) { // To progress necessary when paused
+					gPlayProperties.currentRelPos = ((double) (audio->getFilePos() - audio->getAudioDataStartPos() - audio->inBufferFilled()) / fileSize) * 100;
 				}
 			} else {
-				// calc current fillbuffer percent for webstream
 				if (gPlayProperties.isWebstream && (audio->inBufferSize() > 0)) {
+					// calc current fillbuffer percent for webstream with unknown size/end
 					gPlayProperties.currentRelPos = (double) (audio->inBufferFilled() / (double) audio->inBufferSize()) * 100;
 				} else {
 					gPlayProperties.currentRelPos = 0;
