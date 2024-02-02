@@ -28,6 +28,7 @@ typedef struct { // Bit field
 	bool lastSpeechActive		 : 1; // If speech-play was active
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
+	size_t audioFileSize; // file size of current audio file
 } playProps;
 
 extern playProps gPlayProperties;
