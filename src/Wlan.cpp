@@ -63,12 +63,156 @@ const String getHostname() {
 	return gPrefsSettings.getString("Hostname");
 }
 
-std::list<WiFiSettings>::iterator getWifiSetting(const char *ssid) {
-	return std::find_if(knownNetworks.begin(), knownNetworks.end(), [&ssid](const WiFiSettings &s) { return strncmp(s.ssid, ssid, 32) == 0; });
+/**
+ * @brief Load WiFiSettings from NVS blob
+ * @param key The key to load
+ * @return WiFiSettings The deserialized settings from the key
+ */
+static WiFiSettings loadWiFiSettingsFromNvs(const char *key) {
+	std::vector<uint8_t> buffer;
+	buffer.resize(prefsWifiSettings.getBytesLength(key));
+	prefsWifiSettings.getBytes(key, buffer.data(), buffer.size());
+	return WiFiSettings(buffer);
+}
+static WiFiSettings loadWiFiSettingsFromNvs(const String key) {
+	return loadWiFiSettingsFromNvs(key.c_str());
 }
 
-std::list<WiFiSettings>::iterator getWifiSetting(const String ssid) {
-	return getWifiSetting(ssid.c_str());
+/**
+ * @brief Write serialized WiFiSettings to an NVS blob
+ * @param key The kay used to store the data
+ * @param s The data to be stored
+ * @return true When the data was written successfully
+ * @return false When the WiFISettings was inValid or the NVS write failed
+ */
+static bool storeWiFiSettingsToNvs(const char *key, const WiFiSettings &s) {
+	auto buffer = s.serialize();
+	if (!buffer) {
+		// Invalid WiFiSettings instance
+		return false;
+	}
+	return prefsWifiSettings.putBytes(key, buffer->data(), buffer->size()) == buffer->size();
+}
+static bool storeWiFiSettingsToNvs(const String key, const WiFiSettings &s) {
+	return storeWiFiSettingsToNvs(key.c_str(), s);
+}
+
+/**
+ * @brief Iterate and execute callback function over all WiFiSettings binary entries
+ * @param handler The callback to be called
+ */
+static void iterateNvsEntries(std::function<bool(const char *, const WiFiSettings &)> handler) {
+	nvs_iterator_t it = nvs_entry_find("nvs", nvsWiFiNamespace, NVS_TYPE_BLOB);
+	while (it) {
+		nvs_entry_info_t info;
+		nvs_entry_info(it, &info);
+
+		// check if we have a wifi setting
+		if (strncmp(info.key, nvsWiFiKey, strlen(nvsWiFiKey)) == 0) {
+			if (!handler(info.key, loadWiFiSettingsFromNvs(info.key))) {
+				// handler requested an abort
+				return;
+			}
+		}
+		it = nvs_entry_next(it);
+	}
+}
+
+/**
+ * @brief Search wifi entries and return key & WifiSettings object if found
+ * @param ssid The SSID
+ * @return std::optional<NvsEntry> A struct with the key and the WifiSettings
+ * @return std::nullopt if SSID was not found
+ */
+static std::optional<NvsEntry> getNvsWifiSettings(const char *ssid) {
+	std::optional<NvsEntry> ret = std::nullopt;
+
+	iterateNvsEntries([&ssid, &ret](const char *key, const WiFiSettings &setting) {
+		if (setting.isValid() && setting.ssid.equals(ssid)) {
+			// we found our key, so break the loop
+			ret = NvsEntry(key, setting);
+			return false;
+		}
+		// go on, give us another one...
+		return true;
+	});
+	return ret;
+}
+static std::optional<NvsEntry> getNvsWifiSettings(const String ssid) {
+	return getNvsWifiSettings(ssid.c_str());
+}
+
+/// @brief Migrate version 1 WiFi (single network) entries to current version
+static void migrateFromVersion1() {
+	if (gPrefsSettings.isKey("SSID")) {
+		const String strSSID = gPrefsSettings.getString("SSID");
+		const String strPassword = gPrefsSettings.getString("Password");
+		Log_Println("migrating from old wifi NVS settings!", LOGLEVEL_NOTICE);
+		gPrefsSettings.putString("LAST_SSID", strSSID);
+
+		WiFiSettings entry;
+		entry.ssid = std::move(strSSID);
+		entry.password = std::move(strPassword);
+
+#ifdef STATIC_IP_ENABLE
+		entry.staticIp = WiFiSettings::StaticIp(IPAddress(LOCAL_IP), IPAddress(SUBNET_IP), IPAddress(GATEWAY_IP), IPAddress(DNS_IP));
+#endif
+
+		Wlan_AddNetworkSettings(entry);
+		// clean up old values from nvs
+		gPrefsSettings.remove("SSID");
+		gPrefsSettings.remove("Password");
+	}
+}
+
+/// @brief Migrate Version 2 (single entry with max 10 binary entries) to current version
+static void migrateFromVersion2() {
+	constexpr const char *nvsKey = "SAVED_WIFIS";
+	struct OldWiFiSettings {
+		char ssid[33] {0};
+		char password[65] {0};
+		bool use_static_ip {false};
+		uint32_t static_addr {0};
+		uint32_t static_gateway {0};
+		uint32_t static_subnet {0};
+		uint32_t static_dns1 {0};
+		uint32_t static_dns2 {0};
+
+		OldWiFiSettings() = default;
+	};
+
+	if (gPrefsSettings.isKey(nvsKey)) {
+		iterateNvsEntries([](const char *key, const WiFiSettings &) {
+			prefsWifiSettings.remove(key);
+			return true;
+		});
+
+		const size_t numNetworks = gPrefsSettings.getBytesLength(nvsKey) / sizeof(OldWiFiSettings);
+		OldWiFiSettings *settings = new OldWiFiSettings[numNetworks];
+		gPrefsSettings.getBytes(nvsKey, settings, numNetworks * sizeof(OldWiFiSettings));
+		Log_Println("migrating from old wifi NVS settings!", LOGLEVEL_NOTICE);
+		for (size_t i = 0; i < numNetworks; i++) {
+			OldWiFiSettings &s = settings[i];
+			// convert the old wifi settings to the new structure
+			WiFiSettings entry;
+			entry.ssid = s.ssid;
+			entry.password = s.password;
+
+			if (settings[i].use_static_ip) {
+				// fill out the static structure
+				entry.staticIp = WiFiSettings::StaticIp(s.static_addr, s.static_subnet, s.static_gateway, s.static_dns1, s.static_dns2);
+			}
+
+			// validate the data and write the entry
+			if (entry.isValid()) {
+				Wlan_AddNetworkSettings(entry);
+			}
+		}
+
+		// clean up old nvs entries
+		delete settings;
+		gPrefsSettings.remove(nvsKey);
+	}
 }
 
 void Wlan_Init(void) {
@@ -150,14 +294,9 @@ void connectToKnownNetwork(const WiFiSettings &settings, byte *bssid = nullptr) 
 		WiFi.setHostname(hostname.c_str());
 	}
 
-	if (settings.use_static_ip) {
+	if (settings.staticIp.isValid()) {
 		Log_Println(tryStaticIpConfig, LOGLEVEL_NOTICE);
-		if (!WiFi.config(
-				IPAddress(settings.static_addr),
-				IPAddress(settings.static_gateway),
-				IPAddress(settings.static_subnet),
-				IPAddress(settings.static_dns1),
-				IPAddress(settings.static_dns2))) {
+		if (!WiFi.config(settings.staticIp.addr, settings.staticIp.gateway, settings.staticIp.subnet, settings.staticIp.dns1, settings.staticIp.dns2)) {
 			Log_Println(staticIPConfigFailed, LOGLEVEL_ERROR);
 		}
 	}
@@ -273,21 +412,21 @@ void handleWifiStateScanConnect() {
 		String issid = WiFi.SSID(i);
 		byte *bssid = WiFi.BSSID(i);
 		// check if ssid name matches any saved ssid
-		for (const auto &el : knownNetworks) {
-			if (issid.equals(el.ssid)) {
-				connectToKnownNetwork(el, bssid);
+		const auto it = getWifiSetting(issid);
+		if (it != knownNetworks.end()) {
+			// we found the entry
+			connectToKnownNetwork(*it, bssid);
 
-				// prepare for next iteration
-				if (connectionAttemptCounter > 0) {
-					scanIndex = i + 1;
-					connectionAttemptCounter = 0;
-				} else {
-					scanIndex = i;
-					connectionAttemptCounter++;
-				}
-
-				return;
+			// prepare for next iteration
+			if (connectionAttemptCounter > 0) {
+				scanIndex = i + 1;
+				connectionAttemptCounter = 0;
+			} else {
+				scanIndex = i;
+				connectionAttemptCounter++;
 			}
+
+			return;
 		}
 	}
 
@@ -494,52 +633,31 @@ bool Wlan_SetHostname(String newHostname) {
 	return gPrefsSettings.putString("Hostname", newHostname) == newHostname.length();
 }
 
-// write wifi settings into NVS using the current storage version
-void writeWifiSettingsToNvs() {
-	if (knownNetworks.size() == 0) {
-		// just remove the key
-		gPrefsSettings.remove(nvsWiFiNetworksKey);
-		return;
+bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {
+	// find the entry if the network already exists
+	auto nvsSetting = getNvsWifiSettings(settings.ssid);
+	if (nvsSetting) {
+		// we are updating an existing entry
+		Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, settings.ssid);
+		settings.serialize(nvsSetting->key);
+		return true;
 	}
 
-	// create a POD array of WiFiSettings, which we then can dump into the NVS
-	WiFiSettings *nvsBlob = new WiFiSettings[knownNetworks.size()];
-	size_t i = 0;
-	for (const auto &el : knownNetworks) {
-		nvsBlob[i] = el;
-		i++;
-	}
-	// and dump
-	gPrefsSettings.putBytes(nvsWiFiNetworksKey, nvsBlob, knownNetworks.size() * sizeof(WiFiSettings));
-
-	// clean up dyanmic array
-	delete nvsBlob;
-}
-
-bool Wlan_AddNetworkSettings(WiFiSettings settings) {
-	settings.ssid[32] = '\0';
-	settings.password[64] = '\0';
-
-	// check if we are updating
-	auto it = getWifiSetting(settings.ssid);
-	if (it != knownNetworks.end()) {
-		// we already have the ssid int he list, so update it is
-		*it = settings;
-	} else {
-		// we did not have it, so add a new entry
-
-		if (knownNetworks.size() >= maxSavedNetworks) {
-			// or not
-			Log_Println(wifiAddTooManyNetworks, LOGLEVEL_ERROR);
-			return false;
+	// this is a new entry, find the first unused key
+	for (size_t i = 0; i < maxSavedNetworks; i++) {
+		char key[NVS_KEY_NAME_MAX_SIZE];
+		snprintf(key, NVS_KEY_NAME_MAX_SIZE, nvsWiFiKeyFormat, i);
+		if (!prefsWifiSettings.isKey(key)) {
+			// we found a slot, use it
+			Log_Printf(LOGLEVEL_NOTICE, wifiAddNetwork, settings.ssid);
+			settings.serialize(key);
+			return true;
 		}
-
-		knownNetworks.push_front(settings); // linked list, so push_front is more performant
 	}
 
-	// if we reached here, we have to save the data to NVS
-	writeWifiSettingsToNvs();
-	return true;
+	// if we reach here, we did not find a free slot
+	Log_Println(wifiAddTooManyNetworks, LOGLEVEL_ERROR);
+	return false;
 }
 
 uint8_t Wlan_NumSavedNetworks() {
@@ -643,3 +761,79 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 bool Wlan_IsConnected(void) {
 	return (wifiState == WIFI_STATE_CONNECTED);
 }
+
+std::optional<std::vector<uint8_t>> WiFiSettings::serialize() const {
+	if (!isValid()) {
+		// we refuse to serialize a corrupted data set
+		Log_Println("Data corrupted, will not serialize", LOGLEVEL_ERROR);
+		return std::nullopt;
+	}
+
+	// calculate the length of the entry
+	const size_t binaryLen = serializeStringLen(ssid) + serializeStringLen(password) + serializeStaticIpLen(staticIp);
+	std::vector<uint8_t> buffer;
+	buffer.resize(binaryLen);
+
+	// the write iterator
+	auto it = buffer.begin();
+
+	// write the ssid
+	serializeString(it, ssid);
+
+	// write the password
+	serializeString(it, password);
+
+	// write the static IPs
+	serializeStaticIp(it, staticIp);
+
+	return buffer;
+}
+
+void WiFiSettings::deserialize(const std::vector<uint8_t> &buffer) {
+	// prepare the read iterator
+	auto it = buffer.cbegin();
+
+	// read the ssid
+	deserializeString(it, ssid);
+
+	// read the password
+	deserializeString(it, password);
+
+	// read the static ip settings
+	deserializeStaticIp(it, staticIp);
+}
+
+void WiFiSettings::serializeString(std::vector<uint8_t>::iterator &it, const String &s) const {
+	*it = s.length();
+	it++;
+	it = std::copy(s.begin(), s.end(), it);
+	*it = '\0';
+	it++;
+};
+
+void WiFiSettings::deserializeString(std::vector<uint8_t>::const_iterator &it, String &s) {
+	const uint8_t len = *it;
+	s.reserve(len + 1);
+	it++;
+	s = (char *) &(*it);
+	it += len + 1;
+};
+
+void WiFiSettings::serializeStaticIp(std::vector<uint8_t>::iterator &it, const StaticIp &ip) const {
+	*it = ip.isValid();
+	it++;
+	if (ip.isValid()) {
+		// serialize the whole thing
+		ip.serialize((uint32_t *) &(*it));
+		it += StaticIp::numFields * sizeof(uint32_t);
+	}
+};
+
+void WiFiSettings::deserializeStaticIp(std::vector<uint8_t>::const_iterator &it, StaticIp &ip) {
+	const bool hasStatisIp = *it;
+	it++;
+	if (hasStatisIp) {
+		ip.deserialize((uint32_t *) &(*it));
+		it += sizeof(uint32_t) * StaticIp::numFields;
+	}
+};

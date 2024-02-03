@@ -1680,36 +1680,26 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	WiFiSettings networkSettings;
 
-	struct WiFiSettings networkSettings;
+	networkSettings.ssid = json["ssid"].as<const char *>();
+	networkSettings.password = json["pwd"].as<const char *>();
 
-	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
-	strncpy(networkSettings.ssid, (const char *) jsonObj["ssid"], 32);
-	networkSettings.ssid[32] = '\0';
-	strncpy(networkSettings.password, (const char *) jsonObj["pwd"], 64);
-	networkSettings.password[64] = '\0';
+	if (json["static"]) {
+		networkSettings.staticIp.addr = IPAddress().fromString(json["static_addr"].as<const char *>());
+		networkSettings.staticIp.subnet = IPAddress().fromString(json["static_subnet"].as<const char *>());
+		networkSettings.staticIp.gateway = IPAddress().fromString(json["static_gateway"].as<const char *>());
+		networkSettings.staticIp.dns1 = IPAddress().fromString(json["static_dns1"].as<const char *>());
+		networkSettings.staticIp.dns1 = IPAddress().fromString(json["static_dns2"].as<const char *>());
+	}
 
-	networkSettings.use_static_ip = (bool) jsonObj["static"];
-
-	if (jsonObj.containsKey("static_addr")) {
-		networkSettings.static_addr = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_addr"]);
-	}
-	if (jsonObj.containsKey("static_gateway")) {
-		networkSettings.static_gateway = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_gateway"]);
-	}
-	if (jsonObj.containsKey("static_subnet")) {
-		networkSettings.static_subnet = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_subnet"]);
-	}
-	if (jsonObj.containsKey("static_dns1")) {
-		networkSettings.static_dns1 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns1"]);
-	}
-	if (jsonObj.containsKey("static_dns2")) {
-		networkSettings.static_dns2 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns2"]);
+	if (!networkSettings) {
+		// The data was corrupted, so user error
+		request->send(400, "text/plain; charset=utf-8", "error adding network");
+		return;
 	}
 
 	bool succ = Wlan_AddNetworkSettings(networkSettings);
-
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", networkSettings.ssid);
 	} else {
