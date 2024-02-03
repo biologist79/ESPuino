@@ -108,7 +108,7 @@ protected:
 
 void Wlan_Init(void);
 void Wlan_Cyclic(void);
-bool Wlan_AddNetworkSettings(WiFiSettings);
+bool Wlan_AddNetworkSettings(const WiFiSettings &);
 uint8_t Wlan_NumSavedNetworks();
 void Wlan_GetSavedNetworks(std::function<void(const WiFiSettings &)>);
 const String Wlan_GetCurrentSSID();

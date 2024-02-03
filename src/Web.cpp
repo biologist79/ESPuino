@@ -1693,7 +1693,7 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 		networkSettings.staticIp.dns1 = IPAddress().fromString(json["static_dns2"].as<const char *>());
 	}
 
-	if (!networkSettings) {
+	if (!networkSettings.isValid()) {
 		// The data was corrupted, so user error
 		request->send(400, "text/plain; charset=utf-8", "error adding network");
 		return;
