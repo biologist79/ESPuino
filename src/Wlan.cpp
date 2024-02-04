@@ -193,11 +193,6 @@ static void migrateFromVersion2() {
 	};
 
 	if (gPrefsSettings.isKey(nvsKey)) {
-		iterateNvsEntries([](const char *key, const WiFiSettings &) {
-			prefsWifiSettings.remove(key);
-			return true;
-		});
-
 		const size_t numNetworks = gPrefsSettings.getBytesLength(nvsKey) / sizeof(OldWiFiSettings);
 		OldWiFiSettings *settings = new OldWiFiSettings[numNetworks];
 		gPrefsSettings.getBytes(nvsKey, settings, numNetworks * sizeof(OldWiFiSettings));
@@ -247,6 +242,21 @@ void Wlan_Init(void) {
 		wifiState = WIFI_STATE_END;
 		return;
 	}
+
+	// dump all network settings
+	iterateNvsEntries([](const char *, const WiFiSettings &s) {
+		char buffer[128]; // maximum buffer needed when we have static IP
+		const char *ipMode = "dynamic IP";
+
+		if (s.staticIp.isValid()) {
+			snprintf(buffer, sizeof(buffer), "ip: %s, subnet: %s, gateway: %s, dns1: %s, dns2: %s", s.staticIp.addr.toString().c_str(),
+				s.staticIp.subnet.toString().c_str(), s.staticIp.gateway.toString().c_str(), s.staticIp.dns1.toString().c_str(),
+				s.staticIp.dns2.toString().c_str());
+			ipMode = buffer;
+		}
+		Log_Printf(LOGLEVEL_DEBUG, "SSID: %s, Password: %s, %s", s.ssid.c_str(), (s.password.length()) ? "yes" : "no", ipMode);
+		return true;
+	});
 
 	// The use of dynamic allocation is recommended to save memory and reduce resources usage.
 	// However, the dynamic performs slightly slower than the static allocation.
@@ -614,8 +624,7 @@ bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {
 	if (nvsSetting) {
 		// we are updating an existing entry
 		Log_Printf(LOGLEVEL_NOTICE, wifiUpdateNetwork, settings.ssid);
-		storeWiFiSettingsToNvs(nvsSetting->key, settings);
-		return true;
+		return storeWiFiSettingsToNvs(nvsSetting->key, settings);
 	}
 
 	// this is a new entry, find the first unused key
@@ -625,8 +634,7 @@ bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {
 		if (!prefsWifiSettings.isKey(key)) {
 			// we found a slot, use it
 			Log_Printf(LOGLEVEL_NOTICE, wifiAddNetwork, settings.ssid);
-			storeWiFiSettingsToNvs(key, settings);
-			return true;
+			return storeWiFiSettingsToNvs(key, settings);
 		}
 	}
 
