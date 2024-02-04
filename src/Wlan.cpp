@@ -52,7 +52,6 @@ static unsigned long connectStartTimestamp = 0;
 static uint32_t connectionFailedTimestamp = 0;
 
 // state for persistent settings
-static constexpr size_t maxSavedNetworks = 20;
 static constexpr const char *nvsWiFiNamespace = "wifi-settings";
 static constexpr const char *nvsWiFiKey = "wifi-";
 static constexpr const char *nvsWiFiKeyFormat = "wifi-%02u";
@@ -620,7 +619,7 @@ bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {
 	}
 
 	// this is a new entry, find the first unused key
-	for (size_t i = 0; i < maxSavedNetworks; i++) {
+	for (uint8_t i = 0; i < std::numeric_limits<uint8_t>::max(); i++) {
 		char key[NVS_KEY_NAME_MAX_SIZE];
 		snprintf(key, NVS_KEY_NAME_MAX_SIZE, nvsWiFiKeyFormat, i);
 		if (!prefsWifiSettings.isKey(key)) {
