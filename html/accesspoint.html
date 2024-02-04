@@ -166,11 +166,13 @@
 			};
 			
 			if (static) {
-				myObj[static_addr] = document.getElementById('static_addr').value;
-				myObj[static_gateway] = document.getElementById('static_gateway').value;
-				myObj[static_subnet] = document.getElementById('static_subnet').value;
-				myObj[static_dns1] = document.getElementById('static_dns1').value;
-				myObj[static_dns2] = document.getElementById('static_dns2').value;
+				myObj = {...myObj,
+					static_addr: document.getElementById('static_addr').value,
+					static_gateway: document.getElementById('static_gateway').value,
+					static_subnet: document.getElementById('static_subnet').value,
+					static_dns1: document.getElementById('static_dns1').value,
+					static_dns2: document.getElementById('static_dns2').value,
+				};
 			}
 
 			await fetch("/savedSSIDs", {

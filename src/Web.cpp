@@ -93,6 +93,18 @@ static void settingsToJSON(JsonObject obj, const String section);
 static bool JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
+// IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
+void convertFromJson(JsonVariantConst src, IPAddress &dst) {
+	dst.fromString(src.as<const char *>());
+}
+bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
+	if (!src.is<const char *>()) {
+		return false; // this is not a string
+	}
+	IPAddress dst;
+	return dst.fromString(src.as<const char *>());
+}
+
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
 	void *allocate(size_t size) {
@@ -1685,12 +1697,12 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	networkSettings.ssid = json["ssid"].as<const char *>();
 	networkSettings.password = json["pwd"].as<const char *>();
 
-	if (json["static"]) {
-		networkSettings.staticIp.addr = IPAddress().fromString(json["static_addr"].as<const char *>());
-		networkSettings.staticIp.subnet = IPAddress().fromString(json["static_subnet"].as<const char *>());
-		networkSettings.staticIp.gateway = IPAddress().fromString(json["static_gateway"].as<const char *>());
-		networkSettings.staticIp.dns1 = IPAddress().fromString(json["static_dns1"].as<const char *>());
-		networkSettings.staticIp.dns1 = IPAddress().fromString(json["static_dns2"].as<const char *>());
+	if (json["static"].as<bool>()) {
+		networkSettings.staticIp.addr = json["static_addr"].as<IPAddress>();
+		networkSettings.staticIp.subnet = json["static_subnet"].as<IPAddress>();
+		networkSettings.staticIp.gateway = json["static_gateway"].as<IPAddress>();
+		networkSettings.staticIp.dns1 = json["static_dns1"].as<IPAddress>();
+		networkSettings.staticIp.dns2 = json["static_dns2"].as<IPAddress>();
 	}
 
 	if (!networkSettings.isValid()) {
