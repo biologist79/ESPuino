@@ -271,6 +271,13 @@
             "criticalShutoff": "En dessous de cette tension, ESPuino s'éteint.",
             "high": "Tension indiquée par toutes les LED",
             "measureInterval": "Intervalle entre les mesures (en minutes)"
+        },
+        "playlist": {
+            "title": "Playlist",
+            "sortMode": "Mode de tri pour la liste de lecture et le navigateur de fichiers",
+            "strcmp": "Tri standard",
+            "strnatcmp": "Naturel: sensible à la casse",
+            "strnatcasecmp": "Naturel: insensible à la casse"
         }
     },
     "tools": {

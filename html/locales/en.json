@@ -269,6 +269,13 @@
             "criticalShutoff": "Below this voltage, ESPuino turns off.",
             "high": "Voltage, that is indicated by all LEDs",
             "measureInterval": "Interval between measurements (in minutes)"
+        },
+        "playlist": {
+            "title": "Playlist",
+            "sortMode": "Sorting mode for playlist and file browser",
+            "strcmp": "Standard sorting",
+            "strnatcmp": "Natural: case-sensitive",
+            "strnatcasecmp": "Natural: case-insensitive"
         }
     },
     "tools": {

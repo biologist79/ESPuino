@@ -10,6 +10,7 @@
 #include "Cmd.h"
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
+#include "EnumUtils.h"
 #include "Ftp.h"
 #include "HTMLbinary.h"
 #include "HallEffectSensor.h"
@@ -650,6 +651,13 @@ bool JSONToSettings(JsonObject doc) {
 		}
 		Battery_Init();
 	}
+	if (doc.containsKey("playlist")) {
+		// playlist settings
+		if (!AudioPlayer_SetPlaylistSortMode(doc["playlist"]["sortMode"].as<uint8_t>())) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
+			return false;
+		}
+	}
 	if (doc.containsKey("ftp")) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
@@ -814,6 +822,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 	}
 #endif
+	// playlist
+	if ((section == "") || (section == "playlist")) {
+		JsonObject playlistObj = obj.createNestedObject("playlist");
+		playlistObj["sortMode"] = EnumUtils::underlying_value(AudioPlayer_GetPlaylistSortMode());
+	}
 #ifdef BATTERY_MEASURE_ENABLE
 	if ((section == "") || (section == "battery")) {
 		// battery settings
@@ -841,6 +854,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		defaultsObj["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
 #endif
+		defaultsObj["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));
 #ifdef BATTERY_MEASURE_ENABLE
 	#ifdef MEASURE_BATTERY_VOLTAGE
 		defaultsObj["warnLowVoltage"].set(s_warningLowVoltage);
