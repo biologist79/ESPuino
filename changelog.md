@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 05.02.2024: Increase JSON buffer for /debug endpoint
+* 02.02.2024: Improve progress calculation/indication, thanks to @freddy36 !
 * 01.02.2024: Use NVS interator when reading RFID keys, save 4KB RAM , thanks to @laszloh !
 * 01.02.2024: Use dynamically allocated buffer for file upload, save 32KB RAM , thanks to @laszloh !
 * 30.01.2024: Add French Language (#292), thanks to @damda58 !

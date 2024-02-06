@@ -1011,9 +1011,9 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 void handleDebugRequest(AsyncWebServerRequest *request) {
 
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(1000);
+	SpiRamJsonDocument doc(2048);
 #else
-	StaticJsonDocument<1000> doc;
+	StaticJsonDocument<2048> doc;
 #endif
 
 	JsonObject infoObj = doc.createNestedObject("info");
