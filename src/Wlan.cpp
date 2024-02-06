@@ -85,7 +85,7 @@ static WiFiSettings loadWiFiSettingsFromNvs(const char *key) {
 	prefsWifiSettings.getBytes(key, buffer.data(), buffer.size());
 	return WiFiSettings(buffer);
 }
-static WiFiSettings loadWiFiSettingsFromNvs(const String key) {
+[[maybe_unused]] static WiFiSettings loadWiFiSettingsFromNvs(const String &key) {
 	return loadWiFiSettingsFromNvs(key.c_str());
 }
 
@@ -104,7 +104,7 @@ static bool storeWiFiSettingsToNvs(const char *key, const WiFiSettings &s) {
 	}
 	return prefsWifiSettings.putBytes(key, buffer->data(), buffer->size()) == buffer->size();
 }
-static bool storeWiFiSettingsToNvs(const String key, const WiFiSettings &s) {
+[[maybe_unused]] static bool storeWiFiSettingsToNvs(const String &key, const WiFiSettings &s) {
 	return storeWiFiSettingsToNvs(key.c_str(), s);
 }
 
