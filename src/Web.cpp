@@ -93,6 +93,18 @@ static void settingsToJSON(JsonObject obj, const String section);
 static bool JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
+// IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
+void convertFromJson(JsonVariantConst src, IPAddress &dst) {
+	dst.fromString(src.as<const char *>());
+}
+bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
+	if (!src.is<const char *>()) {
+		return false; // this is not a string
+	}
+	IPAddress dst;
+	return dst.fromString(src.as<const char *>());
+}
+
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator {
 	void *allocate(size_t size) {
@@ -1680,36 +1692,26 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	WiFiSettings networkSettings;
 
-	struct WiFiSettings networkSettings;
+	networkSettings.ssid = json["ssid"].as<const char *>();
+	networkSettings.password = json["pwd"].as<const char *>();
 
-	// TODO: we truncate ssid and password, which is better than not checking at all, but still silently failing
-	strncpy(networkSettings.ssid, (const char *) jsonObj["ssid"], 32);
-	networkSettings.ssid[32] = '\0';
-	strncpy(networkSettings.password, (const char *) jsonObj["pwd"], 64);
-	networkSettings.password[64] = '\0';
+	if (json["static"].as<bool>()) {
+		networkSettings.staticIp.addr = json["static_addr"].as<IPAddress>();
+		networkSettings.staticIp.subnet = json["static_subnet"].as<IPAddress>();
+		networkSettings.staticIp.gateway = json["static_gateway"].as<IPAddress>();
+		networkSettings.staticIp.dns1 = json["static_dns1"].as<IPAddress>();
+		networkSettings.staticIp.dns2 = json["static_dns2"].as<IPAddress>();
+	}
 
-	networkSettings.use_static_ip = (bool) jsonObj["static"];
-
-	if (jsonObj.containsKey("static_addr")) {
-		networkSettings.static_addr = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_addr"]);
-	}
-	if (jsonObj.containsKey("static_gateway")) {
-		networkSettings.static_gateway = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_gateway"]);
-	}
-	if (jsonObj.containsKey("static_subnet")) {
-		networkSettings.static_subnet = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_subnet"]);
-	}
-	if (jsonObj.containsKey("static_dns1")) {
-		networkSettings.static_dns1 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns1"]);
-	}
-	if (jsonObj.containsKey("static_dns2")) {
-		networkSettings.static_dns2 = (uint32_t) IPAddress().fromString((const char *) jsonObj["static_dns2"]);
+	if (!networkSettings.isValid()) {
+		// The data was corrupted, so user error
+		request->send(400, "text/plain; charset=utf-8", "error adding network");
+		return;
 	}
 
 	bool succ = Wlan_AddNetworkSettings(networkSettings);
-
 	if (succ) {
 		request->send(200, "text/plain; charset=utf-8", networkSettings.ssid);
 	} else {
