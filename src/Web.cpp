@@ -1273,11 +1273,12 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 
 		// Create Task for handling the storage of the data
+		const char *filePathCopy = x_strdup(filePath);
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
 			"fileStorageTask", /* Name of the task */
 			4000, /* Stack size in words */
-			filePath, /* Task input parameter */
+			(void *) filePathCopy, /* Task input parameter */
 			2 | portPRIVILEGE_BIT, /* Priority of the task */
 			&fileStorageTaskHandle, /* Task handle. */
 			1 /* Core where the task should run */
@@ -1354,7 +1355,10 @@ void feedTheDog(void) {
 #endif
 }
 
+// task for writing uploaded data from buffer to SD
+// parameter contains the target file path and must be freed by the task.
 void explorerHandleFileStorageTask(void *parameter) {
+	const char *filePath = (const char *) parameter;
 	File uploadFile;
 	size_t bytesOk = 0;
 	size_t bytesNok = 0;
@@ -1365,7 +1369,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open((char *) parameter, "w");
+	uploadFile = gFSystem.open(filePath, "w");
 	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
@@ -1397,7 +1401,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 			if (uploadFileNotification == pdPASS) {
 				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, fileWritten, (char *) parameter, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_INFO, fileWritten, filePath, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
 				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
 				// done exit loop to terminate
 				break;
@@ -1405,6 +1409,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 		} else {
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis() || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 2u)) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+				free(parameter);
 				// resume the paused tasks
 				Led_TaskResume();
 				vTaskResume(AudioTaskHandle);
@@ -1419,6 +1424,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 			continue;
 		}
 	}
+	free(parameter);
 	// resume the paused tasks
 	Led_TaskResume();
 	vTaskResume(AudioTaskHandle);
