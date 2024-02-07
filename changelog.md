@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 07.02.2024: fix dangling pointer in explorerHandleFileStorageTask (#297), thanks to @freddy36 !
+* 07.02.2024: Reduce WiFi memory consumption (#295), thanks to @laszloh !
 * 05.02.2024: Increase JSON buffer for /debug endpoint
 * 02.02.2024: Improve progress calculation/indication, thanks to @freddy36 !
 * 01.02.2024: Use NVS interator when reading RFID keys, save 4KB RAM , thanks to @laszloh !
