@@ -26,6 +26,7 @@ const char dirOrFileDoesNotExist[] = "Le fichier ou le répertoire n'existe pas 
 const char unableToAllocateMemForPlaylist[] = "Impossible d'allouer de la mémoire pour la liste de lecture !";
 const char unableToAllocateMem[] = "Impossible d'allouer de la mémoire !";
 const char fileModeDetected[] = "Mode fichier détecté.";
+const char fileInvalid[] = "Fichier non valide: %s";
 const char nameOfFileFound[] = "Fichier trouvé : %s";
 const char reallocCalled[] = "Mémoire réallouée.";
 const char unableToAllocateMemForLinearPlaylist[] = "Impossible d'allouer de la mémoire pour la liste de lecture linéaire !";

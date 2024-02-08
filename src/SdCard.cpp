@@ -324,8 +324,11 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 			strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
 			if (fileValid(fileNameBuf)) {
 				files[1] = x_strdup(fileNameBuf);
+				files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
+			} else {
+				files[0] = x_strdup("0"); // empty playlist
+				Log_Printf(LOGLEVEL_ERROR, fileInvalid, fileNameBuf);
 			}
-			files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
 
 			return &(files[1]);
 		}
