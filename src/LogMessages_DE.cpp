@@ -27,6 +27,7 @@ const char dirOrFileDoesNotExist[] = "Datei oder Verzeichnis existiert nicht: %s
 const char unableToAllocateMemForPlaylist[] = "Speicher für Playlist konnte nicht allokiert werden!";
 const char unableToAllocateMem[] = "Speicher konnte nicht allokiert werden!";
 const char fileModeDetected[] = "Dateimodus erkannt.";
+const char fileInvalid[] = "Ungültige Datei: %s";
 const char nameOfFileFound[] = "Gefundenes File: %s";
 const char reallocCalled[] = "Speicher reallokiert.";
 const char unableToAllocateMemForLinearPlaylist[] = "Speicher für lineare Playlist konnte nicht allokiert werden!";

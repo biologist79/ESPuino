@@ -23,6 +23,7 @@ extern const char dirOrFileDoesNotExist[];
 extern const char unableToAllocateMemForPlaylist[];
 extern const char unableToAllocateMem[];
 extern const char fileModeDetected[];
+extern const char fileInvalid[];
 extern const char nameOfFileFound[];
 extern const char reallocCalled[];
 extern const char unableToAllocateMemForLinearPlaylist[];

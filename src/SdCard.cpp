@@ -311,7 +311,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 	// Don't read from m3u-file. Means: read filenames from SD and make playlist of it
 	if (!enablePlaylistFromM3u) {
 		Log_Println(playlistGen, LOGLEVEL_NOTICE);
-		char fileNameBuf[255];
+		const char *fileNameBuf;
 		// File-mode
 		if (!fileOrDirectory.isDirectory()) {
 			files = (char **) x_malloc(sizeof(char *) * 2);
@@ -321,11 +321,14 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 				return nullptr;
 			}
 			Log_Println(fileModeDetected, LOGLEVEL_INFO);
-			strncpy(fileNameBuf, fileOrDirectory.path(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+			fileNameBuf = fileOrDirectory.path();
 			if (fileValid(fileNameBuf)) {
 				files[1] = x_strdup(fileNameBuf);
+				files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
+			} else {
+				files[0] = x_strdup("0"); // empty playlist
+				Log_Printf(LOGLEVEL_ERROR, fileInvalid, fileNameBuf);
 			}
-			files[0] = x_strdup("1"); // Number of files is always 1 in file-mode
 
 			return &(files[1]);
 		}
@@ -347,7 +350,7 @@ char **SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
 			if (isDir) {
 				continue;
 			} else {
-				strncpy(fileNameBuf, MyfileName.c_str(), sizeof(fileNameBuf) / sizeof(fileNameBuf[0]));
+				fileNameBuf = MyfileName.c_str();
 				// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 				if (fileValid(fileNameBuf)) {
 					// Log_Printf(LOGLEVEL_INFO, "%s: %s", nameOfFileFound), fileNameBuf);
