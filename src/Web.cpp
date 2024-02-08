@@ -716,8 +716,7 @@ bool JSONToSettings(JsonObject doc) {
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc.containsKey("rfidAssign")) {
 		const char *_rfidIdAssinId = doc["rfidAssign"]["rfidIdMusic"];
-		char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
-		convertFilenameToAscii(doc["rfidAssign"]["fileOrUrl"], _fileOrUrlAscii);
+		const char *_fileOrUrlAscii = doc["rfidAssign"]["fileOrUrl"];
 		uint8_t _playMode = doc["rfidAssign"]["playMode"];
 		if (_playMode <= 0) {
 			Log_Println("rfidAssign: Invalid playmode", LOGLEVEL_ERROR);
@@ -1238,16 +1237,15 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	if (!index) {
 		String utf8Folder = "/";
 		String utf8FilePath;
-		static char filePath[MAX_FILEPATH_LENTGH];
 		if (request->hasParam("path")) {
 			const AsyncWebParameter *param = request->getParam("path");
 			utf8Folder = param->value() + "/";
 		}
 		utf8FilePath = utf8Folder + filename;
 
-		convertFilenameToAscii(utf8FilePath, filePath);
+		const char *filePath = utf8FilePath.c_str();
 
-		Log_Printf(LOGLEVEL_INFO, writingFile, utf8FilePath.c_str());
+		Log_Printf(LOGLEVEL_INFO, writingFile, filePath);
 
 		// Create Parent directories
 		explorerCreateParentDirectories(filePath);
@@ -1452,9 +1450,8 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	File root;
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
-		char filePath[MAX_FILEPATH_LENTGH];
 		param = request->getParam("path");
-		convertFilenameToAscii(param->value(), filePath);
+		const char *filePath = param->value().c_str();
 		root = gFSystem.open(filePath);
 	} else {
 		root = gFSystem.open("/");
@@ -1517,7 +1514,6 @@ bool explorerDeleteDirectory(File dir) {
 void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	File file;
 	AsyncWebParameter *param;
-	char filePath[MAX_FILEPATH_LENTGH];
 	// check has path param
 	if (!request->hasParam("path")) {
 		Log_Println("DOWNLOAD: No path variable set", LOGLEVEL_ERROR);
@@ -1526,16 +1522,16 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	}
 	// check file exists on SD card
 	param = request->getParam("path");
-	convertFilenameToAscii(param->value(), filePath);
+	const char *filePath = param->value().c_str();
 	if (!gFSystem.exists(filePath)) {
-		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  File not found on SD card: %s", param->value().c_str());
+		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  File not found on SD card: %s", filePath);
 		request->send(404);
 		return;
 	}
 	// check is file and not a directory
 	file = gFSystem.open(filePath);
 	if (file.isDirectory()) {
-		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  Cannot download a directory %s", param->value().c_str());
+		Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD:  Cannot download a directory %s", filePath);
 		request->send(404);
 		file.close();
 		return;
@@ -1569,31 +1565,29 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the file or directory
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	File file;
-	char filePath[MAX_FILEPATH_LENTGH];
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
 		param = request->getParam("path");
-		convertFilenameToAscii(param->value(), filePath);
+		const char *filePath = param->value().c_str();
 		if (gFSystem.exists(filePath)) {
 			// stop playback, file to delete might be in use
 			Cmd_Action(CMD_STOP);
 			file = gFSystem.open(filePath);
 			if (file.isDirectory()) {
 				if (explorerDeleteDirectory(file)) {
-					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
+					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", filePath);
 				} else {
-					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
+					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", filePath);
 				}
 			} else {
-				const String cPath = filePath;
 				if (gFSystem.remove(filePath)) {
-					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", param->value().c_str());
+					Log_Printf(LOGLEVEL_INFO, "DELETE:  %s deleted", filePath);
 				} else {
-					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", param->value().c_str());
+					Log_Printf(LOGLEVEL_ERROR, "DELETE:  Cannot delete %s", filePath);
 				}
 			}
 		} else {
-			Log_Printf(LOGLEVEL_ERROR, "DELETE:  Path %s does not exist", param->value().c_str());
+			Log_Printf(LOGLEVEL_ERROR, "DELETE:  Path %s does not exist", filePath);
 		}
 	} else {
 		Log_Println("DELETE:  No path variable set", LOGLEVEL_ERROR);
@@ -1607,13 +1601,12 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
-		char filePath[MAX_FILEPATH_LENTGH];
 		param = request->getParam("path");
-		convertFilenameToAscii(param->value(), filePath);
+		const char *filePath = param->value().c_str();
 		if (gFSystem.mkdir(filePath)) {
-			Log_Printf(LOGLEVEL_INFO, "CREATE:  %s created", param->value().c_str());
+			Log_Printf(LOGLEVEL_INFO, "CREATE:  %s created", filePath);
 		} else {
-			Log_Printf(LOGLEVEL_ERROR, "CREATE:  Cannot create %s", param->value().c_str());
+			Log_Printf(LOGLEVEL_ERROR, "CREATE:  Cannot create %s", filePath);
 		}
 	} else {
 		Log_Println("CREATE:  No path variable set", LOGLEVEL_ERROR);
@@ -1628,20 +1621,18 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
 		AsyncWebParameter *srcPath;
 		AsyncWebParameter *dstPath;
-		char srcFullFilePath[MAX_FILEPATH_LENTGH];
-		char dstFullFilePath[MAX_FILEPATH_LENTGH];
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
-		convertFilenameToAscii(srcPath->value(), srcFullFilePath);
-		convertFilenameToAscii(dstPath->value(), dstFullFilePath);
+		const char *srcFullFilePath = srcPath->value().c_str();
+		const char *dstFullFilePath = dstPath->value().c_str();
 		if (gFSystem.exists(srcFullFilePath)) {
 			if (gFSystem.rename(srcFullFilePath, dstFullFilePath)) {
-				Log_Printf(LOGLEVEL_INFO, "RENAME:  %s renamed to %s", srcPath->value().c_str(), dstPath->value().c_str());
+				Log_Printf(LOGLEVEL_INFO, "RENAME:  %s renamed to %s", srcFullFilePath, dstFullFilePath);
 			} else {
-				Log_Printf(LOGLEVEL_ERROR, "RENAME:  Cannot rename %s", srcPath->value().c_str());
+				Log_Printf(LOGLEVEL_ERROR, "RENAME:  Cannot rename %s", srcFullFilePath);
 			}
 		} else {
-			Log_Printf(LOGLEVEL_ERROR, "RENAME: Path %s does not exist", srcPath->value().c_str());
+			Log_Printf(LOGLEVEL_ERROR, "RENAME: Path %s does not exist", srcFullFilePath);
 		}
 	} else {
 		Log_Println("RENAME: No path variable set", LOGLEVEL_ERROR);
@@ -1659,8 +1650,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 	uint32_t playMode;
 	if (request->hasParam("path") && request->hasParam("playmode")) {
 		param = request->getParam("path");
-		char filePath[MAX_FILEPATH_LENTGH];
-		convertFilenameToAscii(param->value(), filePath);
+		const char *filePath = param->value().c_str();
 		param = request->getParam("playmode");
 		playModeString = param->value();
 
@@ -1927,8 +1917,7 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 	if (fileOrUrl.isEmpty()) {
 		fileOrUrl = "0";
 	}
-	char _fileOrUrlAscii[MAX_FILEPATH_LENTGH];
-	convertFilenameToAscii(fileOrUrl, _fileOrUrlAscii);
+	const char *_fileOrUrlAscii = fileOrUrl.c_str();
 	uint8_t _playModeOrModId;
 	if (jsonObj.containsKey("modId")) {
 		_playModeOrModId = jsonObj["modId"];
