@@ -31,7 +31,9 @@
 
 
 	//########################## MODULES #################################
-	//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
+	#ifndef PORT_EXPANDER_ENABLE
+		//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
+	#endif
 	//#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
 	#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
 	//#define MQTT_ENABLE                   // Make sure to configure mqtt-server and (optionally) username+pwd
@@ -71,9 +73,11 @@
 
 
 	//################## select RFID reader ##############################
-	#define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
+	//#define RFID_READER_TYPE_MFRC522_SPI    // use MFRC522 via SPI
 	//#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
-	//#define RFID_READER_TYPE_PN5180       // use PN5180 via SPI
+	#ifndef RFID_READER_TYPE_PN5180
+		//#define RFID_READER_TYPE_PN5180       // use PN5180 via SPI
+	#endif
 
 	#ifdef RFID_READER_TYPE_MFRC522_I2C
 		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
@@ -212,7 +216,9 @@
 	//#################### Settings for optional Modules##############################
 	// (optinal) Neopixel
 	#ifdef NEOPIXEL_ENABLE
-		#define NUM_INDICATOR_LEDS		24          	// number of Neopixel LEDs (formerly NUM_LEDS)
+		#ifndef NUM_INDICATOR_LEDS
+			#define NUM_INDICATOR_LEDS		24          	// number of Neopixel LEDs (formerly NUM_LEDS)
+		#endif
 		#define NUM_CONTROL_LEDS		0		// optional control leds (https://forum.espuino.de/t/statische-ws2812-leds/1703)
                 #define CONTROL_LEDS_COLORS		{}		// Colors for the control LEDs. Make sure it lists at least NUM_CONTROL_LEDS colors, e.g. for three control LEDs define: CONTROL_LEDS_COLORS {CRGB::Yellow, CRGB::Blue, 0xFFFFFF} (predefined colors: http://fastled.io/docs/3.1/struct_c_r_g_b.html)
 		#define CHIPSET					WS2812B     	// type of Neopixel
