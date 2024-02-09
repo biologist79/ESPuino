@@ -1209,24 +1209,6 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 	}
 }
 
-void explorerCreateParentDirectories(const char *filePath) {
-	char tmpPath[MAX_FILEPATH_LENTGH];
-	char *rest;
-
-	rest = strchr(filePath, '/');
-	while (rest) {
-		if (rest - filePath != 0) {
-			memcpy(tmpPath, filePath, rest - filePath);
-			tmpPath[rest - filePath] = '\0';
-			if (!gFSystem.exists(tmpPath)) {
-				Log_Printf(LOGLEVEL_DEBUG, "creating dir \"%s\"\n", tmpPath);
-				gFSystem.mkdir(tmpPath);
-			}
-		}
-		rest = strchr(rest + 1, '/');
-	}
-}
-
 // Handles file upload request from the explorer
 // requires a GET parameter path, as directory path to the file
 void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
@@ -1246,9 +1228,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		const char *filePath = utf8FilePath.c_str();
 
 		Log_Printf(LOGLEVEL_INFO, writingFile, filePath);
-
-		// Create Parent directories
-		explorerCreateParentDirectories(filePath);
 
 		if (!allocateDoubleBuffer()) {
 			// we failed to allocate enough memory
@@ -1367,7 +1346,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open(filePath, "w");
+	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
 	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
