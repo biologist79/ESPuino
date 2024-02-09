@@ -94,7 +94,7 @@ void Rfid_Init(void) {
 	xTaskCreatePinnedToCore(
 		Rfid_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
-		2048, /* Stack size in words */
+		2176, /* Stack size in words */
 		NULL, /* Task input parameter */
 		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
