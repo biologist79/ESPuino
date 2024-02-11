@@ -367,7 +367,7 @@
 							<span class="fas fa-volume-down"></span>
 						</button>
 							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-								data-slider-value="" value="" onchange="sendVolume(this.value)">
+								data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
@@ -1932,19 +1932,21 @@
 		lastIdclicked = clickedId;
 		var myObj = {
 			"general": {
-				initVolume: document.getElementById('initialVolume').value,
-				maxVolumeSp: document.getElementById('maxVolumeSpeaker').value,
-				maxVolumeHp: document.getElementById('maxVolumeHeadphone').value, 
-				sleepInactivity: document.getElementById('inactivityTime').value},
+				initVolume: Number(document.getElementById('initialVolume').value),
+				maxVolumeSp: Number(document.getElementById('maxVolumeSpeaker').value),
+				maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value), 
+				sleepInactivity: Number(document.getElementById('inactivityTime').value)
+			},
 			"led": {
-				initBrightness: document.getElementById('initBrightness').value,
-				nightBrightness: document.getElementById('nightBrightness').value},
+				initBrightness: Number(document.getElementById('initBrightness').value),
+				nightBrightness: Number(document.getElementById('nightBrightness').value)
+			},
 			"battery": {
-				warnLowVoltage: document.getElementById('warningLowVoltage').value,
-				indicatorLow: document.getElementById('voltageIndicatorLow').value,
-				indicatorHi: document.getElementById('voltageIndicatorHigh').value,
-				criticalVoltage: document.getElementById('criticalVoltage').value,
-				voltageCheckInterval: document.getElementById('voltageCheckInterval').value
+				warnLowVoltage: Number(document.getElementById('warningLowVoltage').value),
+				indicatorLow: Number(document.getElementById('voltageIndicatorLow').value),
+				indicatorHi: Number(document.getElementById('voltageIndicatorHigh').value),
+				criticalVoltage: Number(document.getElementById('criticalVoltage').value),
+				voltageCheckInterval: Number(document.getElementById('voltageCheckInterval').value)
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -1988,7 +1990,7 @@
 				server: document.getElementById('mqttServer').value,
 				username: document.getElementById('mqttUser').value,
 				password: document.getElementById('mqttPwd').value,
-				port: document.getElementById('mqttPort').value
+				port: Number(document.getElementById('mqttPort').value)
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
@@ -2028,7 +2030,7 @@
 			var myObj = {
 				"rfidMod": {
 					rfidIdMod: document.getElementById('rfidIdMusic').value,
-					modId: document.getElementById('modId').value
+					modId: Number(document.getElementById('modId').value)
 				}
 			};
 		}
@@ -2104,7 +2106,7 @@
 	function executeCommand() {
 		var myObj = {
 			"controls": {
-				action: document.getElementById('commandId').value
+				action: Number(document.getElementById('commandId').value)
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
