@@ -2,10 +2,11 @@
 
 ## DEV-branch
 
+* 12.02.2024: Use natural sort (#296), thanks to @freddy36 !
 * 09.02.2024: Remove explorerCreateParentDirectories (#301), thanks to @freddy36 !
 * 08.02.2024: Remove convertFilenameToAscii (#298), Playlist fixes (#299), thanks to @freddy36 !
 * 08.02.2024: Apple touch icon
-* 07.02.2024: fix dangling pointer in explorerHandleFileStorageTask (#297), thanks to @freddy36 !
+* 07.02.2024: Fix dangling pointer in explorerHandleFileStorageTask (#297), thanks to @freddy36 !
 * 07.02.2024: Reduce WiFi memory consumption (#295), thanks to @laszloh !
 * 05.02.2024: Increase JSON buffer for /debug endpoint
 * 02.02.2024: Improve progress calculation/indication, thanks to @freddy36 !
