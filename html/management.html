@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-	<title data-i18n="title">ESPuino-Settings</title>
+	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -161,7 +161,7 @@
 	<a class="float-left navbar-brand">
 		<img src="/logo"
 			 width="35" height="35" class="d-inline-block align-top" alt=""/>
-		ESPuino
+		<span id="navbar-heading">ESPuino</span>
 	</a>
 	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
 	<a class="reboot float-right nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
@@ -1682,6 +1682,9 @@
 		if (wifiSettings) {
 			document.getElementById("hostname").value = wifiSettings.hostname;
 			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+			
+			// set title to hostname
+			setTitle(wifiSettings.hostname);
 		}
 		// ssids
 		let ssidSettings = settings.ssids;
@@ -2096,6 +2099,9 @@
 			hostname: hostname,
 			scanOnStart: scanWifi
 		};
+
+		// set title to hostname
+		setTitle(hostname);
 		
 		await fetch("/wificonfig", {
 			method: "POST",
@@ -2257,6 +2263,11 @@
 	async function fetchLog() {
 		let logtext = await (await fetch("/log")).text();
 		$('#modalLogContent').text(logtext);
+	}
+
+	function setTitle(newTitle) {
+		$('title').text(newTitle);
+		$('#navbar-heading').text(newTitle);
 	}
 
 	$(document).ready(function () {

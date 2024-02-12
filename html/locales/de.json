@@ -3,7 +3,7 @@
     "restart": "Neustart",
     "reset": "Reset",
 	"execute": "Ausführen",
-    "title": "ESPuino-Konfiguration",
+    "title": "ESPuino",
     "shutdown": "Ausschalten",
     "log": "Log",
     "info": "Info",
