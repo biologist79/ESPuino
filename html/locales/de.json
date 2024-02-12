@@ -269,6 +269,13 @@
             "criticalShutoff": "Unter dieser Spannung schaltet der ESPuino ab.",
             "high": "Alle LEDs leuchten bei dieser Spannung",
             "measureInterval": "Zeitabstand der Messung (in Minuten)"
+        },
+        "playlist": {
+            "title": "Wiedergabeliste",
+            "sortMode": "Sortierungsmodus für Wiedergabeliste und Dateibrowser",
+            "strcmp": "Standardsortierung",
+            "strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
+            "strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren"
         }
     },
     "tools": {
