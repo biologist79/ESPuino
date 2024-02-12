@@ -23,6 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
 		.jstree-default .jstree-search {
 			font-style: italic;
@@ -744,7 +745,19 @@
 
 					</fieldset>
 				</div>
-<br>
+				<br>
+				<div class="form-group col-md-12" id="playlistConfig">
+					<fieldset>
+						<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+						<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
+						<select id="playlistSortMode" name="playlistSortMode" class="form-control">
+							<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
+							<option value="2" data-i18n="general.playlist.strnatcmp"></option>
+							<option value="1" data-i18n="general.playlist.strcmp"></option>
+						</select>
+					</fieldset>
+				</div>
+				<br>
 				<div class="text-center">
 				<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
@@ -1251,20 +1264,41 @@
 		});
 	}
 
-	function fileNameSort( a, b ) {
-		if ( a.dir && !b.dir ) {
-			return -1
+	// returns the string comparison function based on the sortMode
+	function fileNameSortHelper(sortMode) {
+		return function(a, b) {
+			// Make sure directories are always listed first
+			if ( a.dir && !b.dir ) {
+				return -1
+			}
+			if ( !a.dir && b.dir ) {
+				return 1
+			}
+
+			switch (sortMode) {
+				case 1: // strcmp - standard string comparison
+					if (a.name < b.name) {
+						return -1;
+					}
+					if (a.name > b.name) {
+						return 1;
+					}
+					return 0;
+				case 2: // strnatcmp - natural case-sensitive
+					return natcompare(a.name, b.name);
+					break;
+				case 3: // strnatcasecmp - natural case-insensitive
+				default:
+					return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
+					break;
+			}
 		}
-		if ( !a.dir && b.dir ) {
-			return 1
-		}
-		if ( a.name < b.name ){
-			return -1;
-		}
-		if ( a.name > b.name ){
-			return 1;
-		}
-		return 0;
+	}
+
+	function sortData(data) {
+		const sortMode = window?.settings?.playlist?.sortMode;
+		const fileNameSort = fileNameSortHelper(sortMode);
+		data.sort(fileNameSort);
 	}
 
 	function createChild(nodeId, data) {
@@ -1338,7 +1372,7 @@
 
 	function addFileDirectory(parent, data) {
 
-		data.sort( fileNameSort );
+		sortData(data);
 		var ref = $('#explorerTree').jstree(true);
 
 		for (var i=0; i<data.length; i++) {
@@ -1489,7 +1523,7 @@
 			/* We now have data! */
 			$('#explorerTree').jstree(true).settings.core.data.children = [];
 
-			data.sort( fileNameSort );
+			sortData(data);
 
 
 			for (var i=0; i<data.length; i++) {
@@ -1609,6 +1643,10 @@
 		if (!settings) { 
 			return false 
 		}
+
+		// update global settings
+		window.settings = { ...window.settings, ...settings };
+
 		// general
 		let genSettings = settings.general;
 		if (genSettings) {
@@ -1637,6 +1675,7 @@
 			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
+			$("#playlistSortMode").val(defSettings.sortMode).change();
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -1655,6 +1694,11 @@
 			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
 			$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
 			$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
+		}
+		// playlist
+		let playlistSettings = settings.playlist;
+		if (playlistSettings) {
+			$("#playlistSortMode").val(playlistSettings.sortMode).change();
 		}
 		// battery
 		let batSettings = settings.battery;
@@ -1947,9 +1991,14 @@
 				indicatorHi: Number(document.getElementById('voltageIndicatorHigh').value),
 				criticalVoltage: Number(document.getElementById('criticalVoltage').value),
 				voltageCheckInterval: Number(document.getElementById('voltageCheckInterval').value)
+			},
+			"playlist": {
+				sortMode: +document.getElementById('playlistSortMode').value
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
+		// update global settings
+		window.settings = { ...window.settings, ...myObj };
 		socket.send(myJSON);
 	}
 
