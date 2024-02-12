@@ -113,6 +113,7 @@ uint8_t Wlan_NumSavedNetworks();
 void Wlan_GetSavedNetworks(std::function<void(const WiFiSettings &)>);
 const String Wlan_GetCurrentSSID();
 const String Wlan_GetHostname();
+const String Wlan_GetMacAddress();
 bool Wlan_DeleteNetwork(String);
 bool Wlan_ValidateHostname(String);
 bool Wlan_SetHostname(String);
