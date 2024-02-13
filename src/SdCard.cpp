@@ -165,7 +165,7 @@ bool fileValid(const char *_fileItem) {
 	}
 	if (*(lastSlashPtr + 1) == '.') {
 		// we have a hidden file
-		Log_Printf(LOGLEVEL_DEBUG, "File is hidden: %s", _fileItem);
+		// Log_Printf(LOGLEVEL_DEBUG, "File is hidden: %s", _fileItem);
 		return false;
 	}
 
@@ -173,13 +173,13 @@ bool fileValid(const char *_fileItem) {
 	const char *extStartPtr = strrchr(_fileItem, '.');
 	if (extStartPtr == nullptr) {
 		// no extension found
-		Log_Printf(LOGLEVEL_DEBUG, "File has no extension: %s", _fileItem);
+		// Log_Printf(LOGLEVEL_DEBUG, "File has no extension: %s", _fileItem);
 		return false;
 	}
 	const size_t extLen = strlen(extStartPtr);
 	if (extLen > maxExtLen) {
 		// extension too long, we do not care anymore
-		Log_Printf(LOGLEVEL_DEBUG, "File not supported (extension to long): %s", _fileItem);
+		// Log_Printf(LOGLEVEL_DEBUG, "File not supported (extension to long): %s", _fileItem);
 		return false;
 	}
 	char extBuffer[maxExtLen + 1] = {0};
@@ -197,8 +197,8 @@ bool fileValid(const char *_fileItem) {
 			return true;
 		}
 	}
-	// miss, we did not found nothing
-	Log_Printf(LOGLEVEL_DEBUG, "File not supported: %s", _fileItem);
+	// miss, we did not find the extension
+	// Log_Printf(LOGLEVEL_DEBUG, "File not supported: %s", _fileItem);
 	return false;
 }
 
@@ -340,6 +340,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 
 	// Directory-mode (linear-playlist)
 	playlist->reserve(64); // reserve a sane amount of memory to reduce the number of reallocs
+	size_t hiddenFiles = 0;
 	while (true) {
 		bool isDir;
 		const String name = fileOrDirectory.getNextFileName(&isDir);
@@ -356,10 +357,13 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 				// OOM, function already took care of house cleaning
 				return std::nullopt;
 			}
+		} else {
+			hiddenFiles++;
 		}
 	}
 	playlist->shrink_to_fit();
 
 	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
+	Log_Printf(LOGLEVEL_DEBUG, "Hidden files: %u", hiddenFiles);
 	return playlist;
 }
