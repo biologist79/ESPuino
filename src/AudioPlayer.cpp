@@ -1078,7 +1078,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			break;
 		}
 
-		case AUDIOBOOK: { // Tracks need to be alph. sorted!
+		case AUDIOBOOK: { // Tracks need to be sorted!
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobook, LOGLEVEL_NOTICE);
 			AudioPlayer_SortPlaylist(musicFiles, gPlayProperties.numberOfTracks);
@@ -1086,7 +1086,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			break;
 		}
 
-		case AUDIOBOOK_LOOP: { // Tracks need to be alph. sorted!
+		case AUDIOBOOK_LOOP: { // Tracks need to be sorted!
 			gPlayProperties.repeatPlaylist = true;
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobookLoop, LOGLEVEL_NOTICE);

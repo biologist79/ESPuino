@@ -22,9 +22,9 @@
 #define SINGLE_TRACK_OF_DIR_RANDOM								  12 // Play a single track of a directory and fall asleep subsequently
 #define AUDIOBOOK												  3 // Single track, can save last play-position
 #define AUDIOBOOK_LOOP											  4 // Single track as infinite-loop, can save last play-position
-#define ALL_TRACKS_OF_DIR_SORTED								  5 // Play all files of a directory (alph. sorted)
+#define ALL_TRACKS_OF_DIR_SORTED								  5 // Play all files of a directory (sorted)
 #define ALL_TRACKS_OF_DIR_RANDOM								  6 // Play all files of a directory (randomized)
-#define ALL_TRACKS_OF_DIR_SORTED_LOOP							  7 // Play all files of a directory (alph. sorted) in infinite-loop
+#define ALL_TRACKS_OF_DIR_SORTED_LOOP							  7 // Play all files of a directory (sorted) in infinite-loop
 #define ALL_TRACKS_OF_DIR_RANDOM_LOOP							  9 // Play all files of a directory (randomized) in infinite-loop
 #define RANDOM_SUBDIRECTORY_OF_DIRECTORY						  13 // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_SORTED
 #define RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM 14 // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_RANDOM
