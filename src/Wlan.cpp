@@ -668,6 +668,10 @@ const String Wlan_GetHostname() {
 	return gPrefsSettings.getString("Hostname", "ESPuino");
 }
 
+const String Wlan_GetMacAddress() {
+	return WiFi.macAddress();
+}
+
 bool Wlan_DeleteNetwork(String ssid) {
 	Log_Printf(LOGLEVEL_NOTICE, wifiDeleteNetwork, ssid.c_str());
 

@@ -2244,6 +2244,7 @@
 			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
 		}
 		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
+		content += i18next.t("systeminfo.macAddress", { macAddress: info.wifi.macAddress }) + "\n";
 		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
 		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
 		if (info.audio.playtimeSinceStart > 0) {

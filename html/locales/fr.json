@@ -324,6 +324,7 @@
                 "largestfreeblock": "Plus grand bloc de mémoire libre : {{largestfreeblock}} octets",
                 "freepsram": "PS-RAM libre : {{freepsram}} octets",
                 "currentip": "Adresse IP actuelle : {{currentip}}",
+                "macAddress": "MAC-Adresse: {{macAddress}}",
                 "rssi": "Force du signal WiFi : {{rssi}} dBm",
                 "audiotimetotal": "Temps total de lecture audio depuis {{firststart}} : {{audiotimetotal}}", 
                 "audiotimesincestart": "Temps de lecture depuis le dernier démarrage : {{audiotimesincestart}}", 

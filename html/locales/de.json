@@ -322,6 +322,7 @@
         "largestfreeblock": "Größter freier Heap-Block: {{largestfreeblock}} Bytes",
         "freepsram": "Freier PS-RAM: {{freepsram}} Bytes",
         "currentip": "Aktuelle IP-Adresse: {{currentip}}",
+        "macAddress": "MAC-Adresse: {{macAddress}}",
         "rssi": "WLAN Signalstärke: {{rssi}} dBm",
         "audiotimetotal": "Audio-Gesamtspielzeit seit {{firststart}}: {{audiotimetotal}}",
         "audiotimesincestart": "Spielzeit seit letztem Start: {{audiotimesincestart}}", 

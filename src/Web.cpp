@@ -920,9 +920,9 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		section = request->getParam("section")->value();
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(512);
+	SpiRamJsonDocument doc(546);
 #else
-	StaticJsonDocument<512> doc;
+	StaticJsonDocument<546> doc;
 #endif
 	JsonObject infoObj = doc.createNestedObject("info");
 	// software
@@ -954,6 +954,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if ((section == "") || (section == "wifi")) {
 		JsonObject wifiObj = infoObj.createNestedObject("wifi");
 		wifiObj["ip"] = Wlan_GetIpAddress();
+		wifiObj["macAddress"] = Wlan_GetMacAddress();
 		wifiObj["rssi"] = (int8_t) Wlan_GetRssi();
 	}
 	// audio
