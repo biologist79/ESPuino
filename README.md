@@ -260,11 +260,11 @@ It's not just simply playing music; different playback modes are supported:
 - `Audiobook`=> single file or playlist/folder; last play position (file and playlist) is saved
   (when pushing pause or moving to another track) and reused next time
 - `Audiobook (loop)` => same as audiobook but loops forever
-- `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder one time
+- `Folder/playlist (sorted)` => plays all tracks in order from a folder one time
 - `Folder/playlist (random order)` => plays all tracks in random order from a folder one time
-- `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
+- `Folder/playlist (sorted)` => plays all tracks in order from a folder forever
 - `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
-- `All tracks of a random subdirectory (sorted alph.)` => plays of tracks in alph. order of a
+- `All tracks of a random subdirectory (sorted)` => plays of tracks in order of a
   randomly picked subdirectory of a given directory
 - `All tracks of a random subdirectory (random order)` => plays all tracks in random order of a
   randomly picked subdirectory of a given directory
