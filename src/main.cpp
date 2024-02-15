@@ -159,9 +159,6 @@ void setup() {
 	// All checks that could send us to sleep are done, power up fully
 	Power_PeripheralOn();
 
-	memset(&gPlayProperties, 0, sizeof(gPlayProperties));
-	gPlayProperties.playlistFinished = true;
-
 	Led_Init();
 
 // Only used for ESP32-A1S-Audiokit

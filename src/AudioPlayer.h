@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Playlist.h"
+
 #ifndef AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT
 	#define AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT playlistSortMode::STRNATCASECMP
 #endif
@@ -12,12 +14,11 @@ enum class playlistSortMode : uint8_t {
 
 typedef struct { // Bit field
 	uint8_t playMode : 4; // playMode
-	char **playlist; // playlist
+	Playlist *playlist; // playlist
 	char title[255]; // current title
 	bool repeatCurrentTrack		: 1; // If current track should be looped
 	bool repeatPlaylist			: 1; // If whole playlist should be looped
 	uint16_t currentTrackNumber : 9; // Current tracknumber
-	uint16_t numberOfTracks		: 9; // Number of tracks in playlist
 	unsigned long startAtFilePos; // Offset to start play (in bytes)
 	double currentRelPos; // Current relative playPosition (in %)
 	bool sleepAfterCurrentTrack : 1; // If uC should go to sleep after current track
