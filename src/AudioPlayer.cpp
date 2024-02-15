@@ -390,6 +390,7 @@ void AudioPlayer_Task(void *parameter) {
 
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolume(AudioPlayer_CurrentVolume, VOLUMECURVE);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	if (gPlayProperties.currentPlayMono) {

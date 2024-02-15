@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 15.02.2024: Rework playlist generation (#275), thanks to @laszloh ! 
+* 15.02.2024: Update sorting strings (#306), thanks to @freddy36 !
+* 15.02.2024: Set title and navbar heading to hostname (#305), thanks to @freddy36 ! 
+* 15.02.2024: Include mac address in info (#304), thanks to @freddy36 !  
 * 12.02.2024: Use natural sort (#296), thanks to @freddy36 !
 * 09.02.2024: Remove explorerCreateParentDirectories (#301), thanks to @freddy36 !
 * 08.02.2024: Remove convertFilenameToAscii (#298), Playlist fixes (#299), thanks to @freddy36 !
