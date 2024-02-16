@@ -2049,7 +2049,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 						memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
 						nvsEntry[0].nvsEntry[strlen(token)] = '\0';
 					} else {
-						convertAsciiToUtf8(String(token), nvsEntry[0].nvsEntry);
+						convertAsciiToUtf8(String(token), nvsEntry[0].nvsEntry, sizeof(nvsEntry[0].nvsEntry));
 					}
 				}
 				token = strtok(NULL, stringOuterDelimiter);
