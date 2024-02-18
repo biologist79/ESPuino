@@ -1,8 +1,5 @@
 #pragma once
 
-// FilePathLength
-#define MAX_FILEPATH_LENTGH 256
-
 constexpr char stringDelimiter[] = "#"; // Character used to encapsulate data in linear NVS-strings (don't change)
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
@@ -47,11 +44,11 @@ inline bool endsWith(const char *str, const char *suf) {
 	return b == suf && *a == *b;
 }
 
-inline void convertAsciiToUtf8(String asciiString, char *utf8String) {
+inline void convertAsciiToUtf8(String asciiString, char *utf8String, size_t utf8StringSize) {
 
 	int k = 0;
 
-	for (int i = 0; i < asciiString.length() && k < MAX_FILEPATH_LENTGH - 2; i++) {
+	for (int i = 0; i < asciiString.length() && k < utf8StringSize - 2; i++) {
 
 		switch (asciiString[i]) {
 			case 0x8e:
