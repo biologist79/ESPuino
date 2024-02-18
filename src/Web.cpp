@@ -2099,31 +2099,56 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	Log_Println(coverFileName, LOGLEVEL_DEBUG);
 
 	File coverFile = gFSystem.open(coverFileName, FILE_READ);
-	// seek to start position
-	coverFile.seek(gPlayProperties.coverFilePos);
-	uint8_t encoding = coverFile.read();
-	// mime-type (null terminated)
 	char mimeType[255];
-	for (uint8_t i = 0u; i < 255; i++) {
-		mimeType[i] = coverFile.read();
-		if (uint8_t(mimeType[i]) == 0) {
-			break;
+	char fileType[4];
+	coverFile.readBytes(fileType, 4);
+	if (strncmp(fileType, "ID3", 3) == 0) { // mp3 (ID3v2) Routine
+		// seek to start position
+		coverFile.seek(gPlayProperties.coverFilePos);
+		uint8_t encoding = coverFile.read();
+		// mime-type (null terminated)
+		for (uint8_t i = 0u; i < 255; i++) {
+			mimeType[i] = coverFile.read();
+			if (uint8_t(mimeType[i]) == 0) {
+				break;
+			}
 		}
+		// skip image type (1 Byte)
+		coverFile.read();
+		// skip description (null terminated)
+		for (uint8_t i = 0u; i < 255; i++) {
+			if (uint8_t(coverFile.read()) == 0) {
+				break;
+			}
+		}
+		// UTF-16 and UTF-16BE are terminated with an extra 0
+		if (encoding == 1 || encoding == 2) {
+			coverFile.read();
+		}
+	} else if (strncmp(fileType, "fLaC", 4) == 0) { // flac Routine
+		uint32_t length = 0; // length of strings: MIME type, description of the picture, binary picture data
+		coverFile.seek(gPlayProperties.coverFilePos + 7); // pass cover filesize (3 Bytes) and picture type (4 Bytes)
+		for (int i = 0; i < 4; ++i) { // length of mime type string
+			length = (length << 8) | coverFile.read();
+		}
+		for (uint8_t i = 0u; i < length; i++) {
+			mimeType[i] = coverFile.read();
+		}
+		mimeType[length] = '\0';
+
+		length = 0;
+		for (int i = 0; i < 4; ++i) { // length of description string
+			length = (length << 8) | coverFile.read();
+		}
+		coverFile.seek(length + 16, SeekCur); // pass description, width, height, color depth, number of colors
+
+		length = 0;
+		for (int i = 0; i < 4; ++i) { // length of picture data
+			length = (length << 8) | coverFile.read();
+		}
+		gPlayProperties.coverFileSize = length;
 	}
 	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFileName);
-
-	// skip image type (1 Byte)
-	coverFile.read();
-	// skip description (null terminated)
-	for (uint8_t i = 0u; i < 255; i++) {
-		if (uint8_t(coverFile.read()) == 0) {
-			break;
-		}
-	}
-	// UTF-16 and UTF-16BE are terminated with an extra 0
-	if (encoding == 1 || encoding == 2) {
-		coverFile.read();
-	}
 
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
