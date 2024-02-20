@@ -2147,6 +2147,14 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			length = (length << 8) | coverFile.read();
 		}
 		gPlayProperties.coverFileSize = length;
+	} else {
+		// test for M4A header
+		coverFile.seek(8);
+		coverFile.readBytes(fileType, 3);
+		if (strncmp(fileType, "M4A", 3) == 0) {
+			// M4A header found, seek to image start position. Image length adjustment seems to be not needed, every browser shows cover image correct!
+			coverFile.seek(gPlayProperties.coverFilePos + 8);
+		}
 	}
 	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFileName);
 

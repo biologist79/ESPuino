@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 19.02.2024: Add coverimage support for M4A files in Web-UI
 * 18.02.2024: Add coverimage support for flac files in Web-UI, thanks to @sfields ! 
 * 15.02.2024: Rework playlist generation (#275), thanks to @laszloh ! 
 * 15.02.2024: Update sorting strings (#306), thanks to @freddy36 !
