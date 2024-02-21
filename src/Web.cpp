@@ -2099,7 +2099,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	Log_Println(coverFileName, LOGLEVEL_DEBUG);
 
 	File coverFile = gFSystem.open(coverFileName, FILE_READ);
-	char mimeType[255];
+	char mimeType[255] {0};
 	char fileType[4];
 	coverFile.readBytes(fileType, 4);
 	if (strncmp(fileType, "ID3", 3) == 0) { // mp3 (ID3v2) Routine
