@@ -6,7 +6,7 @@
 using Playlist = std::vector<char *>;
 
 // Release previously allocated memory
-inline void freePlaylist(Playlist *playlist) {
+inline void freePlaylist(Playlist * (&playlist)) {
 	if (playlist == nullptr) {
 		return;
 	}

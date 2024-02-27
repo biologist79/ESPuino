@@ -96,6 +96,7 @@ static void webserverStart(void);
 
 // IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
 void convertFromJson(JsonVariantConst src, IPAddress &dst) {
+	dst = IPAddress();
 	dst.fromString(src.as<const char *>());
 }
 bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
