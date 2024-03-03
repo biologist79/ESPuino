@@ -37,6 +37,9 @@ typedef struct { // Bit field
 	uint8_t tellMode			 : 2; // Tell mode for text to speech announcments
 	bool currentSpeechActive	 : 1; // If speech-play is active
 	bool lastSpeechActive		 : 1; // If speech-play was active
+	int8_t gainLowPass = 0; 		  // Low Pass for EQ Control
+	int8_t gainBandPass = 0; 		  // Band Pass for EQ Control
+	int8_t gainHighPass = 0; 		  // High Pass for EQ Control
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
 	size_t audioFileSize; // file size of current audio file
@@ -49,6 +52,7 @@ void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
+void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand);
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);

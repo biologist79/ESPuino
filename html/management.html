@@ -762,6 +762,41 @@
 				<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
+				<br>
+				<div class="form-group col-md-12" id="equalizerForm">
+					<fieldset>
+						<legend class="w-auto" data-i18n="general.equalizer.title"></legend>
+						<label for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
+						<div class="text-center">
+							<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+							<input id="gainLowPass" name="gainLowPass" class="form-control" 
+								data-provide="slider" type="number" required
+								data-slider-min="-40" data-slider-max="6" min="-40" max="6" 
+								data-slider-value="0"  value="0">
+							<i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						</div>
+						<br>
+						<label for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
+						<div class="text-center">
+							<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+							<input id="gainBandPass" name="gainBandPass" class="form-control" 
+								data-provide="slider" type="number" required
+								data-slider-min="-40" data-slider-max="6" min="-40" max="6" 
+								data-slider-value="0"  value="0">
+							<i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						</div>
+						<br>
+						<label for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
+						<div class="text-center">
+							<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+							<input id="gainHighPass" name="gainHighPass" class="form-control" 
+								data-provide="slider" type="number" required
+								data-slider-min="-40" data-slider-max="6" min="-40" max="6" 
+								data-slider-value="0"  value="0">
+							<i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						</div>
+					</fieldset>
+				</div>
 			</form>
 		</div>
 		<br />
@@ -1676,6 +1711,17 @@
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
 			$("#playlistSortMode").val(defSettings.sortMode).change();
+			
+			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
+			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
+			$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
+		}
+
+		let eqSettings = settings.equalizer;
+		if (eqSettings) {
+			$("#gainLowPass").bootstrapSlider('setValue', eqSettings.gainLowPass);
+			$("#gainBandPass").bootstrapSlider('setValue', eqSettings.gainBandPass);
+			$("#gainHighPass").bootstrapSlider('setValue', eqSettings.gainHighPass);
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -2310,6 +2356,21 @@
 			$('#modalInfoRefresh').hide();
 			shutdownDevice();
 		}); 
+
+		// sending equalizer settings to API for 
+		$('#equalizerForm .slider').on('slideStop', function(){
+			let myObj = {
+				"equalizer":  {					
+					gainLowPass: Number(document.getElementById("gainLowPass").value),
+					gainBandPass: Number(document.getElementById("gainBandPass").value),
+					gainHighPass: Number(document.getElementById("gainHighPass").value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			// update global settings
+			window.settings = { ...window.settings, ...myObj };
+			socket.send(myJSON);
+		});
 		
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();

@@ -134,7 +134,7 @@ void AudioPlayer_Init(void) {
 
 	// initialize gPlayProperties
 	memset(&gPlayProperties, 0, sizeof(gPlayProperties));
-	gPlayProperties.playlistFinished = true;
+		gPlayProperties.playlistFinished = true;
 
 	// clear title and cover image
 	gPlayProperties.title[0] = '\0';
@@ -393,9 +393,9 @@ void AudioPlayer_Task(void *parameter) {
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolume(AudioPlayer_CurrentVolume, VOLUMECURVE);
 	audio->forceMono(gPlayProperties.currentPlayMono);
-	if (gPlayProperties.currentPlayMono) {
-		audio->setTone(3, 0, 0);
-	}
+
+	int8_t currentEqualizer[3] = {gPrefsSettings.getChar("gainLowPass", 0), gPrefsSettings.getChar("gainBandPass", 0), gPrefsSettings.getChar("gainHighPass", 0)};
+	audio->setTone(currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
 
 	uint8_t currentVolume;
 	BaseType_t trackQStatus = pdFAIL;
@@ -418,6 +418,11 @@ void AudioPlayer_Task(void *parameter) {
 #ifdef MQTT_ENABLE
 			publishMqtt(topicLoudnessState, currentVolume, false);
 #endif
+		}
+
+		if (xQueueReceive(gEqualizerQueue, &currentEqualizer, 0) == pdPASS) {
+			Log_Printf(LOGLEVEL_DEBUG, newEqualizerReceivedQueue, currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
+			audio->setTone(currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
 		}
 
 		if (xQueueReceive(gTrackControlQueue, &trackCommand, 0) == pdPASS) {
@@ -869,7 +874,7 @@ void AudioPlayer_Task(void *parameter) {
 				audio->setTone(3, 0, 0);
 			} else {
 				Log_Println(newPlayModeStereo, LOGLEVEL_NOTICE);
-				audio->setTone(0, 0, 0);
+				audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 			}
 		}
 
@@ -959,6 +964,12 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 		xQueueSend(gVolumeQueue, &_volume, 0);
 		AudioPlayer_PauseOnMinVolume(_volumeBuf, _newVolume);
 	}
+}
+
+// Adds equalizer settings low, band and high pass and readjusts the equalizer
+void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
+	int8_t _equalizer[3] = {gainLowPass, gainBandPass, gainHighPass};
+	xQueueSend(gEqualizerQueue, &_equalizer, 0);
 }
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)

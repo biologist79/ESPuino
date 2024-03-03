@@ -254,6 +254,12 @@
             "speakerMax": "Volume maximal (haut-parleur)",
             "headphoneMax": "Volume maximal (écouteurs)"
         },
+        "equalizer":  {
+            "title": "Égaliseur",
+            "gainLowPass": "Low Pass",
+            "gainBandPass": "Band Pass",
+            "gainHighPass": "High Pass"
+        },
         "neopixel": {
             "title": "Neopixel (luminosité)",
             "restart": "Après le redémarrage",
