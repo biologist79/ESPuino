@@ -32,9 +32,9 @@ paths:
                   properties:
                     name:
                       type: string
-                    isDir:
+                    dir:
                       type: boolean
-                      description: True if item is a directory.
+                      description: True if item is a directory. This parameter is omitted for a file.
     post:
       summary: Upload a file to a directory.
       description: Upload a file to the specified directory.
