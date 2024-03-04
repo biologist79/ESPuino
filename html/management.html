@@ -1715,6 +1715,10 @@
 			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
 			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
 			$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
+			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+			formatDBTooltip($('#gainLowPass')[0].previousSibling, defSettings.gainLowPass);
+			formatDBTooltip($('#gainBandPass')[0].previousSibling, defSettings.gainBandPass);
+			formatDBTooltip($('#gainHighPass')[0].previousSibling, defSettings.gainHighPass);
 		}
 
 		let eqSettings = settings.equalizer;
@@ -1722,6 +1726,10 @@
 			$("#gainLowPass").bootstrapSlider('setValue', eqSettings.gainLowPass);
 			$("#gainBandPass").bootstrapSlider('setValue', eqSettings.gainBandPass);
 			$("#gainHighPass").bootstrapSlider('setValue', eqSettings.gainHighPass);
+			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+			formatDBTooltip($('#gainLowPass')[0].previousSibling, eqSettings.gainLowPass);
+			formatDBTooltip($('#gainBandPass')[0].previousSibling, eqSettings.gainBandPass)
+			formatDBTooltip($('#gainHighPass')[0].previousSibling, eqSettings.gainHighPass);
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -2317,6 +2325,10 @@
 		$('#navbar-heading').text(newTitle);
 	}
 
+	function formatDBTooltip(target, value) {
+		target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value} dB`;
+	}
+
 	$(document).ready(function () {
 		connect();
 		buildFileSystemTree("/");
@@ -2358,7 +2370,8 @@
 		}); 
 
 		// sending equalizer settings to API for 
-		$('#equalizerForm .slider').on('slideStop', function(){
+		$('#equalizerForm .slider').on('slideStop', function({target, value}){
+			formatDBTooltip(target, value);
 			let myObj = {
 				"equalizer":  {					
 					gainLowPass: Number(document.getElementById("gainLowPass").value),
@@ -2370,6 +2383,9 @@
 			// update global settings
 			window.settings = { ...window.settings, ...myObj };
 			socket.send(myJSON);
+		});
+		$('#equalizerForm .slider').on('slide', function({target, value}) {
+			formatDBTooltip(target, value);
 		});
 		
 		$(function () {
