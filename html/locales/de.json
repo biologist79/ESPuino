@@ -254,9 +254,9 @@
         },
         "equalizer":  {
             "title": "Equalizer",
-            "gainLowPass": "Low Pass",
-            "gainBandPass": "Band Pass",
-            "gainHighPass": "High Pass"
+            "gainLowPass": "Tiefen",
+            "gainBandPass": "Mitten",
+            "gainHighPass": "Bass"
         },
         "neopixel": {
             "title": "Neopixel (Helligkeit)",
