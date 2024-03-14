@@ -12,6 +12,7 @@
 #include "Wlan.h"
 #include "revision.h"
 
+#include <Rfid.h>
 #include <WiFi.h>
 
 #ifdef MQTT_ENABLE
@@ -300,7 +301,11 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	}
 	// New track to play? Take RFID-ID as input
 	else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-		xQueueSend(gRfidCardQueue, receivedString, 0);
+		if (length >= cardIdStringSize) {
+			xQueueSend(gRfidCardQueue, receivedString, 0);
+		} else {
+			System_IndicateError();
+		}
 	}
 	// Loudness to change?
 	else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
