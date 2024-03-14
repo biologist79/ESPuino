@@ -291,7 +291,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	char *receivedString = (char *) x_calloc(length + 1u, sizeof(char));
 	memcpy(receivedString, (char *) payload, length);
 
-	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString);
+	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, length, payload);
 
 	// Go to sleep?
 	if (strcmp_P(topic, topicSleepCmnd) == 0) {
