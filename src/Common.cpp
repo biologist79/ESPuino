@@ -16,8 +16,7 @@ size_t b64decode(const void *input_buffer, void *output_buffer, const size_t inp
 	}
 
 	unsigned char *p = (unsigned char *) input_buffer;
-	size_t j = 0, pad1 = input_length % 4 || p[input_length - 1] == '=',
-		pad2 = pad1 && (input_length % 4 > 2 || p[input_length - 2] != '=');
+	size_t j = 0, pad1 = input_length % 4 || p[input_length - 1] == '=', pad2 = pad1 && (input_length % 4 > 2 || p[input_length - 2] != '=');
 	const size_t last = (input_length - pad1) / 4 << 2;
 	// size_t output_size = last / 4 * 3 + pad1 + pad2;
 	unsigned char *str = (unsigned char *) output_buffer;
