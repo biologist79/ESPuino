@@ -2097,9 +2097,15 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	char *coverFileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
-	Log_Println(coverFileName, LOGLEVEL_DEBUG);
+	String decodedCover = "/.cache";
+	decodedCover.concat(coverFileName);
 
-	File coverFile = gFSystem.open(coverFileName, FILE_READ);
+	File coverFile;
+	if (gFSystem.exists(decodedCover)) {
+		coverFile = gFSystem.open(decodedCover, FILE_READ);
+	} else {
+		coverFile = gFSystem.open(coverFileName, FILE_READ);
+	}
 	char mimeType[255] {0};
 	char fileType[4];
 	coverFile.readBytes(fileType, 4);
@@ -2157,7 +2163,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			coverFile.seek(gPlayProperties.coverFilePos + 8);
 		}
 	}
-	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFileName);
+	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFile.name());
 
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {

@@ -3,6 +3,8 @@
 constexpr char stringDelimiter[] = "#"; // Character used to encapsulate data in linear NVS-strings (don't change)
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
+size_t b64decode(const void *input_buffer, void *output_buffer, const size_t input_length);
+
 inline bool isNumber(const char *str) {
 	int i = 0;
 

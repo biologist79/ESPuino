@@ -1377,6 +1377,69 @@ void audio_id3image(File &file, const size_t pos, const size_t size) {
 #endif
 }
 
+// encoded blockpicture cover image segments (all ogg, vorbis, opus files, some flac files)
+void audio_oggimage(File &file, std::vector<uint32_t> v) {
+	// save decoded cover in /.cache/file.path()
+	String decodedCover = "/.cache";
+	decodedCover.concat(file.path());
+	if (gFSystem.exists(decodedCover)) {
+		Log_Printf(LOGLEVEL_DEBUG, "Cover already cached in %s", decodedCover.c_str());
+	} else {
+		String tmpDecodedCover = decodedCover.substring(0, decodedCover.lastIndexOf('/') + 1); // to prevent coverFile corruption write into temporary file; fixed name since no parallel usage of audioI2S
+		tmpDecodedCover.concat(".tmp");
+		File coverFile = gFSystem.open(tmpDecodedCover, FILE_WRITE, true); // open file with create=true to make sure parent directories are created
+		if (!coverFile) {
+			return;
+		}
+
+		// write fLaC marker in order to use flac Routine, since decoded cover has METADATA_BLOCK_PICTURE like flac
+		constexpr uint8_t flacMarker[] = "fLaC";
+		coverFile.write(flacMarker, std::char_traits<uint8_t>::length(flacMarker));
+
+		const size_t chunkSize = 2048; // must be base64 compatible, i.e. a multiple of 4
+		uint8_t *encodedChunk = (uint8_t *)x_malloc(chunkSize);
+		size_t decodedLength;
+		size_t currentRemainder = 0;
+		size_t currentPosition = file.position(); // save current position in audio file otherwise playback will result in an error
+
+		for (size_t i = 0; i < v.size(); i += 2) {
+			// calculate the number of chunks needed to read the segment
+			size_t numChunks = (v[i + 1] + currentRemainder) / chunkSize;
+			size_t remainder = currentRemainder;
+
+			// read and decode the segment chunk by chunk, write decodedChunk into encodedChunk to save memory
+			file.seek(v[i]);
+			for (size_t chunk = 0; chunk < numChunks; chunk++) {
+				file.readBytes(reinterpret_cast<char*>(&encodedChunk[remainder]), chunkSize - remainder);
+				decodedLength = b64decode(encodedChunk, encodedChunk, chunkSize);
+				coverFile.write(encodedChunk, decodedLength);
+				remainder = 0;
+			}
+
+			// calculate new remainder, read it, and if it is the end of file, decode it
+			currentRemainder = (v[i + 1] + currentRemainder) % chunkSize;
+			if (currentRemainder) {
+				file.readBytes(reinterpret_cast<char*>(&encodedChunk[remainder]), currentRemainder - remainder);
+				if (i == v.size() - 2) {
+					decodedLength = b64decode(encodedChunk, encodedChunk, currentRemainder);
+					coverFile.write(encodedChunk, decodedLength);
+				}
+			}
+		}
+		free(encodedChunk);
+		coverFile.close();
+		file.seek(currentPosition);
+		gFSystem.rename(tmpDecodedCover, decodedCover);
+		Log_Printf(LOGLEVEL_DEBUG, "Cover decoded and cached in %s", decodedCover.c_str());
+	}
+	gPlayProperties.coverFilePos = 1; // flacMarker gives 4 Bytes before METADATA_BLOCK_PICTURE, whereas for flac files audioI2S points 3 Bytes before METADATA_BLOCK_PICTURE, so gPlayProperties.coverFilePos has to be set to 4-3=1
+	// websocket and mqtt notify cover image has changed
+	Web_SendWebsocketData(0, 40);
+#ifdef MQTT_ENABLE
+	publishMqtt(topicCoverChangedState, "", false);
+#endif
+}
+
 void audio_eof_speech(const char *info) {
 	gPlayProperties.currentSpeechActive = false;
 }

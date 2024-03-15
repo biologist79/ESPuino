@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields ! 
 * 19.02.2024: Add coverimage support for M4A files in Web-UI
 * 18.02.2024: Add coverimage support for flac files in Web-UI, thanks to @sfields ! 
 * 15.02.2024: Rework playlist generation (#275), thanks to @laszloh ! 
