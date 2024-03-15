@@ -1397,7 +1397,7 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 		coverFile.write(flacMarker, std::char_traits<uint8_t>::length(flacMarker));
 
 		const size_t chunkSize = 2048; // must be base64 compatible, i.e. a multiple of 4
-		uint8_t *encodedChunk = (uint8_t *)x_malloc(chunkSize);
+		uint8_t *encodedChunk = (uint8_t *) x_malloc(chunkSize);
 		size_t decodedLength;
 		size_t currentRemainder = 0;
 		size_t currentPosition = file.position(); // save current position in audio file otherwise playback will result in an error
@@ -1410,7 +1410,7 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 			// read and decode the segment chunk by chunk, write decodedChunk into encodedChunk to save memory
 			file.seek(v[i]);
 			for (size_t chunk = 0; chunk < numChunks; chunk++) {
-				file.readBytes(reinterpret_cast<char*>(&encodedChunk[remainder]), chunkSize - remainder);
+				file.readBytes(reinterpret_cast<char *>(&encodedChunk[remainder]), chunkSize - remainder);
 				decodedLength = b64decode(encodedChunk, encodedChunk, chunkSize);
 				coverFile.write(encodedChunk, decodedLength);
 				remainder = 0;
@@ -1419,7 +1419,7 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 			// calculate new remainder, read it, and if it is the end of file, decode it
 			currentRemainder = (v[i + 1] + currentRemainder) % chunkSize;
 			if (currentRemainder) {
-				file.readBytes(reinterpret_cast<char*>(&encodedChunk[remainder]), currentRemainder - remainder);
+				file.readBytes(reinterpret_cast<char *>(&encodedChunk[remainder]), currentRemainder - remainder);
 				if (i == v.size() - 2) {
 					decodedLength = b64decode(encodedChunk, encodedChunk, currentRemainder);
 					coverFile.write(encodedChunk, decodedLength);
