@@ -321,7 +321,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
-		if (fileOrDirectory && !fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
+		if (!fileOrDirectory.isDirectory() && fileOrDirectory.size() > 0) {
 			// function takes care of everything
 			return SdCard_ParseM3UPlaylist(fileOrDirectory);
 		}
