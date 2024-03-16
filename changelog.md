@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 16.03.2024: Reduce memory usage by measurement of JSON payload length
 * 15.03.2024: MQTT receive: Bug fix and avoid payload copy (#309), thanks to @eikel
 * 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields ! 
 * 19.02.2024: Add coverimage support for M4A files in Web-UI

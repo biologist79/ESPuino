@@ -1125,8 +1125,11 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 			return;
 		}
 	}
-	char *jBuf = (char *) x_calloc(1024, sizeof(char));
+#ifdef BOARD_HAS_PSRAM
+	SpiRamJsonDocument doc(1024);
+#else
 	StaticJsonDocument<1024> doc;
+#endif
 	JsonObject object = doc.to<JsonObject>();
 
 	if (code == 1) {
@@ -1168,16 +1171,20 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		entry["duration"] = AudioPlayer_GetFileDuration();
 	};
 
-	serializeJson(doc, jBuf, 1024);
-	if (doc.overflowed()) {
-		// JSON buffer too small for data
-		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	// measure length of JSON buffer including the null-terminator
+	size_t len = measureJson(doc) + 1;
+	char *jBuf = (char *) x_calloc(len, sizeof(char));
+	if (!jBuf) {
+		// we failed to allocate enough memory
+		Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
+		return;
 	}
+	serializeJson(doc, jBuf, len);
 
 	if (client == 0) {
-		ws.printfAll(jBuf);
+		ws.textAll(jBuf);
 	} else {
-		ws.printf(client, jBuf);
+		ws.text(client, jBuf);
 	}
 	free(jBuf);
 }
