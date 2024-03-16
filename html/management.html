@@ -2252,7 +2252,9 @@
 		}	
 		if (info.battery) {
 			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
-			content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
+			if (info.battery.chargelevel) {
+				content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
+			}
 		}
 		if (info.hallsensor) {
 			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff, 
