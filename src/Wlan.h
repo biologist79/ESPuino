@@ -2,6 +2,7 @@
 
 #include <WString.h>
 #include <functional>
+#include <optional>
 
 // be very careful changing this struct, as it is used for NVS storage and will corrupt existing entries
 struct WiFiSettings {

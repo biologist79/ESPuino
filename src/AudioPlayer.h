@@ -2,6 +2,8 @@
 
 #include "Playlist.h"
 
+#include <optional>
+
 #ifndef AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT
 	#define AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT playlistSortMode::STRNATCASECMP
 #endif

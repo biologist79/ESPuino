@@ -9,6 +9,8 @@
 #include "MemX.h"
 #include "System.h"
 
+#include <esp_random.h>
+
 #ifdef SD_MMC_1BIT_MODE
 fs::FS gFSystem = (fs::FS) SD_MMC;
 #else

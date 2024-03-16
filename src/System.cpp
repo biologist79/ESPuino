@@ -16,6 +16,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include <esp_random.h>
+
 constexpr const char prefsRfidNamespace[] = "rfidTags"; // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used for generic settings
 
