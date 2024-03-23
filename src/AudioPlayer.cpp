@@ -12,6 +12,7 @@
 #include "Log.h"
 #include "MemX.h"
 #include "Mqtt.h"
+#include "Playlist/BasicPlaylist.hpp"
 #include "Port.h"
 #include "Queues.h"
 #include "Rfid.h"
@@ -31,7 +32,7 @@
 #define AUDIOPLAYER_VOLUME_MIN	0u
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
-playProps gPlayProperties;
+PlayProps gPlayProperties;
 TaskHandle_t AudioTaskHandle;
 // uint32_t cnt123 = 0;
 
@@ -64,13 +65,9 @@ static uint8_t AudioPlayer_MaxVolumeHeadphone = 11u; // Maximum volume that can 
 
 static void AudioPlayer_Task(void *parameter);
 static void AudioPlayer_HeadphoneVolumeManager(void);
-static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
-static bool AudioPlayer_ArrSortHelper_strcmp(const char *a, const char *b);
-static bool AudioPlayer_ArrSortHelper_strnatcmp(const char *a, const char *b);
-static bool AudioPlayer_ArrSortHelper_strnatcasecmp(const char *a, const char *b);
-static void AudioPlayer_SortPlaylist(Playlist *playlist);
-static void AudioPlayer_RandomizePlaylist(Playlist *playlist);
-static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+static Playlist *AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
+static void AudioPlayer_SortPlaylist(Playlist &playlist);
+static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const Playlist &playlist, uint32_t currentTrack, uint32_t _playPosition, uint8_t _playMode, uint16_t _trackLastPlayed);
 static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
@@ -132,15 +129,8 @@ void AudioPlayer_Init(void) {
 	// Adjust volume depending on headphone is connected and volume-adjustment is enabled
 	AudioPlayer_SetupVolumeAndAmps();
 
-	// initialize gPlayProperties
-	memset(&gPlayProperties, 0, sizeof(gPlayProperties));
-	gPlayProperties.playlistFinished = true;
-
 	// clear title and cover image
-	gPlayProperties.title[0] = '\0';
-	gPlayProperties.coverFilePos = 0;
 	AudioPlayer_StationLogoUrl = "";
-	gPlayProperties.playlist = new Playlist();
 
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
@@ -455,8 +445,7 @@ void AudioPlayer_Task(void *parameter) {
 				audio->stopSong();
 
 				// destroy the old playlist and assign the new
-				freePlaylist(gPlayProperties.playlist);
-				gPlayProperties.playlist = newPlaylist;
+				gPlayProperties.playlist.reset(newPlaylist);
 				Log_Printf(LOGLEVEL_NOTICE, newPlaylistReceived, gPlayProperties.playlist->size());
 				Log_Printf(LOGLEVEL_DEBUG, "Free heap: %u", ESP.getFreeHeap());
 				playbackTimeoutStart = millis();
@@ -483,7 +472,7 @@ void AudioPlayer_Task(void *parameter) {
 				if (gPlayProperties.saveLastPlayPosition) { // Don't save for AUDIOBOOK_LOOP because not necessary
 					if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {
 						// Only save if there's another track, otherwise it will be saved at end of playlist anyway
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1);
 					}
 				}
 				if (gPlayProperties.sleepAfterCurrentTrack) { // Go to sleep if "sleep after track" was requested
@@ -532,7 +521,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 					if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 						Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 					}
 					gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
 					Web_SendWebsocketData(0, 30);
@@ -559,7 +548,7 @@ void AudioPlayer_Task(void *parameter) {
 							gPlayProperties.currentTrackNumber++;
 						}
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 						Log_Println(cmndNextTrack, LOGLEVEL_INFO);
@@ -608,7 +597,7 @@ void AudioPlayer_Task(void *parameter) {
 							}
 
 							if (gPlayProperties.saveLastPlayPosition) {
-								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 								Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 							}
 
@@ -618,11 +607,11 @@ void AudioPlayer_Task(void *parameter) {
 							}
 						} else {
 							if (gPlayProperties.saveLastPlayPosition) {
-								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+								AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 							}
 							audio->stopSong();
 							Led_Indicate(LedIndicatorType::Rewind);
-							audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+							audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str());
 							// consider track as finished, when audio lib call was not successful
 							if (!audioReturnCode) {
 								System_IndicateError();
@@ -642,7 +631,7 @@ void AudioPlayer_Task(void *parameter) {
 					}
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 						Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 					}
 					Log_Println(cmndFirstTrack, LOGLEVEL_INFO);
@@ -660,7 +649,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {
 						gPlayProperties.currentTrackNumber = gPlayProperties.playlist->size() - 1;
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 						Log_Println(cmndLastTrack, LOGLEVEL_INFO);
@@ -686,7 +675,7 @@ void AudioPlayer_Task(void *parameter) {
 
 			if (gPlayProperties.playUntilTrackNumber == gPlayProperties.currentTrackNumber && gPlayProperties.playUntilTrackNumber > 0) {
 				if (gPlayProperties.saveLastPlayPosition) {
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, 0, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, gPlayProperties.currentTrackNumber, 0, gPlayProperties.playMode, 0);
 				}
 				gPlayProperties.playlistFinished = true;
 				gPlayProperties.playMode = NO_PLAYLIST;
@@ -699,7 +688,7 @@ void AudioPlayer_Task(void *parameter) {
 				if (!gPlayProperties.repeatPlaylist) {
 					if (gPlayProperties.saveLastPlayPosition) {
 						// Set back to first track
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, 0, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, 0, 0, gPlayProperties.playMode, 0);
 					}
 					gPlayProperties.playlistFinished = true;
 					gPlayProperties.playMode = NO_PLAYLIST;
@@ -723,12 +712,12 @@ void AudioPlayer_Task(void *parameter) {
 					Log_Println(repeatPlaylistDueToPlaymode, LOGLEVEL_NOTICE);
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, *gPlayProperties.playlist, 0, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 					}
 				}
 			}
 
-			if (!strncmp("http", gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 4)) {
+			if (!strncmp("http", gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str(), 4)) {
 				gPlayProperties.isWebstream = true;
 			} else {
 				gPlayProperties.isWebstream = false;
@@ -737,17 +726,17 @@ void AudioPlayer_Task(void *parameter) {
 			audioReturnCode = false;
 
 			if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-				audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+				audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str());
 				gPlayProperties.playlistFinished = false;
 				gTriedToConnectToHost = true;
 			} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 				// Files from SD
-				if (!gFSystem.exists(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
-					Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+				if (!gFSystem.exists(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str())) { // Check first if file/folder exists
+					Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str());
 					gPlayProperties.trackFinished = true;
 					continue;
 				} else {
-					audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+					audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str());
 					// consider track as finished, when audio lib call was not successful
 				}
 			}
@@ -765,7 +754,7 @@ void AudioPlayer_Task(void *parameter) {
 					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
 				}
-				const char *title = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
+				const char *title = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str();
 				if (gPlayProperties.isWebstream) {
 					title = "Webradio";
 				}
@@ -775,7 +764,7 @@ void AudioPlayer_Task(void *parameter) {
 					Audio_setTitle("%s", title);
 				}
 				AudioPlayer_ClearCover();
-				Log_Printf(LOGLEVEL_NOTICE, currentlyPlaying, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.playlist->size());
+				Log_Printf(LOGLEVEL_NOTICE, currentlyPlaying, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber).getUri().c_str(), (gPlayProperties.currentTrackNumber + 1), gPlayProperties.playlist->size());
 				gPlayProperties.playlistFinished = false;
 			}
 		}
@@ -996,27 +985,24 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	gPlayProperties.startAtFilePos = _lastPlayPos;
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;
-	std::optional<Playlist *> musicFiles;
+	Playlist *playlist = nullptr;
 	String folderPath = _itemToPlay;
 
 	if (_playMode != WEBSTREAM) {
 		if (_playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY || _playMode == RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM) {
 			folderPath = SdCard_pickRandomSubdirectory(_itemToPlay);
-			if (!folderPath) {
-				// If error occured while extracting random subdirectory
-				musicFiles = std::nullopt;
-			} else {
-				musicFiles = SdCard_ReturnPlaylist(folderPath.c_str(), _playMode); // Provide random subdirectory in order to enter regular playlist-generation
+			if (folderPath) {
+				playlist = SdCard_ReturnPlaylist(folderPath.c_str(), _playMode); // Provide random subdirectory in order to enter regular playlist-generation
 			}
 		} else {
-			musicFiles = SdCard_ReturnPlaylist(_itemToPlay, _playMode);
+			playlist = SdCard_ReturnPlaylist(_itemToPlay, _playMode);
 		}
 	} else {
-		musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(_itemToPlay);
+		playlist = AudioPlayer_ReturnPlaylistFromWebstream(_itemToPlay);
 	}
 
 	// Catch if error occured (e.g. file not found)
-	if (!musicFiles) {
+	if (!playlist) {
 		Log_Println(errorOccured, LOGLEVEL_ERROR);
 		System_IndicateError();
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
@@ -1026,8 +1012,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	}
 
 	gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
-	Playlist *list = musicFiles.value();
-	if (!list->size()) {
+	if (!playlist->isValid()) {
 		Log_Println(noMp3FilesInDir, LOGLEVEL_NOTICE);
 		System_IndicateError();
 		if (!gPlayProperties.pausePlay) {
@@ -1038,7 +1023,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		}
 
 		gPlayProperties.playMode = NO_PLAYLIST;
-		freePlaylist(list);
+		delete playlist;
 		return;
 	}
 
@@ -1075,20 +1060,16 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			gPlayProperties.playUntilTrackNumber = 0;
 			Led_SetNightmode(true);
 			Log_Println(modeSingleTrackRandom, LOGLEVEL_NOTICE);
-			AudioPlayer_RandomizePlaylist(list);
+			playlist->shuffle();
 			// we have a random order, so pick the first entry and scrap the rest
-			auto first = list->at(0);
-			list->at(0) = nullptr; // prevent our entry from being destroyed
-			freePlaylist(list); // this also scrapped our vector --> recreate it
-			list = new Playlist();
-			list->push_back(first);
+			playlist->removeMediaItem(std::next(playlist->begin()), playlist->end());
 			break;
 		}
 
 		case AUDIOBOOK: { // Tracks need to be sorted!
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobook, LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(list);
+			AudioPlayer_SortPlaylist(*playlist);
 			break;
 		}
 
@@ -1096,35 +1077,35 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 			gPlayProperties.repeatPlaylist = true;
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobookLoop, LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(list);
+			AudioPlayer_SortPlaylist(*playlist);
 			break;
 		}
 
 		case ALL_TRACKS_OF_DIR_SORTED:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackAlphSorted, folderPath.c_str());
-			AudioPlayer_SortPlaylist(list);
+			AudioPlayer_SortPlaylist(*playlist);
 			break;
 		}
 
 		case ALL_TRACKS_OF_DIR_RANDOM:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackRandom, folderPath.c_str());
-			AudioPlayer_RandomizePlaylist(list);
+			playlist->shuffle();
 			break;
 		}
 
 		case ALL_TRACKS_OF_DIR_SORTED_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
 			Log_Println(modeAllTrackAlphSortedLoop, LOGLEVEL_NOTICE);
-			AudioPlayer_SortPlaylist(list);
+			AudioPlayer_SortPlaylist(*playlist);
 			break;
 		}
 
 		case ALL_TRACKS_OF_DIR_RANDOM_LOOP: {
 			gPlayProperties.repeatPlaylist = true;
 			Log_Println(modeAllTrackRandomLoop, LOGLEVEL_NOTICE);
-			AudioPlayer_RandomizePlaylist(list);
+			playlist->shuffle();
 			break;
 		}
 
@@ -1149,47 +1130,49 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 	if (!error) {
 		gPlayProperties.playMode = _playMode;
-		xQueueSend(gTrackQueue, &list, 0);
+		xQueueSend(gTrackQueue, &playlist, 0);
 		return;
 	}
 
 	// we had an error, blink and destroy playlist
 	gPlayProperties.playMode = NO_PLAYLIST;
 	System_IndicateError();
-	freePlaylist(list);
+	delete playlist;
 }
 
-/* Wraps putString for writing settings into NVS for RFID-cards.
-   Returns number of characters written. */
-size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
-	if (_playMode == NO_PLAYLIST) {
+/**
+ * @brief Write current play position and settings for RFID-Card into NVS
+ * @param _rfidCardId The card ID to be modified
+ * @param playlist The playlist to be saved
+ * @param currentTrack currently playing track
+ * @param _playPosition The resume position in to file
+ * @param _playMode The playback modus
+ * @param _trackLastPlayed Track number for restart
+ * @return number of characters written
+ */
+static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const Playlist &playlist, uint32_t currentTrack, uint32_t _playPosition, uint8_t _playMode, uint16_t _trackLastPlayed) {
+	if (_playMode == NO_PLAYLIST || !playlist) {
 		// writing back to NVS with NO_PLAYLIST seems to be a bug - Todo: Find the cause here
 		Log_Printf(LOGLEVEL_ERROR, modeInvalid, _playMode);
 		return 0;
 	}
-	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
-	char prefBuf[275];
-	char trackBuf[255];
-	snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
+	const MediaItem &item = playlist.at(currentTrack);
+	String uri = item.getUri();
 
-	// If it's a directory we just want to play/save basename(path)
-	if (_numberOfTracks > 1) {
-		const char s = '/';
-		const char *last = strrchr(_track, s);
-		const char *first = strchr(_track, s);
-		unsigned long substr = last - first + 1;
-		if (substr <= sizeof(trackBuf) / sizeof(trackBuf[0])) {
-			snprintf(trackBuf, substr, _track); // save substring basename(_track)
-		} else {
-			return 0; // Filename too long!
-		}
+	int lastSlashIdx = uri.lastIndexOf('/');
+	if (playlist.size() > 1 && lastSlashIdx > 0) {
+		// only save the basename in directory mode
+		uri = uri.substring(0, lastSlashIdx);
 	}
 
-	snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%u%s%d%s%u", stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
-	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
-	Log_Println(prefBuf, LOGLEVEL_INFO);
-	Led_SetPause(false);
-	return gPrefsRfid.putString(_rfidCardId, prefBuf);
+	size_t prefBufLen = uri.length() + 20;
+	auto prefBuf = std::make_unique<char[]>(prefBufLen);
+	constexpr const char *prefTmplt = "%s%s%s%u%s%d%s%u";
+
+	snprintf(prefBuf.get(), prefBufLen, prefTmplt, stringDelimiter, uri.c_str(), stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
+	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf.get(), _rfidCardId, _playMode, _trackLastPlayed);
+	Log_Println(prefBuf.get(), LOGLEVEL_INFO);
+	return gPrefsRfid.putString(_rfidCardId, prefBuf.get());
 
 	// Examples for serialized RFID-actions that are stored in NVS
 	// #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
@@ -1202,20 +1185,9 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_tra
 }
 
 // Adds webstream to playlist; same like SdCard_ReturnPlaylist() but always only one entry
-std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl) {
-	Playlist *playlist = new Playlist();
-	const size_t len = strlen(_webUrl) + 1;
-	char *entry = static_cast<char *>(x_malloc(len));
-	if (!entry) {
-		// OOM
-		Log_Println(unableToAllocateMemForLinearPlaylist, LOGLEVEL_ERROR);
-		freePlaylist(playlist);
-		return std::nullopt;
-	}
-	strncpy(entry, _webUrl, len);
-	entry[len - 1] = '\0';
-	playlist->push_back(entry);
-
+Playlist *AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl) {
+	Playlist *playlist = new BasicPlaylist(1);
+	playlist->addMediaItem(MediaItem(_webUrl));
 	return playlist;
 }
 
@@ -1224,36 +1196,24 @@ void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand) {
 	xQueueSend(gTrackControlQueue, &trackCommand, 0);
 }
 
-// Knuth-Fisher-Yates-algorithm to randomize playlist
-void AudioPlayer_RandomizePlaylist(Playlist *playlist) {
-	if (playlist->size() < 2) {
-		// we can not randomize less than 2 entries
-		return;
-	}
-
-	// randomize using the "normal" random engine and shuffle
-	std::default_random_engine rnd(millis());
-	std::shuffle(playlist->begin(), playlist->end(), rnd);
-}
-
 // Helper to sort playlist - standard string comparison
-static bool AudioPlayer_ArrSortHelper_strcmp(const char *a, const char *b) {
-	return strcmp(a, b) < 0;
+static bool AudioPlayer_ArrSortHelper_strcmp(const MediaItem &a, const MediaItem &b) {
+	return strcmp(a.getUri().c_str(), b.getUri().c_str()) < 0;
 }
 
 // Helper to sort playlist - natural case-sensitive
-static bool AudioPlayer_ArrSortHelper_strnatcmp(const char *a, const char *b) {
-	return strnatcmp(a, b) < 0;
+static bool AudioPlayer_ArrSortHelper_strnatcmp(const MediaItem &a, const MediaItem &b) {
+	return strnatcmp(a.getUri().c_str(), b.getUri().c_str()) < 0;
 }
 
 // Helper to sort playlist - natural case-insensitive
-static bool AudioPlayer_ArrSortHelper_strnatcasecmp(const char *a, const char *b) {
-	return strnatcasecmp(a, b) < 0;
+static bool AudioPlayer_ArrSortHelper_strnatcasecmp(const MediaItem &a, const MediaItem &b) {
+	return strnatcasecmp(a.getUri().c_str(), b.getUri().c_str()) < 0;
 }
 
 // Sort playlist
-void AudioPlayer_SortPlaylist(Playlist *playlist) {
-	std::function<bool(const char *, const char *)> cmpFunc;
+void AudioPlayer_SortPlaylist(Playlist &playlist) {
+	Playlist::CompareFunc cmpFunc;
 	const char *mode;
 	switch (AudioPlayer_PlaylistSortMode) {
 		case playlistSortMode::STRCMP:
@@ -1272,7 +1232,7 @@ void AudioPlayer_SortPlaylist(Playlist *playlist) {
 	}
 
 	Log_Printf(LOGLEVEL_INFO, "Sorting files using %s", mode);
-	std::sort(playlist->begin(), playlist->end(), cmpFunc);
+	playlist.sort(cmpFunc);
 }
 
 // Clear cover send notification
