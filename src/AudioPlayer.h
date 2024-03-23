@@ -2,6 +2,7 @@
 
 #include "Playlist.h"
 
+#include <memory>
 #include <optional>
 
 #ifndef AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT
@@ -14,9 +15,9 @@ enum class playlistSortMode : uint8_t {
 	STRNATCASECMP = 3,
 };
 
-typedef struct { // Bit field
+struct PlayProps { // Bit field
 	uint8_t playMode : 4; // playMode
-	Playlist *playlist; // playlist
+	std::unique_ptr<Playlist> playlist; // playlist
 	char title[255]; // current title
 	bool repeatCurrentTrack		: 1; // If current track should be looped
 	bool repeatPlaylist			: 1; // If whole playlist should be looped
@@ -42,9 +43,37 @@ typedef struct { // Bit field
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
 	size_t audioFileSize; // file size of current audio file
-} playProps;
 
-extern playProps gPlayProperties;
+	PlayProps()
+		: playMode(NO_PLAYLIST)
+		, playlist(nullptr)
+		, title {}
+		, repeatCurrentTrack(false)
+		, repeatPlaylist(false)
+		, currentTrackNumber(0)
+		, startAtFilePos(0)
+		, currentRelPos(0.0f)
+		, sleepAfterCurrentTrack(false)
+		, sleepAfterPlaylist(false)
+		, sleepAfter5Tracks(false)
+		, playRfidTag {}
+		, pausePlay(false)
+		, trackFinished(false)
+		, playlistFinished(true)
+		, playUntilTrackNumber(0)
+		, seekmode(SEEK_NORMAL)
+		, newPlayMono(false)
+		, currentPlayMono(false)
+		, isWebstream(false)
+		, tellMode(TTS_NONE)
+		, currentSpeechActive(false)
+		, lastSpeechActive(false)
+		, coverFilePos(0)
+		, coverFileSize(0)
+		, audioFileSize(0) { }
+};
+
+extern PlayProps gPlayProperties;
 
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);
