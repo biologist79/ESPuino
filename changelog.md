@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 28.03.2024: Audio lib, fix a memory leak with flac files
+* 28.03.2024: Fix some warnings with upcoming Arduino 3 (ESP-IDF v5.1)
 * 16.03.2024: Reduce memory usage by measurement of JSON payload length
 * 15.03.2024: MQTT receive: Bug fix and avoid payload copy (#309), thanks to @eikel
 * 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields ! 

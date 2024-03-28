@@ -1305,7 +1305,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 		// write content to buffer
 		memcpy(buffer[index_buffer_write] + size_in_buffer[index_buffer_write], data, len_to_write);
-		size_in_buffer[index_buffer_write] += len_to_write;
+		size_in_buffer[index_buffer_write] = size_in_buffer[index_buffer_write] + len_to_write;
 
 		// check if buffer is filled. If full, signal that ready and change buffers
 		if (size_in_buffer[index_buffer_write] == chunk_size) {
@@ -1340,7 +1340,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 // feed the watchdog timer without delay
 void feedTheDog(void) {
-#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32)
+#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32) && (ESP_ARDUINO_VERSION_MAJOR < 3)
 	// feed dog 0
 	TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
 	TIMERG0.wdt_feed = 1; // feed dog
