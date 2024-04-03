@@ -258,7 +258,8 @@
             "title": "Égaliseur",
             "gainLowPass": "Graves",
             "gainBandPass": "Médiums",
-            "gainHighPass": "Aigus"
+            "gainHighPass": "Aigus",
+            "info": "Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
         },
         "neopixel": {
             "title": "Neopixel (luminosité)",

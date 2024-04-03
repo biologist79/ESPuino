@@ -213,7 +213,7 @@
 	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
 		<div class="modal-content">
 			 <div class="modal-header">
-				<h5 class="modal-title" data-i18n="equalizer.title"></h5>
+				<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body row" id="modalEqualizerContent">
@@ -253,8 +253,7 @@
 				<div class="col-12">
 					<div class="row">
 						<i class="fas fa-info col-auto icon-pos"></i>
-						<span class="col">
-							Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf.
+						<span class="col" data-i18n="general.equalizer.info">
 						</span>
 					</div>
 				</div>
@@ -2396,7 +2395,7 @@
 			shutdownDevice();
 		}); 
 		$('.openPopupEqualizer').on('click', () => {
-			$('#modalEqualizer .modal-title').text(i18next.t("equalizer.title"));
+			$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
 			$('#modalEqualizer').modal({show: true});
 		});
 
