@@ -394,11 +394,7 @@ void AudioPlayer_Task(void *parameter) {
 	audio->setVolume(AudioPlayer_CurrentVolume, VOLUMECURVE);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	int8_t currentEqualizer[3] = {gPrefsSettings.getChar("gainLowPass", 0), gPrefsSettings.getChar("gainBandPass", 0), gPrefsSettings.getChar("gainHighPass", 0)};
-	if (gPlayProperties.currentPlayMono) {
-		audio->setTone(3, 0, 0);
-	} else {
-		audio->setTone(currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
-	}
+	audio->setTone(currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
 
 	uint8_t currentVolume;
 	BaseType_t trackQStatus = pdFAIL;
@@ -874,11 +870,10 @@ void AudioPlayer_Task(void *parameter) {
 			audio->forceMono(gPlayProperties.currentPlayMono);
 			if (gPlayProperties.currentPlayMono) {
 				Log_Println(newPlayModeMono, LOGLEVEL_NOTICE);
-				audio->setTone(3, 0, 0);
 			} else {
 				Log_Println(newPlayModeStereo, LOGLEVEL_NOTICE);
-				audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 			}
+			audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 		}
 
 		audio->loop();
