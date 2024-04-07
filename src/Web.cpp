@@ -625,6 +625,22 @@ bool JSONToSettings(JsonObject doc) {
 			return false;
 		}
 	}
+	if (doc.containsKey("equalizer")) {
+		int8_t _gainLowPass = doc["equalizer"]["gainLowPass"].as<int8_t>();
+		int8_t _gainBandPass = doc["equalizer"]["gainBandPass"].as<int8_t>();
+		int8_t _gainHighPass = doc["equalizer"]["gainHighPass"].as<int8_t>();
+		// equalizer settings
+		if (
+			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 ||
+			gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || 
+			gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0
+			) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
+			return false;
+		} else {
+			AudioPlayer_EqualizerToQueueSender(_gainLowPass, _gainBandPass, _gainHighPass);
+		}
+	}
 	if (doc.containsKey("wifi")) {
 		// WiFi settings
 		String hostName = doc["wifi"]["hostname"];
@@ -796,6 +812,13 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
 	}
+	if ((section == "") || (section == "equalizer")) {
+		// equalizer settings
+		JsonObject equalizerObj = obj.createNestedObject("equalizer");
+		equalizerObj["gainLowPass"].set(gPrefsSettings.getChar("gainLowPass", 0));
+		equalizerObj["gainBandPass"].set(gPrefsSettings.getChar("gainBandPass", 0));
+		equalizerObj["gainHighPass"].set(gPrefsSettings.getChar("gainHighPass", 0));
+	}
 	if ((section == "") || (section == "wifi")) {
 		// WiFi settings
 		JsonObject wifiObj = obj.createNestedObject("wifi");
@@ -851,6 +874,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
 		defaultsObj["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		defaultsObj["sleepInactivity"].set(10u); // System_MaxInactivityTime
+	
+		defaultsObj["gainHighPass"].set(0);
+		defaultsObj["gainBandPass"].set(0);
+		defaultsObj["gainLowPass"].set(0);
 #ifdef NEOPIXEL_ENABLE
 		defaultsObj["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		defaultsObj["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS

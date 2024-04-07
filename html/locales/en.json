@@ -252,6 +252,13 @@
             "speakerMax": "Max. volume (speaker)",
             "headphoneMax": "Max. volume (headphones)"
         },
+        "equalizer":  {
+            "title": "Equalizer",
+            "gainLowPass": "Lows",
+            "gainBandPass": "Mids",
+            "gainHighPass": "Highs",
+            "info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
+        },
         "neopixel": {
             "title": "Neopixel (brightness)",
             "restart": "After restart",

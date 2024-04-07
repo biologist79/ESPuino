@@ -208,6 +208,66 @@
 		</div>
 	</div>
 </div>
+<!-- Modal dialog for equalizer-->
+<div class="modal fade bd-info-modal-xl" id="modalEqualizer" role="dialog">
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+		<div class="modal-content">
+			 <div class="modal-header">
+				<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body row" id="modalEqualizerContent">
+
+				<div class="col-12">
+					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
+					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+					<input id="gainLowPass" name="gainLowPass" class="form-control" 
+						data-provide="slider" type="number" required
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-value="0"  value="0">
+					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+				</div>
+				
+				<hr class="w-100" />
+
+				<div class="col-12">
+					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
+					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+					<input id="gainBandPass" name="gainBandPass" class="form-control" 
+						data-provide="slider" type="number" required
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-value="0"  value="0">
+					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+				</div>
+
+				<hr class="w-100" />
+
+				<div class="col-12">
+					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
+					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+					<input id="gainHighPass" name="gainHighPass" class="form-control" 
+						data-provide="slider" type="number" required
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-value="0"  value="0">
+					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+				</div>
+
+				<hr class="w-100" />
+
+				<div class="col-12">
+					<div class="row">
+						<i class="fas fa-info col-auto icon-pos"></i>
+						<span class="col" data-i18n="general.equalizer.info">
+						</span>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
 <!-- Modal dialog for delete SSID-->
 <div class="modal fade" id="deleteSSIDModal" role="dialog">
 	<div class="modal-dialog" role="document">
@@ -363,7 +423,12 @@
 				</div>
 				<br>
 				<div class="form-group col-md-12">
-					<legend data-i18n="control.volume"></legend>
+					<span class="row">
+						<legend data-i18n="control.volume" class="col-auto"></legend>
+						<button type="button" class="openPopupEqualizer btn btn-default btn-lg" data-i18n="[title]general.equalizer.title">
+							<span class="fas fa-sliders-h"></span>
+						</button>
+					</span>
 						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
@@ -1676,6 +1741,25 @@
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
 			$("#playlistSortMode").val(defSettings.sortMode).change();
+			
+			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
+			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
+			$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
+			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+			formatDBTooltip($('#gainLowPass')[0].previousSibling, defSettings.gainLowPass);
+			formatDBTooltip($('#gainBandPass')[0].previousSibling, defSettings.gainBandPass);
+			formatDBTooltip($('#gainHighPass')[0].previousSibling, defSettings.gainHighPass);
+		}
+
+		let eqSettings = settings.equalizer;
+		if (eqSettings) {
+			$("#gainLowPass").bootstrapSlider('setValue', eqSettings.gainLowPass);
+			$("#gainBandPass").bootstrapSlider('setValue', eqSettings.gainBandPass);
+			$("#gainHighPass").bootstrapSlider('setValue', eqSettings.gainHighPass);
+			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+			formatDBTooltip($('#gainLowPass')[0].previousSibling, eqSettings.gainLowPass);
+			formatDBTooltip($('#gainBandPass')[0].previousSibling, eqSettings.gainBandPass)
+			formatDBTooltip($('#gainHighPass')[0].previousSibling, eqSettings.gainHighPass);
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -2273,6 +2357,10 @@
 		$('#navbar-heading').text(newTitle);
 	}
 
+	function formatDBTooltip(target, value) {
+		target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value} dB`;
+	}
+
 	$(document).ready(function () {
 		connect();
 		buildFileSystemTree("/");
@@ -2312,6 +2400,29 @@
 			$('#modalInfoRefresh').hide();
 			shutdownDevice();
 		}); 
+		$('.openPopupEqualizer').on('click', () => {
+			$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
+			$('#modalEqualizer').modal({show: true});
+		});
+
+		// sending equalizer settings to API for 
+		$('#modalEqualizer .slider').on('slideStop', function({target, value}){
+			formatDBTooltip(target, value);
+			let myObj = {
+				"equalizer":  {					
+					gainLowPass: Number(document.getElementById("gainLowPass").value),
+					gainBandPass: Number(document.getElementById("gainBandPass").value),
+					gainHighPass: Number(document.getElementById("gainHighPass").value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			// update global settings
+			window.settings = { ...window.settings, ...myObj };
+			socket.send(myJSON);
+		});
+		$('#modalEqualizer .slider').on('slide', function({target, value}) {
+			formatDBTooltip(target, value);
+		});
 		
 		$(function () {
 			$('[data-toggle="tooltip"]').tooltip();
