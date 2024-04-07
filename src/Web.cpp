@@ -631,10 +631,7 @@ bool JSONToSettings(JsonObject doc) {
 		int8_t _gainHighPass = doc["equalizer"]["gainHighPass"].as<int8_t>();
 		// equalizer settings
 		if (
-			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 ||
-			gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || 
-			gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0
-			) {
+			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 || gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
 			return false;
 		} else {
@@ -874,7 +871,6 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
 		defaultsObj["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		defaultsObj["sleepInactivity"].set(10u); // System_MaxInactivityTime
-	
 		defaultsObj["gainHighPass"].set(0);
 		defaultsObj["gainBandPass"].set(0);
 		defaultsObj["gainLowPass"].set(0);

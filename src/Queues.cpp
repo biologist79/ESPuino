@@ -33,7 +33,7 @@ void Queues_Init(void) {
 		Log_Println(unableToCreatePlayQ, LOGLEVEL_ERROR);
 	}
 
-	gEqualizerQueue = xQueueCreate(1, sizeof(int8_t [3]));
+	gEqualizerQueue = xQueueCreate(1, sizeof(int8_t[3]));
 	if (gEqualizerQueue == NULL) {
 		Log_Println(unableToCreateEqualizerQ, LOGLEVEL_ERROR);
 	}
