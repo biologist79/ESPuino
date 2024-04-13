@@ -27,7 +27,7 @@
         "bluetooth": "Bluetooth",
         "general": "Allgemein",
         "tools": "Tools",
-        "forum": "Forum"
+        "help": "Help"
     },
     "wifi": {
         "title": "WLAN-Einstellungen",
@@ -305,9 +305,15 @@
             "desc": "Hier kann ein Firmware-Update durchgeführt werden."
         }
     },
-    "forum": {
-        "title": "Forum",
-        "desc": "Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!"
+    "help": {
+        "forum": {
+            "title": "Forum",
+            "desc": "Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!"
+        },
+        "swagger": {
+            "title": "Swagger",
+            "desc": "Dokumentation der REST API: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
+        },
     },
     "datetime": {
         "day": "Tag",
