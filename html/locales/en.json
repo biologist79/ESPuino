@@ -27,7 +27,7 @@
         "bluetooth": "Bluetooth",
         "general": "General",
         "tools": "Tools",
-        "forum": "Forum"
+        "help": "Help"
     },
     "wifi": {
         "title": "WiFi-configuration",
