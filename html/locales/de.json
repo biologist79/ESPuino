@@ -313,7 +313,7 @@
         "swagger": {
             "title": "Swagger",
             "desc": "Dokumentation der REST API: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
-        },
+        }
     },
     "datetime": {
         "day": "Tag",

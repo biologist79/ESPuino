@@ -315,7 +315,7 @@
         "swagger": {
             "title": "Swagger",
             "desc": "Documentation of the REST API: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
-        },
+        }
     },
             "datetime": {
                 "day": "jour",
