@@ -27,7 +27,7 @@
         "bluetooth": "Bluetooth",
         "general": "Général",
         "tools": "Outils",
-        "forum": "Forum"
+        "help": "Aide"
     },
     "wifi": {
         "title": "Configuration WiFi",
@@ -307,10 +307,16 @@
             "desc": "La mise à jour du micrologiciel peut être effectuée ici."
         }
     },
+    "help": {
         "forum": {
                 "title": "Forum",
                 "desc": "Rencontrez-vous des problèmes ou souhaitez-vous discuter à propos d'ESPuino ?<br /> Rejoignez-nous sur le <a href=\"https://forum.espuino.de\" target=\"_blank\">Forum ESPuino</a> ! Surtout, il y a beaucoup de <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> en ligne !"
             },
+        "swagger": {
+            "title": "Swagger",
+            "desc": "Documentation de l'API REST: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
+        }
+    },
             "datetime": {
                 "day": "jour",
                 "days": "jours",

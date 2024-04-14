@@ -5,6 +5,8 @@ info:
   description: API for the ESPuino, a DIY Smart Speaker project. ESPuino is a DIY Smart Speaker that uses software-based audio decoding, supports various music sources, and offers a user-friendly web interface. It simplifies audio processing and enhances user feedback with Neopixel rings.
 
 servers:
+  - url: /
+    description: Local Device
   - url: http://espuino.local/
     description: Development ESPuino
 

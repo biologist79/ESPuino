@@ -6,6 +6,7 @@ Use this script for creating binary header files from html files.
 
 from pathlib import Path
 import os
+import shutil
 import mimetypes
 import gzip
 Import("env")  # pylint: disable=undefined-variable
@@ -26,12 +27,15 @@ HTML_DIR = Path("html").absolute()
 # List of files, which will only be minifed but not compressed (f.e. html files with templates)
 WWW_FILES = []
 # list of all files, which shall be compressed before embedding
-# files with ".json" ending will be minifed before compression, ".js" will not be changed!
+# files with ".json" ending will be minifed before compression, ".js" and ".yaml" will not be changed!
 BINARY_FILES =[
     Path("management.html"),
     Path("accesspoint.html"),
     Path("js/i18next.min.js"),
     Path("js/i18nextHttpBackend.min.js"),
+    Path("REST_API.yaml"),
+    Path("swagger.html"),
+    Path("js/swaggerInitializer.js"),
     Path("js/loc_i18next.min.js"),
     Path("locales/de.json"),
     Path("locales/en.json"),
@@ -114,6 +118,9 @@ class HtmlHeaderProcessor:
             print(f"  {HTML_DIR / html_file} -> {OUTPUT_DIR / header_file}")
             cls._process_header_file(HTML_DIR / html_file, OUTPUT_DIR / header_file)
         binary_header = OUTPUT_DIR / "HTMLbinary.h"
+
+        shutil.copy2('REST-API.yaml', 'html/REST_API.yaml')  # Copy and rename the file with keeping the mtime
+
         if binary_header.exists():
             os.remove(binary_header)    # remove file if it exists, since we are appending to it
 
@@ -124,7 +131,10 @@ class HtmlHeaderProcessor:
 
             info = dict()   # the dict entry for this file
             info["uri"] = "/" + filePath.relative_to(HTML_DIR).as_posix()
-            info["mimeType"] = mimetypes.types_map[filePath.suffix]
+            if filePath.suffix == ".yaml":
+                info["mimeType"] = "application/yaml" # mimetypes does not yet know yaml, see https://datatracker.ietf.org/doc/rfc9512/
+            else:
+                info["mimeType"] = mimetypes.types_map[filePath.suffix]
             info = cls._process_binary_file(HTML_DIR / binary_file, binary_header, info)
             fileList.append(info)
 
