@@ -119,7 +119,7 @@ class HtmlHeaderProcessor:
             cls._process_header_file(HTML_DIR / html_file, OUTPUT_DIR / header_file)
         binary_header = OUTPUT_DIR / "HTMLbinary.h"
 
-        shutil.copyfile('REST-API.yaml', 'html/REST_API.yaml')
+        shutil.copy2('REST-API.yaml', 'html/REST_API.yaml')  # Copy and rename the file with keeping the mtime
 
         if binary_header.exists():
             os.remove(binary_header)    # remove file if it exists, since we are appending to it
