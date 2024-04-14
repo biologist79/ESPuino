@@ -133,7 +133,7 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_SetupVolumeAndAmps();
 
 	// initialize gPlayProperties
-	memset(&gPlayProperties, 0, sizeof(gPlayProperties));
+	gPlayProperties = {};
 	gPlayProperties.playlistFinished = true;
 
 	// clear title and cover image

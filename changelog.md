@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 14.04.2024: Embed swagger UI #314, thanks to @caco3 !
 * 07.04.2024: Equalizer settings to WebUI #313, thanks to @trainbird !
 * 28.03.2024: Audio lib, fix a memory leak with flac files
 * 28.03.2024: Fix some warnings with upcoming Arduino 3 (ESP-IDF v5.1)
