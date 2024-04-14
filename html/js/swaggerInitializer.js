@@ -1,6 +1,4 @@
 window.onload = function() {
-  //<editor-fold desc="Changeable Configuration Block">
-
   window.ui = SwaggerUIBundle({
     url: "../REST_API.yaml",
     dom_id: '#swagger-ui',
@@ -14,6 +12,4 @@ window.onload = function() {
     ],
     layout: "StandaloneLayout"
   });
-
-  //</editor-fold>
 };
