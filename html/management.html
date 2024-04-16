@@ -1132,7 +1132,7 @@
 
 	async function restartDevice() {
 		console.log("restart..");
-		await fetch("/restart", {method: "POST"});
+		await fetch("http://" + host + "/restart", {method: "POST"});
 		tryRedirect();
 		$('.modal-title').text(i18next.t("restart"));
 		$('.modal-body').text(i18next.t("restartinfo"));
@@ -1142,7 +1142,7 @@
 
 	async function shutdownDevice() {
 		console.log("shutdown..");
-		await fetch("/shutdown", {method: "POST"});
+		await fetch("http://" + host + "/shutdown", {method: "POST"});
 		$('.modal-title').text(i18next.t("shutdown"));
 		$('.modal-body').text(i18next.t("shutdowninfo"));
 		$(".modal-body").removeAttr("style");
