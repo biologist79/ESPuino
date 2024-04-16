@@ -921,7 +921,7 @@
 		}
 	});
 
-	if (debugHost != undefined) {
+	if (typeof debugHost !== "undefined") {
 		host = debugHost;
 		console.log("Using remote host on " + debugHost);
 
