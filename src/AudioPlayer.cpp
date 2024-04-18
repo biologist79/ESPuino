@@ -1307,7 +1307,7 @@ void audio_info(const char *info) {
 void audio_id3data(const char *info) { // id3 metadata
 	Log_Printf(LOGLEVEL_INFO, "id3data     : %s", info);
 	// get title
-	if (startsWith((char *) info, "Title:")) {
+	if (startsWith((char *) info, "Title") || startsWith((char *) info, "TITLE=") || startsWith((char *) info, "title=")) { //ID3: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
 		if (gPlayProperties.playlist->size() > 1) {
 			Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), info + 6);
 		} else {
