@@ -1,7 +1,12 @@
 # Changelog
 
 ## DEV-branch
-
+* 18.04.2024: Correct calculation of newFilePos for SEEK_POS_PERCENT, thanks to @sfields!
+* 18.04.2024: Correct calculation of gPlayProperties.currentRelPos, thanks to @sfields!
+* 18.04.2024: Get title from-VORBISCOMMENT and ID3, thanks to @sfields!
+* 18.04.2024: Correct log for SSID name, thanks to @sfields!
+* 18.04.2024: Add button to expand/shrink file list (#317), thanks to @caco3 !
+* 18.04.2024: Fix remote UI debugging (#316), thanks to @caco3 !
 * 14.04.2024: Embed swagger UI #314, thanks to @caco3 !
 * 07.04.2024: Equalizer settings to WebUI #313, thanks to @trainbird !
 * 28.03.2024: Audio lib, fix a memory leak with flac files
