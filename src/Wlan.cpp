@@ -284,7 +284,7 @@ void connectToKnownNetwork(const WiFiSettings &settings, const uint8_t *bssid = 
 		}
 	}
 
-	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid);
+	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid.c_str());
 
 	WiFi.begin(settings.ssid, settings.password, 0, bssid);
 }
