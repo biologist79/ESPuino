@@ -12,22 +12,22 @@
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="apple-touch-icon" href="/logo">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script> Is it needed at all? -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
 		.jstree-default .jstree-search {
@@ -128,7 +128,7 @@
 		}
 
 		.progress-sm {
-  			height: 0.4rem!important;
+			height: 0.4rem!important;
 		}
 
 		#SubTabContent.tab-content {
@@ -165,84 +165,84 @@
 <body>
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
 	<div class="col-md-12">
-	<a class="float-left navbar-brand">
-		<img src="/logo"
-			 width="35" height="35" class="d-inline-block align-top" alt=""/>
-		<span id="navbar-heading">ESPuino</span>
-	</a>
-	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
-	<a class="reboot float-right nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
-	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
-	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
-		<option value="de">de</option>
-		<option value="en">en</option>
-		<option value="fr">fr</option>
-	</select>
+		<a class="float-start navbar-brand">
+			<img src="/logo"
+				 width="35" height="35" class="d-inline-block align-top" alt=""/>
+			<span id="navbar-heading">ESPuino</span>
+		</a>
+		<a class="reboot float-end nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
+		<a class="reboot float-end nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
+		<a class="reboot float-end nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
+		<a class="reboot float-end nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
+		<select class="form-select float-end" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
+			<option value="de">de</option>
+			<option value="en">en</option>
+			<option value="fr">fr</option>
+		</select>
 	</div>
 </nav>
 <!-- Modal dialog for info / shutdown / restart-->
 <div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 		<div class="modal-content">
 			 <div class="modal-header">
 				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 			</div>
 			<div class="modal-footer">
-				<button type="button" id="modalInfoRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+				<button type="button" id="modalInfoRefresh" class="btn me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for log-->
 <div class="modal fade bd-info-modal-xl" id="modalLog" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 		<div class="modal-content">
 			 <div class="modal-header">
 				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body" style="white-space: pre" id="modalLogContent">
 			</div>
 			<div class="modal-footer">
-				<button type="button" id="modalLogRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+				<button type="button" id="modalLogRefresh" class="btn me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for equalizer-->
 <div class="modal fade bd-info-modal-xl" id="modalEqualizer" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
+	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 		<div class="modal-content">
 			 <div class="modal-header">
 				<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body row" id="modalEqualizerContent">
 
 				<div class="col-12">
 					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
 					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-					<input id="gainLowPass" name="gainLowPass" class="form-control" 
+					<input id="gainLowPass" name="gainLowPass" class="form-control"
 						data-provide="slider" type="number" required
-						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
 						data-slider-value="0"  value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
-				
+
 				<hr class="w-100" />
 
 				<div class="col-12">
 					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
 					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-					<input id="gainBandPass" name="gainBandPass" class="form-control" 
+					<input id="gainBandPass" name="gainBandPass" class="form-control"
 						data-provide="slider" type="number" required
-						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
 						data-slider-value="0"  value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
@@ -252,9 +252,9 @@
 				<div class="col-12">
 					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
 					<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-					<input id="gainHighPass" name="gainHighPass" class="form-control" 
+					<input id="gainHighPass" name="gainHighPass" class="form-control"
 						data-provide="slider" type="number" required
-						data-slider-min="-6" data-slider-max="6" min="-6" max="6" 
+						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
 						data-slider-value="0"  value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
@@ -270,7 +270,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
@@ -281,12 +281,12 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body">
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
 			</div>
 		</div>
@@ -299,12 +299,12 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body">
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
 			</div>
 		</div>
@@ -316,13 +316,13 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
 			</div>
 			<div class="modal-body">
 				<label data-i18n="tools.nvserase.prompt"></label>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete" href="javascript:eraseNVSRFID();"></a>
 			</div>
 		</div>
@@ -332,15 +332,15 @@
 <br/>
 	<nav>
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
-			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
-			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
-			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
-			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
-			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
-			<a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
-			<a class="nav-item nav-link" id="nav-tools-tab" data-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools">Tools</span></a>
-			<a class="nav-item nav-link" id="nav-help-tab" data-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help">Help</span></span></a>
+			<a class="nav-item nav-link" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
+			<a class="nav-item nav-link active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
+			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
+			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
+			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
+			<a class="nav-item nav-link" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
+			<a class="nav-item nav-link" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools">Tools</span></a>
+			<a class="nav-item nav-link" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help">Help</span></span></a>
 		</div>
 	</nav>
 <br>
@@ -350,7 +350,7 @@
 			<div>
 				<legend data-i18n="wifi.title">WiFi-settings</legend>
 				<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
 							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
@@ -367,7 +367,7 @@
 			<div style="margin-top: 20px;">
 				<legend data-i18n="wifi.networks">Networks</legend>
 				<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
 						<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 						<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
@@ -405,9 +405,9 @@
 	</div>
 	<div class="tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 		<div class="container" id="navControl">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.title"></legend>
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
 					<div class="buttons">
@@ -429,7 +429,7 @@
 					</div>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<span class="row">
 						<legend data-i18n="control.volume" class="col-auto"></legend>
 						<button type="button" class="openPopupEqualizer btn btn-default btn-lg" data-i18n="[title]general.equalizer.title">
@@ -446,7 +446,7 @@
 						</button>
 				</div>
 				<br/>
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
 					<div></div>
@@ -456,11 +456,11 @@
 					<div id="playtime"> </div>
 				</div>
 				<br/>
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane " id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control" id="commandId" name="commandId">
+						<select class="form-select" id="commandId" name="commandId">
 							<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
@@ -508,7 +508,7 @@
 					<div class="input-group-prepend">
 					  <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
 					</div>
-					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-left-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-start-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
 					&nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button><button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 				</div>
 				<div>
@@ -538,17 +538,17 @@
 			<fieldset>
 				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 						   placeholder="" name="rfidIdMusic" required>
 					<br>
 					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
-							<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
+							<a class="nav-link active" id="rfid-music-tab" title="Music" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
 						</li>
 						<li class="nav-item" role="tab" aria-labelledby="rfid-mod-tab">
-							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
+							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
 						</li>
 					</ul>
 					<div class="tab-content" id="SubTabContent">
@@ -557,7 +557,7 @@
 							<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
 							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
 							<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
-							<select class="form-control" id="playMode" name="playMode">
+							<select class="form-select" id="playMode" name="playMode">
 								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>
 								<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
 								<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
@@ -576,7 +576,7 @@
 						</div>
 						<div class="tab-pane " id="rfidmod" role="tabpanel">
 							<label for="modId" data-i18n="files.rfid.mod.title"></label>
-							<select class="form-control" id="modId" name="modId">
+							<select class="form-select" id="modId" name="modId">
 								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>
 								<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 								<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
@@ -629,7 +629,7 @@
 					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 				</div>
-				<div class="form-group my-2 col-md-12">
+				<div class="mb-3 my-2 col-md-12">
 					<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
 						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
@@ -658,7 +658,7 @@
 		<div class="container" id="ftpConfig">
 
 			<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="ftp.title"></legend>
 					<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
 					<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
@@ -674,7 +674,7 @@
 			</form>
 		</div>
 		<div class="container" id="ftpStart">
-			<div class="form-group col-md-12">
+			<div class="mb-3 col-md-12">
 				<legend data-i18n="ftp.start.title"></legend>
 				<div data-i18n="ftp.start.desc"></div>
 				<br>
@@ -687,7 +687,7 @@
 	<div class="tab-pane fade" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 		<div class="container" id="btConfig">
 			<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.source.configtitle"></legend>
 					<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
 					<input type="text" class="form-control" id="btDeviceName"
@@ -698,11 +698,11 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button> 
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form><br>
 			<div class="container" id="btStartSource">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.source.title"></legend>
 					<div data-i18n="bt.source.desc"></div>
 					<br>
@@ -713,7 +713,7 @@
 			</div>
 			</div><br><br>
 		<div class="container" id="btStartSink">
-			<div class="form-group col-md-12">
+			<div class="mb-3 col-md-12">
 				<legend data-i18n="bt.sink.title"></legend>
 				<div data-i18n="bt.sink.desc"></div>
 				<br>
@@ -727,7 +727,7 @@
 		<div class="container" id="generalConfig">
 
 			<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 					<fieldset>
 							<legend class="w-auto" data-i18n="general.volume.title"></legend>
 					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
@@ -749,7 +749,7 @@
 				</fieldset>
 				</div>
 				<br>
-				<div class="form-group col-md-12" id="neopixelConfig" data-visible="false">
+				<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
 					<fieldset >
 						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
 					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
@@ -766,7 +766,7 @@
 					</fieldset>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<fieldset>
 						<legend data-i18n="general.sleep.title"></legend>
 
@@ -777,7 +777,7 @@
 				</div>
 				<br>
 
-				<div class="form-group col-md-12" id="batteryConfig" data-visible="false">
+				<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
 					<fieldset>
 						<legend data-i18n="general.battery.title"></legend>
 					<div data-i18n="general.battery.desc"></div>
@@ -809,7 +809,7 @@
 						</div>
 						<br>
 					</div>
-						
+
 					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
@@ -819,11 +819,11 @@
 					</fieldset>
 				</div>
 				<br>
-				<div class="form-group col-md-12" id="playlistConfig">
+				<div class="mb-3 col-md-12" id="playlistConfig">
 					<fieldset>
 						<legend class="w-auto" data-i18n="general.playlist.title"></legend>
 						<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-						<select id="playlistSortMode" name="playlistSortMode" class="form-control">
+						<select id="playlistSortMode" name="playlistSortMode" class="form-select">
 							<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 							<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 							<option value="1" data-i18n="general.playlist.strcmp"></option>
@@ -849,19 +849,19 @@
 		<br />
 		<div class="container" id="eraseNvs">
 			<legend data-i18n="tools.nvserase.title"></legend>
-				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
+				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>				
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 		</div>
 		<br />
 		<br />
 		<div class="container" id="importNvs">
 			<legend data-i18n="tools.nvsimport.title"></legend>
 			<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="form-group">
+					<div class="mb-3">
 					<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
-					<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
+					<input type="file" class="form-control" id="nvsUpload" name="nvsUpload" accept=".txt">
 				</div>
 				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 			</form>
@@ -871,9 +871,9 @@
 		<div class="container" id="httpUpdate">
 			<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 			<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
-				<div class="form-group">
+				<div class="mb-3">
 					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
-					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
+					<input type="file" class="form-control" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 				</div>
 				<div class="progress">
 					<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
@@ -957,16 +957,16 @@
 		"preventDuplicates": true,
 		"preventOpenDuplicates": true
 	};
-    
-    i18next.use(i18nextHttpBackend).init({
-        backend: {
-            loadPath: "http://" + host + "/locales/{{lng}}.json"
-        },
+
+	i18next.use(i18nextHttpBackend).init({
+		backend: {
+			loadPath: "http://" + host + "/locales/{{lng}}.json"
+		},
 		load: 'languageOnly',
-        debug: true,
-        fallbackLng: 'en',
+		debug: true,
+		fallbackLng: 'en',
 		returnObjects: true,
-    }, (err, t) => {	
+	}, (err, t) => {
 		localize = locI18next.init(i18next);
 		localize('body');
 		toastr.clear();
@@ -999,10 +999,10 @@
 
 	document.getElementById('trackProgressDiv').addEventListener('click', function (e) {
 		var bounds = this.getBoundingClientRect();
-    	var max = bounds.width;
-    	var pos = e.pageX - bounds.left; 
-    	var percent = Math.round(pos / max * 100); 
-    	console.log('track progress percentage:', percent);
+		var max = bounds.width;
+		var pos = e.pageX - bounds.left;
+		var percent = Math.round(pos / max * 100);
+		console.log('track progress percentage:', percent);
 		var myObj = {
 			"trackProgress": {
 				posPercent: percent
@@ -1082,7 +1082,7 @@
 	});
 
 	function doRest(path, callback, obj) {
-		obj.url      = path;
+		obj.url	  = path;
 		obj.dataType = "json";
 		obj.contentType= "application/json;charset=IBM437",
 		obj.scriptCharset= "IBM437",
@@ -1091,7 +1091,7 @@
 				callback(data);
 			}
 		};
-		obj.error    = function(jqXHR, textStatus, errorThrown) {
+		obj.error	= function(jqXHR, textStatus, errorThrown) {
 			console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url );
 			/*debugger; */
 		};
@@ -1140,7 +1140,7 @@
 		$('.modal-title').text(i18next.t("restart"));
 		$('.modal-body').text(i18next.t("restartinfo"));
 		$(".modal-body").removeAttr("style");
-		$('#modalInfo').modal({show: true});
+		new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 	} /* restart */
 
 	async function shutdownDevice() {
@@ -1149,7 +1149,7 @@
 		$('.modal-title').text(i18next.t("shutdown"));
 		$('.modal-body').text(i18next.t("shutdowninfo"));
 		$(".modal-body").removeAttr("style");
-		$('#modalInfo').modal({show: true});
+		new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 		setTimeout(function() {
 			tryRedirect();
 		}, 2000);
@@ -1509,10 +1509,10 @@
 						}
 					},
 				plugins: ["contextmenu", "themes", "types", "search"],
-                "search": {
-                    "case_sensitive": false,
-                    "show_only_matches": true
-                },
+				"search": {
+					"case_sensitive": false,
+					"show_only_matches": true
+				},
 				contextmenu: {
 					items: function(nodeId) {
 						var ref = $('#explorerTree').jstree(true);
@@ -1646,7 +1646,7 @@
 			setInterval(ping, 15000);
 			setInterval(getTrackProgress, 1000);
 			// clear old socket messages
-    		socket.sendBuffer = [];
+			socket.sendBuffer = [];
 			socket.send('{"settings":{"settings":"settings"}}');	// request settings
 			socket.send('{"ssids":{"ssids":"ssids"}}');				// get ssids
 			socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}');	// get trackinfo
@@ -1673,7 +1673,7 @@
 			  toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
 			  $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
 			  if (toolsTabActive) {
-			  	rebuildRFIDList();
+				rebuildRFIDList();
 			  }
 		  } if ("status" in socketMsg) {
 			  if (socketMsg.status == "ok") {
@@ -1722,13 +1722,13 @@
 				document.getElementById('coverimg').src = "http://" + host + "/cover?" + new Date().getTime();
 			} if ("settings" in socketMsg) {
 				fillSettings(socketMsg.settings);
-		  	}
+			}
 	  };
 	}
 
 	async function fillSettings(settings) {
-		if (!settings) { 
-			return false 
+		if (!settings) {
+			return false
 		}
 
 		// update global settings
@@ -1748,7 +1748,7 @@
 			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
 			volumeSlider.setValue(currSettings.volume);
 		}
-		// default (factory) settings 
+		// default (factory) settings
 		let defSettings = settings.defaults;
 		if (defSettings) {
 			$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
@@ -1763,7 +1763,7 @@
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
 			$("#playlistSortMode").val(defSettings.sortMode).change();
-			
+
 			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
 			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
 			$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
@@ -1788,13 +1788,13 @@
 		if (wifiSettings) {
 			document.getElementById("hostname").value = wifiSettings.hostname;
 			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
-			
+
 			// set title to hostname
 			setTitle(wifiSettings.hostname);
 		}
 		// ssids
 		let ssidSettings = settings.ssids;
-		if (ssidSettings) {	
+		if (ssidSettings) {
 			rebuildSSIDList(ssidSettings);
 		}
 		// led
@@ -1863,8 +1863,8 @@
 		fillSettings(defaults);
 	}
 
-	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");	
-	async function rebuildSSIDList(data) {		
+	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
+	async function rebuildSSIDList(data) {
 		var ssidList;
 		var ssidActive;
 		if (data) {
@@ -1875,7 +1875,7 @@
 			let ssidActiveObj = await (await fetch("http://" + host + "/activeSSID")).json();
 			console.log(ssidActiveObj);
 			ssidActive = ssidActiveObj.active;
-		}			
+		}
 		wifiListSavedSSIDs.innerHTML = "";
 
 		for (let ssid of ssidList) {
@@ -1918,7 +1918,7 @@
 		await rebuildSSIDList();
 	}
 
-	const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");	
+	const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");
 	async function rebuildRFIDList() {
 		var rfidList = await (await fetch("http://" + host + "/rfid")).json();
 		var rfidActive = document.getElementById('rfidIdMusic').value;
@@ -1971,7 +1971,7 @@
 		document.getElementById('savedAssignments').setAttribute('data-visible', (rfidList.length > 0));
 		document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
 	}
-	
+
 
 	async function deleteRFID(tagId) {
 		console.log("deleting", tagId);
@@ -1982,7 +1982,7 @@
 			rebuildRFIDList();
 		} else {
 			toastr.error(response.statusText);
-		}	
+		}
 		console.log(response.statusText);
 	}
 
@@ -2001,24 +2001,24 @@
 	async function uploadNVSRFID() {
 		if(!document.getElementById('nvsUpload').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
 		console.log("upload NVS RFIDs");
-		let formData = new FormData(); 
+		let formData = new FormData();
 		formData.append("file", document.getElementById('nvsUpload').files[0]);
 		var response = await fetch('/upload', {
-			method: "POST", 
+			method: "POST",
 			body: formData
-		});    
+		});
 		if (response.ok) {
 			toastr.success(i18next.t("toast.success"));
 			rebuildRFIDList();
 		} else {
 			toastr.error(response.statusText);
-		}	
+		}
 	}
 
 	function onToolsTabOpened() {
 		console.log("tools tab opened!");
 		rebuildRFIDList();
-	}	
+	}
 
 	const config = {attributes: true};
 	const toolsTab = document.getElementById("nav-tools-tab");
@@ -2032,7 +2032,7 @@
 		}
 	})
 	toolsTabObserver.observe(toolsTab, config);
-	
+
 	function ping() {
 		var myObj = {
 			"ping": {
@@ -2087,7 +2087,7 @@
 			"general": {
 				initVolume: Number(document.getElementById('initialVolume').value),
 				maxVolumeSp: Number(document.getElementById('maxVolumeSpeaker').value),
-				maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value), 
+				maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value),
 				sleepInactivity: Number(document.getElementById('inactivityTime').value)
 			},
 			"led": {
@@ -2201,14 +2201,14 @@
 		let hostname = document.getElementById("hostname").value;
 		let scanWifi = document.getElementById("scan_wifi_on_start").checked;
 
-		var myObj = { 
+		var myObj = {
 			hostname: hostname,
 			scanOnStart: scanWifi
 		};
 
 		// set title to hostname
 		setTitle(hostname);
-		
+
 		await fetch("http://" + host + "/wificonfig", {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
@@ -2226,7 +2226,7 @@
 		lastIdclicked = clickedId;
 		let static = document.getElementById('static_enabled').checked;
 
-		var myObj = { 
+		var myObj = {
 			ssid: document.getElementById('ssid').value,
 			pwd: document.getElementById('pwd').value,
 			static: static
@@ -2368,7 +2368,7 @@
 		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
 		if (info.audio.playtimeSinceStart > 0) {
 			content += i18next.t("systeminfo.audiotimesincestart", { audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
-		}	
+		}
 		if (info.battery) {
 			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
 			if (info.battery.chargelevel) {
@@ -2376,7 +2376,7 @@
 			}
 		}
 		if (info.hallsensor) {
-			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff, 
+			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff,
 				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
 		}
 		$('#modalInfoContent').text(content);
@@ -2401,14 +2401,14 @@
 		buildFileSystemTree("/");
 
 		$('#deleteSSIDModal').on('show.bs.modal', function (event) {
-  			var ssid = $(event.relatedTarget).data('ssid') 
+			var ssid = $(event.relatedTarget).data('ssid')
 			$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
 			$(this).find('.modal-body').text(i18next.t("wifi.delete.prompt", { ssid: ssid }));
 			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
 		})
 
 		$('#deleteRFIDModal').on('show.bs.modal', function (event) {
-  			var rfid = $(event.relatedTarget).data('rfid') 
+			var rfid = $(event.relatedTarget).data('rfid')
 			$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
 			$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", { rfid: rfid }));
 			$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
@@ -2417,34 +2417,34 @@
 		$('.openPopupInfo').on('click', function () {
 			fetchInfo();
 			$('.modal-title').text(i18next.t("systeminfo.title"));
-			$('#modalInfoRefresh').on('click', fetchInfo); 
-			$('#modalInfo').modal({show: true});
+			$('#modalInfoRefresh').on('click', fetchInfo);
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 		})
 		$('.openPopupLog').on('click', function () {
 			fetchLog();
 			$('.modal-title').text(i18next.t("log"));
 			$("#modalLogContent").css("font-family", "monospace");
-			$('#modalLogRefresh').on('click', fetchLog); 
-			$('#modalLog').modal({show: true});
+			$('#modalLogRefresh').on('click', fetchLog);
+			new bootstrap.Modal(document.getElementById('modalLog')).toggle();
 		})
 		$('.openPopupRestart').on('click', function(){
 			$('#modalInfoRefresh').hide();
 			restartDevice();
-		}); 
+		});
 		$('.openPopupShutdown').on('click', function(){
 			$('#modalInfoRefresh').hide();
 			shutdownDevice();
-		}); 
+		});
 		$('.openPopupEqualizer').on('click', () => {
 			$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
-			$('#modalEqualizer').modal({show: true});
+			new bootstrap.Modal(document.getElementById('modalEqualizer')).toggle();
 		});
 
-		// sending equalizer settings to API for 
+		// sending equalizer settings to API for
 		$('#modalEqualizer .slider').on('slideStop', function({target, value}){
 			formatDBTooltip(target, value);
 			let myObj = {
-				"equalizer":  {					
+				"equalizer":  {
 					gainLowPass: Number(document.getElementById("gainLowPass").value),
 					gainBandPass: Number(document.getElementById("gainBandPass").value),
 					gainHighPass: Number(document.getElementById("gainHighPass").value)
@@ -2458,11 +2458,13 @@
 		$('#modalEqualizer .slider').on('slide', function({target, value}) {
 			formatDBTooltip(target, value);
 		});
-		
+
 		$(function () {
-			$('[data-toggle="tooltip"]').tooltip();
+			$('[data-bs-toggle="tooltip"]').tooltip();
 		});
-	});	
+
+
+	});
 </script>
 </body>
 </html>
