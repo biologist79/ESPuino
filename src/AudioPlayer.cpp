@@ -274,7 +274,7 @@ void Audio_setTitle(const char *format, ...) {
 	va_end(args);
 
 	// notify web ui and mqtt
-	Web_SendWebsocketData(0, 30);
+	Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 #ifdef MQTT_ENABLE
 	publishMqtt(topicTrackState, gPlayProperties.title, false);
 #endif
@@ -413,7 +413,7 @@ void AudioPlayer_Task(void *parameter) {
 		if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
 			Log_Printf(LOGLEVEL_INFO, newLoudnessReceivedQueue, currentVolume);
 			audio->setVolume(currentVolume, VOLUMECURVE);
-			Web_SendWebsocketData(0, 50);
+			Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
 			publishMqtt(topicLoudnessState, currentVolume, false);
 #endif
@@ -540,7 +540,7 @@ void AudioPlayer_Task(void *parameter) {
 						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
 					}
 					gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
-					Web_SendWebsocketData(0, 30);
+					Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 					continue;
 
 				case NEXTTRACK:
@@ -1290,7 +1290,7 @@ void AudioPlayer_ClearCover(void) {
 	gPlayProperties.coverFilePos = 0;
 	AudioPlayer_StationLogoUrl = "";
 	// websocket and mqtt notify cover image has changed
-	Web_SendWebsocketData(0, 40);
+	Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 #ifdef MQTT_ENABLE
 	publishMqtt(topicCoverChangedState, "", false);
 #endif
@@ -1301,7 +1301,7 @@ void audio_info(const char *info) {
 	Log_Printf(LOGLEVEL_INFO, "info        : %s", info);
 	if (startsWith((char *) info, "slow stream, dropouts")) {
 		// websocket notify for slow stream
-		Web_SendWebsocketData(0, 3);
+		Web_SendWebsocketData(0, WebsocketCodeType::Dropout);
 	}
 }
 
@@ -1358,7 +1358,7 @@ void audio_icyurl(const char *info) { // homepage
 		// has station homepage, get favicon url
 		AudioPlayer_StationLogoUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" + String(info);
 		// websocket and mqtt notify station logo has changed
-		Web_SendWebsocketData(0, 40);
+		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 	}
 }
 
@@ -1367,7 +1367,7 @@ void audio_icylogo(const char *info) { // logo
 	if (String(info) != "") {
 		AudioPlayer_StationLogoUrl = info;
 		// websocket and mqtt notify station logo has changed
-		Web_SendWebsocketData(0, 40);
+		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 	}
 }
 
@@ -1381,7 +1381,7 @@ void audio_id3image(File &file, const size_t pos, const size_t size) {
 	gPlayProperties.coverFilePos = pos;
 	gPlayProperties.coverFileSize = size;
 	// websocket and mqtt notify cover image has changed
-	Web_SendWebsocketData(0, 40);
+	Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 #ifdef MQTT_ENABLE
 	publishMqtt(topicCoverChangedState, "", false);
 #endif
@@ -1444,7 +1444,7 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 	}
 	gPlayProperties.coverFilePos = 1; // flacMarker gives 4 Bytes before METADATA_BLOCK_PICTURE, whereas for flac files audioI2S points 3 Bytes before METADATA_BLOCK_PICTURE, so gPlayProperties.coverFilePos has to be set to 4-3=1
 	// websocket and mqtt notify cover image has changed
-	Web_SendWebsocketData(0, 40);
+	Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 #ifdef MQTT_ENABLE
 	publishMqtt(topicCoverChangedState, "", false);
 #endif

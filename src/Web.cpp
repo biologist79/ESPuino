@@ -760,7 +760,7 @@ bool JSONToSettings(JsonObject doc) {
 		if ((millis() - lastPongTimestamp) > 1000u) {
 			// send pong (keep-alive heartbeat), check for excessive calls
 			lastPongTimestamp = millis();
-			Web_SendWebsocketData(0, 20);
+			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
 		return false;
 	} else if (doc.containsKey("controls")) {
@@ -773,21 +773,21 @@ bool JSONToSettings(JsonObject doc) {
 			Cmd_Action(cmd);
 		}
 	} else if (doc.containsKey("trackinfo")) {
-		Web_SendWebsocketData(0, 30);
+		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 	} else if (doc.containsKey("coverimg")) {
-		Web_SendWebsocketData(0, 40);
+		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 	} else if (doc.containsKey("volume")) {
-		Web_SendWebsocketData(0, 50);
+		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 	} else if (doc.containsKey("settings")) {
-		Web_SendWebsocketData(0, 60);
+		Web_SendWebsocketData(0, WebsocketCodeType::Settings);
 	} else if (doc.containsKey("ssids")) {
-		Web_SendWebsocketData(0, 70);
+		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
 	} else if (doc.containsKey("trackProgress")) {
 		if (doc["trackProgress"].containsKey("posPercent")) {
 			gPlayProperties.seekmode = SEEK_POS_PERCENT;
 			gPlayProperties.currentRelPos = doc["trackProgress"]["posPercent"].as<uint8_t>();
 		}
-		Web_SendWebsocketData(0, 80);
+		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
 	}
 
 	return true;
@@ -1127,7 +1127,7 @@ bool processJsonRequest(char *_serialJson) {
 }
 
 // Sends JSON-answers via websocket
-void Web_SendWebsocketData(uint32_t client, uint8_t code) {
+void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	if (!webserverStarted) {
 		// webserver not yet started
 		return;
@@ -1155,20 +1155,20 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 #endif
 	JsonObject object = doc.to<JsonObject>();
 
-	if (code == 1) {
+	if (code == WebsocketCodeType::Ok) {
 		object["status"] = "ok";
-	} else if (code == 2) {
+	} else if (code == WebsocketCodeType::Error) {
 		object["status"] = "error";
-	} else if (code == 3) {
+	} else if (code == WebsocketCodeType::Dropout) {
 		object["status"] = "dropout";
-	} else if (code == 10) {
+	} else if (code == WebsocketCodeType::CurrentRfid) {
 		object["rfidId"] = gCurrentRfidTagId;
-	} else if (code == 20) {
+	} else if (code == WebsocketCodeType::Pong) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
 		// todo: battery percent + loading status +++
 		// object["battery"] = Battery_GetVoltage();
-	} else if (code == 30) {
+	} else if (code == WebsocketCodeType::TrackInfo) {
 		JsonObject entry = object.createNestedObject("trackinfo");
 		entry["pausePlay"] = gPlayProperties.pausePlay;
 		entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
@@ -1177,17 +1177,17 @@ void Web_SendWebsocketData(uint32_t client, uint8_t code) {
 		entry["name"] = gPlayProperties.title;
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["playMode"] = gPlayProperties.playMode;
-	} else if (code == 40) {
+	} else if (code == WebsocketCodeType::CoverImg) {
 		object["coverimg"] = "coverimg";
-	} else if (code == 50) {
+	} else if (code == WebsocketCodeType::Volume) {
 		object["volume"] = AudioPlayer_GetCurrentVolume();
-	} else if (code == 60) {
+	} else if (code == WebsocketCodeType::Settings) {
 		JsonObject entry = object.createNestedObject("settings");
 		settingsToJSON(entry, "");
-	} else if (code == 70) {
+	} else if (code == WebsocketCodeType::Ssid) {
 		JsonObject entry = object.createNestedObject("settings");
 		settingsToJSON(entry, "ssids");
-	} else if (code == 80) {
+	} else if (code == WebsocketCodeType::TrackProgress) {
 		JsonObject entry = object.createNestedObject("trackProgress");
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["time"] = AudioPlayer_GetCurrentTime();
@@ -1238,7 +1238,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 
 			if (processJsonRequest((char *) data)) {
 				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
-					Web_SendWebsocketData(client->id(), 1);
+					Web_SendWebsocketData(client->id(), WebsocketCodeType::Ok);
 				}
 			}
 
