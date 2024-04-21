@@ -30,6 +30,17 @@
 	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
+		.nav-logo {
+			margin-left: 30px;
+			margin-right: 5px;
+		}
+		.header-nav-element {
+			margin-right: 30px;
+			margin-top: 8px;
+		}
+		.header-nav-restart {
+			margin-right: 40px
+		}
 		.jstree-default .jstree-search {
 			font-style: italic;
 			color: #007bff; /* change searchresult theme-color to bootstrap blue */
@@ -160,26 +171,31 @@
 		.fas{
 			padding-right: 0.25em;
 		}
+
+		#langSel {
+			width:auto;
+			padding-right:25px;
+			margin-right: 20px;
+		}
 	</style>
 </head>
 <body>
 <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
 	<div class="col-md-12">
 		<a class="float-start navbar-brand">
-			<img src="/logo"
-				 width="35" height="35" class="d-inline-block align-top" alt=""/>
+			<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt=""/>
 			<span id="navbar-heading">ESPuino</span>
 		</a>
-		<a class="reboot float-end nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
-		<a class="reboot float-end nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
-		<a class="reboot float-end nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-		<a class="reboot float-end nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
-		<select class="form-select float-end" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
+		<a class="reboot float-end nav-link openPopupRestart header-nav-element header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
+		<a class="reboot float-end nav-link openPopupShutdown header-nav-element" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
+		<a class="reboot float-end nav-link openPopupLog header-nav-element" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
+		<a class="reboot float-end nav-link openPopupInfo header-nav-element" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
+		<select class="form-select float-end" id="langSel" name="langSel">
 			<option value="de">de</option>
 			<option value="en">en</option>
 			<option value="fr">fr</option>
 		</select>
-		<div class="form-check float-end nav-link form-switch ms-auto mt-3 me-3">
+		<div class="form-check float-end nav-link form-switch ms-auto me-3" style="margin-top: 8px;">
 			<label class="form-check-label ms-3" for="lightSwitch">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -194,7 +210,7 @@
 				/>
 			</svg>
 			</label>
-			<input class="form-check-input" type="checkbox" id="lightSwitch" />
+			<input class="form-check-input" type="checkbox" id="lightSwitch" style="margin: -100px; /* Hide it */" />
 		</div>
 	</div>
 </nav>
@@ -525,7 +541,8 @@
 						<span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
 					</div>
 					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-start-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
-					&nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button><button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
+					&nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
+					<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 				</div>
 				<div>
 				<br>
