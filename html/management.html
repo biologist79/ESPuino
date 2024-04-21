@@ -2402,6 +2402,8 @@
 	async function fetchLog() {
 		let logtext = await (await fetch("http://" + host + "/log")).text();
 		$('#modalLogContent').text(logtext);
+		const modalBody = document.querySelector('.modalLogContent')
+		modalBody.scrollTop = modalBody.scrollHeight
 	}
 
 	function setTitle(newTitle) {
@@ -2461,7 +2463,7 @@
 		$('#modalEqualizer .slider').on('slideStop', function({target, value}){
 			formatDBTooltip(target, value);
 			let myObj = {
-				"equalizer":  {
+				"equalizer": {
 					gainLowPass: Number(document.getElementById("gainLowPass").value),
 					gainBandPass: Number(document.getElementById("gainBandPass").value),
 					gainHighPass: Number(document.getElementById("gainHighPass").value)
@@ -2566,7 +2568,7 @@
 		function onToggleMode() {
 			if (lightSwitch.checked) {
 				console.log("s");
-			  darkMode();
+				darkMode();
 			} else {
 				lightMode();
 			}
