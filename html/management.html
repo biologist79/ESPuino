@@ -1408,10 +1408,10 @@
 		return function(a, b) {
 			// Make sure directories are always listed first
 			if ( a.dir && !b.dir ) {
-				return -1
+				return -1;
 			}
 			if ( !a.dir && b.dir ) {
-				return 1
+				return 1;
 			}
 
 			switch (sortMode) {
@@ -1779,7 +1779,7 @@
 
 	async function fillSettings(settings) {
 		if (!settings) {
-			return false
+			return false;
 		}
 
 		// update global settings
