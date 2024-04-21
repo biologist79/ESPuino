@@ -32,7 +32,7 @@
 	<style type="text/css">
 		.jstree-default .jstree-search {
 			font-style: italic;
-			color:  #007bff; /* change searchresult theme-color to bootstrap blue */
+			color: #007bff; /* change searchresult theme-color to bootstrap blue */
 			font-weight: bold;
 		}
 		.filetree {
@@ -131,18 +131,18 @@
 			height: 0.4rem!important;
 		}
 
-		#SubTabContent.tab-content {
+	 #SubTabContent.tab-content {
 			display: flex;
 		}
 
-		#SubTabContent.tab-content > .tab-pane {
+	 #SubTabContent.tab-content > .tab-pane {
 			display: block; /* undo "display: none;" */
 			visibility: hidden;
 			margin-right: -100%;
 			width: 100%;
 		}
 
-		#SubTabContent.tab-content > .active {
+	 #SubTabContent.tab-content > .active {
 			visibility: visible;
 		}
 		[data-visible="false"] {
@@ -180,65 +180,64 @@
 			<option value="fr">fr</option>
 		</select>
 		<div class="form-check float-end nav-link form-switch ms-auto mt-3 me-3">
-		  <label class="form-check-label ms-3" for="lightSwitch">
+			<label class="form-check-label ms-3" for="lightSwitch">
 			<svg
-			  xmlns="http://www.w3.org/2000/svg"
-			  width="25"
-			  height="25"
-			  fill="currentColor"
-			  class="bi bi-brightness-high"
-			  viewBox="0 0 16 16"
+				xmlns="http://www.w3.org/2000/svg"
+				width="25"
+				height="25"
+				fill="currentColor"
+				class="bi bi-brightness-high"
+				viewBox="0 0 16 16"
 			>
-			  <path
+				<path
 				d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"
-			  />
+				/>
 			</svg>
-		  </label>
-		  <input class="form-check-input" type="checkbox" id="lightSwitch" />
+			</label>
+			<input class="form-check-input" type="checkbox" id="lightSwitch" />
 		</div>
 	</div>
 </nav>
 <!-- Modal dialog for info / shutdown / restart-->
-<div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+<div class="modal fade" data-bs-backdrop='static' id="modalInfo">
+	<div class="modal-dialog modal-dialog-scrollable">
 		<div class="modal-content">
 			 <div class="modal-header">
 				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 			</div>
 			<div class="modal-footer">
-				<button type="button" id="modalInfoRefresh" class="btn me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
+				<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for log-->
-<div class="modal fade bd-info-modal-xl" id="modalLog" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+<div class="modal fade" data-bs-backdrop='static' id="modalLog">
+	<div class="modal-dialog modal-dialog-scrollable">
 		<div class="modal-content">
-			 <div class="modal-header">
-				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+			<div class="modal-header">
+				<h5 class="modal-title">Modal title</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body" style="white-space: pre" id="modalLogContent">
-			</div>
+		<div class="modal-body scrollBottom modalLogContent" style="white-space: pre" id="modalLogContent"></div>
 			<div class="modal-footer">
-				<button type="button" id="modalLogRefresh" class="btn me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
+		<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
+		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for equalizer-->
-<div class="modal fade bd-info-modal-xl" id="modalEqualizer" role="dialog">
+<div class="modal fade" data-bs-backdrop='static' id="modalEqualizer">
 	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 		<div class="modal-content">
 			 <div class="modal-header">
 				<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body row" id="modalEqualizerContent">
 
@@ -248,7 +247,7 @@
 					<input id="gainLowPass" name="gainLowPass" class="form-control"
 						data-provide="slider" type="number" required
 						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
-						data-slider-value="0"  value="0">
+						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
 
@@ -260,7 +259,7 @@
 					<input id="gainBandPass" name="gainBandPass" class="form-control"
 						data-provide="slider" type="number" required
 						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
-						data-slider-value="0"  value="0">
+						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
 
@@ -272,7 +271,7 @@
 					<input id="gainHighPass" name="gainHighPass" class="form-control"
 						data-provide="slider" type="number" required
 						data-slider-min="-6" data-slider-max="6" min="-6" max="6"
-						data-slider-value="0"  value="0">
+						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
 
@@ -287,13 +286,13 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal">OK</button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for delete SSID-->
-<div class="modal fade" id="deleteSSIDModal" role="dialog">
+<div class="modal fade" id="deleteSSIDModal">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -303,43 +302,43 @@
 			<div class="modal-body">
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
 			</div>
 		</div>
 	</div>
 </div>
 
-<!-- Modal dialog for delete NVS RFID assignment-->
-<div class="modal fade" id="deleteRFIDModal" role="dialog">
+<!-- Modal dialog for delete RFID assignment-->
+<div class="modal fade" data-bs-backdrop='static' id="deleteRFIDModal">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 			</div>
 			<div class="modal-body">
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
 			</div>
 		</div>
 	</div>
 </div>
 <!-- Modal dialog for delete NVS RFID assignments -->
-<div class="modal fade" id="deleteNVSRFIDModal" role="dialog">
+<div class="modal fade" data-bs-backdrop='static' id="deleteNVSRFIDModal">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal">&times;</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 			</div>
 			<div class="modal-body">
 				<label data-i18n="tools.nvserase.prompt"></label>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-bs-dismiss="modal" data-i18n="cancel"></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
 				<a class="btn btn-danger btn-ok" data-i18n="delete" href="javascript:eraseNVSRFID();"></a>
 			</div>
 		</div>
@@ -428,19 +427,19 @@
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
 					<div class="buttons">
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
@@ -449,16 +448,16 @@
 				<div class="mb-3 col-md-12">
 					<span class="row">
 						<legend data-i18n="control.volume" class="col-auto"></legend>
-						<button type="button" class="openPopupEqualizer btn btn-default btn-lg" data-i18n="[title]general.equalizer.title">
+						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg" data-i18n="[title]general.equalizer.title">
 							<span class="fas fa-sliders-h"></span>
 						</button>
 					</span>
-						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
 							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
 								data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
-						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
+						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
 				</div>
@@ -523,7 +522,7 @@
 				</div>
 				<div class="input-group input-focus">
 					<div class="input-group-prepend">
-					  <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+						<span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
 					</div>
 					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-start-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
 					&nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button><button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
@@ -558,7 +557,7 @@
 				<div class="mb-3 col-md-12">
 					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
-						   placeholder="" name="rfidIdMusic" required>
+							 placeholder="" name="rfidIdMusic" required>
 					<br>
 					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
@@ -640,7 +639,7 @@
 		<div class="container" id="mqttConfig">
 
 			<form class="needs-validation" action="#mqttConfig" method="POST"
-				  onsubmit="mqttSettings('mqttConfig'); return false">
+					onsubmit="mqttSettings('mqttConfig'); return false">
 				<div class="form-check col-md-12">
 					<legend data-i18n="mqtt.title"></legend>
 					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
@@ -649,16 +648,16 @@
 				<div class="mb-3 my-2 col-md-12">
 					<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
-						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 					<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
 					<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
-						   data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
+							 data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
 					<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
 					<input type="text" class="form-control" id="mqttUser" maxlength=""
-						   data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+							 data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
 					<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
 					<input type="password" class="form-control" id="mqttPwd" maxlength=""
-						   data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+							 data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
 					<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
 					<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
 							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
@@ -681,7 +680,7 @@
 					<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 					<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
 					<input type="password" class="form-control" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder"
-						   name="ftpPwd" value="" required>
+							 name="ftpPwd" value="" required>
 				</div>
 				<br>
 				<div class="text-center">
@@ -750,18 +749,18 @@
 					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-						data-slider-value=""  value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
+						data-slider-value=""	value="" required>	<i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
 						<br>
 					<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 						<div class="text-center">
-					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>   <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
-					 	required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>	 <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
+					 	required>	<i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 						<br>
 					<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone"
-						 data-slider-value="" value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						 data-slider-value="" value="" required>	<i class="fas fa-volume-up fa-2x .icon-pos"></i>
 						</div>
 				</fieldset>
 				</div>
@@ -773,7 +772,7 @@
 						<div class="text-center">
 							<i class="far fa-sun fa-2x .icon-pos"></i>
 						<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-							   data-slider-value=""  value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
+								 data-slider-value=""	value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
 						</div>
 
 					<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
@@ -801,28 +800,28 @@
 						<br>
 					<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
 						<div class="text-center">
-						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input  data-provide="slider"  data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0"  min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage"
+						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input	data-provide="slider"	data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0"	min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage"
 						data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 					<br>
 					<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 						<div class="text-center">
 						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
-						  data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+							data-slider-value=""	value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 						<br>
 						<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 
 							<div class="text-center">
-								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
-						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"	data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
+							 data-slider-value=""	value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 						<br>
 					<div id="criticalVoltageSection" data-visible="false">
 					<label for="criticalVoltage" data-i18n="[prepend]general.battery.criticalShutoff">:</label>
 						<div class="text-center">
-							<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="criticalVoltage" name="criticalVoltage"
-						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+							<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"	data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="criticalVoltage" name="criticalVoltage"
+							 data-slider-value=""	value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 						</div>
 						<br>
 					</div>
@@ -830,7 +829,7 @@
 					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
-								   data-slider-value=""  name="voltageCheckInterval" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+									 data-slider-value=""	name="voltageCheckInterval" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
 					</div>
 
 					</fieldset>
@@ -1099,11 +1098,11 @@
 	});
 
 	function doRest(path, callback, obj) {
-		obj.url	  = path;
+		obj.url		= path;
 		obj.dataType = "json";
 		obj.contentType= "application/json;charset=IBM437",
 		obj.scriptCharset= "IBM437",
-		obj.success  = function(data, textStatus, jqXHR) {
+		obj.success	= function(data, textStatus, jqXHR) {
 			if (callback) {
 				callback(data);
 			}
@@ -1117,27 +1116,27 @@
 
 	function getData(path, callback) {
 		doRest(path, callback, {
-			method   : "GET"
+			method: "GET"
 		});
 	} /* getData */
 
 	function deleteData(path, callback, _data) {
 		doRest(path, callback, {
-			method   : "DELETE",
+			method: "DELETE",
 			data: _data
 		});
 	} /* deleteData */
 
 	function patchData(path, callback, _data) {
 		doRest(path, callback, {
-			method   : "PATCH",
+			method: "PATCH",
 			data: _data
 		});
 	} /* patchData */
 
 	function postData(path, callback, _data) {
 		doRest(path, callback, {
-			method   : "POST",
+			method: "POST",
 			data: _data
 		});
 	} /* postData */
@@ -1145,7 +1144,7 @@
 
 	function putData(path, callback, _data) {
 		doRest(path, callback, {
-			method   : "PUT",
+			method: "PUT",
 			data: _data
 		});
 	} /* putData */
@@ -1191,7 +1190,7 @@
 				var xhr = new window.XMLHttpRequest();
 
 				xhr.upload.addEventListener("progress", function(evt) {
-				  if (evt.lengthComputable) {
+					if (evt.lengthComputable) {
 					const now = new Date().getTime();
 					const percent = parseInt(evt.loaded * 100 / evt.total);
 					const elapsed = (now - startTime) / 1000;
@@ -1215,7 +1214,7 @@
 						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
 					}
 					$("#firmwareUploadProgress").css('width', percent+"%").text(progressText);
-				  }
+					}
 				}, false);
 
 				return xhr;
@@ -1288,7 +1287,7 @@
 				var xhr = new window.XMLHttpRequest();
 
 				xhr.upload.addEventListener("progress", function(evt) {
-				  if (evt.lengthComputable) {
+					if (evt.lengthComputable) {
 					const now = new Date().getTime();
 					const percent = parseInt(evt.loaded * 100 / evt.total);
 					const elapsed = (now - startTime) / 1000;
@@ -1312,7 +1311,7 @@
 						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
 					}
 					$("#explorerUploadProgress").css('width', percent+"%").text(progressText);
-				  }
+					}
 				}, false);
 
 				return xhr;
@@ -1429,8 +1428,7 @@
 	function deleteChildrenNodes(nodeId) {
 		var ref = $('#explorerTree').jstree(true);
 		var children = $("#explorerTree").jstree("get_children_dom",nodeId);
-		for(var i=0;i<children.length;i++)
-		{
+		for(var i=0;i<children.length;i++) {
 			ref.delete_node(children[i].id);
 		}
 
@@ -1683,26 +1681,26 @@
 		};
 
 		socket.onmessage = function(event) {
-		  console.log(event.data);
-		  var socketMsg = JSON.parse(event.data);
-		  if (socketMsg.rfidId != null) {
-			  document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-			  toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
-			  $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
-			  if (toolsTabActive) {
+			console.log(event.data);
+			var socketMsg = JSON.parse(event.data);
+			if (socketMsg.rfidId != null) {
+				document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
+				toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
+				$("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
+				if (toolsTabActive) {
 				rebuildRFIDList();
-			  }
-		  } if ("status" in socketMsg) {
-			  if (socketMsg.status == "ok") {
-				  toastr.success(i18next.t("toast.success"));
-			  }
-			  if (socketMsg.status == "dropout") {
-				  toastr.warning(i18next.t("toast.dropout"));
-			  }
-		  } if ("pong" in socketMsg) {
-			if (socketMsg.pong == 'pong') {
-				  pong();
-			  }
+				}
+			} if ("status" in socketMsg) {
+				if (socketMsg.status == "ok") {
+					toastr.success(i18next.t("toast.success"));
+				}
+				if (socketMsg.status == "dropout") {
+					toastr.warning(i18next.t("toast.dropout"));
+				}
+			} if ("pong" in socketMsg) {
+				if (socketMsg.pong == 'pong') {
+					pong();
+			}
 			} if ("volume" in socketMsg) {
 				volumeSlider.setValue(parseInt(socketMsg.volume));
 			} if ("trackinfo" in socketMsg) {
@@ -1740,7 +1738,7 @@
 			} if ("settings" in socketMsg) {
 				fillSettings(socketMsg.settings);
 			}
-	  };
+		};
 	}
 
 	async function fillSettings(settings) {
@@ -1918,8 +1916,8 @@
 			deleteButton.classList.add("fa");
 			deleteButton.classList.add("fa-trash");
 
-			deleteButton.setAttribute("data-toggle", "modal");
-			deleteButton.setAttribute("data-target", "#deleteSSIDModal");
+			deleteButton.setAttribute("data-bs-toggle", "modal");
+			deleteButton.setAttribute("data-bs-target", "#deleteSSIDModal");
 			deleteButton.setAttribute("data-ssid", ssid);
 			deleteSpan.appendChild(deleteButton);
 			ssidElem.appendChild(deleteSpan);
@@ -1976,9 +1974,8 @@
 			deleteButton.classList.add("btn-danger");
 			deleteButton.classList.add("fa");
 			deleteButton.classList.add("fa-trash");
-
-			deleteButton.setAttribute("data-toggle", "modal");
-			deleteButton.setAttribute("data-target", "#deleteRFIDModal");
+			deleteButton.setAttribute("data-bs-toggle", "modal");
+			deleteButton.setAttribute("data-bs-target", "#deleteRFIDModal");
 			deleteButton.setAttribute("data-rfid", rfid.id);
 			deleteSpan.appendChild(deleteButton);
 			rfidElem.appendChild(deleteSpan);
@@ -2432,7 +2429,6 @@
 			$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", { rfid: rfid }));
 			$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
 		})
-
 		$('.openPopupInfo').on('click', function () {
 			fetchInfo();
 			$('.modal-title').text(i18next.t("systeminfo.title"));
