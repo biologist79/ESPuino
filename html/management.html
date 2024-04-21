@@ -6,7 +6,7 @@
 		 * Also make sure to disable CORS, eg using https://mybrowseraddon.com/access-control-allow-origin.html */
 		var debugHost = "192.168.1.207";
 	</script>
-	<title data-i18n="title">ESPuino</title>
+	<title data-i18n="title"></title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -188,12 +188,12 @@
 	<div class="col-md-12">
 		<a class="float-start navbar-brand">
 			<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt=""/>
-			<span id="navbar-heading">ESPuino</span>
+			<span id="navbar-heading"></span>
 		</a>
-		<a class="reboot float-end nav-link openPopupRestart header-nav-element header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
-		<a class="reboot float-end nav-link openPopupShutdown header-nav-element" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
-		<a class="reboot float-end nav-link openPopupLog header-nav-element" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-		<a class="reboot float-end nav-link openPopupInfo header-nav-element" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
+		<a class="reboot float-end nav-link openPopupRestart header-nav-element header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart"></span></a>
+		<a class="reboot float-end nav-link openPopupShutdown header-nav-element" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown"></span></a>
+		<a class="reboot float-end nav-link openPopupLog header-nav-element" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log"></span></a>
+		<a class="reboot float-end nav-link openPopupInfo header-nav-element" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info"></span></a>
 		<select class="form-select float-end" id="langSel" name="langSel">
 			<option value="de">de</option>
 			<option value="en">en</option>
@@ -223,14 +223,14 @@
 	<div class="modal-dialog modal-dialog-scrollable">
 		<div class="modal-content">
 			 <div class="modal-header">
-				<h5 class="modal-title">Infos</h5>
+				<h5 class="modal-title"></h5>
 								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 			</div>
 			<div class="modal-footer">
-				<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+				<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal"></button>
 			</div>
 		</div>
 	</div>
@@ -240,13 +240,13 @@
 	<div class="modal-dialog modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Modal title</h5>
+				<h5 class="modal-title"></h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 		<div class="modal-body scrollBottom modalLogContent" style="white-space: pre" id="modalLogContent"></div>
 			<div class="modal-footer">
-		<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+		<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+		<button type="button" class="btn btn-primary" data-bs-dismiss="modal"></button>
 			</div>
 		</div>
 	</div>
@@ -368,15 +368,15 @@
 <br/>
 	<nav>
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
-			<a class="nav-item nav-link" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
-			<a class="nav-item nav-link active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
-			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
-			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
-			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
-			<a class="nav-item nav-link" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
-			<a class="nav-item nav-link" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools">Tools</span></a>
-			<a class="nav-item nav-link" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help">Help</span></span></a>
+			<a class="nav-item nav-link" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
+			<a class="nav-item nav-link active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi"></span></span></a>
+			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt"></span></a>
+			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp"></span></a>
+			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth"></span></a>
+			<a class="nav-item nav-link" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
+			<a class="nav-item nav-link" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
+			<a class="nav-item nav-link" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help"></span></span></a>
 		</div>
 	</nav>
 <br>
@@ -384,14 +384,14 @@
 	<div class="tab-pane fade" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 		<div class="container" id="wifiConfig">
 			<div>
-				<legend data-i18n="wifi.title">WiFi-settings</legend>
+				<legend data-i18n="wifi.title"></legend>
 				<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
 							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
-						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
+						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label><br><br>
 					</div>
 					<br>
 					<div class="text-center">
@@ -401,7 +401,7 @@
 				</form>
 			</div>
 			<div style="margin-top: 20px;">
-				<legend data-i18n="wifi.networks">Networks</legend>
+				<legend data-i18n="wifi.networks"></legend>
 				<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
@@ -433,7 +433,7 @@
 				</form>
 			</div>
 			<div class="col-md-12" style="margin-top: 20px;">
-				<legend data-i18n="wifi.savedNetworks">Saved Networks</legend>
+				<legend data-i18n="wifi.savedNetworks"></legend>
 				<ul class="list-group" id="wifiListSavedSSIDs">
 				</ul>
 			</div>
@@ -534,14 +534,14 @@
 						</select>
 					</div>
 					<br>
-					<button type="button" class="btn btn-primary" onclick="executeCommand()" data-i18n="execute">Execute</button>
+					<button type="button" class="btn btn-primary" onclick="executeCommand()" data-i18n="execute"></button>
 				</div>
 		</div>
 	</div>
 	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 		<div class="container" id="filetreeContainer">
 			<fieldset>
-				<legend id="fileslegend" data-i18n="files.title">Files</legend>
+				<legend id="fileslegend" data-i18n="files.title"></legend>
 				<div class="filetree-container">
 				<div id="filebrowser">
 					<div class="filetree filetree-size" id="explorerTree"></div>
@@ -565,7 +565,7 @@
 				</div>
 				<div>
 				<br>
-				<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
+				<legend id="filesupload" data-i18n="files.upload.title"></legend>
 					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 						<div class="input-group">
 							<span class="form-control" id="uploaded_file_text"></span>&nbsp
@@ -588,19 +588,19 @@
 		</div>
 		<div class="container" id="rfidMusicTags">
 			<fieldset>
-				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
+				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
 			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 				<div class="mb-3 col-md-12">
-					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
+					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
 					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
 							 placeholder="" name="rfidIdMusic" required>
 					<br>
 					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
-							<a class="nav-link active" id="rfid-music-tab" title="Music" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
+							<a class="nav-link active" id="rfid-music-tab" title="Music" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music"></span></a>
 						</li>
 						<li class="nav-item" role="tab" aria-labelledby="rfid-mod-tab">
-							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
+							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification"></span></a>
 						</li>
 					</ul>
 					<div class="tab-content" id="SubTabContent">
@@ -663,8 +663,8 @@
 				</div>
 				<br>
 				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
+				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
+				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 				</div>
 			</form>
 			</fieldset>
