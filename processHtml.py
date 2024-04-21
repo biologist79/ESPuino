@@ -37,7 +37,6 @@ except ImportError:
   print("Trying to Install required module: yaml\nIf this failes, please execute \"pip install yaml\" manually.")
   env.Execute("$PYTHONEXE -m pip install yaml")
 import yaml
-from yaml import SafeLoader
 
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
@@ -114,7 +113,7 @@ class HtmlHeaderProcessor:
             with open(binary_path, 'r') as f:
                 content = f.read()
                 if CONVERT_YAML_TO_JSON:
-                    python_dict=yaml.load(content, Loader=SafeLoader)
+                    python_dict=yaml.load(content, Loader=yaml.SafeLoader)
                     content=json.dumps(python_dict)
                     with open(str(binary_path).replace(binary_path.suffix, ".min" + binary_path.suffix), "w", encoding="utf-8") as f:  # For debugging only
                         for line in content:
