@@ -32,11 +32,11 @@ except ImportError:
 import minify_html
 
 try:
-    import yaml
+    import pyyaml
 except ImportError:
-  print("Trying to Install required module: yaml\nIf this failes, please execute \"pip install yaml\" manually.")
-  env.Execute("$PYTHONEXE -m pip install yaml")
-import yaml
+  print("Trying to Install required module: pyyaml\nIf this failes, please execute \"pip install pyyaml\" manually.")
+  env.Execute("$PYTHONEXE -m pip install pyyaml")
+import pyyaml
 
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
