@@ -16,3 +16,8 @@ src/settings-override.h
 src/settings-custom-override.h
 node_modules/
 html/REST_API.yaml
+html/*.min.html
+html/locales/*.min.json
+html/REST_API.min.yaml
+html/js/*.min.min.js
+html/js/swaggerInitializer.min.js
