@@ -177,6 +177,10 @@
 			padding-right:25px;
 			margin-right: 20px;
 		}
+
+		.bs-tooltip-top {
+			width: 30px;
+		}
 	</style>
 </head>
 <body>
@@ -266,7 +270,7 @@
 						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
-
+				&nbsp;
 				<hr class="w-100" />
 
 				<div class="col-12">
@@ -278,7 +282,7 @@
 						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
-
+				&nbsp;
 				<hr class="w-100" />
 
 				<div class="col-12">
@@ -290,7 +294,7 @@
 						data-slider-value="0"	value="0">
 					<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 				</div>
-
+				&nbsp;
 				<hr class="w-100" />
 
 				<div class="col-12">
@@ -438,7 +442,7 @@
 	<div class="tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 		<div class="container" id="navControl">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="control.title"></legend>
+					<legend data-i18n="control.title"></legend><br>
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
@@ -463,13 +467,19 @@
 				<br>
 				<div class="mb-3 col-md-12">
 					<span class="row">
-						<legend data-i18n="control.volume" class="col-auto"></legend>
+						<legend data-i18n="control.volume" class="col-auto"></legend><br>
 					</span>
 						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
+
+
 							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
 								data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
+
+
+
+
 						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
@@ -479,7 +489,7 @@
 				</div>
 				<br/>
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="control.current"></legend>
+					<legend data-i18n="control.current"></legend><br>
 					<div id="track"></div>
 					<div></div>
 					<div id="trackProgressDiv" class="progress progress-sm">
@@ -489,7 +499,7 @@
 				</div>
 				<br/>
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="control.command"></legend>
+					<legend data-i18n="control.command"></legend><br>
 					<div class="tab-pane " id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
 						<select class="form-select" id="commandId" name="commandId">
@@ -667,7 +677,7 @@
 			<form class="needs-validation" action="#mqttConfig" method="POST"
 					onsubmit="mqttSettings('mqttConfig'); return false">
 				<div class="form-check col-md-12">
-					<legend data-i18n="mqtt.title"></legend>
+					<legend data-i18n="mqtt.title"></legend><br>
 					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 				</div>
@@ -701,7 +711,7 @@
 
 			<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="ftp.title"></legend>
+					<legend data-i18n="ftp.title"></legend><br>
 					<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
 					<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 					<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
@@ -717,7 +727,7 @@
 		</div>
 		<div class="container" id="ftpStart">
 			<div class="mb-3 col-md-12">
-				<legend data-i18n="ftp.start.title"></legend>
+				<legend data-i18n="ftp.start.title"></legend><br>
 				<div data-i18n="ftp.start.desc"></div>
 				<br>
 				<div class="text-center">
@@ -730,7 +740,7 @@
 		<div class="container" id="btConfig">
 			<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.source.configtitle"></legend>
+					<legend data-i18n="bt.source.configtitle"></legend><br>
 					<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
 					<input type="text" class="form-control" id="btDeviceName"
 						data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
@@ -745,7 +755,7 @@
 			</form><br>
 			<div class="container" id="btStartSource">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.source.title"></legend>
+					<legend data-i18n="bt.source.title"></legend><br>
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
@@ -756,7 +766,7 @@
 			</div><br><br>
 		<div class="container" id="btStartSink">
 			<div class="mb-3 col-md-12">
-				<legend data-i18n="bt.sink.title"></legend>
+				<legend data-i18n="bt.sink.title"></legend><br>
 				<div data-i18n="bt.sink.desc"></div>
 				<br>
 				<div class="text-center">
@@ -771,7 +781,7 @@
 			<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
 					<div class="mb-3 col-md-12">
 					<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
 					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 						<div class="text-center">
 					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
@@ -793,7 +803,7 @@
 				<br>
 				<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
 					<fieldset >
-						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+						<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
 						<div class="text-center">
 							<i class="far fa-sun fa-2x .icon-pos"></i>
@@ -810,7 +820,7 @@
 				<br>
 				<div class="mb-3 col-md-12">
 					<fieldset>
-						<legend data-i18n="general.sleep.title"></legend>
+						<legend data-i18n="general.sleep.title"></legend><br>
 
 						<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
 						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
@@ -821,7 +831,7 @@
 
 				<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
 					<fieldset>
-						<legend data-i18n="general.battery.title"></legend>
+						<legend data-i18n="general.battery.title"></legend><br>
 					<div data-i18n="general.battery.desc"></div>
 						<br>
 					<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
@@ -863,7 +873,7 @@
 				<br>
 				<div class="mb-3 col-md-12" id="playlistConfig">
 					<fieldset>
-						<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+						<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 						<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
 						<select id="playlistSortMode" name="playlistSortMode" class="form-select">
 							<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
@@ -883,14 +893,14 @@
 	</div>
 	<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 		<div class="container" id="savedAssignments">
-			<legend data-i18n="files.rfid.savedassignments"></legend>
+			<legend data-i18n="files.rfid.savedassignments"></legend><br>
 			<ul class="list-group" id="rfidListSavedAssignments">
 			</ul>
 		</div>
 		<br />
 		<br />
 		<div class="container" id="eraseNvs">
-			<legend data-i18n="tools.nvserase.title"></legend>
+			<legend data-i18n="tools.nvserase.title"></legend><br>
 				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
@@ -899,7 +909,7 @@
 		<br />
 		<br />
 		<div class="container" id="importNvs">
-			<legend data-i18n="tools.nvsimport.title"></legend>
+			<legend data-i18n="tools.nvsimport.title"></legend><br>
 			<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
 					<div class="mb-3">
 					<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
@@ -911,7 +921,7 @@
 		<br />
 		<br />
 		<div class="container" id="httpUpdate">
-			<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
+			<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend><br>
 			<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 				<div class="mb-3">
 					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
@@ -929,11 +939,11 @@
 	<br />
 	<div class="tab-pane fade" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
 		<div class="container" id="divForum">
-			<legend data-i18n="help.forum.title"></legend>
+			<legend data-i18n="help.forum.title"></legend><br>
 			<p data-i18n="[html]help.forum.desc"></p>
 		</div>
 		<div class="container" id="divSwagger">
-			<legend data-i18n="help.swagger.title"></legend>
+			<legend data-i18n="help.swagger.title"></legend><br>
 			<p data-i18n="[html]help.swagger.desc"></p>
 		</div>
 	</div>
