@@ -464,9 +464,6 @@
 				<div class="mb-3 col-md-12">
 					<span class="row">
 						<legend data-i18n="control.volume" class="col-auto"></legend>
-						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg" data-i18n="[title]general.equalizer.title">
-							<span class="fas fa-sliders-h"></span>
-						</button>
 					</span>
 						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
@@ -475,6 +472,9 @@
 								data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
 						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
+						</button>
+						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg" data-i18n="[title]general.equalizer.title">
+							<span class="fas fa-sliders-h"></span>
 						</button>
 				</div>
 				<br/>
@@ -536,13 +536,22 @@
 				<div id="filebrowser">
 					<div class="filetree filetree-size" id="explorerTree"></div>
 				</div>
-				<div class="input-group input-focus">
-					<div class="input-group-prepend">
-						<span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+				<div class="container">
+				  <div class="row">
+					<div class="col-sm-11">
+						<div class="input-group input-focus">
+							<div class="input-group-prepend">
+								<span class="input-group-text bg-white" style="height:40px;"><i class="fas fa-search"></i></span>
+							</div>
+							<input type="search" class="form-control border-start-0" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+								   onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+						</div>
 					</div>
-					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-start-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
-					&nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
-					<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
+					<div class="col-sm-1">
+						<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
+						<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
+					</div>
+				  </div>
 				</div>
 				<div>
 				<br>
@@ -588,7 +597,7 @@
 						<div class="tab-pane show active" id="rfidmusic" role="tabpanel">
 							<br>
 							<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
-							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
+							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required><br>
 							<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
 							<select class="form-select" id="playMode" name="playMode">
 								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>
