@@ -6,7 +6,7 @@ Use this script for creating binary header files from html files.
 
 # Minification
 MINIFY_HTML = True
-CONVERT_YAML_TO_JSON = True  # Note: We keep the file extention "yaml", swagger can handle it
+CONVERT_YAML_TO_JSON = False  # Note: We keep the file extention "yaml", swagger can handle it. Note: The build server fails to insatl lthe yaml module, so it must be set to False
 
 from pathlib import Path
 import os
@@ -31,12 +31,13 @@ except ImportError:
   env.Execute("$PYTHONEXE -m pip install minify_html")
 import minify_html
 
-try:
-    import pyyaml
-except ImportError:
-  print("Trying to Install required module: pyyaml\nIf this failes, please execute \"pip install pyyaml\" manually.")
-  env.Execute("$PYTHONEXE -m pip install pyyaml")
-import pyyaml
+if CONVERT_YAML_TO_JSON:
+    try:
+        import yaml
+    except ImportError:
+        print("Trying to Install required module: pyyaml\nIf this failes, please execute \"pip install yaml\" manually.")
+        env.Execute("$PYTHONEXE -m pip install yaml")
+    import yaml
 
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
