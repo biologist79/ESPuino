@@ -1403,9 +1403,9 @@
 		});
 	}
 
-	// returns the string comparison function based on the sortMode
-	function fileNameSortHelper(sortMode) {
-		return function(a, b) {
+	function sortData(data) {
+		const sortMode = window?.settings?.playlist?.sortMode;
+		data.sort(function(a, b) {
 			// Make sure directories are always listed first
 			if ( a.dir && !b.dir ) {
 				return -1;
@@ -1431,13 +1431,7 @@
 					return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
 					break;
 			}
-		}
-	}
-
-	function sortData(data) {
-		const sortMode = window?.settings?.playlist?.sortMode;
-		const fileNameSort = fileNameSortHelper(sortMode);
-		data.sort(fileNameSort);
+		});
 	}
 
 	function createChild(nodeId, data) {
