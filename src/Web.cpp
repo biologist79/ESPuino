@@ -944,9 +944,9 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		section = request->getParam("section")->value();
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(546);
+	SpiRamJsonDocument doc(768);
 #else
-	StaticJsonDocument<546> doc;
+	StaticJsonDocument<768> doc;
 #endif
 	JsonObject infoObj = doc.createNestedObject("info");
 	// software

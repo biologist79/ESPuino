@@ -1,6 +1,7 @@
 # Changelog
 
 ## DEV-branch
+* 22.04.2024: Added virtual RFID-Cards (#319), thanks to @caco3 ! 
 * 18.04.2024: Correct calculation of newFilePos for SEEK_POS_PERCENT, thanks to @sfields!
 * 18.04.2024: Correct calculation of gPlayProperties.currentRelPos, thanks to @sfields!
 * 18.04.2024: Get title from-VORBISCOMMENT and ID3, thanks to @sfields!
