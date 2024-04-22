@@ -57,8 +57,7 @@
 		.slider.slider-horizontal {
 			width: 60%;
 			margin-left: 1em;
-			margin-right: 1em;
-
+			margin-right: 1.8em;
 		}
 		.slider-handle{
 			height: 30px;
@@ -94,24 +93,40 @@
 			margin-top: 5em;
 		}
 
-		.clickForRefresh:hover {
+		/*.clickForRefresh:hover {
 			color: darkgray;
 		}
 
 		.filetree-container {
 			position: relative;
-		}
+		}*/
 
 		.coverimage-container {
 			width: 80%;
+			max-width: 400px;
 			height:15%;
-			margin-left: 1em;
-			margin-right: 1em;
+			margin: auto;
+			display: block;
+		}
+
+		.ctrl-button-grp {
+			margin: auto;
+			display: block;
+			text-align: center;
+		}
+
+		.volume-button {
+			width: 70px;
+		}
+
+		.ctrl-button {
+			margin: 2px;
 		}
 
 		.indexing-progress {
 			width: 100%;
 			height: 100%;
+			max-height: 10px;
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -230,7 +245,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-				<button type="button" class="btn btn-primary" data-bs-dismiss="modal"></button>
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 			</div>
 		</div>
 	</div>
@@ -246,7 +261,7 @@
 		<div class="modal-body scrollBottom modalLogContent" style="white-space: pre" id="modalLogContent"></div>
 			<div class="modal-footer">
 		<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-		<button type="button" class="btn btn-primary" data-bs-dismiss="modal"></button>
+		<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 			</div>
 		</div>
 	</div>
@@ -446,46 +461,40 @@
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
-					<div class="buttons">
-						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+					<div class="buttons ctrl-button-grp">
+						<button type="button" class="btn btn-primary btn-lg ctrl-button" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn btn-primary btn-lg ctrl-button" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-primary btn-lg ctrl-button" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-primary btn-lg ctrl-button" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn btn-primary btn-lg" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn btn-primary btn-lg ctrl-button" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
 				</div>
 				<br>
-				<div class="mb-3 col-md-12">
+				<div class="mb-3 col-md-12" style="min-width: 250px">
 					<span class="row">
 						<legend data-i18n="control.volume" class="col-auto"></legend><br>
 					</span>
-						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
-							<span class="fas fa-volume-down"></span>
-						</button>
-
-
-							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-								data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
-
-
-
-
-						<button type="button" class="btn btn-primary btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
-							<span class="fas fa-volume-up"></span>
-						</button>
-						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg" data-i18n="[title]general.equalizer.title">
-							<span class="fas fa-sliders-h"></span>
-						</button>
+					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+						<span class="fas fa-volume-down"></span>
+					</button>
+					<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
+						data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
+					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(176)" data-i18n="[title]control.volup">
+						<span class="fas fa-volume-up"></span>
+					</button>
+					<button type="button" class="openPopupEqualizer btn btn-primary btn-lg ctrl-button" data-i18n="[title]general.equalizer.title">
+						<span class="fas fa-sliders-h"></span>
+					</button>
 				</div>
 				<br/>
 				<div class="mb-3 col-md-12">
