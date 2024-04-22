@@ -77,7 +77,7 @@ class HtmlHeaderProcessor:
     @classmethod
     def _process_binary_file(cls, binary_path, header_path, info):
         # minify json files explicitly
-        if binary_path.suffix == "json":
+        if binary_path.suffix == ".json":
             with binary_path.open(mode="r", encoding="utf-8") as f:
                 jsonObj = json.load(f)
                 content = json.dumps(jsonObj, separators=(',', ':'))
