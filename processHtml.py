@@ -6,7 +6,6 @@ Use this script for creating binary header files from html files.
 
 # Minification
 MINIFY_HTML = True
-CONVERT_YAML_TO_JSON = False  # Note: We keep the file extention "yaml", swagger can handle it. Note: The build server fails to insatl lthe yaml module, so it must be set to False
 
 from pathlib import Path
 import os
@@ -113,12 +112,6 @@ class HtmlHeaderProcessor:
         elif binary_path.suffix in [".yml", ".yaml"]:
             with open(binary_path, 'r') as f:
                 content = f.read()
-                if CONVERT_YAML_TO_JSON:
-                    python_dict=yaml.load(content, Loader=yaml.SafeLoader)
-                    content=json.dumps(python_dict)
-                    with open(str(binary_path).replace(binary_path.suffix, ".min" + binary_path.suffix), "w", encoding="utf-8") as f:  # For debugging only
-                        for line in content:
-                            f.write(str(line))
         # use everything else as is
         else:
             with binary_path.open(mode="r", encoding="utf-8") as f:
