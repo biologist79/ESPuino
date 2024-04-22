@@ -30,14 +30,6 @@ except ImportError:
   env.Execute("$PYTHONEXE -m pip install minify_html")
 import minify_html
 
-if CONVERT_YAML_TO_JSON:
-    try:
-        import yaml
-    except ImportError:
-        print("Trying to Install required module: pyyaml\nIf this failes, please execute \"pip install yaml\" manually.")
-        env.Execute("$PYTHONEXE -m pip install yaml")
-    import yaml
-
 OUTPUT_DIR = (
     Path(env.subst("$BUILD_DIR")) / "generated"
 )  # pylint: disable=undefined-variable
