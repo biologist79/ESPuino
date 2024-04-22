@@ -373,6 +373,12 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
 - **Previous** (long; keep pressed) + **Next** (short) + release (both): toggle WiFi
   enabled/disabled
 
+#### Virtual RFID cards
+
+Any of the button actions can also be assigned to virtual RFID cards.
+Those cards then can be assigned on the web GUI like normal cards.
+To select a virtual RFID card, just press the configured button action, the virtual RFID automatically gets filled in in the web GUI.
+
 ### Music playback
 
 - Music starts to play right away after a valid RFID tag was applied (if it's known to ESPuino).
