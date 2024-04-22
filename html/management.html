@@ -2,9 +2,9 @@
 <html lang="de">
 <head>
 	<script>
-		/* Comment out for remote debugging.
-		 * Make sure to disable CORS, eg using https://mybrowseraddon.com/access-control-allow-origin.html */
-		//var debugHost = "192.168.178.114";
+		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
+		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
+		var debugHost = "192.168.1.1";
 	</script>
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
@@ -941,7 +941,7 @@
 		}
 	});
 
-	if (typeof debugHost !== "undefined") {
+	if (host == "") { // Not running on the device -> use the debug host
 		host = debugHost;
 		console.log("Using remote host on " + debugHost);
 
