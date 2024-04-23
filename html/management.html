@@ -2347,33 +2347,33 @@
 	async function fetchInfo() {
 		let info = await (await fetch("http://" + host + "/info")).json();
 		console.log(info);
-		let content = i18next.t("systeminfo.softwareversion", { softwareversion: info.software.version }) + "\n";
-		content += i18next.t("systeminfo.gitversion", { gitversion: info.software.git }) + "\n";
-		content += i18next.t("systeminfo.arduinoversion", { arduinoversion: info.software.arduino, idfversion: info.software.idf }) + "\n";
-		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "\n";
-		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "\n";
-		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "\n";
+		let content = i18next.t("systeminfo.softwareversion", { softwareversion: info.software.version }) + "<br>";
+		content += i18next.t("systeminfo.gitversion", { gitversion: info.software.git }) + "<br>";
+		content += i18next.t("systeminfo.arduinoversion", { arduinoversion: info.software.arduino, idfversion: info.software.idf }) + "<br>";
+		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "<br>";
+		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "<br>";
+		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "<br>";
 		if (info.memory.freePSRam) {
-			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "<br>";
 		}
-		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
-		content += i18next.t("systeminfo.macAddress", { macAddress: info.wifi.macAddress }) + "\n";
-		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
-		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
+		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "<br>";
+		content += i18next.t("systeminfo.macAddress", { macAddress: info.wifi.macAddress }) + "<br>";
+		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "<br>";
+		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "<br>";
 		if (info.audio.playtimeSinceStart > 0) {
-			content += i18next.t("systeminfo.audiotimesincestart", { audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
+			content += i18next.t("systeminfo.audiotimesincestart", { audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "<br>";
 		}	
 		if (info.battery) {
-			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
+			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "<br>";
 			if (info.battery.chargelevel) {
-				content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
+				content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "<br>";
 			}
 		}
 		if (info.hallsensor) {
 			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff, 
-				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
+				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "<br>";
 		}
-		$('#modalInfoContent').text(content);
+		$('#modalInfoContent').html(content);
 	}
 
 	async function fetchLog() {
