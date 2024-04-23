@@ -2,9 +2,9 @@
 <html lang="de">
 <head>
 	<script>
-		/* Comment out for remote debugging.
-		 * Make sure to disable CORS, eg using https://mybrowseraddon.com/access-control-allow-origin.html */
-		//var debugHost = "192.168.178.114";
+		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
+		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
+		var remoteHost = "192.168.1.207";
 	</script>
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
@@ -924,9 +924,9 @@
 		}
 	});
 
-	if (typeof debugHost !== "undefined") {
-		host = debugHost;
-		console.log("Using remote host on " + debugHost);
+	if (host == "") { // Not running on the device -> use the remote host
+		host = remoteHost;
+		console.log("Using remote host on " + remoteHost);
 
 		var anchors = document.getElementsByTagName("img");
 		for (var i = 0; i < anchors.length; i++) {
@@ -1351,15 +1351,15 @@
 		});
 	}
 
-	// returns the string comparison function based on the sortMode
-	function fileNameSortHelper(sortMode) {
-		return function(a, b) {
+	function sortData(data) {
+		const sortMode = window?.settings?.playlist?.sortMode;
+		data.sort(function(a, b) {
 			// Make sure directories are always listed first
 			if ( a.dir && !b.dir ) {
-				return -1
+				return -1;
 			}
 			if ( !a.dir && b.dir ) {
-				return 1
+				return 1;
 			}
 
 			switch (sortMode) {
@@ -1379,13 +1379,7 @@
 					return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
 					break;
 			}
-		}
-	}
-
-	function sortData(data) {
-		const sortMode = window?.settings?.playlist?.sortMode;
-		const fileNameSort = fileNameSortHelper(sortMode);
-		data.sort(fileNameSort);
+		});
 	}
 
 	function createChild(nodeId, data) {
