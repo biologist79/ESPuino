@@ -1281,7 +1281,7 @@
 		}
 
 		function sortData(data) {
-			const sortMode = window ? .settings ? .playlist ? .sortMode;
+			const sortMode = window?.settings?.playlist?.sortMode;
 			data.sort(function(a, b) {
 				// Make sure directories are always listed first
 				if(a.dir && !b.dir) {
