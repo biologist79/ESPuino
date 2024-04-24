@@ -10,6 +10,8 @@
 	"delete":"Supprimer",
 	"cancel":"Annuler",
 	"refresh":"Actualiser",
+    "ok": "OK",
+    "infos": "Infos",
 	"restartinfo":"ESPuino est en cours de redémarrage...\n\nLa page se recharge automatiquement après la fin du redémarrage.",
 	"shutdowninfo":"ESPuino est maintenant éteint...\n\nLa page se recharge automatiquement lorsque l'ESPuino est rallumé.",
 	"toast":{
