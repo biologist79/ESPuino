@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 	<head>
-		<title data-i18n="wifi.title">ESPuino</title>
+		<title data-i18n="wifi.title"></title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=300, initial-scale=1.0">
         <script src="/js/i18next.min.js"></script>
@@ -76,38 +76,38 @@
 	</head>
 	<body>
 		<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
-			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
+			<h1 data-i18n="wifi.title"></h1>
 			<div id="WiFiList"></div>
-			<label for="ssid" data-i18n="wifi.ssid.title">SSID</label>:<br>
+			<label for="ssid" data-i18n="wifi.ssid.title"></label>:<br>
 			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
-			<label for="pwd" data-i18n="wifi.password.title">Password</label>:<br>
+			<label for="pwd" data-i18n="wifi.password.title"></label>:<br>
 			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
-			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
+			<label for="hostname" data-i18n="wifi.hostname.title"></label>:<br>
 			<input type="text" id="hostname" name="hostname" value="espuino" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required><br><br>
 
 			<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
-			<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
+			<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label><br><br>
 			<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
-			<label for="static_enabled" data-i18n="wifi.static.enabled">Static IP</label>
 			
+			<label for="static_enabled" data-i18n="wifi.static.enabled"></label>
 			<div id="wifi_static_div" style="display:none">
-				<label for="static_addr" data-i18n="wifi.static.addr">Adresse für Statische IP-Konfiguration</label>:<br>
+				<label for="static_addr" data-i18n="wifi.static.addr"></label>:<br>
 				<input type="text" id="static_addr" name="static_addr" ><br><br>
-				<label for="static_gateway" data-i18n="wifi.static.gateway">Gateway für Statische IP-Konfiguration</label>:<br>
+				<label for="static_gateway" data-i18n="wifi.static.gateway"></label>:<br>
 				<input type="text" id="static_gateway" name="static_gateway" ><br><br>
-				<label for="static_subnet" data-i18n="wifi.static.subnet">Subnet für Statische IP-Konfiguration</label>:<br>
+				<label for="static_subnet" data-i18n="wifi.static.subnet"></label>:<br>
 				<input type="text" id="static_subnet" name="static_subnet" ><br><br>
-				<label for="static_dns1" data-i18n="wifi.static.dns1">DNS 1 für Statische IP-Konfiguration</label>:<br>
+				<label for="static_dns1" data-i18n="wifi.static.dns1"></label>:<br>
 				<input type="text" id="static_dns1" name="static_dns1" ><br><br>
-				<label for="static_dns2" data-i18n="wifi.static.dns2">DNS 2 für Statische IP-Konfiguration</label>:<br>
+				<label for="static_dns2" data-i18n="wifi.static.dns2"></label>:<br>
 				<input type="text" id="static_dns2" name="static_dns2" ><br><br>
 			</div>
 
-			<button type="submit" class="btn" id="save-button" data-i18n="submit">Submit</button>
+			<button type="submit" class="btn" id="save-button" data-i18n="submit"></button>
 		</form>
 		<form action="/restart" method="POST" class="box">
-			<h1 data-i18n="wifi.restartPrompt">Ready to go?</h1>
-			<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot">Reboot</button>
+			<h1 data-i18n="wifi.restartPrompt"></h1>
+			<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot"></button>
 		</form>
         
         <script>
