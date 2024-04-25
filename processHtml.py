@@ -91,12 +91,15 @@ class HtmlHeaderProcessor:
         elif binary_path.suffix in [".htm", ".html", ".js", ".css"]:
             with open(binary_path, 'r') as f:
                 content = f.read()
-                # Minify the HTML, JS and CSS code
-                content = minify_html.minify(content, minify_js=True, minify_css=True, remove_processing_instructions=True)
-                # Write it to a file, just for debugging
-                with open(str(binary_path).replace(binary_path.suffix, ".min" + binary_path.suffix), "w", encoding="utf-8") as f:
-                    for line in content:
-                        f.write(str(line))
+                if ".min" not in str(binary_path):  # Only minify if it is not already minified
+                    # Minify the HTML, JS and CSS code
+                    content = minify_html.minify(content, minify_js=True, minify_css=True,
+                                                 remove_processing_instructions=True)
+                    # Write it to a file, just for debugging
+                    with open(str(binary_path).replace(binary_path.suffix, ".min" + binary_path.suffix), "w",
+                              encoding="utf-8") as f:
+                        for line in content:
+                            f.write(str(line))
         elif binary_path.suffix in [".yml", ".yaml"]:
             with open(binary_path, 'r') as f:
                 content = f.read()
