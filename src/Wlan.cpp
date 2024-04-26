@@ -14,7 +14,6 @@
 
 #include <DNSServer.h>
 #include <ESPmDNS.h>
-#include <FastLED.h>
 #include <WiFi.h>
 #include <list>
 #include <nvs.h>
@@ -113,6 +112,22 @@ static bool storeWiFiSettingsToNvs(const char *key, const WiFiSettings &s) {
  * @param handler The function to be called, it receives the key and the WiFiSettings object loaded from NVS
  */
 static void iterateNvsEntries(std::function<bool(const char *, const WiFiSettings &)> handler) {
+#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3) )
+	nvs_iterator_t it = nullptr;
+	esp_err_t res = nvs_entry_find("nvs", nvsWiFiNamespace, NVS_TYPE_BLOB, &it);
+	while (res == ESP_OK) {
+		nvs_entry_info_t info;
+		nvs_entry_info(it, &info);
+		// some basic sanity check
+		if (strncmp(info.key, nvsWiFiKey, strlen(nvsWiFiKey)) == 0) {
+			if (!handler(info.key, loadWiFiSettingsFromNvs(info.key))) {
+				// handler requested an abort
+				return;
+			}
+		}
+		res = nvs_entry_next(&it);
+	}
+#else
 	nvs_iterator_t it = nvs_entry_find("nvs", nvsWiFiNamespace, NVS_TYPE_BLOB);
 	while (it) {
 		nvs_entry_info_t info;
@@ -127,6 +142,7 @@ static void iterateNvsEntries(std::function<bool(const char *, const WiFiSetting
 		}
 		it = nvs_entry_next(it);
 	}
+#endif
 }
 
 /**
@@ -483,6 +499,8 @@ void handleWifiStateConnectionSuccess() {
 	wifiState = WIFI_STATE_CONNECTED;
 }
 
+unsigned long lastRssiTimestamp;
+
 void handleWifiStateConnected() {
 	static int8_t lastRssiValue = 0;
 
@@ -501,8 +519,9 @@ void handleWifiStateConnected() {
 			break;
 	}
 
-	static CEveryNSeconds printRssiValue(60);
-	if (printRssiValue) {
+	if ((millis() - lastRssiTimestamp) > 60000u) {
+		// print RSSI every 60 seconds
+		lastRssiTimestamp = millis();
 		// show RSSI value only if it has changed by > 3 dBm
 		if (abs(lastRssiValue - Wlan_GetRssi()) > 3) {
 			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
