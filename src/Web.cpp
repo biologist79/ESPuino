@@ -232,7 +232,7 @@ public:
 // callback function is called for every key with userdefined data object
 bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char *key, void *data)) {
 	constexpr const char *partname = "nvs";
-#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3) )
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 	nvs_iterator_t it = nullptr;
 	esp_err_t res = nvs_entry_find(partname, _namespace, NVS_TYPE_ANY, &it);
 	while (res == ESP_OK) {

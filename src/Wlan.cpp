@@ -112,7 +112,7 @@ static bool storeWiFiSettingsToNvs(const char *key, const WiFiSettings &s) {
  * @param handler The function to be called, it receives the key and the WiFiSettings object loaded from NVS
  */
 static void iterateNvsEntries(std::function<bool(const char *, const WiFiSettings &)> handler) {
-#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3) )
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 	nvs_iterator_t it = nullptr;
 	esp_err_t res = nvs_entry_find("nvs", nvsWiFiNamespace, NVS_TYPE_BLOB, &it);
 	while (res == ESP_OK) {

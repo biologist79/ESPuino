@@ -144,7 +144,7 @@ void Button_Init() {
 
 	// Create 1000Hz-HW-Timer (currently only used for buttons)
 	Button_TimerSemaphore = xSemaphoreCreateBinary();
-#if ( defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3) )
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 	Button_Timer = timerBegin(1000000); // Prescaler: CPU-clock in MHz
 	timerAttachInterrupt(Button_Timer, &onTimer);
 	timerAlarm(Button_Timer, 10000, true, 0); // 100 Hz
