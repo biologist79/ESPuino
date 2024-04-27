@@ -509,7 +509,7 @@
 		<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 			<div class="container" id="filetreeContainer">
 				<fieldset>
-					<legend id="fileslegend" data-i18n="files.title">Files</legend>
+					<legend id="fileslegend" data-i18n="files.title"></legend>
 					<div class="filetree-container">
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
@@ -533,11 +533,11 @@
 						</div>
 						<div>
 							<br>
-							<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
+							<legend id="filesupload" data-i18n="files.upload.title"></legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 								<div class="input-group">
 									<span class="form-control" id="uploaded_file_text"></span>&nbsp <span class="input-group-btn">
-										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title">Files</span>&nbsp <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
+										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
 										<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
 									</span>
 								</div>
@@ -553,18 +553,18 @@
 			</div>
 			<div class="container" id="rfidMusicTags">
 				<fieldset>
-					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
+					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
 						<div class="mb-3 col-md-12">
+							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
 							<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
 							<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 								<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
-									<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
+									<a class="nav-link active" id="rfid-music-tab" title="Music" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music"></span></a>
 								</li>
 								<li class="nav-item" role="tab" aria-labelledby="rfid-mod-tab">
-									<a class="nav-link" id="rfid-mod-tab" title="Modification" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
+									<a class="nav-link" id="rfid-mod-tab" title="Modification" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification"></span></a>
 								</li>
 							</ul>
 							<div class="tab-content" id="SubTabContent">
