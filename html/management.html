@@ -13,7 +13,7 @@
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="apple-touch-icon" href="/logo">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
@@ -21,7 +21,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
@@ -30,6 +30,17 @@
 	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
+		.nav-logo {
+			margin-left: 30px;
+			margin-right: 5px;
+		}
+		.header-nav-element {
+			margin-right: 30px;
+			margin-top: 8px;
+		}
+		.header-nav-restart {
+			margin-right: 40px
+		}
 		.jstree-default .jstree-search {
 			font-style: italic;
 			color: #007bff;
@@ -50,7 +61,7 @@
 		.slider.slider-horizontal {
 			width: 60%;
 			margin-left: 1em;
-			margin-right: 1em;
+			margin-right: 1.8em;
 		}
 
 		.slider-handle {
@@ -84,46 +95,41 @@
 			color: #666666;
 		}
 
-		.clickForRefresh {
-			text-align: center;
-			color: gray;
-			cursor: pointer;
-			margin-top: 5em;
-		}
-
-		.clickForRefresh:hover {
-			color: darkgray;
-		}
-
 		.filetree-container {
 			position: relative;
 		}
 
 		.coverimage-container {
 			width: 80%;
+			max-width: 400px;
 			height: 15%;
-			margin-left: 1em;
-			margin-right: 1em;
+			margin: auto;
+			display: block;
+		}
+
+		.ctrl-button-grp {
+			margin: auto;
+			display: block;
+			text-align: center;
+		}
+
+		.volume-button {
+			width: 70px;
+		}
+
+		.ctrl-button {
+			margin: 2px;
 		}
 
 		.indexing-progress {
 			width: 100%;
 			height: 100%;
+			max-height: 10px;
 			position: absolute;
 			top: 0;
 			left: 0;
 			opacity: 0.7;
 			display: none;
-		}
-
-		.refreshAction {
-			text-align: right;
-			font-size: 0.8em;
-		}
-
-		.refreshAction:hover {
-			cursor: pointer;
-			color: darkgray;
 		}
 
 		.overlay {
@@ -171,20 +177,34 @@
 		.fas {
 			padding-right: 0.25em;
 		}
+
+		#langSel {
+			width:auto;
+			padding-right:25px;
+			margin-right: 20px;
+		}
+
+		.bs-tooltip-top {
+			width: 30px;
+		}
 	</style>
 </head>
 <body>
 	<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
 		<div class="col-md-12">
-			<a class="float-left navbar-brand">
-				<img src="/logo" width="35" height="35" class="d-inline-block align-top" alt="" />
-				<span id="navbar-heading" data-i18n="title"></span>
+			<a class="float-start navbar-brand">
+				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt=""/>
+				<span id="navbar-heading" class="text-white" data-i18n="title"></span>
 			</a>
-			<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart"></span></a>
-			<a class="reboot float-right nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown"></span></a>
-			<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log"></span></a>
-			<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info"></span></a>
-			<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
+			<a class="reboot float-end nav-link openPopupRestart header-nav-element header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart"></span></a>
+			<a class="reboot float-end nav-link openPopupShutdown header-nav-element" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown"></span></a>
+			<a class="reboot float-end nav-link openPopupLog header-nav-element" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log"></span></a>
+			<a class="reboot float-end nav-link openPopupInfo header-nav-element" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info"></span></a>
+			<a class="reboot form-check float-end nav-link header-nav-element">
+				<label class="form-check-label ms-3" for="lightSwitch"><i class="fas fa-adjust"></i> <span data-i18n="darkmode"></span></label>
+				<input class="form-check-input" type="checkbox" id="lightSwitch" style="opacity:0; /* Hide it */" />
+			</a>
+			<select class="form-select float-end" id="langSel" name="langSel">
 				<option value="de">de</option>
 				<option value="en">en</option>
 				<option value="fr">fr</option>
@@ -192,46 +212,46 @@
 		</div>
 	</nav>
 	<!-- Modal dialog for info / shutdown / restart-->
-	<div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop='static' id="modalInfo" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="infos"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalInfoRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" class="btn btn-default" data-i18n="ok" data-dismiss="modal"></button>
+					<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal dialog for log-->
-	<div class="modal fade bd-info-modal-xl" id="modalLog" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop='static' id="modalLog" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="infos"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body" style="white-space: pre" id="modalLogContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalLogRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" class="btn btn-default" data-i18n="ok" data-dismiss="modal"></button>
+					<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal dialog for equalizer-->
-	<div class="modal fade bd-info-modal-xl" id="modalEqualizer" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop='static' id="modalEqualizer" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body row" id="modalEqualizerContent">
 					<div class="col-12">
@@ -264,35 +284,35 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-i18n="ok" data-dismiss="modal"></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal dialog for delete SSID-->
-	<div class="modal fade" id="deleteSSIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop='static' id="deleteSSIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
 					<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal dialog for delete NVS RFID assignment-->
-	<div class="modal fade" id="deleteRFIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop='static' id="deleteRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
 				</div>
@@ -304,12 +324,12 @@
 		</div>
 	</div>
 	<!-- Modal dialog for delete NVS RFID assignments -->
-	<div class="modal fade" id="deleteNVSRFIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop='static' id="deleteNVSRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 				<div class="modal-body">
 					<label data-i18n="tools.nvserase.prompt"></label>
@@ -324,15 +344,15 @@
 	<br />
 	<nav>
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
-			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
-			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi"></span></span></a>
-			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt"></span></a>
-			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp"></span></a>
-			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth"></span></a>
-			<a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
-			<a class="nav-item nav-link" id="nav-tools-tab" data-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
-			<a class="nav-item nav-link" id="nav-help-tab" data-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help"></span></span></a>
+			<a class="nav-item nav-link" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
+			<a class="nav-item nav-link active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
+			<a class="nav-item nav-link" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi"></span></span></a>
+			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt"></span></a>
+			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp"></span></a>
+			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth"></span></a>
+			<a class="nav-item nav-link" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
+			<a class="nav-item nav-link" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
+			<a class="nav-item nav-link" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help"></span></span></a>
 		</div>
 	</nav>
 	<br>
@@ -342,7 +362,7 @@
 				<div>
 					<legend data-i18n="wifi.title"></legend>
 					<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
-						<div class="form-group col-md-12">
+						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 							<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
@@ -357,7 +377,7 @@
 				<div style="margin-top: 20px;">
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
-						<div class="form-group col-md-12">
+						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
 							<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
@@ -393,47 +413,47 @@
 		</div>
 		<div class="tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.title"></legend>
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
-					<div class="buttons">
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+					<div class="buttons ctrl-button-grp">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<span class="row">
 						<legend data-i18n="control.volume" class="col-auto"></legend>
-						<button type="button" class="openPopupEqualizer btn btn-default btn-lg" data-i18n="[title]general.equalizer.title">
-							<span class="fas fa-sliders-h"></span>
-						</button>
 					</span>
-					<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 						<span class="fas fa-volume-down"></span>
 					</button>
 					<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume" data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
-					<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
+					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(176)" data-i18n="[title]control.volup">
 						<span class="fas fa-volume-up"></span>
+					</button>
+					<button type="button" class="openPopupEqualizer btn btn-primary btn-lg ctrl-button" data-i18n="[title]general.equalizer.title">
+						<span class="fas fa-sliders-h"></span>
 					</button>
 				</div>
 				<br />
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
 					<div></div>
@@ -443,7 +463,7 @@
 					<div id="playtime"> </div>
 				</div>
 				<br />
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane " id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
@@ -491,11 +511,22 @@
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
-						<div class="input-group input-focus">
-							<div class="input-group-prepend">
-								<span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+						<div class="container">
+							<div class="row">
+								<div class="col-sm-11" style="padding-left: 0">
+									<div class="input-group input-focus">
+										<div class="input-group-prepend">
+											<span class="input-group-text bg-white" style="height:40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
+										</div>
+										<input type="search" class="form-control border-start-0" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+											onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+									</div>
+								</div>
+								<div class="col-sm-1">
+									<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
+									<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
+								</div>
 							</div>
-							<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-left-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())"> &nbsp;<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button><button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 						</div>
 						<div>
 							<br>
@@ -521,8 +552,8 @@
 				<fieldset>
 					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-						<div class="form-group col-md-12">
 							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
+						<div class="mb-3 col-md-12">
 							<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
 							<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
@@ -608,7 +639,7 @@
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 					</div>
-					<div class="form-group my-2 col-md-12">
+					<div class="mb-3 my-2 col-md-12">
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
@@ -630,7 +661,7 @@
 		<div class="tab-pane fade" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
 						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
 						<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
@@ -644,7 +675,7 @@
 				</form>
 			</div>
 			<div class="container" id="ftpStart">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="ftp.start.title"></legend>
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
@@ -657,7 +688,7 @@
 		<div class="tab-pane fade" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
 						<input type="text" class="form-control" id="btDeviceName" data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
@@ -671,7 +702,7 @@
 				</form>
 				<br>
 				<div class="container" id="btStartSource">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.title"></legend>
 						<div data-i18n="bt.source.desc"></div>
 						<br>
@@ -683,7 +714,7 @@
 			</div>
 			<br><br>
 			<div class="container" id="btStartSink">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.sink.title"></legend>
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
@@ -696,9 +727,9 @@
 		<div class="tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
 							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 							<div class="text-center">
 								<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" data-slider-value="" value="" required> <i class="fas fa-volume-up fa-2x .icon-pos"></i>
@@ -716,9 +747,9 @@
 						</fieldset>
 					</div>
 					<br>
-					<div class="form-group col-md-12" id="neopixelConfig" data-visible="false">
+					<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
 							<div class="text-center">
 								<i class="far fa-sun fa-2x .icon-pos"></i>
@@ -731,7 +762,7 @@
 						</fieldset>
 					</div>
 					<br>
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
 							<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
@@ -739,7 +770,7 @@
 						</fieldset>
 					</div>
 					<br>
-					<div class="form-group col-md-12" id="batteryConfig" data-visible="false">
+					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title"></legend>
 							<div data-i18n="general.battery.desc"></div>
@@ -773,9 +804,9 @@
 						</fieldset>
 					</div>
 					<br>
-					<div class="form-group col-md-12" id="playlistConfig">
+					<div class="mb-3 col-md-12" id="playlistConfig">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
 							<select id="playlistSortMode" name="playlistSortMode" class="form-control">
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
@@ -802,17 +833,17 @@
 			<br />
 			<div class="container" id="eraseNvs">
 				<legend data-i18n="tools.nvserase.title"></legend>
-				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
+				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>
+				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 			</div>
 			<br />
 			<br />
 			<div class="container" id="importNvs">
 				<legend data-i18n="tools.nvsimport.title"></legend>
 				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="form-group">
+					<div class="mb-3">
 						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
 						<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
 					</div>
@@ -824,7 +855,7 @@
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
-					<div class="form-group">
+					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
 						<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 					</div>
@@ -1066,9 +1097,7 @@
 			$('.modal-title').text(i18next.t("restart"));
 			$('.modal-body').text(i18next.t("restartinfo"));
 			$(".modal-body").removeAttr("style");
-			$('#modalInfo').modal({
-				show: true
-			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 		} /* restart */
 		async function shutdownDevice() {
 			console.log("shutdown..");
@@ -1078,9 +1107,7 @@
 			$('.modal-title').text(i18next.t("shutdown"));
 			$('.modal-body').text(i18next.t("shutdowninfo"));
 			$(".modal-body").removeAttr("style");
-			$('#modalInfo').modal({
-				show: true
-			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 			setTimeout(function() {
 				tryRedirect();
 			}, 2000);
@@ -1782,15 +1809,15 @@
 					ssidElem.classList.add("active");
 				}
 				let deleteSpan = document.createElement("span");
-				deleteSpan.classList.add("float-right");
+				deleteSpan.classList.add("float-end");
 				deleteSpan.classList.add("button-group");
 				let deleteButton = document.createElement("button");
 				deleteButton.classList.add("btn");
 				deleteButton.classList.add("btn-danger");
 				deleteButton.classList.add("fa");
 				deleteButton.classList.add("fa-trash");
-				deleteButton.setAttribute("data-toggle", "modal");
-				deleteButton.setAttribute("data-target", "#deleteSSIDModal");
+				deleteButton.setAttribute("data-bs-toggle", "modal");
+				deleteButton.setAttribute("data-bs-target", "#deleteSSIDModal");
 				deleteButton.setAttribute("data-ssid", ssid);
 				deleteSpan.appendChild(deleteButton);
 				ssidElem.appendChild(deleteSpan);
@@ -1837,15 +1864,15 @@
 					rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
 				}
 				let deleteSpan = document.createElement("span");
-				deleteSpan.classList.add("float-right");
+				deleteSpan.classList.add("float-end");
 				deleteSpan.classList.add("button-group");
 				let deleteButton = document.createElement("button");
 				deleteButton.classList.add("btn");
 				deleteButton.classList.add("btn-danger");
 				deleteButton.classList.add("fa");
 				deleteButton.classList.add("fa-trash");
-				deleteButton.setAttribute("data-toggle", "modal");
-				deleteButton.setAttribute("data-target", "#deleteRFIDModal");
+				deleteButton.setAttribute("data-bs-toggle", "modal");
+				deleteButton.setAttribute("data-bs-target", "#deleteRFIDModal");
 				deleteButton.setAttribute("data-rfid", rfid.id);
 				deleteSpan.appendChild(deleteButton);
 				rfidElem.appendChild(deleteSpan);
@@ -2335,18 +2362,14 @@
 				fetchInfo();
 				$('.modal-title').text(i18next.t("systeminfo.title"));
 				$('#modalInfoRefresh').on('click', fetchInfo);
-				$('#modalInfo').modal({
-					show: true
-				});
+				new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 			})
 			$('.openPopupLog').on('click', function() {
 				fetchLog();
 				$('.modal-title').text(i18next.t("log"));
 				$("#modalLogContent").css("font-family", "monospace");
 				$('#modalLogRefresh').on('click', fetchLog);
-				$('#modalLog').modal({
-					show: true
-				});
+				new bootstrap.Modal(document.getElementById('modalLog')).toggle();
 			})
 			$('.openPopupRestart').on('click', function() {
 				$('#modalInfoRefresh').hide();
@@ -2358,9 +2381,7 @@
 			});
 			$('.openPopupEqualizer').on('click', () => {
 				$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
-				$('#modalEqualizer').modal({
-					show: true
-				});
+				new bootstrap.Modal(document.getElementById('modalEqualizer')).toggle();
 			});
 			// sending equalizer settings to API for
 			$('#modalEqualizer .slider').on('slideStop', function({
@@ -2390,7 +2411,7 @@
 				formatDBTooltip(target, value);
 			});
 			$(function() {
-				$('[data-toggle="tooltip"]').tooltip();
+				$('[data-bs-toggle="tooltip"]').tooltip();
 			});
 		});
 	</script>
