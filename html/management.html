@@ -2332,6 +2332,7 @@
 		async function fetchLog() {
 			let logtext = await (await fetch("http://" + host + "/log")).text();
 			$('#modalLogContent').text(logtext);
+			jQuery('#modalLogContent').animate({ scrollTop: 999999 });
 		}
 
 		function setTitle(newTitle) {
