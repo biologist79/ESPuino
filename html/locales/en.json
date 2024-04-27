@@ -12,6 +12,7 @@
 	"refresh":"Refresh",
     "ok": "OK",
     "infos": "Infos",
+    "darkmode": "Dark Mode",
 	"restartinfo":"ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
 	"shutdowninfo":"ESPuino is now switched off...\n\nPage reloads automatically when the ESPuino is switched on again..",
 	"toast":{
