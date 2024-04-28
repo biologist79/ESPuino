@@ -2447,8 +2447,10 @@
 
 				$('#explorerTree').jstree("set_theme", "default-dark");
 
-				document.querySelectorAll('.bg-light').forEach((element) => {
-					element.className = element.className.replace(/-light/g, '-dark');
+				document.querySelectorAll('.bg-light').forEach((element) => { // Toggle styles
+					element.className = element.className.replace(/-light/g, '-temp');
+					element.className = element.className.replace(/-dark/g, '-light');
+					element.className = element.className.replace(/-temp/g, '-dark');
 				});
 
 				document.querySelectorAll('.link-dark').forEach((element) => {
@@ -2494,8 +2496,10 @@
 
 				$('#explorerTree').jstree("set_theme", "default");
 
-				document.querySelectorAll('.bg-dark').forEach((element) => {
-					element.className = element.className.replace(/-dark/g, '-light');
+				document.querySelectorAll('.bg-dark').forEach((element) => { // Toggle styles
+					element.className = element.className.replace(/-dark/g, '-temp');
+					element.className = element.className.replace(/-light/g, '-dark');
+					element.className = element.className.replace(/-temp/g, '-light');
 				});
 
 				document.querySelectorAll('.text-white').forEach((element) => {
