@@ -1410,7 +1410,6 @@
 				var theme = "default";
 			}
 
-			//$('#explorerTree').jstree("destroy").empty(); -> breaks events
 			$('#explorerTree').jstree({
 				"core": {
 					"check_callback": true,
@@ -1545,9 +1544,6 @@
 					}
 				}
 			});
-
-			// $('#explorerTree').jstree(true).refresh(true); // TODO this does not work properly, thus we need to reload the full page, see onToggleMode
-			//$('#explorerTree').jstree(true).redraw(true);
 
 			if(path.length == 0) {
 				return;
@@ -2359,6 +2355,9 @@
 		}
 		$(document).ready(function() {
 			connect();
+
+			buildFileSystemTree("/");
+
 			$('#deleteSSIDModal').on('show.bs.modal', function(event) {
 				var ssid = $(event.relatedTarget).data('ssid')
 				$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
@@ -2446,7 +2445,7 @@
 			function darkMode() {
 				console.log("darkmode");
 
-				buildFileSystemTree("/", true);
+				$('#explorerTree').jstree("set_theme", "default-dark");
 
 				document.querySelectorAll('.bg-light').forEach((element) => {
 					element.className = element.className.replace(/-light/g, '-dark');
@@ -2493,7 +2492,7 @@
 			function lightMode() {
 				console.log("lightmode");
 
-				buildFileSystemTree("/", false);
+				$('#explorerTree').jstree("set_theme", "default");
 
 				document.querySelectorAll('.bg-dark').forEach((element) => {
 					element.className = element.className.replace(/-dark/g, '-light');
@@ -2537,15 +2536,11 @@
 			* @function onToggleMode
 			* @summary: the event handler attached to the switch. calling @darkMode or @lightMode depending on the checked state.
 			*/
-			function onToggleMode(start=false) {
+			function onToggleMode() {
 				if (lightSwitch.checked) {
 					darkMode();
 				} else {
 					lightMode();
-				}
-
-				if (start != true) { // Reload whole page to fix lack of reload functionality of the jstree
-					location.reload();
 				}
 			}
 
@@ -2572,7 +2567,7 @@
 				}
 
 				lightSwitch.addEventListener('change', onToggleMode);
-				onToggleMode(true);
+				onToggleMode();
 			}
 
 			darkmodeSwitchSetup();
