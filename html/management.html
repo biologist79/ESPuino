@@ -520,7 +520,7 @@
 								<div class="col-sm-11" style="padding-left: 0">
 									<div class="input-group input-focus">
 										<div class="input-group-prepend">
-											<span class="input-group-text bg-light text-dark" xxxx style="height:40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
+											<span class="input-group-text bg-light text-dark" style="height:40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
 										</div>
 										<input type="search" class="form-control border-start-0 bg-light text-dark" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
 											onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
@@ -1409,6 +1409,8 @@
 			else {
 				var theme = "default";
 			}
+
+			//$('#explorerTree').jstree("destroy").empty(); -> breaks events
 			$('#explorerTree').jstree({
 				"core": {
 					"check_callback": true,
@@ -1544,7 +1546,8 @@
 				}
 			});
 
-			jQuery('#explorerTree').jstree(true).refresh(true);
+			// $('#explorerTree').jstree(true).refresh(true); // TODO this does not work properly, thus we need to reload the full page, see onToggleMode
+			//$('#explorerTree').jstree(true).redraw(true);
 
 			if(path.length == 0) {
 				return;
@@ -2441,7 +2444,8 @@
 			* Basically, replaces/toggles every CSS class that has '-light' class with '-dark'
 			*/
 			function darkMode() {
-				console.log("darkmode")
+				console.log("darkmode");
+
 				buildFileSystemTree("/", true);
 
 				document.querySelectorAll('.bg-light').forEach((element) => {
@@ -2487,7 +2491,8 @@
 			* @summary: changes the theme to 'light mode' and save settings to local storage.
 			*/
 			function lightMode() {
-				console.log("lightmode")
+				console.log("lightmode");
+
 				buildFileSystemTree("/", false);
 
 				document.querySelectorAll('.bg-dark').forEach((element) => {
@@ -2532,11 +2537,15 @@
 			* @function onToggleMode
 			* @summary: the event handler attached to the switch. calling @darkMode or @lightMode depending on the checked state.
 			*/
-			function onToggleMode() {
+			function onToggleMode(start=false) {
 				if (lightSwitch.checked) {
 					darkMode();
 				} else {
 					lightMode();
+				}
+
+				if (start != true) { // Reload whole page to fix lack of reload functionality of the jstree
+					location.reload();
 				}
 			}
 
@@ -2563,7 +2572,7 @@
 				}
 
 				lightSwitch.addEventListener('change', onToggleMode);
-				onToggleMode();
+				onToggleMode(true);
 			}
 
 			darkmodeSwitchSetup();
