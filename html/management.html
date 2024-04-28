@@ -15,6 +15,7 @@
 	<link rel="apple-touch-icon" href="/logo">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
@@ -1401,7 +1402,13 @@
 				ref.create_node(parent, createChild(parent, data[i]));
 			}
 		} /* addFileDirectory */
-		function buildFileSystemTree(path) {
+		function buildFileSystemTree(path, darkMode) {
+			if (darkMode == true) {
+				var theme = "default-dark";
+			}
+			else {
+				var theme = "default";
+			}
 			$('#explorerTree').jstree({
 				"core": {
 					"check_callback": true,
@@ -1410,6 +1417,7 @@
 						"Loading ...": () => i18next.t("files.loading")
 					},
 					"themes": {
+						"name": theme,
 						"stripes": true
 					},
 					'data': {
@@ -1535,6 +1543,9 @@
 					}
 				}
 			});
+
+			jQuery('#explorerTree').jstree(true).refresh(true);
+
 			if(path.length == 0) {
 				return;
 			}
@@ -2345,7 +2356,6 @@
 		}
 		$(document).ready(function() {
 			connect();
-			buildFileSystemTree("/");
 			$('#deleteSSIDModal').on('show.bs.modal', function(event) {
 				var ssid = $(event.relatedTarget).data('ssid')
 				$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
@@ -2431,6 +2441,9 @@
 			* Basically, replaces/toggles every CSS class that has '-light' class with '-dark'
 			*/
 			function darkMode() {
+				console.log("darkmode")
+				buildFileSystemTree("/", true);
+
 				document.querySelectorAll('.bg-light').forEach((element) => {
 					element.className = element.className.replace(/-light/g, '-dark');
 				});
@@ -2470,7 +2483,9 @@
 			* @summary: changes the theme to 'light mode' and save settings to local storage.
 			*/
 			function lightMode() {
-			console.log("lightmode")
+				console.log("lightmode")
+				buildFileSystemTree("/", false);
+
 				document.querySelectorAll('.bg-dark').forEach((element) => {
 					element.className = element.className.replace(/-dark/g, '-light');
 				});
@@ -2511,7 +2526,6 @@
 			*/
 			function onToggleMode() {
 				if (lightSwitch.checked) {
-					console.log("s");
 					darkMode();
 				} else {
 					lightMode();
