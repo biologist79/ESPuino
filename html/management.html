@@ -519,7 +519,7 @@
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
-						<div class="container">
+						<div class="container" style="padding-right: 0">
 							<div class="row">
 								<div class="col-sm-11" style="padding-left: 0">
 									<div class="input-group input-focus">
@@ -530,7 +530,7 @@
 											onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
 									</div>
 								</div>
-								<div class="col-sm-1">
+								<div class="col-sm-1" style="text-align: right;">
 									<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
 									<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 								</div>
