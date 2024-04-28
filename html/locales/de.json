@@ -207,7 +207,7 @@
 		},
 		"port":{
 			"title":"MQTT-Port",
-			"placeholder":"z.B.. 1883",
+			"placeholder":"z.B. 1883",
 			"validation":""
 		}
 	},
