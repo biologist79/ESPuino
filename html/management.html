@@ -2453,12 +2453,8 @@
 					element.className = element.className.replace(/-temp/g, '-dark');
 				});
 
-				document.querySelectorAll('.link-dark').forEach((element) => {
-					element.className = element.className.replace(/link-dark/, 'text-white');
-				});
-
-				document.querySelectorAll('.text-white').forEach((element) => {
-					element.className = element.className.replace(/text-white/, 'link-dark');
+				document.querySelectorAll('.text-dark').forEach((element) => {
+					element.className = element.className.replace(/text-dark/, 'text-white');
 				});
 
 				document.querySelectorAll('.select-div').forEach((element) => {
@@ -2503,11 +2499,7 @@
 				});
 
 				document.querySelectorAll('.text-white').forEach((element) => {
-					element.className = element.className.replace(/text-white/, 'link-dark');
-				});
-
-				document.querySelectorAll('.link-dark').forEach((element) => {
-					element.className = element.className.replace(/link-dark/, 'text-white');
+					element.className = element.className.replace(/text-white/, 'text-dark');
 				});
 
 				document.querySelectorAll('.select-div').forEach((element) => {
