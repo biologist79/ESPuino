@@ -205,7 +205,7 @@
 				<label class="form-check-label ms-3" for="lightSwitch"><i class="fas fa-adjust"></i> <span data-i18n="darkmode"></span></label>
 				<input class="form-check-input" type="checkbox" id="lightSwitch" style="opacity:0; /* Hide it */" />
 			</a>
-			<select class="form-select float-end" id="langSel" name="langSel">
+			<select class="form-select float-end select-div" id="langSel" name="langSel">
 				<option value="de">de</option>
 				<option value="en">en</option>
 				<option value="fr">fr</option>
@@ -536,7 +536,7 @@
 							<br>
 							<legend id="filesupload" data-i18n="files.upload.title"></legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
-								<div class="input-group">
+								<div class="input-group select-div">
 									<span class="form-control" id="uploaded_file_text"></span>&nbsp <span class="input-group-btn">
 										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
 										<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
@@ -545,7 +545,7 @@
 							</form>
 							<br>
 							<div class="progress">
-								<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" xxx role="progressbar" aria-labelledby="fileslegend"></div>
+								<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" role="progressbar" aria-labelledby="fileslegend"></div>
 							</div>
 						</div>
 						<br>
@@ -665,7 +665,7 @@
 		<div class="tab-pane fade" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
-					<div class="mb-3 col-md-12">
+					<div class="mb-3 col-md-12 select-div">
 						<legend data-i18n="ftp.title"></legend>
 						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
 						<input type="text bg-light text-dark" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
@@ -827,7 +827,7 @@
 			</div>
 			<br />
 		</div>
-		<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
+		<div class="tab-pane fade select-div" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 			<div class="container" id="savedAssignments">
 				<legend data-i18n="files.rfid.savedassignments"></legend>
 				<ul class="list-group" id="rfidListSavedAssignments">
