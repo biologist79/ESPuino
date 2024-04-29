@@ -425,19 +425,19 @@
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
 					<div class="buttons ctrl-button-grp">
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
@@ -2467,6 +2467,10 @@
 					element.className = element.className.replace(/text-light/, 'text-dark');
 				});
 
+				document.querySelectorAll('.ctrl-button').forEach((element) => {
+					element.className = element.className.replace(/text-light/, 'text-dark');
+				});
+
 				document.body.classList.add('bg-dark');
 
 				if (document.body.classList.contains('text-dark')) {
@@ -2514,6 +2518,10 @@
 
 				document.querySelectorAll('.header-nav-element').forEach((element) => {
 					element.className = element.className.replace(/text-dark/, 'text-light');
+				});
+
+				document.querySelectorAll('.ctrl-button').forEach((element) => {
+					element.className = element.className.replace(/text-light/, 'text-dark');
 				});
 
 				document.body.classList.add('bg-light');
