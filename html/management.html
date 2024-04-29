@@ -192,7 +192,7 @@
 				<label class="form-check-label ms-3" for="lightSwitch" style="cursor: pointer"><i class="fas fa-adjust"></i> <span data-i18n="darkmode"></span></label>
 				<input class="form-check-input" type="checkbox" id="lightSwitch" style="display:none; /* Hide it */" />
 			</a>
-			<select class="form-select float-end select-div" id="langSel" name="langSel">
+			<select class="form-control form-select"  id="langSel" name="langSel">
 				<option value="de">de</option>
 				<option value="en">en</option>
 				<option value="fr">fr</option>
@@ -458,7 +458,7 @@
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control" id="commandId" name="commandId">
+						<select class="form-control form-select" id="commandId" name="commandId">
 							<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>-->
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
@@ -561,7 +561,7 @@
 									<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
 									<input type="text" class="form-control bg-light text-dark" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
 									<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
-									<select class="form-control" id="playMode" name="playMode">
+									<select class="form-control form-select" id="playMode" name="playMode">
 										<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>-->
 										<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
 										<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
@@ -580,7 +580,7 @@
 								</div>
 								<div class="tab-pane select-div" id="rfidmod" role="tabpanel">
 									<label for="modId" data-i18n="files.rfid.mod.title"></label>
-									<select class="form-control" id="modId" name="modId">
+									<select class="form-control form-select" id="modId" name="modId">
 										<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>-->
 										<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 										<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
@@ -799,7 +799,7 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<select id="playlistSortMode" name="playlistSortMode" class="form-control">
+							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 								<option value="1" data-i18n="general.playlist.strcmp"></option>
@@ -2456,6 +2456,8 @@
 					element.className = element.className.replace(/text-light/, 'text-dark');
 				});
 
+				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "dark"); // Needed for Langsel
+
 				document.body.classList.add('bg-dark');
 
 				if (document.body.classList.contains('text-dark')) {
@@ -2508,6 +2510,8 @@
 				document.querySelectorAll('.ctrl-button').forEach((element) => {
 					element.className = element.className.replace(/text-light/, 'text-dark');
 				});
+
+				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "light"); // Needed for Langsel
 
 				document.body.classList.add('bg-light');
 
