@@ -373,12 +373,12 @@
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 							<input type="text" class="form-control bg-light text-dark" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
+							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">&nbsp;
 							<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label><br><br>
 						</div>
 						<br>
 						<div class="text-center">
-							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp <button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</div>
@@ -391,7 +391,7 @@
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
 							<input type="password" class="form-control bg-light text-dark" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
-							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
+							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp;
 							<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
@@ -541,8 +541,8 @@
 							<legend id="filesupload" data-i18n="files.upload.title"></legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 								<div class="input-group select-div">
-									<span class="form-control" id="uploaded_file_text"></span>&nbsp <span class="input-group-btn">
-										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp <span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
+									<span class="form-control" id="uploaded_file_text"></span>&nbsp;<span class="input-group-btn">
+										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp;<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp;<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
 										<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
 									</span>
 								</div>
@@ -632,7 +632,7 @@
 						</div>
 						<br>
 						<div class="text-center">
-							<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>&nbsp <button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
+							<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
 						</div>
 					</form>
 				</fieldset>
@@ -644,7 +644,7 @@
 				<form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
 					<div class="form-check col-md-12">
 						<legend data-i18n="mqtt.title"></legend>
-						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
+						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">&nbsp;
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 					</div>
 					<div class="mb-3 my-2 col-md-12">
@@ -661,7 +661,7 @@
 					</div>
 					<br>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp <button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -678,7 +678,7 @@
 					</div>
 					<br>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp <button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -825,7 +825,7 @@
 					</div>
 					<br>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp <button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
