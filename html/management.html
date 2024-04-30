@@ -31,6 +31,12 @@
 	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
+		body {
+			/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
+			 * the common minimal width is 320 px. -> 310 px + 5 px padding */
+			min-width: 310px;
+		}
+
 		.nav-logo {
 			margin-left: 30px;
 			margin-right: 5px;
@@ -59,10 +65,25 @@
 			height: 200px;
 		}
 
+		.slider-container {
+			width: 100%;
+			display: flex;
+		}
+
+		.slider-container-fl {
+			float: left;
+		}
+
+		.slider-container-inner {
+			width: 100%;
+			padding-top: 10px;
+			padding-left: 20px;
+			padding-right: 20px;
+			float: left;
+		}
+
 		.slider.slider-horizontal {
-			width: 60%;
-			margin-left: 1em;
-			margin-right: 1.8em;
+			width: 100%;
 		}
 
 		.slider-handle {
@@ -110,12 +131,13 @@
 			text-align: center;
 		}
 
-		.volume-button {
-			width: 70px;
-		}
-
 		.ctrl-button {
 			margin: 2px;
+			padding: 10px;
+		}
+
+		.volume-button {
+			width: 60px;
 		}
 
 		.overlay {
@@ -233,27 +255,45 @@
 					<button type="button" class="btn-close bg-white text-dark" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body row" id="modalEqualizerContent">
-					<div class="col-12">
-						<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
+					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
+					<div class="slider-container">
+						<div class="slider-container-fl">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-						<input id="gainLowPass" name="gainLowPass" class="form-control" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
-						<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainLowPass" name="gainLowPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="slider-container-fl" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
 					</div>
 					&nbsp;
 					<hr class="w-100" />
-					<div class="col-12">
-						<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
+					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
+					<div class="slider-container">
+						<div class="slider-container-fl">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-						<input id="gainBandPass" name="gainBandPass" class="form-control" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
-						<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainBandPass" name="gainBandPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="slider-container-fl" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
 					</div>
 					&nbsp;
 					<hr class="w-100" />
-					<div class="col-12">
-						<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
+					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
+					<div class="slider-container">
+						<div class="slider-container-fl">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-						<input id="gainHighPass" name="gainHighPass" class="form-control" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
-						<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainHighPass" name="gainHighPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="slider-container-fl" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
 					</div>
 					&nbsp;
 					<hr class="w-100" />
@@ -419,20 +459,27 @@
 					</div>
 				</div>
 				<br>
-				<div class="mb-3 col-md-12">
-					<span class="row">
-						<legend data-i18n="control.volume" class="col-auto"></legend>
-					</span>
-					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
-						<span class="fas fa-volume-down"></span>
-					</button>
-					<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume" data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
-					<button type="button" class="btn btn-primary btn-lg ctrl-button volume-button" onclick="sendControl(176)" data-i18n="[title]control.volup">
-						<span class="fas fa-volume-up"></span>
-					</button>
-					<button type="button" class="openPopupEqualizer btn btn-primary btn-lg ctrl-button" data-i18n="[title]general.equalizer.title">
-						<span class="fas fa-sliders-h"></span>
-					</button>
+				<legend data-i18n="control.volume" class="col-auto"></legend>
+				<div class="slider-container">
+					<div class="slider-container-fl">
+						<button type="button" class="btn btn-primary btn-lg volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+							<span class="fas fa-volume-down"></span>
+						</button>
+					</div>
+					<div class="slider-container-inner">
+						<input class="float-end" data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
+							   data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
+					</div>
+					<div class="slider-container-fl">
+						<button type="button" class="btn btn-primary btn-lg volume-button float-end" onclick="sendControl(176)" data-i18n="[title]control.volup">
+							<span class="fas fa-volume-up"></span>
+						</button>
+					</div>
+					<div class="slider-container-fl" style="padding-left: 10px">
+						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg volume-button float-end" data-i18n="[title]general.equalizer.title">
+							<span class="fas fa-sliders-h"></span>
+						</button>
+					</div>
 				</div>
 				<br />
 				<div class="mb-3 col-md-12">
@@ -493,22 +540,12 @@
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
-						<div class="container" style="padding-right: 0">
-							<div class="row">
-								<div class="col-sm-11" style="padding-left: 0">
-									<div class="input-group input-focus">
-										<div class="input-group-prepend">
-											<span class="input-group-text bg-light text-dark" style="height:40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
-										</div>
-										<input type="search" class="form-control border-start-0 bg-light text-dark" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
-											onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
-									</div>
-								</div>
-								<div class="col-sm-1" style="text-align: right;">
-									<button id="expandfilelist" class="btn btn-primary" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
-									<button id="shrinkfilelist" class="btn btn-primary" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
-								</div>
-							</div>
+						<div class="container" style="padding: 0">
+							<span class="input-group-text float-start bg-light text-dark" style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
+							<input type="search" class="form-control border-start-0 float-start bg-light text-dark" style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+							onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+							<button id="expandfilelist" class="btn btn-primary float-end" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
+							<button id="shrinkfilelist" class="btn btn-primary float-end" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 						</div>
 						<div>
 							<br>
@@ -709,46 +746,79 @@
 		<div class="tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<div class="mb-3 col-md-12">
-						<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
-							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-							<div class="text-center">
-								<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+					<fieldset>
+						<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
+						<div class="slider-container">
+							<div class="slider-container-fl">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" data-slider-value="" value="" required>
-								<i class="fas fa-volume-up fa-2x .icon-pos"></i>
 							</div>
-							<br>
-							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-							<div class="text-center">
-								<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+							<div class="slider-container-fl" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
+						</div>
+						&nbsp;
+						<hr class="w-100" />
+						<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
+						<div class="slider-container">
+							<div class="slider-container-fl">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" required>
-								<i class="fas fa-volume-up fa-2x .icon-pos"></i>
 							</div>
-							<br>
-							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-							<div class="text-center">
-								<i class="fas fa-volume-down fa-2x .icon-pos"></i>
+							<div class="slider-container-fl" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
+						</div>
+						&nbsp;
+						<hr class="w-100" />
+						<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
+						<div class="slider-container">
+							<div class="slider-container-fl">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" data-slider-value="" value="" required>
-								<i class="fas fa-volume-up fa-2x .icon-pos"></i>
 							</div>
-						</fieldset>
-					</div>
+							<div class="slider-container-fl" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
+						</div>
+						&nbsp;
+						<hr class="w-100" />
+					</fieldset>
 					<br>
 					<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
-							<div class="text-center">
+							<div class="slider-container">
+								<div class="slider-container-fl">
 								<i class="far fa-sun fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness" data-slider-value="" value="" required>
+								</div>
+								<div class="slider-container-fl" style="padding-left: 10px">
 								<i class="fas fa-sun fa-2x .icon-pos"></i>
+								</div>
 							</div>
+							&nbsp;
+							<hr class="w-100" />
 							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
-							<div class="text-center">
+							<div class="slider-container">
+								<div class="slider-container-fl">
 								<i class="far fa-sun fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="" value="" required>
+-								</div>
+								<div class="slider-container-fl" style="padding-left: 10px">
 								<i class="fas fa-sun fa-2x .icon-pos"></i>
+								</div>
 							</div>
 						</fieldset>
 					</div>
