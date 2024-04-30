@@ -269,7 +269,7 @@
 		},
 		"sleep":{
 			"title":"Deep Sleep",
-			"incativity":"After n minutes inactivity"
+			"inactivity":"After n minutes inactivity"
 		},
 		"battery":{
 			"title":"Battery",

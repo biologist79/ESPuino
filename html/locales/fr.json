@@ -269,7 +269,7 @@
 		},
 		"sleep":{
 			"title":"Veille profonde",
-			"incativity":"Après n minutes d'inactivité"
+			"inactivity":"Après n minutes d'inactivité"
 		},
 		"battery":{
 			"title":"Batterie",
