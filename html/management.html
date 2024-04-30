@@ -823,17 +823,21 @@
 						</fieldset>
 					</div>
 					<br>
-					<div class="mb-3 col-md-12">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
 							<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
-							<div class="text-center">
+						<div class="slider-container">
+							<div class="slider-container-fl">
 								<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
 								<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime" data-slider-value="" value="" required>
+							</div>
+							<div class="slider-container-fl" style="padding-left: 10px">
 								<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
 							</div>
+						</div>
 						</fieldset>
-					</div>
 					<br>
 					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
 						<fieldset>
