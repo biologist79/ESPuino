@@ -386,7 +386,7 @@
 					<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-							<input type="text" class="form-control bg-light text-dark" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
+							<input type="text" class="form-control bg-white text-dark" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">&nbsp;
 							<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label><br><br>
 						</div>
@@ -396,28 +396,29 @@
 						</div>
 					</form>
 				</div>
+				<hr class="w-100" />
 				<div style="margin-top: 20px;">
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-							<input type="text" class="form-control bg-light text-dark" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
+							<input type="text" class="form-control bg-white text-dark" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-							<input type="password" class="form-control bg-light text-dark" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
+							<input type="password" class="form-control bg-white text-dark" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
 							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp;
 							<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-								<input type="text" class="form-control bg-light text-dark" id="static_addr" name="static_addr">
+								<input type="text" class="form-control bg-white text-dark" id="static_addr" name="static_addr">
 								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-								<input type="text" class="form-control bg-light text-dark" id="static_gateway" name="static_gateway">
+								<input type="text" class="form-control bg-white text-dark" id="static_gateway" name="static_gateway">
 								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-								<input type="text" class="form-control bg-light text-dark" id="static_subnet" name="static_subnet">
+								<input type="text" class="form-control bg-white text-dark" id="static_subnet" name="static_subnet">
 								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-								<input type="text" class="form-control bg-light text-dark" id="static_dns1" name="static_dns1">
+								<input type="text" class="form-control bg-white text-dark" id="static_dns1" name="static_dns1">
 								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-								<input type="text" class="form-control bg-light text-dark" id="static_dns2" name="static_dns2">
+								<input type="text" class="form-control bg-white text-dark" id="static_dns2" name="static_dns2">
 							</div>
 						</div>
 						<br>
@@ -426,6 +427,7 @@
 						</div>
 					</form>
 				</div>
+				<hr class="w-100" />
 				<div class="col-md-12" style="margin-top: 20px;">
 					<legend data-i18n="wifi.savedNetworks"></legend>
 					<ul class="list-group" id="wifiListSavedSSIDs">
@@ -496,7 +498,7 @@
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control form-select" id="commandId" name="commandId">
+						<select class="form-control form-select bg-white" id="commandId" name="commandId">
 							<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>-->
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
@@ -541,8 +543,8 @@
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
 						<div class="container" style="padding: 0">
-							<span class="input-group-text float-start bg-light text-dark" style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
-							<input type="search" class="form-control border-start-0 float-start bg-light text-dark" style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+							<span class="input-group-text float-start bg-white text-dark" style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i class="fas fa-search"></i></span>
+							<input type="search" class="form-control border-start-0 float-start bg-white text-dark" style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
 							onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
 							<button id="expandfilelist" class="btn btn-primary float-end" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
 							<button id="shrinkfilelist" class="btn btn-primary float-end" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
@@ -573,7 +575,7 @@
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
-							<input type="text" class="form-control bg-light text-dark" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
+							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
 							<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
 								<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
@@ -587,9 +589,9 @@
 								<div class="tab-pane show active select-div" data-bs-theme="light" id="rfidmusic" role="tabpanel">
 									<br>
 									<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
-									<input type="text" class="form-control bg-light text-dark" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
+									<input type="text" class="form-control bg-white text-dark" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
 									<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
-									<select class="form-control form-select" id="playMode" name="playMode">
+									<select class="form-control form-select bg-white" id="playMode" name="playMode">
 										<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>-->
 										<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
 										<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
@@ -660,15 +662,15 @@
 					</div>
 					<div class="mb-3 my-2 col-md-12">
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="mqttClientId" minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttClientId" minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="mqttServer" minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttServer" minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
 						<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="mqttUser" maxlength="" data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttUser" maxlength="" data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
 						<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-						<input type="password" class="form-control" id="mqttPwd" maxlength="" data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+						<input type="password" class="form-control bg-white text-dark" id="mqttPwd" maxlength="" data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
 						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
-						<input type="number" class="form-control" id="mqttPort" min="1" max="65535" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+						<input type="number" class="form-control bg-white text-dark" id="mqttPort" min="1" max="65535" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 					</div>
 					<br>
 					<div class="text-center">
@@ -683,9 +685,9 @@
 					<div class="mb-3 col-md-12 select-div">
 						<legend data-i18n="ftp.title"></legend>
 						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
+						<input type="text" class="form-control bg-white text-dark" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-						<input type="password" class="form-control" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+						<input type="password" class="form-control bg-white text-dark" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 					</div>
 					<br>
 					<div class="text-center">
@@ -710,9 +712,9 @@
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="btDeviceName" data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
+						<input type="text" class="form-control bg-white text-dark" id="btDeviceName" data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
 						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
-						<input type="text bg-light text-dark" class="form-control" id="btPinCode" data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+						<input type="text" class="form-control bg-white text-dark" id="btPinCode" data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 					</div>
 					<br>
 					<div class="text-center">
@@ -2552,6 +2554,10 @@
 					element.className = element.className.replace(/-temp/g, '-dark');
 				});
 
+				document.querySelectorAll('.bg-white').forEach((element) => {
+					element.className = element.className.replace(/bg-white/, 'bg-black');
+				});
+
 				document.querySelectorAll('.text-dark').forEach((element) => {
 					element.className = element.className.replace(/text-dark/, 'text-white');
 				});
@@ -2605,6 +2611,10 @@
 					element.className = element.className.replace(/-dark/g, '-temp');
 					element.className = element.className.replace(/-light/g, '-dark');
 					element.className = element.className.replace(/-temp/g, '-light');
+				});
+
+				document.querySelectorAll('.bg-black').forEach((element) => {
+					element.className = element.className.replace(/bg-black/, 'bg-white');
 				});
 
 				document.querySelectorAll('.text-white').forEach((element) => {
