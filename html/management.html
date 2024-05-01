@@ -1922,6 +1922,10 @@
 				if(ssidActive && ssidActive === ssid) {
 					ssidElem.classList.add("active");
 				}
+				else {
+					ssidElem.classList.add("bg-dark");
+					ssidElem.classList.add("text-light");
+				}
 				let deleteSpan = document.createElement("span");
 				deleteSpan.classList.add("float-end");
 				deleteSpan.classList.add("button-group");
