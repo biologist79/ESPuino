@@ -188,6 +188,12 @@
 		input::placeholder {
 			color: #a2a6aa !important;
 		}
+
+		@media screen and (max-width: 600px) { /* On screens smaller than 600px, hide the text of the nav bar buttons */
+			.header-nav-text {
+				display: none;
+			}
+		}
 	</style>
 </head>
 <body>
@@ -197,12 +203,12 @@
 				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt=""/>
 				<span id="navbar-heading" class="header-nav-element text-light" data-i18n="title"></span>
 			</a>
-			<a class="reboot float-end nav-link openPopupRestart header-nav-element text-light link-body-emphasis header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart"></span></a>
-			<a class="reboot float-end nav-link openPopupShutdown header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown"></span></a>
-			<a class="reboot float-end nav-link openPopupLog header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log"></span></a>
-			<a class="reboot float-end nav-link openPopupInfo header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info"></span></a>
+			<a class="reboot float-end nav-link openPopupRestart header-nav-element text-light link-body-emphasis header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span class="header-nav-text" data-i18n="restart"></span></a>
+			<a class="reboot float-end nav-link openPopupShutdown header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span class="header-nav-text" data-i18n="shutdown"></span></a>
+			<a class="reboot float-end nav-link openPopupLog header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-book"></i> <span class="header-nav-text" data-i18n="log"></span></a>
+			<a class="reboot float-end nav-link openPopupInfo header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-info"></i> <span class="header-nav-text" data-i18n="info"></span></a>
 			<a class="reboot form-check float-end nav-link header-nav-element text-light link-body-emphasis">
-				<label class="form-check-label ms-3" for="lightSwitch" style="cursor: pointer"><i class="fas fa-adjust"></i> <span data-i18n="darkmode"></span></label>
+				<label class="form-check-label ms-3" for="lightSwitch" style="cursor: pointer"><i class="fas fa-adjust"></i> <span class="header-nav-text" data-i18n="darkmode"></span></label>
 				<input class="form-check-input" type="checkbox" id="lightSwitch" style="display:none; /* Hide it */" />
 			</a>
 			<select class="form-control form-select"  id="langSel" name="langSel">
