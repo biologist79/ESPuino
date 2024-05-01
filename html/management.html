@@ -1573,6 +1573,7 @@
 						if(node.data.directory) {
 							items.createDir = {
 								label: () => i18next.t("files.context.newFolder"),
+								icon: "fas fa-folder",
 								action: function(x) {
 									var childNode = ref.create_node(nodeId, {
 										text: () => i18next.t("files.context.newFolder"),
@@ -1590,6 +1591,7 @@
 						/* Play */
 						items.play = {
 							label: () => i18next.t("files.context.play"),
+							icon: "fas fa-play",
 							action: function(x) {
 								var playMode = 1;
 								if(node.data.directory) {
@@ -1605,6 +1607,7 @@
 						/* Refresh */
 						items.refresh = {
 							label: () => i18next.t("files.context.refresh"),
+							icon: "fas fa-sync",
 							action: function(x) {
 								refreshNode(nodeId);
 							}
@@ -1612,6 +1615,7 @@
 						/* Delete */
 						items.delete = {
 							label: () => i18next.t("files.context.delete"),
+							icon: "fas fa-trash",
 							action: function(x) {
 								handleDeleteData(nodeId);
 								refreshNode(ref.get_parent(nodeId));
@@ -1620,6 +1624,7 @@
 						/* Rename */
 						items.rename = {
 							label: () => i18next.t("files.context.rename"),
+							icon: "fas fa-edit",
 							action: function(x) {
 								var srcPath = node.data.path;
 								ref.edit(nodeId, null, function(node, status) {
