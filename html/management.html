@@ -194,6 +194,16 @@
 				display: none;
 			}
 		}
+
+		/* Overwrite some Bootstrap styles */
+		.btn.disabled {
+			border-color: rgb(0,0,0,0); // Overwrite to be transparent
+			/* As copied from Botstrap buttons.scss */
+		    color: var(--bs-btn-disabled-color);
+			pointer-events: none;
+			background-color: var(--bs-btn-disabled-bg);
+			opacity: var(--bs-btn-disabled-opacity);
+		}
 	</style>
 </head>
 <body>
