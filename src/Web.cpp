@@ -1190,17 +1190,15 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
 		entry["numberOfTracks"] = (gPlayProperties.playlist) ? gPlayProperties.playlist->size() : 0;
 		entry["volume"] = AudioPlayer_GetCurrentVolume();
-		/* Sanitize the title */
+		/* Sanitize the title: Truncate it at the first invalid UTF8 character */
 		size_t count;
-		if (countCodePoints((uint8_t *)gPlayProperties.title, &count)) {
-			Log_Printf(LOGLEVEL_INFO, "The title is malformed, starting CodePoint %d", count);
-			//char buf[MAX_TITLE_LENGTH];
-			//strncpy(buf, gPlayProperties.title, count);
-			//Log_Printf(LOGLEVEL_INFO, "Truncated title: %s", buf);
-			//entry["name"] = buf;
-			entry["name"] = "Title with invalid characters...";
-		} else {
-			Log_Printf(LOGLEVEL_INFO, "title (all valid): %s", gPlayProperties.title);
+		if (findFirstInvalidUtf8Character((uint8_t *)gPlayProperties.title, &count)) { // Title has at least one invalid UTF8 character
+			char buf[MAX_TITLE_LENGTH];
+			strncpy(buf, gPlayProperties.title, MAX_TITLE_LENGTH);
+			buf[count] = '\0';
+			strncat(buf, "...", MAX_TITLE_LENGTH - count);
+			entry["name"] = buf;
+		} else { // Title is valid
 			entry["name"] = gPlayProperties.title;
 		}
 		entry["posPercent"] = gPlayProperties.currentRelPos;

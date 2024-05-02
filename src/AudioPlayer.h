@@ -4,6 +4,8 @@
 
 #include <optional>
 
+#define MAX_TITLE_LENGTH 255
+
 #ifndef AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT
 	#define AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT playlistSortMode::STRNATCASECMP
 #endif
@@ -13,11 +15,10 @@ enum class playlistSortMode : uint8_t {
 	STRNATCMP = 2,
 	STRNATCASECMP = 3,
 };
-
 typedef struct { // Bit field
 	uint8_t playMode : 4; // playMode
 	Playlist *playlist; // playlist
-	char title[255]; // current title
+	char title[MAX_TITLE_LENGTH]; // current title
 	bool repeatCurrentTrack		: 1; // If current track should be looped
 	bool repeatPlaylist			: 1; // If whole playlist should be looped
 	uint16_t currentTrackNumber : 9; // Current tracknumber

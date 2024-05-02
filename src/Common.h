@@ -4,7 +4,7 @@ constexpr char stringDelimiter[] = "#"; // Character used to encapsulate data in
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
 
 size_t b64decode(const void *input_buffer, void *output_buffer, const size_t input_length);
-int countCodePoints(uint8_t* s, size_t* count);
+int findFirstInvalidUtf8Character(uint8_t* s, size_t* count);
 
 inline bool isNumber(const char *str) {
 	int i = 0;

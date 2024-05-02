@@ -74,16 +74,16 @@ uint32_t inline decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
 	return *state;
 }
 
-#include "Log.h"
-
-
-int countCodePoints(uint8_t* s, size_t* count) {
+int findFirstInvalidUtf8Character(uint8_t* s, size_t* count) {
 	uint32_t codepoint;
 	uint32_t state = UTF8_ACCEPT;
 
 	for (*count = 0; *s; ++s) {
 		if (!decode(&state, &codepoint, *s)) {
 			*count += 1;
+		}
+		else {
+			break;
 		}
 	}
 	return state != UTF8_ACCEPT;
