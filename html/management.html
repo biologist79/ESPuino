@@ -589,7 +589,7 @@
 							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
 							<div class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
-								<a class="nav-item nav-link rfid-subtab-item bg-white text-dark active" id="rfid-music-tab" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
+								<a class="nav-item nav-link rfid-subtab-item bg-light text-dark active" id="rfid-music-tab" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
 								<a class="nav-item nav-link rfid-subtab-item bg-light text-primary" id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.modification"></span></a>
 							</div>
 							<div class="tab-content" id="SubTabContent">
@@ -2490,8 +2490,6 @@
 		}
 
 		function adjustTabStyle(element, active) {
-			console.log(element.id, active);
-
 			element.classList.add('text-primary');
 			element.setAttribute("aria-selected", false);
 
