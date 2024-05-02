@@ -1192,7 +1192,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["volume"] = AudioPlayer_GetCurrentVolume();
 		/* Sanitize the title: Truncate it at the first invalid UTF8 character */
 		size_t count;
-		if (findFirstInvalidUtf8Character((uint8_t *)gPlayProperties.title, &count)) { // Title has at least one invalid UTF8 character
+		if (findFirstInvalidUtf8Character((uint8_t *) gPlayProperties.title, &count)) { // Title has at least one invalid UTF8 character
 			char buf[MAX_TITLE_LENGTH];
 			strncpy(buf, gPlayProperties.title, MAX_TITLE_LENGTH);
 			buf[count] = '\0';
