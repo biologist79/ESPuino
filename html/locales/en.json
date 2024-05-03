@@ -13,6 +13,7 @@
     "ok": "OK",
     "infos": "Infos",
     "darkmode": "Dark Mode",
+    "menu": "Menu",
 	"restartinfo":"ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
 	"shutdowninfo":"ESPuino is now switched off...\n\nPage reloads automatically when the ESPuino is switched on again..",
 	"toast":{
@@ -249,6 +250,7 @@
 		}
 	},
 	"general":{
+		"language":"Language",
 		"volume":{
 			"title":"Volume",
 			"restart":"After restart",

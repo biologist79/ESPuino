@@ -21,8 +21,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
@@ -38,12 +37,10 @@
 		}
 
 		.nav-logo {
-			margin-left: 30px;
 			margin-right: 5px;
 		}
 		.header-nav-element {
-			margin-right: 30px;
-			margin-top: 8px;
+			margin-right: 10px;
 		}
 		.header-nav-restart {
 			margin-right: 40px
@@ -169,9 +166,9 @@
 			visibility: visible;
 		}
 
-		[data-visible="false"] {
+		/*[data-visible="false"] {
 			display: none;
-		}
+		}*/
 
 		.fas {
 			padding-right: 0.25em;
@@ -195,9 +192,27 @@
 			}
 		}
 
-		/* Overwrite some Bootstrap styles */
+		.menu-icon {
+			width: 30px;
+			text-align: center;
+		}
+
+		.container-fluid {
+			padding-right: 0;
+			padding-left: 5px;
+		}
+
+		@media screen and (max-width: 370px) { /* On screens smaller than 370px, limit the width of the title */
+			#navbar-heading {
+				width: 100px;
+				overflow: hidden;
+				display: inline-block;
+			}
+		}
+
+		/* Overwrite some Bootstrap styles (remove border around disabled buttons) */
 		.btn.disabled {
-			border-color: rgb(0,0,0,0); // Overwrite to be transparent
+			border-color: rgb(0,0,0,0); // Overwrite to have an invisible border
 			/* As copied from Botstrap buttons.scss */
 		    color: var(--bs-btn-disabled-color);
 			pointer-events: none;
@@ -207,27 +222,36 @@
 	</style>
 </head>
 <body>
-	<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
-		<div class="col-md-12">
+	<nav class="navbar navbar-expand bg-primary navbar-dark">
+		<div class="container-fluid">
 			<a class="float-start navbar-brand">
 				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt=""/>
 				<span id="navbar-heading" class="header-nav-element text-light" data-i18n="title"></span>
 			</a>
-			<a class="reboot float-end nav-link openPopupRestart header-nav-element text-light link-body-emphasis header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span class="header-nav-text" data-i18n="restart"></span></a>
-			<a class="reboot float-end nav-link openPopupShutdown header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span class="header-nav-text" data-i18n="shutdown"></span></a>
-			<a class="reboot float-end nav-link openPopupLog header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-book"></i> <span class="header-nav-text" data-i18n="log"></span></a>
-			<a class="reboot float-end nav-link openPopupInfo header-nav-element text-light link-body-emphasis" href="javascript:void(0);"><i class="fas fa-info"></i> <span class="header-nav-text" data-i18n="info"></span></a>
-			<a class="reboot form-check float-end nav-link header-nav-element text-light link-body-emphasis">
-				<label class="form-check-label ms-3" for="lightSwitch" style="cursor: pointer"><i class="fas fa-adjust"></i> <span class="header-nav-text" data-i18n="darkmode"></span></label>
-				<input class="form-check-input" type="checkbox" id="lightSwitch" style="display:none; /* Hide it */" />
-			</a>
-			<select class="form-control form-select float-end" id="langSel" name="langSel">
-				<option value="de">de</option>
-				<option value="en">en</option>
-				<option value="fr">fr</option>
-			</select>
+			<div class="d-flex justify-content-end">
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav">
+					<li class="nav-item dropdown">
+						<a class="nav-link header-nav-element dropdown-toggle text-light link-body-emphasis" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-bars"></i><span class="header-nav-text" data-i18n="menu"></span></a>
+						<ul class="dropdown-menu dropdown-menu-end" style="min-width: 200px;">
+						<li><a class="nav-link openPopupRestart header-nav-element link-body-emphasis header-nav-restart" href="javascript:void(0);"><i class="fas fa-redo menu-icon"></i> <span data-i18n="restart"></span></a></li>
+						<li><a class="nav-link openPopupShutdown header-nav-element link-body-emphasis" href="javascript:void(0);"><i class="fas fa-power-off menu-icon"></i> <span data-i18n="shutdown"></span></a></li>
+						<li><a class="nav-link openPopupLog header-nav-element link-body-emphasis" href="javascript:void(0);"><i class="fas fa-book menu-icon"></i> <span data-i18n="log"></span></a></li>
+						<li><a class="nav-link openPopupInfo header-nav-element link-body-emphasis" href="javascript:void(0);"><i class="fas fa-info menu-icon"></i> <span data-i18n="info"></span></a></li>
+						<li>
+							<a class="nav-link navbar-collapse header-nav-element link-body-emphasis">
+								<label class="form-check-label" for="lightSwitch" style="cursor: pointer"><i class="fas fa-adjust menu-icon"></i><span data-i18n="darkmode"></span></label>
+								<input class="form-check-input" type="checkbox" id="lightSwitch" style="display:none; /* Hide it */" />
+							</a>
+						</li>
+						</ul>
+					</li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</nav>
+
 	<!-- Modal dialog for info / shutdown / restart-->
 	<div class="modal fade bd-info-modal-xl" data-bs-backdrop='static' id="modalInfo" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
@@ -510,7 +534,6 @@
 					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
 						<select class="form-control form-select bg-white" id="commandId" name="commandId">
-							<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>-->
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
 							<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
@@ -599,7 +622,6 @@
 									<input type="text" class="form-control bg-white text-dark" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
 									<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
 									<select class="form-control form-select bg-white" id="playMode" name="playMode">
-										<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>-->
 										<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
 										<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
 										<option class="option-folder" value="12" data-i18n="files.rfid.playmode.mode.12"></option>
@@ -617,8 +639,7 @@
 								</div>
 								<div class="tab-pane select-div" id="rfidmod" role="tabpanel">
 									<label for="modId" data-i18n="files.rfid.mod.title"></label>
-									<select class="form-control form-select" id="modId" name="modId">
-										<!--<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>-->
+									<select class="form-control form-select bg-white" id="modId" name="modId">
 										<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 										<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
 										<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
@@ -754,6 +775,17 @@
 		</div>
 		<div class="tab-pane main-tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
+				<legend class=w-auto data-i18n=general.language></legend><br>
+				<div class="mb-3 col-md-12 select-div">
+					<select class="form-control form-select bg-white" id="langSel" name="langSel">
+						<!-- Do not translate those texts! -->
+						<option value="de">Deutsch</option>
+						<option value="en">English</option>
+						<option value="fr">Française</option>
+					</select>
+				</div>
+				<hr>
+				<br>
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
 					<fieldset>
 						<legend class=w-auto data-i18n=general.volume.title></legend><br>
@@ -925,7 +957,7 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
+							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select bg-white">
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 								<option value="1" data-i18n="general.playlist.strcmp"></option>

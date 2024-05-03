@@ -13,6 +13,7 @@
     "ok": "OK",
     "infos": "Infos",
     "darkmode": "Dunkelmodus",
+    "menu": "Menü",
 	"restartinfo":"ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
 	"shutdowninfo":"ESPuino wird jetzt ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
 	"toast":{
@@ -249,6 +250,7 @@
 		}
 	},
 	"general":{
+		"language":"Sprache",
 		"volume":{
 			"title":"Lautstärke",
 			"restart":"Nach dem Einschalten",
