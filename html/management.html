@@ -271,7 +271,7 @@
 				<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalInfoRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 			</div>
@@ -287,7 +287,7 @@
 				<div class="modal-body" style="white-space: pre; font-size: 80%;" id="modalLogContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalLogRefresh" class="btn btn-secondary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" id="modalLogRefresh" class="btn btn-primary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
 				</div>
 			</div>
@@ -415,7 +415,7 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" data-bs-target="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi"></span></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab" href="" data-bs-target="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab" href="#nav-ftp" data-bs-target="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp"></span></a>
-			<a class="nav-item nav-link main-tab-item" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" data-bs-target="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab" href="#nav-bt" data-bs-target="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i>&nbsp;<span data-i18n="nav.bluetooth"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" data-bs-target="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools" data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" data-bs-target="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help"></span></span></a>
@@ -436,7 +436,7 @@
 							<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
 						</div>
 						<div class="text-center">
-							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</div>
@@ -597,20 +597,26 @@
 							<button id="shrinkfilelist" class="btn btn-primary float-end" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 						</div>
 						<div>
-							<br><br><br>
+							<br><br>
 							<legend id="filesupload" data-i18n="files.upload.title"></legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 								<div class="input-group select-div">
-									<span class="form-control" id="uploaded_file_text"></span>&nbsp;<span class="input-group-btn">
-										<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp;<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp;<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
-										<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
-									</span>
+									<div class="input-group-btn">
+										<span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp;
+										<span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp;
+									</div>
+									<span class="form-control" id="uploaded_file_text"></span>
+								</div>
+								<br>
+								<div class="progress select-div">
+									<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" role="progressbar" aria-labelledby="fileslegend"></div>
+								</div>
+								<br>
+								<div class="text-center">
+									<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>
+									<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
 								</div>
 							</form>
-							<br>
-							<div class="progress select-div">
-								<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" role="progressbar" aria-labelledby="fileslegend"></div>
-							</div>
 						</div>
 					</div>
 				</fieldset>
@@ -685,7 +691,7 @@
 							</div>
 						</div>
 						<div class="text-center">
-							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</fieldset>
@@ -714,7 +720,7 @@
 						<input type="number" class="form-control bg-white text-dark" id="mqttPort" min="1" max="65535" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -732,7 +738,7 @@
 						<input type="password" class="form-control bg-white text-dark" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 				<hr>
@@ -969,7 +975,7 @@
 						</fieldset>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset" onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -997,8 +1003,8 @@
 				<legend data-i18n="tools.nvsimport.title"></legend>
 				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
 					<div class="mb-3">
-						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label><br>
-						<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
+						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label><br><br>
+						<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload" accept=".txt">
 					</div>
 					<div class="text-center">
 						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
@@ -1010,8 +1016,8 @@
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
-						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br>
-						<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
+						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
+						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 					</div>
 					<div class="progress">
 						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
