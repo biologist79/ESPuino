@@ -274,10 +274,10 @@
 		"battery":{
 			"title":"Batterie",
 			"desc":"Afficher l'état de tension via Neopixel",
-			"lowWarning":"Afficher un avertissement en dessous de ce seuil",
-			"lowCritical":"Tension la plus basse, indiquée par une LED",
-			"criticalShutoff":"En dessous de cette tension, ESPuino s'éteint.",
-			"high":"Tension indiquée par toutes les LED",
+			"lowWarning":"Afficher un avertissement en dessous de ce seuil (en volt)",
+			"lowCritical":"Tension la plus basse (en volt), indiquée par une LED",
+			"criticalShutoff":"En dessous de cette tension (en volt), ESPuino s'éteint",
+			"high":"Tension indiquée par toutes les LED (en volt)",
 			"measureInterval":"Intervalle entre les mesures (en minutes)"
 		},
 		"playlist":{

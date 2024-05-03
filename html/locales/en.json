@@ -274,10 +274,10 @@
 		"battery":{
 			"title":"Battery",
 			"desc":"Show voltage-status via Neopixel",
-			"lowWarning":"Show warning below this threshold",
-			"lowCritical":"Lowest voltage, that is indicated by one LED",
-			"criticalShutoff":"Below this voltage, ESPuino turns off.",
-			"high":"Voltage, that is indicated by all LEDs",
+			"lowWarning":"Show warning below this threshold (in volt)",
+			"lowCritical":"Lowest voltage (in volt), that is indicated by one LED",
+			"criticalShutoff":"Below this voltage (in volt), ESPuino turns off",
+			"high":"Voltage (in volt), that is indicated by all LEDs",
 			"measureInterval":"Interval between measurements (in minutes)"
 		},
 		"playlist":{
