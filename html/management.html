@@ -1257,7 +1257,7 @@
 			});
 			tryRedirect();
 			$('.modal-title').text(i18next.t("restart"));
-			$('.modal-body').text(i18next.t("restartinfo"));
+			$('.modal-body').html(i18next.t("restartinfo"));
 			$(".modal-body").removeAttr("style");
 			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 		} /* restart */
@@ -1267,7 +1267,7 @@
 				method: "POST"
 			});
 			$('.modal-title').text(i18next.t("shutdown"));
-			$('.modal-body').text(i18next.t("shutdowninfo"));
+			$('.modal-body').html(i18next.t("shutdowninfo"));
 			$(".modal-body").removeAttr("style");
 			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
 			setTimeout(function() {
