@@ -314,7 +314,7 @@
 						</div>
 					</div>
 					&nbsp;
-					<hr class="w-100" />
+					<hr>
 					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
 					<div class="slider-container">
 						<div class="slider-container-fl" style="padding-left: 30px">
@@ -328,7 +328,7 @@
 						</div>
 					</div>
 					&nbsp;
-					<hr class="w-100" />
+					<hr>
 					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
 					<div class="slider-container">
 						<div class="slider-container-fl" style="padding-left: 30px">
@@ -342,7 +342,7 @@
 						</div>
 					</div>
 					&nbsp;
-					<hr class="w-100" />
+					<hr>
 					<div class="col-12">
 						<div class="row">
 							<i class="fas fa-info col-auto icon-pos"></i>
@@ -423,6 +423,7 @@
 	</nav>
 	<br>
 	<div class="tab-content" id="nav-tabContent">
+		<!-- ### Tab Wifi ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 			<div class="container" id="wifiConfig">
 				<div>
@@ -432,16 +433,15 @@
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
 							<input type="text" class="form-control bg-white text-dark" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">&nbsp;
-							<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label><br><br>
+							<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
 						</div>
-						<br>
 						<div class="text-center">
 							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</div>
-				<hr class="w-100" />
-				<div style="margin-top: 20px;">
+				<hr>
+				<div>
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
@@ -465,20 +465,21 @@
 								<input type="text" class="form-control bg-white text-dark" id="static_dns2" name="static_dns2">
 							</div>
 						</div>
-						<br>
 						<div class="text-center">
 							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</div>
-				<hr class="w-100" />
+				<hr>
 				<div class="col-md-12" style="margin-top: 20px;">
 					<legend data-i18n="wifi.savedNetworks"></legend>
 					<ul class="list-group" id="wifiListSavedSSIDs">
 					</ul>
 				</div>
 			</div>
+			<br />
 		</div>
+		<!-- ### Tab Control ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
 				<div class="mb-3 col-md-12">
@@ -537,7 +538,7 @@
 					</div>
 					<div id="playtime"> </div>
 				</div>
-				<br />
+				<hr>
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
@@ -573,10 +574,13 @@
 						</select>
 					</div>
 					<br>
-					<button type="button" class="btn btn-primary" onclick="executeCommand()" data-i18n="execute">Execute</button>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary xxx" onclick="executeCommand()" data-i18n="execute"></button>
+					</div>
 				</div>
 			</div>
 		</div>
+		<!-- ### Tab RFID ### -->
 		<div class="tab-pane main-tab-pane fade show active select-div" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 			<div class="container" id="filetreeContainer">
 				<fieldset>
@@ -608,9 +612,9 @@
 								<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" role="progressbar" aria-labelledby="fileslegend"></div>
 							</div>
 						</div>
-						<br>
 					</div>
 				</fieldset>
+				<hr>
 			</div>
 			<div class="container" id="rfidMusicTags">
 				<fieldset>
@@ -680,20 +684,20 @@
 								</div>
 							</div>
 						</div>
-						<br>
 						<div class="text-center">
-							<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
+							<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</fieldset>
 			</div>
 			<br />
 		</div>
+		<!-- ### Tab MQTT ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
 			<div class="container" id="mqttConfig">
 				<form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
+					<legend data-i18n="mqtt.title"></legend>
 					<div class="form-check col-md-12">
-						<legend data-i18n="mqtt.title"></legend>
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">&nbsp;
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
 					</div>
@@ -709,13 +713,14 @@
 						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
 						<input type="number" class="form-control bg-white text-dark" id="mqttPort" min="1" max="65535" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 					</div>
-					<br>
 					<div class="text-center">
 						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
+			<br />
 		</div>
+		<!-- ### Tab FTP ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
@@ -726,11 +731,11 @@
 						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
 						<input type="password" class="form-control bg-white text-dark" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 					</div>
-					<br>
 					<div class="text-center">
 						<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
+				<hr>
 			</div>
 			<div class="container" id="ftpStart">
 				<div class="mb-3 col-md-12">
@@ -743,6 +748,7 @@
 				</div>
 			</div>
 		</div>
+		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
@@ -753,13 +759,12 @@
 						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
 						<input type="text" class="form-control bg-white text-dark" id="btPinCode" data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 					</div>
-					<br>
 					<div class="text-center">
 						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
+				<hr>
 			</div>
-			<br>
 			<div class="container" id="btStartSource">
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.source.title"></legend>
@@ -769,8 +774,8 @@
 						<button type="button" class="btn btn-primary" onclick="sendControl(141)" data-i18n="bt.source.button"></button>
 					</div>
 				</div>
+				<hr>
 			</div>
-			<br><br>
 			<div class="container" id="btStartSink">
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.sink.title"></legend>
@@ -782,6 +787,7 @@
 				</div>
 			</div>
 		</div>
+		<!-- ### Tab General ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
@@ -962,7 +968,6 @@
 							</select>
 						</fieldset>
 					</div>
-					<br>
 					<div class="text-center">
 						<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
@@ -970,23 +975,24 @@
 			</div>
 			<br />
 		</div>
+		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 			<div class="container" id="savedAssignments">
 				<legend data-i18n="files.rfid.savedassignments"></legend>
 				<ul class="list-group" id="rfidListSavedAssignments">
 				</ul>
+				<hr>
 			</div>
-			<br />
-			<br />
 			<div class="container" id="eraseNvs">
 				<legend data-i18n="tools.nvserase.title"></legend>
 				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
 					<p></p>
 				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
+				<div class="text-center">
+					<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
+				</div>
+				<hr>
 			</div>
-			<br />
-			<br />
 			<div class="container" id="importNvs">
 				<legend data-i18n="tools.nvsimport.title"></legend>
 				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
@@ -994,11 +1000,12 @@
 						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label><br>
 						<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
 					</div>
-					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					<div class="text-center">
+						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
 				</form>
+				<hr>
 			</div>
-			<br />
-			<br />
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
@@ -1010,12 +1017,14 @@
 						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
 					</div>
 					<br>
-					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					<div class="text-center">
+						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
 				</form>
 			</div>
+			<br />
 		</div>
-		<br />
-		<br />
+		<!-- ### Tab Help ### -->
 		<div class="tab-pane main-tab-pane fade" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
 			<div class="container" id="divForum">
 				<legend data-i18n="help.forum.title"></legend>

@@ -13,8 +13,8 @@
     "ok": "OK",
     "infos": "Infos",
     "darkmode": "Mode sombre",
-	"restartinfo":"ESPuino est en cours de redémarrage...\n\nLa page se recharge automatiquement après la fin du redémarrage.",
-	"shutdowninfo":"ESPuino est maintenant éteint...\n\nLa page se recharge automatiquement lorsque l'ESPuino est rallumé.",
+	"restartinfo":"ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
+	"shutdowninfo":"ESPuino est maintenant éteint...<br>La page se recharge automatiquement lorsque l'ESPuino est rallumé.",
 	"toast":{
 		"rfidDetect":"Étiquette RFID {{rfidId}} détectée.",
 		"success":"Action effectuée avec succès.",
