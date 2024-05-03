@@ -409,7 +409,7 @@
 	</div>
 	<br />
 	<nav>
-		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
+		<div class="container nav nav-tabs select-div" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" data-bs-target="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
 			<a class="nav-item nav-link main-tab-item active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" data-bs-target="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi" data-bs-target="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi"></span></span></a>
@@ -423,7 +423,7 @@
 	</nav>
 	<br>
 	<div class="tab-content" id="nav-tabContent">
-		<div class="tab-pane main-tab-pane fade" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 			<div class="container" id="wifiConfig">
 				<div>
 					<legend data-i18n="wifi.title"></legend>
@@ -479,7 +479,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="tab-pane main-tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.title"></legend>
@@ -577,7 +577,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="tab-pane main-tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
+		<div class="tab-pane main-tab-pane fade show active select-div" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 			<div class="container" id="filetreeContainer">
 				<fieldset>
 					<legend id="fileslegend" data-i18n="files.title"></legend>
@@ -616,7 +616,7 @@
 				<fieldset>
 					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-						<div class="mb-3 col-md-12">
+						<div class="mb-3 col-md-12 select-div">
 							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
 							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
@@ -689,7 +689,7 @@
 			</div>
 			<br />
 		</div>
-		<div class="tab-pane main-tab-pane fade" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
 			<div class="container" id="mqttConfig">
 				<form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
 					<div class="form-check col-md-12">
@@ -716,7 +716,7 @@
 				</form>
 			</div>
 		</div>
-		<div class="tab-pane main-tab-pane fade" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 					<div class="mb-3 col-md-12 select-div">
@@ -743,7 +743,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="tab-pane main-tab-pane fade" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
@@ -782,7 +782,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="tab-pane main-tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
 					<fieldset>
