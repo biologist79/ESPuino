@@ -589,8 +589,8 @@
 							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
 							<div class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
-								<a class="nav-item nav-link rfid-subtab-item  active" id="rfid-music-tab" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
-								<a class="nav-item nav-link rfid-subtab-item " id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.modification"></span></a>
+								<a class="nav-item nav-link active" id="rfid-music-tab" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
+								<a class="nav-item nav-link" id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.modification"></span></a>
 							</div>
 							<div class="tab-content" id="SubTabContent">
 								<div class="tab-pane show active select-div" data-bs-theme="light" id="rfidmusic" role="tabpanel">
@@ -1012,7 +1012,7 @@
 			if(ActiveTab == 'nav-control-tab') {
 				getTrackProgress();
 			}
-
+			updateTabStyle();
 			localStorage.setItem("active-tab", ActiveTab);
 		});
 
@@ -1025,6 +1025,7 @@
 			} else {
 				document.getElementById("fileOrUrl").required = false;
 			}
+			updateTabStyle();
 		});
 		if(host == "") { // Not running on the device -> use the remote host
 			host = remoteHost;
@@ -2480,6 +2481,26 @@
 			target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value} dB`;
 		}
 
+		function updateTabStyle() {
+			document.querySelectorAll('.nav-item').forEach((element) => { // Toggle styles
+				if (lightSwitch.checked) { // Dark mode
+					if (element.classList.contains('active')) {
+						element.classList.add('bg-black');
+						element.classList.add('text-white');
+					}
+					else {
+						element.classList.remove('bg-black');
+						element.classList.remove('text-white');
+					}
+				} else { // Light mode
+					element.classList.remove('bg-black');
+					element.classList.remove('text-white');
+					element.classList.remove('bg-white');
+					element.classList.remove('text-dark');
+				}
+			});
+		}
+
 		$(document).ready(function() {
 			connect();
 
@@ -2693,6 +2714,7 @@
 				} else {
 					lightMode();
 				}
+				updateTabStyle();
 			}
 
 			/**
@@ -2752,6 +2774,7 @@
 
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
+			updateTabStyle();
 		});
 	</script>
 </body>
