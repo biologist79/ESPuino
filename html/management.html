@@ -150,6 +150,10 @@
 			height: 0.4rem !important;
 		}
 
+		.upload-progress-bar {
+			height: 30px;
+		}
+
 		#SubTabContent.tab-content {
 			display: flex;
 		}
@@ -217,6 +221,10 @@
 			background-color: var(--bs-btn-disabled-bg);
 			opacity: var(--bs-btn-disabled-opacity);
 		}
+
+		.vakata-context { /* Make sure the jstree context menu is most top */
+			z-index: 99999;
+		 }
 	</style>
 </head>
 <body>
@@ -596,27 +604,26 @@
 							<button id="expandfilelist" class="btn btn-primary float-end" onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
 							<button id="shrinkfilelist" class="btn btn-primary float-end" onclick="resizeFileList(false)" style="display: none;"><span class="fas fa-compress-alt"></span></button>
 						</div>
+						<br>
 						<div>
-							<br><br>
-							<legend id="filesupload" data-i18n="files.upload.title"></legend>
+							<br>
+							<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 								<div class="input-group select-div">
-									<div class="input-group-btn">
+									<span class="input-group-btn">
 										<span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp;
 										<span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp;
-									</div>
-									<span class="form-control" id="uploaded_file_text"></span>
-								</div>
-								<br>
-								<div class="progress select-div">
-									<div id="explorerUploadProgress" class="progress-bar bg-light text-dark" role="progressbar" aria-labelledby="fileslegend"></div>
-								</div>
-								<br>
-								<div class="text-center">
-									<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>
-									<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
+										<input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
+										</span>
+									<span class="form-control" id="uploaded_file_text"></span>&nbsp;
+									<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>&nbsp;
+
 								</div>
 							</form>
+							<br>
+							<div class="progress select-div upload-progress-bar">
+								<div id="explorerUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="fileslegend"></div>
+							</div>
 						</div>
 					</div>
 				</fieldset>
@@ -1019,7 +1026,7 @@
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
 						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 					</div>
-					<div class="progress">
+					<div class="progress upload-progress-bar">
 						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
 					</div>
 					<br>
@@ -1355,7 +1362,7 @@
 				},
 				error: function(xhr, status, error) {
 					console.log("Firmware upload ERROR: " + xhr.responseText);
-					$("#firmwareUploadProgress").text(i18next.t("files.upload.error") + ": " + xhr.responseText);
+					$("#firmwareUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + xhr.responseText + "&nbsp;");
 					toastr.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
 				}
 			});
@@ -1458,7 +1465,7 @@
 				},
 				error: function(request, status, error) {
 					console.log("Upload ERROR!");
-					$("#explorerUploadProgress").text(i18next.t("files.upload.error") + ": " + status);
+					$("#explorerUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + status + "&nbsp;");
 					toastr.error(i18next.t("files.upload.error") + ": " + status);
 				}
 			});
