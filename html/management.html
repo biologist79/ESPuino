@@ -67,7 +67,7 @@
 			display: flex;
 		}
 
-		.slider-container-fl {
+		.slider-container-float-left {
 			float: left;
 		}
 
@@ -311,13 +311,13 @@
 				<div class="modal-body row" id="modalEqualizerContent">
 					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
 					<div class="slider-container">
-						<div class="slider-container-fl" style="padding-left: 30px">
+						<div class="slider-container-float-left" style="padding-left: 30px">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 						</div>
 						<div class="slider-container-inner">
 							<input id="gainLowPass" name="gainLowPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
 						</div>
-						<div class="slider-container-fl" style="padding-left: 10px">
+						<div class="slider-container-float-left" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
 					</div>
@@ -325,13 +325,13 @@
 					<hr>
 					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
 					<div class="slider-container">
-						<div class="slider-container-fl" style="padding-left: 30px">
+						<div class="slider-container-float-left" style="padding-left: 30px">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 						</div>
 						<div class="slider-container-inner">
 							<input id="gainBandPass" name="gainBandPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
 						</div>
-						<div class="slider-container-fl" style="padding-left: 10px">
+						<div class="slider-container-float-left" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
 					</div>
@@ -339,13 +339,13 @@
 					<hr>
 					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
 					<div class="slider-container">
-						<div class="slider-container-fl" style="padding-left: 30px">
+						<div class="slider-container-float-left" style="padding-left: 30px">
 						<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 						</div>
 						<div class="slider-container-inner">
 							<input id="gainHighPass" name="gainHighPass" class="form-control float-end" data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6" min="-6" max="6" data-slider-value="0" value="0">
 						</div>
-						<div class="slider-container-fl" style="padding-left: 10px">
+						<div class="slider-container-float-left" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
 					</div>
@@ -513,9 +513,13 @@
 					</div>
 				</div>
 				<br>
+
+
+
+
 				<legend data-i18n="control.volume" class="col-auto"></legend>
 				<div class="slider-container">
-					<div class="slider-container-fl">
+					<div class="slider-container-float-left">
 						<button type="button" class="btn btn-primary btn-lg volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
@@ -523,13 +527,14 @@
 					<div class="slider-container-inner">
 						<input class="float-end" data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
 							   data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
+						</div>
 					</div>
-					<div class="slider-container-fl" style="padding-left: 10px">
+					<div class="slider-container-float-left" style="padding-left: 10px">
 						<button type="button" class="btn btn-primary btn-lg volume-button float-end" onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
 					</div>
-					<div class="slider-container-fl" style="padding-left: 10px">
+					<div class="slider-container-float-left" style="padding-left: 10px">
 						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg volume-button float-end" data-i18n="[title]general.equalizer.title">
 							<span class="fas fa-sliders-h"></span>
 						</button>
@@ -807,39 +812,39 @@
 						<legend class=w-auto data-i18n=general.volume.title></legend><br>
 						<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
 						<div class="slider-container">
-							<div class="slider-container-fl" style="padding-left: 30px">
+							<div class="slider-container-float-left" style="padding-left: 30px">
 								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 							</div>
 							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" data-slider-value="" value="" required>
 							</div>
-							<div class="slider-container-fl" style="padding-left: 10px">
+							<div class="slider-container-float-left" style="padding-left: 10px">
 								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 							</div>
 						</div>
 						<br>
 						<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 						<div class="slider-container">
-							<div class="slider-container-fl" style="padding-left: 30px">
+							<div class="slider-container-float-left" style="padding-left: 30px">
 								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 							</div>
 							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" required>
 							</div>
-							<div class="slider-container-fl" style="padding-left: 10px">
+							<div class="slider-container-float-left" style="padding-left: 10px">
 								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 							</div>
 						</div>
 						<br>
 						<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 						<div class="slider-container">
-							<div class="slider-container-fl" style="padding-left: 30px">
+							<div class="slider-container-float-left" style="padding-left: 30px">
 								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
 							</div>
 							<div class="slider-container-inner">
 								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" data-slider-value="" value="" required>
 							</div>
-							<div class="slider-container-fl" style="padding-left: 10px">
+							<div class="slider-container-float-left" style="padding-left: 10px">
 								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 							</div>
 						</div>
@@ -851,26 +856,26 @@
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="far fa-sun fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness" data-slider-value="" value="" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fa-sun fa-2x .icon-pos"></i>
 								</div>
 							</div>
 							<br>
 							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="far fa-sun fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="" value="" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fa-sun fa-2x .icon-pos"></i>
 								</div>
 							</div>
@@ -882,13 +887,13 @@
 						<legend data-i18n="general.sleep.title"></legend>
 						<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
 						<div class="slider-container">
-							<div class="slider-container-fl" style="padding-left: 30px">
+							<div class="slider-container-float-left" style="padding-left: 30px">
 								<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
 							</div>
 							<div class="slider-container-inner">
 								<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime" data-slider-value="" value="" required>
 							</div>
-							<div class="slider-container-fl" style="padding-left: 10px">
+							<div class="slider-container-float-left" style="padding-left: 10px">
 								<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
 							</div>
 						</div>
@@ -902,39 +907,39 @@
 							<br>
 							<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
 							<br>
 							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
 							<br>
 							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
@@ -942,13 +947,13 @@
 							<div id="criticalVoltageSection" data-visible="false">
 								<label for="criticalVoltage" data-i18n="[prepend]general.battery.criticalShutoff">:</label>
 								<div class="slider-container">
-									<div class="slider-container-fl" style="padding-left: 30px">
+									<div class="slider-container-float-left" style="padding-left: 30px">
 										<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
 									</div>
 									<div class="slider-container-inner">
 										<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="criticalVoltage" name="criticalVoltage" data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 									</div>
-									<div class="slider-container-fl" style="padding-left: 10px">
+									<div class="slider-container-float-left" style="padding-left: 10px">
 										<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 									</div>
 								</div>
@@ -956,13 +961,13 @@
 							<br>
 							<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 							<div class="slider-container">
-								<div class="slider-container-fl" style="padding-left: 30px">
+								<div class="slider-container-float-left" style="padding-left: 30px">
 									<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
 								</div>
 								<div class="slider-container-inner">
 									<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval" data-slider-value="" name="voltageCheckInterval" value="" required>
 								</div>
-								<div class="slider-container-fl" style="padding-left: 10px">
+								<div class="slider-container-float-left" style="padding-left: 10px">
 									<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
