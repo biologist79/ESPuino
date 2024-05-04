@@ -1704,6 +1704,7 @@
 						if(!node.data.directory) {
 							items.download = {
 								label: () => i18next.t("files.context.download"),
+								icon: "fas fa-download",
 								action: function(x) {
 									uri = "http://" + host + "/explorerdownload?path=" + encodeURIComponent(node.data.path);
 									console.log("download file: " + node.data.path);
