@@ -79,15 +79,11 @@
 			float: left;
 		}
 
-		.slider.slider-horizontal {
+		.slider-formated {
 			width: 100%;
+			margin-top: 5px;
 		}
 
-		.slider-handle {
-			height: 30px;
-			width: 30px;
-			top: -5px;
-		}
 
 		legend.scheduler-border {
 			width: inherit;
@@ -525,8 +521,8 @@
 						</button>
 					</div>
 					<div class="slider-container-inner">
-						<input class="float-end" data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-							   data-slider-value="" value="" onchange="sendVolume(Number(this.value))">
+						<div data-role="rangeslider">
+							<input type="range" class="slider-formated" id="volumeSlider" value="" min="1" max="21" onchange="sendVolume(Number(this.value))">
 						</div>
 					</div>
 					<div class="slider-container-float-left" style="padding-left: 10px">
@@ -1749,10 +1745,9 @@
 			});
 		} /* buildFileSystemTree */
 		/* File Explorer functions end */
+
 		var socket = undefined;
 		var tm;
-		var volumeSlider = new Slider("#setVolume");
-		document.getElementById('setVolume').remove();
 
 		function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
@@ -1805,7 +1800,7 @@
 					}
 				}
 				if("volume" in socketMsg) {
-					volumeSlider.setValue(parseInt(socketMsg.volume));
+					document.getElementById('volumeSlider').value = parseInt(socketMsg.volume);
 				}
 				if("trackinfo" in socketMsg) {
 					document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
@@ -1867,7 +1862,7 @@
 			let currSettings = settings.current;
 			if(currSettings) {
 				document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
-				volumeSlider.setValue(currSettings.volume);
+				document.getElementById('volumeSlider').value =currSettings.volume;
 			}
 			// default (factory) settings
 			let defSettings = settings.defaults;
