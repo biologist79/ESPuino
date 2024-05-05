@@ -258,9 +258,9 @@
 		},
 		"equalizer":{
 			"title":"Equalizer",
-			"gainLowPass":"Tiefen",
-			"gainBandPass":"Mitten",
-			"gainHighPass":"Höhen",
+			"gainLowPass":"Tiefen (in dB)",
+			"gainBandPass":"Mitten (in dB)",
+			"gainHighPass":"Höhen (in dB)",
 			"info":"Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
 		},
 		"neopixel":{
