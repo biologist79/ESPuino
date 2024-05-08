@@ -1463,7 +1463,12 @@
 	}
 
 	function sortData(data) {
-		const sortMode = window ? .settings ? .playlist ? .sortMode;
+		var sortMode = 3; // Default: natural case-insensitive
+		try {
+			sortMode = window.settings.playlist.sortMode;
+		} catch (error) {
+			// Nothing to do
+		}
 		data.sort(function(a, b) {
 			// Make sure directories are always listed first
 			if(a.dir && !b.dir) {
