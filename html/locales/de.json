@@ -12,8 +12,9 @@
 	"refresh":"Aktualisieren",
     "ok": "OK",
     "infos": "Infos",
-	"restartinfo":"ESPuino wird jetzt neu gestartet...\n\nDie Seite lädt sich nach dem Neustart automatisch neu.",
-	"shutdowninfo":"ESPuino wird jetzt ausgeschaltet...\n\nDie Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
+    "darkmode": "Dunkelmodus",
+	"restartinfo":"ESPuino wird jetzt neu gestartet...<br>Die Seite lädt sich nach dem Neustart automatisch neu.",
+	"shutdowninfo":"ESPuino wird jetzt ausgeschaltet...<br>Die Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
 	"toast":{
 		"rfidDetect":"RFID Tag mit {{rfidId}} erkannt.",
 		"success":"Aktion erfolgreich ausgeführt.",
@@ -78,7 +79,7 @@
 		"voldown":"Leiser",
 		"volup":"Lauter",
 		"current":"Aktueller Titel",
-		"command":"Modifikation Ausführen"
+		"command":"Modifikation ausführen"
 	},
 	"files":{
 		"title":"Dateien",
@@ -206,7 +207,7 @@
 		},
 		"port":{
 			"title":"MQTT-Port",
-			"placeholder":"z.B.. 1883",
+			"placeholder":"z.B. 1883",
 			"validation":""
 		}
 	},
@@ -248,6 +249,7 @@
 		}
 	},
 	"general":{
+		"language":"Sprache",
 		"volume":{
 			"title":"Lautstärke",
 			"restart":"Nach dem Einschalten",
@@ -256,9 +258,9 @@
 		},
 		"equalizer":{
 			"title":"Equalizer",
-			"gainLowPass":"Tiefen",
-			"gainBandPass":"Mitten",
-			"gainHighPass":"Höhen",
+			"gainLowPass":"Tiefen (in dB)",
+			"gainBandPass":"Mitten (in dB)",
+			"gainHighPass":"Höhen (in dB)",
 			"info":"Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
 		},
 		"neopixel":{
@@ -268,15 +270,15 @@
 		},
 		"sleep":{
 			"title":"Deep Sleep",
-			"incativity":"Inaktivität nach (in Minuten)"
+			"inactivity":"Inaktivität nach (in Minuten)"
 		},
 		"battery":{
 			"title":"Batterie",
 			"desc":"Status über Neopixel anzeigen",
-			"lowWarning":"Unter dieser Spannung wird eine Warnung angezeigt",
-			"lowCritical":"Eine LED leuchtet bei dieser Spannung",
-			"criticalShutoff":"Unter dieser Spannung schaltet der ESPuino ab.",
-			"high":"Alle LEDs leuchten bei dieser Spannung",
+			"lowWarning":"Unter dieser Spannung (in Volt) wird eine Warnung angezeigt",
+			"lowCritical":"Eine LED leuchtet bei dieser Spannung (in Volt)",
+			"criticalShutoff":"Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
+			"high":"Alle LEDs leuchten bei dieser Spannung (in Volt)",
 			"measureInterval":"Zeitabstand der Messung (in Minuten)"
 		},
 		"playlist":{
@@ -310,7 +312,7 @@
 	"help":{
 		"forum":{
 			"title":"Forum",
-			"desc":"Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!"
+			"desc":"Du hast Probleme mit ESPuino oder bist an einem Erfahrungsaustausch interessiert?<br />Dann schaue doch mal im <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a> vorbei! Insbesondere gibt es dort auch einen <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">Bereich</a>, in dem reichlich Dokumentation hinterlegt ist. Wir freuen uns auf deinen Besuch!"
 		},
 		"swagger":{
 			"title":"Swagger",

@@ -12,8 +12,9 @@
 	"refresh":"Refresh",
     "ok": "OK",
     "infos": "Infos",
-	"restartinfo":"ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
-	"shutdowninfo":"ESPuino is now switched off...\n\nPage reloads automatically when the ESPuino is switched on again..",
+    "darkmode": "Dark Mode",
+	"restartinfo":"ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
+	"shutdowninfo":"ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again..",
 	"toast":{
 		"rfidDetect":"RFID-tag {{rfidId}} detected.",
 		"success":"Action performed successfully.",
@@ -248,6 +249,7 @@
 		}
 	},
 	"general":{
+		"language":"Language",
 		"volume":{
 			"title":"Volume",
 			"restart":"After restart",
@@ -256,9 +258,9 @@
 		},
 		"equalizer":{
 			"title":"Equalizer",
-			"gainLowPass":"Lows",
-			"gainBandPass":"Mids",
-			"gainHighPass":"Highs",
+			"gainLowPass":"Lows (in dB)",
+			"gainBandPass":"Mids (in dB)",
+			"gainHighPass":"Highs (in dB)",
 			"info":"According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
 		},
 		"neopixel":{
@@ -268,15 +270,15 @@
 		},
 		"sleep":{
 			"title":"Deep Sleep",
-			"incativity":"After n minutes inactivity"
+			"inactivity":"After n minutes inactivity"
 		},
 		"battery":{
 			"title":"Battery",
 			"desc":"Show voltage-status via Neopixel",
-			"lowWarning":"Show warning below this threshold",
-			"lowCritical":"Lowest voltage, that is indicated by one LED",
-			"criticalShutoff":"Below this voltage, ESPuino turns off.",
-			"high":"Voltage, that is indicated by all LEDs",
+			"lowWarning":"Show warning below this threshold (in volt)",
+			"lowCritical":"Lowest voltage (in volt), that is indicated by one LED",
+			"criticalShutoff":"Below this voltage (in volt), ESPuino turns off",
+			"high":"Voltage (in volt), that is indicated by all LEDs",
 			"measureInterval":"Interval between measurements (in minutes)"
 		},
 		"playlist":{
@@ -310,7 +312,7 @@
 	"help":{
 		"forum":{
 			"title":"Forum",
-			"desc":"Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
+			"desc":"Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german) <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
 		},
 		"swagger":{
 			"title":"Swagger",

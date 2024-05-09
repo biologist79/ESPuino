@@ -12,8 +12,9 @@
 	"refresh":"Actualiser",
     "ok": "OK",
     "infos": "Infos",
-	"restartinfo":"ESPuino est en cours de redémarrage...\n\nLa page se recharge automatiquement après la fin du redémarrage.",
-	"shutdowninfo":"ESPuino est maintenant éteint...\n\nLa page se recharge automatiquement lorsque l'ESPuino est rallumé.",
+    "darkmode": "Mode sombre",
+	"restartinfo":"ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
+	"shutdowninfo":"ESPuino est maintenant éteint...<br>La page se recharge automatiquement lorsque l'ESPuino est rallumé.",
 	"toast":{
 		"rfidDetect":"Étiquette RFID {{rfidId}} détectée.",
 		"success":"Action effectuée avec succès.",
@@ -248,6 +249,7 @@
 		}
 	},
 	"general":{
+		"language":"Langue",
 		"volume":{
 			"title":"Volume",
 			"restart":"Après le redémarrage",
@@ -256,9 +258,9 @@
 		},
 		"equalizer":{
 			"title":"Égaliseur",
-			"gainLowPass":"Graves",
-			"gainBandPass":"Médiums",
-			"gainHighPass":"Aigus",
+			"gainLowPass":"Graves (en dB)",
+			"gainBandPass":"Médiums (en dB)",
+			"gainHighPass":"Aigus (en dB)",
 			"info":"Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf."
 		},
 		"neopixel":{
@@ -268,15 +270,15 @@
 		},
 		"sleep":{
 			"title":"Veille profonde",
-			"incativity":"Après n minutes d'inactivité"
+			"inactivity":"Après n minutes d'inactivité"
 		},
 		"battery":{
 			"title":"Batterie",
 			"desc":"Afficher l'état de tension via Neopixel",
-			"lowWarning":"Afficher un avertissement en dessous de ce seuil",
-			"lowCritical":"Tension la plus basse, indiquée par une LED",
-			"criticalShutoff":"En dessous de cette tension, ESPuino s'éteint.",
-			"high":"Tension indiquée par toutes les LED",
+			"lowWarning":"Afficher un avertissement en dessous de ce seuil (en volt)",
+			"lowCritical":"Tension la plus basse (en volt), indiquée par une LED",
+			"criticalShutoff":"En dessous de cette tension (en volt), ESPuino s'éteint",
+			"high":"Tension indiquée par toutes les LED (en volt)",
 			"measureInterval":"Intervalle entre les mesures (en minutes)"
 		},
 		"playlist":{
