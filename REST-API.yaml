@@ -451,13 +451,33 @@ paths:
       responses:
         '200':
           description: Successful response for NVS backup upload.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
   /update:
     post:
       summary: Upload new firmware.
-      description: Uploads new firmware to ESPuino.
+      description: Uploads new firmware to ESPuino. Make sure to restart afterwards.
       responses:
         '200':
           description: Successful response for firmware update.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firmwareUpload:
+                  type: string
+                  format: binary
   /restart:
     post:
       summary: Restart ESPuino.
