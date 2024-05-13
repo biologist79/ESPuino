@@ -1,6 +1,8 @@
 # Changelog
 
 ## DEV-branch
+
+* 09.05.2024: Upgrade to Bootstrap v5.0 + Web-UI Enhancements (#328), thanks to @caco3 !
 * 23.04.2024: Enhance UI minification (#323), thanks to @caco3 ! 
 * 22.04.2024: Added virtual RFID-Cards (#319), thanks to @caco3 ! 
 * 18.04.2024: Correct calculation of newFilePos for SEEK_POS_PERCENT, thanks to @sfields!
