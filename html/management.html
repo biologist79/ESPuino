@@ -17,13 +17,11 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
@@ -226,6 +224,13 @@
 </head>
 
 <body>
+	<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" id="toaster">
+		<div class="toast align-items-center border-0" id="toast-template" role="alert" aria-live="assertive"aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body"></div>
+			</div>
+		</div>
+	</div>
 	<nav class="navbar navbar-expand bg-primary navbar-dark">
 		<div class="container-fluid">
 			<a class="float-start navbar-brand">
@@ -1072,24 +1077,39 @@
 			anchors[i].action = "http://" + host + anchors[i].action.replace("file://", "");
 		}
 	}
-	toastr.options = {
-		"closeButton": false,
-		"debug": false,
-		"newestOnTop": false,
-		"progressBar": false,
-		"positionClass": "toast-top-right",
-		"onclick": null,
-		"showDuration": "300",
-		"hideDuration": "1000",
-		"timeOut": "5000",
-		"extendedTimeOut": "1000",
-		"showEasing": "swing",
-		"hideEasing": "linear",
-		"showMethod": "fadeIn",
-		"hideMethod": "fadeOut",
-		"preventDuplicates": true,
-		"preventOpenDuplicates": true
-	};
+
+	const toaster = {
+		// the template for toasting is always the same
+		toastTemplate: $('#toast-template'),
+		// the container which contains the toasts is also always the same
+		toastContainer: $('#toaster'),
+		
+		// remove all children, except the first (which is the template)
+		clear: () => $('.toast:not(:first)').remove(),
+		
+		// render a toast with given message and bootstrap color class
+		toast: (msg, colorClass) => {
+			const toast = toaster.toastTemplate.clone();
+			toast.find('.toast-body').html(msg);
+			toast.attr('id',"");
+			// set the correct class for the background color
+			toast.addClass(colorClass || 'text-bg-primary');
+			
+			toaster.toastContainer.append(toast);
+			
+			const toastBoostrap = bootstrap.Toast.getOrCreateInstance(toast);
+			toastBoostrap.show();
+			
+			setInterval(() => toast.remove(), 6000);
+		},
+		
+		// predefined color classes for easier usage
+		info: msg => toaster.toast(msg),
+		success: msg => toaster.toast(msg, 'text-bg-success'),
+		warning: msg => toaster.toast(msg, 'text-bg-warning'),
+		error: msg => toaster.toast(msg, 'text-bg-danger')
+	}
+
 	i18next.use(i18nextHttpBackend).init({
 		backend: {
 			loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -1101,7 +1121,7 @@
 	}, (err, t) => {
 		localize = locI18next.init(i18next);
 		localize('body');
-		toastr.clear();
+		toaster.clear();
 		// change the language if we found it in the local storage
 		const lang = localStorage.getItem("language");
 		if(lang === null) {
@@ -1121,7 +1141,7 @@
 		const lang = e.target.value;
 		console.log(lang);
 		if(lang !== i18next.language) {
-			toastr.clear();
+			toaster.clear();
 			localStorage.setItem("language", lang);
 			i18next.changeLanguage(lang);
 		}
@@ -1344,7 +1364,7 @@
 			error: function(xhr, status, error) {
 				console.log("Firmware upload ERROR: " + xhr.responseText);
 				$("#firmwareUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + xhr.responseText + "&nbsp;");
-				toastr.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
+				toaster.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
 			}
 		});
 	});
@@ -1447,7 +1467,7 @@
 			error: function(request, status, error) {
 				console.log("Upload ERROR!");
 				$("#explorerUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + status + "&nbsp;");
-				toastr.error(i18next.t("files.upload.error") + ": " + status);
+				toaster.error(i18next.t("files.upload.error") + ": " + status);
 			}
 		});
 	});
@@ -1760,7 +1780,7 @@
 			var socketMsg = JSON.parse(event.data);
 			if(socketMsg.rfidId != null) {
 				document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-				toastr.info(i18next.t("toast.rfidDetect", {
+				toaster.info(i18next.t("toast.rfidDetect", {
 					rfidId: socketMsg.rfidId
 				}));
 				$("#rfidIdMusic").effect("highlight", {
@@ -1772,10 +1792,10 @@
 			}
 			if("status" in socketMsg) {
 				if(socketMsg.status == "ok") {
-					toastr.success(i18next.t("toast.success"));
+					toaster.success(i18next.t("toast.success"));
 				}
 				if(socketMsg.status == "dropout") {
-					toastr.warning(i18next.t("toast.dropout"));
+					toaster.warning(i18next.t("toast.dropout"));
 				}
 			}
 			if("pong" in socketMsg) {
@@ -2064,10 +2084,10 @@
 			method: "DELETE"
 		});
 		if(response.ok) {
-			toastr.success(i18next.t("toast.success"));
+			toaster.success(i18next.t("toast.success"));
 			rebuildRFIDList();
 		} else {
-			toastr.error(response.statusText);
+			toaster.error(response.statusText);
 		}
 		console.log(response.statusText);
 	}
@@ -2078,10 +2098,10 @@
 			method: "POST"
 		});
 		if(response.ok) {
-			toastr.success(i18next.t("toast.success"));
+			toaster.success(i18next.t("toast.success"));
 			await rebuildRFIDList();
 		} else {
-			toastr.error(response.statusText);
+			toaster.error(response.statusText);
 		}
 	}
 	async function uploadNVSRFID() {
@@ -2097,10 +2117,10 @@
 			body: formData
 		});
 		if(response.ok) {
-			toastr.success(i18next.t("toast.success"));
+			toaster.success(i18next.t("toast.success"));
 			rebuildRFIDList();
 		} else {
-			toastr.error(response.statusText);
+			toaster.error(response.statusText);
 		}
 	}
 
@@ -2132,7 +2152,7 @@
 		var myJSON = JSON.stringify(myObj);
 		socket.send(myJSON);
 		tm = setTimeout(function() {
-			toastr.warning(i18next.t("toast.conlost"));
+			toaster.warning(i18next.t("toast.conlost"));
 		}, 5000);
 	}
 
