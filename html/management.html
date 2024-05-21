@@ -1079,29 +1079,38 @@
 	}
 
 	const toaster = {
-		// the template for toasting is always the same
-		toastTemplate: $('#toast-template'),
-		// the container which contains the toasts is also always the same
-		toastContainer: $('#toaster'),
-		
 		// remove all children, except the first (which is the template)
 		clear: () => $('.toast:not(:first)').remove(),
 		
-		// render a toast with given message and bootstrap color class
-		toast: (msg, colorClass) => {
-			const toast = toaster.toastTemplate.clone();
-			toast.find('.toast-body').html(msg);
-			toast.attr('id',"");
-			// set the correct class for the background color
-			toast.addClass(colorClass || 'text-bg-primary');
-			
-			toaster.toastContainer.append(toast);
-			
-			const toastBoostrap = bootstrap.Toast.getOrCreateInstance(toast);
-			toastBoostrap.show();
-			
-			setInterval(() => toast.remove(), 6000);
-		},
+		// render a toast with given message and bootstrap color class -- private closure
+		toast: (() => {
+			// the template for toasting is always the same
+			const toastTemplate = $('#toast-template');
+			// the container which contains the toasts is also always the same
+			const toastContainer = $('#toaster');
+
+			// return the actual function
+			return (msg, colorClass) => {
+				// check, if the same message is already showing
+				if ($('div[data-msg="' + msg + '"]', toastContainer).length <= 0) {
+					
+					const toast = toastTemplate.clone();
+					toast.find('.toast-body').html(msg);
+					toast.attr('id',"");
+					// storing the message in a data attribute to easier find it afterwards
+					toast.attr('data-msg', msg);
+					// set the correct class for the background color
+					toast.addClass(colorClass || 'text-bg-primary');
+					
+					toastContainer.append(toast);
+					
+					const toastBoostrap = bootstrap.Toast.getOrCreateInstance(toast);
+					toastBoostrap.show();
+					
+					setTimeout(() => toast.remove(), 5500);
+				}
+			}
+		})(),
 		
 		// predefined color classes for easier usage
 		info: msg => toaster.toast(msg),
@@ -1112,7 +1121,7 @@
 
 	i18next.use(i18nextHttpBackend).init({
 		backend: {
-			loadPath: "http://" + host + "/locales/{{lng}}.json"
+			loadPath: "/locales/{{lng}}.json"
 		},
 		load: 'languageOnly',
 		debug: true,
