@@ -1121,7 +1121,7 @@
 
 	i18next.use(i18nextHttpBackend).init({
 		backend: {
-			loadPath: "/locales/{{lng}}.json"
+			loadPath: "http://" + host + "/locales/{{lng}}.json"
 		},
 		load: 'languageOnly',
 		debug: true,
