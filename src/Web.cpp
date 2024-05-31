@@ -1027,6 +1027,8 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		request->send(500);
+		return;
 	}
 #endif
 	response->setLength();
@@ -1050,6 +1052,8 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		request->send(500);
+		return;
 	}
 #endif
 	response->setLength();
@@ -1104,6 +1108,8 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		request->send(500);
+		return;
 	}
 #endif
 	response->setLength();
@@ -1195,16 +1201,17 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	}
 
 #if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	// serialize JSON in a more optimized way using a shared buffer
+	const size_t len = measureJson(doc);
+	auto buffer = std::make_shared<std::vector<uint8_t>>(len);
+	serializeJson(doc, buffer->data(), len);
 	if (client == 0) {
-		// serialize JSON in a more optimized way using a shared buffer
-		const size_t len = measureJson(doc);
-		auto buffer = std::make_shared<std::vector<uint8_t>>(len);
-		serializeJson(doc, buffer->data(), len);
 		ws.textAll(std::move(buffer));
-		return;
+	} else {
+		ws.text(client, buffer->data(), len);
 	}
-#endif
-
+	return;
+#else
 	// measure length of JSON buffer including the null-terminator
 	const size_t len = measureJson(doc) + 1;
 	char *jBuf = (char *) x_calloc(len, sizeof(char));
@@ -1221,6 +1228,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		ws.text(client, jBuf);
 	}
 	free(jBuf);
+#endif
 }
 
 // Processes websocket-requests
@@ -1523,6 +1531,8 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		request->send(500);
+		return;
 	}
 #endif
 	response->setLength();
