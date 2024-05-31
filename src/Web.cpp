@@ -959,12 +959,8 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if (request->hasParam("section")) {
 		section = request->getParam("section")->value();
 	}
-#ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(768);
-#else
-	StaticJsonDocument<768> doc;
-#endif
-	JsonObject infoObj = doc.createNestedObject("info");
+	AsyncJsonResponse *response = new AsyncJsonResponse(false, 768);
+	JsonObject infoObj = response->getRoot();
 	// software
 	if ((section == "") || (section == "software")) {
 		JsonObject softwareObj = infoObj.createNestedObject("software");
@@ -1027,13 +1023,14 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	}
 #endif
 
-	String serializedJsonString;
-	serializeJson(infoObj, serializedJsonString);
-	if (doc.overflowed()) {
+#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 	}
-	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+#endif
+	response->setLength();
+	request->send(response);
 	System_UpdateActivityTimer();
 }
 
@@ -1045,20 +1042,18 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	if (request->hasParam("section")) {
 		section = request->getParam("section")->value();
 	}
-#ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(2048);
-#else
-	StaticJsonDocument<2048> doc;
-#endif
-	JsonObject settingsObj = doc.createNestedObject("settings");
+
+	AsyncJsonResponse *response = new AsyncJsonResponse(false, 2048);
+	JsonObject settingsObj = response->getRoot();
 	settingsToJSON(settingsObj, section);
-	String serializedJsonString;
-	serializeJson(settingsObj, serializedJsonString);
-	if (doc.overflowed()) {
+#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 	}
-	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+#endif
+	response->setLength();
+	request->send(response);
 }
 
 // handle post settings
@@ -1076,14 +1071,9 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 // returns memory and task runtime information as JSON
 void handleDebugRequest(AsyncWebServerRequest *request) {
 
-#ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(2048);
-#else
-	StaticJsonDocument<2048> doc;
-#endif
-
-	JsonObject infoObj = doc.createNestedObject("info");
+	AsyncJsonResponse *response = new AsyncJsonResponse(false, 2048);
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+	JsonObject infoObj = response->getRoot();
 	// task runtime info
 	TaskStatus_t task_status_arr[20];
 	uint32_t pulTotalRunTime;
@@ -1110,13 +1100,14 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 		taskObj["stackHighWaterMark"] = task_status_arr[i].usStackHighWaterMark;
 	}
 #endif
-	String serializedJsonString;
-	serializeJson(infoObj, serializedJsonString);
-	if (doc.overflowed()) {
+#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 	}
-	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+#endif
+	response->setLength();
+	request->send(response);
 }
 
 // Takes inputs from webgui, parses JSON and saves values in NVS
@@ -1151,18 +1142,6 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	if (ws.count() == 0) {
 		// we do not have any webclient connected
 		return;
-	}
-	// check if we can send message to the client(s)
-	if (client == 0) {
-		if (!ws.availableForWriteAll()) {
-			Log_Println("Websocket: Cannot send data (Too many messages queued)!", LOGLEVEL_ERROR);
-			return;
-		}
-	} else {
-		if (!ws.availableForWrite(client)) {
-			Log_Printf(LOGLEVEL_ERROR, "Websocket: Cannot send data to client %d (Too many messages queued)!", client);
-			return;
-		}
 	}
 #ifdef BOARD_HAS_PSRAM
 	SpiRamJsonDocument doc(1024);
@@ -1210,8 +1189,24 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["duration"] = AudioPlayer_GetFileDuration();
 	};
 
+	if (doc.overflowed()) {
+		// JSON buffer too small for data
+		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+	}
+
+#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	if (client == 0) {
+		// serialize JSON in a more optimized way using a shared buffer
+		const size_t len = measureJson(doc);
+		auto buffer = std::make_shared<std::vector<uint8_t>>(len);
+		serializeJson(doc, buffer->data(), len);
+		ws.textAll(std::move(buffer));
+		return;
+	}
+#endif
+
 	// measure length of JSON buffer including the null-terminator
-	size_t len = measureJson(doc) + 1;
+	const size_t len = measureJson(doc) + 1;
 	char *jBuf = (char *) x_calloc(len, sizeof(char));
 	if (!jBuf) {
 		// we failed to allocate enough memory
@@ -1480,14 +1475,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	request->send(200, "application/json; charset=utf-8", "[]"); // maybe better to send 404 here?
 	return;
 #endif
-#ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument jsonBuffer(65636);
-#else
-	StaticJsonDocument<8192> jsonBuffer;
-#endif
 
-	String serializedJsonString;
-	JsonArray obj = jsonBuffer.createNestedArray();
 	File root;
 	if (request->hasParam("path")) {
 		AsyncWebParameter *param;
@@ -1508,6 +1496,14 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
+#ifdef BOARD_HAS_PSRAM
+	const size_t buffSize = 65536;
+#else
+	const size_t buffSize = 8192;
+#endif
+	AsyncJsonResponse *response = new AsyncJsonResponse(true, buffSize);
+
+	JsonArray obj = response->getRoot();
 	bool isDir = false;
 	String MyfileName = root.getNextFileName(&isDir);
 	while (MyfileName != "") {
@@ -1523,12 +1519,14 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 	root.close();
 
-	serializeJson(obj, serializedJsonString);
-	if (jsonBuffer.overflowed()) {
+#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
+	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 	}
-	request->send(200, "application/json; charset=utf-8", serializedJsonString);
+#endif
+	response->setLength();
+	request->send(response);
 }
 
 bool explorerDeleteDirectory(File dir) {
