@@ -1234,6 +1234,9 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 // Processes websocket-requests
 void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
 
+	// discard message on queue full, socket should not be closed
+	client->setCloseClientOnQueueFull(false);
+
 	if (type == WS_EVT_CONNECT) {
 		// client connected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
