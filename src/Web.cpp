@@ -1208,7 +1208,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	if (client == 0) {
 		ws.textAll(std::move(buffer));
 	} else {
-		ws.text(client, buffer->data(), len);
+		ws.text(client, std::move(buffer));
 	}
 	return;
 #else
