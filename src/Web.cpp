@@ -1203,14 +1203,13 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 #if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	// serialize JSON in a more optimized way using a shared buffer
 	const size_t len = measureJson(doc);
-	auto buffer = std::make_shared<std::vector<uint8_t>>(len);
-	serializeJson(doc, buffer->data(), len);
+	AsyncWebSocketMessageBuffer* buffer = ws.makeBuffer(len);
+	serializeJson(doc, buffer->get(), len);
 	if (client == 0) {
-		ws.textAll(std::move(buffer));
+		ws.textAll(buffer);
 	} else {
-		ws.text(client, std::move(buffer));
+		ws.text(client, buffer);
 	}
-	return;
 #else
 	// measure length of JSON buffer including the null-terminator
 	const size_t len = measureJson(doc) + 1;
