@@ -1204,11 +1204,11 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	// serialize JSON in a more optimized way using a shared buffer
 	const size_t len = measureJson(doc);
 	AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
-	if(!buffer) {
-		// memory allocation of vector failed, we can not use the AsyncWebSocketMessageBuffer 
+	if (!buffer) {
+		// memory allocation of vector failed, we can not use the AsyncWebSocketMessageBuffer
 		Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
 		return;
-	}	
+	}
 	serializeJson(doc, buffer->get(), len);
 	if (client == 0) {
 		ws.textAll(buffer);
