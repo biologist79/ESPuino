@@ -1203,7 +1203,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 #if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	// serialize JSON in a more optimized way using a shared buffer
 	const size_t len = measureJson(doc);
-	AsyncWebSocketMessageBuffer* buffer = ws.makeBuffer(len);
+	AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
 	serializeJson(doc, buffer->get(), len);
 	if (client == 0) {
 		ws.textAll(buffer);
