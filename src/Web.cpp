@@ -1203,17 +1203,17 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 #if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	// serialize JSON in a more optimized way using a shared buffer
 	const size_t len = measureJson(doc);
-	AsyncWebSocketMessageBuffer *buffer = ws.makeBuffer(len);
-	if (!buffer) {
+	AsyncWebSocketMessageBuffer *jsonBuffer = ws.makeBuffer(len);
+	if (!jsonBuffer) {
 		// memory allocation of vector failed, we can not use the AsyncWebSocketMessageBuffer
 		Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
 		return;
 	}
-	serializeJson(doc, buffer->get(), len);
+	serializeJson(doc, jsonBuffer->get(), len);
 	if (client == 0) {
-		ws.textAll(buffer);
+		ws.textAll(jsonBuffer);
 	} else {
-		ws.text(client, buffer);
+		ws.text(client, jsonBuffer);
 	}
 #else
 	// measure length of JSON buffer including the null-terminator
