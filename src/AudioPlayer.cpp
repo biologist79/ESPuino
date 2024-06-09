@@ -1454,7 +1454,19 @@ void audio_eof_speech(const char *info) {
 	gPlayProperties.currentSpeechActive = false;
 }
 
-// process audio sample extern (for bluetooth source)
-void audio_process_i2s(uint32_t *sample, bool *continueI2S) {
-	*continueI2S = !Bluetooth_Source_SendAudioData(sample);
+void audio_process_i2s(int16_t *outBuff, uint16_t validSamples, uint8_t bitsPerSample, uint8_t channels, bool *continueI2S) {
+
+	uint32_t sample;
+	for (int i = 0; i < validSamples; i++) {
+		if (channels == 2) {
+			// stereo
+			sample = (uint16_t(outBuff[i * 2]) << 16) | uint16_t(outBuff[i * 2 + 1]);
+			*continueI2S = !Bluetooth_Source_SendAudioData(&sample);
+		}
+		if (channels == 1) {
+			// mono
+			sample = (uint16_t(outBuff[i]) << 16) | uint16_t(outBuff[i]);
+			*continueI2S = !Bluetooth_Source_SendAudioData(&sample);
+		}
+	}
 }
