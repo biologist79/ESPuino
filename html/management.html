@@ -1101,6 +1101,8 @@
 					toast.attr('data-msg', msg);
 					// set the correct class for the background color
 					toast.addClass(colorClass || 'text-bg-primary');
+					// when clicked or tapped onto, close it
+					toast.click(() => toast.remove());
 					
 					toastContainer.append(toast);
 					
