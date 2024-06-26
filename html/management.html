@@ -1124,6 +1124,19 @@
 		let localize;
 		// check for language in local storage. if none is present, choose navigator language or userLanguage.
 		const startupLanguage = localStorage.getItem("language") || navigator.language || navigator.userLanguage;
+
+		// function to wrap the localize call into a reusable code block
+		function localization() {
+			if (localize) {
+				localize('body');
+				// (re)initialize all popover buttons to get correct translations in the popovers
+				document.querySelectorAll('[data-bs-toggle="popover"]')
+					.forEach(popoverButton => {
+						new bootstrap.Popover(popoverButton, {html: true, trigger: 'focus'})
+					});
+			}
+		}
+
 		i18next.use(i18nextHttpBackend)
 			.init({
 				backend: {
@@ -1136,15 +1149,13 @@
 				returnObjects: true,
 			}, (err, t) => {
 				localize = locI18next.init(i18next);
-				localize('body');
+				localization();
 			});
 		i18next.on('languageChanged', () => {
 			$('#langSel').val(i18next.resolvedLanguage); // set for the resolved language, which will be without locale
-			$('#menu').removeClass("show") // Hide the menu again
+			$('#menu').removeClass("show"); // Hide the menu again
 			console.info('language changes to', i18next.resolvedLanguage);
-			if(localize) {
-				localize('body');
-			}
+			localization();
 		});
 		$('#langSel').on('change', (e) => {
 			const lng = e.target.value;
