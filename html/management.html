@@ -1042,8 +1042,6 @@
 	var ActiveTab = 'nav-rfid-tab';
 	var ActiveSubTab = 'rfid-music-tab';
 	var host = $(location).attr('hostname');
-	var language = navigator.language || navigator.userLanguage;
-	var localize;
 	/* show active / selected tab */
 	$('#nav-tab.nav-tabs a').on('shown.bs.tab', function(e) {
 		ActiveTab = $(e.target).attr('id');
@@ -1120,43 +1118,45 @@
 		warning: msg => toaster.toast(msg, 'text-bg-warning'),
 		error: msg => toaster.toast(msg, 'text-bg-danger')
 	}
-
-	i18next.use(i18nextHttpBackend).init({
-		backend: {
-			loadPath: "http://" + host + "/locales/{{lng}}.json"
-		},
-		load: 'languageOnly',
-		debug: true,
-		fallbackLng: 'en',
-		returnObjects: true,
-	}, (err, t) => {
-		localize = locI18next.init(i18next);
-		localize('body');
-		toaster.clear();
-		// change the language if we found it in the local storage
-		const lang = localStorage.getItem("language");
-		if(lang === null) {
-			i18next.changeLanguage(language.split("-")[0]);
-		} else {
-			i18next.changeLanguage(lang);
-		}
-	});
-	i18next.on('languageChanged', (lng) => {
-		document.querySelector('#langSel').value = lng;
-		if(localize) {
-			localize('body');
-		}
-		document.querySelector('#menu').classList.remove("show") // Hide the menu again
-	});
-	document.querySelector('#langSel').addEventListener('change', (e) => {
-		const lang = e.target.value;
-		console.log(lang);
-		if(lang !== i18next.language) {
-			toaster.clear();
-			localStorage.setItem("language", lang);
-			i18next.changeLanguage(lang);
-		}
-	});
+ 
+	function initI18N() {
+		// function to call for translating elements
+		let localize;
+		// check for language in local storage. if none is present, choose navigator language or userLanguage.
+		const startupLanguage = localStorage.getItem("language") || navigator.language || navigator.userLanguage;
+		i18next.use(i18nextHttpBackend)
+			.init({
+				backend: {
+					loadPath: "http://" + host + "/locales/{{lng}}.json"
+				},
+				load: 'languageOnly',
+				// debug: true,
+				lng: startupLanguage,
+				fallbackLng: 'en',
+				returnObjects: true,
+			}, (err, t) => {
+				localize = locI18next.init(i18next);
+				localize('body');
+			});
+		i18next.on('languageChanged', () => {
+			$('#langSel').val(i18next.resolvedLanguage); // set for the resolved language, which will be without locale
+			$('#menu').removeClass("show") // Hide the menu again
+			console.info('language changes to', i18next.resolvedLanguage);
+			if(localize) {
+				localize('body');
+			}
+		});
+		$('#langSel').on('change', (e) => {
+			const lng = e.target.value;
+			if(lng !== i18next.language) {
+				toaster.clear();
+				localStorage.setItem("language", lng);
+				i18next.changeLanguage(lng);
+			}
+		});
+	}
+	initI18N();
+	
 	document.getElementById('trackProgressDiv').addEventListener('click', function(e) {
 		var bounds = this.getBoundingClientRect();
 		var max = bounds.width;
