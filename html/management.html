@@ -876,8 +876,6 @@
 							</div>
 						</fieldset>
 					</div>
-					<br>
-					<br>
 					<fieldset>
 						<legend data-i18n="general.sleep.title"></legend>
 						<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
@@ -893,8 +891,6 @@
 							</div>
 						</div>
 					</fieldset>
-					<br>
-					<br>
 					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
@@ -1139,12 +1135,18 @@
 		// function to wrap the localize call into a reusable code block
 		function localization() {
 			if (localize) {
-				localize('body');
-				// (re)initialize all popover buttons to get correct translations in the popovers
-				document.querySelectorAll('[data-bs-toggle="popover"]')
-					.forEach(popoverButton => {
-						new bootstrap.Popover(popoverButton, {html: true, trigger: 'focus'})
-					});
+				if (i18next.resolvedLanguage) {
+					localize('body');
+					console.info('language changed to', i18next.resolvedLanguage);
+					// (re)initialize all popover buttons to get correct translations in the popovers
+					document.querySelectorAll('[data-bs-toggle="popover"]')
+						.forEach(popoverButton => {
+							new bootstrap.Popover(popoverButton, {html: true, trigger: 'focus'})
+						});
+				} else {
+					console.error("Language couldn't be loaded. Check your setup, maybe the translation files are misplaced or the remote server is not available.");
+					toaster.error("Language couldn't be loaded");
+				}
 				$('#splash').hide();
 			}
 		}
