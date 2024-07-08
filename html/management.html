@@ -220,10 +220,21 @@
 		/* Make sure the jstree context menu is most top */
 		z-index: 99999;
 	}
+
+	#splash {
+		z-index: 3000;
+	}
 	</style>
 </head>
 
 <body>
+	<div class="position-fixed" id="splash">
+		<div class="position-fixed opacity-75 bg-secondary vw-100 vh-100"></div>
+		<div class="position-fixed d-flex flex-column justify-content-center align-items-center vh-100 vw-100">
+			<div class="spinner-border"></div>
+			<strong data-i18n="general.loadingLanguage">Loading language ...</strong>
+		</div>
+	</div>
 	<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" id="toaster">
 		<div class="toast align-items-center border-0" id="toast-template" role="alert" aria-live="assertive"aria-atomic="true">
 			<div class="d-flex">
@@ -1134,6 +1145,7 @@
 					.forEach(popoverButton => {
 						new bootstrap.Popover(popoverButton, {html: true, trigger: 'focus'})
 					});
+				$('#splash').hide();
 			}
 		}
 
@@ -1160,6 +1172,7 @@
 		$('#langSel').on('change', (e) => {
 			const lng = e.target.value;
 			if(lng !== i18next.language) {
+				$('#splash').show();
 				toaster.clear();
 				localStorage.setItem("language", lng);
 				i18next.changeLanguage(lng);

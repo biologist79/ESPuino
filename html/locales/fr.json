@@ -250,6 +250,7 @@
 	},
 	"general":{
 		"language":"Langue",
+		"loadingLanguage": "Chargement de la traduction ...",
 		"volume":{
 			"title":"Volume",
 			"restart":"Après le redémarrage",

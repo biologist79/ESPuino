@@ -250,6 +250,7 @@
 	},
 	"general":{
 		"language":"Language",
+		"loadingLanguage": "Loading language ...",
 		"volume":{
 			"title":"Volume",
 			"restart":"After restart",

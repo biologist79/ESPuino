@@ -250,6 +250,7 @@
 	},
 	"general":{
 		"language":"Sprache",
+		"loadingLanguage": "Sprache wird geladen ...",
 		"volume":{
 			"title":"Lautstärke",
 			"restart":"Nach dem Einschalten",
