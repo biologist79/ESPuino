@@ -66,6 +66,7 @@
 	.slider-container {
 		width: 100%;
 		display: flex;
+		padding-bottom: 1rem
 	}
 
 	.slider-container-inner {
@@ -242,7 +243,7 @@
 			</div>
 		</div>
 	</div>
-	<nav class="navbar navbar-expand bg-primary navbar-dark">
+	<nav class="navbar navbar-expand bg-primary navbar-dark mb-4">
 		<div class="container-fluid">
 			<a class="float-start navbar-brand">
 				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt="" />
@@ -333,7 +334,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<label class="w-100" for="gainBandPass" data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
 					<div class="slider-container">
@@ -346,7 +347,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<label class="w-100" for="gainHighPass" data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
 					<div class="slider-container">
@@ -359,7 +360,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<div class="col-12">
 						<div class="row">
@@ -424,7 +425,6 @@
 			</div>
 		</div>
 	</div>
-	<br />
 	<nav>
 		<div class="container nav nav-tabs select-div" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" data-bs-target="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
@@ -441,7 +441,7 @@
 	<br>
 	<div class="tab-content" id="nav-tabContent">
 		<!-- ### Tab Wifi ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 			<div class="container" id="wifiConfig">
 				<div>
 					<legend data-i18n="wifi.title"></legend>
@@ -492,12 +492,11 @@
 					</ul>
 				</div>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Control ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
-				<div class="mb-3 col-md-12">
+				<div class="col-md-12">
 					<legend data-i18n="control.title"></legend>
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
@@ -595,7 +594,7 @@
 			</div>
 		</div>
 		<!-- ### Tab RFID ### -->
-		<div class="tab-pane main-tab-pane fade show active select-div" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
+		<div class="tab-pane main-tab-pane fade show active select-div mb-4" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
 			<div class="container" id="filetreeContainer">
 				<fieldset>
 					<legend id="fileslegend" data-i18n="files.title"></legend>
@@ -703,10 +702,9 @@
 					</form>
 				</fieldset>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab MQTT ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
 			<div class="container" id="mqttConfig">
 				<form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
@@ -730,10 +728,9 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab FTP ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 					<div class="mb-3 col-md-12 select-div">
@@ -750,7 +747,7 @@
 				<hr>
 			</div>
 			<div class="container" id="ftpStart">
-				<div class="mb-3 col-md-12">
+				<div class="col-md-12">
 					<legend data-i18n="ftp.start.title"></legend>
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
@@ -761,7 +758,7 @@
 			</div>
 		</div>
 		<!-- ### Tab Bluetooth ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
@@ -800,53 +797,51 @@
 			</div>
 		</div>
 		<!-- ### Tab General ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<fieldset>
-						<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
-						<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+					<div class="col-md-12 mb-4">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
+							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume" data-slider-value="" value="" required>
+							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-						</div>
-						<br>
-						<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker" required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-							</div>
-						</div>
-						<br>
-						<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone" data-slider-value="" value="" required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-							</div>
-						</div>
-					</fieldset>
-					<br>
-					<br>
-					<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
@@ -876,22 +871,24 @@
 							</div>
 						</fieldset>
 					</div>
-					<fieldset>
-						<legend data-i18n="general.sleep.title"></legend>
-						<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+					<div class="col-md-12 mb-4">
+						<fieldset>
+							<legend data-i18n="general.sleep.title"></legend>
+							<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime" data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+								</div>
 							</div>
-							<div class="slider-container-inner">
-								<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime" data-slider-value="" value="" required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
-							</div>
-						</div>
-					</fieldset>
-					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
 							<div data-i18n="general.battery.desc"></div>
@@ -908,7 +905,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -921,7 +917,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -934,7 +929,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<div id="criticalVoltageSection" data-visible="false">
 								<label for="criticalVoltage" data-i18n="[prepend]general.battery.criticalShutoff">:</label>
 								<div class="slider-container">
@@ -949,7 +943,6 @@
 									</div>
 								</div>
 							</div>
-							<br>
 							<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -964,8 +957,7 @@
 							</div>
 						</fieldset>
 					</div>
-					<br>
-					<div class="mb-3 col-md-12 select-div" id="playlistConfig">
+					<div class="col-md-12 mb-4 select-div" id="playlistConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
@@ -981,10 +973,9 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Tools ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
+		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 			<div class="container" id="savedAssignments">
 				<legend data-i18n="files.rfid.savedassignments"></legend>
 				<ul class="list-group" id="rfidListSavedAssignments">
@@ -1030,10 +1021,9 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Help ### -->
-		<div class="tab-pane main-tab-pane fade" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
 			<div class="container" id="divForum">
 				<legend data-i18n="help.forum.title"></legend>
 				<p data-i18n="[html]help.forum.desc"></p>
