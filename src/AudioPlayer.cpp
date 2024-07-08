@@ -283,13 +283,8 @@ void Audio_setTitle(const char *format, ...) {
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
 // Enable/disable PA/HP-amps initially
 void AudioPlayer_SetupVolumeAndAmps(void) {
-#ifdef PLAY_MONO_SPEAKER
-	gPlayProperties.currentPlayMono = true;
-	gPlayProperties.newPlayMono = true;
-#else
-	gPlayProperties.currentPlayMono = false;
-	gPlayProperties.newPlayMono = false;
-#endif
+	gPlayProperties.currentPlayMono = gPrefsSettings.getBool("playMono", false);
+	gPlayProperties.newPlayMono = gPrefsSettings.getBool("playMono", false);
 
 #ifndef HEADPHONE_ADJUST_ENABLE
 	AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
@@ -332,11 +327,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 	if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
 		if (currentHeadPhoneDetectionState) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
-	#ifdef PLAY_MONO_SPEAKER
-			gPlayProperties.newPlayMono = true;
-	#else
-			gPlayProperties.newPlayMono = false;
-	#endif
+			gPlayProperties.newPlayMono = gPrefsSettings.getBool("playMono", false);
 
 	#ifdef GPIO_PA_EN
 			Port_Write(GPIO_PA_EN, true, false);

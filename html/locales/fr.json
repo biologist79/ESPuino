@@ -264,6 +264,11 @@
 			"gainHighPass":"Aigus (en dB)",
 			"info":"Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf."
 		},
+		"options": {
+			"title": "Options",
+			"playMono": "Lecture mono",
+			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>"
+		},
 		"neopixel":{
 			"title":"Neopixel (luminosité)",
 			"restart":"Après le redémarrage",

@@ -425,7 +425,7 @@
 			</div>
 		</div>
 	</div>
-	<nav>
+	<nav class="mb-4">
 		<div class="container nav nav-tabs select-div" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control" data-bs-target="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
 			<a class="nav-item nav-link main-tab-item active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid" data-bs-target="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
@@ -438,7 +438,6 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help" data-bs-target="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.help"></span></span></a>
 		</div>
 	</nav>
-	<br>
 	<div class="tab-content" id="nav-tabContent">
 		<!-- ### Tab Wifi ### -->
 		<div class="tab-pane main-tab-pane fade select-div mb-4" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
@@ -839,6 +838,14 @@
 									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 								</div>
 							</div>
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="optionsConfig">
+						<fieldset >
+							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
+							<input type="checkbox" id="playMono" name="playMono" value="false">
+							<label for="playMono" data-i18n="general.options.playMono"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
@@ -1891,6 +1898,7 @@
 			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+			$('#playMono').prop('checked', genSettings.playMono);
 		}
 		// current values
 		let currSettings = settings.current;
@@ -1912,6 +1920,7 @@
 			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
 			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
 			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
+			$('#playMono').prop('checked', defSettings.playMono);
 			$("#playlistSortMode").val(defSettings.sortMode).change();
 			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
 			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
@@ -2222,24 +2231,25 @@
 		lastIdclicked = clickedId;
 		var myObj = {
 			"general": {
-				initVolume: Number(document.getElementById('initialVolume').value),
-				maxVolumeSp: Number(document.getElementById('maxVolumeSpeaker').value),
-				maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value),
-				sleepInactivity: Number(document.getElementById('inactivityTime').value)
+				initVolume: Number($('#initialVolume').val()),
+				maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
+				maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
+				sleepInactivity: Number($('#inactivityTime').val()),
+				playMono: $('#playMono').prop('checked')
 			},
 			"led": {
-				initBrightness: Number(document.getElementById('initBrightness').value),
-				nightBrightness: Number(document.getElementById('nightBrightness').value)
+				initBrightness: Number($('#initBrightness').val()),
+				nightBrightness: Number($('#nightBrightness').val())
 			},
 			"battery": {
-				warnLowVoltage: Number(document.getElementById('warningLowVoltage').value),
-				indicatorLow: Number(document.getElementById('voltageIndicatorLow').value),
-				indicatorHi: Number(document.getElementById('voltageIndicatorHigh').value),
-				criticalVoltage: Number(document.getElementById('criticalVoltage').value),
-				voltageCheckInterval: Number(document.getElementById('voltageCheckInterval').value)
+				warnLowVoltage: Number($('#warningLowVoltage').val()),
+				indicatorLow: Number($('#voltageIndicatorLow').val()),
+				indicatorHi: Number($('#voltageIndicatorHigh').val()),
+				criticalVoltage: Number($('#criticalVoltage').val()),
+				voltageCheckInterval: Number($('#voltageCheckInterval').val())
 			},
 			"playlist": {
-				sortMode: Number(document.getElementById('playlistSortMode').value)
+				sortMode: Number($('#playlistSortMode').val())
 			}
 		};
 		var myJSON = JSON.stringify(myObj);
