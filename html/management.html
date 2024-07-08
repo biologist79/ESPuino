@@ -1814,7 +1814,10 @@
 			}
 			if("status" in socketMsg) {
 				if(socketMsg.status == "ok") {
-					toaster.success(i18next.t("toast.success"));
+					// avoiding the untranslated toast on bootup
+					if (i18next.exists('toast.success')) {
+						toaster.success(i18next.t("toast.success"));
+					}
 				}
 				if(socketMsg.status == "dropout") {
 					toaster.warning(i18next.t("toast.dropout"));
