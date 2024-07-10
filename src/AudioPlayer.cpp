@@ -141,6 +141,7 @@ void AudioPlayer_Init(void) {
 	gPlayProperties.coverFilePos = 0;
 	AudioPlayer_StationLogoUrl = "";
 	gPlayProperties.playlist = new Playlist();
+	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
@@ -162,7 +163,7 @@ void AudioPlayer_Exit(void) {
 	playTimeSecTotal += playTimeSecSinceStart;
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
 	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-	if (gPrefsSettings.getBool("savePlayPosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
@@ -982,15 +983,12 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
-// Make sure last playposition for audiobook is saved when new RFID-tag is applied
-#ifdef SAVE_PLAYPOS_WHEN_RFID_CHANGE
-	if (!gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
-		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
+	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
 	}
-#endif
 
 	gPlayProperties.startAtFilePos = _lastPlayPos;
 	gPlayProperties.currentTrackNumber = _trackLastPlayed;

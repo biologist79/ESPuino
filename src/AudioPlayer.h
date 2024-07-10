@@ -39,6 +39,7 @@ typedef struct { // Bit field
 	uint8_t tellMode			 : 2; // Tell mode for text to speech announcments
 	bool currentSpeechActive	 : 1; // If speech-play is active
 	bool lastSpeechActive		 : 1; // If speech-play was active
+	bool SavePlayPosRfidChange : 1; // Save last play-position
 	int8_t gainLowPass = 0; // Low Pass for EQ Control
 	int8_t gainBandPass = 0; // Band Pass for EQ Control
 	int8_t gainHighPass = 0; // High Pass for EQ Control

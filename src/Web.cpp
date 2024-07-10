@@ -636,11 +636,13 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("general")) {
 		// general settings
-		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePlayPosShtd", doc["general"]["savePlayPosShtd"].as<bool>()) == 0) {
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
 		gPlayProperties.newPlayMono = doc["general"]["playMono"].as<bool>();
+		//														savePosShutdown
+		gPlayProperties.SavePlayPosRfidChange = doc["general"]["savePosRfidChg"].as<bool>();
 	}
 	if (doc.containsKey("equalizer")) {
 		int8_t _gainLowPass = doc["equalizer"]["gainLowPass"].as<int8_t>();
@@ -826,7 +828,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
-		generalObj["savePlayPosShtd"].set(gPrefsSettings.getBool("savePlayPosShtd", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
@@ -892,7 +895,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		genSettings["sleepInactivity"].set(10u); // System_MaxInactivityTime
 		genSettings["playMono"].set(false); // PLAY_MONO_SPEAKER
-		genSettings["savePlayPosShtd"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		genSettings["savePosShutdown"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
+		genSettings["savePosRfidChg"].set(false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 		JsonObject eqSettings = defaultsObj.createNestedObject("equalizer");
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
