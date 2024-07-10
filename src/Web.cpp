@@ -636,7 +636,7 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("general")) {
 		// general settings
-		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0) {
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePlayPosExit", doc["general"]["savePlayPosExit"].as<bool>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
@@ -826,6 +826,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
+		generalObj["savePlayPosExit"].set(gPrefsSettings.getBool("savePlayPosExit", false));
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
@@ -890,6 +891,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		defaultsObj["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		defaultsObj["sleepInactivity"].set(10u); // System_MaxInactivityTime
 		defaultsObj["playMono"].set(false); // PLAY_MONO_SPEAKER
+		defaultsObj["savePlayPosExit"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		defaultsObj["gainHighPass"].set(0);
 		defaultsObj["gainBandPass"].set(0);
 		defaultsObj["gainLowPass"].set(0);

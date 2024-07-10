@@ -267,7 +267,9 @@
 		"options": {
 			"title": "Options",
 			"playMono": "Mono Playback",
-			"playMonoExp": "If two speakers are installed, stereo can be played. More infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>"
+			"playMonoExp": "If two speakers are installed, stereo can be played. More infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>",
+			"savePlayPosShutdown": "Remember playback position at shutdown",
+			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>."
 		},
 		"neopixel":{
 			"title":"Neopixel (brightness)",

@@ -267,8 +267,10 @@
 		"options": {
             "title": "Optionen",
             "playMono": "Mono-Wiedergabe",
-			"playMonoExp": "Wenn zwei Lautsprecher verbaut sind, kann Stereo abgespielt werden. Mehr Infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>hier</a>"
-        },
+			"playMonoExp": "Wenn zwei Lautsprecher verbaut sind, kann Stereo abgespielt werden. Mehr Infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>hier</a>.",
+            "savePlayPosShutdown": "Abspielposition beim Ausschalten merken",
+            "savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>."
+		},
 		"neopixel":{
 			"title":"Neopixel (Helligkeit)",
 			"restart":"Nach dem Einschalten",

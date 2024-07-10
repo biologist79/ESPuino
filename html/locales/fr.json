@@ -267,7 +267,9 @@
 		"options": {
 			"title": "Options",
 			"playMono": "Lecture mono",
-			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>"
+			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>",
+			"savePlayPosShutdown": "Mémoriser la position de lecture à l'extinction",
+			"savePlayPosShutdownExp": "Lorsque la boîte est éteinte, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>."
 		},
 		"neopixel":{
 			"title":"Neopixel (luminosité)",
