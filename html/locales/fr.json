@@ -275,7 +275,9 @@
 			"pauseOnMinVolume": "Pause au volume minimal",
 			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum.Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>.",
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
-			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement."
+			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
+			"volumeCurve": "Des nuances plus fines à faible volume",
+			"volumeCurveExp": "Utilisation du calcul logarithmique du volume. Peut aider si les nuances sont trop grossières dans la plage de volume inférieure."
 		},
 		"neopixel":{
 			"title":"Neopixel (luminosité)",

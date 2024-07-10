@@ -275,7 +275,9 @@
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
 			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
-			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein."
+			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
+			"volumeCurve" : "Feinere Abstufungen bei niedriger Lautstärke",
+			"volumeCurveExp" : "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
 		},
 		"neopixel":{
 			"title":"Neopixel (Helligkeit)",

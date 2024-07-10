@@ -275,7 +275,9 @@
 			"pauseOnMinVolume": "Pause at minimum volume",
 			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
 			"recoverVolBoot": "Use last volume at restart",
-			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again."
+			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
+			"volumeCurve": "Finer gradations at low volume",
+			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse."
 		},
 		"neopixel":{
 			"title":"Neopixel (brightness)",

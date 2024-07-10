@@ -636,7 +636,7 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc.containsKey("general")) {
 		// general settings
-		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) == 0 || gPrefsSettings.putBool("pauseOnMinVol", doc["general"]["pauseOnMinVol"].as<bool>()) == 0 || gPrefsSettings.putBool("recoverVolBoot", doc["general"]["recoverVolBoot"].as<bool>()) == 0) {
+		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) == 0 || gPrefsSettings.putBool("pauseOnMinVol", doc["general"]["pauseOnMinVol"].as<bool>()) == 0 || gPrefsSettings.putBool("recoverVolBoot", doc["general"]["recoverVolBoot"].as<bool>()) == 0 || gPrefsSettings.putUChar("volumeCurve", doc["general"]["volumeCurve"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
@@ -832,6 +832,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
+		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
@@ -900,7 +901,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["savePosShutdown"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		genSettings["savePosRfidChg"].set(false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
-		defaultsObj["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
+		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
+		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
 		JsonObject eqSettings = defaultsObj.createNestedObject("equalizer");
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);

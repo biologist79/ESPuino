@@ -382,7 +382,7 @@ void AudioPlayer_Task(void *parameter) {
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
-	audio->setVolume(AudioPlayer_CurrentVolume, VOLUMECURVE);
+	audio->setVolume(AudioPlayer_CurrentVolume, gPrefsSettings.getUChar("volumeCurve", 0));
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	int8_t currentEqualizer[3] = {gPrefsSettings.getChar("gainLowPass", 0), gPrefsSettings.getChar("gainBandPass", 0), gPrefsSettings.getChar("gainHighPass", 0)};
 	audio->setTone(currentEqualizer[0], currentEqualizer[1], currentEqualizer[2]);
@@ -403,7 +403,7 @@ void AudioPlayer_Task(void *parameter) {
 		*/
 		if (xQueueReceive(gVolumeQueue, &currentVolume, 0) == pdPASS) {
 			Log_Printf(LOGLEVEL_INFO, newLoudnessReceivedQueue, currentVolume);
-			audio->setVolume(currentVolume, VOLUMECURVE);
+			audio->setVolume(currentVolume, gPrefsSettings.getUChar("volumeCurve", 0));
 			Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
 			publishMqtt(topicLoudnessState, currentVolume, false);
