@@ -162,7 +162,7 @@ void AudioPlayer_Exit(void) {
 	playTimeSecTotal += playTimeSecSinceStart;
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
 	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-	if (gPrefsSettings.getBool("savePlayPosExit", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+	if (gPrefsSettings.getBool("savePlayPosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}

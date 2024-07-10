@@ -847,8 +847,8 @@
 							<label for="playMono" data-i18n="general.options.playMono"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 							<br>
-							<input type="checkbox" id="savePlayPosShutdwon" name="savePlayPosShutdwon" value="false">
-							<label for="savePlayPosShutdwon" data-i18n="general.options.savePlayPosShutdown"></label>
+							<input type="checkbox" id="savePlayPosShutdown" name="savePlayPosShutdown" value="false">
+							<label for="savePlayPosShutdown" data-i18n="general.options.savePlayPosShutdown"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
@@ -1903,38 +1903,13 @@
 			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
 			$('#playMono').prop('checked', genSettings.playMono);
-			$('#savePlayPosShutdwon').prop('checked', genSettings.savePlayPosExit);
+			$('#savePlayPosShutdown').prop('checked', genSettings.savePlayPosShtd);
 		}
 		// current values
 		let currSettings = settings.current;
 		if(currSettings) {
 			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
 			volumeSlider.setValue(currSettings.volume);
-		}
-		// default (factory) settings
-		let defSettings = settings.defaults;
-		if(defSettings) {
-			$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
-			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
-			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
-			$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
-			$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
-			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
-			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
-			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
-			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
-			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
-			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
-			$('#playMono').prop('checked', defSettings.playMono);
-			$('#savePlayPosShutdwon').prop('checked', defSettings.savePlayPosExit);
-			$("#playlistSortMode").val(defSettings.sortMode).change();
-			$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
-			$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
-			$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
-			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
-			formatDBTooltip($('#gainLowPass')[0].previousSibling, defSettings.gainLowPass);
-			formatDBTooltip($('#gainBandPass')[0].previousSibling, defSettings.gainBandPass);
-			formatDBTooltip($('#gainHighPass')[0].previousSibling, defSettings.gainHighPass);
 		}
 		let eqSettings = settings.equalizer;
 		if(eqSettings) {
@@ -2020,7 +1995,7 @@
 		}
 	}
 	async function resetSettings() {
-		let defaults = await (await fetch("http://" + host + "/settings?section=defaults")).json();
+		let { defaults } = await (await fetch("http://" + host + "/settings?section=defaults")).json();
 		fillSettings(defaults);
 	}
 	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
@@ -2242,7 +2217,7 @@
 				maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 				sleepInactivity: Number($('#inactivityTime').val()),
 				playMono: $('#playMono').prop('checked'),
-				savePlayPosExit: $('#savePlayPosShutdwon').prop('checked')
+				savePlayPosShtd: $('#savePlayPosShutdown').prop('checked')
 			},
 			"led": {
 				initBrightness: Number($('#initBrightness').val()),
