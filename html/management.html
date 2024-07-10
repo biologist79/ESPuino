@@ -850,6 +850,10 @@
 							<input type="checkbox" id="savePlayPosShutdown" name="savePlayPosShutdown" value="false">
 							<label for="savePlayPosShutdown" data-i18n="general.options.savePlayPosShutdown"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							<br>
+							<input type="checkbox" id="savePlayPosRfidChange" name="savePlayPosRfidChange" value="false">
+							<label for="savePlayPosRfidChange" data-i18n="general.options.savePlayPosRfidChange"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
@@ -1903,7 +1907,8 @@
 			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
 			$('#playMono').prop('checked', genSettings.playMono);
-			$('#savePlayPosShutdown').prop('checked', genSettings.savePlayPosShtd);
+			$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
+			$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChg);
 		}
 		// current values
 		let currSettings = settings.current;
@@ -2217,7 +2222,8 @@
 				maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 				sleepInactivity: Number($('#inactivityTime').val()),
 				playMono: $('#playMono').prop('checked'),
-				savePlayPosShtd: $('#savePlayPosShutdown').prop('checked')
+				savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
+				savePosRfidChg: $('#savePlayPosRfidChange').prop('checked')
 			},
 			"led": {
 				initBrightness: Number($('#initBrightness').val()),
