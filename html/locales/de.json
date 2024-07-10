@@ -273,7 +273,9 @@
             "savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
             "savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
-			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>."
+			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
+			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
+			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein."
 		},
 		"neopixel":{
 			"title":"Neopixel (Helligkeit)",

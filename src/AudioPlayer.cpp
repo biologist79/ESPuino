@@ -80,19 +80,20 @@ void AudioPlayer_Init(void) {
 	uint8_t playListSortModeValue = gPrefsSettings.getUChar("PLSortMode", EnumUtils::underlying_value(AudioPlayer_PlaylistSortMode));
 	AudioPlayer_PlaylistSortMode = EnumUtils::to_enum<playlistSortMode>(playListSortModeValue);
 
-#ifndef USE_LAST_VOLUME_AFTER_REBOOT
-	// Get initial volume from NVS
-	uint32_t nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
-#else
-	// Get volume used at last shutdown
-	uint32_t nvsInitialVolume = gPrefsSettings.getUInt("previousVolume", 999);
-	if (nvsInitialVolume == 999) {
-		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetInitVolume());
-		nvsInitialVolume = AudioPlayer_GetInitVolume();
+	uint32_t nvsInitialVolume;
+	if (!gPrefsSettings.getBool("recoverVolBoot", false)) {
+		// Get initial volume from NVS
+		nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
 	} else {
-		Log_Println(rememberLastVolume, LOGLEVEL_ERROR);
+		// Get volume used at last shutdown
+		nvsInitialVolume = gPrefsSettings.getUInt("previousVolume", 999);
+		if (nvsInitialVolume == 999) {
+			gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetInitVolume());
+			nvsInitialVolume = AudioPlayer_GetInitVolume();
+		} else {
+			Log_Println(rememberLastVolume, LOGLEVEL_ERROR);
+		}
 	}
-#endif
 
 	if (nvsInitialVolume) {
 		AudioPlayer_SetInitVolume(nvsInitialVolume);

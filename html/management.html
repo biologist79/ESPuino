@@ -843,10 +843,6 @@
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset >
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
-							<input type="checkbox" id="playMono" name="playMono" value="false">
-							<label for="playMono" data-i18n="general.options.playMono"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
-							<br>
 							<input type="checkbox" id="savePlayPosShutdown" name="savePlayPosShutdown" value="false">
 							<label for="savePlayPosShutdown" data-i18n="general.options.savePlayPosShutdown"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
@@ -858,6 +854,14 @@
 							<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 							<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.pauseOnMinVolumeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							<br>
+							<input type="checkbox" id="recoverVolBoot" name="recoverVolBoot" value="false">
+							<label for="recoverVolBoot" data-i18n="general.options.recoverVolBoot"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.recoverVolBootExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							<br>
+							<input type="checkbox" id="playMono" name="playMono" value="false">
+							<label for="playMono" data-i18n="general.options.playMono"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
@@ -1914,6 +1918,7 @@
 			$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 			$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChg);
 			$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
+			$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 		}
 		// current values
 		let currSettings = settings.current;
@@ -2229,7 +2234,8 @@
 				playMono: $('#playMono').prop('checked'),
 				savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 				savePosRfidChg: $('#savePlayPosRfidChange').prop('checked'),
-				pauseOnMinVol: $('#pauseOnMinVolume').prop('checked')
+				pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
+				recoverVolBoot: $('#recoverVolBoot').prop('checked')
 			},
 			"led": {
 				initBrightness: Number($('#initBrightness').val()),

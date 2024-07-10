@@ -273,7 +273,9 @@
 			"savePlayPosRfidChange": "Remember playback position at RFID tag change",
 			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"pauseOnMinVolume": "Pause at minimum volume",
-			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>"
+			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
+			"recoverVolBoot": "Use last volume at restart",
+			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again."
 		},
 		"neopixel":{
 			"title":"Neopixel (brightness)",
