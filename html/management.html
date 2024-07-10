@@ -854,6 +854,10 @@
 							<input type="checkbox" id="savePlayPosRfidChange" name="savePlayPosRfidChange" value="false">
 							<label for="savePlayPosRfidChange" data-i18n="general.options.savePlayPosRfidChange"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							<br>
+							<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
+							<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.pauseOnMinVolumeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
@@ -1909,6 +1913,7 @@
 			$('#playMono').prop('checked', genSettings.playMono);
 			$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 			$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChg);
+			$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 		}
 		// current values
 		let currSettings = settings.current;
@@ -2223,7 +2228,8 @@
 				sleepInactivity: Number($('#inactivityTime').val()),
 				playMono: $('#playMono').prop('checked'),
 				savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
-				savePosRfidChg: $('#savePlayPosRfidChange').prop('checked')
+				savePosRfidChg: $('#savePlayPosRfidChange').prop('checked'),
+				pauseOnMinVol: $('#pauseOnMinVolume').prop('checked')
 			},
 			"led": {
 				initBrightness: Number($('#initBrightness').val()),

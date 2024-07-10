@@ -142,6 +142,7 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_StationLogoUrl = "";
 	gPlayProperties.playlist = new Playlist();
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
 
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
@@ -962,22 +963,22 @@ void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t g
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
-#ifdef PAUSE_ON_MIN_VOLUME
-	if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
-		return;
-	}
+	if (gPlayProperties.pauseOnMinVolume) {
+		if(gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
+			return;
+		}
 
-	if (!gPlayProperties.pausePlay) { // Volume changes from 1 to 0
-		if (oldVolume == AudioPlayer_GetMinVolume() + 1 && newVolume == AudioPlayer_GetMinVolume()) {
-			Cmd_Action(CMD_PLAYPAUSE);
+		if (!gPlayProperties.pausePlay) { // Volume changes from 1 to 0
+			if (oldVolume == AudioPlayer_GetMinVolume() + 1 && newVolume == AudioPlayer_GetMinVolume()) {
+				Cmd_Action(CMD_PLAYPAUSE);
+			}
+		}
+		if (gPlayProperties.pausePlay) { // Volume changes from 0 to 1
+			if (oldVolume == AudioPlayer_GetMinVolume() && newVolume > AudioPlayer_GetMinVolume()) {
+				Cmd_Action(CMD_PLAYPAUSE);
+			}
 		}
 	}
-	if (gPlayProperties.pausePlay) { // Volume changes from 0 to 1
-		if (oldVolume == AudioPlayer_GetMinVolume() && newVolume > AudioPlayer_GetMinVolume()) {
-			Cmd_Action(CMD_PLAYPAUSE);
-		}
-	}
-#endif
 }
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given

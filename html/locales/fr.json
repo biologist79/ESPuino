@@ -267,11 +267,13 @@
 		"options": {
 			"title": "Options",
 			"playMono": "Lecture mono",
-			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>",
+			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>.",
 			"savePlayPosShutdown": "Mémoriser la position de lecture à l'extinction",
 			"savePlayPosShutdownExp": "Lorsque la boîte est éteinte, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Mémoriser la position de lecture au changement de tag RFID",
-			"savePlayPosRfidChangeExp": "Lors du passage à une nouvelle balise RFID, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>."
+			"savePlayPosRfidChangeExp": "Lors du passage à une nouvelle balise RFID, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"pauseOnMinVolume": "Pause au volume minimal",
+			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum.Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>."
 		},
 		"neopixel":{
 			"title":"Neopixel (luminosité)",
