@@ -275,7 +275,7 @@
 					<div class="d-flex pb-3 gap-2 align-items-center">
 						<i class="fas fa-volume-down fa-2x"></i>
 						<div class="flex-grow-1">
-							<input type="range" class="form-range" min="-6" max="6" id="gainLowPass" name="gainLowPass" required>
+							<input type="range" class="form-range" min="-6" max="6" id="gainLowPass" name="gainLowPass" data-bs-toggle="tooltip" data-toggle-mask="%dB" required>
 						</div>
 						<i class="fas fa-volume-up fa-2x"></i>
 					</div>
@@ -284,7 +284,7 @@
 					<div class="d-flex pb-3 gap-2 align-items-center">
 						<i class="fas fa-volume-down fa-2x"></i>
 						<div class="flex-grow-1">
-							<input type="range" class="form-range" min="-6" max="6" id="gainBandPass" name="gainBandPass" required>
+							<input type="range" class="form-range" min="-6" max="6" id="gainBandPass" name="gainBandPass" data-bs-toggle="tooltip" data-toggle-mask="%dB" required>
 						</div>
 						<i class="fas fa-volume-up fa-2x"></i>
 					</div>
@@ -293,7 +293,7 @@
 					<div class="d-flex pb-3 gap-2 align-items-center">
 						<i class="fas fa-volume-down fa-2x"></i>
 						<div class="flex-grow-1">
-							<input type="range" class="form-range" min="-6" max="6" id="gainHighPass" name="gainHighPass" required>
+							<input type="range" class="form-range" min="-6" max="6" id="gainHighPass" name="gainHighPass" data-bs-toggle="tooltip" data-toggle-mask="%dB" required>
 						</div>
 						<i class="fas fa-volume-up fa-2x"></i>
 					</div>
@@ -457,19 +457,19 @@
 				<br>
 				<legend data-i18n="control.volume" class="col-auto"></legend>
 				<div class="d-flex pb-3 gap-2 align-items-center">
-						<button type="button" class="btn btn-primary btn-lg volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
-							<span class="fas fa-volume-down"></span>
-						</button>
+					<button type="button" class="btn btn-primary btn-lg volume-button" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+						<span class="fas fa-volume-down"></span>
+					</button>
 					<div class="flex-grow-1">
-						<input type="range" class="form-range" min="1" max="21" name="volume" id="setVolume">
+						<input type="range" class="form-range" min="1" max="21" name="volume" id="setVolume" data-bs-toggle="tooltip">
 					</div>
 					<button type="button" class="btn btn-primary btn-lg volume-button float-end" onclick="sendControl(176)" data-i18n="[title]control.volup">
-							<span class="fas fa-volume-up"></span>
-						</button>
+						<span class="fas fa-volume-up"></span>
+					</button>
 					<button type="button" class="openPopupEqualizer btn btn-primary btn-lg volume-button" data-i18n="[title]general.equalizer.title">
 						<span class="fas fa-sliders-h"></span>
-						</button>
-					</div>
+					</button>
+				</div>
 				<br />
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.current"></legend>
@@ -736,7 +736,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-volume-down fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="1" max="21" id="initialVolume" name="initialVolume" required>
+									<input type="range" class="form-range" min="1" max="21" id="initialVolume" name="initialVolume" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-volume-up fa-2x"></i>
 							</div>
@@ -744,15 +744,15 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-volume-down fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="1" max="21" id="maxVolumeSpeaker" name="maxVolumeSpeaker" required>
+									<input type="range" class="form-range" min="1" max="21" id="maxVolumeSpeaker" name="maxVolumeSpeaker" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-volume-up fa-2x"></i>
-								</div>
+							</div>
 							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-volume-down fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="1" max="21" id="maxVolumeHeadphone" name="maxVolumeHeadphone" required>
+									<input type="range" class="form-range" min="1" max="21" id="maxVolumeHeadphone" name="maxVolumeHeadphone" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-volume-up fa-2x"></i>
 							</div>
@@ -793,15 +793,15 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="far fa-sun fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="0" max="254" id="initBrightness" name="initBrightness" required>
+									<input type="range" class="form-range" min="0" max="254" id="initBrightness" name="initBrightness" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-sun fa-2x"></i>
-								</div>
+							</div>
 							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="far fa-sun fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="0" max="255" id="nightBrightness" name="nightBrightness" required>
+									<input type="range" class="form-range" min="0" max="255" id="nightBrightness" name="nightBrightness" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-sun fa-2x"></i>
 							</div>
@@ -814,7 +814,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-hourglass-start fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="0" max="30" id="inactivityTime" name="inactivityTime" required>
+									<input type="range" class="form-range" min="0" max="30" id="inactivityTime" name="inactivityTime" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fa-hourglass-end fa-2x"></i>
 							</div>
@@ -829,7 +829,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-battery-quarter fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="2.5" max="5.0" step="0.1" id="warningLowVoltage" name="warningLowVoltage" required>
+									<input type="range" class="form-range" min="2.5" max="5.0" step="0.1" id="warningLowVoltage" name="warningLowVoltage" data-bs-toggle="tooltip" data-toggle-mask="%V" required>
 								</div>
 								<i class="fas fa-battery-three-quarters fa-2x"></i>
 							</div>
@@ -837,7 +837,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-battery-quarter fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="2.5" max="5.0" step="0.1" id="voltageIndicatorLow" name="voltageIndicatorLow" required>
+									<input type="range" class="form-range" min="2.5" max="5.0" step="0.1" id="voltageIndicatorLow" name="voltageIndicatorLow" data-bs-toggle="tooltip" data-toggle-mask="%V" required>
 								</div>
 								<i class="fas fa-battery-three-quarters fa-2x"></i>
 							</div>
@@ -845,7 +845,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fa-battery-quarter fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="2.0" max="5.0" step="0.1" id="voltageIndicatorHigh" name="voltageIndicatorHigh" required>
+									<input type="range" class="form-range" min="2.0" max="5.0" step="0.1" id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-bs-toggle="tooltip" data-toggle-mask="%V" required>
 								</div>
 								<i class="fas fa-battery-three-quarters fa-2x"></i>
 							</div>
@@ -854,7 +854,7 @@
 								<div class="d-flex pb-3 gap-2 align-items-center">
 									<i class="fas fa-battery-quarter fa-2x"></i>
 									<div class="flex-grow-1">
-										<input typ="range" class="form-range" min="2" max="5" step="0.1" id="criticalVoltage" name="criticalVoltage" required>
+										<input typ="range" class="form-range" min="2" max="5" step="0.1" id="criticalVoltage" name="criticalVoltage" data-bs-toggle="tooltip" data-toggle-mask="%V" required>
 									</div>
 									<i class="fas fa-battery-three-quarters fa-2x"></i>
 								</div>
@@ -863,7 +863,7 @@
 							<div class="d-flex pb-3 gap-2 align-items-center">
 								<i class="fas fas fa-hourglass-start fa-2x"></i>
 								<div class="flex-grow-1">
-									<input type="range" class="form-range" min="1" max="60" id="voltageCheckInterval"name="voltageCheckInterval" required>
+									<input type="range" class="form-range" min="1" max="60" id="voltageCheckInterval"name="voltageCheckInterval" data-bs-toggle="tooltip" required>
 								</div>
 								<i class="fas fas fa-hourglass-end fa-2x"></i>
 							</div>
@@ -1809,10 +1809,10 @@
 		// general
 		let genSettings = settings.general;
 		if(genSettings) {
-			$('#initialVolume').val(genSettings.initVolume);
-			$('#maxVolumeSpeaker').val(genSettings.maxVolumeSp);
-			$('#maxVolumeHeadphone').val(genSettings.maxVolumeHp);
-			$('#inactivityTime').val(genSettings.sleepInactivity);
+			$('#initialVolume').val(genSettings.initVolume).trigger('input');
+			$('#maxVolumeSpeaker').val(genSettings.maxVolumeSp).trigger('input');
+			$('#maxVolumeHeadphone').val(genSettings.maxVolumeHp).trigger('input');
+			$('#inactivityTime').val(genSettings.sleepInactivity).trigger('input');
 			$('#playMono').prop('checked', genSettings.playMono);
 			$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 			$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChg);
@@ -1828,13 +1828,9 @@
 		}
 		let eqSettings = settings.equalizer;
 		if(eqSettings) {
-			$("#gainLowPass").val(eqSettings.gainLowPass);
-			$("#gainBandPass").val(eqSettings.gainBandPass);
-			$("#gainHighPass").val(eqSettings.gainHighPass);
-			// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
-			formatDBTooltip($('#gainLowPass')[0].previousSibling, eqSettings.gainLowPass);
-			formatDBTooltip($('#gainBandPass')[0].previousSibling, eqSettings.gainBandPass)
-			formatDBTooltip($('#gainHighPass')[0].previousSibling, eqSettings.gainHighPass);
+			$("#gainLowPass").val(eqSettings.gainLowPass).trigger('input');
+			$("#gainBandPass").val(eqSettings.gainBandPass).trigger('input');
+			$("#gainHighPass").val(eqSettings.gainHighPass).trigger('input');
 		}
 		// wifi
 		let wifiSettings = settings.wifi;
@@ -1853,8 +1849,8 @@
 		let ledSettings = settings.led;
 		if(ledSettings) {
 			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
-			$('#initBrightness').val(ledSettings.initBrightness);
-			$('#nightBrightness').val(ledSettings.nightBrightness);
+			$('#initBrightness').val(ledSettings.initBrightness).trigger('input');
+			$('#nightBrightness').val(ledSettings.nightBrightness).trigger('input');
 		}
 		// playlist
 		let playlistSettings = settings.playlist;
@@ -1865,14 +1861,14 @@
 		let batSettings = settings.battery;
 		if(batSettings) {
 			document.getElementById('batteryConfig').setAttribute('data-visible', true);
-			$('#warningLowVoltage').val(batSettings.warnLowVoltage);
-			$('#voltageIndicatorLow').val(batSettings.indicatorLow);
-			$('#voltageIndicatorHigh').val(batSettings.indicatorHi);
+			$('#warningLowVoltage').val(batSettings.warnLowVoltage).trigger('input');
+			$('#voltageIndicatorLow').val(batSettings.indicatorLow).trigger('input');
+			$('#voltageIndicatorHigh').val(batSettings.indicatorHi).trigger('input');
 			$('#criticalVoltageSection').data('visible', batSettings.criticalVoltage);
 			if(batSettings.criticalVoltage) {
-				$('#criticalVoltage').val(batSettings.criticalVoltage);
+				$('#criticalVoltage').val(batSettings.criticalVoltage).trigger('input');
 			}
-			$('#voltageCheckInterval').val(batSettings.voltageCheckInterval);
+			$('#voltageCheckInterval').val(batSettings.voltageCheckInterval).trigger('input');
 		}
 		// ftp
 		let ftpSettings = settings.ftp;
@@ -2467,12 +2463,34 @@
 		$('title').text(newTitle);
 		$('#navbar-heading').text(newTitle);
 	}
-
-	function formatDBTooltip(target, value) {
-		// Todo FIXME: first, get tooltips
-		// target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value}`;
-	}
 	$(document).ready(function() {
+		
+		// step through all input ranges with tooltips to configure them
+		[...$('.form-range[data-bs-toggle="tooltip"]')].map(rangeEl => {
+			const range = $(rangeEl);
+			const mask = range.data('toggle-mask');
+
+			// if there is a mask, use it, otherwise just return the value
+			const formatTooltip = () => {
+				if (mask) {
+					return mask.replace('%', range.val())
+				}
+				return range.val();
+			}
+
+			// setup the tooltip
+			const tt = new bootstrap.Tooltip(rangeEl,
+				{
+					animation: false,
+					trigger: 'hover',
+					title: formatTooltip()
+				}
+			);
+
+			// update the tooltip content each time the input is changing
+			range.on('input', () => tt.setContent({ '.tooltip-inner': formatTooltip() }));
+		});
+
 		connect();
 		buildFileSystemTree("/");
 		$('#deleteSSIDModal').on('show.bs.modal', function(event) {
@@ -2521,7 +2539,6 @@
 			target,
 			value
 		}) {
-			formatDBTooltip(target, value);
 			let myObj = {
 				"equalizer": {
 					gainLowPass: Number(document.getElementById("gainLowPass").value),
@@ -2536,12 +2553,6 @@
 				...myObj
 			};
 			socket.send(myJSON);
-		});
-		$('#modalEqualizer .form-range').on('input', function({
-			target,
-			value
-		}) {
-			formatDBTooltip(target, value);
 		});
 		$(function() {
 			$('[data-bs-toggle="tooltip"]').tooltip();
