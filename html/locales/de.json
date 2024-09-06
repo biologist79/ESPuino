@@ -119,7 +119,7 @@
 		},
 		"rfid":{
 			"title":"RFID-Zuweisungen",
-			"idNumber":"RFID-Chip-Nummer (12-stellig)",
+			"idNumber":"RFID-Chip-Nummer (12-stellig, 900000000001..900000000010 für die virtuellen Karten)",
 			"music":"Musik",
 			"modification":"Modifikation",
 			"savedassignments":"Gespeicherte RFID-Zuweisungen",

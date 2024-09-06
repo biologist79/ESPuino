@@ -119,7 +119,7 @@
 		},
 		"rfid":{
 			"title":"Assignations RFID",
-			"idNumber":"Numéro RFID (12 chiffres)",
+			"idNumber":"Numéro RFID (12 chiffres, 900000000001..900000000010 pour les cartes virtuelles)",
 			"music":"Musique",
 			"modification":"Modification",
 			"savedassignments":"Assignations RFID enregistrées",

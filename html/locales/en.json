@@ -119,7 +119,7 @@
 		},
 		"rfid":{
 			"title":"RFID-Assignments",
-			"idNumber":"RFID-number (12 digits)",
+			"idNumber":"RFID-number (12 digits, 900000000001..900000000010 for the virtual cards)",
 			"music":"Music",
 			"modification":"Modification",
 			"savedassignments":"Saved RFID-assignments",
