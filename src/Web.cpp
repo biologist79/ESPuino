@@ -180,7 +180,7 @@ static void serveProgmemFiles(const String &uri, const String &contentType, cons
 		if (etag) {
 			response = request->beginResponse(304);
 		} else {
-			response = request->beginResponse_P(200, contentType, content, len);
+			response = request->beginResponse(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
 		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
@@ -385,13 +385,13 @@ void webserverStart(void) {
 					if (gFSystem.exists("/.html/index.htm")) {
 						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
 					} else {
-						response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
+						response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
 						response->addHeader("Content-Encoding", "gzip");
 					}
 #endif
 				} else {
 					// serve accesspoint.html in AP-mode
-					response = request->beginResponse_P(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
+					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
 					response->addHeader("Content-Encoding", "gzip");
 				}
 			}
@@ -466,7 +466,7 @@ void webserverStart(void) {
 
 		// ESP-restart
 		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
-			request->send_P(200, "text/html", restartWebsite);
+			request->send(200, "text/html", restartWebsite);
 			System_Restart();
 		});
 
@@ -1023,14 +1023,12 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	}
 #endif
 
-#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 		request->send(500);
 		return;
 	}
-#endif
 	response->setLength();
 	request->send(response);
 	System_UpdateActivityTimer();
@@ -1048,14 +1046,12 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	AsyncJsonResponse *response = new AsyncJsonResponse(false, 2048);
 	JsonObject settingsObj = response->getRoot();
 	settingsToJSON(settingsObj, section);
-#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 		request->send(500);
 		return;
 	}
-#endif
 	response->setLength();
 	request->send(response);
 }
@@ -1104,14 +1100,12 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 		taskObj["stackHighWaterMark"] = task_status_arr[i].usStackHighWaterMark;
 	}
 #endif
-#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 		request->send(500);
 		return;
 	}
-#endif
 	response->setLength();
 	request->send(response);
 }
@@ -1200,7 +1194,6 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 	}
 
-#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	// serialize JSON in a more optimized way using a shared buffer
 	const size_t len = measureJson(doc);
 	AsyncWebSocketMessageBuffer *jsonBuffer = ws.makeBuffer(len);
@@ -1215,24 +1208,6 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	} else {
 		ws.text(client, jsonBuffer);
 	}
-#else
-	// measure length of JSON buffer including the null-terminator
-	const size_t len = measureJson(doc) + 1;
-	char *jBuf = (char *) x_calloc(len, sizeof(char));
-	if (!jBuf) {
-		// we failed to allocate enough memory
-		Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
-		return;
-	}
-	serializeJson(doc, jBuf, len);
-
-	if (client == 0) {
-		ws.textAll(jBuf);
-	} else {
-		ws.text(client, jBuf);
-	}
-	free(jBuf);
-#endif
 }
 
 // Processes websocket-requests
@@ -1493,7 +1468,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
 	File root;
 	if (request->hasParam("path")) {
-		AsyncWebParameter *param;
+		const AsyncWebParameter *param;
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		root = gFSystem.open(filePath);
@@ -1534,14 +1509,12 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 	root.close();
 
-#if defined(ASYNCWEBSERVER_FORK_mathieucarbou)
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
 		request->send(500);
 		return;
 	}
-#endif
 	response->setLength();
 	request->send(response);
 }
@@ -1569,7 +1542,7 @@ bool explorerDeleteDirectory(File dir) {
 // requires a GET parameter path to the file
 void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	File file;
-	AsyncWebParameter *param;
+	const AsyncWebParameter *param;
 	// check has path param
 	if (!request->hasParam("path")) {
 		Log_Println("DOWNLOAD: No path variable set", LOGLEVEL_ERROR);
@@ -1622,7 +1595,7 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	File file;
 	if (request->hasParam("path")) {
-		AsyncWebParameter *param;
+		const AsyncWebParameter *param;
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		if (gFSystem.exists(filePath)) {
@@ -1656,7 +1629,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the new directory
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
-		AsyncWebParameter *param;
+		const AsyncWebParameter *param;
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		if (gFSystem.mkdir(filePath)) {
@@ -1675,8 +1648,8 @@ void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter dstpath to the new file or directory name
 void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
-		AsyncWebParameter *srcPath;
-		AsyncWebParameter *dstPath;
+		const AsyncWebParameter *srcPath;
+		const AsyncWebParameter *dstPath;
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
 		const char *srcFullFilePath = srcPath->value().c_str();
@@ -1701,7 +1674,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 // requires a GET parameter path to the audio file or directory
 // requires a GET parameter playmode
 void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
-	AsyncWebParameter *param;
+	const AsyncWebParameter *param;
 	String playModeString;
 	uint32_t playMode;
 	if (request->hasParam("path") && request->hasParam("playmode")) {
