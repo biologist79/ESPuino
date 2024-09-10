@@ -91,7 +91,8 @@
 		<input type="password" id="pwd" name="pwd" autocomplete="off" required>
 		<br>
 		<label for="hostname" data-i18n="wifi.hostname.title"></label>: <br>
-		<input type="text" id="hostname" name="hostname" value="espuino" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required>
+		<input type="text" id="hostname" name="hostname" value="espuino"
+			pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required>
 		<br>
 		<br>
 		<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
@@ -159,7 +160,7 @@
 			console.log(data);
 			var list = document.getElementById("WiFiList");
 			var h = "";
-			data.map(function(WiFis) {
+			data.map(function (WiFis) {
 				h += `<div class="ssid" onclick="selectWiFi('${WiFis.ssid}')"><a href="#"><div class="${WiFis.wico}" title="${WiFis.quality}% (${WiFis.rssi} dBm)"><div class="${WiFis.pico}" title="${WiFis.ssid}.(${WiFis.bssid})">${WiFis.ssid}</div></div></a></div>\n`;
 			});
 			h += "<br>";
@@ -167,7 +168,7 @@
 			setTimeout(getWiFiList, 5000);
 		}
 		// disable static input fields on toggle
-		document.getElementById('static_enabled').onchange = function() {
+		document.getElementById('static_enabled').onchange = function () {
 			let new_style = this.checked ? null : "none";
 			document.getElementById("wifi_static_div").style.display = new_style;
 		};
@@ -178,7 +179,7 @@
 				pwd: document.getElementById('pwd').value,
 				static: static
 			};
-			if(static) {
+			if (static) {
 				myObj = {
 					...myObj,
 					static_addr: document.getElementById('static_addr').value,
@@ -215,7 +216,7 @@
 			let hostnameElem = document.getElementById("hostname");
 			let scanWifiElem = document.getElementById("scan_wifi_on_start");
 			let config = await (await fetch("/wificonfig")).json();
-			if(config.hostname && config.hostname !== "") {
+			if (config.hostname && config.hostname !== "") {
 				hostnameElem.value = config.hostname;
 				hostnameElem.defaultValue = config.hostname;
 			}
@@ -223,4 +224,5 @@
 		}
 	</script>
 </body>
+
 </html>
