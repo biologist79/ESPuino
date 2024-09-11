@@ -308,6 +308,10 @@ static NumberType toNumber(const std::string_view str) {
 // Is called if there's a new MQTT-message for us
 void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length) {
 #ifdef MQTT_ENABLE
+	// If message's size is zero => discard (https://forum.espuino.de/t/mqtt-broker-verbindung-von-iobroker-schaltet-espuino-aus/3167)
+	if (!length) {
+		return;
+	}
 	const std::string_view receivedString {reinterpret_cast<const char *>(payload), length};
 
 	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString.size(), receivedString.data());
