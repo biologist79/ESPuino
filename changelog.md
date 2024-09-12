@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 10.09.2024: Porting to new web server library completed
 * 09.06.2024: Consume about 50% less CPU time in Audio library
 * 09.06.2024: Replace 3rd party library toastr (#331), thanks to @trainbird !
 * 09.06.2024: Modernized webserver & optimized JSON delivery (#332)
