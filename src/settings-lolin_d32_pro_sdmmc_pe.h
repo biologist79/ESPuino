@@ -5,12 +5,12 @@
     #include "Arduino.h"
 
     //######################### INFOS ####################################
-    /* This is a PCB-specific config-file for *Wemos Lolin32 D32 pro with port-expander PCA9555PW and SD_MMC*.
-    PCB: t.b.a.
-    Forum: https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866
+    /* This is a PCB-specific config-file for *ESPuino-mini 4Layer*, with *Wemos Lolin32 D32 pro with port-expander PCA9555PW and SD_MMC*.
+    PCB: https://forum.espuino.de/uploads/short-url/6TJG0zPyEkCeini3F9IMmSJKBPN.step
+    Forum: https://forum.espuino.de/t/espuino-mini-4layer/1661
     Infos: https://www.wemos.cc/en/latest/d32/d32_pro.html
     Schematics Lolin D32 pro: https://www.wemos.cc/en/latest/_static/files/sch_d32_pro_v2.0.0.pdf
-    Schematics PCB: t.b.a.
+    Schematics PCB: https://forum.espuino.de/uploads/short-url/bmlobTFYTWQd3ApL5mZE085ndNM.pdf
     Caveats: GPIO35 (battery monitoring) + don't use internal SD-slot as it's to capable of SD_MMC because of its pin-layout!
     Status:
         tested with PN5180 + SD_MMC (by biologist79)
@@ -92,9 +92,9 @@
     #define WAKEUP_BUTTON                   36          // Defines the button that is used to wake up ESPuino from deepsleep; set to 99 to disable
 
     // Power-control
-    #define POWER                           32          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #define POWER                           115         // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
     #ifdef POWER
-        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
+        #define INVERT_POWER                            // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
     #endif
 
     // (optional) Neopixel
