@@ -415,7 +415,7 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content bg-light text-dark">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.delete.title"></h5>
 				</div>
 				<div class="modal-body">
 				</div>
@@ -431,10 +431,10 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content bg-light text-dark">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.erase.title"></h5>
 				</div>
 				<div class="modal-body">
-					<label data-i18n="tools.nvserase.prompt"></label>
+					<label data-i18n="tools.erase.prompt"></label>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
@@ -2766,8 +2766,8 @@
 			})
 			$('#deleteRFIDModal').on('show.bs.modal', function (event) {
 				var rfid = $(event.relatedTarget).data('rfid')
-				$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
-				$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", {
+				$(this).find('.modal-title').text(i18next.t("tools.nvs.delete.title"));
+				$(this).find('.modal-body').text(i18next.t("tools.nvs.delete.prompt", {
 					rfid: rfid
 				}));
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
