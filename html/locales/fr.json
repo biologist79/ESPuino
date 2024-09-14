@@ -11,6 +11,7 @@
 	"cancel": "Annuler",
 	"refresh": "Actualiser",
 	"ok": "OK",
+    "showhide": "Afficher/Masquer",
 	"infos": "Infos",
 	"darkmode": "Mode sombre",
 	"restartinfo": "ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
@@ -18,7 +19,7 @@
 	"toast": {
 		"rfidDetect": "Étiquette RFID {{rfidId}} détectée.",
 		"success": "Action effectuée avec succès.",
-		"conlost": "Connexion à l'ESPuino perdue ! Veuillez recharger la page.",
+		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
 		"dropout": "flux lent, des interruptions sont possibles."
 	},
 	"nav": {
@@ -64,9 +65,9 @@
 		},
 		"delete": {
 			"title": "Supprimer WiFi",
-			"prompt": "Supprimer le WiFi enregistré \"{{ssid}}\" ?"
+			"prompt": "Supprimer le WiFi enregistré \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Prêt à partir ?"
+		"restartPrompt": "Prêt à partir?"
 	},
 	"control": {
 		"title": "Contrôle",
@@ -106,8 +107,8 @@
 		"upload": {
 			"title": "Télécharger",
 			"desc": "Démarrer le téléchargement",
-			"selectFolder": "Veuillez sélectionner l'emplacement de téléchargement !",
-			"selectFile": "Veuillez sélectionner les fichiers à télécharger !",
+			"selectFolder": "Veuillez sélectionner l'emplacement de téléchargement!",
+			"selectFile": "Veuillez sélectionner les fichiers à télécharger!",
 			"success": "Téléchargement réussi ({{elapsed}}, {{speed}} Ko/s)",
 			"error": "Erreur de téléchargement",
 			"timeCalc": "Le temps restant est calculé..",
@@ -122,7 +123,6 @@
 			"idNumber": "Numéro RFID (12 chiffres)",
 			"music": "Musique",
 			"modification": "Modification",
-			"savedassignments": "Assignations RFID enregistrées",
 			"fileurl": {
 				"title": "Fichier, répertoire ou URL (^ et # ne sont pas autorisés comme caractères)",
 				"placeholder": "par exemple /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
@@ -290,19 +290,30 @@
 		}
 	},
 	"tools": {
-		"nvserase": {
-			"title": "Effacer les assignations RFID NVS",
-			"desc": "Via l'importateur, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas effacées. Seules les anciennes assignations au même entrée seront écrasées. Avec cette fonction, toutes les assignations RFID existantes seront effacées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> en allemand.",
-			"button": "Supprimer les assignations",
-			"prompt": "Effacer toutes les assignations RFID NVS enregistrées ?"
-		},
-		"nvsdelete": {
-			"title": "Supprimer l'assignation RFID NVS",
-			"prompt": "Supprimer l'assignation \"{{rfid}}\" ?"
-		},
-		"nvsimport": {
-			"title": "Importateur RFID NVS",
-			"desc": "Le fichier de sauvegarde peut être téléchargé ici pour importer les assignations RFID NVS."
+		"nvs":{
+			"title": "Assignations RFID enregistrées",
+			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",
+			"list":{
+				"title": "Liste de toutes les affectations RFID enregistrées"
+			},
+			"erase":{
+				"title": "Effacer toutes les assignations RFID",
+				"desc": "Via l'importateur, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas effacées. Seules les anciennes assignations au même entrée seront écrasées. Avec cette fonction, toutes les assignations RFID existantes seront effacées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> (en allemand).",
+				"button": "Supprimer toutes les assignations",
+				"prompt": "Effacer toutes les assignations RFID enregistrées?"
+			},
+			"delete":{
+				"title":"Effacer le assignations RFID",
+				"prompt":"Remove assignment \"{{rfid}}\"?"
+			},
+			"import":{
+				"title": "Importer",
+				"desc": "Le fichier de sauvegarde peut être téléchargé ici pour importer les assignations RFID."
+			},
+			"export":{
+				"title":"Exporter",
+				"desc":"Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les attributions RFID."
+			}
 		},
 		"fwupdate": {
 			"title": "Mise à jour du micrologiciel",
@@ -312,7 +323,7 @@
 	"help": {
 		"forum": {
 			"title": "Forum",
-			"desc": "Rencontrez-vous des problèmes ou souhaitez-vous discuter à propos d'ESPuino ?<br /> Rejoignez-nous sur le <a href=\"https://forum.espuino.de\" target=\"_blank\">Forum ESPuino</a> ! Surtout, il y a beaucoup de <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> en ligne !"
+			"desc": "Rencontrez-vous des problèmes ou souhaitez-vous discuter à propos d'ESPuino?<br /> Rejoignez-nous sur le <a href=\"https://forum.espuino.de\" target=\"_blank\">Forum ESPuino</a>! Surtout, il y a beaucoup de <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> en ligne!"
 		},
 		"swagger": {
 			"title": "Swagger",
