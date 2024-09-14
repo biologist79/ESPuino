@@ -2,6 +2,11 @@
 
 ## DEV-branch
 
+* 12.09.2024: PlatformIO package 6.8.1 (Arduino 2.0.17, ESP-IDF 4.4.7)
+* 12.09.2024: Change default settings to match "ESPuino-mini 4Layer" board
+* 11.09.2024: Fix string's expected length for rfid-cmnd via mqtt
+* 11.09.2024: Ignore mqtt messages with length zero
+* 10.09.2024: Porting to new web server library completed
 * 09.06.2024: Consume about 50% less CPU time in Audio library
 * 09.06.2024: Replace 3rd party library toastr (#331), thanks to @trainbird !
 * 09.06.2024: Modernized webserver & optimized JSON delivery (#332)
