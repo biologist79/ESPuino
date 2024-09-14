@@ -1,6 +1,7 @@
 # Changelog
 
-## DEV-branch
+
+## Version 2.2 (17.01.2024)
 
 * 09.06.2024: Consume about 50% less CPU time in Audio library
 * 09.06.2024: Replace 3rd party library toastr (#331), thanks to @trainbird !
@@ -93,7 +94,7 @@
 * 07.11.2023: Set timezone after startup, thanks to @Joe91 !
 
 
-## Version 2 (07.11.2023)
+## Version 2.1 (07.11.2023)
 
 * 04.11.2023: LPCD: wakeup check for ISO-14443 cards also with IRQ connected to port-expander
 * 04.11.2023: Bugfix for showing wrong loglevel
