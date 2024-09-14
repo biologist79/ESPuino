@@ -1,6 +1,6 @@
 # Changelog
 
- ## DEV-branch
+## DEV-branch
 
 * 09.06.2024: Consume about 50% less CPU time in Audio library
 * 09.06.2024: Replace 3rd party library toastr (#331), thanks to @trainbird !
