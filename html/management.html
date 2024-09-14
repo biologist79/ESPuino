@@ -1163,25 +1163,27 @@
 							aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
 					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
 						<ul class="list-group" id="rfidListSavedAssignments"></ul>
-					</span><br>
+					</span><br><br>
 				</span>
-				<span class="container" id="exportNvs">
+				<span class="container" style="padding: 0" id="exportNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
 					<p data-i18n="tools.nvs.export.desc"></p>
 					<a type="submit" class="btn btn-primary" data-i18n="submit" href="/explorerdownload?path=/backup.txt" target="_blank"></a>
 					<br><br>
 				</span>
-				<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
-				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="mb-3">
-						<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload" accept=".txt">
-						<br><br>
-						<div class="text-center">
-							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
+					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
+						<div class="mb-3">
+							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
+							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload" accept=".txt">
+							<br><br>
+							<div class="text-center">
+								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							</div>
 						</div>
-					</div>
-				</form>
+					</form>
+				</span>
 				<span class="container" style="padding: 0" id="eraseNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
 					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
