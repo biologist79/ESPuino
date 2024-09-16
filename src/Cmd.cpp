@@ -115,7 +115,7 @@ void Cmd_Action(const uint16_t mod) {
 			gPlayProperties.playUntilTrackNumber = 0;
 			gPlayProperties.sleepAfterPlaylist = !gPlayProperties.sleepAfterPlaylist;
 
-			Cmd_HandleSleepAction(gPlayProperties.sleepAfterCurrentTrack, modificatorSleepAtEOP, "EOP");
+			Cmd_HandleSleepAction(gPlayProperties.sleepAfterPlaylist, modificatorSleepAtEOP, "EOP");
 			System_IndicateOk();
 			break;
 		}
