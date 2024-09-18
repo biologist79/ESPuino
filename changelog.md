@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 18.09.2024: Re-designed tools page (#337), thanks to @caco3 !
 * 16.09.2024: Fix sleep after playlist not toggling nightmode #336, thanks to @dneukirchen !
 * 12.09.2024: PlatformIO package 6.8.1 (Arduino 2.0.17, ESP-IDF 4.4.7)
 * 12.09.2024: Change default settings to match "ESPuino-mini 4Layer" board
