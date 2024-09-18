@@ -11,12 +11,13 @@
 	"cancel": "Cancel",
 	"refresh": "Refresh",
 	"ok": "OK",
+    "showhide": "Show/Hide",
 	"infos": "Infos",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
 	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again..",
 	"toast": {
-		"rfidDetect": "RFID-tag {{rfidId}} detected.",
+		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
 		"dropout": "slow stream, dropouts are possible."
@@ -64,7 +65,7 @@
 		},
 		"delete": {
 			"title": "Delete WiFi",
-			"prompt": "Delete saved WiFi \"{{ssid}}\" ?"
+			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
 		},
 		"restartPrompt": "Ready to go?"
 	},
@@ -118,11 +119,10 @@
 			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
 		},
 		"rfid": {
-			"title": "RFID-Assignments",
-			"idNumber": "RFID-number (12 digits)",
+			"title": "RFID Assignments",
+			"idNumber": "RFID number (12 digits)",
 			"music": "Music",
 			"modification": "Modification",
-			"savedassignments": "Saved RFID-assignments",
 			"fileurl": {
 				"title": "File, directory or URL (^ and # aren't allowed as chars)",
 				"placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
@@ -290,19 +290,30 @@
 		}
 	},
 	"tools": {
-		"nvserase": {
-			"title": "Erase NVS RFID-assignments",
-			"desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
-			"button": "Delete assignments",
-			"prompt": "Erase all saved NVS RFID-assignments?"
-		},
-		"nvsdelete": {
-			"title": "Remove NVS RFID-assignment",
-			"prompt": "Remove assignment \"{{rfid}}\" ?"
-		},
-		"nvsimport": {
-			"title": "NVS RFID-Importer",
-			"desc": "Backupfile can be uploaded right here in order to import NVS-RFID-assignments."
+		"nvs":{
+			"title": "Saved RFID assignments",
+			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
+			"list":{
+				"title": "List of all stored RFID assignments"
+			},
+			"erase":{
+				"title":"Erase all RFID assignments",
+				"desc":"Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing RFID assignments will be erased.<br>Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> (in German).",
+				"button":"Delete all assignments",
+				"prompt":"Erase all saved RFID assignments?"
+			},
+			"delete":{
+				"title":"Erase RFID assignment",
+				"prompt":"Remove assignment \"{{rfid}}\"?"
+			},
+			"import":{
+				"title":"Import",
+				"desc":"A backup file can be uploaded here in order to import RFID assignments."
+			},
+			"export":{
+				"title":"Export",
+				"desc":"A backup file can be download here in order to export the RFID assignments."
+			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",

@@ -11,6 +11,7 @@
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
 	"ok": "OK",
+    "showhide": "Ein-/Ausblenden",
 	"infos": "Infos",
 	"darkmode": "Dunkelmodus",
 	"restartinfo": "ESPuino wird jetzt neu gestartet...<br>Die Seite lädt sich nach dem Neustart automatisch neu.",
@@ -122,7 +123,6 @@
 			"idNumber": "RFID-Chip-Nummer (12-stellig)",
 			"music": "Musik",
 			"modification": "Modifikation",
-			"savedassignments": "Gespeicherte RFID-Zuweisungen",
 			"fileurl": {
 				"title": "Datei, Verzeichnis oder URL (^ und # als Zeichen nicht erlaubt)",
 				"placeholder": "z.B. /mp3/Hoerspiele/Yakari/Yakari_und_seine_Freunde.mp3"
@@ -290,19 +290,30 @@
 		}
 	},
 	"tools": {
-		"nvserase": {
-			"title": "NVS RFID-Zuweisungen löschen",
-			"desc": "Über den Importer werden lediglich neue Einträge importiert, jedoch keine bestehenden Einträge aktiv gelöscht. Im Falle einer doppelten Zuweisung wird ein Eintrag allenfalls überschrieben. Mit dieser Funktion können alle bestehenden NVS-RFID-Zuweisungen gelöscht werden, so dass der ESPuino im Anschluss keinerlei Karten mehr kennt. Wird im Anschluss der Importer gestartet, befinden sich im Speicher des ESPuino anschließend exakt nur solche Zuweisungen, die Teil der Backup-Datei sind. Weitere Infos gibt es <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">hier</a>.",
-			"button": "Zuweisungen löschen",
-			"prompt": "Alle RFID-Zuweisungen wirklich löschen?"
-		},
-		"nvsdelete": {
-			"title": "NVS RFID-Zuweisung entfernen",
-			"prompt": "Gespeicherte Zuweisung \"{{rfid}}\" wirklich entfernen?"
-		},
-		"nvsimport": {
-			"title": "NVS RFID-Importer",
-			"desc": "Hier kann eine Backup-Datei hochgeladen werden, um NVS-RFID-Zuweisungen zu importieren."
+		"nvs":{
+			"title": "Gespeicherte RFID-Zuweisungen",
+			"desc": "Die RFID-Zuweisungen werden nicht auf der SD-Karte, sondern im internen, nicht-flüchtigen Speicher (NVS) des ESPuinos gespeichert.",
+			"list":{
+				"title": "Liste aller gespeicherten RFID-Zuweisungen"
+			},
+			"erase":{
+				"title":"Alle RFID-Zuweisungen löschen",
+				"desc":"Über den Importer werden lediglich neue Einträge importiert, jedoch keine bestehenden Einträge aktiv gelöscht. Im Falle einer doppelten Zuweisung wird ein Eintrag allenfalls überschrieben. Mit dieser Funktion können alle bestehenden RFID-Zuweisungen gelöscht werden, so dass der ESPuino im Anschluss keinerlei Karten mehr kennt. Wird im Anschluss der Importer gestartet, befinden sich im Speicher des ESPuino anschließend exakt nur solche Zuweisungen, die Teil der Backup-Datei sind. Weitere Infos gibt es <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">hier</a>.",
+				"button":"Alle Zuweisungen löschen",
+				"prompt":"Alle RFID-Zuweisungen wirklich löschen?"
+			},
+			"delete":{
+				"title":"RFID-Zuweisung entfernen",
+				"prompt":"Gespeicherte Zuweisung \"{{rfid}}\" wirklich entfernen?"
+			},
+			"import":{
+				"title":"Import",
+				"desc":"Hier kann eine Backup-Datei hochgeladen werden, um RFID-Zuweisungen zu importieren."
+			},
+			"export":{
+				"title":"Export",
+				"desc":"Hier kann eine Backup-Datei heruntergeladen werden, um RFID-Zuweisungen zu exportieren."
+			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",

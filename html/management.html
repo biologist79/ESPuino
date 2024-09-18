@@ -415,7 +415,7 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content bg-light text-dark">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.delete.title"></h5>
 				</div>
 				<div class="modal-body">
 				</div>
@@ -431,10 +431,10 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content bg-light text-dark">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.erase.title"></h5>
 				</div>
 				<div class="modal-body">
-					<label data-i18n="tools.nvserase.prompt"></label>
+					<label data-i18n="tools.nvs.erase.prompt"></label>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
@@ -1153,38 +1153,44 @@
 			<br />
 		</div>
 		<!-- ### Tab Tools ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
-			aria-labelledby="nav-tools-tab">
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 			<div class="container" id="savedAssignments">
-				<legend data-i18n="files.rfid.savedassignments"></legend>
-				<ul class="list-group" id="rfidListSavedAssignments">
-				</ul>
-				<hr>
-			</div>
-			<div class="container" id="eraseNvs">
-				<legend data-i18n="tools.nvserase.title"></legend>
-				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
-					<p></p>
-				</div>
-				<div class="text-center">
-					<button type="submit" class="btn btn-danger" data-i18n="tools.nvserase.button"
-						data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
-				</div>
-				<hr>
-			</div>
-			<div class="container" id="importNvs">
-				<legend data-i18n="tools.nvsimport.title"></legend>
-				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
-					onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="mb-3">
-						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload"
-							accept=".txt">
-					</div>
+				<legend data-i18n="tools.nvs.title"></legend>
+				<p data-i18n="tools.nvs.desc"></p>
+				<span class="container" style="padding: 0" id="listNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
+					<button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#rfidListSavedAssignmentsContainer" aria-expanded="false" 
+							aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
+					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
+						<ul class="list-group" id="rfidListSavedAssignments"></ul>
+					</span><br><br>
+				</span>
+				<span class="container" style="padding: 0" id="exportNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
+					<p data-i18n="tools.nvs.export.desc"></p>
+					<a type="submit" class="btn btn-primary" data-i18n="submit" href="/explorerdownload?path=/backup.txt" target="_blank"></a>
+					<br><br>
+				</span>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
+					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
+						<div class="mb-3">
+							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
+							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload" accept=".txt">
+							<br><br>
+							<div class="text-center">
+								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							</div>
+						</div>
+					</form>
+				</span>
+				<span class="container" style="padding: 0" id="eraseNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
+					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
 					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 					</div>
-				</form>
+				</span>
 				<hr>
 			</div>
 			<div class="container" id="httpUpdate">
@@ -2267,8 +2273,9 @@
 				rfidElem.appendChild(deleteSpan);
 				rfidListSavedAssignments.appendChild(rfidElem);
 			}
-			document.getElementById('savedAssignments').setAttribute('data-visible', (rfidList.length > 0));
+			document.getElementById('listNvs').setAttribute('data-visible', (rfidList.length > 0));
 			document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
+			document.getElementById('exportNvs').setAttribute('data-visible', (rfidList.length > 0));
 		}
 		async function deleteRFID(tagId) {
 			console.log("deleting", tagId);
@@ -2763,8 +2770,8 @@
 			})
 			$('#deleteRFIDModal').on('show.bs.modal', function (event) {
 				var rfid = $(event.relatedTarget).data('rfid')
-				$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
-				$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", {
+				$(this).find('.modal-title').text(i18next.t("tools.nvs.delete.title"));
+				$(this).find('.modal-body').text(i18next.t("tools.nvs.delete.prompt", {
 					rfid: rfid
 				}));
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
