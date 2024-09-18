@@ -11,7 +11,7 @@
 	"cancel": "Annuler",
 	"refresh": "Actualiser",
 	"ok": "OK",
-    "showhide": "Afficher/Masquer",
+	"showhide": "Afficher/Masquer",
 	"infos": "Infos",
 	"darkmode": "Mode sombre",
 	"restartinfo": "ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
@@ -290,29 +290,29 @@
 		}
 	},
 	"tools": {
-		"nvs":{
+		"nvs": {
 			"title": "Assignations RFID enregistrées",
 			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",
-			"list":{
+			"list": {
 				"title": "Liste de toutes les affectations RFID enregistrées"
 			},
-			"erase":{
+			"erase": {
 				"title": "Effacer toutes les assignations RFID",
 				"desc": "Via l'importateur, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas effacées. Seules les anciennes assignations au même entrée seront écrasées. Avec cette fonction, toutes les assignations RFID existantes seront effacées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> (en allemand).",
 				"button": "Supprimer toutes les assignations",
 				"prompt": "Effacer toutes les assignations RFID enregistrées?"
 			},
-			"delete":{
-				"title":"Effacer le assignations RFID",
-				"prompt":"Remove assignment \"{{rfid}}\"?"
+			"delete": {
+				"title": "Effacer le assignations RFID",
+				"prompt": "Remove assignment \"{{rfid}}\"?"
 			},
-			"import":{
+			"import": {
 				"title": "Importer",
 				"desc": "Le fichier de sauvegarde peut être téléchargé ici pour importer les assignations RFID."
 			},
-			"export":{
-				"title":"Exporter",
-				"desc":"Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les attributions RFID."
+			"export": {
+				"title": "Exporter",
+				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les attributions RFID."
 			}
 		},
 		"fwupdate": {
