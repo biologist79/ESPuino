@@ -120,7 +120,7 @@
 		},
 		"rfid": {
 			"title": "RFID-Zuweisungen",
-			"idNumber": "RFID-Chip-Nummer (12-stellig)",
+			"idNumber": "RFID-Chip-Nummer (12-stellig) oder <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuell</a>",
 			"music": "Musik",
 			"modification": "Modifikation",
 			"fileurl": {

@@ -120,7 +120,7 @@
 		},
 		"rfid": {
 			"title": "RFID Assignments",
-			"idNumber": "RFID number (12 digits)",
+			"idNumber": "RFID-number (12 digits) or <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtual</a>",
 			"music": "Music",
 			"modification": "Modification",
 			"fileurl": {

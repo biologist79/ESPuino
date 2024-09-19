@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 19.09.2024: Document the virtual cards in the UI #333, thanks to @caco3 !
 * 18.09.2024: Re-designed tools page (#337), thanks to @caco3 !
 * 16.09.2024: Fix sleep after playlist not toggling nightmode #336, thanks to @dneukirchen !
 * 12.09.2024: PlatformIO package 6.8.1 (Arduino 2.0.17, ESP-IDF 4.4.7)
