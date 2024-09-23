@@ -317,5 +317,4 @@
 		#include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 	#endif
 
-	#endif //settings_override
-#endif
+#endif //settings_override
