@@ -94,7 +94,7 @@ void Rfid_Init(void) {
 	xTaskCreatePinnedToCore(
 		Rfid_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
-		2048, /* Stack size in words */
+		2176, /* Stack size in words */
 		NULL, /* Task input parameter */
 		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
@@ -198,7 +198,7 @@ void Rfid_Task(void *parameter) {
 			//
 			// default factory password for ICODE-SLIX2 is {0x0F, 0x0F, 0x0F, 0x0F}
 			//
-			uint8_t password[] = {0x0F, 0x0F, 0x0F, 0x0F};
+			const uint8_t password[] = {0x0F, 0x0F, 0x0F, 0x0F};
 			ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
 			if (ISO15693_EC_OK == myrc) {
 				if (showDisablePrivacyNotification) {

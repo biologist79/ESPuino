@@ -1,0 +1,361 @@
+{
+	"submit": "Soumettre",
+	"restart": "Redémarrer",
+	"reset": "Réinitialiser",
+	"execute": "Exécuter",
+	"title": "ESPuino",
+	"shutdown": "Éteindre",
+	"log": "Journal",
+	"info": "Info",
+	"delete": "Supprimer",
+	"cancel": "Annuler",
+	"refresh": "Actualiser",
+	"ok": "OK",
+	"showhide": "Afficher/Masquer",
+	"infos": "Infos",
+	"darkmode": "Mode sombre",
+	"restartinfo": "ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
+	"shutdowninfo": "ESPuino est maintenant éteint...<br>La page se recharge automatiquement lorsque l'ESPuino est rallumé.",
+	"toast": {
+		"rfidDetect": "Étiquette RFID {{rfidId}} détectée.",
+		"success": "Action effectuée avec succès.",
+		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
+		"dropout": "flux lent, des interruptions sont possibles."
+	},
+	"nav": {
+		"control": "Contrôle",
+		"rfid": "RFID",
+		"wifi": "WiFi",
+		"mqtt": "MQTT",
+		"ftp": "FTP",
+		"bluetooth": "Bluetooth",
+		"general": "Général",
+		"tools": "Outils",
+		"help": "Aide"
+	},
+	"wifi": {
+		"title": "Configuration WiFi",
+		"networks": "Réseaux",
+		"savedNetworks": "Réseaux enregistrés",
+		"ssid": {
+			"title": "Nom du WiFi (SSID)",
+			"placeholder": "SSID",
+			"validation": "Entrez le SSID du WiFi"
+		},
+		"password": {
+			"title": "Mot de passe",
+			"placeholder": "Mot de passe",
+			"validation": "Entrez le mot de passe du WiFi"
+		},
+		"hostname": {
+			"title": "Nom de l'ESPuino (nom d'hôte)",
+			"placeholder": "espuino",
+			"validation": "Entrez un nom d'hôte valide"
+		},
+		"static": {
+			"addr": "Adresse IP statique",
+			"enabled": "Configuration IP statique",
+			"gateway": "Passerelle pour la configuration IP statique",
+			"subnet": "Masque de sous-réseau pour la configuration IP statique",
+			"dns1": "DNS 1 pour la configuration IP statique",
+			"dns2": "DNS 2 pour la configuration IP statique"
+		},
+		"scan": {
+			"enabled": "Démarrer avec le WiFi le plus puissant"
+		},
+		"delete": {
+			"title": "Supprimer WiFi",
+			"prompt": "Supprimer le WiFi enregistré \"{{ssid}}\"?"
+		},
+		"restartPrompt": "Prêt à partir?"
+	},
+	"control": {
+		"title": "Contrôle",
+		"first": "Premier",
+		"prev": "Précédent",
+		"playpause": "Lecture / Pause",
+		"forward": "Suivant",
+		"last": "Dernier",
+		"volume": "Volume",
+		"voldown": "Diminuer le volume",
+		"volup": "Augmenter le volume",
+		"current": "Piste actuelle",
+		"command": "Exécuter la modification"
+	},
+	"files": {
+		"title": "Fichiers",
+		"loading": "Veuillez patienter...",
+		"context": {
+			"newFolder": "Nouveau dossier",
+			"play": "Lire",
+			"refresh": "Actualiser",
+			"delete": "Supprimer",
+			"rename": "Renommer",
+			"download": "Télécharger"
+		},
+		"files": {
+			"title": "Fichiers",
+			"desc": "Télécharger un ou plusieurs fichiers"
+		},
+		"directory": {
+			"title": "Répertoire",
+			"desc": "Télécharger un répertoire avec tous les fichiers et sous-répertoires"
+		},
+		"search": {
+			"placeholder": "Rechercher des fichiers.."
+		},
+		"upload": {
+			"title": "Télécharger",
+			"desc": "Démarrer le téléchargement",
+			"selectFolder": "Veuillez sélectionner l'emplacement de téléchargement!",
+			"selectFile": "Veuillez sélectionner les fichiers à télécharger!",
+			"success": "Téléchargement réussi ({{elapsed}}, {{speed}} Ko/s)",
+			"error": "Erreur de téléchargement",
+			"timeCalc": "Le temps restant est calculé..",
+			"minutes_one": "minute",
+			"minutes_other": "minutes",
+			"seconds": "secondes",
+			"fewSec": "quelques",
+			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant.."
+		},
+		"rfid": {
+			"title": "Assignations RFID",
+			"idNumber": "Numéro RFID (12 chiffres) ou <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuelle</a>",
+			"music": "Musique",
+			"modification": "Modification",
+			"fileurl": {
+				"title": "Fichier, répertoire ou URL (^ et # ne sont pas autorisés comme caractères)",
+				"placeholder": "par exemple /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
+			},
+			"playmode": {
+				"title": "Mode de lecture",
+				"placeholder": "Sélectionnez le mode",
+				"mode": {
+					"1": "Piste unique",
+					"2": "Piste unique (boucle)",
+					"12": "Piste unique d'un répertoire (aléatoire). Suivi par un mode veille.",
+					"3": "Livre audio",
+					"4": "Livre audio (boucle)",
+					"5": "Toutes les pistes d'un répertoire (triées)",
+					"6": "Toutes les pistes d'un répertoire (aléatoire)",
+					"7": "Toutes les pistes d'un répertoire (triées, boucle)",
+					"9": "Toutes les pistes d'un répertoire (aléatoire, boucle)",
+					"13": "Toutes les pistes d'un sous-répertoire aléatoire (triées)",
+					"14": "Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
+					"8": "Webradio",
+					"11": "Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
+				},
+				"error": "Mode de lecture invalide"
+			},
+			"mod": {
+				"title": "Mod",
+				"placeholder": "Sélectionnez la modification",
+				"cmd": {
+					"100": "Verrouillage des touches",
+					"179": "Mise en veille immédiate",
+					"101": "Mise en veille après 15 minutes",
+					"102": "Mise en veille après 30 minutes",
+					"103": "Mise en veille après 1 heure",
+					"104": "Mise en veille après 2 heures",
+					"105": "Mise en veille après la fin de la piste",
+					"106": "Mise en veille après la fin de la liste de lecture",
+					"107": "Mise en veille après la fin de cinq pistes",
+					"110": "Boucler la liste de lecture",
+					"111": "Boucler la piste",
+					"120": "Diminuer la luminosité des LED (mode nuit)",
+					"130": "Basculer le WiFi",
+					"140": "Basculer le haut-parleur Bluetooth",
+					"141": "Basculer le casque Bluetooth",
+					"142": "Basculer le mode (Normal => Haut-parleur BT => Casque Bluetooth)",
+					"150": "Activer FTP",
+					"151": "Annoncer l'adresse IP",
+					"152": "Annoncer l'heure actuelle",
+					"0": "Supprimer l'assignation",
+					"170": "Basculer Lecture/Pause",
+					"171": "Piste précédente",
+					"172": "Piste suivante",
+					"173": "Première piste",
+					"174": "Dernière piste",
+					"180": "Avancer de n secondes",
+					"181": "Reculer de n secondes"
+				}
+			}
+		}
+	},
+	"mqtt": {
+		"title": "Paramètres MQTT",
+		"enable": "Activer MQTT",
+		"clientId": {
+			"title": "Identifiant client MQTT",
+			"placeholder": "par exemple ESPuino",
+			"validation": ""
+		},
+		"server": {
+			"title": "Serveur MQTT",
+			"placeholder": "par exemple 192.168.2.89",
+			"validation": ""
+		},
+		"user": {
+			"title": "Nom d'utilisateur MQTT (facultatif)",
+			"placeholder": "nom d'utilisateur",
+			"validation": ""
+		},
+		"pwd": {
+			"title": "Mot de passe MQTT (facultatif)",
+			"placeholder": "mot de passe",
+			"validation": ""
+		},
+		"port": {
+			"title": "Port MQTT",
+			"placeholder": "par exemple 1883",
+			"validation": ""
+		}
+	},
+	"ftp": {
+		"title": "Paramètres FTP",
+		"user": {
+			"title": "Nom d'utilisateur FTP",
+			"placeholder": "nom d'utilisateur"
+		},
+		"pwd": {
+			"title": "Mot de passe FTP",
+			"placeholder": "mot de passe"
+		},
+		"start": {
+			"title": "Démarrer serveur FTP",
+			"desc": "Active le serveur FTP jusqu'au redémarrage du périphérique.",
+			"button": "Démarrer le serveur FTP"
+		}
+	},
+	"bt": {
+		"sink": {
+			"title": "ESPuino en tant que haut-parleur Bluetooth",
+			"desc": "ESPuino est démarré en tant que haut-parleur Bluetooth. Après le passage à ce mode, l'interface web ne sera plus disponible jusqu'à ce que le système soit redémarré en mode normal.",
+			"button": "Démarrer en tant que haut-parleur Bluetooth"
+		},
+		"source": {
+			"configtitle": "Paramètres du casque Bluetooth",
+			"title": "Connecter avec un casque Bluetooth",
+			"desc": "Le périphérique se connecte au casque Bluetooth spécifié. Après le passage à ce mode, l'interface web ne sera plus disponible jusqu'à ce que le système soit redémarré en mode normal.",
+			"button": "Démarrer en mode casque"
+		},
+		"device": {
+			"title": "Périphérique Bluetooth (casque)",
+			"placeholder": "par exemple Mon casque sans fil POGS"
+		},
+		"pincode": {
+			"title": "Code PIN de couplage",
+			"placeholder": "par exemple 0000"
+		}
+	},
+	"general": {
+		"language": "Langue",
+		"volume": {
+			"title": "Volume",
+			"restart": "Après le redémarrage",
+			"speakerMax": "Volume maximal (haut-parleur)",
+			"headphoneMax": "Volume maximal (écouteurs)"
+		},
+		"equalizer": {
+			"title": "Égaliseur",
+			"gainLowPass": "Graves (en dB)",
+			"gainBandPass": "Médiums (en dB)",
+			"gainHighPass": "Aigus (en dB)",
+			"info": "Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf."
+		},
+		"neopixel": {
+			"title": "Neopixel (luminosité)",
+			"restart": "Après le redémarrage",
+			"nightmode": "Pour le mode nuit"
+		},
+		"sleep": {
+			"title": "Veille profonde",
+			"inactivity": "Après n minutes d'inactivité"
+		},
+		"battery": {
+			"title": "Batterie",
+			"desc": "Afficher l'état de tension via Neopixel",
+			"lowWarning": "Afficher un avertissement en dessous de ce seuil (en volt)",
+			"lowCritical": "Tension la plus basse (en volt), indiquée par une LED",
+			"criticalShutoff": "En dessous de cette tension (en volt), ESPuino s'éteint",
+			"high": "Tension indiquée par toutes les LED (en volt)",
+			"measureInterval": "Intervalle entre les mesures (en minutes)"
+		},
+		"playlist": {
+			"title": "Playlist",
+			"sortMode": "Mode de tri pour la liste de lecture et le navigateur de fichiers",
+			"strcmp": "Tri standard",
+			"strnatcmp": "Naturel: sensible à la casse",
+			"strnatcasecmp": "Naturel: insensible à la casse"
+		}
+	},
+	"tools": {
+		"nvs": {
+			"title": "Assignations RFID enregistrées",
+			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",
+			"list": {
+				"title": "Liste de toutes les affectations RFID enregistrées"
+			},
+			"erase": {
+				"title": "Effacer toutes les assignations RFID",
+				"desc": "Via l'importateur, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas effacées. Seules les anciennes assignations au même entrée seront écrasées. Avec cette fonction, toutes les assignations RFID existantes seront effacées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> (en allemand).",
+				"button": "Supprimer toutes les assignations",
+				"prompt": "Effacer toutes les assignations RFID enregistrées?"
+			},
+			"delete": {
+				"title": "Effacer le assignations RFID",
+				"prompt": "Remove assignment \"{{rfid}}\"?"
+			},
+			"import": {
+				"title": "Importer",
+				"desc": "Le fichier de sauvegarde peut être téléchargé ici pour importer les assignations RFID."
+			},
+			"export": {
+				"title": "Exporter",
+				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les attributions RFID."
+			}
+		},
+		"fwupdate": {
+			"title": "Mise à jour du micrologiciel",
+			"desc": "La mise à jour du micrologiciel peut être effectuée ici."
+		}
+	},
+	"help": {
+		"forum": {
+			"title": "Forum",
+			"desc": "Rencontrez-vous des problèmes ou souhaitez-vous discuter à propos d'ESPuino?<br /> Rejoignez-nous sur le <a href=\"https://forum.espuino.de\" target=\"_blank\">Forum ESPuino</a>! Surtout, il y a beaucoup de <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> en ligne!"
+		},
+		"swagger": {
+			"title": "Swagger",
+			"desc": "Documentation de l'API REST: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
+		}
+	},
+	"datetime": {
+		"day": "jour",
+		"days": "jours",
+		"hour": "heure",
+		"hours": "heures",
+		"minute": "minute",
+		"minutes": "minutes",
+		"second": "seconde",
+		"seconds": "secondes"
+	},
+	"systeminfo": {
+		"title": "Informations",
+		"softwareversion": "ESPuino {{softwareversion}}",
+		"gitversion": "ESPuino {{gitversion}}",
+		"arduinoversion": "Version Arduino : {{arduinoversion}} (ESP-IDF {{idfversion}})",
+		"hardware": "Matériel : {{hwmodel}}, Révision {{hwrevision}}, CPU : {{hwfreq}} MHZ",
+		"freeheap": "Mémoire libre : {{freeheap}} octets",
+		"largestfreeblock": "Plus grand bloc de mémoire libre : {{largestfreeblock}} octets",
+		"freepsram": "PS-RAM libre : {{freepsram}} octets",
+		"currentip": "Adresse IP actuelle : {{currentip}}",
+		"macAddress": "MAC-Adresse: {{macAddress}}",
+		"rssi": "Force du signal WiFi : {{rssi}} dBm",
+		"audiotimetotal": "Temps total de lecture audio depuis {{firststart}} : {{audiotimetotal}}",
+		"audiotimesincestart": "Temps de lecture depuis le dernier démarrage : {{audiotimesincestart}}",
+		"currvoltage": "Tension de la batterie actuelle : {{currvoltage}} V",
+		"chargelevel": "Niveau de charge actuel : {{chargelevel}} %",
+		"hallsensor": "Valeur nulle du capteur d'effet Hall : {{hsnullfieldvalue}}, actuel : {{hsactual}}, diff : {{hsdiff}}, Dernier état de LastWaitFor : {{hslastwaitforstate}} (attendu : {{hswaited}} ms)"
+	}
+}

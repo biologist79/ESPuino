@@ -63,7 +63,7 @@ float Battery_GetVoltage(void) {
 	for (i = 0; i <= 19; i++) {
 		averagedAnalogValue += (float) analogRead(VOLTAGE_READ_PIN);
 	}
-	averagedAnalogValue /= 20.0;
+	averagedAnalogValue /= 20.0f;
 	return (averagedAnalogValue / maxAnalogValue) * referenceVoltage * factor + offsetVoltage;
 }
 

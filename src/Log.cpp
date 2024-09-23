@@ -37,9 +37,9 @@ void Log_Println(const char *_logBuffer, const uint8_t _minLogLevel) {
 	if (SERIAL_LOGLEVEL >= _minLogLevel) {
 		uint32_t ctime = millis();
 		const String sLogLevel = getLoglevel(_minLogLevel);
-		Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
+		Serial.printf("%s [%" PRIu32 "] ", sLogLevel.c_str(), ctime);
 		Serial.println(_logBuffer);
-		Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);
+		Log_RingBuffer->printf("%s [%" PRIu32 "] ", sLogLevel.c_str(), ctime);
 		Log_RingBuffer->println(_logBuffer);
 	}
 }
@@ -50,9 +50,9 @@ void Log_Print(const char *_logBuffer, const uint8_t _minLogLevel, bool printTim
 		if (printTimestamp) {
 			uint32_t ctime = millis();
 			const String sLogLevel = getLoglevel(_minLogLevel);
-			Serial.printf("%s [%u] ", sLogLevel.c_str(), ctime);
+			Serial.printf("%s [%" PRIu32 "] ", sLogLevel.c_str(), ctime);
 			Serial.print(_logBuffer);
-			Log_RingBuffer->printf("%s [%u] ", sLogLevel.c_str(), ctime);
+			Log_RingBuffer->printf("%s [%" PRIu32 "] ", sLogLevel.c_str(), ctime);
 		} else {
 			Serial.print(_logBuffer);
 		}

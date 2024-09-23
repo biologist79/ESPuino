@@ -1,325 +1,361 @@
 {
-    "submit": "Submit",
-    "restart": "Restart",
-    "reset": "Reset",
-    "execute": "Execute",
-    "title": "ESPuino-Settings",
-    "shutdown": "Shutdown",
-    "log": "Log",
-    "info": "Info",
-    "delete": "Delete",
-    "cancel": "Cancel",
-    "refresh": "Refresh",
-    "restartinfo": "ESPuino is being restarted...\n\nPage reloads automatically after restart finished.",
-    "shutdowninfo": "ESPuino is now switched off...\n\nPage reloads automatically when the ESPuino is switched on again..",
-    "toast": {
-        "rfidDetect": "RFID-tag {{rfidId}} detected.",
-        "success": "Action performed successfully.",
-        "conlost": "Connection to ESPuino broken! Please reload website.",
-        "dropout": "slow stream, dropouts are possible."
-    },
-    "nav": {
-        "control": "Control",
-        "rfid": "RFID",
-        "wifi": "WiFi",
-        "mqtt": "MQTT",
-        "ftp": "FTP",
-        "bluetooth": "Bluetooth",
-        "general": "General",
-        "tools": "Tools",
-        "forum": "Forum"
-    },
-    "wifi": {
-        "title": "WiFi-configuration",
-        "networks": "Networks",
-        "savedNetworks": "Saved Networks",
-        "ssid": {
-            "title": "WiFi-name (SSID)",
-            "placeholder": "SSID",
-            "validation": "Enter WiFi's SSID"
-        },
-        "password": {
-            "title": "Password",
-            "placeholder": "Password",
-            "validation": "Enter the WiFi's password"
-        },
-        "hostname": {
-            "title": "ESPuino's name (hostname)",
-            "placeholder": "espuino",
-            "validation": "Enter a valid hostname"
-        },
-        "static": {
-            "addr": "Static IP-Address",
-            "enabled": "Static IP-Configuration",
-            "gateway": "Gateway for static IP-Configuration",
-            "subnet": "Subnet-mask for static IP-Configuration",
-            "dns1": " DNS 1 for static IP-Configuration",
-            "dns2": "DNS 2 for static IP-Configuration"
-        },
-        "scan": {
-            "enabled": "Start with strongest WiFi"
-        },
-        "delete": {
-            "title": "Delete WiFi",
-            "prompt": "Delete saved WiFi \"{{ssid}}\" ?"
-        },
-      "restartPrompt": "Ready to go?"
-    },
-    "control": {
-        "title": "Control",
-        "first": "First",
-        "prev": "Previous",
-        "playpause": "Play / Pause",
-        "forward": "Next",
-        "last": "Last",
-        "volume": "Volume",
-        "voldown": "Volume Down",
-        "volup": "Volume Up",
-        "current": "Current track",
-        "command": "Execute Modification"
-    },
-    "files": {
-        "title": "Files",
-        "loading": "Please wait...",
-        "context": {
-            "newFolder": "New Folder",
-            "play": "Play",
-            "refresh": "Refresh",
-            "delete": "Delete",
-            "rename": "Rename",
-            "download": "Download"
-        },
-        "files": {
-            "title": "Files",
-            "desc": "Upload one ore more files"
-        },
-        "directory": {
-            "title": "Directory",
-            "desc": "Upload directory with all files and subdirectories"
-        },
-        "search": {
-            "placeholder": "Search files.."
-        },
-        "upload": {
-            "title": "Upload",
-            "desc": "Start Upload",
-            "selectFolder": "Please select the upload location!",
-            "selectFile": "Please select files to upload!",
-            "success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
-            "error": "Upload error",
-            "timeCalc": "Remaining time is being calculated..",
-            "minutes_one": "minute",
-            "minutes_other": "minutes",
-            "seconds": "seconds",
-            "fewSec": "few",
-            "progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
-        },
-        "rfid": {
-            "title": "RFID-Assignments",
-            "idNumber": "RFID-number (12 digits)",
-            "music": "Music",
-            "modification": "Modification",
-            "savedassignments": "Saved RFID-assignments",
-            "fileurl": {
-                "title": "File, directory or URL (^ and # aren't allowed as chars)",
-                "placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
-            },
-            "playmode": {
-                "title": "Playmode",
-                "placeholder":"Select mode",
-                "mode": {
-                    "1":"Single track",
-                    "2":"Single track (loop)",
-                    "12":"Single track of a directory (random). Followed by sleep.",
-                    "3":"Audiobook",
-                    "4":"Audiobook (loop)",
-                    "5":"All tracks of a directory (sorted alph.)",
-                    "6":"All tracks of a directory (random)",
-                    "7":"All tracks of a directory (sorted alph., loop)",
-                    "9":"All tracks of a directory (random, loop)",
-                    "13":"All tracks of a random subdirectory (sorted alph.)",
-                    "14":"All tracks of a random subdirectory (random)",
-                    "8":"Webradio",
-                    "11":"List (files from SD and/or webstreams) from local .m3u-File"
-                },
-                "error": "Invalid playmode"
-            },
-            "mod": {
-                "title": "Mod",
-                "placeholder": "Select modification",
-                "cmd": {
-                    "100": "Keylock",
-                    "179": "Sleep immediately",
-                    "101": "Sleep after 15 minutes",
-                    "102":"Sleep after 30 minutes",
-                    "103":"Sleep after 1 hour",
-                    "104":"Sleep after 2 hours",
-                    "105":"Sleep after end of track",
-                    "106":"Sleep after end of playlist",
-                    "107":"Sleep after end of five tracks",
-                    "110":"Loop playlist",
-                    "111":"Loop track",
-                    "120":"Dimm LEDs (nightmode)",
-                    "130":"Toggle WiFi",
-                    "140":"Toggle Bluetooth Speaker",
-                    "141":"Toggle Bluetooth Headphones",
-                    "142":"Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
-                    "150":"Enable FTP",
-                    "151":"Announce IP-Address",
-                    "152":"Announce current time",
-                    "0":"Remove assignment",
-                    "170":"Toggle Play/Pause",
-                    "171":"Previous track",
-                    "172":"Next track",
-                    "173":"First track",
-                    "174":"Last track",
-                    "180":"Seek forwards (n seconds)",
-                    "181":"Seek backwards (n seconds)"
-                }
-            }
-        }
-    },
-    "mqtt": {
-        "title": "MQTT-settings",
-        "enable": "Enable MQTT",
-        "clientId": {
-            "title": "MQTT-ClientId",
-            "placeholder": "f.e. ESPuino",
-            "validation": ""
-        },
-        "server": {
-            "title": "MQTT-server",
-            "placeholder": "f.e. 192.168.2.89",
-            "validation": ""
-        },
-        "user": {
-            "title": "MQTT-username (optional)",
-            "placeholder": "username",
-            "validation": ""
-        },
-        "pwd": {
-            "title": "MQTT-password (optional)",
-            "placeholder": "password",
-            "validation": ""
-        },
-        "port": {
-            "title": "MQTT-port",
-            "placeholder": "f.e. 1883",
-            "validation": ""
-        }
-    },
-    "ftp": {
-        "title": "FTP-settings",
-        "user": {
-            "title": "FTP-Username",
-            "placeholder": "username"
-        },
-        "pwd": {
-            "title": "FTP-password",
-            "placeholder": "password"
-        },
-        "start": {
-            "title": "Start FTP-server",
-            "desc": "Enables FTP-server until device is restarted.",
-            "button": "Start FTP-server"
-        }
-    },
-    "bt": {
-        "sink": {
-            "title": "ESPuino as Bluetooth speaker",
-            "desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
-            "button": "Start as Bluetooth speaker"
-        },
-        "source": {
-            "configtitle": "Bluetooth headphone settings",
-            "title": "Connect with Bluetooth headphone",
-            "desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",  
-            "button": "Start in headphone mode"
-        },
-        "device": {
-            "title": "Bluetooth device (headphone)",
-            "placeholder": "e.g. My POGS Wireless Headphone"
-        },
-        "pincode": {
-            "title": "Pairing PIN-Code",
-            "placeholder": "e.g. 0000"
-        }
-    },
-    "general": {
-        "volume": {
-            "title": "Volume",
-            "restart": "After restart",
-            "speakerMax": "Max. volume (speaker)",
-            "headphoneMax": "Max. volume (headphones)"
-        },
-        "neopixel": {
-            "title": "Neopixel (brightness)",
-            "restart": "After restart",
-            "nightmode": "For nightmode"
-        },
-        "sleep": {
-            "title": "Deep Sleep",
-            "incativity": "After n minutes inactivity"
-        },
-        "battery": {
-            "title": "Battery",
-            "desc": "Show voltage-status via Neopixel",
-            "lowWarning": "Show warning below this threshold",
-            "lowCritical": "Lowest voltage, that is indicated by one LED",
-            "criticalShutoff": "Below this voltage, ESPuino turns off.",
-            "high": "Voltage, that is indicated by all LEDs",
-            "measureInterval": "Interval between measurements (in minutes)"
-        }
-    },
-    "tools": {
-        "nvserase": {
-            "title": "Erase NVS RFID-assignments",
-            "desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing rfid-assignments will be erased. Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> in German language.",
-            "button": "Delete assignments",
-            "prompt": "Erase all saved NVS RFID-assignments?"
-        },
-        "nvsdelete": {
-            "title": "Remove NVS RFID-assignment",
-            "prompt": "Remove assignment \"{{rfid}}\" ?"
-        },
-        "nvsimport": {
-            "title": "NVS RFID-Importer",
-            "desc": "Backupfile can be uploaded right here in order to import NVS-RFID-assignments."
-        },
-        "fwupdate": {
-            "title": "Firmware-Update",
-            "desc": "Firmware can be updated right here."
-        }
-    },
-    "forum": {
-        "title": "Forum",
-        "desc": "Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german)<br /><a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
-    },
-    "datetime": {
-        "day": "day",
-        "days": "days",
-        "hour": "hour",
-        "hours": "hours",
-        "minute": "minute",
-        "minutes": "minutes",
-        "second": "second",
-        "seconds": "seconds"
-    },
-    "systeminfo": {
-        "title": "Information",
-        "softwareversion": "ESPuino {{softwareversion}}",
-        "gitversion": "ESPuino {{gitversion}}",
-        "arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
-        "hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
-        "freeheap": "Free heap: {{freeheap}} Bytes",
-        "largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
-        "freepsram": "Free PS-RAM: {{freepsram}} Bytes",
-        "currentip": "Current IP-Address: {{currentip}}",
-        "rssi": "WiFi signal strength: {{rssi}} dBm",
-        "audiotimetotal": "Total audio playtime since {{firststart}}: {{audiotimetotal}}", 
-        "audiotimesincestart": "Playtime since last start: {{audiotimesincestart}}", 
-        "currvoltage": "Current battery voltage: {{currvoltage}} V", 
-        "chargelevel": "Current charge level: {{chargelevel}} %", 
-        "hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)" 
-    }
+	"submit": "Submit",
+	"restart": "Restart",
+	"reset": "Reset",
+	"execute": "Execute",
+	"title": "ESPuino",
+	"shutdown": "Shutdown",
+	"log": "Log",
+	"info": "Info",
+	"delete": "Delete",
+	"cancel": "Cancel",
+	"refresh": "Refresh",
+	"ok": "OK",
+	"showhide": "Show/Hide",
+	"infos": "Infos",
+	"darkmode": "Dark Mode",
+	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
+	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again..",
+	"toast": {
+		"rfidDetect": "RFID tag {{rfidId}} detected.",
+		"success": "Action performed successfully.",
+		"conlost": "Connection to ESPuino broken! Please reload website.",
+		"dropout": "slow stream, dropouts are possible."
+	},
+	"nav": {
+		"control": "Control",
+		"rfid": "RFID",
+		"wifi": "WiFi",
+		"mqtt": "MQTT",
+		"ftp": "FTP",
+		"bluetooth": "Bluetooth",
+		"general": "General",
+		"tools": "Tools",
+		"help": "Help"
+	},
+	"wifi": {
+		"title": "WiFi-configuration",
+		"networks": "Networks",
+		"savedNetworks": "Saved Networks",
+		"ssid": {
+			"title": "WiFi-name (SSID)",
+			"placeholder": "SSID",
+			"validation": "Enter WiFi's SSID"
+		},
+		"password": {
+			"title": "Password",
+			"placeholder": "Password",
+			"validation": "Enter the WiFi's password"
+		},
+		"hostname": {
+			"title": "ESPuino's name (hostname)",
+			"placeholder": "espuino",
+			"validation": "Enter a valid hostname"
+		},
+		"static": {
+			"addr": "Static IP-Address",
+			"enabled": "Static IP-Configuration",
+			"gateway": "Gateway for static IP-Configuration",
+			"subnet": "Subnet-mask for static IP-Configuration",
+			"dns1": " DNS 1 for static IP-Configuration",
+			"dns2": "DNS 2 for static IP-Configuration"
+		},
+		"scan": {
+			"enabled": "Start with strongest WiFi"
+		},
+		"delete": {
+			"title": "Delete WiFi",
+			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
+		},
+		"restartPrompt": "Ready to go?"
+	},
+	"control": {
+		"title": "Control",
+		"first": "First",
+		"prev": "Previous",
+		"playpause": "Play / Pause",
+		"forward": "Next",
+		"last": "Last",
+		"volume": "Volume",
+		"voldown": "Volume Down",
+		"volup": "Volume Up",
+		"current": "Current track",
+		"command": "Execute Modification"
+	},
+	"files": {
+		"title": "Files",
+		"loading": "Please wait...",
+		"context": {
+			"newFolder": "New Folder",
+			"play": "Play",
+			"refresh": "Refresh",
+			"delete": "Delete",
+			"rename": "Rename",
+			"download": "Download"
+		},
+		"files": {
+			"title": "Files",
+			"desc": "Upload one ore more files"
+		},
+		"directory": {
+			"title": "Directory",
+			"desc": "Upload directory with all files and subdirectories"
+		},
+		"search": {
+			"placeholder": "Search files.."
+		},
+		"upload": {
+			"title": "Upload",
+			"desc": "Start Upload",
+			"selectFolder": "Please select the upload location!",
+			"selectFile": "Please select files to upload!",
+			"success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
+			"error": "Upload error",
+			"timeCalc": "Remaining time is being calculated..",
+			"minutes_one": "minute",
+			"minutes_other": "minutes",
+			"seconds": "seconds",
+			"fewSec": "few",
+			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
+		},
+		"rfid": {
+			"title": "RFID Assignments",
+			"idNumber": "RFID-number (12 digits) or <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtual</a>",
+			"music": "Music",
+			"modification": "Modification",
+			"fileurl": {
+				"title": "File, directory or URL (^ and # aren't allowed as chars)",
+				"placeholder": "f.e. /mp3/Audiobook/Yakari/Yakari_and_Friends.mp3"
+			},
+			"playmode": {
+				"title": "Playmode",
+				"placeholder": "Select mode",
+				"mode": {
+					"1": "Single track",
+					"2": "Single track (loop)",
+					"12": "Single track of a directory (random). Followed by sleep.",
+					"3": "Audiobook",
+					"4": "Audiobook (loop)",
+					"5": "All tracks of a directory (sorted)",
+					"6": "All tracks of a directory (random)",
+					"7": "All tracks of a directory (sorted, loop)",
+					"9": "All tracks of a directory (random, loop)",
+					"13": "All tracks of a random subdirectory (sorted)",
+					"14": "All tracks of a random subdirectory (random)",
+					"8": "Webradio",
+					"11": "List (files from SD and/or webstreams) from local .m3u-File"
+				},
+				"error": "Invalid playmode"
+			},
+			"mod": {
+				"title": "Mod",
+				"placeholder": "Select modification",
+				"cmd": {
+					"100": "Keylock",
+					"179": "Sleep immediately",
+					"101": "Sleep after 15 minutes",
+					"102": "Sleep after 30 minutes",
+					"103": "Sleep after 1 hour",
+					"104": "Sleep after 2 hours",
+					"105": "Sleep after end of track",
+					"106": "Sleep after end of playlist",
+					"107": "Sleep after end of five tracks",
+					"110": "Loop playlist",
+					"111": "Loop track",
+					"120": "Dimm LEDs (nightmode)",
+					"130": "Toggle WiFi",
+					"140": "Toggle Bluetooth Speaker",
+					"141": "Toggle Bluetooth Headphones",
+					"142": "Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
+					"150": "Enable FTP",
+					"151": "Announce IP-Address",
+					"152": "Announce current time",
+					"0": "Remove assignment",
+					"170": "Toggle Play/Pause",
+					"171": "Previous track",
+					"172": "Next track",
+					"173": "First track",
+					"174": "Last track",
+					"180": "Seek forwards (n seconds)",
+					"181": "Seek backwards (n seconds)"
+				}
+			}
+		}
+	},
+	"mqtt": {
+		"title": "MQTT-settings",
+		"enable": "Enable MQTT",
+		"clientId": {
+			"title": "MQTT-ClientId",
+			"placeholder": "f.e. ESPuino",
+			"validation": ""
+		},
+		"server": {
+			"title": "MQTT-server",
+			"placeholder": "f.e. 192.168.2.89",
+			"validation": ""
+		},
+		"user": {
+			"title": "MQTT-username (optional)",
+			"placeholder": "username",
+			"validation": ""
+		},
+		"pwd": {
+			"title": "MQTT-password (optional)",
+			"placeholder": "password",
+			"validation": ""
+		},
+		"port": {
+			"title": "MQTT-port",
+			"placeholder": "f.e. 1883",
+			"validation": ""
+		}
+	},
+	"ftp": {
+		"title": "FTP-settings",
+		"user": {
+			"title": "FTP-Username",
+			"placeholder": "username"
+		},
+		"pwd": {
+			"title": "FTP-password",
+			"placeholder": "password"
+		},
+		"start": {
+			"title": "Start FTP-server",
+			"desc": "Enables FTP-server until device is restarted.",
+			"button": "Start FTP-server"
+		}
+	},
+	"bt": {
+		"sink": {
+			"title": "ESPuino as Bluetooth speaker",
+			"desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
+			"button": "Start as Bluetooth speaker"
+		},
+		"source": {
+			"configtitle": "Bluetooth headphone settings",
+			"title": "Connect with Bluetooth headphone",
+			"desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
+			"button": "Start in headphone mode"
+		},
+		"device": {
+			"title": "Bluetooth device (headphone)",
+			"placeholder": "e.g. My POGS Wireless Headphone"
+		},
+		"pincode": {
+			"title": "Pairing PIN-Code",
+			"placeholder": "e.g. 0000"
+		}
+	},
+	"general": {
+		"language": "Language",
+		"volume": {
+			"title": "Volume",
+			"restart": "After restart",
+			"speakerMax": "Max. volume (speaker)",
+			"headphoneMax": "Max. volume (headphones)"
+		},
+		"equalizer": {
+			"title": "Equalizer",
+			"gainLowPass": "Lows (in dB)",
+			"gainBandPass": "Mids (in dB)",
+			"gainHighPass": "Highs (in dB)",
+			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
+		},
+		"neopixel": {
+			"title": "Neopixel (brightness)",
+			"restart": "After restart",
+			"nightmode": "For nightmode"
+		},
+		"sleep": {
+			"title": "Deep Sleep",
+			"inactivity": "After n minutes inactivity"
+		},
+		"battery": {
+			"title": "Battery",
+			"desc": "Show voltage-status via Neopixel",
+			"lowWarning": "Show warning below this threshold (in volt)",
+			"lowCritical": "Lowest voltage (in volt), that is indicated by one LED",
+			"criticalShutoff": "Below this voltage (in volt), ESPuino turns off",
+			"high": "Voltage (in volt), that is indicated by all LEDs",
+			"measureInterval": "Interval between measurements (in minutes)"
+		},
+		"playlist": {
+			"title": "Playlist",
+			"sortMode": "Sorting mode for playlist and file browser",
+			"strcmp": "Standard sorting",
+			"strnatcmp": "Natural: case-sensitive",
+			"strnatcasecmp": "Natural: case-insensitive"
+		}
+	},
+	"tools": {
+		"nvs": {
+			"title": "Saved RFID assignments",
+			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
+			"list": {
+				"title": "List of all stored RFID assignments"
+			},
+			"erase": {
+				"title": "Erase all RFID assignments",
+				"desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing RFID assignments will be erased.<br>Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> (in German).",
+				"button": "Delete all assignments",
+				"prompt": "Erase all saved RFID assignments?"
+			},
+			"delete": {
+				"title": "Erase RFID assignment",
+				"prompt": "Remove assignment \"{{rfid}}\"?"
+			},
+			"import": {
+				"title": "Import",
+				"desc": "A backup file can be uploaded here in order to import RFID assignments."
+			},
+			"export": {
+				"title": "Export",
+				"desc": "A backup file can be download here in order to export the RFID assignments."
+			}
+		},
+		"fwupdate": {
+			"title": "Firmware-Update",
+			"desc": "Firmware can be updated right here."
+		}
+	},
+	"help": {
+		"forum": {
+			"title": "Forum",
+			"desc": "Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german) <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
+		},
+		"swagger": {
+			"title": "Swagger",
+			"desc": "Documentation of the REST API: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
+		}
+	},
+	"datetime": {
+		"day": "day",
+		"days": "days",
+		"hour": "hour",
+		"hours": "hours",
+		"minute": "minute",
+		"minutes": "minutes",
+		"second": "second",
+		"seconds": "seconds"
+	},
+	"systeminfo": {
+		"title": "Information",
+		"softwareversion": "ESPuino {{softwareversion}}",
+		"gitversion": "ESPuino {{gitversion}}",
+		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
+		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
+		"freeheap": "Free heap: {{freeheap}} Bytes",
+		"largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
+		"freepsram": "Free PS-RAM: {{freepsram}} Bytes",
+		"currentip": "Current IP-Address: {{currentip}}",
+		"macAddress": "MAC-Address: {{macAddress}}",
+		"rssi": "WiFi signal strength: {{rssi}} dBm",
+		"audiotimetotal": "Total audio playtime since {{firststart}}: {{audiotimetotal}}",
+		"audiotimesincestart": "Playtime since last start: {{audiotimesincestart}}",
+		"currvoltage": "Current battery voltage: {{currvoltage}} V",
+		"chargelevel": "Current charge level: {{chargelevel}} %",
+		"hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)"
+	}
 }

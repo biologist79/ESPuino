@@ -2,12 +2,14 @@
 #include "settings.h"
 
 #include "Log.h"
+#include "Playlist.h"
 #include "Rfid.h"
 
 QueueHandle_t gVolumeQueue;
 QueueHandle_t gTrackQueue;
 QueueHandle_t gTrackControlQueue;
 QueueHandle_t gRfidCardQueue;
+QueueHandle_t gEqualizerQueue;
 
 void Queues_Init(void) {
 	// Create queues
@@ -26,9 +28,13 @@ void Queues_Init(void) {
 		Log_Println(unableToCreateMgmtQ, LOGLEVEL_ERROR);
 	}
 
-	char **playlistArray;
-	gTrackQueue = xQueueCreate(1, sizeof(playlistArray));
+	gTrackQueue = xQueueCreate(1, sizeof(Playlist *));
 	if (gTrackQueue == NULL) {
 		Log_Println(unableToCreatePlayQ, LOGLEVEL_ERROR);
+	}
+
+	gEqualizerQueue = xQueueCreate(1, sizeof(int8_t[3]));
+	if (gEqualizerQueue == NULL) {
+		Log_Println(unableToCreateEqualizerQ, LOGLEVEL_ERROR);
 	}
 }

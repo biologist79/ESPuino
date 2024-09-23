@@ -1,81 +1,113 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-	<title data-i18n="title">ESPuino-Settings</title>
+	<script>
+		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
+		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
+		var remoteHost = "192.168.1.207";
+	</script>
+	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css"/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
+	<link rel="apple-touch-icon" href="/logo">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
+		body {
+			/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
+			 * the common minimal width is 320 px. -> 310 px + 5 px padding */
+			min-width: 310px;
+		}
+
+		.nav-logo {
+			margin-right: 5px;
+		}
+
+		.header-nav-element {
+			margin-right: 10px;
+		}
+
+		.header-nav-restart {
+			margin-right: 40px
+		}
+
 		.jstree-default .jstree-search {
 			font-style: italic;
-			color:  #007bff; /* change searchresult theme-color to bootstrap blue */
+			color: #007bff;
+			/* change searchresult theme-color to bootstrap blue */
 			font-weight: bold;
 		}
+
 		.filetree {
 			border: 1px solid black;
-			height: 200px;
 			margin: 0em 0em 1em 0em;
 			overflow-y: scroll;
 		}
-		.slider.slider-horizontal {
-			width: 60%;
-			margin-left: 1em;
-			margin-right: 1em;
 
+		.filetree-size {
+			height: 200px;
 		}
-		.slider-handle{
+
+		.slider-container {
+			width: 100%;
+			display: flex;
+		}
+
+		.slider-container-inner {
+			width: 100%;
+			padding-top: 10px;
+			padding-left: 20px;
+			padding-right: 20px;
+			float: left;
+		}
+
+		.slider.slider-horizontal {
+			width: 100%;
+		}
+
+		.slider-handle {
 			height: 30px;
 			width: 30px;
 			top: -5px;
 		}
 
 		legend.scheduler-border {
-			width:inherit; /* Or auto */
-			padding:0 10px; /* To give a bit of padding on the left and right */
-			border-bottom:none;
+			width: inherit;
+			/* Or auto */
+			padding: 0 10px;
+			/* To give a bit of padding on the left and right */
+			border-bottom: none;
 		}
 
-		.icon-pos{
+		.icon-pos {
 			top: 0.3em;
 			position: relative;
-		 }
-		.reboot{
-			color:white;
 		}
-		.reboot:hover{
-			color: orange;
+
+		.link-body-emphasis:focus,
+		.link-body-emphasis:hover {
+			color: orange !important;
 		}
 
 		.fa-sync:hover {
 			color: #666666;
-		}
-
-		.clickForRefresh {
-			text-align: center;
-			color: gray;
-			cursor: pointer;
-			margin-top: 5em;
-		}
-
-		.clickForRefresh:hover {
-			color: darkgray;
 		}
 
 		.filetree-container {
@@ -84,29 +116,25 @@
 
 		.coverimage-container {
 			width: 80%;
-			height:15%;
-			margin-left: 1em;
-			margin-right: 1em;
+			max-width: 400px;
+			height: 15%;
+			margin: auto;
+			display: block;
 		}
 
-		.indexing-progress {
-			width: 100%;
-			height: 100%;
-			position: absolute;
-			top: 0;
-			left: 0;
-			opacity: 0.7;
-			display: none;
+		.ctrl-button-grp {
+			margin: auto;
+			display: block;
+			text-align: center;
 		}
 
-		.refreshAction{
-			text-align: right;
-			font-size: 0.8em;
+		.ctrl-button {
+			margin: 2px;
+			padding: 10px;
 		}
 
-		.refreshAction:hover{
-			cursor: pointer;
-			color: darkgray;
+		.volume-button {
+			width: 60px;
 		}
 
 		.overlay {
@@ -119,274 +147,483 @@
 		}
 
 		.progress-sm {
-  			height: 0.4rem!important;
+			height: 0.4rem !important;
+		}
+
+		.upload-progress-bar {
+			height: 30px;
 		}
 
 		#SubTabContent.tab-content {
 			display: flex;
 		}
 
-		#SubTabContent.tab-content > .tab-pane {
-			display: block; /* undo "display: none;" */
+		#SubTabContent.tab-content>.tab-pane {
+			display: block;
+			/* undo "display: none;" */
 			visibility: hidden;
 			margin-right: -100%;
 			width: 100%;
 		}
 
-		#SubTabContent.tab-content > .active {
+		#SubTabContent.tab-content>.active {
 			visibility: visible;
 		}
+
 		[data-visible="false"] {
 			display: none;
 		}
 
-		/* IOS display fix */
-		select {
-			-webkit-appearance: none;
-			-moz-appearance: none;
-			appearance: none;
-			background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAAAAADhgtq/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAAR0lEQVR4nGP5z4ADsOCSGOoyC+NRabjMQqjQQrgUTCYeIrQQyEI3DSyFJIHkApAUkgSy21B0oLo6fiGSBKp/kCUGU4hSRQYAYg0Rw+gGlUQAAAAASUVORK5CYII=') no-repeat;
-			background-position: center right;
-		}
-		.fas{
+		.fas {
 			padding-right: 0.25em;
+		}
+
+		#langSel {
+			width: auto;
+		}
+
+		.bs-tooltip-top {
+			width: 30px;
+		}
+
+		input::placeholder {
+			color: #a2a6aa !important;
+		}
+
+		.menu-icon {
+			width: 30px;
+			text-align: center;
+		}
+
+		.container-fluid {
+			padding-right: 0;
+			padding-left: 5px;
+		}
+
+		#navbar-heading {
+			width: calc(100vw - 150px) !important;
+			/* Cut off title if it is too long for the screen */
+			overflow: hidden;
+			display: inline-block;
+		}
+
+		/* Overwrite some Bootstrap styles (remove border around disabled buttons) */
+		.btn.disabled {
+			border-color: rgb(0, 0, 0, 0);
+			/* Overwrite to have an invisible border */
+			/* As copied from Botstrap buttons.scss */
+			color: var(--bs-btn-disabled-color);
+			pointer-events: none;
+			background-color: var(--bs-btn-disabled-bg);
+			opacity: var(--bs-btn-disabled-opacity);
+		}
+
+		.vakata-context {
+			/* Make sure the jstree context menu is most top */
+			z-index: 99999;
 		}
 	</style>
 </head>
+
 <body>
-<nav class="navbar navbar-expand-sm bg-primary navbar-dark">
-	<div class="col-md-12">
-	<a class="float-left navbar-brand">
-		<img src="/logo"
-			 width="35" height="35" class="d-inline-block align-top" alt=""/>
-		ESPuino
-	</a>
-	<a class="reboot float-right nav-link openPopupRestart" href="javascript:void(0);"><i class="fas fa-redo"></i> <span data-i18n="restart">Restart</span></a>
-	<a class="reboot float-right nav-link openPopupShutdown" href="javascript:void(0);"><i class="fas fa-power-off"></i> <span data-i18n="shutdown">Shutdown</span></a>
-	<a class="reboot float-right nav-link openPopupLog" href="javascript:void(0);"><i class="fas fa-book"></i> <span data-i18n="log">Log</span></a>
-	<a class="reboot float-right nav-link openPopupInfo" href="javascript:void(0);"><i class="fas fa-info"></i> <span data-i18n="info">Info</span></a>
-	<select class="form-control float-right" style="width:auto;padding-right:25px;" id="langSel" name="langSel">
-		<option value="de">de</option>
-		<option value="en">en</option>
-	</select>
-	</div>
-</nav>
-<!-- Modal dialog for info / shutdown / restart-->
-<div class="modal fade bd-info-modal-xl" id="modalInfo" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
-		<div class="modal-content">
-			 <div class="modal-header">
-				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-			</div>
-			<div class="modal-body" style="white-space: pre" id="modalInfoContent">
-			</div>
-			<div class="modal-footer">
-				<button type="button" id="modalInfoRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+	<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" id="toaster">
+		<div class="toast align-items-center border-0" id="toast-template" role="alert" aria-live="assertive"
+			aria-atomic="true">
+			<div class="d-flex">
+				<div class="toast-body"></div>
 			</div>
 		</div>
 	</div>
-</div>
-<!-- Modal dialog for log-->
-<div class="modal fade bd-info-modal-xl" id="modalLog" role="dialog">
-	<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">	
-		<div class="modal-content">
-			 <div class="modal-header">
-				<h5 class="modal-title">Infos</h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
+	<nav class="navbar navbar-expand bg-primary navbar-dark">
+		<div class="container-fluid">
+			<a class="float-start navbar-brand">
+				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt="" />
+				<span id="navbar-heading" class="header-nav-element text-light" data-i18n="title"></span>
+			</a>
+			<div class="d-flex justify-content-end">
+				<li class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav">
+						<li class="nav-item dropdown">
+							<a class="nav-link header-nav-element dropdown-toggle text-light link-body-emphasis"
+								href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i
+									class="fas fa-bars"></i></a>
+							<ul class="dropdown-menu dropdown-menu-end" id="menu" style="min-width: 200px;">
+								<li><a class="nav-link openPopupRestart header-nav-element link-body-emphasis header-nav-restart"
+										href="javascript:void(0);"><i class="fas fa-redo menu-icon"></i> <span
+											data-i18n="restart"></span></a></li>
+								<li><a class="nav-link openPopupShutdown header-nav-element link-body-emphasis"
+										href="javascript:void(0);"><i class="fas fa-power-off menu-icon"></i> <span
+											data-i18n="shutdown"></span></a></li>
+								<li><a class="nav-link openPopupLog header-nav-element link-body-emphasis"
+										href="javascript:void(0);"><i class="fas fa-book menu-icon"></i> <span
+											data-i18n="log"></span></a></li>
+								<li><a class="nav-link openPopupInfo header-nav-element link-body-emphasis"
+										href="javascript:void(0);"><i class="fas fa-info menu-icon"></i> <span
+											data-i18n="info"></span></a></li>
+								<li>
+									<a class="nav-link navbar-collapse header-nav-element link-body-emphasis">
+										<label class="form-check-label" for="lightSwitch" style="cursor: pointer"><i
+												class="fas fa-adjust menu-icon"></i><span
+												data-i18n="darkmode"></span></label>
+										<input class="form-check-input" type="checkbox" id="lightSwitch"
+											style="display:none; /* Hide it */" />
+									</a>
+								</li>
+								<li>
+									<div class="modal-body row" style="margin-left: 0">
+										<i class="fas fa-earth-america menu-icon text-white"
+											style="margin-left: 0; margin-top: 10px; margin-right: 5px;"></i>
+										<select class="form-control form-select bg-white" id="langSel" name="langSel">
+											<!-- Do not translate those texts! -->
+											<option value="de">Deutsch</option>
+											<option value="en">English</option>
+											<option value="fr">Fran&ccedil;aise</option>
+										</select>
+									</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
 			</div>
-			<div class="modal-body" style="white-space: pre" id="modalLogContent">
-			</div>
-			<div class="modal-footer">
-				<button type="button" id="modalLogRefresh" class="btn mr-auto"><i class="fas fa-sync"></i><span data-i18n="refresh">Refresh</span></button>
-				<button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- Modal dialog for delete SSID-->
-<div class="modal fade" id="deleteSSIDModal" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
-				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
-			</div>
-		</div>
-	</div>
-</div>
-
-<!-- Modal dialog for delete NVS RFID assignment-->
-<div class="modal fade" id="deleteRFIDModal" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-			</div>
-			<div class="modal-body">
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
-				<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- Modal dialog for delete NVS RFID assignments -->
-<div class="modal fade" id="deleteNVSRFIDModal" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-			</div>
-			<div class="modal-body">
-				<label data-i18n="tools.nvserase.prompt"></label>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel"></button>
-				<a class="btn btn-danger btn-ok" data-i18n="delete" href="javascript:eraseNVSRFID();"></a>
-			</div>
-		</div>
-	</div>
-</div>
-
-<br/>
-	<nav>
-		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
-			<a class="nav-item nav-link" id="nav-control-tab" data-toggle="tab" href="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control">Control</span></a>
-			<a class="nav-item nav-link active" id="nav-rfid-tab" data-toggle="tab" href="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i class="fas fa-dot-circle"></i><span data-i18n="nav.rfid">RFID</span></a>
-			<a class="nav-item nav-link" id="nav-wifi-tab" data-toggle="tab" href="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.wifi">WiFi</span></span></a>
-			<a class="nav-item nav-link" id="nav-mqtt-tab" data-visible="false" data-toggle="tab" href="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i class="fas fa-network-wired"></i><span data-i18n="nav.mqtt">MQTT</span></a>
-			<a class="nav-item nav-link" id="nav-ftp-tab" data-visible="false" data-toggle="tab" href="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i class="fas fa-folder"></i><span data-i18n="nav.ftp">FTP</span></a>
-			<a class="nav-item nav-link" id="nav-bt-tab" data-visible="false" data-toggle="tab" href="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i class="fab fa-bluetooth"></i><span data-i18n="nav.bluetooth">Bluetooth</span></a>
-			<a class="nav-item nav-link" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i class="fas fa-sliders-h"></i><span data-i18n="nav.general">General</span></a>
-			<a class="nav-item nav-link" id="nav-tools-tab" data-toggle="tab" href="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i class="fas fa-wrench"></i><span data-i18n="nav.tools">Tools</span></a>
-			<a class="nav-item nav-link" id="nav-forum-tab" data-toggle="tab" href="#nav-forum" role="tab" aria-controls="nav-forum" aria-selected="false"><i class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span data-i18n="nav.forum">Forum</span></span></a>
 		</div>
 	</nav>
-<br>
-<div class="tab-content" id="nav-tabContent">
-	<div class="tab-pane fade" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
-		<div class="container" id="wifiConfig">
-			<div>
-				<legend data-i18n="wifi.title">WiFi-settings</legend>
-				<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
-					<div class="form-group col-md-12">
-						<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-						<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname"
-							value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-						<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
-						<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
-					</div>
-					<br>
-					<div class="text-center">
-					<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
-					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-					</div>
-				</form>
-			</div>
-			<div style="margin-top: 20px;">
-				<legend data-i18n="wifi.networks">Networks</legend>
-				<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
-					<div class="form-group col-md-12">
-						<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-						<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
-						<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
-						<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-						<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
-
-						<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
-						<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
-						<div id="wifi_static_div" style="display:none">
-							<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-							<input type="text" class="form-control" id="static_addr" name="static_addr" >
-							<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-							<input type="text" class="form-control" id="static_gateway" name="static_gateway" >
-							<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-							<input type="text" class="form-control" id="static_subnet" name="static_subnet" >
-							<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-							<input type="text" class="form-control" id="static_dns1" name="static_dns1" >
-							<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-							<input type="text" class="form-control" id="static_dns2" name="static_dns2" >
-						</div>
-
-					</div>
-					<br>
-					<div class="text-center">
-					<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-					</div>
-				</form>
-			</div>
-			<div class="col-md-12" style="margin-top: 20px;">
-				<legend data-i18n="wifi.savedNetworks">Saved Networks</legend>
-				<ul class="list-group" id="wifiListSavedSSIDs">
-				</ul>
+	<!-- Modal dialog for info / shutdown / restart-->
+	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalInfo" role="dialog">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="infos"></h5>
+				</div>
+				<div class="modal-body" style="white-space: pre" id="modalInfoContent">
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
+							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
+				</div>
 			</div>
 		</div>
 	</div>
-	<div class="tab-pane fade" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
-		<div class="container" id="navControl">
-				<div class="form-group col-md-12">
+	<!-- Modal dialog for log-->
+	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalLog" role="dialog">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="infos"></h5>
+				</div>
+				<div class="modal-body" style="white-space: pre; font-size: 80%;" id="modalLogContent">
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="modalLogRefresh" class="btn btn-primary me-auto"><i
+							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal dialog for equalizer-->
+	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalEqualizer" role="dialog">
+		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
+				</div>
+				<div class="modal-body row" id="modalEqualizerContent">
+					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
+					<div class="slider-container">
+						<div class="float-end" style="padding-left: 30px">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainLowPass" name="gainLowPass" class="form-control float-end"
+								data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6"
+								min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="float-end" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+					</div> &nbsp;
+					<hr>
+					<label class="w-100" for="gainBandPass"
+						data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
+					<div class="slider-container">
+						<div class="float-end" style="padding-left: 30px">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainBandPass" name="gainBandPass" class="form-control float-end"
+								data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6"
+								min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="float-end" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+					</div> &nbsp;
+					<hr>
+					<label class="w-100" for="gainHighPass"
+						data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
+					<div class="slider-container">
+						<div class="float-end" style="padding-left: 30px">
+							<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+						</div>
+						<div class="slider-container-inner">
+							<input id="gainHighPass" name="gainHighPass" class="form-control float-end"
+								data-provide="slider" type="number" required data-slider-min="-6" data-slider-max="6"
+								min="-6" max="6" data-slider-value="0" value="0">
+						</div>
+						<div class="float-end" style="padding-left: 10px">
+							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+						</div>
+					</div> &nbsp;
+					<hr>
+					<div class="col-12">
+						<div class="row">
+							<i class="fas fa-info col-auto icon-pos"></i>
+							<span class="col" data-i18n="general.equalizer.info">
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal dialog for delete SSID-->
+	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteSSIDModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
+				</div>
+				<div class="modal-body">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
+					<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal dialog for delete NVS RFID assignment-->
+	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteRFIDModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.nvs.delete.title"></h5>
+				</div>
+				<div class="modal-body">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
+					<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal dialog for delete NVS RFID assignments -->
+	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteNVSRFIDModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content bg-light text-dark">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.nvs.erase.title"></h5>
+				</div>
+				<div class="modal-body">
+					<label data-i18n="tools.nvs.erase.prompt"></label>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
+					<a class="btn btn-danger btn-ok" data-i18n="delete" href="javascript:eraseNVSRFID();"></a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<br />
+	<nav>
+		<div class="container nav nav-tabs select-div" id="nav-tab" role="tablist">
+			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control"
+				data-bs-target="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i
+					class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
+			<a class="nav-item nav-link main-tab-item active" id="nav-rfid-tab" data-bs-toggle="tab" href="#nav-rfid"
+				data-bs-target="#nav-rfid" role="tab" aria-controls="nav-rfid" aria-selected="true"><i
+					class="fas fa-dot-circle"></i><span data-i18n="nav.rfid"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-wifi-tab" data-bs-toggle="tab" href="#nav-wifi"
+				data-bs-target="#nav-wifi" role="tab" aria-controls="nav-wifi" aria-selected="false"><i
+					class="fas fa-wifi"></i><span class=".d-sm-none .d-md-block"><span
+						data-i18n="nav.wifi"></span></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-mqtt-tab" data-visible="false" data-bs-toggle="tab"
+				href="" data-bs-target="#nav-mqtt" role="tab" aria-controls="nav-mqtt" aria-selected="false"><i
+					class="fas fa-network-wired"></i><span data-i18n="nav.mqtt"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-ftp-tab" data-visible="false" data-bs-toggle="tab"
+				href="#nav-ftp" data-bs-target="#nav-ftp" role="tab" aria-controls="nav-ftp" aria-selected="false"><i
+					class="fas fa-folder"></i><span data-i18n="nav.ftp"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-bt-tab" data-visible="false" data-bs-toggle="tab"
+				href="#nav-bt" data-bs-target="#nav-bt" role="tab" aria-controls="nav-bt" aria-selected="false"><i
+					class="fab fa-bluetooth"></i>&nbsp;<span data-i18n="nav.bluetooth"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general"
+				data-bs-target="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i
+					class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools"
+				data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i
+					class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help"
+				data-bs-target="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i
+					class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span
+						data-i18n="nav.help"></span></span></a>
+		</div>
+	</nav>
+	<br>
+	<div class="tab-content" id="nav-tabContent">
+		<!-- ### Tab Wifi ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-wifi" role="tabpanel"
+			aria-labelledby="nav-wifi-tab">
+			<div class="container" id="wifiConfig">
+				<div>
+					<legend data-i18n="wifi.title"></legend>
+					<form action="#globalWifiConfig" method="POST"
+						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
+						<div class="mb-3 col-md-12">
+							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
+							<input type="text" class="form-control bg-white text-dark" id="hostname"
+								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
+								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
+							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
+								value="false">&nbsp; <label for="scan_wifi_on_start"
+								data-i18n="wifi.scan.enabled"></label>
+						</div>
+						<div class="text-center">
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						</div>
+					</form>
+				</div>
+				<hr>
+				<div>
+					<legend data-i18n="wifi.networks"></legend>
+					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
+						<div class="mb-3 col-md-12">
+							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
+							<input type="text" class="form-control bg-white text-dark" id="ssid"
+								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
+							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
+							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
+							<input type="password" class="form-control bg-white text-dark" id="pwd" name="pwd"
+								data-i18n="[placeholder]wifi.password.placeholder" required><br>
+							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
+								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+							<div id="wifi_static_div" style="display:none">
+								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
+								<input type="text" class="form-control bg-white text-dark" id="static_addr"
+									name="static_addr">
+								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
+								<input type="text" class="form-control bg-white text-dark" id="static_gateway"
+									name="static_gateway">
+								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
+								<input type="text" class="form-control bg-white text-dark" id="static_subnet"
+									name="static_subnet">
+								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
+								<input type="text" class="form-control bg-white text-dark" id="static_dns1"
+									name="static_dns1">
+								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
+								<input type="text" class="form-control bg-white text-dark" id="static_dns2"
+									name="static_dns2">
+							</div>
+						</div>
+						<div class="text-center">
+							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						</div>
+					</form>
+				</div>
+				<hr>
+				<div class="col-md-12" style="margin-top: 20px;">
+					<legend data-i18n="wifi.savedNetworks"></legend>
+					<ul class="list-group" id="wifiListSavedSSIDs">
+					</ul>
+				</div>
+			</div>
+			<br />
+		</div>
+		<!-- ### Tab Control ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-control" role="tabpanel"
+			aria-labelledby="nav-control-tab">
+			<div class="container" id="navControl">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.title"></legend>
-					<div class="form-group col-md-12">
+					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
-					<div class="buttons">
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+					<div class="buttons ctrl-button-grp">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-first"
+							onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-prev"
+							onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-play"
+							onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-next"
+							onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn btn-default btn-lg" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-last"
+							onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
 				</div>
 				<br>
-				<div class="form-group col-md-12">
-					<legend data-i18n="control.volume"></legend>
-						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(177)" data-i18n="[title]control.voldown">
+				<legend data-i18n="control.volume" class="col-auto"></legend>
+				<div class="slider-container">
+					<div class="float-end">
+						<button type="button" class="btn btn-primary btn-lg volume-button" onclick="sendControl(177)"
+							data-i18n="[title]control.voldown">
 							<span class="fas fa-volume-down"></span>
 						</button>
-							<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="setVolume"
-								data-slider-value="" value="" onchange="sendVolume(this.value)">
-						<button type="button" class="btn btn-default btn-lg" onclick="sendControl(176)" data-i18n="[title]control.volup">
+					</div>
+					<div class="slider-container-inner">
+						<input class="form-control float-end" data-provide="slider" type="number" data-slider-min="1"
+							data-slider-max="21" min="1" max="21" id="setVolume" data-slider-value="" value=""
+							onchange="sendVolume(Number(this.value))">
+					</div>
+					<div class="float-end" style="padding-left: 10px">
+						<button type="button" class="btn btn-primary btn-lg volume-button float-end"
+							onclick="sendControl(176)" data-i18n="[title]control.volup">
 							<span class="fas fa-volume-up"></span>
 						</button>
+					</div>
+					<div class="float-end" style="padding-left: 10px">
+						<button type="button" class="openPopupEqualizer btn btn-primary btn-lg volume-button float-end"
+							data-i18n="[title]general.equalizer.title">
+							<span class="fas fa-sliders-h"></span>
+						</button>
+					</div>
 				</div>
-				<br/>
-				<div class="form-group col-md-12">
+				<br />
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
 					<div></div>
-					<div id="trackProgressDiv" class="progress progress-sm">
-						<div id="trackProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					<div id="trackProgressDiv" class="progress progress-sm select-div">
+						<div id="trackProgress" class="progress-bar" role="progressbar" aria-valuenow="0"
+							aria-valuemin="0" aria-valuemax="100"></div>
 					</div>
 					<div id="playtime"> </div>
 				</div>
-				<br/>
-				<div class="form-group col-md-12">
+				<hr>
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.command"></legend>
-					<div class="tab-pane " id="commandExecution" role="tabpanel">
+					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control" id="commandId" name="commandId">
-							<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>
+						<select class="form-control form-select bg-white" id="commandId" name="commandId">
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
 							<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
@@ -417,1005 +654,1220 @@
 						</select>
 					</div>
 					<br>
-					<button type="button" class="btn btn-primary" onclick="executeCommand()" data-i18n="execute">Execute</button>
-				</div>
-		</div>
-	</div>
-	<div class="tab-pane fade show active" id="nav-rfid" role="tabpanel" aria-labelledby="nav-rfid-tab">
-		<div class="container" id="filetreeContainer">
-			<fieldset>
-				<legend id="fileslegend" data-i18n="files.title">Files</legend>
-				<div class="filetree-container">
-				<div id="filebrowser">
-					<div class="filetree demo" id="explorerTree"></div>
-				</div>
-				<div class="input-group input-focus">
-					<div class="input-group-prepend">
-					  <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary xxx" onclick="executeCommand()"
+							data-i18n="execute"></button>
 					</div>
-					<input type="search" id="filetreesearch" data-i18n="[placeholder]files.search.placeholder" class="form-control border-left-0" onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
-				</div>
-				<div>
-				<br>
-				<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
-					<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
-						<div class="input-group">
-							<span class="form-control" id="uploaded_file_text"></span>&nbsp
-							<span class="input-group-btn">
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title">Files</span>&nbsp
-								<span class="btn btn-secondary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title">Directory</span>&nbsp
-								<span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title">Upload</span>
-								<input name="uploaded_file" id ="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
-							</span>
-						</div>
-					</form>
-					<br>
-					<div class="progress">
-						<div id="explorerUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="fileslegend"></div>
-					</div>
-				</div>
-				<br>
-				</div>
-			</fieldset>
-		</div>
-		<div class="container" id="rfidMusicTags">
-			<fieldset>
-				<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title">RFID-Assignments</legend>
-			<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-				<div class="form-group col-md-12">
-					<label for="rfidIdMusic" data-i18n="files.rfid.idNumber">RFID-number (12 digits)</label>
-					<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
-						   placeholder="" name="rfidIdMusic" required>
-					<br>
-					<ul class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
-						<li class="nav-item" role="tab" aria-labelledby="rfid-music-tab">
-							<a class="nav-link active" id="rfid-music-tab" title="Music" data-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i> <span data-i18n="files.rfid.music">Music</span></a>
-						</li>
-						<li class="nav-item" role="tab" aria-labelledby="rfid-mod-tab">
-							<a class="nav-link" id="rfid-mod-tab" title="Modification" data-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i> <span data-i18n="files.rfid.modification">modification</span></a>
-						</li>
-					</ul>
-					<div class="tab-content" id="SubTabContent">
-						<div class="tab-pane show active" id="rfidmusic" role="tabpanel">
-							<br>
-							<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
-							<input type="text" class="form-control" id="fileOrUrl" maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl" data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
-							<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
-							<select class="form-control" id="playMode" name="playMode">
-								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.playmode.placeholder"></option>
-								<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1"></option>
-								<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2"></option>
-								<option class="option-folder" value="12" data-i18n="files.rfid.playmode.mode.12"></option>
-								<option class="option-file-and-folder" value="3" data-i18n="files.rfid.playmode.mode.3"></option>
-								<option class="option-file-and-folder" value="4" data-i18n="files.rfid.playmode.mode.4"></option>
-								<option class="option-folder" value="5" data-i18n="files.rfid.playmode.mode.5"></option>
-								<option class="option-folder" value="6" data-i18n="files.rfid.playmode.mode.6"></option>
-								<option class="option-folder" value="7" data-i18n="files.rfid.playmode.mode.7"></option>
-								<option class="option-folder" value="9" data-i18n="files.rfid.playmode.mode.9"></option>
-								<option class="option-folder" value="13" data-i18n="files.rfid.playmode.mode.13"></option>
-								<option class="option-folder" value="14" data-i18n="files.rfid.playmode.mode.14"></option>
-								<option class="option-stream" value="8" data-i18n="files.rfid.playmode.mode.8"></option>
-								<option class="option-stream" value="11" data-i18n="files.rfid.playmode.mode.11"></option>
-							</select>
-						</div>
-						<div class="tab-pane " id="rfidmod" role="tabpanel">
-							<label for="modId" data-i18n="files.rfid.mod.title"></label>
-							<select class="form-control" id="modId" name="modId">
-								<option class="placeholder" disabled selected value="" data-i18n="files.rfid.mod.placeholder"></option>
-								<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
-								<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
-								<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
-								<option value="102" data-i18n="files.rfid.mod.cmd.102"></option>
-								<option value="103" data-i18n="files.rfid.mod.cmd.103"></option>
-								<option value="104" data-i18n="files.rfid.mod.cmd.104"></option>
-								<option value="105" data-i18n="files.rfid.mod.cmd.105"></option>
-								<option value="106" data-i18n="files.rfid.mod.cmd.106"></option>
-								<option value="107" data-i18n="files.rfid.mod.cmd.107"></option>
-								<option value="110" data-i18n="files.rfid.mod.cmd.110"></option>
-								<option value="111" data-i18n="files.rfid.mod.cmd.111"></option>
-								<option value="120" data-i18n="files.rfid.mod.cmd.120"></option>
-								<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
-								<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
-								<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
-								<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
-								<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
-								<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
-								<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
-								<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
-								<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
-								<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
-								<option value="172" data-i18n="files.rfid.mod.cmd.172"></option>
-								<option value="173" data-i18n="files.rfid.mod.cmd.173"></option>
-								<option value="174" data-i18n="files.rfid.mod.cmd.174"></option>
-								<option value="180" data-i18n="files.rfid.mod.cmd.180"></option>
-								<option value="181" data-i18n="files.rfid.mod.cmd.181"></option>
-							</select>
-						</div>
-					</div>
-				</div>
-				<br>
-				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset">Reset</button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit">Submit</button>
-				</div>
-			</form>
-			</fieldset>
-		</div>
-		<br />
-	</div>
-	<div class="tab-pane fade" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
-		<div class="container" id="mqttConfig">
-
-			<form class="needs-validation" action="#mqttConfig" method="POST"
-				  onsubmit="mqttSettings('mqttConfig'); return false">
-				<div class="form-check col-md-12">
-					<legend data-i18n="mqtt.title"></legend>
-					<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
-					<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
-				</div>
-				<div class="form-group my-2 col-md-12">
-					<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-					<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
-						  data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
-					<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-					<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
-						   data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
-					<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-					<input type="text" class="form-control" id="mqttUser" maxlength=""
-						   data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
-					<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-					<input type="password" class="form-control" id="mqttPwd" maxlength=""
-						   data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
-					<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
-					<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
-							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
-				</div>
-				<br>
-				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-				</div>
-			</form>
-		</div>
-	</div>
-	<div class="tab-pane fade" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
-		<div class="container" id="ftpConfig">
-
-			<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
-				<div class="form-group col-md-12">
-					<legend data-i18n="ftp.title"></legend>
-					<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-					<input type="text" class="form-control" id="ftpUser" maxlength="0" data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
-					<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-					<input type="password" class="form-control" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder"
-						   name="ftpPwd" value="" required>
-				</div>
-				<br>
-				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset"></button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-				</div>
-			</form>
-		</div>
-		<div class="container" id="ftpStart">
-			<div class="form-group col-md-12">
-				<legend data-i18n="ftp.start.title"></legend>
-				<div data-i18n="ftp.start.desc"></div>
-				<br>
-				<div class="text-center">
-					<button type="button" class="btn btn-primary" onclick="ftpStart()" data-i18n="ftp.start.button"></button>
 				</div>
 			</div>
 		</div>
-	</div>
-	<div class="tab-pane fade" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
-		<div class="container" id="btConfig">
-			<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
-				<div class="form-group col-md-12">
-					<legend data-i18n="bt.source.configtitle"></legend>
-					<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
-					<input type="text" class="form-control" id="btDeviceName"
-						data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
-					<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
-					<input type="text" class="form-control" id="btPinCode"
-						data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+		<!-- ### Tab RFID ### -->
+		<div class="tab-pane main-tab-pane fade show active select-div" id="nav-rfid" role="tabpanel"
+			aria-labelledby="nav-rfid-tab">
+			<div class="container" id="filetreeContainer">
+				<fieldset>
+					<legend id="fileslegend" data-i18n="files.title"></legend>
+					<div class="filetree-container">
+						<div id="filebrowser">
+							<div class="filetree filetree-size" id="explorerTree"></div>
+						</div>
+						<div class="container" style="padding: 0">
+							<span class="input-group-text float-start bg-white text-dark"
+								style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i
+									class="fas fa-search"></i></span>
+							<input type="search" class="form-control border-start-0 float-start bg-white text-dark"
+								style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;"
+								id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+								onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+							<button id="expandfilelist" class="btn btn-primary float-end"
+								onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
+							<button id="shrinkfilelist" class="btn btn-primary float-end"
+								onclick="resizeFileList(false)" style="display: none;"><span
+									class="fas fa-compress-alt"></span></button>
+						</div>
+						<br>
+						<div>
+							<br>
+							<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
+							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data"
+								action="/explorer">
+								<div class="input-group select-div">
+									<span class="input-group-btn">
+										<span class="btn btn-primary"
+											onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();"
+											data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp; <span
+											class="btn btn-primary"
+											onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();"
+											data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp;
+										<input name="uploaded_file" id="uploaded_file"
+											onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());"
+											style="display: none;" type="file" multiple>
+									</span>
+									<span class="form-control" id="uploaded_file_text"></span>&nbsp; <span
+										class="btn btn-primary"
+										onclick="$(this).parent().find('input[type=file]').submit();"
+										data-i18n="[title]files.upload.desc;files.upload.title"></span>&nbsp;
+								</div>
+							</form>
+							<br>
+							<div class="progress select-div upload-progress-bar">
+								<div id="explorerUploadProgress" class="progress-bar" role="progressbar"
+									aria-labelledby="fileslegend"></div>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+				<hr>
+			</div>
+			<div class="container" id="rfidMusicTags">
+				<fieldset>
+					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
+					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
+						<div class="mb-3 col-md-12 select-div">
+							<label for="rfidIdMusic" data-i18n="[html]files.rfid.idNumber"></label>
+							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12"
+								pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
+							<br>
+							<div class="nav nav-tabs" id="SubTab" role="tablist"
+								aria-labelledby="rfidMusicTagsAssignment">
+								<a class="nav-item nav-link active" id="rfid-music-tab" data-bs-toggle="tab"
+									href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span
+										class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
+								<a class="nav-item nav-link" id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod"
+									role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block"
+										data-i18n="files.rfid.modification"></span></a>
+							</div>
+							<div class="tab-content" id="SubTabContent">
+								<div class="tab-pane show active select-div" data-bs-theme="light" id="rfidmusic"
+									role="tabpanel">
+									<br>
+									<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
+									<input type="text" class="form-control bg-white text-dark" id="fileOrUrl"
+										maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl"
+										data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
+									<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
+									<select class="form-control form-select bg-white" id="playMode" name="playMode">
+										<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1">
+										</option>
+										<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2">
+										</option>
+										<option class="option-folder" value="12"
+											data-i18n="files.rfid.playmode.mode.12"></option>
+										<option class="option-file-and-folder" value="3"
+											data-i18n="files.rfid.playmode.mode.3"></option>
+										<option class="option-file-and-folder" value="4"
+											data-i18n="files.rfid.playmode.mode.4"></option>
+										<option class="option-folder" value="5" data-i18n="files.rfid.playmode.mode.5">
+										</option>
+										<option class="option-folder" value="6" data-i18n="files.rfid.playmode.mode.6">
+										</option>
+										<option class="option-folder" value="7" data-i18n="files.rfid.playmode.mode.7">
+										</option>
+										<option class="option-folder" value="9" data-i18n="files.rfid.playmode.mode.9">
+										</option>
+										<option class="option-folder" value="13"
+											data-i18n="files.rfid.playmode.mode.13"></option>
+										<option class="option-folder" value="14"
+											data-i18n="files.rfid.playmode.mode.14"></option>
+										<option class="option-stream" value="8" data-i18n="files.rfid.playmode.mode.8">
+										</option>
+										<option class="option-stream" value="11"
+											data-i18n="files.rfid.playmode.mode.11"></option>
+									</select>
+								</div>
+								<div class="tab-pane select-div" id="rfidmod" role="tabpanel">
+									<label for="modId" data-i18n="files.rfid.mod.title"></label>
+									<select class="form-control form-select bg-white" id="modId" name="modId">
+										<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
+										<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
+										<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
+										<option value="102" data-i18n="files.rfid.mod.cmd.102"></option>
+										<option value="103" data-i18n="files.rfid.mod.cmd.103"></option>
+										<option value="104" data-i18n="files.rfid.mod.cmd.104"></option>
+										<option value="105" data-i18n="files.rfid.mod.cmd.105"></option>
+										<option value="106" data-i18n="files.rfid.mod.cmd.106"></option>
+										<option value="107" data-i18n="files.rfid.mod.cmd.107"></option>
+										<option value="110" data-i18n="files.rfid.mod.cmd.110"></option>
+										<option value="111" data-i18n="files.rfid.mod.cmd.111"></option>
+										<option value="120" data-i18n="files.rfid.mod.cmd.120"></option>
+										<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
+										<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
+										<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
+										<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
+										<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
+										<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
+										<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
+										<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
+										<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
+										<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
+										<option value="172" data-i18n="files.rfid.mod.cmd.172"></option>
+										<option value="173" data-i18n="files.rfid.mod.cmd.173"></option>
+										<option value="174" data-i18n="files.rfid.mod.cmd.174"></option>
+										<option value="180" data-i18n="files.rfid.mod.cmd.180"></option>
+										<option value="181" data-i18n="files.rfid.mod.cmd.181"></option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="text-center">
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						</div>
+					</form>
+				</fieldset>
+			</div>
+			<br />
+		</div>
+		<!-- ### Tab MQTT ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-mqtt" role="tabpanel"
+			aria-labelledby="nav-mqtt-tab">
+			<div class="container" id="mqttConfig">
+				<form class="needs-validation" action="#mqttConfig" method="POST"
+					onsubmit="mqttSettings('mqttConfig'); return false">
+					<legend data-i18n="mqtt.title"></legend>
+					<div class="form-check col-md-12">
+						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
+							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
+							data-i18n="mqtt.enable"></label>
+					</div>
+					<div class="mb-3 my-2 col-md-12">
+						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttClientId"
+							minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.clientId.placeholder"
+							name="mqttClientId" value="">
+						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttServer"
+							minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.server.placeholder"
+							name="mqttServer" value="">
+						<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
+						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttUser"
+							maxlength="" data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+						<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
+						<input type="password" class="form-control bg-white text-dark" id="mqttPwd" maxlength=""
+							data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
+						<input type="number" class="form-control bg-white text-dark" id="mqttPort" min="1" max="65535"
+							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+					</div>
+					<div class="text-center">
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+			</div>
+			<br />
+		</div>
+		<!-- ### Tab FTP ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
+			<div class="container" id="ftpConfig">
+				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
+					<div class="mb-3 col-md-12 select-div">
+						<legend data-i18n="ftp.title"></legend>
+						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
+						<input type="text" class="form-control bg-white text-dark" id="ftpUser" maxlength="0"
+							data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
+						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
+						<input type="password" class="form-control bg-white text-dark" id="ftpPwd" maxlength="0"
+							data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+					</div>
+					<div class="text-center">
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+				<hr>
+			</div>
+			<div class="container" id="ftpStart">
+				<div class="mb-3 col-md-12">
+					<legend data-i18n="ftp.start.title"></legend>
+					<div data-i18n="ftp.start.desc"></div>
+					<br>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary" onclick="ftpStart()"
+							data-i18n="ftp.start.button"></button>
+					</div>
 				</div>
-				<br>
-				<div class="text-center">
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button> 
-				</div>
-			</form><br>
+			</div>
+		</div>
+		<!-- ### Tab Bluetooth ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+			<div class="container" id="btConfig">
+				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
+					<div class="mb-3 col-md-12">
+						<legend data-i18n="bt.source.configtitle"></legend>
+						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
+						<input type="text" class="form-control bg-white text-dark" id="btDeviceName"
+							data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
+						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
+						<input type="text" class="form-control bg-white text-dark" id="btPinCode"
+							data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+					</div>
+					<div class="text-center">
+						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+				<hr>
+			</div>
 			<div class="container" id="btStartSource">
-				<div class="form-group col-md-12">
+				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.source.title"></legend>
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(141)" data-i18n="bt.source.button"></button>
+						<button type="button" class="btn btn-primary" onclick="sendControl(141)"
+							data-i18n="bt.source.button"></button>
+					</div>
+				</div>
+				<hr>
+			</div>
+			<div class="container" id="btStartSink">
+				<div class="mb-3 col-md-12">
+					<legend data-i18n="bt.sink.title"></legend>
+					<div data-i18n="bt.sink.desc"></div>
+					<br>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary" onclick="sendControl(140)"
+							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
 			</div>
-			</div><br><br>
-		<div class="container" id="btStartSink">
-			<div class="form-group col-md-12">
-				<legend data-i18n="bt.sink.title"></legend>
-				<div data-i18n="bt.sink.desc"></div>
-				<br>
-				<div class="text-center">
-					<button type="button" class="btn btn-primary" onclick="sendControl(140)" data-i18n="bt.sink.button"></button>
-				</div>
-			</div>
 		</div>
-	</div>
-	<div class="tab-pane fade" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
-		<div class="container" id="generalConfig">
-
-			<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<div class="form-group col-md-12">
+		<!-- ### Tab General ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-general" role="tabpanel"
+			aria-labelledby="nav-general-tab">
+			<div class="container" id="generalConfig">
+				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
 					<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend>
-					<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-						<div class="text-center">
-					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-						data-slider-value=""  value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i></div>
-						<br>
-					<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-						<div class="text-center">
-					 <i class="fas fa-volume-down fa-2x .icon-pos"></i>   <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
-					 	required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
+						<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
+						<div class="slider-container">
+							<div class="float-end" style="padding-left: 30px">
+								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
+								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+									min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
+									data-slider-value="" value="" required>
+							</div>
+							<div class="float-end" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
 						</div>
 						<br>
-					<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-						<div class="text-center">
-					<i class="fas fa-volume-down fa-2x .icon-pos"></i> <input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21" min="1" max="21" class="form-control" id="maxVolumeHeadphone" name="maxVolumeHeadphone"
-						 data-slider-value="" value="" required>  <i class="fas fa-volume-up fa-2x .icon-pos"></i>
+						<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
+						<div class="slider-container">
+							<div class="float-end" style="padding-left: 30px">
+								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
+								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+									min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
+									required>
+							</div>
+							<div class="float-end" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
 						</div>
-				</fieldset>
-				</div>
-				<br>
-				<div class="form-group col-md-12" id="neopixelConfig" data-visible="false">
-					<fieldset >
-						<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
-					<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
-						<div class="text-center">
-							<i class="far fa-sun fa-2x .icon-pos"></i>
-						<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254" min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-							   data-slider-value=""  value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
-						</div>
-
-					<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
-						<div class="text-center">
-						<i class="far fa-sun fa-2x .icon-pos"></i><input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255" min="0" max="255" class="form-control" id="nightBrightness" name="nightBrightness" data-slider-value="" value="" required><i class="fas fa-sun fa-2x .icon-pos"></i>
+						<br>
+						<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
+						<div class="slider-container">
+							<div class="float-end" style="padding-left: 30px">
+								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
+								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+									min="1" max="21" class="form-control" id="maxVolumeHeadphone"
+									name="maxVolumeHeadphone" data-slider-value="" value="" required>
+							</div>
+							<div class="float-end" style="padding-left: 10px">
+								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
 						</div>
 					</fieldset>
-				</div>
-				<br>
-				<div class="form-group col-md-12">
+					<br>
+					<br>
+					<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
+							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="far fa-sun fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
+										min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
+										data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-sun fa-2x .icon-pos"></i>
+								</div>
+							</div>
+							<br>
+							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="far fa-sun fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
+										min="0" max="255" class="form-control" id="nightBrightness"
+										name="nightBrightness" data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-sun fa-2x .icon-pos"></i>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<br>
+					<br>
 					<fieldset>
 						<legend data-i18n="general.sleep.title"></legend>
-
-						<label for="inactivityTime" data-i18n="general.sleep.incativity"></label>
-						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i> <input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30" min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-						 data-slider-value="" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i></div>
-					</fieldset>
-				</div>
-				<br>
-
-				<div class="form-group col-md-12" id="batteryConfig" data-visible="false">
-					<fieldset>
-						<legend data-i18n="general.battery.title"></legend>
-					<div data-i18n="general.battery.desc"></div>
-						<br>
-					<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
-						<div class="text-center">
-						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input  data-provide="slider"  data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0"  min="2.5" max="5.0" type="text" class="form-control" id="warningLowVoltage" name="warningLowVoltage"
-						data-slider-value="" value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+						<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
+						<div class="slider-container">
+							<div class="float-end" style="padding-left: 30px">
+								<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+							</div>
+							<div class="slider-container-inner">
+								<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
+									min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
+									data-slider-value="" value="" required>
+							</div>
+							<div class="float-end" style="padding-left: 10px">
+								<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+							</div>
 						</div>
+					</fieldset>
 					<br>
-					<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
-						<div class="text-center">
-						<i class="fas fa-battery-quarter fa-2x .icon-pos"></i> <input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5" data-slider-max="5.0" max="5.0" type="text" class="form-control" id="voltageIndicatorLow" name="voltageIndicatorLow"
-						  data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-						</div>
-						<br>
-						<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
-
+					<br>
+					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
+						<fieldset>
+							<legend data-i18n="general.battery.title">Batterie</legend>
+							<div data-i18n="general.battery.desc"></div>
+							<br>
+							<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.5"
+										data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control"
+										id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value=""
+										pattern="^\d{1,2}(\.\d{1,3})?" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								</div>
+							</div>
+							<br>
+							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" min="2.5" data-slider-step="0.1" data-slider-min="2.5"
+										data-slider-max="5.0" max="5.0" type="text" class="form-control"
+										id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value=""
+										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								</div>
+							</div>
+							<br>
+							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.0"
+										data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+										id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value=""
+										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								</div>
+							</div>
+							<br>
+							<div id="criticalVoltageSection" data-visible="false">
+								<label for="criticalVoltage"
+									data-i18n="[prepend]general.battery.criticalShutoff">:</label>
+								<div class="slider-container">
+									<div class="float-end" style="padding-left: 30px">
+										<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+									</div>
+									<div class="slider-container-inner">
+										<input data-provide="slider" data-slider-step="0.1" data-slider-min="2.0"
+											data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+											id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
+											pattern="^\d{1,2}(\.\d{1,3})?" required>
+									</div>
+									<div class="float-end" style="padding-left: 10px">
+										<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+									</div>
+								</div>
+							</div>
+							<br>
+							<label for="voltageCheckInterval"
+								data-i18n="[prepend]general.battery.measureInterval">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
+										min="1" max="60" class="form-control" id="voltageCheckInterval"
+										data-slider-value="" name="voltageCheckInterval" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<br>
+					<div class="mb-3 col-md-12 select-div" id="playlistConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
+							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
+							<select id="playlistSortMode" name="playlistSortMode"
+								class="form-control form-select bg-white">
+								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
+								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
+								<option value="1" data-i18n="general.playlist.strcmp"></option>
+							</select>
+						</fieldset>
+					</div>
+					<div class="text-center">
+						<button type="reset" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="submit"></button>
+					</div>
+				</form>
+			</div>
+			<br />
+		</div>
+		<!-- ### Tab Tools ### -->
+		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
+			aria-labelledby="nav-tools-tab">
+			<div class="container" id="savedAssignments">
+				<legend data-i18n="tools.nvs.title"></legend>
+				<p data-i18n="tools.nvs.desc"></p>
+				<span class="container" style="padding: 0" id="listNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
+					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+						data-bs-target="#rfidListSavedAssignmentsContainer" aria-expanded="false"
+						aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
+					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
+						<ul class="list-group" id="rfidListSavedAssignments"></ul>
+					</span><br><br>
+				</span>
+				<span class="container" style="padding: 0" id="exportNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
+					<p data-i18n="tools.nvs.export.desc"></p>
+					<a type="submit" class="btn btn-primary" data-i18n="submit"
+						href="/explorerdownload?path=/backup.txt" target="_blank"></a>
+					<br><br>
+				</span>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
+					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
+						onsubmit="uploadNVSRFID('nvsUpload'); return false">
+						<div class="mb-3">
+							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
+							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload"
+								accept=".txt">
+							<br><br>
 							<div class="text-center">
-								<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="voltageIndicatorHigh" name="voltageIndicatorHigh"
-						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							</div>
 						</div>
-						<br>
-					<div id="criticalVoltageSection" data-visible="false">
-					<label for="criticalVoltage" data-i18n="[prepend]general.battery.criticalShutoff">:</label>
-						<div class="text-center">
-							<i class="fas fa-battery-quarter fa-2x .icon-pos"></i><input data-provide="slider" data-slider-step="0.1"  data-slider-min="2.0" data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control" id="criticalVoltage" name="criticalVoltage"
-						   data-slider-value=""  value="" pattern="^\d{1,2}(\.\d{1,3})?" required> <i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-						</div>
-						<br>
+					</form>
+				</span>
+				<span class="container" style="padding: 0" id="eraseNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
+					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
+					<div class="text-center">
+						<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
+							data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 					</div>
-						
-					<label for="voltageCheckInterval" data-i18n="[prepend]general.battery.measureInterval">:</label>
-						<div class="text-center"><i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
-							<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number" min="1" max="60" class="form-control" id="voltageCheckInterval"
-								   data-slider-value=""  name="voltageCheckInterval" value="" required><i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+				</span>
+				<hr>
+			</div>
+			<div class="container" id="httpUpdate">
+				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
+				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
+					<div class="mb-3">
+						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
+						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
+							name="firmwareUpload" accept=".bin">
 					</div>
-
-					</fieldset>
-				</div>
-<br>
-				<div class="text-center">
-				<button type="reset" class="btn btn-secondary" data-i18n="reset" onclick="resetSettings()"></button>&nbsp
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-				</div>
-			</form>
+					<div class="progress upload-progress-bar">
+						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar"
+							aria-labelledby="legendfwupdate"></div>
+					</div>
+					<br>
+					<div class="text-center">
+						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					</div>
+				</form>
+			</div>
+			<br />
 		</div>
-		<br />
-	</div>
-	<div class="tab-pane fade" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
-		<div class="container" id="savedAssignments">
-			<legend data-i18n="files.rfid.savedassignments"></legend>
-			<ul class="list-group" id="rfidListSavedAssignments">
-			</ul>
-		</div>
-		<br />
-		<br />
-		<div class="container" id="eraseNvs">
-			<legend data-i18n="tools.nvserase.title"></legend>
-				<div class="form-group" data-i18n="[html]tools.nvserase.desc">
-					<p></p>
-				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="tools.nvserase.button" data-toggle="modal" data-target="#deleteNVSRFIDModal"></button>				
-		</div>
-		<br />
-		<br />
-		<div class="container" id="importNvs">
-			<legend data-i18n="tools.nvsimport.title"></legend>
-			<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="form-group">
-					<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label>
-					<input type="file" class="form-control-file" id="nvsUpload" name="nvsUpload" accept=".txt">
-				</div>
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-			</form>
-		</div>
-		<br />
-		<br />
-		<div class="container" id="httpUpdate">
-			<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
-			<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
-				<div class="form-group">
-					<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label>
-					<input type="file" class="form-control-file" id="firmwareUpload" name="firmwareUpload" accept=".bin">
-				</div>
-				<div class="progress">
-					<div id="firmwareUploadProgress" class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
-				</div>
-				<br>
-				<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-			</form>
+		<!-- ### Tab Help ### -->
+		<div class="tab-pane main-tab-pane fade" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
+			<div class="container" id="divForum">
+				<legend data-i18n="help.forum.title"></legend>
+				<p data-i18n="[html]help.forum.desc"></p>
+			</div>
+			<div class="container" id="divSwagger">
+				<legend data-i18n="help.swagger.title"></legend>
+				<p data-i18n="[html]help.swagger.desc"></p>
+			</div>
 		</div>
 	</div>
-	<br />
-	<br />
-	<div class="tab-pane fade" id="nav-forum" role="tabpanel" aria-labelledby="nav-forum-tab">
-		<div class="container" id="forum">
-			<legend data-i18n="forum.title"></legend>
-			<p data-i18n="[html]forum.desc"></p>
-		</div>
-	</div>
-</div>
-<script type="text/javascript">
-	var DEBUG = false;
-	var lastIdclicked = '';
-	var ActiveTab = 'nav-rfid-tab';
-	var ActiveSubTab = 'rfid-music-tab';
-	var host = $(location).attr('hostname');
-	var language = navigator.language || navigator.userLanguage;
-	var localize;
-
-	/* show active / selected tab */
-	$('#nav-tab.nav-tabs a').on('shown.bs.tab', function (e) {
-		ActiveTab = $(e.target).attr('id');
-		console.log ("ActiveTab: " + ActiveTab);
-		if (ActiveTab == 'nav-control-tab') {
-			getTrackProgress();
-		}
-	});
-
-	/* show active / selected subtab */
-	$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
-		ActiveSubTab = $(e.target).attr('id');
-		console.log ("ActiveSubTab: " + ActiveSubTab);
-		if (ActiveSubTab == 'rfid-music-tab') {
-			document.getElementById("fileOrUrl").required = true;
-		} else {
-			document.getElementById("fileOrUrl").required = false;
-		}
-	});
-
-	if (DEBUG) {
-		host = "192.168.178.114";
-	}
-
-	toastr.options = {
-		"closeButton": false,
-		"debug": false,
-		"newestOnTop": false,
-		"progressBar": false,
-		"positionClass": "toast-top-right",
-		"onclick": null,
-		"showDuration": "300",
-		"hideDuration": "1000",
-		"timeOut": "5000",
-		"extendedTimeOut": "1000",
-		"showEasing": "swing",
-		"hideEasing": "linear",
-		"showMethod": "fadeIn",
-		"hideMethod": "fadeOut",
-		"preventDuplicates": true,
-		"preventOpenDuplicates": true
-	};
-    
-    i18next.use(i18nextHttpBackend).init({
-        backend: {
-            loadPath: "/locales/{{lng}}.json"
-        },
-		load: 'languageOnly',
-        debug: true,
-        fallbackLng: 'en',
-		returnObjects: true,
-    }, (err, t) => {	
-		localize = locI18next.init(i18next);
-		localize('body');
-		toastr.clear();
-		// change the language if we found it in the local storage
-		const lang = localStorage.getItem("language");
-		if(lang === null){
-			i18next.changeLanguage(language.split("-")[0]);
-		} else {
-			i18next.changeLanguage(lang);
-		}
-	});
-
-	i18next.on('languageChanged', (lng) => {
-		document.querySelector('#langSel').value = lng;
-
-		if(localize) {
-			localize('body');
-		}
-	});
-
-	document.querySelector('#langSel').addEventListener('change', (e) => {
-		const lang = e.target.value;
-		console.log(lang);
-		if(lang !== i18next.language){
-			toastr.clear();
-			localStorage.setItem("language", lang);
-			i18next.changeLanguage(lang);
-		}
-	});
-
-	document.getElementById('trackProgressDiv').addEventListener('click', function (e) {
-		var bounds = this.getBoundingClientRect();
-    	var max = bounds.width;
-    	var pos = e.pageX - bounds.left; 
-    	var percent = Math.round(pos / max * 100); 
-    	console.log('track progress percentage:', percent);
-		var myObj = {
-			"trackProgress": {
-				posPercent: percent
+	<script type="text/javascript">
+		var lastIdclicked = '';
+		var ActiveTab = 'nav-rfid-tab';
+		var ActiveSubTab = 'rfid-music-tab';
+		var host = $(location).attr('hostname');
+		var language = navigator.language || navigator.userLanguage;
+		var localize;
+		/* show active / selected tab */
+		$('#nav-tab.nav-tabs a').on('shown.bs.tab', function (e) {
+			ActiveTab = $(e.target).attr('id');
+			console.log("ActiveTab: " + ActiveTab);
+			if (ActiveTab == 'nav-control-tab') {
+				getTrackProgress();
 			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
- 	});
-
-	function postRendering(event, data) {
-		Object.keys(data.instance._model.data).forEach(function (key, index) {
-
-			var cur = data.instance.get_node(data.instance._model.data[key]);
-			var lastFolder = cur['id'].split('/').filter(function (el) {
-				return el.trim().length > 0;
-			}).pop();
-			if ((/\.(mp3|ogg|oga|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'audio');
-			} else
-			if ((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'playlist');
-			} else
-			if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'image');
-				data.instance.disable_node(data.instance._model.data[key]);
+			updateTabStyle();
+			localStorage.setItem("active-tab", ActiveTab);
+		});
+		/* show active / selected subtab */
+		$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
+			ActiveSubTab = $(e.target).attr('id');
+			console.log("ActiveSubTab: " + ActiveSubTab);
+			if (ActiveSubTab == 'rfid-music-tab') {
+				document.getElementById("fileOrUrl").required = true;
 			} else {
-			 if (data.instance._model.data[key]['type'] == "file") {
-					data.instance.disable_node(data.instance._model.data[key]);
+				document.getElementById("fileOrUrl").required = false;
+			}
+			updateTabStyle();
+		});
+		if (host == "") { // Not running on the device -> use the remote host
+			host = remoteHost;
+			console.log("Using remote host on " + remoteHost);
+			var anchors = document.getElementsByTagName("img");
+			for (var i = 0; i < anchors.length; i++) {
+				anchors[i].src = "http://" + host + anchors[i].src.replace("file://", "");
+			}
+			var anchors = document.getElementsByTagName("form");
+			for (var i = 0; i < anchors.length; i++) {
+				anchors[i].action = "http://" + host + anchors[i].action.replace("file://", "");
+			}
+		}
+
+		const toaster = {
+			// remove all children, except the first (which is the template)
+			clear: () => $('.toast:not(:first)').remove(),
+
+			// render a toast with given message and bootstrap color class -- private closure
+			toast: (() => {
+				// the template for toasting is always the same
+				const toastTemplate = $('#toast-template');
+				// the container which contains the toasts is also always the same
+				const toastContainer = $('#toaster');
+
+				// return the actual function
+				return (msg, colorClass) => {
+					// check, if the same message is already showing
+					if ($('div[data-msg="' + msg + '"]', toastContainer).length <= 0) {
+
+						const toast = toastTemplate.clone();
+						toast.find('.toast-body').html(msg);
+						toast.attr('id', "");
+						// storing the message in a data attribute to easier find it afterwards
+						toast.attr('data-msg', msg);
+						// set the correct class for the background color
+						toast.addClass(colorClass || 'text-bg-primary');
+						// when clicked or tapped onto, close it
+						toast.click(() => toast.remove());
+
+						toastContainer.append(toast);
+
+						const toastBoostrap = bootstrap.Toast.getOrCreateInstance(toast);
+						toastBoostrap.show();
+
+						setTimeout(() => toast.remove(), 5500);
+					}
 				}
+			})(),
+
+			// predefined color classes for easier usage
+			info: msg => toaster.toast(msg),
+			success: msg => toaster.toast(msg, 'text-bg-success'),
+			warning: msg => toaster.toast(msg, 'text-bg-warning'),
+			error: msg => toaster.toast(msg, 'text-bg-danger')
+		}
+
+		i18next.use(i18nextHttpBackend).init({
+			backend: {
+				loadPath: "http://" + host + "/locales/{{lng}}.json"
+			},
+			load: 'languageOnly',
+			debug: true,
+			fallbackLng: 'en',
+			returnObjects: true,
+		}, (err, t) => {
+			localize = locI18next.init(i18next);
+			localize('body');
+			toaster.clear();
+			// change the language if we found it in the local storage
+			const lang = localStorage.getItem("language");
+			if (lang === null) {
+				i18next.changeLanguage(language.split("-")[0]);
+			} else {
+				i18next.changeLanguage(lang);
 			}
-			data.instance.rename_node(data.instance._model.data[key], lastFolder);
 		});
-	}
-
-
-	/* File Explorer functions begin*/
-	var lastSelectedNodePath = "";
-
-	$('#explorerTree').on('select_node.jstree', function (e, data) {
-
-		$('input[name=fileOrUrl]').val(data.node.data.path);
-
-		if (ActiveSubTab !== 'rfid-music-tab') {
-			$('#SubTab.nav-tabs a[id="rfid-music-tab"]').tab('show');
-		}
-
-		if (data.node.type == "folder") {
-			$('.option-folder').show();
-			$('.option-file').hide();
-			$('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
-		}
-
-		if ((data.node.type == "audio") || (data.node.type == "playlist")) {
-			$('.option-file').show();
-			$('.option-folder').hide();
-			$('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
-		}
-
-		if(lastSelectedNodePath != data.node.data.path) {
-			if (data.node.data.directory) {
-
-				var ref = $('#explorerTree').jstree(true),
-					sel = ref.get_selected();
-				if(!sel.length) { return false; }
-				sel = sel[0];
-				var children = $("#explorerTree").jstree("get_children_dom",sel);
-				/* refresh only, when there is no child -> possible not yet updated */
-				if(children.length < 1){
-					refreshNode(sel);
+		i18next.on('languageChanged', (lng) => {
+			document.querySelector('#langSel').value = lng;
+			if (localize) {
+				localize('body');
+			}
+			document.querySelector('#menu').classList.remove("show") // Hide the menu again
+		});
+		document.querySelector('#langSel').addEventListener('change', (e) => {
+			const lang = e.target.value;
+			console.log(lang);
+			if (lang !== i18next.language) {
+				toaster.clear();
+				localStorage.setItem("language", lang);
+				i18next.changeLanguage(lang);
+			}
+		});
+		document.getElementById('trackProgressDiv').addEventListener('click', function (e) {
+			var bounds = this.getBoundingClientRect();
+			var max = bounds.width;
+			var pos = e.pageX - bounds.left;
+			var percent = Math.round(pos / max * 100);
+			console.log('track progress percentage:', percent);
+			var myObj = {
+				"trackProgress": {
+					posPercent: percent
 				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		});
 
-			}
-		 lastSelectedNodePath = data.node.data.path;
+		function postRendering(event, data) {
+			Object.keys(data.instance._model.data).forEach(function (key, index) {
+				var cur = data.instance.get_node(data.instance._model.data[key]);
+				var lastFolder = cur['id'].split('/').filter(function (el) {
+					return el.trim().length > 0;
+				}).pop();
+				if ((/\.(mp3|ogg|oga|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
+					data.instance.set_type(data.instance._model.data[key], 'audio');
+				} else
+					if ((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
+						data.instance.set_type(data.instance._model.data[key], 'playlist');
+					} else
+						if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(lastFolder)) {
+							data.instance.set_type(data.instance._model.data[key], 'image');
+							data.instance.disable_node(data.instance._model.data[key]);
+						} else {
+							if (data.instance._model.data[key]['type'] == "file") {
+								data.instance.disable_node(data.instance._model.data[key]);
+							}
+						}
+				data.instance.rename_node(data.instance._model.data[key], lastFolder);
+			});
 		}
-
-
-	});
-
-	function doRest(path, callback, obj) {
-		obj.url      = path;
-		obj.dataType = "json";
-		obj.contentType= "application/json;charset=IBM437",
-		obj.scriptCharset= "IBM437",
-		obj.success  = function(data, textStatus, jqXHR) {
-			if (callback) {
-				callback(data);
+		/* File Explorer functions begin*/
+		var lastSelectedNodePath = "";
+		$('#explorerTree').on('select_node.jstree', function (e, data) {
+			$('input[name=fileOrUrl]').val(data.node.data.path);
+			if (ActiveSubTab !== 'rfid-music-tab') {
+				$('#SubTab.nav-tabs a[id="rfid-music-tab"]').tab('show');
 			}
-		};
-		obj.error    = function(jqXHR, textStatus, errorThrown) {
-			console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url );
-			/*debugger; */
-		};
-		jQuery.ajax(obj);
-	} /* doRest */
-
-	function getData(path, callback) {
-		doRest(path, callback, {
-			method   : "GET"
+			if (data.node.type == "folder") {
+				$('.option-folder').show();
+				$('.option-file').hide();
+				$('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
+			}
+			if ((data.node.type == "audio") || (data.node.type == "playlist")) {
+				$('.option-file').show();
+				$('.option-folder').hide();
+				$('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
+			}
+			if (lastSelectedNodePath != data.node.data.path) {
+				if (data.node.data.directory) {
+					var ref = $('#explorerTree').jstree(true),
+						sel = ref.get_selected();
+					if (!sel.length) {
+						return false;
+					}
+					sel = sel[0];
+					var children = $("#explorerTree").jstree("get_children_dom", sel);
+					/* refresh only, when there is no child -> possible not yet updated */
+					if (children.length < 1) {
+						refreshNode(sel);
+					}
+				}
+				lastSelectedNodePath = data.node.data.path;
+			}
 		});
-	} /* getData */
 
-	function deleteData(path, callback, _data) {
-		doRest(path, callback, {
-			method   : "DELETE",
-			data: _data
-		});
-	} /* deleteData */
-
-	function patchData(path, callback, _data) {
-		doRest(path, callback, {
-			method   : "PATCH",
-			data: _data
-		});
-	} /* patchData */
-
-	function postData(path, callback, _data) {
-		doRest(path, callback, {
-			method   : "POST",
-			data: _data
-		});
-	} /* postData */
-
-
-	function putData(path, callback, _data) {
-		doRest(path, callback, {
-			method   : "PUT",
-			data: _data
-		});
-	} /* putData */
-
-	async function restartDevice() {
-		console.log("restart..");
-		await fetch("/restart", {method: "POST"});
-		tryRedirect();
-		$('.modal-title').text(i18next.t("restart"));
-		$('.modal-body').text(i18next.t("restartinfo"));
-		$(".modal-body").removeAttr("style");
-		$('#modalInfo').modal({show: true});
-	} /* restart */
-
-	async function shutdownDevice() {
-		console.log("shutdown..");
-		await fetch("/shutdown", {method: "POST"});
-		$('.modal-title').text(i18next.t("shutdown"));
-		$('.modal-body').text(i18next.t("shutdowninfo"));
-		$(".modal-body").removeAttr("style");
-		$('#modalInfo').modal({show: true});
-		setTimeout(function() {
+		function doRest(path, callback, obj) {
+			obj.url = path;
+			obj.dataType = "json";
+			obj.contentType = "application/json;charset=IBM437",
+				obj.scriptCharset = "IBM437",
+				obj.success = function (data, textStatus, jqXHR) {
+					if (callback) {
+						callback(data);
+					}
+				};
+			obj.error = function (jqXHR, textStatus, errorThrown) {
+				console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url);
+				/*debugger; */
+			};
+			jQuery.ajax(obj);
+		} /* doRest */
+		function getData(path, callback) {
+			doRest(path, callback, {
+				method: "GET"
+			});
+		} /* getData */
+		function deleteData(path, callback, _data) {
+			doRest(path, callback, {
+				method: "DELETE",
+				data: _data
+			});
+		} /* deleteData */
+		function patchData(path, callback, _data) {
+			doRest(path, callback, {
+				method: "PATCH",
+				data: _data
+			});
+		} /* patchData */
+		function postData(path, callback, _data) {
+			doRest(path, callback, {
+				method: "POST",
+				data: _data
+			});
+		} /* postData */
+		function putData(path, callback, _data) {
+			doRest(path, callback, {
+				method: "PUT",
+				data: _data
+			});
+		} /* putData */
+		async function restartDevice() {
+			console.log("restart..");
+			await fetch("http://" + host + "/restart", {
+				method: "POST"
+			});
 			tryRedirect();
-		}, 2000);
-	} /* restart */
-
-	/* Firmware Upload (OTA) */
-	$('#firmwareUploadForm').submit(function(e){
-		e.preventDefault();
-		if(!document.getElementById('firmwareUpload').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
-		console.log("firmware upload!");
-		var data = new FormData(this);
-
-		const startTime = new Date().getTime();
-		let bytesTotal = 0;
-		$.ajax({
-			url: '/update',
-			type: 'POST',
-			data: data,
-			contentType: false,
-			processData:false,
-			xhr: function() {
-				var xhr = new window.XMLHttpRequest();
-
-				xhr.upload.addEventListener("progress", function(evt) {
-				  if (evt.lengthComputable) {
-					const now = new Date().getTime();
-					const percent = parseInt(evt.loaded * 100 / evt.total);
-					const elapsed = (now - startTime) / 1000;
-					bytesTotal = evt.total;
-
-					let progressText = i18next.t("files.upload.timeCalc");
-					if(elapsed){
-						const bps = evt.loaded / elapsed;
-						const kbps = bps / 1024;
-						const remaining = Math.round((evt.total - evt.loaded) / bps);
-
-						const data = {
-							percent: percent,
-							remaining: {
-								unit: (remaining>60) ? i18next.t("files.upload.minutes", {count: Math.round(remaining/60)}) : i18next.t("files.upload.seconds"),
-								value: (remaining>60) ? Math.round(remaining/60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
-							},
-							speed: kbps.toFixed(2)
-						}
-						progressText = i18next.t("files.upload.progress", data);
-						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
-					}
-					$("#firmwareUploadProgress").css('width', percent+"%").text(progressText);
-				  }
-				}, false);
-
-				return xhr;
-			},
-			success: function(data, textStatus, jqXHR) {
-				const now = new Date().getTime();
-				const elapsed = (now - startTime) / 1000;
-
-				let transData = {
-					elapsed: "00:00",
-					speed: "0,00"
-				};
-				if(elapsed){
-					const bps = bytesTotal / elapsed;
-					const kbps = bps / 1024;
-
-					const date = new Date(null);
-					date.setSeconds(elapsed);
-					const timeText = date.toISOString().substr(11, 8);
-
-					transData = { elapsed: timeText, speed: kbps.toFixed(2) };
-				}
-				console.log("Firmware upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
-				const progressText = i18next.t("files.upload.success", transData);
-				$("#firmwareUploadProgress").text(progressText);
-				document.getElementById('uploaded_file').value = '';
-				document.getElementById('uploaded_file_text').innerHTML = '';
-				restartDevice();
-			},
-			error: function(xhr, status, error) {
-				console.log("Firmware upload ERROR: " + xhr.responseText);
-				$("#firmwareUploadProgress").text(i18next.t("files.upload.error") + ": " + xhr.responseText);
-				toastr.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
+			$('.modal-title').text(i18next.t("restart"));
+			$('.modal-body').html(i18next.t("restartinfo"));
+			$(".modal-body").removeAttr("style");
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+		} /* restart */
+		async function shutdownDevice() {
+			console.log("shutdown..");
+			await fetch("http://" + host + "/shutdown", {
+				method: "POST"
+			});
+			$('.modal-title').text(i18next.t("shutdown"));
+			$('.modal-body').html(i18next.t("shutdowninfo"));
+			$(".modal-body").removeAttr("style");
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			setTimeout(function () {
+				tryRedirect();
+			}, 2000);
+		} /* restart */
+		/* Firmware Upload (OTA) */
+		$('#firmwareUploadForm').submit(function (e) {
+			e.preventDefault();
+			if (!document.getElementById('firmwareUpload').files.length > 0) {
+				alert(i18next.t("files.upload.selectFile"));
+				return false;
 			}
-		});
-	});
-
-	/* File Upload */
-	$('#explorerUploadForm').submit(function(e){
-		e.preventDefault();
-		console.log("Upload!");
-		var data = new FormData(this);
-
-		var ref = $('#explorerTree').jstree(true),
-			sel = ref.get_selected(),
-			path = "/";
-		if(!sel.length) { alert(i18next.t("files.upload.selectFolder")); return false; }
-		if(!document.getElementById('uploaded_file').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
-		sel = sel[0];
-		selectedNode = ref.get_node(sel);
-		if(selectedNode.data.directory){
-			path = selectedNode.data.path
-			console.log("Directory: " + path);
-		} else {
-			/* remap sel to parent folder */
-			sel = ref.get_node(ref.get_parent(sel));
-			path = parentNode.data.path;
-			console.log("Parent path: " + path);
-		}
-
-		const startTime = new Date().getTime();
-		let bytesTotal = 0;
-		$.ajax({
-			url: '/explorer?path=' + encodeURIComponent(path),
-			type: 'POST',
-			data: data,
-			contentType: false,
-			processData:false,
-			xhr: function() {
-				var xhr = new window.XMLHttpRequest();
-
-				xhr.upload.addEventListener("progress", function(evt) {
-				  if (evt.lengthComputable) {
-					const now = new Date().getTime();
-					const percent = parseInt(evt.loaded * 100 / evt.total);
-					const elapsed = (now - startTime) / 1000;
-					bytesTotal = evt.total;
-
-					let progressText = i18next.t("files.upload.timeCalc");
-					if(elapsed){
-						const bps = evt.loaded / elapsed;
-						const kbps = bps / 1024;
-						const remaining = Math.round((evt.total - evt.loaded) / bps);
-
-						const data = {
-							percent: percent,
-							remaining: {
-								unit: (remaining>60) ? i18next.t("files.upload.minutes", {count: Math.round(remaining/60)}) : i18next.t("files.upload.seconds"),
-								value: (remaining>60) ? Math.round(remaining/60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
-							},
-							speed: kbps.toFixed(2)
-						}
-						progressText = i18next.t("files.upload.progress", data);
-						console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
-					}
-					$("#explorerUploadProgress").css('width', percent+"%").text(progressText);
-				  }
-				}, false);
-
-				return xhr;
-			},
-			success: function(data, textStatus, jqXHR) {
-				const now = new Date().getTime();
-				const elapsed = (now - startTime) / 1000;
-
-				let transData = {
-					elapsed: "00:00",
-					speed: "0,00"
-				};
-				if(elapsed){
-					const bps = bytesTotal / elapsed;
-					const kbps = bps / 1024;
-
-					const date = new Date(null);
-					date.setSeconds(elapsed);
-					const timeText = date.toISOString().substr(11, 8);
-
-					transData = { elapsed: timeText, speed: kbps.toFixed(2) };
-				}
-				console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
-				const progressText = i18next.t("files.upload.success", transData);
-				$("#explorerUploadProgress").text(progressText);
-				document.getElementById('uploaded_file').value = '';
-				document.getElementById('uploaded_file_text').innerHTML = '';
-
-				getData("/explorer?path=" + path, function(data) {
-					/* We now have data! */
-					deleteChildrenNodes(sel);
-					addFileDirectory(sel, data);
-					ref.open_node(sel);
-				});
-
-			},
-			error: function(request, status, error) {
-				console.log("Upload ERROR!");
-				$("#explorerUploadProgress").text(i18next.t("files.upload.error") +": " + status);
-				toastr.error(i18next.t("files.upload.error") + ": " + status);
-			}
-		});
-	});
-
-	/* File Delete */
-	function handleDeleteData(nodeId) {
-		var selectedNodes = $('#explorerTree').jstree("get_selected", true);
-		$.each(selectedNodes, function() {
-			var ref = $('#explorerTree').jstree(true);
-			var node = ref.get_node(this.id);
-			console.log("call delete request: " + node.data.path);
-			deleteData("/explorer?path=" + encodeURIComponent(node.data.path));
-		});
-	}
-
-	function fileNameSort( a, b ) {
-		if ( a.dir && !b.dir ) {
-			return -1
-		}
-		if ( !a.dir && b.dir ) {
-			return 1
-		}
-		if ( a.name < b.name ){
-			return -1;
-		}
-		if ( a.name > b.name ){
-			return 1;
-		}
-		return 0;
-	}
-
-	function createChild(nodeId, data) {
-		var ref = $('#explorerTree').jstree(true);
-		var node = ref.get_node(nodeId);
-		var parentNodePath = node.data.path;
-		/* In case of root node remove leading '/' to avoid '//' */
-		if(parentNodePath == "/"){
-			parentNodePath = "";
-		}
-		var child = {
-			text: data.name,
-			type: getType(data),
-			data: {
-				path: parentNodePath + "/" + data.name,
-				directory: data.dir
-			}
-		};
-
-		return child;
-
-	}
-
-	function deleteChildrenNodes(nodeId) {
-		var ref = $('#explorerTree').jstree(true);
-		var children = $("#explorerTree").jstree("get_children_dom",nodeId);
-		for(var i=0;i<children.length;i++)
-		{
-			ref.delete_node(children[i].id);
-		}
-
-	}
-
-	function refreshNode(nodeId) {
-
-		var ref = $('#explorerTree').jstree(true);
-
-		var node = ref.get_node(nodeId);
-
-		getData("/explorer?path=" + encodeURIComponent(node.data.path), function(data) {
-			/* We now have data! */
-
-			deleteChildrenNodes(nodeId);
-			addFileDirectory(nodeId, data);
-			ref.open_node(nodeId);
-
-		});
-
-
-	}
-
-	function getType(data) {
-		var type = "";
-
-		if(data.dir) {
-			type = "folder";
-		} else if ((/\.(mp3|ogg|oga|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
-			type = "audio";
-		} else if ((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
-			type = "playlist";
-		} else if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(data.name)) {
-			type = "image";
-		} else {
-			type = "file";
-		}
-
-		return type;
-	}
-
-
-
-	function addFileDirectory(parent, data) {
-
-		data.sort( fileNameSort );
-		var ref = $('#explorerTree').jstree(true);
-
-		for (var i=0; i<data.length; i++) {
-			console.log("Create Node");
-			ref.create_node(parent, createChild(parent, data[i]));
-		}
-	} /* addFileDirectory */
-
-	function buildFileSystemTree(path) {
-
-		$('#explorerTree').jstree({
-				"core" : {
-						"check_callback" : true,
-						'force_text' : true,
-						'strings' : { "Loading ..." : () => i18next.t("files.loading") },
-						"themes" : { "stripes" : true },
-						'data' : {	text: '/',
-									state: {
-										opened: true,
-										selected: true
+			console.log("firmware upload!");
+			var data = new FormData(this);
+			const startTime = new Date().getTime();
+			let bytesTotal = 0;
+			$.ajax({
+				url: '/update',
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData: false,
+				xhr: function () {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener("progress", function (evt) {
+						if (evt.lengthComputable) {
+							const now = new Date().getTime();
+							const percent = parseInt(evt.loaded * 100 / evt.total);
+							const elapsed = (now - startTime) / 1000;
+							bytesTotal = evt.total;
+							let progressText = i18next.t("files.upload.timeCalc");
+							if (elapsed) {
+								const bps = evt.loaded / elapsed;
+								const kbps = bps / 1024;
+								const remaining = Math.round((evt.total - evt.loaded) / bps);
+								const data = {
+									percent: percent,
+									remaining: {
+										unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
+											count: Math.round(remaining / 60)
+										}) : i18next.t("files.upload.seconds"),
+										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
 									},
-									type: 'folder',
-									children: [],
-									data: {
-										path: '/',
-										directory: true
-								}}
-					},
-					'types': {
-						'folder': {
-							'icon': "fa fa-folder"
-						},
-						'file': {
-							'icon': "fa fa-file"
-						},
-						'audio': {
-							'icon': "fa fa-file-audio"
-						},
-						'playlist': {
-							'icon': "fa fa-file-alt"
-						},
-						'image': {
-							'icon': "fa fa-file-image"
-						},
-						'default': {
-							'icon': "fa fa-folder"
+									speed: kbps.toFixed(2)
+								}
+								progressText = i18next.t("files.upload.progress", data);
+								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
+							}
+							$("#firmwareUploadProgress").css('width', percent + "%").text(progressText);
 						}
+					}, false);
+					return xhr;
+				},
+				success: function (data, textStatus, jqXHR) {
+					const now = new Date().getTime();
+					const elapsed = (now - startTime) / 1000;
+					let transData = {
+						elapsed: "00:00",
+						speed: "0,00"
+					};
+					if (elapsed) {
+						const bps = bytesTotal / elapsed;
+						const kbps = bps / 1024;
+						const date = new Date(null);
+						date.setSeconds(elapsed);
+						const timeText = date.toISOString().substr(11, 8);
+						transData = {
+							elapsed: timeText,
+							speed: kbps.toFixed(2)
+						};
+					}
+					console.log("Firmware upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
+					const progressText = i18next.t("files.upload.success", transData);
+					$("#firmwareUploadProgress").text(progressText);
+					document.getElementById('uploaded_file').value = '';
+					document.getElementById('uploaded_file_text').innerHTML = '';
+					restartDevice();
+				},
+				error: function (xhr, status, error) {
+					console.log("Firmware upload ERROR: " + xhr.responseText);
+					$("#firmwareUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + xhr.responseText + "&nbsp;");
+					toaster.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
+				}
+			});
+		});
+		/* File Upload */
+		$('#explorerUploadForm').submit(function (e) {
+			e.preventDefault();
+			console.log("Upload!");
+			var data = new FormData(this);
+			var ref = $('#explorerTree').jstree(true),
+				sel = ref.get_selected(),
+				path = "/";
+			if (!sel.length) {
+				alert(i18next.t("files.upload.selectFolder"));
+				return false;
+			}
+			if (!document.getElementById('uploaded_file').files.length > 0) {
+				alert(i18next.t("files.upload.selectFile"));
+				return false;
+			}
+			sel = sel[0];
+			selectedNode = ref.get_node(sel);
+			if (selectedNode.data.directory) {
+				path = selectedNode.data.path
+				console.log("Directory: " + path);
+			} else {
+				/* remap sel to parent folder */
+				sel = ref.get_node(ref.get_parent(sel));
+				path = parentNode.data.path;
+				console.log("Parent path: " + path);
+			}
+			const startTime = new Date().getTime();
+			let bytesTotal = 0;
+			$.ajax({
+				url: '/explorer?path=' + encodeURIComponent(path),
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData: false,
+				xhr: function () {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener("progress", function (evt) {
+						if (evt.lengthComputable) {
+							const now = new Date().getTime();
+							const percent = parseInt(evt.loaded * 100 / evt.total);
+							const elapsed = (now - startTime) / 1000;
+							bytesTotal = evt.total;
+							let progressText = i18next.t("files.upload.timeCalc");
+							if (elapsed) {
+								const bps = evt.loaded / elapsed;
+								const kbps = bps / 1024;
+								const remaining = Math.round((evt.total - evt.loaded) / bps);
+								const data = {
+									percent: percent,
+									remaining: {
+										unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
+											count: Math.round(remaining / 60)
+										}) : i18next.t("files.upload.seconds"),
+										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+									},
+									speed: kbps.toFixed(2)
+								}
+								progressText = i18next.t("files.upload.progress", data);
+								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
+							}
+							$("#explorerUploadProgress").css('width', percent + "%").text(progressText);
+						}
+					}, false);
+					return xhr;
+				},
+				success: function (data, textStatus, jqXHR) {
+					const now = new Date().getTime();
+					const elapsed = (now - startTime) / 1000;
+					let transData = {
+						elapsed: "00:00",
+						speed: "0,00"
+					};
+					if (elapsed) {
+						const bps = bytesTotal / elapsed;
+						const kbps = bps / 1024;
+						const date = new Date(null);
+						date.setSeconds(elapsed);
+						const timeText = date.toISOString().substr(11, 8);
+						transData = {
+							elapsed: timeText,
+							speed: kbps.toFixed(2)
+						};
+					}
+					console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
+					const progressText = i18next.t("files.upload.success", transData);
+					$("#explorerUploadProgress").text(progressText);
+					document.getElementById('uploaded_file').value = '';
+					document.getElementById('uploaded_file_text').innerHTML = '';
+					getData("http://" + host + "/explorer?path=" + path, function (data) {
+						/* We now have data! */
+						deleteChildrenNodes(sel);
+						addFileDirectory(sel, data);
+						ref.open_node(sel);
+					});
+				},
+				error: function (request, status, error) {
+					console.log("Upload ERROR!");
+					$("#explorerUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + status + "&nbsp;");
+					toaster.error(i18next.t("files.upload.error") + ": " + status);
+				}
+			});
+		});
+		/* File Delete */
+		function handleDeleteData(nodeId) {
+			var selectedNodes = $('#explorerTree').jstree("get_selected", true);
+			$.each(selectedNodes, function () {
+				var ref = $('#explorerTree').jstree(true);
+				var node = ref.get_node(this.id);
+				console.log("call delete request: " + node.data.path);
+				deleteData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path));
+			});
+		}
+
+		function sortData(data) {
+			var sortMode = 3; // Default: natural case-insensitive
+			try {
+				sortMode = window.settings.playlist.sortMode;
+			} catch (error) {
+				// Nothing to do
+			}
+			data.sort(function (a, b) {
+				// Make sure directories are always listed first
+				if (a.dir && !b.dir) {
+					return -1;
+				}
+				if (!a.dir && b.dir) {
+					return 1;
+				}
+				switch (sortMode) {
+					case 1: // strcmp - standard string comparison
+						if (a.name < b.name) {
+							return -1;
+						}
+						if (a.name > b.name) {
+							return 1;
+						}
+						return 0;
+					case 2: // strnatcmp - natural case-sensitive
+						return natcompare(a.name, b.name);
+						break;
+					case 3: // strnatcasecmp - natural case-insensitive
+					default:
+						return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
+						break;
+				}
+			});
+		}
+
+		function createChild(nodeId, data) {
+			var ref = $('#explorerTree').jstree(true);
+			var node = ref.get_node(nodeId);
+			var parentNodePath = node.data.path;
+			/* In case of root node remove leading '/' to avoid '//' */
+			if (parentNodePath == "/") {
+				parentNodePath = "";
+			}
+			var child = {
+				text: data.name,
+				type: getType(data),
+				data: {
+					path: parentNodePath + "/" + data.name,
+					directory: data.dir
+				}
+			};
+			return child;
+		}
+
+		function deleteChildrenNodes(nodeId) {
+			var ref = $('#explorerTree').jstree(true);
+			var children = $("#explorerTree").jstree("get_children_dom", nodeId);
+			for (var i = 0; i < children.length; i++) {
+				ref.delete_node(children[i].id);
+			}
+		}
+
+		function refreshNode(nodeId) {
+			var ref = $('#explorerTree').jstree(true);
+			var node = ref.get_node(nodeId);
+			getData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path), function (data) {
+				/* We now have data! */
+				deleteChildrenNodes(nodeId);
+				addFileDirectory(nodeId, data);
+				ref.open_node(nodeId);
+			});
+		}
+
+		function getType(data) {
+			var type = "";
+			if (data.dir) {
+				type = "folder";
+			} else if ((/\.(mp3|ogg|oga|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
+				type = "audio";
+			} else if ((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
+				type = "playlist";
+			} else if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(data.name)) {
+				type = "image";
+			} else {
+				type = "file";
+			}
+			return type;
+		}
+
+		function addFileDirectory(parent, data) {
+			sortData(data);
+			var ref = $('#explorerTree').jstree(true);
+			for (var i = 0; i < data.length; i++) {
+				console.log("Create Node");
+				ref.create_node(parent, createChild(parent, data[i]));
+			}
+		} /* addFileDirectory */
+		function buildFileSystemTree(path, darkMode) {
+			if (darkMode == true) {
+				var theme = "default-dark";
+			} else {
+				var theme = "default";
+			}
+			$('#explorerTree').jstree({
+				"core": {
+					"check_callback": true,
+					'force_text': true,
+					'strings': {
+						"Loading ...": () => i18next.t("files.loading")
 					},
+					"themes": {
+						"name": theme,
+						"stripes": true
+					},
+					'data': {
+						text: '/',
+						state: {
+							opened: true,
+							selected: true
+						},
+						type: 'folder',
+						children: [],
+						data: {
+							path: '/',
+							directory: true
+						}
+					}
+				},
+				'types': {
+					'folder': {
+						'icon': "fa fa-folder"
+					},
+					'file': {
+						'icon': "fa fa-file"
+					},
+					'audio': {
+						'icon': "fa fa-file-audio"
+					},
+					'playlist': {
+						'icon': "fa fa-file-alt"
+					},
+					'image': {
+						'icon': "fa fa-file-image"
+					},
+					'default': {
+						'icon': "fa fa-folder"
+					}
+				},
 				plugins: ["contextmenu", "themes", "types", "search"],
-                "search": {
-                    "case_sensitive": false,
-                    "show_only_matches": true
-                },
+				"search": {
+					"case_sensitive": false,
+					"show_only_matches": true
+				},
 				contextmenu: {
-					items: function(nodeId) {
+					items: function (nodeId) {
 						var ref = $('#explorerTree').jstree(true);
 						var node = ref.get_node(nodeId);
 						var items = {};
-
-
 						if (node.data.directory) {
 							items.createDir = {
 								label: () => i18next.t("files.context.newFolder"),
-								action: function(x) {
-									var childNode = ref.create_node(nodeId, {text: () => i18next.t("files.context.newFolder"), type: "folder"});
-									if(childNode) {
-										ref.edit(childNode, null, function(childNode, status){
-											putData("/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
+								icon: "fas fa-folder",
+								action: function (x) {
+									var childNode = ref.create_node(nodeId, {
+										text: () => i18next.t("files.context.newFolder"),
+										type: "folder"
+									});
+									if (childNode) {
+										ref.edit(childNode, null, function (childNode, status) {
+											putData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
 											refreshNode(nodeId);
 										});
 									}
 								}
 							};
 						}
-
 						/* Play */
 						items.play = {
 							label: () => i18next.t("files.context.play"),
-							action: function(x) {
+							icon: "fas fa-play",
+							action: function (x) {
 								var playMode = 1;
 								if (node.data.directory) {
 									playMode = 5;
@@ -1424,46 +1876,46 @@
 										playMode = 11;
 									}
 								}
-								postData("/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
+								postData("http://" + host + "/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
-
 						/* Refresh */
 						items.refresh = {
 							label: () => i18next.t("files.context.refresh"),
-							action: function(x) {
+							icon: "fas fa-sync",
+							action: function (x) {
 								refreshNode(nodeId);
 							}
 						};
-
 						/* Delete */
 						items.delete = {
 							label: () => i18next.t("files.context.delete"),
-							action: function(x) {
+							icon: "fas fa-trash",
+							action: function (x) {
 								handleDeleteData(nodeId);
 								refreshNode(ref.get_parent(nodeId));
 							}
 						};
-
 						/* Rename */
 						items.rename = {
 							label: () => i18next.t("files.context.rename"),
-							action: function(x) {
+							icon: "fas fa-edit",
+							action: function (x) {
 								var srcPath = node.data.path;
-								ref.edit(nodeId, null, function(node, status){
-									node.data.path = node.data.path.substring(0,node.data.path.lastIndexOf("/")+1) + node.text;
-									patchData("/explorer?srcpath=" + encodeURIComponent(srcPath) + "&dstpath=" + encodeURIComponent(node.data.path));
+								ref.edit(nodeId, null, function (node, status) {
+									node.data.path = node.data.path.substring(0, node.data.path.lastIndexOf("/") + 1) + node.text;
+									patchData("http://" + host + "/explorer?srcpath=" + encodeURIComponent(srcPath) + "&dstpath=" + encodeURIComponent(node.data.path));
 									refreshNode(ref.get_parent(nodeId));
 								});
 							}
 						};
-
 						/* Download */
 						if (!node.data.directory) {
 							items.download = {
 								label: () => i18next.t("files.context.download"),
-								action: function(x) {
-									uri = "/explorerdownload?path=" + encodeURIComponent(node.data.path);
+								icon: "fas fa-download",
+								action: function (x) {
+									uri = "http://" + host + "/explorerdownload?path=" + encodeURIComponent(node.data.path);
 									console.log("download file: " + node.data.path);
 									var anchor = document.createElement('a');
 									anchor.href = uri;
@@ -1474,780 +1926,1082 @@
 								}
 							}
 						};
-
 						return items;
 					}
 				}
 			});
-
-		if (path.length == 0) {
-			return;
-		}
-		getData("/explorer?path=/", function(data) {
-			/* We now have data! */
-			$('#explorerTree').jstree(true).settings.core.data.children = [];
-
-			data.sort( fileNameSort );
-
-
-			for (var i=0; i<data.length; i++) {
-				var newChild = {
-					text: data[i].name,
-					type: getType(data[i]),
-					data: {
-						path: "/" + data[i].name,
-						directory: data[i].dir
-					},
-					children: []
-				};
-				$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);
+			if (path.length == 0) {
+				return;
 			}
+			getData("http://" + host + "/explorer?path=/", function (data) {
+				/* We now have data! */
+				$('#explorerTree').jstree(true).settings.core.data.children = [];
+				sortData(data);
+				for (var i = 0; i < data.length; i++) {
+					var newChild = {
+						text: data[i].name,
+						type: getType(data[i]),
+						data: {
+							path: "/" + data[i].name,
+							directory: data[i].dir
+						},
+						children: []
+					};
+					$('#explorerTree').jstree(true).settings.core.data.children.push(newChild);
+				}
+				$("#explorerTree").jstree(true).refresh();
+			});
+		} /* buildFileSystemTree */
+		/* File Explorer functions end */
+		var socket = undefined;
+		var tm;
+		var volumeSlider = new Slider("#setVolume");
+		document.getElementById('setVolume').remove();
 
-			$("#explorerTree").jstree(true).refresh();
+		function connect() {
+			socket = new WebSocket("ws://" + host + "/ws");
+			socket.onopen = function () {
+				setInterval(ping, 15000);
+				setInterval(getTrackProgress, 1000);
+				// clear old socket messages
+				socket.sendBuffer = [];
+				socket.send('{"settings":{"settings":"settings"}}'); // request settings
+				socket.send('{"ssids":{"ssids":"ssids"}}'); // get ssids
+				socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}'); // get trackinfo
+				socket.send('{"coverimg":{"coverimg":"coverimg"}}'); // get cover image
+			};
+			socket.onclose = function (e) {
+				console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
+				socket = null;
+				setTimeout(function () {
+					connect();
+				}, 5000);
+			};
+			socket.onerror = function (err) {
+				console.error('Socket encountered error: ', err.message, 'Closing socket');
+			};
+			socket.onmessage = function (event) {
+				console.log(event.data);
+				var socketMsg = JSON.parse(event.data);
+				if (socketMsg.rfidId != null) {
+					document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
+					toaster.info(i18next.t("toast.rfidDetect", {
+						rfidId: socketMsg.rfidId
+					}));
+					$("#rfidIdMusic").effect("highlight", {
+						color: "#abf5af"
+					}, 3000);
+					if (toolsTabActive) {
+						rebuildRFIDList();
+					}
+				}
+				if ("status" in socketMsg) {
+					if (socketMsg.status == "ok") {
+						toaster.success(i18next.t("toast.success"));
+					}
+					if (socketMsg.status == "dropout") {
+						toaster.warning(i18next.t("toast.dropout"));
+					}
+				}
+				if ("pong" in socketMsg) {
+					if (socketMsg.pong == 'pong') {
+						pong();
+					}
+				}
+				if ("volume" in socketMsg) {
+					volumeSlider.setValue(parseInt(socketMsg.volume));
+				}
+				if ("trackinfo" in socketMsg) {
+					document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
+					setTrackProgress(socketMsg.trackinfo);
+					var btnTrackPlayPause = document.getElementById('nav-btn-play');
+					if (socketMsg.trackinfo.pausePlay) {
+						btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
+					} else {
+						btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-pause"></i>';
+					}
+					var btnTrackFirst = document.getElementById('nav-btn-first');
+					var btnTrackPrev = document.getElementById('nav-btn-prev');
+					if (socketMsg.trackinfo.currentTrackNumber <= 1) {
+						btnTrackFirst.classList.add("disabled");
+						btnTrackPrev.classList.add("disabled");
+					} else {
+						btnTrackFirst.classList.remove("disabled");
+						btnTrackPrev.classList.remove("disabled");
+					}
+					var btnTrackLast = document.getElementById('nav-btn-last');
+					var btnTrackNext = document.getElementById('nav-btn-next');
+					if (socketMsg.trackinfo.currentTrackNumber >= socketMsg.trackinfo.numberOfTracks) {
+						btnTrackLast.classList.add("disabled");
+						btnTrackNext.classList.add("disabled");
+					} else {
+						btnTrackLast.classList.remove("disabled");
+						btnTrackNext.classList.remove("disabled");
+					}
+				}
+				if ("trackProgress" in socketMsg) {
+					setTrackProgress(socketMsg.trackProgress);
+				}
+				if ("coverimg" in socketMsg) {
+					document.getElementById('coverimg').src = "http://" + host + "/cover?" + new Date().getTime();
+				}
+				if ("settings" in socketMsg) {
+					fillSettings(socketMsg.settings);
+				}
+			};
+		}
+		async function fillSettings(settings) {
+			if (!settings) {
+				return false;
+			}
+			// update global settings
+			window.settings = {
+				...window.settings,
+				...settings
+			};
+			// general
+			let genSettings = settings.general;
+			if (genSettings) {
+				$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
+				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
+				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
+				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+			}
+			// current values
+			let currSettings = settings.current;
+			if (currSettings) {
+				document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
+				volumeSlider.setValue(currSettings.volume);
+			}
+			// default (factory) settings
+			let defSettings = settings.defaults;
+			if (defSettings) {
+				$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
+				$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
+				$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
+				$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
+				$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
+				$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
+				$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
+				$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
+				$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
+				$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
+				$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
+				$("#playlistSortMode").val(defSettings.sortMode).change();
+				$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
+				$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
+				$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
+				// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+				formatDBTooltip($('#gainLowPass')[0].previousSibling, defSettings.gainLowPass);
+				formatDBTooltip($('#gainBandPass')[0].previousSibling, defSettings.gainBandPass);
+				formatDBTooltip($('#gainHighPass')[0].previousSibling, defSettings.gainHighPass);
+			}
+			let eqSettings = settings.equalizer;
+			if (eqSettings) {
+				$("#gainLowPass").bootstrapSlider('setValue', eqSettings.gainLowPass);
+				$("#gainBandPass").bootstrapSlider('setValue', eqSettings.gainBandPass);
+				$("#gainHighPass").bootstrapSlider('setValue', eqSettings.gainHighPass);
+				// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
+				formatDBTooltip($('#gainLowPass')[0].previousSibling, eqSettings.gainLowPass);
+				formatDBTooltip($('#gainBandPass')[0].previousSibling, eqSettings.gainBandPass)
+				formatDBTooltip($('#gainHighPass')[0].previousSibling, eqSettings.gainHighPass);
+			}
+			// wifi
+			let wifiSettings = settings.wifi;
+			if (wifiSettings) {
+				document.getElementById("hostname").value = wifiSettings.hostname;
+				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+				// set title to hostname
+				setTitle(wifiSettings.hostname);
+			}
+			// ssids
+			let ssidSettings = settings.ssids;
+			if (ssidSettings) {
+				rebuildSSIDList(ssidSettings);
+			}
+			// led
+			let ledSettings = settings.led;
+			if (ledSettings) {
+				document.getElementById('neopixelConfig').setAttribute('data-visible', true);
+				$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
+				$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
+			}
+			// playlist
+			let playlistSettings = settings.playlist;
+			if (playlistSettings) {
+				$("#playlistSortMode").val(playlistSettings.sortMode).change();
+			}
+			// battery
+			let batSettings = settings.battery;
+			if (batSettings) {
+				document.getElementById('batteryConfig').setAttribute('data-visible', true);
+				$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
+				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
+				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
+				if (batSettings.criticalVoltage) {
+					document.getElementById('criticalVoltageSection').setAttribute('data-visible', true);
+					$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
+				} else {
+					document.getElementById('criticalVoltageSection').setAttribute('data-visible', false);
+				}
+				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
+			}
+			// ftp
+			let ftpSettings = settings.ftp;
+			if (ftpSettings) {
+				document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
+				document.getElementById("ftpUser").value = ftpSettings.username;
+				document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
+				document.getElementById("ftpPwd").value = ftpSettings.password;
+				document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
+			}
+			// mqtt
+			let mqttSettings = settings.mqtt;
+			if (mqttSettings) {
+				// todo: get the bootstrap sliders to work:
+				document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
+				document.getElementById('mqttEnable').checked = mqttSettings.enable;
+				document.getElementById('mqttClientId').value = mqttSettings.clientID;
+				document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
+				document.getElementById('mqttServer').value = mqttSettings.server;
+				document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
+				document.getElementById('mqttUser').value = mqttSettings.username;
+				document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
+				document.getElementById('mqttPwd').value = mqttSettings.password;
+				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
+				document.getElementById('mqttPort').value = mqttSettings.port;
+			}
+			// bluetooth
+			let btSettings = settings.bluetooth;
+			if (btSettings) {
+				document.getElementById('nav-bt-tab').setAttribute('data-visible', true);
+				document.getElementById('btDeviceName').value = btSettings.deviceName;
+				document.getElementById('btPinCode').value = btSettings.pinCode;
+			}
+		}
+		async function resetSettings() {
+			let defaults = await (await fetch("http://" + host + "/settings?section=defaults")).json();
+			fillSettings(defaults);
+		}
+		const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
+		async function rebuildSSIDList(data) {
+			var ssidList;
+			var ssidActive;
+			if (data) {
+				ssidList = data.savedSSIDs;
+				ssidActive = data.active;
+			} else {
+				ssidList = await (await fetch("http://" + host + "/savedSSIDs")).json();
+				let ssidActiveObj = await (await fetch("http://" + host + "/activeSSID")).json();
+				console.log(ssidActiveObj);
+				ssidActive = ssidActiveObj.active;
+			}
+			wifiListSavedSSIDs.innerHTML = "";
+			for (let ssid of ssidList) {
+				console.log("appending ssid", ssid);
+				let ssidElem = document.createElement("li");
+				ssidElem.appendChild(document.createTextNode(ssid));
+				ssidElem.classList.add("list-group-item");
+				console.log("comparing ssid vs active:", ssidActive, ssid);
+				if (ssidActive && ssidActive === ssid) {
+					ssidElem.classList.add("active");
+				} else {
+					ssidElem.classList.add("bg-dark");
+					ssidElem.classList.add("text-light");
+				}
+				let deleteSpan = document.createElement("span");
+				deleteSpan.classList.add("float-end");
+				deleteSpan.classList.add("button-group");
+				let deleteButton = document.createElement("button");
+				deleteButton.classList.add("btn");
+				deleteButton.classList.add("btn-danger");
+				deleteButton.classList.add("fa");
+				deleteButton.classList.add("fa-trash");
+				deleteButton.setAttribute("data-bs-toggle", "modal");
+				deleteButton.setAttribute("data-bs-target", "#deleteSSIDModal");
+				deleteButton.setAttribute("data-ssid", ssid);
+				deleteSpan.appendChild(deleteButton);
+				ssidElem.appendChild(deleteSpan);
+				wifiListSavedSSIDs.appendChild(ssidElem);
+			}
+		}
+		async function deleteSSID(ssid) {
+			console.log("deleting", ssid);
+			$('#deleteSSIDModal').modal('hide');
+			await fetch("http://" + host + "/savedSSIDs/" + ssid, {
+				method: "DELETE"
+			});
+			await rebuildSSIDList();
+		}
+		const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");
+		async function rebuildRFIDList() {
+			var rfidList = await (await fetch("http://" + host + "/rfid")).json();
+			var rfidActive = document.getElementById('rfidIdMusic').value;
+			rfidListSavedAssignments.innerHTML = "";
+			console.log(rfidList.length + ' nvs rfid entries received.');
+			for (let rfid of rfidList) {
+				if (!rfid.id) {
+					console.log("empty tag id");
+					break;
+				}
+				console.log("appending rfid ", rfid);
+				let rfidElem = document.createElement("li");
+				rfidElem.appendChild(document.createTextNode(rfid.id));
+				if (rfid.playMode) {
+					rfidElem.appendChild(document.createElement("div"));
+					rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.playmode.mode." + rfid.playMode)));
+				} else
+					if (rfid.modId) {
+						rfidElem.appendChild(document.createElement("div"));
+						rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.mod.cmd." + rfid.modId)));
+					}
+				rfidElem.classList.add("list-group-item");
+				console.log("comparing rfid vs active:", rfidActive, rfid.id);
+				if (rfidActive && rfidActive === rfid.id) {
+					rfidElem.classList.add("active");
+				}
+				if (rfid.fileOrUrl) {
+					rfidElem.appendChild(document.createElement("br"));
+					rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
+				}
+				let deleteSpan = document.createElement("span");
+				deleteSpan.classList.add("float-end");
+				deleteSpan.classList.add("button-group");
+				let deleteButton = document.createElement("button");
+				deleteButton.classList.add("btn");
+				deleteButton.classList.add("btn-danger");
+				deleteButton.classList.add("fa");
+				deleteButton.classList.add("fa-trash");
+				deleteButton.setAttribute("data-bs-toggle", "modal");
+				deleteButton.setAttribute("data-bs-target", "#deleteRFIDModal");
+				deleteButton.setAttribute("data-rfid", rfid.id);
+				deleteSpan.appendChild(deleteButton);
+				rfidElem.appendChild(deleteSpan);
+				rfidListSavedAssignments.appendChild(rfidElem);
+			}
+			document.getElementById('listNvs').setAttribute('data-visible', (rfidList.length > 0));
+			document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
+			document.getElementById('exportNvs').setAttribute('data-visible', (rfidList.length > 0));
+		}
+		async function deleteRFID(tagId) {
+			console.log("deleting", tagId);
+			$('#deleteRFIDModal').modal('hide');
+			var response = await fetch("http://" + host + "/rfid?id=" + encodeURIComponent(tagId), {
+				method: "DELETE"
+			});
+			if (response.ok) {
+				toaster.success(i18next.t("toast.success"));
+				rebuildRFIDList();
+			} else {
+				toaster.error(response.statusText);
+			}
+			console.log(response.statusText);
+		}
+		async function eraseNVSRFID() {
+			console.log("erase all NVS RFIDs");
+			$('#deleteNVSRFIDModal').modal('hide');
+			var response = await fetch("http://" + host + "/rfidnvserase", {
+				method: "POST"
+			});
+			if (response.ok) {
+				toaster.success(i18next.t("toast.success"));
+				await rebuildRFIDList();
+			} else {
+				toaster.error(response.statusText);
+			}
+		}
+		async function uploadNVSRFID() {
+			if (!document.getElementById('nvsUpload').files.length > 0) {
+				alert(i18next.t("files.upload.selectFile"));
+				return false;
+			}
+			console.log("upload NVS RFIDs");
+			let formData = new FormData();
+			formData.append("file", document.getElementById('nvsUpload').files[0]);
+			var response = await fetch('/upload', {
+				method: "POST",
+				body: formData
+			});
+			if (response.ok) {
+				toaster.success(i18next.t("toast.success"));
+				rebuildRFIDList();
+			} else {
+				toaster.error(response.statusText);
+			}
+		}
 
-
-		});
-	} /* buildFileSystemTree */
-
-	/* File Explorer functions end */
-
-	var socket = undefined;
-	var tm;
-	var volumeSlider = new Slider("#setVolume");
-	document.getElementById('setVolume').remove();
-
-	function connect() {
-		socket = new WebSocket("ws://" + host + "/ws");
-
-		socket.onopen = function () {
-			setInterval(ping, 15000);
-			setInterval(getTrackProgress, 1000);
-			// clear old socket messages
-    		socket.sendBuffer = [];
-			socket.send('{"settings":{"settings":"settings"}}');	// request settings
-			socket.send('{"ssids":{"ssids":"ssids"}}');				// get ssids
-			socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}');	// get trackinfo
-			socket.send('{"coverimg":{"coverimg":"coverimg"}}');	// get cover image
+		function onToolsTabOpened() {
+			console.log("tools tab opened!");
+			rebuildRFIDList();
+		}
+		const config = {
+			attributes: true
 		};
+		const toolsTab = document.getElementById("nav-tools-tab");
+		var toolsTabActive = false;
+		const toolsTabObserver = new MutationObserver((mutationList, observer) => {
+			if (!toolsTabActive && toolsTab.classList.contains("active")) {
+				toolsTabActive = true;
+				onToolsTabOpened();
+			} else {
+				toolsTabActive = false;
+			}
+		})
+		toolsTabObserver.observe(toolsTab, config);
 
-		socket.onclose = function (e) {
-			console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
-			socket = null;
-			setTimeout(function () {
-				connect();
+		function ping() {
+			var myObj = {
+				"ping": {
+					ping: 'ping'
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+			tm = setTimeout(function () {
+				toaster.warning(i18next.t("toast.conlost"));
 			}, 5000);
-		};
+		}
 
-		socket.onerror = function (err) {
-			console.error('Socket encountered error: ', err.message, 'Closing socket');
-		};
-
-		socket.onmessage = function(event) {
-		  console.log(event.data);
-		  var socketMsg = JSON.parse(event.data);
-		  if (socketMsg.rfidId != null) {
-			  document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
-			  toastr.info(i18next.t("toast.rfidDetect", { rfidId: socketMsg.rfidId }));
-			  $("#rfidIdMusic").effect("highlight", {color:"#abf5af"}, 3000);
-			  if (toolsTabActive) {
-			  	rebuildRFIDList();
-			  }
-		  } if ("status" in socketMsg) {
-			  if (socketMsg.status == "ok") {
-				  toastr.success(i18next.t("toast.success"));
-			  }
-			  if (socketMsg.status == "dropout") {
-				  toastr.warning(i18next.t("toast.dropout"));
-			  }
-		  } if ("pong" in socketMsg) {
-			if (socketMsg.pong == 'pong') {
-				  pong();
-			  }
-			} if ("volume" in socketMsg) {
-				volumeSlider.setValue(parseInt(socketMsg.volume));
-			} if ("trackinfo" in socketMsg) {
-				document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
-				setTrackProgress(socketMsg.trackinfo);
-				var btnTrackPlayPause = document.getElementById('nav-btn-play');
-				if (socketMsg.trackinfo.pausePlay) {
-					btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
-				} else {
-					btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-pause"></i>';
-				}
-
-				var btnTrackFirst = document.getElementById('nav-btn-first');
-				var btnTrackPrev = document.getElementById('nav-btn-prev');
-				if (socketMsg.trackinfo.currentTrackNumber <= 1) {
-					btnTrackFirst.classList.add("disabled");
-					btnTrackPrev.classList.add("disabled");
-				} else {
-					btnTrackFirst.classList.remove("disabled");
-					btnTrackPrev.classList.remove("disabled");
-				}
-				var btnTrackLast = document.getElementById('nav-btn-last');
-				var btnTrackNext = document.getElementById('nav-btn-next');
-				if (socketMsg.trackinfo.currentTrackNumber >= socketMsg.trackinfo.numberOfTracks) {
-					btnTrackLast.classList.add("disabled");
-					btnTrackNext.classList.add("disabled");
-				} else {
-					btnTrackLast.classList.remove("disabled");
-					btnTrackNext.classList.remove("disabled");
-				}
-			} if ("trackProgress" in socketMsg) {
-				setTrackProgress(socketMsg.trackProgress);
-			} if ("coverimg" in socketMsg) {
-				document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
-			} if ("settings" in socketMsg) {
-				fillSettings(socketMsg.settings);
-		  	}
-	  };
-	}
-
-	async function fillSettings(settings) {
-		if (!settings) { 
-			return false 
+		function pong() {
+			clearTimeout(tm);
 		}
-		// general
-		let genSettings = settings.general;
-		if (genSettings) {
-			$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
-			$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
-			$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
-			$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
-		}
-		// current values
-		let currSettings = settings.current;
-		if (currSettings) {
-			document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
-			volumeSlider.setValue(currSettings.volume);
-		}
-		// default (factory) settings 
-		let defSettings = settings.defaults;
-		if (defSettings) {
-			$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
-			$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
-			$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
-			$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
-			$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
-			$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
-			$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
-			$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
-			$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
-			$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
-			$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
-		}
-		// wifi
-		let wifiSettings = settings.wifi;
-		if (wifiSettings) {
-			document.getElementById("hostname").value = wifiSettings.hostname;
-			document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
-		}
-		// ssids
-		let ssidSettings = settings.ssids;
-		if (ssidSettings) {	
-			rebuildSSIDList(ssidSettings);
-		}
-		// led
-		let ledSettings = settings.led;
-		if (ledSettings) {
-			document.getElementById('neopixelConfig').setAttribute('data-visible', true);
-			$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
-			$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
-		}
-		// battery
-		let batSettings = settings.battery;
-		if (batSettings) {
-			document.getElementById('batteryConfig').setAttribute('data-visible', true);
-			$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
-			$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
-			$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
-			if (batSettings.criticalVoltage) {
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', true);
-				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
+		async function getTrackProgress() {
+			if (ActiveTab !== 'nav-control-tab') {
+				return;
+			};
+			// use http request here, websocket comminication seems to be unstable with many messages
+			let data = await (await fetch("http://" + host + "/trackprogress")).json();
+			if (data && data.trackProgress) {
+				// console.log(data.trackProgress);
+				setTrackProgress(data.trackProgress);
 			} else {
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', false);
+				console.log("failed to fetch trackprogress: " + data);
 			}
-			$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
-		}
-		// ftp
-		let ftpSettings = settings.ftp;
-		if (ftpSettings) {
-			document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
-			document.getElementById("ftpUser").value = ftpSettings.username;
-			document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
-			document.getElementById("ftpPwd").value = ftpSettings.password;
-			document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
-		}
-		// mqtt
-		let mqttSettings = settings.mqtt;
-		if (mqttSettings) {
-			// todo: get the bootstrap sliders to work:
-			document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
-			document.getElementById('mqttEnable').checked = mqttSettings.enable;
-			document.getElementById('mqttClientId').value = mqttSettings.clientID;
-			document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
-			document.getElementById('mqttServer').value = mqttSettings.server;
-			document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
-			document.getElementById('mqttUser').value = mqttSettings.username;
-			document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
-			document.getElementById('mqttPwd').value = mqttSettings.password;
-			document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
-			document.getElementById('mqttPort').value = mqttSettings.port;
-		}
-		// bluetooth
-		let btSettings = settings.bluetooth;
-		if (btSettings) {
-			document.getElementById('nav-bt-tab').setAttribute('data-visible', true);
-			document.getElementById('btDeviceName').value = btSettings.deviceName;
-			document.getElementById('btPinCode').value = btSettings.pinCode;
-		}
-	}
-
-	async function resetSettings() {
-		let defaults = await (await fetch("/settings?section=defaults")).json();
-		fillSettings(defaults);
-	}
-
-	const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");	
-	async function rebuildSSIDList(data) {		
-		var ssidList;
-		var ssidActive;
-		if (data) {
-			ssidList = data.savedSSIDs;
-			ssidActive = data.active;
-		} else {
-			ssidList = await (await fetch("/savedSSIDs")).json();
-			let ssidActiveObj = await (await fetch("/activeSSID")).json();
-			console.log(ssidActiveObj);
-			ssidActive = ssidActiveObj.active;
-		}			
-		wifiListSavedSSIDs.innerHTML = "";
-
-		for (let ssid of ssidList) {
-			console.log("appending ssid", ssid);
-
-			let ssidElem = document.createElement("li");
-			ssidElem.appendChild(document.createTextNode(ssid));
-
-
-			ssidElem.classList.add("list-group-item");
-			console.log("comparing ssid vs active:", ssidActive, ssid);
-			if (ssidActive && ssidActive === ssid) {
-				ssidElem.classList.add("active");
-			}
-
-			let deleteSpan = document.createElement("span");
-			deleteSpan.classList.add("float-right");
-			deleteSpan.classList.add("button-group");
-
-			let deleteButton = document.createElement("button");
-			deleteButton.classList.add("btn");
-			deleteButton.classList.add("btn-danger");
-			deleteButton.classList.add("fa");
-			deleteButton.classList.add("fa-trash");
-
-			deleteButton.setAttribute("data-toggle", "modal");
-			deleteButton.setAttribute("data-target", "#deleteSSIDModal");
-			deleteButton.setAttribute("data-ssid", ssid);
-			deleteSpan.appendChild(deleteButton);
-			ssidElem.appendChild(deleteSpan);
-
-			wifiListSavedSSIDs.appendChild(ssidElem);
-		}
-	}
-
-	async function deleteSSID(ssid) {
-		console.log("deleting", ssid);
-		$('#deleteSSIDModal').modal('hide');
-		await fetch("/savedSSIDs/" + ssid, {method: "DELETE"});
-		await rebuildSSIDList();
-	}
-
-	const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");	
-	async function rebuildRFIDList() {
-		var rfidList = await (await fetch("/rfid")).json();
-		var rfidActive = document.getElementById('rfidIdMusic').value;
-
-		rfidListSavedAssignments.innerHTML = "";
-		console.log(rfidList.length + ' nvs rfid entries received.');
-		for (let rfid of rfidList) {
-			if (!rfid.id) {
-				console.log("empty tag id");
-				break;
-			}
-			console.log("appending rfid ", rfid);
-			let rfidElem = document.createElement("li");
-			rfidElem.appendChild(document.createTextNode(rfid.id));
-			if (rfid.playMode) {
-				rfidElem.appendChild(document.createElement("div"));
-				rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.playmode.mode." + rfid.playMode)));
-			} else
-			if (rfid.modId) {
-				rfidElem.appendChild(document.createElement("div"));
-				rfidElem.appendChild(document.createTextNode(i18next.t("files.rfid.mod.cmd." + rfid.modId)));
-			}
-			rfidElem.classList.add("list-group-item");
-			console.log("comparing rfid vs active:", rfidActive, rfid.id);
-			if (rfidActive && rfidActive === rfid.id) {
-				rfidElem.classList.add("active");
-			}
-			if (rfid.fileOrUrl) {
-				rfidElem.appendChild(document.createElement("br"));
-				rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
-			}
-			let deleteSpan = document.createElement("span");
-			deleteSpan.classList.add("float-right");
-			deleteSpan.classList.add("button-group");
-
-			let deleteButton = document.createElement("button");
-			deleteButton.classList.add("btn");
-			deleteButton.classList.add("btn-danger");
-			deleteButton.classList.add("fa");
-			deleteButton.classList.add("fa-trash");
-
-			deleteButton.setAttribute("data-toggle", "modal");
-			deleteButton.setAttribute("data-target", "#deleteRFIDModal");
-			deleteButton.setAttribute("data-rfid", rfid.id);
-			deleteSpan.appendChild(deleteButton);
-			rfidElem.appendChild(deleteSpan);
-
-			rfidListSavedAssignments.appendChild(rfidElem);
-		}
-		document.getElementById('savedAssignments').setAttribute('data-visible', (rfidList.length > 0));
-		document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
-	}
-	
-
-	async function deleteRFID(tagId) {
-		console.log("deleting", tagId);
-		$('#deleteRFIDModal').modal('hide');
-		var response = await fetch("/rfid?id=" + encodeURIComponent(tagId), {method: "DELETE"});
-		if (response.ok) {
-			toastr.success(i18next.t("toast.success"));
-			rebuildRFIDList();
-		} else {
-			toastr.error(response.statusText);
-		}	
-		console.log(response.statusText);
-	}
-
-	async function eraseNVSRFID() {
-		console.log("erase all NVS RFIDs");
-		$('#deleteNVSRFIDModal').modal('hide');
-		var response = await fetch("/rfidnvserase", {method: "POST"});
-		if (response.ok) {
-			toastr.success(i18next.t("toast.success"));
-			await rebuildRFIDList();
-		} else {
-			toastr.error(response.statusText);
-		}
-	}
-
-	async function uploadNVSRFID() {
-		if(!document.getElementById('nvsUpload').files.length > 0) { alert(i18next.t("files.upload.selectFile")); return false; }
-		console.log("upload NVS RFIDs");
-		let formData = new FormData(); 
-		formData.append("file", document.getElementById('nvsUpload').files[0]);
-		var response = await fetch('/upload', {
-			method: "POST", 
-			body: formData
-		});    
-		if (response.ok) {
-			toastr.success(i18next.t("toast.success"));
-			rebuildRFIDList();
-		} else {
-			toastr.error(response.statusText);
-		}	
-	}
-
-	function onToolsTabOpened() {
-		console.log("tools tab opened!");
-		rebuildRFIDList();
-	}	
-
-	const config = {attributes: true};
-	const toolsTab = document.getElementById("nav-tools-tab");
-	var toolsTabActive = false;
-	const toolsTabObserver = new MutationObserver((mutationList, observer) => {
-		if (!toolsTabActive && toolsTab.classList.contains("active")) {
-			toolsTabActive = true;
-			onToolsTabOpened();
-		} else {
-			toolsTabActive = false;
-		}
-	})
-	toolsTabObserver.observe(toolsTab, config);
-	
-	function ping() {
-		var myObj = {
-			"ping": {
-				ping: 'ping'
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-		tm = setTimeout(function () {
-			toastr.warning(i18next.t("toast.conlost"));
-		}, 5000);
-	}
-
-	function pong() {
-		clearTimeout(tm);
-	}
-
-	async function getTrackProgress() {
-		if (ActiveTab !== 'nav-control-tab') {
 			return;
-		};
-		// use http request here, websocket comminication seems to be unstable with many messages
-		let data = await (await fetch("/trackprogress")).json();
-		if (data && data.trackProgress) {
-			// console.log(data.trackProgress);
-			setTrackProgress(data.trackProgress);
-		} else {
-			console.log("failed to fetch trackprogress: " + data);
 		}
-		return;
-	}
 
-	function setTrackProgress(msg) {
-		// console.log(msg);
-		$("#trackProgress").css('width', msg.posPercent + "%");
-		if (msg.duration > 0) {
-			document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
-		} else {
-			if (msg.time > 0) {
-				document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
+		function setTrackProgress(msg) {
+			// console.log(msg);
+			$("#trackProgress").css('width', msg.posPercent + "%");
+			if (msg.duration > 0) {
+				document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
 			} else {
-				document.getElementById('playtime').innerHTML = "-- / --";
-			}
-		}
-	}
-
-
-
-	function genSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"general": {
-				initVolume: document.getElementById('initialVolume').value,
-				maxVolumeSp: document.getElementById('maxVolumeSpeaker').value,
-				maxVolumeHp: document.getElementById('maxVolumeHeadphone').value, 
-				sleepInactivity: document.getElementById('inactivityTime').value},
-			"led": {
-				initBrightness: document.getElementById('initBrightness').value,
-				nightBrightness: document.getElementById('nightBrightness').value},
-			"battery": {
-				warnLowVoltage: document.getElementById('warningLowVoltage').value,
-				indicatorLow: document.getElementById('voltageIndicatorLow').value,
-				indicatorHi: document.getElementById('voltageIndicatorHigh').value,
-				criticalVoltage: document.getElementById('criticalVoltage').value,
-				voltageCheckInterval: document.getElementById('voltageCheckInterval').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function ftpSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"ftp": {
-				username: document.getElementById('ftpUser').value,
-				password: document.getElementById('ftpPwd').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function ftpStart() {
-		var myObj = {
-			"ftpStatus": {
-				start: 1
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function mqttSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var val;
-		if (document.getElementById('mqttEnable').checked) {
-			val = document.getElementById('mqttEnable').value;
-		} else {
-			val = 0;
-		}
-		var myObj = {
-			"mqtt": {
-				enable: val,
-				clientID: document.getElementById('mqttClientId').value,
-				server: document.getElementById('mqttServer').value,
-				username: document.getElementById('mqttUser').value,
-				password: document.getElementById('mqttPwd').value,
-				port: document.getElementById('mqttPort').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function btSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"bluetooth": {
-				deviceName: document.getElementById('btDeviceName').value,
-				pinCode: document.getElementById('btPinCode').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function removeTrSlash(str) {
-		if (str.substr(-1) === '/') {
-			return str.substr(0, str.length - 1);
-		}
-		return str;
-	}
-
-	function rfidAssign(clickedId) {
-		lastIdclicked = clickedId;
-		if (ActiveSubTab == 'rfid-music-tab') {
-			var myObj = {
-				"rfidAssign": {
-					rfidIdMusic: document.getElementById('rfidIdMusic').value,
-					fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
-					playMode: document.getElementById('playMode').value
-				}
-			};
-		} else {
-			var myObj = {
-				"rfidMod": {
-					rfidIdMod: document.getElementById('rfidIdMusic').value,
-					modId: document.getElementById('modId').value
-				}
-			};
-		}
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	async function globalWifiConfig(clickedId) {
-		lastIdclicked = clickedId;
-		let hostname = document.getElementById("hostname").value;
-		let scanWifi = document.getElementById("scan_wifi_on_start").checked;
-
-		var myObj = { 
-			hostname: hostname,
-			scanOnStart: scanWifi
-		};
-		
-		await fetch("/wificonfig", {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(myObj)
-		});
-	}
-
-	// disable static input fields on toggle
-	document.getElementById('static_enabled').onchange = function() {
-		let new_style = this.checked ? null : "none";
-		document.getElementById("wifi_static_div").style.display = new_style;
-	};
-
-	async function wifiConfig(clickedId) {
-		lastIdclicked = clickedId;
-		let static = document.getElementById('static_enabled').checked;
-
-		var myObj = { 
-			ssid: document.getElementById('ssid').value,
-			pwd: document.getElementById('pwd').value,
-			static: static
-		};
-
-		if (static) {
-			myObj[static_addr] = document.getElementById('static_addr').value;
-			myObj[static_gateway] = document.getElementById('static_gateway').value;
-			myObj[static_subnet] = document.getElementById('static_subnet').value;
-			myObj[static_dns1] = document.getElementById('static_dns1').value;
-			myObj[static_dns2] = document.getElementById('static_dns2').value;
-		}
-
-		await fetch("/savedSSIDs", {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify(myObj)
-		});
-
-		await rebuildSSIDList();
-	}
-
-	function searchFiles(searchText) {
-		$('#explorerTree').jstree('search', searchText);
-	}
-
-	function sendControl(cmd) {
-		var myObj = {
-			"controls": {
-				action: cmd
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-	function executeCommand() {
-		var myObj = {
-			"controls": {
-				action: document.getElementById('commandId').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-	function sendVolume(vol) {
-		var myObj = {
-			"controls": {
-				set_volume: vol
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	async function tryRedirect() {
-		try {
-			console.log("redirect to startpage..")
-			const response = await fetch(window.location.href);
-			window.location.reload();
-		} catch (error) {
-			console.log(error);
-			setTimeout(tryRedirect, 2000);
-		}
-	}
-
-	function secondsToTime(seconds) {
-		if (seconds < 3600) {
-			return new Date(seconds * 1000).toISOString().substring(14, 19);
-		} else {
-			return new Date(seconds * 1000).toISOString().slice(11, 19);
-		}
-	}
-
-	function secondsToDate(seconds) {
-		if (seconds == 0) {
-			return "--";
-		}
-		return new Date(seconds * 1000).toLocaleDateString(i18next.lang);
-	}
-
-	function timestampToDuration(ms, withSeconds) {
-		if (ms == 0) {
-			return "--";
-		}
-		seconds = Number(ms/1000);
-		var d = Math.floor(seconds / (3600*24));
-		var h = Math.floor(seconds % (3600*24) / 3600);
-		var m = Math.floor(seconds % 3600 / 60);
-		var s = Math.floor(seconds % 60);
-
-		var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
-		var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
-		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute"): " " + i18next.t("datetime.minutes")) : "";
-		if (withSeconds) {
-			var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
-			if (dDisplay + hDisplay + mDisplay == "") {
-				return sDisplay;
-			} else {
-				if (sDisplay == "") {
-					return dDisplay + hDisplay + mDisplay;
+				if (msg.time > 0) {
+					document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
 				} else {
-					return dDisplay + hDisplay + mDisplay + ", " + sDisplay;
+					document.getElementById('playtime').innerHTML = "-- / --";
 				}
 			}
 		}
-		return dDisplay + hDisplay + mDisplay;
-	}
 
-	async function fetchInfo() {
-		let info = await (await fetch("/info")).json();
-		console.log(info);
-		let content = i18next.t("systeminfo.softwareversion", { softwareversion: info.software.version }) + "\n";
-		content += i18next.t("systeminfo.gitversion", { gitversion: info.software.git }) + "\n";
-		content += i18next.t("systeminfo.arduinoversion", { arduinoversion: info.software.arduino, idfversion: info.software.idf }) + "\n";
-		content += i18next.t("systeminfo.hardware", { hwmodel: info.hardware.model, hwrevision: info.hardware.revision, hwfreq: info.hardware.freq }) + "\n";
-		content += i18next.t("systeminfo.freeheap", { freeheap: info.memory.freeHeap }) + "\n";
-		content += i18next.t("systeminfo.largestfreeblock", { largestfreeblock: info.memory.largestFreeBlock }) + "\n";
-		if (info.memory.freePSRam) {
-			content += i18next.t("systeminfo.freepsram", { freepsram: info.memory.freePSRam }) + "\n";
+		function genSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"general": {
+					initVolume: Number(document.getElementById('initialVolume').value),
+					maxVolumeSp: Number(document.getElementById('maxVolumeSpeaker').value),
+					maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value),
+					sleepInactivity: Number(document.getElementById('inactivityTime').value)
+				},
+				"led": {
+					initBrightness: Number(document.getElementById('initBrightness').value),
+					nightBrightness: Number(document.getElementById('nightBrightness').value)
+				},
+				"battery": {
+					warnLowVoltage: Number(document.getElementById('warningLowVoltage').value),
+					indicatorLow: Number(document.getElementById('voltageIndicatorLow').value),
+					indicatorHi: Number(document.getElementById('voltageIndicatorHigh').value),
+					criticalVoltage: Number(document.getElementById('criticalVoltage').value),
+					voltageCheckInterval: Number(document.getElementById('voltageCheckInterval').value)
+				},
+				"playlist": {
+					sortMode: Number(document.getElementById('playlistSortMode').value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			// update global settings
+			window.settings = {
+				...window.settings,
+				...myObj
+			};
+			socket.send(myJSON);
 		}
-		content += i18next.t("systeminfo.currentip", { currentip: info.wifi.ip }) + "\n";
-		content += i18next.t("systeminfo.rssi", { rssi: info.wifi.rssi }) + "\n";
-		content += i18next.t("systeminfo.audiotimetotal", { firststart: secondsToDate(info.audio.firstStart), audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)})+ "\n";
-		if (info.audio.playtimeSinceStart > 0) {
-			content += i18next.t("systeminfo.audiotimesincestart", { audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)}) + "\n";
-		}	
-		if (info.battery) {
-			content += i18next.t("systeminfo.currvoltage", { currvoltage: info.battery.currVoltage.toFixed(2) }) + "\n";
-			content += i18next.t("systeminfo.chargelevel", { chargelevel: info.battery.chargeLevel.toFixed(1) }) + "\n";
+
+		function ftpSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"ftp": {
+					username: document.getElementById('ftpUser').value,
+					password: document.getElementById('ftpPwd').value
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
 		}
-		if (info.hallsensor) {
-			content += i18next.t("systeminfo.hallsensor", { hsnullfieldvalue: info.hallsensor.nullFieldValue, hsactual: info.hallsensor.actual, hsdiff: info.hallsensor.diff, 
-				hslastwaitforstate: info.hallsensor.lastWaitState, hswaited: info.hallsensor.lastWaitMS}) + "\n";
+
+		function ftpStart() {
+			var myObj = {
+				"ftpStatus": {
+					start: 1
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
 		}
-		$('#modalInfoContent').text(content);
-	}
 
-	async function fetchLog() {
-		let logtext = await (await fetch("/log")).text();
-		$('#modalLogContent').text(logtext);
-	}
+		function mqttSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var val;
+			if (document.getElementById('mqttEnable').checked) {
+				val = document.getElementById('mqttEnable').value;
+			} else {
+				val = 0;
+			}
+			var myObj = {
+				"mqtt": {
+					enable: val,
+					clientID: document.getElementById('mqttClientId').value,
+					server: document.getElementById('mqttServer').value,
+					username: document.getElementById('mqttUser').value,
+					password: document.getElementById('mqttPwd').value,
+					port: Number(document.getElementById('mqttPort').value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
 
-	$(document).ready(function () {
-		connect();
-		buildFileSystemTree("/");
+		function btSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"bluetooth": {
+					deviceName: document.getElementById('btDeviceName').value,
+					pinCode: document.getElementById('btPinCode').value
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
 
-		$('#deleteSSIDModal').on('show.bs.modal', function (event) {
-  			var ssid = $(event.relatedTarget).data('ssid') 
-			$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
-			$(this).find('.modal-body').text(i18next.t("wifi.delete.prompt", { ssid: ssid }));
-			$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
-		})
+		function removeTrSlash(str) {
+			if (str.substr(-1) === '/') {
+				return str.substr(0, str.length - 1);
+			}
+			return str;
+		}
 
-		$('#deleteRFIDModal').on('show.bs.modal', function (event) {
-  			var rfid = $(event.relatedTarget).data('rfid') 
-			$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
-			$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", { rfid: rfid }));
-			$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
-		})
+		function rfidAssign(clickedId) {
+			lastIdclicked = clickedId;
+			if (ActiveSubTab == 'rfid-music-tab') {
+				var myObj = {
+					"rfidAssign": {
+						rfidIdMusic: document.getElementById('rfidIdMusic').value,
+						fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
+						playMode: document.getElementById('playMode').value
+					}
+				};
+			} else {
+				var myObj = {
+					"rfidMod": {
+						rfidIdMod: document.getElementById('rfidIdMusic').value,
+						modId: Number(document.getElementById('modId').value)
+					}
+				};
+			}
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+		async function globalWifiConfig(clickedId) {
+			lastIdclicked = clickedId;
+			let hostname = document.getElementById("hostname").value;
+			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+			var myObj = {
+				hostname: hostname,
+				scanOnStart: scanWifi
+			};
+			// set title to hostname
+			setTitle(hostname);
+			await fetch("http://" + host + "/wificonfig", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(myObj)
+			});
+		}
+		// disable static input fields on toggle
+		document.getElementById('static_enabled').onchange = function () {
+			let new_style = this.checked ? null : "none";
+			document.getElementById("wifi_static_div").style.display = new_style;
+		};
+		async function wifiConfig(clickedId) {
+			lastIdclicked = clickedId;
+			let static = document.getElementById('static_enabled').checked;
+			var myObj = {
+				ssid: document.getElementById('ssid').value,
+				pwd: document.getElementById('pwd').value,
+				static: static
+			};
+			if (static) {
+				myObj = {
+					...myObj,
+					static_addr: document.getElementById('static_addr').value,
+					static_gateway: document.getElementById('static_gateway').value,
+					static_subnet: document.getElementById('static_subnet').value,
+					static_dns1: document.getElementById('static_dns1').value,
+					static_dns2: document.getElementById('static_dns2').value,
+				};
+			}
+			await fetch("http://" + host + "/savedSSIDs", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(myObj)
+			});
+			await rebuildSSIDList();
+		}
 
-		$('.openPopupInfo').on('click', function () {
-			fetchInfo();
-			$('.modal-title').text(i18next.t("systeminfo.title"));
-			$('#modalInfoRefresh').on('click', fetchInfo); 
-			$('#modalInfo').modal({show: true});
-		})
-		$('.openPopupLog').on('click', function () {
-			fetchLog();
-			$('.modal-title').text(i18next.t("log"));
-			$("#modalLogContent").css("font-family", "monospace");
-			$('#modalLogRefresh').on('click', fetchLog); 
-			$('#modalLog').modal({show: true});
-		})
-		$('.openPopupRestart').on('click', function(){
-			$('#modalInfoRefresh').hide();
-			restartDevice();
-		}); 
-		$('.openPopupShutdown').on('click', function(){
-			$('#modalInfoRefresh').hide();
-			shutdownDevice();
-		}); 
-		
-		$(function () {
-			$('[data-toggle="tooltip"]').tooltip();
+		function searchFiles(searchText) {
+			$('#explorerTree').jstree('search', searchText);
+		}
+
+		function sendControl(cmd) {
+			var myObj = {
+				"controls": {
+					action: cmd
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function executeCommand() {
+			var myObj = {
+				"controls": {
+					action: Number(document.getElementById('commandId').value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function resizeFileList(expand) {
+			const el = document.querySelector(".filetree-size");
+			if (expand) {
+				el.setAttribute("style", "height: auto");
+				$('#expandfilelist').hide();
+				$('#shrinkfilelist').show();
+			} else {
+				el.setAttribute("style", "height: 200px");
+				$('#shrinkfilelist').hide();
+				$('#expandfilelist').show();
+			}
+		}
+
+		function sendVolume(vol) {
+			var myObj = {
+				"controls": {
+					set_volume: vol
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+		async function tryRedirect() {
+			try {
+				console.log("redirect to startpage..")
+				const response = await fetch(window.location.href);
+				window.location.reload();
+			} catch (error) {
+				console.log(error);
+				setTimeout(tryRedirect, 2000);
+			}
+		}
+
+		function secondsToTime(seconds) {
+			if (seconds < 3600) {
+				return new Date(seconds * 1000).toISOString().substring(14, 19);
+			} else {
+				return new Date(seconds * 1000).toISOString().slice(11, 19);
+			}
+		}
+
+		function secondsToDate(seconds) {
+			if (seconds == 0) {
+				return "--";
+			}
+			return new Date(seconds * 1000).toLocaleDateString(i18next.lang);
+		}
+
+		function timestampToDuration(ms, withSeconds) {
+			if (ms == 0) {
+				return "--";
+			}
+			seconds = Number(ms / 1000);
+			var d = Math.floor(seconds / (3600 * 24));
+			var h = Math.floor(seconds % (3600 * 24) / 3600);
+			var m = Math.floor(seconds % 3600 / 60);
+			var s = Math.floor(seconds % 60);
+			var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
+			var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
+			var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") : " " + i18next.t("datetime.minutes")) : "";
+			if (withSeconds) {
+				var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
+				if (dDisplay + hDisplay + mDisplay == "") {
+					return sDisplay;
+				} else {
+					if (sDisplay == "") {
+						return dDisplay + hDisplay + mDisplay;
+					} else {
+						return dDisplay + hDisplay + mDisplay + ", " + sDisplay;
+					}
+				}
+			}
+			return dDisplay + hDisplay + mDisplay;
+		}
+		async function fetchInfo() {
+			let info = await (await fetch("http://" + host + "/info")).json();
+			console.log(info);
+			let content = i18next.t("systeminfo.softwareversion", {
+				softwareversion: info.software.version
+			}) + "<br>";
+			content += i18next.t("systeminfo.gitversion", {
+				gitversion: info.software.git
+			}) + "<br>";
+			content += i18next.t("systeminfo.arduinoversion", {
+				arduinoversion: info.software.arduino,
+				idfversion: info.software.idf
+			}) + "<br>";
+			content += i18next.t("systeminfo.hardware", {
+				hwmodel: info.hardware.model,
+				hwrevision: info.hardware.revision,
+				hwfreq: info.hardware.freq
+			}) + "<br>";
+			content += i18next.t("systeminfo.freeheap", {
+				freeheap: info.memory.freeHeap
+			}) + "<br>";
+			content += i18next.t("systeminfo.largestfreeblock", {
+				largestfreeblock: info.memory.largestFreeBlock
+			}) + "<br>";
+			if (info.memory.freePSRam) {
+				content += i18next.t("systeminfo.freepsram", {
+					freepsram: info.memory.freePSRam
+				}) + "<br>";
+			}
+			content += i18next.t("systeminfo.currentip", {
+				currentip: info.wifi.ip
+			}) + "<br>";
+			content += i18next.t("systeminfo.macAddress", {
+				macAddress: info.wifi.macAddress
+			}) + "<br>";
+			content += i18next.t("systeminfo.rssi", {
+				rssi: info.wifi.rssi
+			}) + "<br>";
+			content += i18next.t("systeminfo.audiotimetotal", {
+				firststart: secondsToDate(info.audio.firstStart),
+				audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)
+			}) + "<br>";
+			if (info.audio.playtimeSinceStart > 0) {
+				content += i18next.t("systeminfo.audiotimesincestart", {
+					audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)
+				}) + "<br>";
+			}
+			if (info.battery) {
+				content += i18next.t("systeminfo.currvoltage", {
+					currvoltage: info.battery.currVoltage.toFixed(2)
+				}) + "<br>";
+				if (info.battery.chargelevel) {
+					content += i18next.t("systeminfo.chargelevel", {
+						chargelevel: info.battery.chargeLevel.toFixed(1)
+					}) + "<br>";
+				}
+			}
+			if (info.hallsensor) {
+				content += i18next.t("systeminfo.hallsensor", {
+					hsnullfieldvalue: info.hallsensor.nullFieldValue,
+					hsactual: info.hallsensor.actual,
+					hsdiff: info.hallsensor.diff,
+					hslastwaitforstate: info.hallsensor.lastWaitState,
+					hswaited: info.hallsensor.lastWaitMS
+				}) + "<br>";
+			}
+			$('#modalInfoContent').html(content);
+		}
+		async function fetchLog() {
+			let logtext = await (await fetch("http://" + host + "/log")).text();
+			$('#modalLogContent').text(logtext);
+			jQuery('#modalLogContent').animate({
+				scrollTop: 999999
+			});
+		}
+
+		function setTitle(newTitle) {
+			$('title').text(newTitle);
+			$('#navbar-heading').text(newTitle);
+		}
+
+		function formatDBTooltip(target, value) {
+			target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value}`;
+		}
+
+		function updateTabStyle() {
+			document.querySelectorAll('.nav-item').forEach((element) => { // Toggle styles
+				if (lightSwitch.checked) { // Dark mode
+					if (element.classList.contains('active')) {
+						element.classList.add('bg-black');
+						element.classList.add('text-white');
+					} else {
+						element.classList.remove('bg-black');
+						element.classList.remove('text-white');
+					}
+				} else { // Light mode
+					element.classList.remove('bg-black');
+					element.classList.remove('text-white');
+					element.classList.remove('bg-white');
+					element.classList.remove('text-dark');
+				}
+			});
+		}
+		$(document).ready(function () {
+			connect();
+			buildFileSystemTree("/");
+			$('#deleteSSIDModal').on('show.bs.modal', function (event) {
+				var ssid = $(event.relatedTarget).data('ssid')
+				$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
+				$(this).find('.modal-body').text(i18next.t("wifi.delete.prompt", {
+					ssid: ssid
+				}));
+				$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
+			})
+			$('#deleteRFIDModal').on('show.bs.modal', function (event) {
+				var rfid = $(event.relatedTarget).data('rfid')
+				$(this).find('.modal-title').text(i18next.t("tools.nvs.delete.title"));
+				$(this).find('.modal-body').text(i18next.t("tools.nvs.delete.prompt", {
+					rfid: rfid
+				}));
+				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
+			})
+			$('.openPopupInfo').on('click', function () {
+				fetchInfo();
+				$('.modal-title').text(i18next.t("systeminfo.title"));
+				$('#modalInfoRefresh').on('click', fetchInfo);
+				new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			})
+			$('.openPopupLog').on('click', function () {
+				fetchLog();
+				$('.modal-title').text(i18next.t("log"));
+				$("#modalLogContent").css("font-family", "monospace");
+				$('#modalLogRefresh').on('click', fetchLog);
+				new bootstrap.Modal(document.getElementById('modalLog')).toggle();
+			})
+			$('.openPopupRestart').on('click', function () {
+				$('#modalInfoRefresh').hide();
+				restartDevice();
+			});
+			$('.openPopupShutdown').on('click', function () {
+				$('#modalInfoRefresh').hide();
+				shutdownDevice();
+			});
+			$('.openPopupEqualizer').on('click', () => {
+				$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
+				new bootstrap.Modal(document.getElementById('modalEqualizer')).toggle();
+			});
+			// sending equalizer settings to API for
+			$('#modalEqualizer .slider').on('slideStop', function ({
+				target,
+				value
+			}) {
+				formatDBTooltip(target, value);
+				let myObj = {
+					"equalizer": {
+						gainLowPass: Number(document.getElementById("gainLowPass").value),
+						gainBandPass: Number(document.getElementById("gainBandPass").value),
+						gainHighPass: Number(document.getElementById("gainHighPass").value)
+					}
+				};
+				var myJSON = JSON.stringify(myObj);
+				// update global settings
+				window.settings = {
+					...window.settings,
+					...myObj
+				};
+				socket.send(myJSON);
+			});
+			$('#modalEqualizer .slider').on('slide', function ({
+				target,
+				value
+			}) {
+				formatDBTooltip(target, value);
+			});
+			$(function () {
+				$('[data-bs-toggle="tooltip"]').tooltip();
+			});
+			/* Darkmode Switch with persistence in local storage
+			 * Copyright: https://www.cssscript.com/dark-mode-switcher-bootstrap-5 */
+			let lightSwitch = document.getElementById('lightSwitch');
+			if (!lightSwitch) {
+				return;
+			}
+			/**
+			 * @function darkmode
+			 * @summary: changes the theme to 'dark mode' and save settings to local storage.
+			 * Basically, replaces/toggles every CSS class that has '-light' class with '-dark'
+			 */
+			function darkMode() {
+				console.log("darkmode");
+				$('#explorerTree').jstree("set_theme", "default-dark");
+				document.querySelectorAll('.bg-light').forEach((element) => { // Toggle styles
+					element.className = element.className.replace(/-light/g, '-temp');
+					element.className = element.className.replace(/-dark/g, '-light');
+					element.className = element.className.replace(/-temp/g, '-dark');
+				});
+				document.querySelectorAll('.bg-white').forEach((element) => {
+					element.className = element.className.replace(/bg-white/, 'bg-black');
+				});
+				document.querySelectorAll('.text-dark').forEach((element) => {
+					element.className = element.className.replace(/text-dark/, 'text-white');
+				});
+				document.querySelectorAll('.select-div').forEach((element) => {
+					element.setAttribute("data-bs-theme", "dark");
+				});
+				document.querySelectorAll('.header-nav-element').forEach((element) => {
+					element.className = element.className.replace(/text-light/, 'text-dark');
+				});
+				document.querySelectorAll('.ctrl-button').forEach((element) => {
+					element.className = element.className.replace(/text-light/, 'text-dark');
+				});
+				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "dark"); // Needed for Langsel
+				document.body.classList.add('bg-dark');
+				if (document.body.classList.contains('text-dark')) {
+					document.body.classList.replace('text-dark', 'text-light');
+				} else {
+					document.body.classList.add('text-light');
+				}
+				// Tables
+				var tables = document.querySelectorAll('table');
+				for (var i = 0; i < tables.length; i++) {
+					// add table-dark class to each table
+					tables[i].classList.add('table-dark');
+				}
+				// set light switch input to true
+				if (!lightSwitch.checked) {
+					lightSwitch.checked = true;
+				}
+				localStorage.setItem('lightSwitch', 'dark');
+			}
+			/**
+			 * @function lightmode
+			 * @summary: changes the theme to 'light mode' and save settings to local storage.
+			 */
+			function lightMode() {
+				console.log("lightmode");
+				$('#explorerTree').jstree("set_theme", "default");
+				document.querySelectorAll('.bg-dark').forEach((element) => { // Toggle styles
+					element.className = element.className.replace(/-dark/g, '-temp');
+					element.className = element.className.replace(/-light/g, '-dark');
+					element.className = element.className.replace(/-temp/g, '-light');
+				});
+				document.querySelectorAll('.bg-black').forEach((element) => {
+					element.className = element.className.replace(/bg-black/, 'bg-white');
+				});
+				document.querySelectorAll('.text-white').forEach((element) => {
+					element.className = element.className.replace(/text-white/, 'text-dark');
+				});
+				document.querySelectorAll('.select-div').forEach((element) => {
+					element.setAttribute("data-bs-theme", "light");
+				});
+				document.querySelectorAll('.header-nav-element').forEach((element) => {
+					element.className = element.className.replace(/text-dark/, 'text-light');
+				});
+				document.querySelectorAll('.ctrl-button').forEach((element) => {
+					element.className = element.className.replace(/text-light/, 'text-dark');
+				});
+				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "light"); // Needed for Langsel
+				document.body.classList.add('bg-light');
+				if (document.body.classList.contains('text-light')) {
+					document.body.classList.replace('text-light', 'text-dark');
+				} else {
+					document.body.classList.add('text-dark');
+				}
+				// Tables
+				var tables = document.querySelectorAll('table');
+				for (var i = 0; i < tables.length; i++) {
+					if (tables[i].classList.contains('table-dark')) {
+						tables[i].classList.remove('table-dark');
+					}
+				}
+				if (lightSwitch.checked) {
+					lightSwitch.checked = false;
+				}
+				localStorage.setItem('lightSwitch', 'light');
+			}
+			/**
+			 * @function onToggleMode
+			 * @summary: the event handler attached to the switch. calling @darkMode or @lightMode depending on the checked state.
+			 */
+			function onToggleMode() {
+				if (lightSwitch.checked) {
+					darkMode();
+				} else {
+					lightMode();
+				}
+				updateTabStyle();
+			}
+			/**
+			 * @function getSystemDefaultTheme
+			 * @summary: get system default theme by media query
+			 */
+			function getSystemDefaultTheme() {
+				const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)');
+				if (darkThemeMq.matches) {
+					return 'dark';
+				}
+				return 'light';
+			}
+
+			function darkmodeSwitchSetup() {
+				var settings = localStorage.getItem('lightSwitch');
+				if (settings == null) {
+					settings = getSystemDefaultTheme();
+				}
+				if (settings == 'dark') {
+					lightSwitch.checked = true;
+				}
+				lightSwitch.addEventListener('change', onToggleMode);
+				onToggleMode();
+			}
+
+			function selectActiveTabFromLocalStorage() {
+				/* Load last selected tab from local storage and set it as active*/
+				ActiveTab = localStorage.getItem("active-tab");
+				if (ActiveTab == null) {
+					ActiveTab = "nav-rfid-tab";
+				}
+				console.log("ActiveTab: " + ActiveTab);
+				document.querySelectorAll('.main-tab-item').forEach((element) => {
+					element.classList.remove('active');
+					element.setAttribute("aria-selected", false);
+					if (ActiveTab == element.id) {
+						element.classList.add('active');
+						element.setAttribute("aria-selected", true);
+					}
+				});
+				document.querySelectorAll('.main-tab-pane').forEach((element) => {
+					console.log("element id:", element.id);
+					element.classList.remove('active');
+					element.classList.remove('show');
+					if (ActiveTab.replace("-tab", "") == element.id) {
+						element.classList.add('active');
+						element.classList.add('show');
+					}
+				});
+			}
+			darkmodeSwitchSetup();
+			selectActiveTabFromLocalStorage();
+			updateTabStyle();
 		});
-	});	
-</script>
+	</script>
 </body>
+
 </html>

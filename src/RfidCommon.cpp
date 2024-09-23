@@ -38,7 +38,7 @@ void Rfid_PreferenceLookupHandler(void) {
 		System_UpdateActivityTimer();
 		strncpy(gCurrentRfidTagId, rfidTagId, cardIdStringSize - 1);
 		Log_Printf(LOGLEVEL_INFO, "%s: %s", rfidTagReceived, gCurrentRfidTagId);
-		Web_SendWebsocketData(0, 10); // Push new rfidTagId to all websocket-clients
+		Web_SendWebsocketData(0, WebsocketCodeType::CurrentRfid); // Push new rfidTagId to all websocket-clients
 		String s = "-1";
 		if (gPrefsRfid.isKey(gCurrentRfidTagId)) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS

@@ -138,7 +138,7 @@ needs one GPIO less. So basically it's a no-brainer.
 RC522 is so to say the ESPuino standard. It's cheap and works, but RFID tags have to be placed close
 to the reader. PN5180 instead has better RFID range/sensitivity and can read ISO-15693 / iCode
 SLIX2-tags aka 'Tonies' (you need a password to read Tonies), too. You can also wake up ESPuino with
-the a ISO-14443 card (after flashing PN5180 with a new firmware). This feature is called LPCD.
+the a RFID tag (after flashing PN5180 with a new firmware). This feature is called LPCD.
 Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4). In my opinion
 it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3 V
 only make sure to connect these 3.3 V to PN5180's 5 V AND 3.3 V. Sounds weird but it's necessary.
@@ -260,11 +260,11 @@ It's not just simply playing music; different playback modes are supported:
 - `Audiobook`=> single file or playlist/folder; last play position (file and playlist) is saved
   (when pushing pause or moving to another track) and reused next time
 - `Audiobook (loop)` => same as audiobook but loops forever
-- `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder one time
+- `Folder/playlist (sorted)` => plays all tracks in order from a folder one time
 - `Folder/playlist (random order)` => plays all tracks in random order from a folder one time
-- `Folder/playlist (alph. sorted)` => plays all tracks in alph. order from a folder forever
+- `Folder/playlist (sorted)` => plays all tracks in order from a folder forever
 - `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
-- `All tracks of a random subdirectory (sorted alph.)` => plays of tracks in alph. order of a
+- `All tracks of a random subdirectory (sorted)` => plays of tracks in order of a
   randomly picked subdirectory of a given directory
 - `All tracks of a random subdirectory (random order)` => plays all tracks in random order of a
   randomly picked subdirectory of a given directory
@@ -372,6 +372,12 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
   `MEASURE_BATTERY_VOLTAGE` is active)
 - **Previous** (long; keep pressed) + **Next** (short) + release (both): toggle WiFi
   enabled/disabled
+
+#### Virtual RFID cards
+
+Any of the button actions can also be assigned to virtual RFID cards.
+Those cards then can be assigned on the web GUI like normal cards.
+To select a virtual RFID card, just press the configured button action, the virtual RFID automatically gets filled in in the web GUI.
 
 ### Music playback
 

@@ -3,6 +3,61 @@
 
 ## Version 2.2 (17.01.2024)
 
+* 19.09.2024: Document the virtual cards in the UI #333, thanks to @caco3 !
+* 18.09.2024: Re-designed tools page (#337), thanks to @caco3 !
+* 16.09.2024: Fix sleep after playlist not toggling nightmode #336, thanks to @dneukirchen !
+* 12.09.2024: PlatformIO package 6.8.1 (Arduino 2.0.17, ESP-IDF 4.4.7)
+* 12.09.2024: Change default settings to match "ESPuino-mini 4Layer" board
+* 11.09.2024: Fix string's expected length for rfid-cmnd via mqtt
+* 11.09.2024: Ignore mqtt messages with length zero
+* 10.09.2024: Porting to new web server library completed
+* 09.06.2024: Consume about 50% less CPU time in Audio library
+* 09.06.2024: Replace 3rd party library toastr (#331), thanks to @trainbird !
+* 09.06.2024: Modernized webserver & optimized JSON delivery (#332)
+* 20.05.2024: PlatformIO package 6.7.0 (Arduino 2.0.16, ESP-IDF 4.4.7)
+* 20.05.2024: Disable bluetooth support for A1S (IRAM too small)
+* 09.05.2024: Upgrade to Bootstrap v5.0 + Web-UI Enhancements (#328), thanks to @caco3 !
+* 23.04.2024: Enhance UI minification (#323), thanks to @caco3 ! 
+* 22.04.2024: Added virtual RFID-Cards (#319), thanks to @caco3 ! 
+* 18.04.2024: Correct calculation of newFilePos for SEEK_POS_PERCENT, thanks to @sfields!
+* 18.04.2024: Correct calculation of gPlayProperties.currentRelPos, thanks to @sfields!
+* 18.04.2024: Get title from-VORBISCOMMENT and ID3, thanks to @sfields!
+* 18.04.2024: Correct log for SSID name, thanks to @sfields!
+* 18.04.2024: Add button to expand/shrink file list (#317), thanks to @caco3 !
+* 18.04.2024: Fix remote UI debugging (#316), thanks to @caco3 !
+* 14.04.2024: Embed swagger UI #314, thanks to @caco3 !
+* 07.04.2024: Equalizer settings to WebUI #313, thanks to @trainbird !
+* 28.03.2024: Audio lib, fix a memory leak with flac files
+* 28.03.2024: Fix some warnings with upcoming Arduino 3 (ESP-IDF v5.1)
+* 16.03.2024: Reduce memory usage by measurement of JSON payload length
+* 15.03.2024: MQTT receive: Bug fix and avoid payload copy (#309), thanks to @eikel
+* 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields ! 
+* 19.02.2024: Add coverimage support for M4A files in Web-UI
+* 18.02.2024: Add coverimage support for flac files in Web-UI, thanks to @sfields ! 
+* 15.02.2024: Rework playlist generation (#275), thanks to @laszloh ! 
+* 15.02.2024: Update sorting strings (#306), thanks to @freddy36 !
+* 15.02.2024: Set title and navbar heading to hostname (#305), thanks to @freddy36 ! 
+* 15.02.2024: Include mac address in info (#304), thanks to @freddy36 !  
+* 12.02.2024: Use natural sort (#296), thanks to @freddy36 !
+* 09.02.2024: Remove explorerCreateParentDirectories (#301), thanks to @freddy36 !
+* 08.02.2024: Remove convertFilenameToAscii (#298), Playlist fixes (#299), thanks to @freddy36 !
+* 08.02.2024: Apple touch icon
+* 07.02.2024: Fix dangling pointer in explorerHandleFileStorageTask (#297), thanks to @freddy36 !
+* 07.02.2024: Reduce WiFi memory consumption (#295), thanks to @laszloh !
+* 05.02.2024: Increase JSON buffer for /debug endpoint
+* 02.02.2024: Improve progress calculation/indication, thanks to @freddy36 !
+* 01.02.2024: Use NVS interator when reading RFID keys, save 4KB RAM , thanks to @laszloh !
+* 01.02.2024: Use dynamically allocated buffer for file upload, save 32KB RAM , thanks to @laszloh !
+* 30.01.2024: Add French Language (#292), thanks to @damda58 !
+* 30.01.2024: Fix some audio dropouts with high-quality OPUS files
+* 30.01.2024: Keep original mtime for gzip compressed files, avoiding uneccesary Web.o rebuilds (#293), thanks to @freddy36 !
+* 23.01.2024: Updated documentation on LPCD setting, thanks to @derpicknicker1 !
+* 21.01.2024: Build (tag 2.2) is broken when NEOPIXEL_ENABLE is not set #289, thanks to @RolinBert !
+* 21.01.2024: PN5180: Save about 500 Bytes of RAM
+
+
+## Version 2.2 (17.01.2024)
+
 * 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
 * 11.01.2024: More free heap on boards with PSRAM (CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL)
 * 10.01.2024: LPCD for ISO-15693 cards

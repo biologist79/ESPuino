@@ -2,12 +2,16 @@ openapi: 3.0.0
 info:
   title: ESPuino API
   version: 1.0.5
-  description: API for the ESPuino, a DIY Smart Speaker project. ESPuino is a DIY Smart Speaker that uses software-based audio decoding, supports various music sources, and offers a user-friendly web interface. It simplifies audio processing and enhances user feedback with Neopixel rings.
-
+  description: >-
+    API for the ESPuino, a DIY Smart Speaker project. ESPuino is a DIY Smart
+    Speaker that uses software-based audio decoding, supports various music
+    sources, and offers a user-friendly web interface. It simplifies audio
+    processing and enhances user feedback with Neopixel rings.
 servers:
-  - url: http://espuino.local/
+  - url: /
+    description: Local Device
+  - url: 'http://espuino.local/'
     description: Development ESPuino
-
 paths:
   /explorer:
     get:
@@ -18,7 +22,7 @@ paths:
           name: path
           schema:
             type: string
-            default: "/"
+            default: /
           description: Path to the directory to be listed.
       responses:
         '200':
@@ -32,9 +36,11 @@ paths:
                   properties:
                     name:
                       type: string
-                    isDir:
+                    dir:
                       type: boolean
-                      description: True if item is a directory.
+                      description: >-
+                        True if item is a directory. This parameter is omitted
+                        for a file.
     post:
       summary: Upload a file to a directory.
       description: Upload a file to the specified directory.
@@ -245,7 +251,7 @@ paths:
   /settings:
     get:
       summary: Get common settings.
-      description: Get common settings, optionally for a specific section.
+      description: 'Get common settings, optionally for a specific section.'
       parameters:
         - in: query
           name: section
@@ -261,6 +267,7 @@ paths:
                 type: object
                 properties:
                   # Include your common settings properties here.
+                  null
     post:
       summary: Save settings.
       description: Save common settings.
@@ -304,7 +311,9 @@ paths:
   /rfid:
     get:
       summary: List all saved RFID-tag assignments with details.
-      description: Get a list of saved RFID-tag assignments with details. Optionally, provide an ID to list only a single assignment.
+      description: >-
+        Get a list of saved RFID-tag assignments with details. Optionally,
+        provide an ID to list only a single assignment.
       parameters:
         - in: query
           name: id
@@ -322,6 +331,7 @@ paths:
                   type: object
                   properties:
                     # Include your RFID-tag assignment properties here.
+                    null
     post:
       summary: Save or overwrite RFID-tag assignment.
       description: Save a new RFID-tag assignment or overwrite an existing one.
@@ -372,7 +382,6 @@ paths:
                 type: array
                 items:
                   type: string
-
   /cover:
     get:
       summary: Get album cover image.
@@ -385,7 +394,6 @@ paths:
               schema:
                 type: string
                 format: binary
-
   /info:
     get:
       summary: Get common information.
@@ -399,7 +407,7 @@ paths:
                 type: object
                 properties:
                   # Include your common information properties here.
-
+                  null
   /log:
     get:
       summary: Get current log.
@@ -411,7 +419,6 @@ paths:
             text/plain:
               schema:
                 type: string
-
   /stats:
     get:
       summary: Get task runtime information.
@@ -423,7 +430,6 @@ paths:
             text/html:
               schema:
                 type: string
-
   /debug:
     get:
       summary: Get debug information.
@@ -437,7 +443,7 @@ paths:
                 type: object
                 properties:
                   # Include your debug information properties here.
-
+                  null
   /upload:
     post:
       summary: Upload NVS backup.
@@ -445,15 +451,33 @@ paths:
       responses:
         '200':
           description: Successful response for NVS backup upload.
-
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
   /update:
     post:
       summary: Upload new firmware.
-      description: Uploads new firmware to ESPuino.
+      description: Uploads new firmware to ESPuino. Make sure to restart afterwards.
       responses:
         '200':
           description: Successful response for firmware update.
-
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firmwareUpload:
+                  type: string
+                  format: binary
   /restart:
     post:
       summary: Restart ESPuino.
@@ -461,7 +485,6 @@ paths:
       responses:
         '200':
           description: Successful response for ESPuino restart.
-
   /shutdown:
     post:
       summary: Shutdown ESPuino.
@@ -469,7 +492,6 @@ paths:
       responses:
         '200':
           description: Successful response for ESPuino shutdown.
-
   /rfidnvserase:
     post:
       summary: Erase RFID assignments from NVS.
@@ -477,11 +499,13 @@ paths:
       responses:
         '200':
           description: Successful response for RFID assignments erasure.
-
   /wifiscan:
     get:
       summary: Get nearby WiFi networks.
-      description: Get a list of available nearby WiFi networks. The first request will return 0 results unless you start the scan from somewhere else (loop/setup). Do not request more often than 3-5 seconds!
+      description: >-
+        Get a list of available nearby WiFi networks. The first request will
+        return 0 results unless you start the scan from somewhere else
+        (loop/setup). Do not request more often than 3-5 seconds!
       responses:
         '200':
           description: Successful response with nearby WiFi networks.
@@ -491,11 +515,10 @@ paths:
                 type: array
                 items:
                   type: string
-
   /trackprogress:
     get:
       summary: Get current track progress.
-      description: Get current track progress, time, and duration.
+      description: 'Get current track progress, time, and duration.'
       responses:
         '200':
           description: Successful response with track progress information.
@@ -505,7 +528,7 @@ paths:
                 type: object
                 properties:
                   # Include your track progress information properties here.
-
+                  null
   /inithalleffectsensor:
     get:
       summary: Initialize Hall Effect Sensor Value.

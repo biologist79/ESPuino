@@ -205,6 +205,8 @@ void Led_SetNightmode(bool enabled) {
 bool Led_GetNightmode() {
 #ifdef NEOPIXEL_ENABLE
 	return Led_NightMode;
+#else
+	return false;
 #endif
 }
 
@@ -346,10 +348,10 @@ static void Led_Task(void *parameter) {
 			nextAnimation = LedAnimationType::Idle;
 		} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
 			nextAnimation = LedAnimationType::Pause;
-		} else if (gPlayProperties.isWebstream) { // also animate pause in the webstream animation
-			nextAnimation = LedAnimationType::Webstream;
-		} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST)) {
+		} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST) && gPlayProperties.audioFileSize > 0) { // progress for a file/stream with known size
 			nextAnimation = LedAnimationType::Progress;
+		} else if (gPlayProperties.isWebstream) { // webstream animation (for streams with unknown size); pause animation is also handled by the webstream animation function
+			nextAnimation = LedAnimationType::Webstream;
 		} else if (gPlayProperties.playMode == NO_PLAYLIST) {
 			nextAnimation = LedAnimationType::Idle;
 		} else if (gPlayProperties.playMode == BUSY) {
@@ -980,8 +982,9 @@ AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRG
 	static uint32_t staticLastTrack = 0; // variable to remember the last track (for connecting animations)
 
 	if constexpr (NUM_INDICATOR_LEDS >= 4) {
-		if (gPlayProperties.numberOfTracks > 1 && gPlayProperties.currentTrackNumber < gPlayProperties.numberOfTracks) {
-			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, gPlayProperties.numberOfTracks - 1, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
+		const uint16_t currentTrack = (gPlayProperties.playlist) ? gPlayProperties.playlist->size() : 0;
+		if (currentTrack > 1 && gPlayProperties.currentTrackNumber < currentTrack) {
+			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, currentTrack - 1, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
 			const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
 			const uint8_t lastLed = ledValue % DIMMABLE_STATES;
 			static LedPlaylistProgressStates animationState = LedPlaylistProgressStates::Done; // Statemachine-variable of this animation
@@ -1130,9 +1133,9 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 		// fill all needed LEDs
 		if (filledLedCount < numLedsToLight) {
-			if (staticBatteryLevel < 0.3) {
+			if (staticBatteryLevel < 0.3f) {
 				leds[Led_Address(filledLedCount)] = CRGB::Red;
-			} else if (staticBatteryLevel < 0.6) {
+			} else if (staticBatteryLevel < 0.6f) {
 				leds[Led_Address(filledLedCount)] = CRGB::Orange;
 			} else {
 				leds[Led_Address(filledLedCount)] = CRGB::Green;

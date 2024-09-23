@@ -12,12 +12,17 @@
 #include "Wlan.h"
 #include "revision.h"
 
+#include <Rfid.h>
 #include <WiFi.h>
 
 #ifdef MQTT_ENABLE
 	#define MQTT_SOCKET_TIMEOUT 1 // https://github.com/knolleary/pubsubclient/issues/403
 	#include <PubSubClient.h>
 #endif
+
+#include <charconv>
+#include <limits>
+#include <string_view>
 
 // MQTT-helper
 #ifdef MQTT_ENABLE
@@ -284,27 +289,50 @@ bool Mqtt_Reconnect() {
 #endif
 }
 
+template <typename NumberType>
+static NumberType toNumber(const std::string_view str) {
+	NumberType result;
+	const auto [ptr, ec] = std::from_chars(str.cbegin(), str.cend(), result);
+
+	// Mimic return behavior of previously used strtoul function
+	if (ec == std::errc()) {
+		return result;
+	}
+	if (ec == std::errc::result_out_of_range) {
+		return std::numeric_limits<NumberType>::max();
+	}
+	// ec == std::errc::invalid_argument
+	return 0;
+}
+
 // Is called if there's a new MQTT-message for us
 void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length) {
 #ifdef MQTT_ENABLE
-	char *receivedString = (char *) x_calloc(length + 1u, sizeof(char));
-	memcpy(receivedString, (char *) payload, length);
+	// If message's size is zero => discard (https://forum.espuino.de/t/mqtt-broker-verbindung-von-iobroker-schaltet-espuino-aus/3167)
+	if (!length) {
+		return;
+	}
+	const std::string_view receivedString {reinterpret_cast<const char *>(payload), length};
 
-	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString);
+	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString.size(), receivedString.data());
 
 	// Go to sleep?
 	if (strcmp_P(topic, topicSleepCmnd) == 0) {
-		if ((strcmp(receivedString, "OFF") == 0) || (strcmp(receivedString, "0") == 0)) {
+		if (receivedString == "OFF" || receivedString == "0") {
 			System_RequestSleep();
 		}
 	}
 	// New track to play? Take RFID-ID as input
 	else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-		xQueueSend(gRfidCardQueue, receivedString, 0);
+		if (receivedString.size() >= (cardIdStringSize - 1)) {
+			xQueueSend(gRfidCardQueue, receivedString.data(), 0);
+		} else {
+			System_IndicateError();
+		}
 	}
 	// Loudness to change?
 	else if (strcmp_P(topic, topicLoudnessCmnd) == 0) {
-		unsigned long vol = strtoul(receivedString, NULL, 10);
+		unsigned long vol = toNumber<int32_t>(receivedString);
 		AudioPlayer_VolumeToQueueSender(vol, true);
 	}
 	// Modify sleep-timer?
@@ -313,27 +341,29 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 			Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
 			publishMqtt(topicSleepState, 0, false);
 			System_IndicateError();
-			free(receivedString);
 			return;
 		}
-		if (strcmp(receivedString, "EOP") == 0) {
+		if (receivedString == "EOP") {
 			gPlayProperties.sleepAfterPlaylist = true;
 			Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
 			publishMqtt(topicSleepTimerState, "EOP", false);
 			Led_SetNightmode(true);
 			System_IndicateOk();
-			free(receivedString);
 			return;
-		} else if (strcmp(receivedString, "EOT") == 0) {
+		} else if (receivedString == "EOT") {
 			gPlayProperties.sleepAfterCurrentTrack = true;
 			Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
 			publishMqtt(topicSleepTimerState, "EOT", false);
 			Led_SetNightmode(true);
 			System_IndicateOk();
-			free(receivedString);
 			return;
-		} else if (strcmp(receivedString, "EO5T") == 0) {
-			if ((gPlayProperties.numberOfTracks - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
+		} else if (receivedString == "EO5T") {
+			if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
+				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
+				System_IndicateError();
+				return;
+			}
+			if ((gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
 				gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
 			} else {
 				gPlayProperties.sleepAfterPlaylist = true; // If +5 tracks is > than active playlist, take end of current playlist
@@ -342,9 +372,8 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 			publishMqtt(topicSleepTimerState, "EO5T", false);
 			Led_SetNightmode(true);
 			System_IndicateOk();
-			free(receivedString);
 			return;
-		} else if (strcmp(receivedString, "0") == 0) { // Disable sleep after it was active previously
+		} else if (receivedString == "0") { // Disable sleep after it was active previously
 			if (System_IsSleepTimerEnabled()) {
 				System_DisableSleepTimer();
 				Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
@@ -358,10 +387,9 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Log_Println(sleepTimerAlreadyStopped, LOGLEVEL_INFO);
 				System_IndicateError();
 			}
-			free(receivedString);
 			return;
 		}
-		System_SetSleepTimer((uint8_t) strtoul(receivedString, NULL, 10));
+		System_SetSleepTimer(toNumber<uint8_t>(receivedString));
 		Log_Printf(LOGLEVEL_NOTICE, sleepTimerSetTo, System_GetSleepTimer());
 		System_IndicateOk();
 
@@ -370,18 +398,18 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	}
 	// Track-control (pause/play, stop, first, last, next, previous)
 	else if (strcmp_P(topic, topicTrackControlCmnd) == 0) {
-		uint8_t controlCommand = strtoul(receivedString, NULL, 10);
+		uint8_t controlCommand = toNumber<uint8_t>(receivedString);
 		AudioPlayer_TrackControlToQueueSender(controlCommand);
 	}
 
 	// Check if controls should be locked
 	else if (strcmp_P(topic, topicLockControlsCmnd) == 0) {
-		if (strcmp(receivedString, "OFF") == 0) {
+		if (receivedString == "OFF") {
 			System_SetLockControls(false);
 			Log_Println(allowButtons, LOGLEVEL_NOTICE);
 			publishMqtt(topicLockControlsState, "OFF", false);
 			System_IndicateOk();
-		} else if (strcmp(receivedString, "ON") == 0) {
+		} else if (receivedString == "ON") {
 			System_SetLockControls(true);
 			Log_Println(lockButtons, LOGLEVEL_NOTICE);
 			publishMqtt(topicLockControlsState, "ON", false);
@@ -391,7 +419,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
 	// Check if playmode should be adjusted
 	else if (strcmp_P(topic, topicRepeatModeCmnd) == 0) {
-		uint8_t repeatMode = strtoul(receivedString, NULL, 10);
+		uint8_t repeatMode = toNumber<uint8_t>(receivedString);
 		Log_Printf(LOGLEVEL_NOTICE, "Repeat: %d", repeatMode);
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
 			if (gPlayProperties.playMode == NO_PLAYLIST) {
@@ -443,7 +471,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
 	// Check if LEDs should be dimmed
 	else if (strcmp_P(topic, topicLedBrightnessCmnd) == 0) {
-		Led_SetBrightness(strtoul(receivedString, NULL, 10));
+		Led_SetBrightness(toNumber<uint8_t>(receivedString));
 	}
 
 	// Requested something that isn't specified?
@@ -452,6 +480,5 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		System_IndicateError();
 	}
 
-	free(receivedString);
 #endif
 }

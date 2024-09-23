@@ -1,132 +1,150 @@
 <!DOCTYPE html>
 <html lang="de">
-	<head>
-		<title data-i18n="wifi.title">ESPuino</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=300, initial-scale=1.0">
-        <script src="/js/i18next.min.js"></script>
-        <script src="/js/i18nextHttpBackend.min.js"></script>
-        <script src="/js/loc_i18next.min.js"></script>
-		<style>
-			input {
-				width: 90%;
-				height: 44px;
-				border-radius: 4px;
-				margin: 10px auto;
-				font-size: 15px;
-				background: #f1f1f1;
-				border: 0;
-				padding: 0 15px
-			}
-			input[type="checkbox"] {
-				width: 20px;
-				height: 20px
-			}
-			body {
-				background: #007bff;
-				font-family: sans-serif;
-				font-size: 14px;
-				color: #777
-			}
-			.box {
-				background: #fff;
-				max-width: 258px;
-				margin: 75px auto;
-				padding: 30px;
-				border-radius: 5px;
-				text-align: center
-			}
-			.btn {
-				background: #3498db;
-				color: #fff;
-				cursor: pointer;
-				width: 90% !important;
-				height: 44px;
-				border-radius: 4px;
-				margin: 10px auto;
-				font-size: 15px;
-			}
-			.w1 {
-				background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNOSwxN0wxMiwyMEwxNSwxN0MxMy4zNSwxNS4zNCAxMC42NiwxNS4zNCA5LDE3WiIgc3R5bGU9ImZpbGw6IGdyYXk7Ii8+Cjwvc3ZnPgo=")
-				no-repeat right top;
-				height: 24px;
-			}
-			.w2 {
-				background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNOSwxN0wxMiwyMEwxNSwxN0MxMy4zNSwxNS4zNCAxMC42NiwxNS4zNCA5LDE3WiIgc3R5bGU9ImZpbGw6IGJsYWNrOyIvPgo8L3N2Zz4K")
-				no-repeat right top;
-				height: 24px;
-			}
-			.w3 {
-				background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPHBhdGggZD0iTTksMTdMMTIsMjBMMTUsMTdDMTMuMzUsMTUuMzQgMTAuNjYsMTUuMzQgOSwxN1oiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPC9zdmc+Cg==")
-				no-repeat right top;
-				height: 24px;
-			}
-			.w4 {
-				background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPHBhdGggZD0iTTUsMTNMNywxNUM5Ljc2LDEyLjI0IDE0LjI0LDEyLjI0IDE3LDE1TDE5LDEzQzE1LjE0LDkuMTQgOC44Nyw5LjE0IDUsMTNaIiBzdHlsZT0iZmlsbDogYmxhY2s7Ii8+CjxwYXRoIGQ9Ik05LDE3TDEyLDIwTDE1LDE3QzEzLjM1LDE1LjM0IDEwLjY2LDE1LjM0IDksMTdaIiBzdHlsZT0iZmlsbDogYmxhY2s7Ii8+Cjwvc3ZnPgo=")
-				no-repeat right top;
-				height: 24px;
-			}
-			.pw {
-				background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIHN0eWxlPSJmaWxsOiBibGFjazsiIGQ9Ik0xOCA4aC0xVjZjMC0yLjc2LTIuMjQtNS01LTVTNyAzLjI0IDcgNnYySDZjLTEuMSAwLTIgLjktMiAydjEwYzAgMS4xLjkgMiAyIDJoMTJjMS4xIDAgMi0uOSAyLTJWMTBjMC0xLjEtLjktMi0yLTJ6bS02IDljLTEuMSAwLTItLjktMi0ycy45LTIgMi0yIDIgLjkgMiAyLS45IDItMiAyem0zLjEtOUg4LjlWNmMwLTEuNzEgMS4zOS0zLjEgMy4xLTMuMSAxLjcxIDAgMy4xIDEuMzkgMy4xIDMuMXYyeiI+PC9wYXRoPgo8L3N2Zz4=")
-				no-repeat right top;
-				height: 24px;
-				margin-right: 20px;
-			}
-		</style>
-	</head>
-	<body>
-		<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
-			<h1 data-i18n="wifi.title">WiFi-configuration</h1>
-			<div id="WiFiList"></div>
-			<label for="ssid" data-i18n="wifi.ssid.title">SSID</label>:<br>
-			<input type="text" id="ssid" name="ssid" placeholder="SSID" required><br>
-			<label for="pwd" data-i18n="wifi.password.title">Password</label>:<br>
-			<input type="password" id="pwd" name="pwd" autocomplete="off" required><br>
-			<label for="hostname" data-i18n="wifi.hostname.title">Hostname</label>:<br>
-			<input type="text" id="hostname" name="hostname" value="espuino" pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required><br><br>
 
-			<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
-			<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled">Start with best WiFi</label><br><br>
-			<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
-			<label for="static_enabled" data-i18n="wifi.static.enabled">Static IP</label>
-			
-			<div id="wifi_static_div" style="display:none">
-				<label for="static_addr" data-i18n="wifi.static.addr">Adresse für Statische IP-Konfiguration</label>:<br>
-				<input type="text" id="static_addr" name="static_addr" ><br><br>
-				<label for="static_gateway" data-i18n="wifi.static.gateway">Gateway für Statische IP-Konfiguration</label>:<br>
-				<input type="text" id="static_gateway" name="static_gateway" ><br><br>
-				<label for="static_subnet" data-i18n="wifi.static.subnet">Subnet für Statische IP-Konfiguration</label>:<br>
-				<input type="text" id="static_subnet" name="static_subnet" ><br><br>
-				<label for="static_dns1" data-i18n="wifi.static.dns1">DNS 1 für Statische IP-Konfiguration</label>:<br>
-				<input type="text" id="static_dns1" name="static_dns1" ><br><br>
-				<label for="static_dns2" data-i18n="wifi.static.dns2">DNS 2 für Statische IP-Konfiguration</label>:<br>
-				<input type="text" id="static_dns2" name="static_dns2" ><br><br>
-			</div>
+<head>
+	<title data-i18n="wifi.title"></title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=300, initial-scale=1.0">
+	<script src="/js/i18next.min.js"></script>
+	<script src="/js/i18nextHttpBackend.min.js"></script>
+	<script src="/js/loc_i18next.min.js"></script>
+	<style>
+		input {
+			width: 90%;
+			height: 44px;
+			border-radius: 4px;
+			margin: 10px auto;
+			font-size: 15px;
+			background: #f1f1f1;
+			border: 0;
+			padding: 0 15px
+		}
 
-			<button type="submit" class="btn" id="save-button" data-i18n="submit">Submit</button>
-		</form>
-		<form action="/restart" method="POST" class="box">
-			<h1 data-i18n="wifi.restartPrompt">Ready to go?</h1>
-			<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot">Reboot</button>
-		</form>
-        
-        <script>
-        i18next.use(i18nextHttpBackend).init({
-            backend: {
-                loadPath: "/locales/{{lng}}.json"
-            },
-            debug: true,
-            fallbackLng: 'de',
-        }, (err, t) => {
-            localize = locI18next.init(i18next);
-            localize('body');
-        });
+		input[type="checkbox"] {
+			width: 20px;
+			height: 20px
+		}
+
+		body {
+			background: #007bff;
+			font-family: sans-serif;
+			font-size: 14px;
+			color: #777
+		}
+
+		.box {
+			background: #fff;
+			max-width: 258px;
+			margin: 75px auto;
+			padding: 30px;
+			border-radius: 5px;
+			text-align: center
+		}
+
+		.btn {
+			background: #3498db;
+			color: #fff;
+			cursor: pointer;
+			width: 90% !important;
+			height: 44px;
+			border-radius: 4px;
+			margin: 10px auto;
+			font-size: 15px;
+		}
+
+		.w1 {
+			background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNOSwxN0wxMiwyMEwxNSwxN0MxMy4zNSwxNS4zNCAxMC42NiwxNS4zNCA5LDE3WiIgc3R5bGU9ImZpbGw6IGdyYXk7Ii8+Cjwvc3ZnPgo=") no-repeat right top;
+			height: 24px;
+		}
+
+		.w2 {
+			background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNOSwxN0wxMiwyMEwxNSwxN0MxMy4zNSwxNS4zNCAxMC42NiwxNS4zNCA5LDE3WiIgc3R5bGU9ImZpbGw6IGJsYWNrOyIvPgo8L3N2Zz4K") no-repeat right top;
+			height: 24px;
+		}
+
+		.w3 {
+			background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBncmF5OyIvPgo8cGF0aCBkPSJNNSwxM0w3LDE1QzkuNzYsMTIuMjQgMTQuMjQsMTIuMjQgMTcsMTVMMTksMTNDMTUuMTQsOS4xNCA4Ljg3LDkuMTQgNSwxM1oiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPHBhdGggZD0iTTksMTdMMTIsMjBMMTUsMTdDMTMuMzUsMTUuMzQgMTAuNjYsMTUuMzQgOSwxN1oiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPC9zdmc+Cg==") no-repeat right top;
+			height: 24px;
+		}
+
+		.w4 {
+			background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIGQ9Ik0xLDlMMywxMUM3Ljk3LDYuMDMgMTYuMDMsNi4wMyAyMSwxMUwyMyw5QzE2LjkzLDIuOTMgNy4wOCwyLjkzIDEsOVoiIHN0eWxlPSJmaWxsOiBibGFjazsiLz4KPHBhdGggZD0iTTUsMTNMNywxNUM5Ljc2LDEyLjI0IDE0LjI0LDEyLjI0IDE3LDE1TDE5LDEzQzE1LjE0LDkuMTQgOC44Nyw5LjE0IDUsMTNaIiBzdHlsZT0iZmlsbDogYmxhY2s7Ii8+CjxwYXRoIGQ9Ik05LDE3TDEyLDIwTDE1LDE3QzEzLjM1LDE1LjM0IDEwLjY2LDE1LjM0IDksMTdaIiBzdHlsZT0iZmlsbDogYmxhY2s7Ii8+Cjwvc3ZnPgo=") no-repeat right top;
+			height: 24px;
+		}
+
+		.pw {
+			background: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxwYXRoIHN0eWxlPSJmaWxsOiBibGFjazsiIGQ9Ik0xOCA4aC0xVjZjMC0yLjc2LTIuMjQtNS01LTVTNyAzLjI0IDcgNnYySDZjLTEuMSAwLTIgLjktMiAydjEwYzAgMS4xLjkgMiAyIDJoMTJjMS4xIDAgMi0uOSAyLTJWMTBjMC0xLjEtLjktMi0yLTJ6bS02IDljLTEuMSAwLTItLjktMi0ycy45LTIgMi0yIDIgLjkgMiAyLS45IDItMiAyem0zLjEtOUg4LjlWNmMwLTEuNzEgMS4zOS0zLjEgMy4xLTMuMSAxLjcxIDAgMy4xIDEuMzkgMy4xIDMuMXYyeiI+PC9wYXRoPgo8L3N2Zz4=") no-repeat right top;
+			height: 24px;
+			margin-right: 20px;
+		}
+	</style>
+</head>
+
+<body>
+	<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
+		<h1 data-i18n="wifi.title"></h1>
+		<div id="WiFiList"></div>
+		<label for="ssid" data-i18n="wifi.ssid.title"></label>: <br>
+		<input type="text" id="ssid" name="ssid" placeholder="SSID" required>
+		<br>
+		<label for="pwd" data-i18n="wifi.password.title"></label>: <br>
+		<input type="password" id="pwd" name="pwd" autocomplete="off" required>
+		<br>
+		<label for="hostname" data-i18n="wifi.hostname.title"></label>: <br>
+		<input type="text" id="hostname" name="hostname" value="espuino"
+			pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required>
+		<br>
+		<br>
+		<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
+		<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
+		<br>
+		<br>
+		<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
+		<label for="static_enabled" data-i18n="wifi.static.enabled"></label>
+		<div id="wifi_static_div" style="display:none">
+			<label for="static_addr" data-i18n="wifi.static.addr"></label>: <br>
+			<input type="text" id="static_addr" name="static_addr">
+			<br>
+			<br>
+			<label for="static_gateway" data-i18n="wifi.static.gateway"></label>: <br>
+			<input type="text" id="static_gateway" name="static_gateway">
+			<br>
+			<br>
+			<label for="static_subnet" data-i18n="wifi.static.subnet"></label>: <br>
+			<input type="text" id="static_subnet" name="static_subnet">
+			<br>
+			<br>
+			<label for="static_dns1" data-i18n="wifi.static.dns1"></label>: <br>
+			<input type="text" id="static_dns1" name="static_dns1">
+			<br>
+			<br>
+			<label for="static_dns2" data-i18n="wifi.static.dns2"></label>: <br>
+			<input type="text" id="static_dns2" name="static_dns2">
+			<br>
+			<br>
+		</div>
+		<button type="submit" class="btn" id="save-button" data-i18n="submit"></button>
+	</form>
+	<form action="/restart" method="POST" class="box">
+		<h1 data-i18n="wifi.restartPrompt"></h1>
+		<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot"></button>
+	</form>
+	<script>
+		i18next.use(i18nextHttpBackend).init({
+			backend: {
+				loadPath: "/locales/{{lng}}.json"
+			},
+			debug: true,
+			fallbackLng: 'de',
+		}, (err, t) => {
+			localize = locI18next.init(i18next);
+			localize('body');
+		});
 
 		function selectWiFi(ssid) {
 			document.getElementById("ssid").value = ssid;
 			document.getElementById("pwd").focus();
 		}
-
 		async function getWiFiList() {
 			try {
 				const response = await fetch("/wifiscan");
@@ -149,66 +167,62 @@
 			list.innerHTML = h;
 			setTimeout(getWiFiList, 5000);
 		}
-		
 		// disable static input fields on toggle
-	    document.getElementById('static_enabled').onchange = function() {
+		document.getElementById('static_enabled').onchange = function () {
 			let new_style = this.checked ? null : "none";
 			document.getElementById("wifi_static_div").style.display = new_style;
 		};
-
 		async function wifiConfig() {
 			let static = document.getElementById('static_enabled').checked;
-
-			var myObj = { 
+			var myObj = {
 				ssid: document.getElementById('ssid').value,
 				pwd: document.getElementById('pwd').value,
 				static: static
 			};
-			
 			if (static) {
-				myObj[static_addr] = document.getElementById('static_addr').value;
-				myObj[static_gateway] = document.getElementById('static_gateway').value;
-				myObj[static_subnet] = document.getElementById('static_subnet').value;
-				myObj[static_dns1] = document.getElementById('static_dns1').value;
-				myObj[static_dns2] = document.getElementById('static_dns2').value;
+				myObj = {
+					...myObj,
+					static_addr: document.getElementById('static_addr').value,
+					static_gateway: document.getElementById('static_gateway').value,
+					static_subnet: document.getElementById('static_subnet').value,
+					static_dns1: document.getElementById('static_dns1').value,
+					static_dns2: document.getElementById('static_dns2').value,
+				};
 			}
-
 			await fetch("/savedSSIDs", {
 				method: "POST",
-				headers: {"Content-Type": "application/json"},
+				headers: {
+					"Content-Type": "application/json"
+				},
 				body: JSON.stringify(myObj)
 			});
-
-			var myObj = { 
+			var myObj = {
 				hostname: document.getElementById('hostname').value,
 				scanwifionstart: document.getElementById('scan_wifi_on_start').checked
 			};
-
 			await fetch("/wificonfig", {
 				method: "POST",
-				headers: {"Content-Type": "application/json"},
+				headers: {
+					"Content-Type": "application/json"
+				},
 				body: JSON.stringify(myObj)
 			});
 		}
-
-
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
 			updateWifiFields();
 		});
-
 		async function updateWifiFields() {
 			let hostnameElem = document.getElementById("hostname");
 			let scanWifiElem = document.getElementById("scan_wifi_on_start");
-
 			let config = await (await fetch("/wificonfig")).json();
-
 			if (config.hostname && config.hostname !== "") {
 				hostnameElem.value = config.hostname;
 				hostnameElem.defaultValue = config.hostname;
-			} 
+			}
 			scanWifiElem.checked = config.scanwifionstart;
 		}
-        </script>
-	</body>
+	</script>
+</body>
+
 </html>

@@ -1,10 +1,9 @@
 #pragma once
 
-// FilePathLength
-#define MAX_FILEPATH_LENTGH 256
-
 constexpr char stringDelimiter[] = "#"; // Character used to encapsulate data in linear NVS-strings (don't change)
 constexpr char stringOuterDelimiter[] = "^"; // Character used to encapsulate encapsulated data along with RFID-ID in backup-file
+
+size_t b64decode(const void *input_buffer, void *output_buffer, const size_t input_length);
 
 inline bool isNumber(const char *str) {
 	int i = 0;
@@ -47,17 +46,11 @@ inline bool endsWith(const char *str, const char *suf) {
 	return b == suf && *a == *b;
 }
 
-inline void convertFilenameToAscii(String utf8String, char *asciiString) {
-	// Arduino >= 2.0.5 filenames are already unicode, copy to result here without UTF-8 decoding
-	strncpy(asciiString, (char *) utf8String.c_str(), utf8String.length() / sizeof(asciiString[0]));
-	asciiString[utf8String.length()] = 0;
-}
-
-inline void convertAsciiToUtf8(String asciiString, char *utf8String) {
+inline void convertAsciiToUtf8(String asciiString, char *utf8String, size_t utf8StringSize) {
 
 	int k = 0;
 
-	for (int i = 0; i < asciiString.length() && k < MAX_FILEPATH_LENTGH - 2; i++) {
+	for (int i = 0; i < asciiString.length() && k < utf8StringSize - 2; i++) {
 
 		switch (asciiString[i]) {
 			case 0x8e:
@@ -94,14 +87,4 @@ inline void convertAsciiToUtf8(String asciiString, char *utf8String) {
 	}
 
 	utf8String[k] = 0;
-}
-
-// Release previously allocated memory
-inline void freeMultiCharArray(char **arr, const uint32_t cnt) {
-	for (uint32_t i = 0; i < cnt; i++) {
-		// Log_Printf(LOGLEVEL_DEBUG, freePtr, *(arr+i), arr);
-		free(*(arr + i));
-	}
-	free(arr);
-	*arr = NULL;
 }
