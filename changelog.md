@@ -1,7 +1,14 @@
 # Changelog
 
 
-## Version 2.2 (17.01.2024)
+## DEV-branch
+
+* 27.09.2024: PlatformIO package 6.9.0
+
+
+
+
+## Version 2.3 (23.09.2024)
 
 * 19.09.2024: Document the virtual cards in the UI #333, thanks to @caco3 !
 * 18.09.2024: Re-designed tools page (#337), thanks to @caco3 !
