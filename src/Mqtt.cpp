@@ -171,15 +171,17 @@ bool publishMqtt(const char *topic, int32_t payload, bool retained) {
 #endif
 }
 
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 bool publishMqtt(const char *topic, unsigned long payload, bool retained) {
-#ifdef MQTT_ENABLE
+	#ifdef MQTT_ENABLE
 	char buf[11];
 	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%lu", payload);
 	return publishMqtt(topic, buf, retained);
-#else
+	#else
 	return false;
-#endif
+	#endif
 }
+#endif
 
 bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 #ifdef MQTT_ENABLE

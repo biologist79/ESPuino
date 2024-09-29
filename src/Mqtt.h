@@ -22,5 +22,7 @@ bool Mqtt_IsEnabled(void);
 
 bool publishMqtt(const char *topic, const char *payload, bool retained);
 bool publishMqtt(const char *topic, int32_t payload, bool retained);
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 bool publishMqtt(const char *topic, unsigned long payload, bool retained);
+#endif
 bool publishMqtt(const char *topic, uint32_t payload, bool retained);

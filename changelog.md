@@ -3,6 +3,7 @@
 
 ## DEV-branch
 
+* 29.09.2024: Prepare for Arduino 3.0.5
 * 27.09.2024: PlatformIO package 6.9.0
 
 
