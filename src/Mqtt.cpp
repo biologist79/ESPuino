@@ -171,15 +171,17 @@ bool publishMqtt(const char *topic, int32_t payload, bool retained) {
 #endif
 }
 
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 bool publishMqtt(const char *topic, unsigned long payload, bool retained) {
-#ifdef MQTT_ENABLE
+	#ifdef MQTT_ENABLE
 	char buf[11];
 	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%lu", payload);
 	return publishMqtt(topic, buf, retained);
-#else
+	#else
 	return false;
-#endif
+	#endif
 }
+#endif
 
 bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 #ifdef MQTT_ENABLE
@@ -308,6 +310,10 @@ static NumberType toNumber(const std::string_view str) {
 // Is called if there's a new MQTT-message for us
 void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length) {
 #ifdef MQTT_ENABLE
+	// If message's size is zero => discard (https://forum.espuino.de/t/mqtt-broker-verbindung-von-iobroker-schaltet-espuino-aus/3167)
+	if (!length) {
+		return;
+	}
 	const std::string_view receivedString {reinterpret_cast<const char *>(payload), length};
 
 	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic, receivedString.size(), receivedString.data());
@@ -320,7 +326,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	}
 	// New track to play? Take RFID-ID as input
 	else if (strcmp_P(topic, topicRfidCmnd) == 0) {
-		if (receivedString.size() >= cardIdStringSize) {
+		if (receivedString.size() >= (cardIdStringSize - 1)) {
 			xQueueSend(gRfidCardQueue, receivedString.data(), 0);
 		} else {
 			System_IndicateError();

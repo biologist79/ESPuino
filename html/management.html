@@ -3,9 +3,9 @@
 
 <head>
 	<script>
-	/* To debug remotely, set the IP of the device and open this file locally on a web browser.
-	 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
-	var remoteHost = "192.168.1.207";
+		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
+		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
+		var remoteHost = "192.168.1.207";
 	</script>
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
@@ -15,7 +15,8 @@
 	<link rel="apple-touch-icon" href="/logo">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
@@ -26,146 +27,146 @@
 	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
 	<style type="text/css">
-	body {
-		/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
+		body {
+			/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
 			 * the common minimal width is 320 px. -> 310 px + 5 px padding */
-		min-width: 310px;
-	}
+			min-width: 310px;
+		}
 
 	.nav-logo {
 		margin-right: 5px;
 	}
 
-	.jstree-default .jstree-search {
-		font-style: italic;
-		color: #007bff;
-		/* change searchresult theme-color to bootstrap blue */
-		font-weight: bold;
-	}
+		.jstree-default .jstree-search {
+			font-style: italic;
+			color: #007bff;
+			/* change searchresult theme-color to bootstrap blue */
+			font-weight: bold;
+		}
 
-	.filetree {
-		border: 1px solid black;
-		margin: 0em 0em 1em 0em;
-		overflow-y: scroll;
-	}
+		.filetree {
+			border: 1px solid black;
+			margin: 0em 0em 1em 0em;
+			overflow-y: scroll;
+		}
 
 	.filetree-size {
 		height: 200px;
 	}
 
-	legend.scheduler-border {
-		width: inherit;
-		/* Or auto */
-		padding: 0 10px;
-		/* To give a bit of padding on the left and right */
-		border-bottom: none;
-	}
+		legend.scheduler-border {
+			width: inherit;
+			/* Or auto */
+			padding: 0 10px;
+			/* To give a bit of padding on the left and right */
+			border-bottom: none;
+		}
 
 	.icon-pos {
 		top: 0.3em;
 		position: relative;
 	}
 
-	.filetree-container {
-		position: relative;
-	}
+		.filetree-container {
+			position: relative;
+		}
 
-	.coverimage-container {
-		width: 80%;
-		max-width: 400px;
-		height: 15%;
-		margin: auto;
-		display: block;
-	}
+		.coverimage-container {
+			width: 80%;
+			max-width: 400px;
+			height: 15%;
+			margin: auto;
+			display: block;
+		}
 
-	.ctrl-button-grp {
-		margin: auto;
-		display: block;
-		text-align: center;
-	}
+		.ctrl-button-grp {
+			margin: auto;
+			display: block;
+			text-align: center;
+		}
 
-	.ctrl-button {
-		margin: 2px;
-		padding: 10px;
-	}
+		.ctrl-button {
+			margin: 2px;
+			padding: 10px;
+		}
 
-	.volume-button {
-		width: 60px;
-	}
+		.volume-button {
+			width: 60px;
+		}
 
-	.overlay {
-		z-index: 9;
-		opacity: 0.8;
-		background: #1a1919;
-		height: 200px;
-		display: none;
-		width: 100%;
-	}
+		.overlay {
+			z-index: 9;
+			opacity: 0.8;
+			background: #1a1919;
+			height: 200px;
+			display: none;
+			width: 100%;
+		}
 
-	.progress-sm {
-		height: 0.4rem !important;
-	}
+		.progress-sm {
+			height: 0.4rem !important;
+		}
 
-	.upload-progress-bar {
-		height: 30px;
-	}
+		.upload-progress-bar {
+			height: 30px;
+		}
 
-	#SubTabContent.tab-content {
-		display: flex;
-	}
+		#SubTabContent.tab-content {
+			display: flex;
+		}
 
-	#SubTabContent.tab-content>.tab-pane {
-		display: block;
-		/* undo "display: none;" */
-		visibility: hidden;
-		margin-right: -100%;
-		width: 100%;
-	}
+		#SubTabContent.tab-content>.tab-pane {
+			display: block;
+			/* undo "display: none;" */
+			visibility: hidden;
+			margin-right: -100%;
+			width: 100%;
+		}
 
-	#SubTabContent.tab-content>.active {
-		visibility: visible;
-	}
+		#SubTabContent.tab-content>.active {
+			visibility: visible;
+		}
 
-	[data-visible="false"] {
-		display: none;
-	}
+		[data-visible="false"] {
+			display: none;
+		}
 
-	.fas {
-		padding-right: 0.25em;
-	}
+		.fas {
+			padding-right: 0.25em;
+		}
 
-	#langSel {
-		width: auto;
-	}
+		#langSel {
+			width: auto;
+		}
 
-	.bs-tooltip-top {
-		width: 30px;
-	}
+		.bs-tooltip-top {
+			width: 30px;
+		}
 
-	input::placeholder {
-		color: #a2a6aa !important;
-	}
+		input::placeholder {
+			color: #a2a6aa !important;
+		}
 
-	.menu-icon {
-		width: 30px;
-		text-align: center;
-	}
+		.menu-icon {
+			width: 30px;
+			text-align: center;
+		}
 
 	.container-fluid {
 		padding-right: 0;
 		padding-left: 5px;
 	}
 
-	/* Overwrite some Bootstrap styles (remove border around disabled buttons) */
-	.btn.disabled {
-		border-color: rgb(0, 0, 0, 0);
-		/* Overwrite to have an invisible border */
-		/* As copied from Botstrap buttons.scss */
-		color: var(--bs-btn-disabled-color);
-		pointer-events: none;
-		background-color: var(--bs-btn-disabled-bg);
-		opacity: var(--bs-btn-disabled-opacity);
-	}
+		/* Overwrite some Bootstrap styles (remove border around disabled buttons) */
+		.btn.disabled {
+			border-color: rgb(0, 0, 0, 0);
+			/* Overwrite to have an invisible border */
+			/* As copied from Botstrap buttons.scss */
+			color: var(--bs-btn-disabled-color);
+			pointer-events: none;
+			background-color: var(--bs-btn-disabled-bg);
+			opacity: var(--bs-btn-disabled-opacity);
+		}
 
 	.vakata-context {
 		/* Make sure the jstree context menu is most top */
@@ -186,7 +187,8 @@
 		</div>
 	</div>
 	<div class="toast-container position-fixed top-0 end-0 p-3 mt-5" id="toaster">
-		<div class="toast align-items-center border-0" id="toast-template" role="alert" aria-live="assertive"aria-atomic="true">
+		<div class="toast align-items-center border-0" id="toast-template" role="alert" aria-live="assertive"
+			aria-atomic="true">
 			<div class="d-flex">
 				<div class="toast-body"></div>
 			</div>
@@ -240,8 +242,10 @@
 				<div class="modal-body" style="white-space: pre" id="modalInfoContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
+					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
+							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
@@ -256,8 +260,10 @@
 				<div class="modal-body" style="white-space: pre; font-size: 80%;" id="modalLogContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalLogRefresh" class="btn btn-primary me-auto"><i class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
+					<button type="button" id="modalLogRefresh" class="btn btn-primary me-auto"><i
+							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
@@ -307,7 +313,8 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span data-i18n="ok"></span></button>
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
+							data-i18n="ok"></span></button>
 				</div>
 			</div>
 		</div>
@@ -333,7 +340,7 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvsdelete.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.delete.title"></h5>
 				</div>
 				<div class="modal-body">
 				</div>
@@ -349,10 +356,10 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title" data-i18n="tools.nvserase.title"></h5>
+					<h5 class="modal-title" data-i18n="tools.nvs.erase.title"></h5>
 				</div>
 				<div class="modal-body">
-					<label data-i18n="tools.nvserase.prompt"></label>
+					<label data-i18n="tools.nvs.erase.prompt"></label>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
@@ -380,14 +387,20 @@
 			<div class="container" id="wifiConfig">
 				<div>
 					<legend data-i18n="wifi.title"></legend>
-					<form action="#globalWifiConfig" method="POST" onsubmit="globalWifiConfig('globalWifiConfig'); return false">
+					<form action="#globalWifiConfig" method="POST"
+						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-							<input type="text" class="form-control" id="hostname" data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value="" pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">&nbsp; <label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
+							<input type="text" class="form-control" id="hostname"
+								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
+								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
+							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
+								value="false">&nbsp; <label for="scan_wifi_on_start"
+								data-i18n="wifi.scan.enabled"></label>
 						</div>
 						<div class="text-center">
-							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+								type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</div>
@@ -397,22 +410,30 @@
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-							<input type="text" class="form-control" id="ssid" data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
+							<input type="text" class="form-control" id="ssid"
+								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-							<input type="password" class="form-control" id="pwd" name="pwd" data-i18n="[placeholder]wifi.password.placeholder" required><br>
-							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+							<input type="password" class="form-control" id="pwd" name="pwd"
+								data-i18n="[placeholder]wifi.password.placeholder" required><br>
+							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
+								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-								<input type="text" class="form-control" id="static_addr" name="static_addr">
+								<input type="text" class="form-control" id="static_addr"
+									name="static_addr">
 								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-								<input type="text" class="form-control" id="static_gateway" name="static_gateway">
+								<input type="text" class="form-control" id="static_gateway"
+									name="static_gateway">
 								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-								<input type="text" class="form-control" id="static_subnet" name="static_subnet">
+								<input type="text" class="form-control" id="static_subnet"
+									name="static_subnet">
 								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-								<input type="text" class="form-control" id="static_dns1" name="static_dns1">
+								<input type="text" class="form-control" id="static_dns1"
+									name="static_dns1">
 								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-								<input type="text" class="form-control" id="static_dns2" name="static_dns2">
+								<input type="text" class="form-control" id="static_dns2"
+									name="static_dns2">
 							</div>
 						</div>
 						<div class="text-center">
@@ -429,7 +450,8 @@
 			</div>
 		</div>
 		<!-- ### Tab Control ### -->
-		<div class="tab-pane main-tab-pane fade mb-4" id="nav-control" role="tabpanel" aria-labelledby="nav-control-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-control" role="tabpanel"
+			aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
 				<div class="col-md-12">
 					<legend data-i18n="control.title"></legend>
@@ -437,19 +459,24 @@
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
 					<div class="buttons ctrl-button-grp">
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-first" onclick="sendControl(173)" data-i18n="[title]control.first">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-first"
+							onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-prev" onclick="sendControl(171)" data-i18n="[title]control.prev">
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-prev"
+							onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-play" onclick="sendControl(170)" data-i18n="[title]control.playpause">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-play"
+							onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-next" onclick="sendControl(172)" data-i18n="[title]control.forward">
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-next"
+							onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-last" onclick="sendControl(174)" data-i18n="[title]control.last">
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-last"
+							onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
 					</div>
@@ -544,9 +571,21 @@
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data" action="/explorer">
 								<div class="input-group mb-3">
 									<span class="input-group-btn">
-										<span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();" data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp; <span class="btn btn-primary" onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();" data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp; <input name="uploaded_file" id="uploaded_file" onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());" style="display: none;" type="file" multiple>
+										<span class="btn btn-primary"
+											onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();"
+											data-i18n="[title]files.files.desc;files.files.title"></span>&nbsp; <span
+											class="btn btn-primary"
+											onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=true; input.click();"
+											data-i18n="[title]files.directory.desc;files.directory.title"></span>&nbsp;
+										<input name="uploaded_file" id="uploaded_file"
+											onchange="$(this).parent().parent().find('.form-control').html($(this).val().split(/[\\|/]/).pop());"
+											style="display: none;" type="file" multiple>
 									</span>
-									<span class="form-control" id="uploaded_file_text"></span>&nbsp; <span class="btn btn-primary" onclick="$(this).parent().find('input[type=file]').submit();" data-i18n="[title]files.upload.desc;files.upload.title"></span>&nbsp; </div>
+									<span class="form-control" id="uploaded_file_text"></span>&nbsp; <span
+										class="btn btn-primary"
+										onclick="$(this).parent().find('input[type=file]').submit();"
+										data-i18n="[title]files.upload.desc;files.upload.title"></span>&nbsp;
+								</div>
 							</form>
 							<div id="explorerUploadProgress" class="progress upload-progress-bar">
 								<div class="progress-bar" role="progressbar" aria-labelledby="fileslegend"></div>
@@ -562,12 +601,18 @@
 					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
 						<div class="mb-3 col-md-12">
-							<label for="rfidIdMusic" data-i18n="files.rfid.idNumber"></label>
-							<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
+							<label for="rfidIdMusic" data-i18n="[html]files.rfid.idNumber"></label>
+							<input type="text" class="form-control" id="rfidIdMusic" maxlength="12"
+								pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
 							<br>
-							<div class="nav nav-tabs" id="SubTab" role="tablist" aria-labelledby="rfidMusicTagsAssignment">
-								<a class="nav-item nav-link active" id="rfid-music-tab" data-bs-toggle="tab" href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
-								<a class="nav-item nav-link" id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod" role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block" data-i18n="files.rfid.modification"></span></a>
+							<div class="nav nav-tabs" id="SubTab" role="tablist"
+								aria-labelledby="rfidMusicTagsAssignment">
+								<a class="nav-item nav-link active" id="rfid-music-tab" data-bs-toggle="tab"
+									href="#rfidmusic" role="tab"><i class="fas fa-music"></i><span
+										class=".d-sm-none .d-md-block" data-i18n="files.rfid.music"></span></a>
+								<a class="nav-item nav-link" id="rfid-mod-tab" data-bs-toggle="tab" href="#rfidmod"
+									role="tab"><i class="fas fa-cog"></i><span class=".d-sm-none .d-md-block"
+										data-i18n="files.rfid.modification"></span></a>
 							</div>
 							<div class="tab-content" id="SubTabContent">
 								<div class="tab-pane show active" id="rfidmusic" role="tabpanel">
@@ -626,7 +671,8 @@
 							</div>
 						</div>
 						<div class="text-center">
-							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+								type="submit" class="btn btn-primary" data-i18n="submit"></button>
 						</div>
 					</form>
 				</fieldset>
@@ -635,10 +681,13 @@
 		<!-- ### Tab MQTT ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
 			<div class="container" id="mqttConfig">
-				<form class="needs-validation" action="#mqttConfig" method="POST" onsubmit="mqttSettings('mqttConfig'); return false">
+				<form class="needs-validation" action="#mqttConfig" method="POST"
+					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
 					<div class="form-check col-md-12">
-						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
+						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
+							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
+							data-i18n="mqtt.enable"></label>
 					</div>
 					<div class="mb-3 my-2 col-md-12">
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
@@ -653,7 +702,8 @@
 						<input type="number" class="form-control" id="mqttPort" min="1" max="65535" data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+							type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -670,7 +720,8 @@
 						<input type="password" class="form-control" id="ftpPwd" maxlength="0" data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
+							type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
 				</form>
 				<hr>
@@ -681,7 +732,8 @@
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="ftpStart()" data-i18n="ftp.start.button"></button>
+						<button type="button" class="btn btn-primary" onclick="ftpStart()"
+							data-i18n="ftp.start.button"></button>
 					</div>
 				</div>
 			</div>
@@ -709,7 +761,8 @@
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(141)" data-i18n="bt.source.button"></button>
+						<button type="button" class="btn btn-primary" onclick="sendControl(141)"
+							data-i18n="bt.source.button"></button>
 					</div>
 				</div>
 				<hr>
@@ -720,7 +773,8 @@
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(140)" data-i18n="bt.sink.button"></button>
+						<button type="button" class="btn btn-primary" onclick="sendControl(140)"
+							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
 			</div>
@@ -881,7 +935,9 @@
 						</fieldset>
 					</div>
 					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset" onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="reset" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="submit"></button>
 					</div>
 				</form>
 			</div>
@@ -889,32 +945,47 @@
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-tools" role="tabpanel" aria-labelledby="nav-tools-tab">
 			<div class="container" id="savedAssignments">
-				<legend data-i18n="files.rfid.savedassignments"></legend>
-				<ul class="list-group" id="rfidListSavedAssignments">
-				</ul>
-				<hr>
-			</div>
-			<div class="container" id="eraseNvs">
-				<legend data-i18n="tools.nvserase.title"></legend>
-				<div class="mb-3" data-i18n="[html]tools.nvserase.desc">
-					<p></p>
-				</div>
-				<div class="text-center">
-					<button type="submit" class="btn btn-danger" data-i18n="tools.nvserase.button" data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
-				</div>
-				<hr>
-			</div>
-			<div class="container" id="importNvs">
-				<legend data-i18n="tools.nvsimport.title"></legend>
-				<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST" onsubmit="uploadNVSRFID('nvsUpload'); return false">
-					<div class="mb-3">
-						<label for="nvsUpload" data-i18n="tools.nvsimport.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload" accept=".txt">
-					</div>
+				<legend data-i18n="tools.nvs.title"></legend>
+				<p data-i18n="tools.nvs.desc"></p>
+				<span class="container" style="padding: 0" id="listNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
+					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+						data-bs-target="#rfidListSavedAssignmentsContainer" aria-expanded="false"
+						aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
+					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
+						<ul class="list-group" id="rfidListSavedAssignments"></ul>
+					</span><br><br>
+				</span>
+				<span class="container" style="padding: 0" id="exportNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
+					<p data-i18n="tools.nvs.export.desc"></p>
+					<a type="submit" class="btn btn-primary" data-i18n="submit"
+						href="/explorerdownload?path=/backup.txt" target="_blank"></a>
+					<br><br>
+				</span>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
+					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
+						onsubmit="uploadNVSRFID('nvsUpload'); return false">
+						<div class="mb-3">
+							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
+							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload"
+								accept=".txt">
+							<br><br>
+							<div class="text-center">
+								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							</div>
+						</div>
+					</form>
+				</span>
+				<span class="container" style="padding: 0" id="eraseNvs">
+					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
+					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
 					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
+							data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 					</div>
-				</form>
+				</span>
 				<hr>
 			</div>
 			<div class="container" id="httpUpdate">
@@ -922,7 +993,8 @@
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload" name="firmwareUpload" accept=".bin">
+						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
+							name="firmwareUpload" accept=".bin">
 					</div>
 					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative">
 						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
@@ -948,52 +1020,56 @@
 		</div>
 	</div>
 	<script type="text/javascript">
-	var lastIdclicked = '';
-	var ActiveTab = 'nav-rfid-tab';
-	var ActiveSubTab = 'rfid-music-tab';
-	var host = $(location).attr('hostname');
-	/* show active / selected tab */
-	$('#nav-tab.nav-tabs a').on('shown.bs.tab', function(e) {
-		ActiveTab = $(e.target).attr('id');
-		console.log("ActiveTab: " + ActiveTab);
-		if(ActiveTab == 'nav-control-tab') {
-			getTrackProgress();
+		var lastIdclicked = '';
+		var ActiveTab = 'nav-rfid-tab';
+		var ActiveSubTab = 'rfid-music-tab';
+		var host = $(location).attr('hostname');
+		var language = navigator.language || navigator.userLanguage;
+		var localize;
+		/* show active / selected tab */
+		$('#nav-tab.nav-tabs a').on('shown.bs.tab', function (e) {
+			ActiveTab = $(e.target).attr('id');
+			console.log("ActiveTab: " + ActiveTab);
+			if (ActiveTab == 'nav-control-tab') {
+				getTrackProgress();
+			}
+			updateTabStyle();
+			localStorage.setItem("active-tab", ActiveTab);
+		});
+		/* show active / selected subtab */
+		$('#SubTab.nav-tabs a').on('shown.bs.tab', function (e) {
+			ActiveSubTab = $(e.target).attr('id');
+			console.log("ActiveSubTab: " + ActiveSubTab);
+			if (ActiveSubTab == 'rfid-music-tab') {
+				document.getElementById("fileOrUrl").required = true;
+			} else {
+				document.getElementById("fileOrUrl").required = false;
+			}
+			updateTabStyle();
+		});
+		if (host == "") { // Not running on the device -> use the remote host
+			host = remoteHost;
+			console.log("Using remote host on " + remoteHost);
+			var anchors = document.getElementsByTagName("img");
+			for (var i = 0; i < anchors.length; i++) {
+				anchors[i].src = "http://" + host + anchors[i].src.replace("file://", "");
+			}
+			var anchors = document.getElementsByTagName("form");
+			for (var i = 0; i < anchors.length; i++) {
+				anchors[i].action = "http://" + host + anchors[i].action.replace("file://", "");
+			}
 		}
-		localStorage.setItem("active-tab", ActiveTab);
-	});
-	/* show active / selected subtab */
-	$('#SubTab.nav-tabs a').on('shown.bs.tab', function(e) {
-		ActiveSubTab = $(e.target).attr('id');
-		console.log("ActiveSubTab: " + ActiveSubTab);
-		if(ActiveSubTab == 'rfid-music-tab') {
-			document.getElementById("fileOrUrl").required = true;
-		} else {
-			document.getElementById("fileOrUrl").required = false;
-		}
-	});
-	if(host == "") { // Not running on the device -> use the remote host
-		host = remoteHost;
-		console.log("Using remote host on " + remoteHost);
-		var anchors = document.getElementsByTagName("img");
-		for(var i = 0; i < anchors.length; i++) {
-			anchors[i].src = "http://" + host + anchors[i].src.replace("file://", "");
-		}
-		var anchors = document.getElementsByTagName("form");
-		for(var i = 0; i < anchors.length; i++) {
-			anchors[i].action = "http://" + host + anchors[i].action.replace("file://", "");
-		}
-	}
 
-	const toaster = {
-		// remove all children, except the first (which is the template)
-		clear: () => $('.toast:not(:first)').remove(),
-		
-		// render a toast with given message and bootstrap color class -- private closure
-		toast: (() => {
-			// the template for toasting is always the same
-			const toastTemplate = $('#toast-template');
-			// the container which contains the toasts is also always the same
-			const toastContainer = $('#toaster');
+		const toaster = {
+			// remove all children, except the first (which is the template)
+			clear: () => $('.toast:not(:first)').remove(),
+
+			// render a toast with given message and bootstrap color class -- private closure
+			toast: (() => {
+				// the template for toasting is always the same
+				const toastTemplate = $('#toast-template');
+				// the container which contains the toasts is also always the same
+				const toastContainer = $('#toaster');
 
 			// return the actual function
 			return (msg, colorClass) => {
@@ -1099,63 +1175,63 @@
 		socket.send(myJSON);
 	});
 
-	function postRendering(event, data) {
-		Object.keys(data.instance._model.data).forEach(function(key, index) {
-			var cur = data.instance.get_node(data.instance._model.data[key]);
-			var lastFolder = cur['id'].split('/').filter(function(el) {
-				return el.trim().length > 0;
-			}).pop();
-			if((/\.(mp3|ogg|oga|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'audio');
-			} else
-			if((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'playlist');
-			} else
-			if((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(lastFolder)) {
-				data.instance.set_type(data.instance._model.data[key], 'image');
-				data.instance.disable_node(data.instance._model.data[key]);
-			} else {
-				if(data.instance._model.data[key]['type'] == "file") {
-					data.instance.disable_node(data.instance._model.data[key]);
-				}
+		function postRendering(event, data) {
+			Object.keys(data.instance._model.data).forEach(function (key, index) {
+				var cur = data.instance.get_node(data.instance._model.data[key]);
+				var lastFolder = cur['id'].split('/').filter(function (el) {
+					return el.trim().length > 0;
+				}).pop();
+				if ((/\.(mp3|ogg|oga|wav|wma|acc|flac|m4a|opus)$/i).test(lastFolder)) {
+					data.instance.set_type(data.instance._model.data[key], 'audio');
+				} else
+					if ((/\.(m3u|m3u8|asx|pls)$/i).test(lastFolder)) {
+						data.instance.set_type(data.instance._model.data[key], 'playlist');
+					} else
+						if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(lastFolder)) {
+							data.instance.set_type(data.instance._model.data[key], 'image');
+							data.instance.disable_node(data.instance._model.data[key]);
+						} else {
+							if (data.instance._model.data[key]['type'] == "file") {
+								data.instance.disable_node(data.instance._model.data[key]);
+							}
+						}
+				data.instance.rename_node(data.instance._model.data[key], lastFolder);
+			});
+		}
+		/* File Explorer functions begin*/
+		var lastSelectedNodePath = "";
+		$('#explorerTree').on('select_node.jstree', function (e, data) {
+			$('input[name=fileOrUrl]').val(data.node.data.path);
+			if (ActiveSubTab !== 'rfid-music-tab') {
+				$('#SubTab.nav-tabs a[id="rfid-music-tab"]').tab('show');
 			}
-			data.instance.rename_node(data.instance._model.data[key], lastFolder);
+			if (data.node.type == "folder") {
+				$('.option-folder').show();
+				$('.option-file').hide();
+				$('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
+			}
+			if ((data.node.type == "audio") || (data.node.type == "playlist")) {
+				$('.option-file').show();
+				$('.option-folder').hide();
+				$('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
+			}
+			if (lastSelectedNodePath != data.node.data.path) {
+				if (data.node.data.directory) {
+					var ref = $('#explorerTree').jstree(true),
+						sel = ref.get_selected();
+					if (!sel.length) {
+						return false;
+					}
+					sel = sel[0];
+					var children = $("#explorerTree").jstree("get_children_dom", sel);
+					/* refresh only, when there is no child -> possible not yet updated */
+					if (children.length < 1) {
+						refreshNode(sel);
+					}
+				}
+				lastSelectedNodePath = data.node.data.path;
+			}
 		});
-	}
-	/* File Explorer functions begin*/
-	var lastSelectedNodePath = "";
-	$('#explorerTree').on('select_node.jstree', function(e, data) {
-		$('input[name=fileOrUrl]').val(data.node.data.path);
-		if(ActiveSubTab !== 'rfid-music-tab') {
-			$('#SubTab.nav-tabs a[id="rfid-music-tab"]').tab('show');
-		}
-		if(data.node.type == "folder") {
-			$('.option-folder').show();
-			$('.option-file').hide();
-			$('#playMode option').removeAttr('selected').filter('[value=3]').attr('selected', true);
-		}
-		if((data.node.type == "audio") || (data.node.type == "playlist")) {
-			$('.option-file').show();
-			$('.option-folder').hide();
-			$('#playMode option').removeAttr('selected').filter('[value=1]').attr('selected', true);
-		}
-		if(lastSelectedNodePath != data.node.data.path) {
-			if(data.node.data.directory) {
-				var ref = $('#explorerTree').jstree(true),
-					sel = ref.get_selected();
-				if(!sel.length) {
-					return false;
-				}
-				sel = sel[0];
-				var children = $("#explorerTree").jstree("get_children_dom", sel);
-				/* refresh only, when there is no child -> possible not yet updated */
-				if(children.length < 1) {
-					refreshNode(sel);
-				}
-			}
-			lastSelectedNodePath = data.node.data.path;
-		}
-	});
 
 	function doRest(path, callback, obj) {
 		obj.url = path;
@@ -1432,94 +1508,94 @@
 		});
 	}
 
-	function sortData(data) {
-		var sortMode = 3; // Default: natural case-insensitive
-		try {
-			sortMode = window.settings.playlist.sortMode;
-		} catch (error) {
-			// Nothing to do
-		}
-		data.sort(function(a, b) {
-			// Make sure directories are always listed first
-			if(a.dir && !b.dir) {
-				return -1;
+		function sortData(data) {
+			var sortMode = 3; // Default: natural case-insensitive
+			try {
+				sortMode = window.settings.playlist.sortMode;
+			} catch (error) {
+				// Nothing to do
 			}
-			if(!a.dir && b.dir) {
-				return 1;
-			}
-			switch (sortMode) {
-				case 1: // strcmp - standard string comparison
-					if(a.name < b.name) {
-						return -1;
-					}
-					if(a.name > b.name) {
-						return 1;
-					}
-					return 0;
-				case 2: // strnatcmp - natural case-sensitive
-					return natcompare(a.name, b.name);
-					break;
-				case 3: // strnatcasecmp - natural case-insensitive
-				default:
-					return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
-					break;
-			}
-		});
-	}
-
-	function createChild(nodeId, data) {
-		var ref = $('#explorerTree').jstree(true);
-		var node = ref.get_node(nodeId);
-		var parentNodePath = node.data.path;
-		/* In case of root node remove leading '/' to avoid '//' */
-		if(parentNodePath == "/") {
-			parentNodePath = "";
+			data.sort(function (a, b) {
+				// Make sure directories are always listed first
+				if (a.dir && !b.dir) {
+					return -1;
+				}
+				if (!a.dir && b.dir) {
+					return 1;
+				}
+				switch (sortMode) {
+					case 1: // strcmp - standard string comparison
+						if (a.name < b.name) {
+							return -1;
+						}
+						if (a.name > b.name) {
+							return 1;
+						}
+						return 0;
+					case 2: // strnatcmp - natural case-sensitive
+						return natcompare(a.name, b.name);
+						break;
+					case 3: // strnatcasecmp - natural case-insensitive
+					default:
+						return natcompare(a.name.toLowerCase(), b.name.toLowerCase());
+						break;
+				}
+			});
 		}
-		var child = {
-			text: data.name,
-			type: getType(data),
-			data: {
-				path: parentNodePath + "/" + data.name,
-				directory: data.dir
+
+		function createChild(nodeId, data) {
+			var ref = $('#explorerTree').jstree(true);
+			var node = ref.get_node(nodeId);
+			var parentNodePath = node.data.path;
+			/* In case of root node remove leading '/' to avoid '//' */
+			if (parentNodePath == "/") {
+				parentNodePath = "";
 			}
-		};
-		return child;
-	}
-
-	function deleteChildrenNodes(nodeId) {
-		var ref = $('#explorerTree').jstree(true);
-		var children = $("#explorerTree").jstree("get_children_dom", nodeId);
-		for(var i = 0; i < children.length; i++) {
-			ref.delete_node(children[i].id);
+			var child = {
+				text: data.name,
+				type: getType(data),
+				data: {
+					path: parentNodePath + "/" + data.name,
+					directory: data.dir
+				}
+			};
+			return child;
 		}
-	}
 
-	function refreshNode(nodeId) {
-		var ref = $('#explorerTree').jstree(true);
-		var node = ref.get_node(nodeId);
-		getData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path), function(data) {
-			/* We now have data! */
-			deleteChildrenNodes(nodeId);
-			addFileDirectory(nodeId, data);
-			ref.open_node(nodeId);
-		});
-	}
-
-	function getType(data) {
-		var type = "";
-		if(data.dir) {
-			type = "folder";
-		} else if((/\.(mp3|ogg|oga|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
-			type = "audio";
-		} else if((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
-			type = "playlist";
-		} else if((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(data.name)) {
-			type = "image";
-		} else {
-			type = "file";
+		function deleteChildrenNodes(nodeId) {
+			var ref = $('#explorerTree').jstree(true);
+			var children = $("#explorerTree").jstree("get_children_dom", nodeId);
+			for (var i = 0; i < children.length; i++) {
+				ref.delete_node(children[i].id);
+			}
 		}
-		return type;
-	}
+
+		function refreshNode(nodeId) {
+			var ref = $('#explorerTree').jstree(true);
+			var node = ref.get_node(nodeId);
+			getData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path), function (data) {
+				/* We now have data! */
+				deleteChildrenNodes(nodeId);
+				addFileDirectory(nodeId, data);
+				ref.open_node(nodeId);
+			});
+		}
+
+		function getType(data) {
+			var type = "";
+			if (data.dir) {
+				type = "folder";
+			} else if ((/\.(mp3|ogg|oga|wav|wma|acc|m4a|flac|opus)$/i).test(data.name)) {
+				type = "audio";
+			} else if ((/\.(m3u|m3u8|asx|pls)$/i).test(data.name)) {
+				type = "playlist";
+			} else if ((/\.(png|jpg|jpeg|bmp|gif|webp)$/i).test(data.name)) {
+				type = "image";
+			} else {
+				type = "file";
+			}
+			return type;
+		}
 
 	function addFileDirectory(parent, data) {
 		sortData(data);
@@ -1997,8 +2073,9 @@
 			rfidElem.appendChild(deleteSpan);
 			rfidListSavedAssignments.appendChild(rfidElem);
 		}
-		document.getElementById('savedAssignments').setAttribute('data-visible', (rfidList.length > 0));
+		document.getElementById('listNvs').setAttribute('data-visible', (rfidList.length > 0));
 		document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
+		document.getElementById('exportNvs').setAttribute('data-visible', (rfidList.length > 0));
 	}
 	async function deleteRFID(tagId) {
 		console.log("deleting", tagId);
@@ -2047,417 +2124,417 @@
 		}
 	}
 
-	function onToolsTabOpened() {
-		console.log("tools tab opened!");
-		rebuildRFIDList();
-	}
-	const config = {
-		attributes: true
-	};
-	const toolsTab = document.getElementById("nav-tools-tab");
-	var toolsTabActive = false;
-	const toolsTabObserver = new MutationObserver((mutationList, observer) => {
-		if(!toolsTabActive && toolsTab.classList.contains("active")) {
-			toolsTabActive = true;
-			onToolsTabOpened();
-		} else {
-			toolsTabActive = false;
+		function onToolsTabOpened() {
+			console.log("tools tab opened!");
+			rebuildRFIDList();
 		}
-	})
-	toolsTabObserver.observe(toolsTab, config);
-
-	function ping() {
-		var myObj = {
-			"ping": {
-				ping: 'ping'
-			}
+		const config = {
+			attributes: true
 		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-		tm = setTimeout(function() {
-			toaster.warning(i18next.t("toast.conlost"));
-		}, 5000);
-	}
-
-	function pong() {
-		clearTimeout(tm);
-	}
-	async function getTrackProgress() {
-		if(ActiveTab !== 'nav-control-tab') {
-			return;
-		};
-		// use http request here, websocket comminication seems to be unstable with many messages
-		let data = await (await fetch("http://" + host + "/trackprogress")).json();
-		if(data && data.trackProgress) {
-			// console.log(data.trackProgress);
-			setTrackProgress(data.trackProgress);
-		} else {
-			console.log("failed to fetch trackprogress: " + data);
-		}
-		return;
-	}
-
-	function setTrackProgress(msg) {
-		// console.log(msg);
-		$("#trackProgress").css('width', msg.posPercent + "%");
-		if(msg.duration > 0) {
-			document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
-		} else {
-			if(msg.time > 0) {
-				document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
+		const toolsTab = document.getElementById("nav-tools-tab");
+		var toolsTabActive = false;
+		const toolsTabObserver = new MutationObserver((mutationList, observer) => {
+			if (!toolsTabActive && toolsTab.classList.contains("active")) {
+				toolsTabActive = true;
+				onToolsTabOpened();
 			} else {
-				document.getElementById('playtime').innerHTML = "-- / --";
+				toolsTabActive = false;
+			}
+		})
+		toolsTabObserver.observe(toolsTab, config);
+
+		function ping() {
+			var myObj = {
+				"ping": {
+					ping: 'ping'
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+			tm = setTimeout(function () {
+				toaster.warning(i18next.t("toast.conlost"));
+			}, 5000);
+		}
+
+		function pong() {
+			clearTimeout(tm);
+		}
+		async function getTrackProgress() {
+			if (ActiveTab !== 'nav-control-tab') {
+				return;
+			};
+			// use http request here, websocket comminication seems to be unstable with many messages
+			let data = await (await fetch("http://" + host + "/trackprogress")).json();
+			if (data && data.trackProgress) {
+				// console.log(data.trackProgress);
+				setTrackProgress(data.trackProgress);
+			} else {
+				console.log("failed to fetch trackprogress: " + data);
+			}
+			return;
+		}
+
+		function setTrackProgress(msg) {
+			// console.log(msg);
+			$("#trackProgress").css('width', msg.posPercent + "%");
+			if (msg.duration > 0) {
+				document.getElementById('playtime').innerHTML = secondsToTime(msg.time) + " / " + secondsToTime(msg.duration);
+			} else {
+				if (msg.time > 0) {
+					document.getElementById('playtime').innerHTML = secondsToTime(msg.time);
+				} else {
+					document.getElementById('playtime').innerHTML = "-- / --";
+				}
 			}
 		}
-	}
 
-	function genSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"general": {
-				initVolume: Number($('#initialVolume').val()),
-				maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
-				maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
-				sleepInactivity: Number($('#inactivityTime').val()),
+		function genSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"general": {
+					initVolume: Number($('#initialVolume').val()),
+					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
+					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
+					sleepInactivity: Number($('#inactivityTime').val()),
 				playMono: $('#playMono').prop('checked'),
 				savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 				savePosRfidChg: $('#savePlayPosRfidChange').prop('checked'),
 				pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 				recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 				volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
-			},
-			"led": {
-				initBrightness: Number($('#initBrightness').val()),
-				nightBrightness: Number($('#nightBrightness').val())
-			},
-			"battery": {
-				warnLowVoltage: Number($('#warningLowVoltage').val()),
-				indicatorLow: Number($('#voltageIndicatorLow').val()),
-				indicatorHi: Number($('#voltageIndicatorHigh').val()),
-				criticalVoltage: Number($('#criticalVoltage').val()),
-				voltageCheckInterval: Number($('#voltageCheckInterval').val())
-			},
-			"playlist": {
-				sortMode: Number($('#playlistSortMode').val())
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		// update global settings
-		window.settings = {
-			...window.settings,
-			...myObj
-		};
-		socket.send(myJSON);
-	}
-
-	function ftpSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"ftp": {
-				username: document.getElementById('ftpUser').value,
-				password: document.getElementById('ftpPwd').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function ftpStart() {
-		var myObj = {
-			"ftpStatus": {
-				start: 1
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function mqttSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var val;
-		if(document.getElementById('mqttEnable').checked) {
-			val = document.getElementById('mqttEnable').value;
-		} else {
-			val = 0;
-		}
-		var myObj = {
-			"mqtt": {
-				enable: val,
-				clientID: document.getElementById('mqttClientId').value,
-				server: document.getElementById('mqttServer').value,
-				username: document.getElementById('mqttUser').value,
-				password: document.getElementById('mqttPwd').value,
-				port: Number(document.getElementById('mqttPort').value)
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function btSettings(clickedId) {
-		lastIdclicked = clickedId;
-		var myObj = {
-			"bluetooth": {
-				deviceName: document.getElementById('btDeviceName').value,
-				pinCode: document.getElementById('btPinCode').value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function removeTrSlash(str) {
-		if(str.substr(-1) === '/') {
-			return str.substr(0, str.length - 1);
-		}
-		return str;
-	}
-
-	function rfidAssign(clickedId) {
-		lastIdclicked = clickedId;
-		if(ActiveSubTab == 'rfid-music-tab') {
-			var myObj = {
-				"rfidAssign": {
-					rfidIdMusic: document.getElementById('rfidIdMusic').value,
-					fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
-					playMode: document.getElementById('playMode').value
+				},
+				"led": {
+					initBrightness: Number($('#initBrightness').val()),
+					nightBrightness: Number($('#nightBrightness').val())
+				},
+				"battery": {
+					warnLowVoltage: Number($('#warningLowVoltage').val()),
+					indicatorLow: Number($('#voltageIndicatorLow').val()),
+					indicatorHi: Number($('#voltageIndicatorHigh').val()),
+					criticalVoltage: Number($('#criticalVoltage').val()),
+					voltageCheckInterval: Number($('#voltageCheckInterval').val())
+				},
+				"playlist": {
+					sortMode: Number($('#playlistSortMode').val())
 				}
 			};
-		} else {
+			var myJSON = JSON.stringify(myObj);
+			// update global settings
+			window.settings = {
+				...window.settings,
+				...myObj
+			};
+			socket.send(myJSON);
+		}
+
+		function ftpSettings(clickedId) {
+			lastIdclicked = clickedId;
 			var myObj = {
-				"rfidMod": {
-					rfidIdMod: document.getElementById('rfidIdMusic').value,
-					modId: Number(document.getElementById('modId').value)
+				"ftp": {
+					username: document.getElementById('ftpUser').value,
+					password: document.getElementById('ftpPwd').value
 				}
 			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
 		}
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-	async function globalWifiConfig(clickedId) {
-		lastIdclicked = clickedId;
-		let hostname = document.getElementById("hostname").value;
-		let scanWifi = document.getElementById("scan_wifi_on_start").checked;
-		var myObj = {
-			hostname: hostname,
-			scanOnStart: scanWifi
-		};
-		// set title to hostname
-		setTitle(hostname);
-		await fetch("http://" + host + "/wificonfig", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(myObj)
-		});
-	}
-	// disable static input fields on toggle
-	document.getElementById('static_enabled').onchange = function() {
-		let new_style = this.checked ? null : "none";
-		document.getElementById("wifi_static_div").style.display = new_style;
-	};
-	async function wifiConfig(clickedId) {
-		lastIdclicked = clickedId;
-		let static = document.getElementById('static_enabled').checked;
-		var myObj = {
-			ssid: document.getElementById('ssid').value,
-			pwd: document.getElementById('pwd').value,
-			static: static
-		};
-		if(static) {
-			myObj = {
-				...myObj,
-				static_addr: document.getElementById('static_addr').value,
-				static_gateway: document.getElementById('static_gateway').value,
-				static_subnet: document.getElementById('static_subnet').value,
-				static_dns1: document.getElementById('static_dns1').value,
-				static_dns2: document.getElementById('static_dns2').value,
+
+		function ftpStart() {
+			var myObj = {
+				"ftpStatus": {
+					start: 1
+				}
 			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
 		}
-		await fetch("http://" + host + "/savedSSIDs", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(myObj)
-		});
-		await rebuildSSIDList();
-	}
 
-	function searchFiles(searchText) {
-		$('#explorerTree').jstree('search', searchText);
-	}
-
-	function sendControl(cmd) {
-		var myObj = {
-			"controls": {
-				action: cmd
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function executeCommand() {
-		var myObj = {
-			"controls": {
-				action: Number(document.getElementById('commandId').value)
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	}
-
-	function resizeFileList(expand) {
-		const el = document.querySelector(".filetree-size");
-		if(expand) {
-			el.setAttribute("style", "height: auto");
-			$('#expandfilelist').hide();
-			$('#shrinkfilelist').show();
-		} else {
-			el.setAttribute("style", "height: 200px");
-			$('#shrinkfilelist').hide();
-			$('#expandfilelist').show();
-		}
-	}
-
-	volumeSlider.on('input', e => {
-		var myObj = {
-			"controls": {
-				set_volume: e.target.value
-			}
-		};
-		var myJSON = JSON.stringify(myObj);
-		socket.send(myJSON);
-	});
-	async function tryRedirect() {
-		try {
-			console.log("redirect to startpage..")
-			const response = await fetch(window.location.href);
-			window.location.reload();
-		} catch (error) {
-			console.log(error);
-			setTimeout(tryRedirect, 2000);
-		}
-	}
-
-	function secondsToTime(seconds) {
-		if(seconds < 3600) {
-			return new Date(seconds * 1000).toISOString().substring(14, 19);
-		} else {
-			return new Date(seconds * 1000).toISOString().slice(11, 19);
-		}
-	}
-
-	function secondsToDate(seconds) {
-		if(seconds == 0) {
-			return "--";
-		}
-		return new Date(seconds * 1000).toLocaleDateString(i18next.lang);
-	}
-
-	function timestampToDuration(ms, withSeconds) {
-		if(ms == 0) {
-			return "--";
-		}
-		seconds = Number(ms / 1000);
-		var d = Math.floor(seconds / (3600 * 24));
-		var h = Math.floor(seconds % (3600 * 24) / 3600);
-		var m = Math.floor(seconds % 3600 / 60);
-		var s = Math.floor(seconds % 60);
-		var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
-		var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
-		var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") : " " + i18next.t("datetime.minutes")) : "";
-		if(withSeconds) {
-			var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
-			if(dDisplay + hDisplay + mDisplay == "") {
-				return sDisplay;
+		function mqttSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var val;
+			if (document.getElementById('mqttEnable').checked) {
+				val = document.getElementById('mqttEnable').value;
 			} else {
-				if(sDisplay == "") {
-					return dDisplay + hDisplay + mDisplay;
-				} else {
-					return dDisplay + hDisplay + mDisplay + ", " + sDisplay;
+				val = 0;
+			}
+			var myObj = {
+				"mqtt": {
+					enable: val,
+					clientID: document.getElementById('mqttClientId').value,
+					server: document.getElementById('mqttServer').value,
+					username: document.getElementById('mqttUser').value,
+					password: document.getElementById('mqttPwd').value,
+					port: Number(document.getElementById('mqttPort').value)
 				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function btSettings(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"bluetooth": {
+					deviceName: document.getElementById('btDeviceName').value,
+					pinCode: document.getElementById('btPinCode').value
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function removeTrSlash(str) {
+			if (str.substr(-1) === '/') {
+				return str.substr(0, str.length - 1);
+			}
+			return str;
+		}
+
+		function rfidAssign(clickedId) {
+			lastIdclicked = clickedId;
+			if (ActiveSubTab == 'rfid-music-tab') {
+				var myObj = {
+					"rfidAssign": {
+						rfidIdMusic: document.getElementById('rfidIdMusic').value,
+						fileOrUrl: removeTrSlash(document.getElementById('fileOrUrl').value),
+						playMode: document.getElementById('playMode').value
+					}
+				};
+			} else {
+				var myObj = {
+					"rfidMod": {
+						rfidIdMod: document.getElementById('rfidIdMusic').value,
+						modId: Number(document.getElementById('modId').value)
+					}
+				};
+			}
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+		async function globalWifiConfig(clickedId) {
+			lastIdclicked = clickedId;
+			let hostname = document.getElementById("hostname").value;
+			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+			var myObj = {
+				hostname: hostname,
+				scanOnStart: scanWifi
+			};
+			// set title to hostname
+			setTitle(hostname);
+			await fetch("http://" + host + "/wificonfig", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(myObj)
+			});
+		}
+		// disable static input fields on toggle
+		document.getElementById('static_enabled').onchange = function () {
+			let new_style = this.checked ? null : "none";
+			document.getElementById("wifi_static_div").style.display = new_style;
+		};
+		async function wifiConfig(clickedId) {
+			lastIdclicked = clickedId;
+			let static = document.getElementById('static_enabled').checked;
+			var myObj = {
+				ssid: document.getElementById('ssid').value,
+				pwd: document.getElementById('pwd').value,
+				static: static
+			};
+			if (static) {
+				myObj = {
+					...myObj,
+					static_addr: document.getElementById('static_addr').value,
+					static_gateway: document.getElementById('static_gateway').value,
+					static_subnet: document.getElementById('static_subnet').value,
+					static_dns1: document.getElementById('static_dns1').value,
+					static_dns2: document.getElementById('static_dns2').value,
+				};
+			}
+			await fetch("http://" + host + "/savedSSIDs", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(myObj)
+			});
+			await rebuildSSIDList();
+		}
+
+		function searchFiles(searchText) {
+			$('#explorerTree').jstree('search', searchText);
+		}
+
+		function sendControl(cmd) {
+			var myObj = {
+				"controls": {
+					action: cmd
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function executeCommand() {
+			var myObj = {
+				"controls": {
+					action: Number(document.getElementById('commandId').value)
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function resizeFileList(expand) {
+			const el = document.querySelector(".filetree-size");
+			if (expand) {
+				el.setAttribute("style", "height: auto");
+				$('#expandfilelist').hide();
+				$('#shrinkfilelist').show();
+			} else {
+				el.setAttribute("style", "height: 200px");
+				$('#shrinkfilelist').hide();
+				$('#expandfilelist').show();
 			}
 		}
-		return dDisplay + hDisplay + mDisplay;
-	}
-	async function fetchInfo() {
-		let info = await (await fetch("http://" + host + "/info")).json();
-		console.log(info);
-		let content = i18next.t("systeminfo.softwareversion", {
-			softwareversion: info.software.version
-		}) + "<br>";
-		content += i18next.t("systeminfo.gitversion", {
-			gitversion: info.software.git
-		}) + "<br>";
-		content += i18next.t("systeminfo.arduinoversion", {
-			arduinoversion: info.software.arduino,
-			idfversion: info.software.idf
-		}) + "<br>";
-		content += i18next.t("systeminfo.hardware", {
-			hwmodel: info.hardware.model,
-			hwrevision: info.hardware.revision,
-			hwfreq: info.hardware.freq
-		}) + "<br>";
-		content += i18next.t("systeminfo.freeheap", {
-			freeheap: info.memory.freeHeap
-		}) + "<br>";
-		content += i18next.t("systeminfo.largestfreeblock", {
-			largestfreeblock: info.memory.largestFreeBlock
-		}) + "<br>";
-		if(info.memory.freePSRam) {
-			content += i18next.t("systeminfo.freepsram", {
-				freepsram: info.memory.freePSRam
-			}) + "<br>";
+
+		volumeSlider.on('input', e => {
+			var myObj = {
+				"controls": {
+					set_volume: e.target.value
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		});
+		async function tryRedirect() {
+			try {
+				console.log("redirect to startpage..")
+				const response = await fetch(window.location.href);
+				window.location.reload();
+			} catch (error) {
+				console.log(error);
+				setTimeout(tryRedirect, 2000);
+			}
 		}
-		content += i18next.t("systeminfo.currentip", {
-			currentip: info.wifi.ip
-		}) + "<br>";
-		content += i18next.t("systeminfo.macAddress", {
-			macAddress: info.wifi.macAddress
-		}) + "<br>";
-		content += i18next.t("systeminfo.rssi", {
-			rssi: info.wifi.rssi
-		}) + "<br>";
-		content += i18next.t("systeminfo.audiotimetotal", {
-			firststart: secondsToDate(info.audio.firstStart),
-			audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)
-		}) + "<br>";
-		if(info.audio.playtimeSinceStart > 0) {
-			content += i18next.t("systeminfo.audiotimesincestart", {
-				audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)
-			}) + "<br>";
+
+		function secondsToTime(seconds) {
+			if (seconds < 3600) {
+				return new Date(seconds * 1000).toISOString().substring(14, 19);
+			} else {
+				return new Date(seconds * 1000).toISOString().slice(11, 19);
+			}
 		}
-		if(info.battery) {
-			content += i18next.t("systeminfo.currvoltage", {
-				currvoltage: info.battery.currVoltage.toFixed(2)
+
+		function secondsToDate(seconds) {
+			if (seconds == 0) {
+				return "--";
+			}
+			return new Date(seconds * 1000).toLocaleDateString(i18next.lang);
+		}
+
+		function timestampToDuration(ms, withSeconds) {
+			if (ms == 0) {
+				return "--";
+			}
+			seconds = Number(ms / 1000);
+			var d = Math.floor(seconds / (3600 * 24));
+			var h = Math.floor(seconds % (3600 * 24) / 3600);
+			var m = Math.floor(seconds % 3600 / 60);
+			var s = Math.floor(seconds % 60);
+			var dDisplay = d > 0 ? d + (d == 1 ? " " + i18next.t("datetime.day") + ", " : " " + i18next.t("datetime.days") + ", ") : "";
+			var hDisplay = h > 0 ? h + (h == 1 ? " " + i18next.t("datetime.hour") + ", " : " " + i18next.t("datetime.hours") + ", ") : "";
+			var mDisplay = m > 0 ? m + (m == 1 ? " " + i18next.t("datetime.minute") : " " + i18next.t("datetime.minutes")) : "";
+			if (withSeconds) {
+				var sDisplay = s > 0 ? s + (s == 1 ? " " + i18next.t("datetime.second") : " " + i18next.t("datetime.seconds")) : "";
+				if (dDisplay + hDisplay + mDisplay == "") {
+					return sDisplay;
+				} else {
+					if (sDisplay == "") {
+						return dDisplay + hDisplay + mDisplay;
+					} else {
+						return dDisplay + hDisplay + mDisplay + ", " + sDisplay;
+					}
+				}
+			}
+			return dDisplay + hDisplay + mDisplay;
+		}
+		async function fetchInfo() {
+			let info = await (await fetch("http://" + host + "/info")).json();
+			console.log(info);
+			let content = i18next.t("systeminfo.softwareversion", {
+				softwareversion: info.software.version
 			}) + "<br>";
-			if(info.battery.chargelevel) {
-				content += i18next.t("systeminfo.chargelevel", {
-					chargelevel: info.battery.chargeLevel.toFixed(1)
+			content += i18next.t("systeminfo.gitversion", {
+				gitversion: info.software.git
+			}) + "<br>";
+			content += i18next.t("systeminfo.arduinoversion", {
+				arduinoversion: info.software.arduino,
+				idfversion: info.software.idf
+			}) + "<br>";
+			content += i18next.t("systeminfo.hardware", {
+				hwmodel: info.hardware.model,
+				hwrevision: info.hardware.revision,
+				hwfreq: info.hardware.freq
+			}) + "<br>";
+			content += i18next.t("systeminfo.freeheap", {
+				freeheap: info.memory.freeHeap
+			}) + "<br>";
+			content += i18next.t("systeminfo.largestfreeblock", {
+				largestfreeblock: info.memory.largestFreeBlock
+			}) + "<br>";
+			if (info.memory.freePSRam) {
+				content += i18next.t("systeminfo.freepsram", {
+					freepsram: info.memory.freePSRam
 				}) + "<br>";
 			}
-		}
-		if(info.hallsensor) {
-			content += i18next.t("systeminfo.hallsensor", {
-				hsnullfieldvalue: info.hallsensor.nullFieldValue,
-				hsactual: info.hallsensor.actual,
-				hsdiff: info.hallsensor.diff,
-				hslastwaitforstate: info.hallsensor.lastWaitState,
-				hswaited: info.hallsensor.lastWaitMS
+			content += i18next.t("systeminfo.currentip", {
+				currentip: info.wifi.ip
 			}) + "<br>";
+			content += i18next.t("systeminfo.macAddress", {
+				macAddress: info.wifi.macAddress
+			}) + "<br>";
+			content += i18next.t("systeminfo.rssi", {
+				rssi: info.wifi.rssi
+			}) + "<br>";
+			content += i18next.t("systeminfo.audiotimetotal", {
+				firststart: secondsToDate(info.audio.firstStart),
+				audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)
+			}) + "<br>";
+			if (info.audio.playtimeSinceStart > 0) {
+				content += i18next.t("systeminfo.audiotimesincestart", {
+					audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)
+				}) + "<br>";
+			}
+			if (info.battery) {
+				content += i18next.t("systeminfo.currvoltage", {
+					currvoltage: info.battery.currVoltage.toFixed(2)
+				}) + "<br>";
+				if (info.battery.chargelevel) {
+					content += i18next.t("systeminfo.chargelevel", {
+						chargelevel: info.battery.chargeLevel.toFixed(1)
+					}) + "<br>";
+				}
+			}
+			if (info.hallsensor) {
+				content += i18next.t("systeminfo.hallsensor", {
+					hsnullfieldvalue: info.hallsensor.nullFieldValue,
+					hsactual: info.hallsensor.actual,
+					hsdiff: info.hallsensor.diff,
+					hslastwaitforstate: info.hallsensor.lastWaitState,
+					hswaited: info.hallsensor.lastWaitMS
+				}) + "<br>";
+			}
+			$('#modalInfoContent').html(content);
 		}
-		$('#modalInfoContent').html(content);
-	}
-	async function fetchLog() {
-		let logtext = await (await fetch("http://" + host + "/log")).text();
-		$('#modalLogContent').text(logtext);
-		jQuery('#modalLogContent').animate({
-			scrollTop: 999999
-		});
-	}
+		async function fetchLog() {
+			let logtext = await (await fetch("http://" + host + "/log")).text();
+			$('#modalLogContent').text(logtext);
+			jQuery('#modalLogContent').animate({
+				scrollTop: 999999
+			});
+		}
 
 	function setTitle(newTitle) {
 		$('title').text(newTitle);
@@ -2503,8 +2580,8 @@
 		})
 		$('#deleteRFIDModal').on('show.bs.modal', function(event) {
 			var rfid = $(event.relatedTarget).data('rfid')
-			$(this).find('.modal-title').text(i18next.t("tools.nvsdelete.title"));
-			$(this).find('.modal-body').text(i18next.t("tools.nvsdelete.prompt", {
+			$(this).find('.modal-title').text(i18next.t("tools.nvs.delete.title"));
+			$(this).find('.modal-body').text(i18next.t("tools.nvs.delete.prompt", {
 				rfid: rfid
 			}));
 			$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
