@@ -19,13 +19,8 @@ jobs:
     strategy:
       matrix:
         variant:
-          - esp32-a1s
-          - lolin32
-          - lolin_d32
           - lolin_d32_pro
           - lolin_d32_pro_sdmmc_pe
-          - nodemcu-32s
-          - az-delivery-devkit-v4
           - ttgo_t8
           - complete
 

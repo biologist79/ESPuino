@@ -12,21 +12,23 @@
 
 	//################## HARDWARE-PLATFORM ###############################
 	/* Make sure to also edit the configfile, that is specific for your platform.
-	If in doubts (your develboard is not listed) use HAL 1
-	1: Wemos Lolin32                        => settings-lolin32.h
-	2: ESP32-A1S Audiokit                   => settings-espa1s.h
-	3: Wemos Lolin D32                      => settings-lolin_D32.h
+	If in doubts (your develboard is not listed) use HAL 7
+
+	!!!Only ESP32 with PSRAM are supported!!!
+
+	1: Wemos Lolin32                        => REMOVED (because of missing PSRAM)
+	2: ESP32-A1S Audiokit                   => REMOVED (because of stale development, lack of users and lack of GPIOs)
+	3: Wemos Lolin D32                      => REMOVED (because of missing PSRAM)
 	4: Wemos Lolin D32 pro                  => settings-lolin_D32_pro.h
 	5: Lilygo T8 (V1.7)                     => settings-ttgo_t8.h
 	6: ESPuino complete                     => settings-complete.h
 	7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
-	8: AZDelivery ESP32 NodeMCU             => settings-azdelivery_sdmmc.h
-	9: Lolin D32 SDMMC Port-Expander        => settings-lolin_d32_sdmmc_pe.h
+	8: AZDelivery ESP32 NodeMCU             => REMOVED (because of missing PSRAM)
+	9: Lolin D32 SDMMC Port-Expander        => REMOVED (because of missing PSRAM)
 	99: custom                              => settings-custom.h
-	more to come...
 	*/
-	#ifndef HAL             // Will be set by platformio.ini. If using Arduino-IDE you have to set HAL according your needs!
-		#define HAL 1       // HAL 1 = LoLin32, 2 = ESP32-A1S-AudioKit, 3 = Lolin D32, 4 = Lolin D32 pro; ... 99 = custom
+	#ifndef HAL             // Will be set by platformio.ini. There's no need to adjust this manually right here
+		#define HAL 7
 	#endif
 
 
@@ -297,13 +299,7 @@
 	#endif
 
 	// !!! MAKE SURE TO EDIT PLATFORM SPECIFIC settings-****.h !!!
-	#if (HAL == 1)
-		#include "settings-lolin32.h"                       // Contains all user-relevant settings for Wemos Lolin32
-	#elif (HAL == 2)
-		#include "settings-espa1s.h"                        // Contains all user-relevant settings for ESP32-A1S Audiokit
-	#elif (HAL == 3)
-		#include "settings-lolin_d32.h"                     // Contains all user-relevant settings for Wemos Lolin D32
-	#elif (HAL == 4)
+	#if (HAL == 4)
 		#include "settings-lolin_d32_pro.h"                 // Contains all user-relevant settings for Wemos Lolin D32 pro
 	#elif (HAL == 5)
 		#include "settings-ttgo_t8.h"                       // Contains all user-relevant settings for Lilygo TTGO T8 1.7
@@ -311,10 +307,6 @@
 		#include "settings-complete.h"                      // Contains all user-relevant settings for ESPuino complete
 	#elif (HAL == 7)
 		#include "settings-lolin_d32_pro_sdmmc_pe.h"        // Pre-configured settings for ESPuino Lolin D32 pro with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
-	#elif (HAL == 8)
-		#include "settings-azdelivery_sdmmc.h"              // Pre-configured settings for AZ Delivery ESP32 NodeMCU / Devkit C (https://forum.espuino.de/t/az-delivery-esp32-nodemcu-devkit-c-mit-sd-mmc-und-pn5180-als-rfid-leser/634)
-	#elif (HAL == 9)
-		#include "settings-lolin_d32_sdmmc_pe.h"            // Pre-configured settings for Lolin D32 (non-pro) with SDMMC + port-expander (https://forum.espuino.de/t/espuino-minid32-pro-lolin-d32-pro-mit-sd-mmc-und-port-expander-smd/866)
 	#elif (HAL == 99)
 		#include "settings-custom.h"                        // Contains all user-relevant settings custom-board
 	#endif
