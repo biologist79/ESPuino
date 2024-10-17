@@ -43,11 +43,6 @@ signal of it: I did all my tests with
 [UDA1334](https://www.adafruit.com/product/3678),
 [MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/) and
 [PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308).
-General advice: ESPuino makes use of library
-[ESP32-audioI2S](https://github.com/schreibfaul1/ESP32-audioI2S/); so everything that's supposed to
-work with this library should work with ESPuino, too (but maybe not right out-of-the-box).
-Especially this is true for
-[ES8388](https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/examples/ESP32_ES8388/ESP32_ES8388.ino).
 
 ## Hardware setup
 
@@ -58,7 +53,6 @@ being the latest generation. Furthermore you need a ESP32-develboard like (or an
 pin compatible):
 
 - [D32 pro LiFePO4](https://forum.espuino.de/t/esp32-develboard-d32-pro-lifepo4/1109)
-- [E32 LiPo](https://forum.espuino.de/t/esp32-develboard-e32-lipo/1135)
 - [Wemos Lolin D32 pro](https://www.wemos.cc/en/latest/d32/d32_pro.html)
 
 > :warning: **Due to memory restrictions meanwhile it's mandatory to use ESP32 with
@@ -97,13 +91,12 @@ run ESPuino properly.
   lolin_d32_pro_sdmmc_pe).
 - Edit `src/settings.h` according your needs.
 - Edit board-specific (`HAL`) config-file (e.g. `settings-lolin_d32_pro_sdmmc_pe.h` for Lolin
-  D32/D32 pro). If you're running a board that is not listed there: start with `settings-custom.h`
+  D32 pro). If you're running a board that is not listed there: start with `settings-custom.h`
   and change it according your needs.
 - Connect your develboard via USB, click the alien-head icon in the left sidebar, choose the project
   task that matches your desired HAL and run `Upload and Monitor`. All libraries necessary are
   fetched automatically and compilation of the code gets started. After that, your ESP32 is flashed
-  with the firmware. Depending on your develboard it might be necessary to push a button in order to
-  allow ESP32 to enter flash mode (not necessary für Lolin32, D32 und D32 pro).
+  with the firmware.
 - Now have a look at the serial output at the bottom of Visual Studio Code's window. At the first
   run there might appear a few error messages (related to missing entries in NVS). Don't worry, this
   is just normal. However, make sure the SD card is detected as this is mandatory!
