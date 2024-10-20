@@ -1149,12 +1149,11 @@
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
-							name="firmwareUpload" accept=".bin">
+						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 					</div>
-					<div class="progress upload-progress-bar">
-						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar"
-							aria-labelledby="legendfwupdate"></div>
+					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative">
+						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
+						<div class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light"></div>
 					</div>
 					<br>
 					<div class="text-center">
@@ -1162,7 +1161,6 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Help ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
