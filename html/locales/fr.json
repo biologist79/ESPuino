@@ -102,7 +102,7 @@
 			"desc": "Télécharger un répertoire avec tous les fichiers et sous-répertoires"
 		},
 		"search": {
-			"placeholder": "Rechercher des fichiers.."
+			"placeholder": "Rechercher des fichiers..."
 		},
 		"upload": {
 			"title": "Télécharger",
@@ -111,12 +111,12 @@
 			"selectFile": "Veuillez sélectionner les fichiers à télécharger!",
 			"success": "Téléchargement réussi ({{elapsed}}, {{speed}} Ko/s)",
 			"error": "Erreur de téléchargement",
-			"timeCalc": "Le temps restant est calculé..",
+			"timeCalc": "Le temps restant est calculé...",
 			"minutes_one": "minute",
 			"minutes_other": "minutes",
 			"seconds": "secondes",
 			"fewSec": "quelques",
-			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant.."
+			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant..."
 		},
 		"rfid": {
 			"title": "Assignations RFID",

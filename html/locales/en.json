@@ -15,7 +15,7 @@
 	"infos": "Infos",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
-	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again..",
+	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again.",
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
@@ -102,7 +102,7 @@
 			"desc": "Upload directory with all files and subdirectories"
 		},
 		"search": {
-			"placeholder": "Search files.."
+			"placeholder": "Search files..."
 		},
 		"upload": {
 			"title": "Upload",
@@ -111,12 +111,12 @@
 			"selectFile": "Please select files to upload!",
 			"success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
 			"error": "Upload error",
-			"timeCalc": "Remaining time is being calculated..",
+			"timeCalc": "Remaining time is being calculated...",
 			"minutes_one": "minute",
 			"minutes_other": "minutes",
 			"seconds": "seconds",
 			"fewSec": "few",
-			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
+			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining..."
 		},
 		"rfid": {
 			"title": "RFID Assignments",
