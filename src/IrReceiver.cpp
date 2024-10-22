@@ -10,7 +10,7 @@
 #include "System.h"
 
 #ifdef IR_CONTROL_ENABLE
-	#include <IRremote.h>
+	#include <IRremote.hpp>
 #endif
 
 // HW-Timer
@@ -20,7 +20,7 @@ uint32_t IrReceiver_LastRcCmdTimestamp = 0u;
 
 void IrReceiver_Init() {
 #ifdef IR_CONTROL_ENABLE
-	IrReceiver.begin(IRLED_PIN);
+	IrReceiver.begin(IRLED_PIN); 
 #endif
 }
 
