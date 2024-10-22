@@ -40,14 +40,6 @@
 			margin-right: 5px;
 		}
 
-		.header-nav-element {
-			margin-right: 10px;
-		}
-
-		.header-nav-restart {
-			margin-right: 40px
-		}
-
 		.jstree-default .jstree-search {
 			font-style: italic;
 			color: #007bff;
@@ -99,15 +91,6 @@
 		.icon-pos {
 			top: 0.3em;
 			position: relative;
-		}
-
-		.link-body-emphasis:focus,
-		.link-body-emphasis:hover {
-			color: orange !important;
-		}
-
-		.fa-sync:hover {
-			color: #666666;
 		}
 
 		.filetree-container {
@@ -200,13 +183,6 @@
 			padding-left: 5px;
 		}
 
-		#navbar-heading {
-			width: calc(100vw - 150px) !important;
-			/* Cut off title if it is too long for the screen */
-			overflow: hidden;
-			display: inline-block;
-		}
-
 		/* Overwrite some Bootstrap styles (remove border around disabled buttons) */
 		.btn.disabled {
 			border-color: rgb(0, 0, 0, 0);
@@ -234,64 +210,57 @@
 			</div>
 		</div>
 	</div>
-	<nav class="navbar navbar-expand bg-primary navbar-dark">
+	<nav class="navbar navbar-expand bg-primary navbar-dark mb-4">
 		<div class="container-fluid">
-			<a class="float-start navbar-brand">
+			<a class="navbar-brand overflow-hidden">
 				<img src="/logo" width="35" height="35" class="d-inline-block align-top nav-logo" alt="" />
-				<span id="navbar-heading" class="header-nav-element text-light" data-i18n="title"></span>
+				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
-			<div class="d-flex justify-content-end">
-				<li class="collapse navbar-collapse" id="navbarSupportedContent">
-					<ul class="navbar-nav">
-						<li class="nav-item dropdown">
-							<a class="nav-link header-nav-element dropdown-toggle text-light link-body-emphasis"
-								href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i
-									class="fas fa-bars"></i></a>
-							<ul class="dropdown-menu dropdown-menu-end" id="menu" style="min-width: 200px;">
-								<li><a class="nav-link openPopupRestart header-nav-element link-body-emphasis header-nav-restart"
-										href="javascript:void(0);"><i class="fas fa-redo menu-icon"></i> <span
-											data-i18n="restart"></span></a></li>
-								<li><a class="nav-link openPopupShutdown header-nav-element link-body-emphasis"
-										href="javascript:void(0);"><i class="fas fa-power-off menu-icon"></i> <span
-											data-i18n="shutdown"></span></a></li>
-								<li><a class="nav-link openPopupLog header-nav-element link-body-emphasis"
-										href="javascript:void(0);"><i class="fas fa-book menu-icon"></i> <span
-											data-i18n="log"></span></a></li>
-								<li><a class="nav-link openPopupInfo header-nav-element link-body-emphasis"
-										href="javascript:void(0);"><i class="fas fa-info menu-icon"></i> <span
-											data-i18n="info"></span></a></li>
-								<li>
-									<a class="nav-link navbar-collapse header-nav-element link-body-emphasis">
-										<label class="form-check-label" for="lightSwitch" style="cursor: pointer"><i
-												class="fas fa-adjust menu-icon"></i><span
-												data-i18n="darkmode"></span></label>
-										<input class="form-check-input" type="checkbox" id="lightSwitch"
-											style="display:none; /* Hide it */" />
-									</a>
-								</li>
-								<li>
-									<div class="modal-body row" style="margin-left: 0">
-										<i class="fas fa-earth-america menu-icon text-white"
-											style="margin-left: 0; margin-top: 10px; margin-right: 5px;"></i>
-										<select class="form-control form-select bg-white" id="langSel" name="langSel">
-											<!-- Do not translate those texts! -->
-											<option value="de">Deutsch</option>
-											<option value="en">English</option>
-											<option value="fr">Fran&ccedil;aise</option>
-										</select>
-									</div>
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</li>
+			<div class="collapse navbar-collapse justify-content-end">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<button class="btn dropdown-toggle border-0 text-white" id="menuToggle"
+							data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="fas fa-bars"></i>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end" id="navMenu">
+							<li><a class="dropdown-item py-2 openPopupRestart" href="javascript:void(0);"><i
+										class="fas fa-redo menu-icon"></i> <span data-i18n="restart"></span></a></li>
+							<li><a class="dropdown-item py-2 openPopupShutdown" href="javascript:void(0);"><i
+										class="fas fa-power-off menu-icon"></i> <span data-i18n="shutdown"></span></a>
+							</li>
+							<li><a class="dropdown-item py-2 openPopupLog" href="javascript:void(0);"><i
+										class="fas fa-book menu-icon"></i> <span data-i18n="log"></span></a></li>
+							<li><a class="dropdown-item py-2 openPopupInfo" href="javascript:void(0);"><i
+										class="fas fa-info menu-icon"></i> <span data-i18n="info"></span></a></li>
+							<li>
+								<label class="dropdown-item py-2 form-check-label" for="lightSwitch"
+									style="cursor: pointer;"><i class="fas fa-adjust menu-icon"></i> <span
+										data-i18n="darkmode"></span></label>
+								<input class="form-check-input d-none" type="checkbox" id="lightSwitch" />
+							</li>
+							<li>
+								<div class="dropdown-item d-flex">
+									<i class="fas fa-earth-america menu-icon"
+										style="margin-left: 0; margin-top: 10px; margin-right: 5px;"></i>
+									<select class="form-control form-select" id="langSel" name="langSel">
+										<!-- Do not translate those texts! -->
+										<option value="de">Deutsch</option>
+										<option value="en">English</option>
+										<option value="fr">Fran&ccedil;aise</option>
+									</select>
+								</div>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</div>
 		</div>
 	</nav>
 	<!-- Modal dialog for info / shutdown / restart-->
-	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalInfo" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop="static" id="modalInfo" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="infos"></h5>
 				</div>
@@ -307,9 +276,9 @@
 		</div>
 	</div>
 	<!-- Modal dialog for log-->
-	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalLog" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop="static" id="modalLog" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="infos"></h5>
 				</div>
@@ -325,9 +294,9 @@
 		</div>
 	</div>
 	<!-- Modal dialog for equalizer-->
-	<div class="modal fade bd-info-modal-xl select-div" data-bs-backdrop="static" id="modalEqualizer" role="dialog">
+	<div class="modal fade bd-info-modal-xl" data-bs-backdrop="static" id="modalEqualizer" role="dialog">
 		<div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
 				</div>
@@ -345,7 +314,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<label class="w-100" for="gainBandPass"
 						data-i18n="[prepend]general.equalizer.gainBandPass">:</label>
@@ -361,7 +330,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<label class="w-100" for="gainHighPass"
 						data-i18n="[prepend]general.equalizer.gainHighPass">:</label>
@@ -377,7 +346,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
-					</div> &nbsp;
+					</div>
 					<hr>
 					<div class="col-12">
 						<div class="row">
@@ -395,9 +364,9 @@
 		</div>
 	</div>
 	<!-- Modal dialog for delete SSID-->
-	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteSSIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop="static" id="deleteSSIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="wifi.delete.title"></h5>
 				</div>
@@ -411,9 +380,9 @@
 		</div>
 	</div>
 	<!-- Modal dialog for delete NVS RFID assignment-->
-	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteRFIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop="static" id="deleteRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="tools.nvs.delete.title"></h5>
 				</div>
@@ -427,9 +396,9 @@
 		</div>
 	</div>
 	<!-- Modal dialog for delete NVS RFID assignments -->
-	<div class="modal fade select-div" data-bs-backdrop="static" id="deleteNVSRFIDModal" role="dialog">
+	<div class="modal fade" data-bs-backdrop="static" id="deleteNVSRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
-			<div class="modal-content bg-light text-dark">
+			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="tools.nvs.erase.title"></h5>
 				</div>
@@ -443,9 +412,8 @@
 			</div>
 		</div>
 	</div>
-	<br />
-	<nav>
-		<div class="container nav nav-tabs select-div" id="nav-tab" role="tablist">
+	<nav class="mb-4">
+		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control"
 				data-bs-target="#nav-control" role="tab" aria-controls="nav-control" aria-selected="false"><i
 					class="fas fa-gamepad"></i><span class=".d-sm-none .d-md-block" data-i18n="nav.control"></span></a>
@@ -477,11 +445,9 @@
 						data-i18n="nav.help"></span></span></a>
 		</div>
 	</nav>
-	<br>
 	<div class="tab-content" id="nav-tabContent">
 		<!-- ### Tab Wifi ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-wifi" role="tabpanel"
-			aria-labelledby="nav-wifi-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-wifi" role="tabpanel" aria-labelledby="nav-wifi-tab">
 			<div class="container" id="wifiConfig">
 				<div>
 					<legend data-i18n="wifi.title"></legend>
@@ -489,7 +455,7 @@
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-							<input type="text" class="form-control bg-white text-dark" id="hostname"
+							<input type="text" class="form-control" id="hostname"
 								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
 								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
@@ -508,30 +474,25 @@
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-							<input type="text" class="form-control bg-white text-dark" id="ssid"
+							<input type="text" class="form-control" id="ssid"
 								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-							<input type="password" class="form-control bg-white text-dark" id="pwd" name="pwd"
+							<input type="password" class="form-control" id="pwd" name="pwd"
 								data-i18n="[placeholder]wifi.password.placeholder" required><br>
 							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
 								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-								<input type="text" class="form-control bg-white text-dark" id="static_addr"
-									name="static_addr">
+								<input type="text" class="form-control" id="static_addr" name="static_addr">
 								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-								<input type="text" class="form-control bg-white text-dark" id="static_gateway"
-									name="static_gateway">
+								<input type="text" class="form-control" id="static_gateway" name="static_gateway">
 								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-								<input type="text" class="form-control bg-white text-dark" id="static_subnet"
-									name="static_subnet">
+								<input type="text" class="form-control" id="static_subnet" name="static_subnet">
 								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-								<input type="text" class="form-control bg-white text-dark" id="static_dns1"
-									name="static_dns1">
+								<input type="text" class="form-control" id="static_dns1" name="static_dns1">
 								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-								<input type="text" class="form-control bg-white text-dark" id="static_dns2"
-									name="static_dns2">
+								<input type="text" class="form-control" id="static_dns2" name="static_dns2">
 							</div>
 						</div>
 						<div class="text-center">
@@ -549,32 +510,32 @@
 			<br />
 		</div>
 		<!-- ### Tab Control ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-control" role="tabpanel"
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-control" role="tabpanel"
 			aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
-				<div class="mb-3 col-md-12">
+				<div class="col-md-12">
 					<legend data-i18n="control.title"></legend>
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
 					<div class="buttons ctrl-button-grp">
-						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-first"
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-first"
 							onclick="sendControl(173)" data-i18n="[title]control.first">
 							<span class="fas fa-fast-backward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-prev"
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-prev"
 							onclick="sendControl(171)" data-i18n="[title]control.prev">
 							<span class="fas fa-backward"></span>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-play"
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-play"
 							onclick="sendControl(170)" data-i18n="[title]control.playpause">
 							<i id="ico-play-pause" class="fas fa-lg fa-play"></i>
 						</button>
-						<button type="button" class="btn btn-lg ctrl-button text-dark" id="nav-btn-next"
+						<button type="button" class="btn btn-lg ctrl-button" id="nav-btn-next"
 							onclick="sendControl(172)" data-i18n="[title]control.forward">
 							<span class="fas fa-forward"></span>
 						</button>
-						<button type="button" class="btn  btn-lg ctrl-button text-dark" id="nav-btn-last"
+						<button type="button" class="btn  btn-lg ctrl-button" id="nav-btn-last"
 							onclick="sendControl(174)" data-i18n="[title]control.last">
 							<span class="fas fa-fast-forward"></span>
 						</button>
@@ -612,7 +573,7 @@
 					<legend data-i18n="control.current"></legend>
 					<div id="track"></div>
 					<div></div>
-					<div id="trackProgressDiv" class="progress progress-sm select-div">
+					<div id="trackProgressDiv" class="progress progress-sm">
 						<div id="trackProgress" class="progress-bar" role="progressbar" aria-valuenow="0"
 							aria-valuemin="0" aria-valuemax="100"></div>
 					</div>
@@ -621,9 +582,9 @@
 				<hr>
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="control.command"></legend>
-					<div class="tab-pane select-div" id="commandExecution" role="tabpanel">
+					<div class="tab-pane" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control form-select bg-white" id="commandId" name="commandId">
+						<select class="form-control form-select" id="commandId" name="commandId">
 							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
 							<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
@@ -655,14 +616,14 @@
 					</div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary xxx" onclick="executeCommand()"
+						<button type="button" class="btn btn-primary" onclick="executeCommand()"
 							data-i18n="execute"></button>
 					</div>
 				</div>
 			</div>
 		</div>
 		<!-- ### Tab RFID ### -->
-		<div class="tab-pane main-tab-pane fade show active select-div" id="nav-rfid" role="tabpanel"
+		<div class="tab-pane main-tab-pane fade show active mb-4" id="nav-rfid" role="tabpanel"
 			aria-labelledby="nav-rfid-tab">
 			<div class="container" id="filetreeContainer">
 				<fieldset>
@@ -672,10 +633,10 @@
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
 						<div class="container" style="padding: 0">
-							<span class="input-group-text float-start bg-white text-dark"
+							<span class="input-group-text float-start"
 								style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i
 									class="fas fa-search"></i></span>
-							<input type="search" class="form-control border-start-0 float-start bg-white text-dark"
+							<input type="search" class="form-control border-start-0 float-start"
 								style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;"
 								id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
 								onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
@@ -691,7 +652,7 @@
 							<legend id="filesupload" data-i18n="files.upload.title">Files</legend>
 							<form id="explorerUploadForm" method="POST" enctype="multipart/form-data"
 								action="/explorer">
-								<div class="input-group select-div">
+								<div class="input-group mb-3">
 									<span class="input-group-btn">
 										<span class="btn btn-primary"
 											onclick="let input = $(this).parent().find('input[type=file]')[0]; input.webkitdirectory=false; input.click();"
@@ -709,10 +670,11 @@
 										data-i18n="[title]files.upload.desc;files.upload.title"></span>&nbsp;
 								</div>
 							</form>
-							<br>
-							<div class="progress select-div upload-progress-bar">
-								<div id="explorerUploadProgress" class="progress-bar" role="progressbar"
-									aria-labelledby="fileslegend"></div>
+							<div id="explorerUploadProgress" class="progress upload-progress-bar">
+								<div class="progress-bar" role="progressbar" aria-labelledby="fileslegend"></div>
+								<div
+									class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
+								</div>
 							</div>
 						</div>
 					</div>
@@ -723,10 +685,10 @@
 				<fieldset>
 					<legend id="rfidMusicTagsAssignment" data-i18n="files.rfid.title"></legend>
 					<form action="#rfidMusicTags" method="POST" onsubmit="rfidAssign('rfidMusicTags'); return false">
-						<div class="mb-3 col-md-12 select-div">
+						<div class="mb-3 col-md-12">
 							<label for="rfidIdMusic" data-i18n="[html]files.rfid.idNumber"></label>
-							<input type="text" class="form-control bg-white text-dark" id="rfidIdMusic" maxlength="12"
-								pattern="[0-9]{12}" placeholder="" name="rfidIdMusic" required>
+							<input type="text" class="form-control" id="rfidIdMusic" maxlength="12" pattern="[0-9]{12}"
+								placeholder="" name="rfidIdMusic" required>
 							<br>
 							<div class="nav nav-tabs" id="SubTab" role="tablist"
 								aria-labelledby="rfidMusicTagsAssignment">
@@ -738,15 +700,14 @@
 										data-i18n="files.rfid.modification"></span></a>
 							</div>
 							<div class="tab-content" id="SubTabContent">
-								<div class="tab-pane show active select-div" data-bs-theme="light" id="rfidmusic"
-									role="tabpanel">
+								<div class="tab-pane show active" id="rfidmusic" role="tabpanel">
 									<br>
 									<label for="fileOrUrl" data-i18n="files.rfid.fileurl.title"></label>
-									<input type="text" class="form-control bg-white text-dark" id="fileOrUrl"
-										maxlength="255" pattern="^[^\^#]+$" name="fileOrUrl"
+									<input type="text" class="form-control" id="fileOrUrl" maxlength="255"
+										pattern="^[^\^#]+$" name="fileOrUrl"
 										data-i18n="[placeholder]files.rfid.fileurl.placeholder" required>
 									<label for="playMode" data-i18n="files.rfid.playmode.title"></label>
-									<select class="form-control form-select bg-white" id="playMode" name="playMode">
+									<select class="form-control form-select" id="playMode" name="playMode">
 										<option class="option-file" value="1" data-i18n="files.rfid.playmode.mode.1">
 										</option>
 										<option class="option-file" value="2" data-i18n="files.rfid.playmode.mode.2">
@@ -775,9 +736,9 @@
 											data-i18n="files.rfid.playmode.mode.11"></option>
 									</select>
 								</div>
-								<div class="tab-pane select-div" id="rfidmod" role="tabpanel">
+								<div class="tab-pane" id="rfidmod" role="tabpanel">
 									<label for="modId" data-i18n="files.rfid.mod.title"></label>
-									<select class="form-control form-select bg-white" id="modId" name="modId">
+									<select class="form-control form-select" id="modId" name="modId">
 										<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
 										<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
 										<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
@@ -816,11 +777,9 @@
 					</form>
 				</fieldset>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab MQTT ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-mqtt" role="tabpanel"
-			aria-labelledby="nav-mqtt-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-mqtt" role="tabpanel" aria-labelledby="nav-mqtt-tab">
 			<div class="container" id="mqttConfig">
 				<form class="needs-validation" action="#mqttConfig" method="POST"
 					onsubmit="mqttSettings('mqttConfig'); return false">
@@ -832,21 +791,19 @@
 					</div>
 					<div class="mb-3 my-2 col-md-12">
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttClientId"
-							minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.clientId.placeholder"
-							name="mqttClientId" value="">
+						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
+							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttServer"
-							minlength="7" maxlength="0" data-i18n="[placeholder]mqtt.server.placeholder"
-							name="mqttServer" value="">
+						<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
+							data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
 						<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-						<input type="text bg-white text-dark" class="form-control bg-white text-dark" id="mqttUser"
-							maxlength="" data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+						<input type="text" class="form-control" id="mqttUser" maxlength=""
+							data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
 						<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-						<input type="password" class="form-control bg-white text-dark" id="mqttPwd" maxlength=""
+						<input type="password" class="form-control" id="mqttPwd" maxlength=""
 							data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
 						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
-						<input type="number" class="form-control bg-white text-dark" id="mqttPort" min="1" max="65535"
+						<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
 							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
 					</div>
 					<div class="text-center">
@@ -855,19 +812,18 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab FTP ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-ftp" role="tabpanel" aria-labelledby="nav-ftp-tab">
 			<div class="container" id="ftpConfig">
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
-					<div class="mb-3 col-md-12 select-div">
+					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
 						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-						<input type="text" class="form-control bg-white text-dark" id="ftpUser" maxlength="0"
+						<input type="text" class="form-control" id="ftpUser" maxlength="0"
 							data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-						<input type="password" class="form-control bg-white text-dark" id="ftpPwd" maxlength="0"
+						<input type="password" class="form-control" id="ftpPwd" maxlength="0"
 							data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 					</div>
 					<div class="text-center">
@@ -878,7 +834,7 @@
 				<hr>
 			</div>
 			<div class="container" id="ftpStart">
-				<div class="mb-3 col-md-12">
+				<div class="col-md-12">
 					<legend data-i18n="ftp.start.title"></legend>
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
@@ -890,16 +846,16 @@
 			</div>
 		</div>
 		<!-- ### Tab Bluetooth ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
-						<input type="text" class="form-control bg-white text-dark" id="btDeviceName"
+						<input type="text" class="form-control" id="btDeviceName"
 							data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
 						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
-						<input type="text" class="form-control bg-white text-dark" id="btPinCode"
+						<input type="text" class="form-control" id="btPinCode"
 							data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 					</div>
 					<div class="text-center">
@@ -933,60 +889,58 @@
 			</div>
 		</div>
 		<!-- ### Tab General ### -->
-		<div class="tab-pane main-tab-pane fade select-div" id="nav-general" role="tabpanel"
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
 			aria-labelledby="nav-general-tab">
 			<div class="container" id="generalConfig">
 				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
-					<fieldset>
-						<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
-						<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+					<div class="col-md-12 mb-4">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
+							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+										min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
+										data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-									min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-									data-slider-value="" value="" required>
+							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+										min="1" max="21" class="form-control" id="maxVolumeSpeaker"
+										name="maxVolumeSpeaker" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+										min="1" max="21" class="form-control" id="maxVolumeHeadphone"
+										name="maxVolumeHeadphone" data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
 							</div>
-						</div>
-						<br>
-						<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-									min="1" max="21" class="form-control" id="maxVolumeSpeaker" name="maxVolumeSpeaker"
-									required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-							</div>
-						</div>
-						<br>
-						<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-							</div>
-							<div class="slider-container-inner">
-								<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-									min="1" max="21" class="form-control" id="maxVolumeHeadphone"
-									name="maxVolumeHeadphone" data-slider-value="" value="" required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-							</div>
-						</div>
-					</fieldset>
-					<br>
-					<br>
-					<div class="mb-3 col-md-12" id="neopixelConfig" data-visible="false">
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
@@ -1020,28 +974,26 @@
 							</div>
 						</fieldset>
 					</div>
-					<br>
-					<br>
-					<fieldset>
-						<legend data-i18n="general.sleep.title"></legend>
-						<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
-						<div class="slider-container">
-							<div class="float-end" style="padding-left: 30px">
-								<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+					<div class="col-md-12 mb-4">
+						<fieldset>
+							<legend data-i18n="general.sleep.title"></legend>
+							<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
+										min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
+										data-slider-value="" value="" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+								</div>
 							</div>
-							<div class="slider-container-inner">
-								<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
-									min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-									data-slider-value="" value="" required>
-							</div>
-							<div class="float-end" style="padding-left: 10px">
-								<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
-							</div>
-						</div>
-					</fieldset>
-					<br>
-					<br>
-					<div class="mb-3 col-md-12" id="batteryConfig" data-visible="false">
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
 							<div data-i18n="general.battery.desc"></div>
@@ -1061,7 +1013,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -1077,7 +1028,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -1093,7 +1043,6 @@
 									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
 								</div>
 							</div>
-							<br>
 							<div id="criticalVoltageSection" data-visible="false">
 								<label for="criticalVoltage"
 									data-i18n="[prepend]general.battery.criticalShutoff">:</label>
@@ -1112,7 +1061,6 @@
 									</div>
 								</div>
 							</div>
-							<br>
 							<label for="voltageCheckInterval"
 								data-i18n="[prepend]general.battery.measureInterval">:</label>
 							<div class="slider-container">
@@ -1130,13 +1078,11 @@
 							</div>
 						</fieldset>
 					</div>
-					<br>
-					<div class="mb-3 col-md-12 select-div" id="playlistConfig">
+					<div class="col-md-12 mb-4" id="playlistConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<select id="playlistSortMode" name="playlistSortMode"
-								class="form-control form-select bg-white">
+							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 								<option value="1" data-i18n="general.playlist.strcmp"></option>
@@ -1150,7 +1096,6 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
@@ -1204,12 +1149,11 @@
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
-							name="firmwareUpload" accept=".bin">
+						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload" name="firmwareUpload" accept=".bin">
 					</div>
-					<div class="progress upload-progress-bar">
-						<div id="firmwareUploadProgress" class="progress-bar" role="progressbar"
-							aria-labelledby="legendfwupdate"></div>
+					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative">
+						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
+						<div class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light"></div>
 					</div>
 					<br>
 					<div class="text-center">
@@ -1217,10 +1161,9 @@
 					</div>
 				</form>
 			</div>
-			<br />
 		</div>
 		<!-- ### Tab Help ### -->
-		<div class="tab-pane main-tab-pane fade" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
 			<div class="container" id="divForum">
 				<legend data-i18n="help.forum.title"></legend>
 				<p data-i18n="[html]help.forum.desc"></p>
@@ -1245,7 +1188,6 @@
 			if (ActiveTab == 'nav-control-tab') {
 				getTrackProgress();
 			}
-			updateTabStyle();
 			localStorage.setItem("active-tab", ActiveTab);
 		});
 		/* show active / selected subtab */
@@ -1257,7 +1199,6 @@
 			} else {
 				document.getElementById("fileOrUrl").required = false;
 			}
-			updateTabStyle();
 		});
 		if (host == "") { // Not running on the device -> use the remote host
 			host = remoteHost;
@@ -1340,7 +1281,7 @@
 			if (localize) {
 				localize('body');
 			}
-			document.querySelector('#menu').classList.remove("show") // Hide the menu again
+			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
 		document.querySelector('#langSel').addEventListener('change', (e) => {
 			const lang = e.target.value;
@@ -1504,6 +1445,7 @@
 			var data = new FormData(this);
 			const startTime = new Date().getTime();
 			let bytesTotal = 0;
+			const fup = $('#firmwareUploadProgress');
 			$.ajax({
 				url: '/update',
 				type: 'POST',
@@ -1536,9 +1478,12 @@
 								progressText = i18next.t("files.upload.progress", data);
 								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
 							}
-							$("#firmwareUploadProgress").css('width', percent + "%").text(progressText);
+							$(".progress-bar", fup).css('width', percent + "%");
+							$(".label", fup).text(progressText);
 						}
 					}, false);
+					fup.addClass('bg-primary bg-opacity-75');
+					$('.progress-bar', fup).removeClass('bg-danger');
 					return xhr;
 				},
 				success: function (data, textStatus, jqXHR) {
@@ -1561,15 +1506,17 @@
 					}
 					console.log("Firmware upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
 					const progressText = i18next.t("files.upload.success", transData);
-					$("#firmwareUploadProgress").text(progressText);
+					$(".label", fup).text(progressText);
 					document.getElementById('uploaded_file').value = '';
 					document.getElementById('uploaded_file_text').innerHTML = '';
 					restartDevice();
 				},
-				error: function (xhr, status, error) {
-					console.log("Firmware upload ERROR: " + xhr.responseText);
-					$("#firmwareUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + xhr.responseText + "&nbsp;");
-					toaster.error(i18next.t("files.upload.error") + ": " + xhr.responseText);
+				error: function (request, status, error) {
+					console.log("Firmware upload ERROR!", request);
+					fup.removeClass('bg-primary bg-opacity-75');
+					$('.progress-bar', fup).addClass('bg-danger');
+					$(".label", fup).text(i18next.t("files.upload.error") + ": " + request.statusText);
+					toaster.error(i18next.t("files.upload.error") + ': ' + request.statusText);
 				}
 			});
 		});
@@ -1602,6 +1549,7 @@
 			}
 			const startTime = new Date().getTime();
 			let bytesTotal = 0;
+			const eup = $("#explorerUploadProgress");
 			$.ajax({
 				url: '/explorer?path=' + encodeURIComponent(path),
 				type: 'POST',
@@ -1634,9 +1582,12 @@
 								progressText = i18next.t("files.upload.progress", data);
 								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
 							}
-							$("#explorerUploadProgress").css('width', percent + "%").text(progressText);
+							$('.progress-bar', eup).css('width', percent + "%");
+							$('.label', eup).text(progressText);
 						}
 					}, false);
+					eup.addClass('bg-primary bg-opacity-75');
+					$('.progress-bar', eup).removeClass('bg-danger');
 					return xhr;
 				},
 				success: function (data, textStatus, jqXHR) {
@@ -1659,7 +1610,7 @@
 					}
 					console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
 					const progressText = i18next.t("files.upload.success", transData);
-					$("#explorerUploadProgress").text(progressText);
+					$('.label', eup).text(progressText);
 					document.getElementById('uploaded_file').value = '';
 					document.getElementById('uploaded_file_text').innerHTML = '';
 					getData("http://" + host + "/explorer?path=" + path, function (data) {
@@ -1670,9 +1621,11 @@
 					});
 				},
 				error: function (request, status, error) {
-					console.log("Upload ERROR!");
-					$("#explorerUploadProgress").html("&nbsp;" + i18next.t("files.upload.error") + ": " + status + "&nbsp;");
-					toaster.error(i18next.t("files.upload.error") + ": " + status);
+					console.log("Upload ERROR!", request);
+					eup.removeClass('bg-primary bg-opacity-75');
+					$('.progress-bar', eup).addClass('bg-danger');
+					$('.label', eup).text(i18next.t("files.upload.error") + ": " + request.statusText);
+					toaster.error(i18next.t("files.upload.error") + ": " + request.statusText);
 				}
 			});
 		});
@@ -1981,8 +1934,8 @@
 				console.error('Socket encountered error: ', err.message, 'Closing socket');
 			};
 			socket.onmessage = function (event) {
-				console.log(event.data);
 				var socketMsg = JSON.parse(event.data);
+				console.log(socketMsg);
 				if (socketMsg.rfidId != null) {
 					document.getElementById('rfidIdMusic').value = socketMsg.rfidId;
 					toaster.info(i18next.t("toast.rfidDetect", {
@@ -2205,18 +2158,12 @@
 				console.log("comparing ssid vs active:", ssidActive, ssid);
 				if (ssidActive && ssidActive === ssid) {
 					ssidElem.classList.add("active");
-				} else {
-					ssidElem.classList.add("bg-dark");
-					ssidElem.classList.add("text-light");
 				}
 				let deleteSpan = document.createElement("span");
 				deleteSpan.classList.add("float-end");
 				deleteSpan.classList.add("button-group");
 				let deleteButton = document.createElement("button");
-				deleteButton.classList.add("btn");
-				deleteButton.classList.add("btn-danger");
-				deleteButton.classList.add("fa");
-				deleteButton.classList.add("fa-trash");
+				deleteButton.classList.add("btn", "btn-danger", "fa", "fa-trash");
 				deleteButton.setAttribute("data-bs-toggle", "modal");
 				deleteButton.setAttribute("data-bs-target", "#deleteSSIDModal");
 				deleteButton.setAttribute("data-ssid", ssid);
@@ -2744,25 +2691,6 @@
 		function formatDBTooltip(target, value) {
 			target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value}`;
 		}
-
-		function updateTabStyle() {
-			document.querySelectorAll('.nav-item').forEach((element) => { // Toggle styles
-				if (lightSwitch.checked) { // Dark mode
-					if (element.classList.contains('active')) {
-						element.classList.add('bg-black');
-						element.classList.add('text-white');
-					} else {
-						element.classList.remove('bg-black');
-						element.classList.remove('text-white');
-					}
-				} else { // Light mode
-					element.classList.remove('bg-black');
-					element.classList.remove('text-white');
-					element.classList.remove('bg-white');
-					element.classList.remove('text-dark');
-				}
-			});
-		}
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
@@ -2837,116 +2765,22 @@
 			$(function () {
 				$('[data-bs-toggle="tooltip"]').tooltip();
 			});
-			/* Darkmode Switch with persistence in local storage
-			 * Copyright: https://www.cssscript.com/dark-mode-switcher-bootstrap-5 */
-			let lightSwitch = document.getElementById('lightSwitch');
-			if (!lightSwitch) {
-				return;
+
+			const lightSwitch = $('#lightSwitch');
+			/* Changes the color mode to a new one and saves the value to local storage. */
+			function newColorMode(mode) {
+				console.log('new mode', mode);
+
+				$('body').attr("data-bs-theme", mode);
+				// File explorer knows 'default' or 'default-dark' as themes
+				$('#explorerTree').jstree('set_theme', mode == 'dark' ? 'default-dark' : 'default');
+
+				localStorage.setItem('lightSwitch', mode);
 			}
-			/**
-			 * @function darkmode
-			 * @summary: changes the theme to 'dark mode' and save settings to local storage.
-			 * Basically, replaces/toggles every CSS class that has '-light' class with '-dark'
-			 */
-			function darkMode() {
-				console.log("darkmode");
-				$('#explorerTree').jstree("set_theme", "default-dark");
-				document.querySelectorAll('.bg-light').forEach((element) => { // Toggle styles
-					element.className = element.className.replace(/-light/g, '-temp');
-					element.className = element.className.replace(/-dark/g, '-light');
-					element.className = element.className.replace(/-temp/g, '-dark');
-				});
-				document.querySelectorAll('.bg-white').forEach((element) => {
-					element.className = element.className.replace(/bg-white/, 'bg-black');
-				});
-				document.querySelectorAll('.text-dark').forEach((element) => {
-					element.className = element.className.replace(/text-dark/, 'text-white');
-				});
-				document.querySelectorAll('.select-div').forEach((element) => {
-					element.setAttribute("data-bs-theme", "dark");
-				});
-				document.querySelectorAll('.header-nav-element').forEach((element) => {
-					element.className = element.className.replace(/text-light/, 'text-dark');
-				});
-				document.querySelectorAll('.ctrl-button').forEach((element) => {
-					element.className = element.className.replace(/text-light/, 'text-dark');
-				});
-				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "dark"); // Needed for Langsel
-				document.body.classList.add('bg-dark');
-				if (document.body.classList.contains('text-dark')) {
-					document.body.classList.replace('text-dark', 'text-light');
-				} else {
-					document.body.classList.add('text-light');
-				}
-				// Tables
-				var tables = document.querySelectorAll('table');
-				for (var i = 0; i < tables.length; i++) {
-					// add table-dark class to each table
-					tables[i].classList.add('table-dark');
-				}
-				// set light switch input to true
-				if (!lightSwitch.checked) {
-					lightSwitch.checked = true;
-				}
-				localStorage.setItem('lightSwitch', 'dark');
-			}
-			/**
-			 * @function lightmode
-			 * @summary: changes the theme to 'light mode' and save settings to local storage.
-			 */
-			function lightMode() {
-				console.log("lightmode");
-				$('#explorerTree').jstree("set_theme", "default");
-				document.querySelectorAll('.bg-dark').forEach((element) => { // Toggle styles
-					element.className = element.className.replace(/-dark/g, '-temp');
-					element.className = element.className.replace(/-light/g, '-dark');
-					element.className = element.className.replace(/-temp/g, '-light');
-				});
-				document.querySelectorAll('.bg-black').forEach((element) => {
-					element.className = element.className.replace(/bg-black/, 'bg-white');
-				});
-				document.querySelectorAll('.text-white').forEach((element) => {
-					element.className = element.className.replace(/text-white/, 'text-dark');
-				});
-				document.querySelectorAll('.select-div').forEach((element) => {
-					element.setAttribute("data-bs-theme", "light");
-				});
-				document.querySelectorAll('.header-nav-element').forEach((element) => {
-					element.className = element.className.replace(/text-dark/, 'text-light');
-				});
-				document.querySelectorAll('.ctrl-button').forEach((element) => {
-					element.className = element.className.replace(/text-light/, 'text-dark');
-				});
-				document.querySelector('.navbar-dark').setAttribute("data-bs-theme", "light"); // Needed for Langsel
-				document.body.classList.add('bg-light');
-				if (document.body.classList.contains('text-light')) {
-					document.body.classList.replace('text-light', 'text-dark');
-				} else {
-					document.body.classList.add('text-dark');
-				}
-				// Tables
-				var tables = document.querySelectorAll('table');
-				for (var i = 0; i < tables.length; i++) {
-					if (tables[i].classList.contains('table-dark')) {
-						tables[i].classList.remove('table-dark');
-					}
-				}
-				if (lightSwitch.checked) {
-					lightSwitch.checked = false;
-				}
-				localStorage.setItem('lightSwitch', 'light');
-			}
-			/**
-			 * @function onToggleMode
-			 * @summary: the event handler attached to the switch. calling @darkMode or @lightMode depending on the checked state.
-			 */
-			function onToggleMode() {
-				if (lightSwitch.checked) {
-					darkMode();
-				} else {
-					lightMode();
-				}
-				updateTabStyle();
+
+			/* Triggers a newColorMode(..) call with either 'dark' or 'light'  as the new color mode. */
+			function onSwitchDarkMode() {
+				newColorMode(lightSwitch.prop('checked') ? 'dark' : 'light');
 			}
 			/**
 			 * @function getSystemDefaultTheme
@@ -2960,16 +2794,11 @@
 				return 'light';
 			}
 
+			/* Fetches the settings for lightSwitch from storage or the system default theme. */
 			function darkmodeSwitchSetup() {
-				var settings = localStorage.getItem('lightSwitch');
-				if (settings == null) {
-					settings = getSystemDefaultTheme();
-				}
-				if (settings == 'dark') {
-					lightSwitch.checked = true;
-				}
-				lightSwitch.addEventListener('change', onToggleMode);
-				onToggleMode();
+				lightSwitch.prop('checked', (localStorage.getItem('lightSwitch') || getSystemDefaultTheme()) == 'dark');
+				onSwitchDarkMode();
+				lightSwitch.change(onSwitchDarkMode);
 			}
 
 			function selectActiveTabFromLocalStorage() {
@@ -2999,7 +2828,6 @@
 			}
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
-			updateTabStyle();
 		});
 	</script>
 </body>

@@ -102,7 +102,7 @@
 			"desc": "Einen Ordner samt Inhalt (und allen Unterordnern) hochladen"
 		},
 		"search": {
-			"placeholder": "Dateien suchen.."
+			"placeholder": "Dateien suchen..."
 		},
 		"upload": {
 			"title": "Upload",
@@ -111,12 +111,12 @@
 			"selectFile": "Wähle eine Datei zum Hochladen!",
 			"success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
 			"error": "Upload fehlgeschlagen",
-			"timeCalc": "Verbleibende Zeit wird berechnet..",
+			"timeCalc": "Verbleibende Zeit wird berechnet...",
 			"minutes_one": "Minute",
 			"minutes_other": "Minuten",
 			"seconds": "Sekunden",
 			"fewSec": "wenige",
-			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} verbleibend.."
+			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} verbleibend..."
 		},
 		"rfid": {
 			"title": "RFID-Zuweisungen",
