@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 29.10.2024: Update Audio lib
+* 29.10.2024: Enable CONFIG_ESP32_REV_MIN_3 to save some IRAM
 * 22.10.2024: Cleaning up `management.html` (#348), thanks to @trainbird !
 * 22.10.2024: Update Arduino-IRremote to support the ESP 3.0 core
 * 29.09.2024: Removal of support for non-PSRAM HALs (Lolin32, LolinD32, DevkitC) and ESP32-A1S
