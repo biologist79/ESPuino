@@ -82,17 +82,17 @@ void AudioPlayer_Init(void) {
 
 	uint32_t nvsInitialVolume;
 	if (!gPrefsSettings.getBool("recoverVolBoot", false)) {
-	// Get initial volume from NVS
+		// Get initial volume from NVS
 		nvsInitialVolume = gPrefsSettings.getUInt("initVolume", 0);
 	} else {
-	// Get volume used at last shutdown
+		// Get volume used at last shutdown
 		nvsInitialVolume = gPrefsSettings.getUInt("previousVolume", 999);
-	if (nvsInitialVolume == 999) {
-		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetInitVolume());
-		nvsInitialVolume = AudioPlayer_GetInitVolume();
-	} else {
-		Log_Println(rememberLastVolume, LOGLEVEL_ERROR);
-	}
+		if (nvsInitialVolume == 999) {
+			gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetInitVolume());
+			nvsInitialVolume = AudioPlayer_GetInitVolume();
+		} else {
+			Log_Println(rememberLastVolume, LOGLEVEL_ERROR);
+		}
 	}
 
 	if (nvsInitialVolume) {
@@ -164,8 +164,9 @@ void AudioPlayer_Exit(void) {
 	// save playtime total to NVS
 	playTimeSecTotal += playTimeSecSinceStart;
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
-// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
+	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
@@ -965,7 +966,7 @@ void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t g
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
 	if (gPlayProperties.pauseOnMinVolume) {
-		if(gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
+		if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
 			return;
 		}
 
@@ -985,8 +986,9 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
 void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
-// Make sure last playposition for audiobook is saved when new RFID-tag is applied
-	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
+	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
