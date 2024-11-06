@@ -940,6 +940,36 @@
 							</div>
 						</fieldset>
 					</div>
+					<div class="col-md-12 mb-4" id="optionsConfig">
+						<fieldset >
+							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="savePlayPosShutdown" name="savePlayPosShutdown" value="false">
+								<label for="savePlayPosShutdown" data-i18n="general.options.savePlayPosShutdown"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="savePlayPosRfidChange" name="savePlayPosRfidChange" value="false">
+								<label for="savePlayPosRfidChange" data-i18n="general.options.savePlayPosRfidChange"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
+								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.pauseOnMinVolumeExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="recoverVolBoot" name="recoverVolBoot" value="false">
+								<label for="recoverVolBoot" data-i18n="general.options.recoverVolBoot"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.recoverVolBootExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="playMono" name="playMono" value="false">
+								<label for="playMono" data-i18n="general.options.playMono"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+						</fieldset>
+					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
@@ -1280,6 +1310,11 @@
 			document.querySelector('#langSel').value = lng;
 			if (localize) {
 				localize('body');
+				// (re)initialize all popover buttons to get correct translations in the popovers
+				document.querySelectorAll('[data-bs-toggle="popover"]')
+					.forEach(popoverButton => {
+						new bootstrap.Popover(popoverButton, {html: true, trigger: 'focus'})
+					});
 			}
 			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
@@ -2019,35 +2054,18 @@
 				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+				$('#playMono').prop('checked', genSettings.playMono);
+				$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
+				$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChg);
+				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
+				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
+				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
 			}
 			// current values
 			let currSettings = settings.current;
 			if (currSettings) {
 				document.getElementById("rfidIdMusic").value = currSettings.rfidTagId;
 				volumeSlider.setValue(currSettings.volume);
-			}
-			// default (factory) settings
-			let defSettings = settings.defaults;
-			if (defSettings) {
-				$('#initialVolume').bootstrapSlider('setValue', defSettings.initVolume);
-				$('#maxVolumeSpeaker').bootstrapSlider('setValue', defSettings.maxVolumeSp);
-				$('#maxVolumeHeadphone').bootstrapSlider('setValue', defSettings.maxVolumeHp);
-				$('#inactivityTime').bootstrapSlider('setValue', defSettings.sleepInactivity);
-				$('#initBrightness').bootstrapSlider('setValue', defSettings.initBrightness);
-				$('#nightBrightness').bootstrapSlider('setValue', defSettings.nightBrightness);
-				$('#warningLowVoltage').bootstrapSlider('setValue', defSettings.warnLowVoltage);
-				$('#voltageIndicatorLow').bootstrapSlider('setValue', defSettings.indicatorLow);
-				$('#voltageIndicatorHigh').bootstrapSlider('setValue', defSettings.indicatorHi);
-				$('#voltageCheckInterval').bootstrapSlider('setValue', defSettings.voltageCheckInterval);
-				$('#criticalVoltage').bootstrapSlider('setValue', defSettings.criticalVoltage);
-				$("#playlistSortMode").val(defSettings.sortMode).change();
-				$("#gainLowPass").bootstrapSlider('setValue', defSettings.gainLowPass);
-				$("#gainBandPass").bootstrapSlider('setValue', defSettings.gainBandPass);
-				$("#gainHighPass").bootstrapSlider('setValue', defSettings.gainHighPass);
-				// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
-				formatDBTooltip($('#gainLowPass')[0].previousSibling, defSettings.gainLowPass);
-				formatDBTooltip($('#gainBandPass')[0].previousSibling, defSettings.gainBandPass);
-				formatDBTooltip($('#gainHighPass')[0].previousSibling, defSettings.gainHighPass);
 			}
 			let eqSettings = settings.equalizer;
 			if (eqSettings) {
@@ -2345,24 +2363,30 @@
 			lastIdclicked = clickedId;
 			var myObj = {
 				"general": {
-					initVolume: Number(document.getElementById('initialVolume').value),
-					maxVolumeSp: Number(document.getElementById('maxVolumeSpeaker').value),
-					maxVolumeHp: Number(document.getElementById('maxVolumeHeadphone').value),
-					sleepInactivity: Number(document.getElementById('inactivityTime').value)
+					initVolume: Number($('#initialVolume').val()),
+					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
+					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
+					sleepInactivity: Number($('#inactivityTime').val()),
+					playMono: $('#playMono').prop('checked'),
+					savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
+					savePosRfidChg: $('#savePlayPosRfidChange').prop('checked'),
+					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
+					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
+					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
 				},
 				"led": {
-					initBrightness: Number(document.getElementById('initBrightness').value),
-					nightBrightness: Number(document.getElementById('nightBrightness').value)
+					initBrightness: Number($('#initBrightness').val()),
+					nightBrightness: Number($('#nightBrightness').val())
 				},
 				"battery": {
-					warnLowVoltage: Number(document.getElementById('warningLowVoltage').value),
-					indicatorLow: Number(document.getElementById('voltageIndicatorLow').value),
-					indicatorHi: Number(document.getElementById('voltageIndicatorHigh').value),
-					criticalVoltage: Number(document.getElementById('criticalVoltage').value),
-					voltageCheckInterval: Number(document.getElementById('voltageCheckInterval').value)
+					warnLowVoltage: Number($('#warningLowVoltage').val()),
+					indicatorLow: Number($('#voltageIndicatorLow').val()),
+					indicatorHi: Number($('#voltageIndicatorHigh').val()),
+					criticalVoltage: Number($('#criticalVoltage').val()),
+					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
-					sortMode: Number(document.getElementById('playlistSortMode').value)
+					sortMode: Number($('#playlistSortMode').val())
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
