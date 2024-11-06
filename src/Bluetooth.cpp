@@ -196,14 +196,13 @@ void Bluetooth_Init(void) {
 			.bck_io_num = I2S_BCLK,
 			.ws_io_num = I2S_LRC,
 			.data_out_num = I2S_DOUT,
-			.data_in_num = I2S_PIN_NO_CHANGE
-		};
+			.data_in_num = I2S_PIN_NO_CHANGE};
 		a2dp_sink->set_pin_config(pin_config);
 		a2dp_sink->set_rssi_callback(rssi);
 	#endif
 		a2dp_sink->activate_pin_code(false);
 		if (gPrefsSettings.getBool("playMono", false)) {
-		a2dp_sink->set_mono_downmix(true);
+			a2dp_sink->set_mono_downmix(true);
 		}
 		a2dp_sink->set_auto_reconnect(true);
 		a2dp_sink->set_rssi_active(true);

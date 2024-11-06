@@ -194,7 +194,7 @@ void System_PreparePowerDown(void) {
 	Led_Exit();
 
 	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
-	gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
+		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
 	}
 	SdCard_Exit();
 
