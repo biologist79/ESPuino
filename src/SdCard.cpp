@@ -266,9 +266,9 @@ static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
 	return true;
 };
 
-static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
+static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File f) {
 	const String line = f.readStringUntil('\n');
-	const bool extended = line.startsWith("#EXTM3U") || forceExtended;
+	const bool extended = line.startsWith("#EXTM3U");
 	Playlist *playlist = new Playlist();
 
 	// reserve a sane amount of memory to reduce heap fragmentation
