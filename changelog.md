@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 25.11.2024: Moving some settings to the Web UI (#350), thanks to @trainbird !
 * 17.11.2024: Simplify 'SdCard_ParseM3UPlaylist' and fix parsing, thanks to @h4kun4m4t4t4 !
 * 29.10.2024: Update Audio lib
 * 29.10.2024: Enable CONFIG_ESP32_REV_MIN_3 to save some IRAM
