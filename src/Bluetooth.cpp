@@ -196,7 +196,8 @@ void Bluetooth_Init(void) {
 			.bck_io_num = I2S_BCLK,
 			.ws_io_num = I2S_LRC,
 			.data_out_num = I2S_DOUT,
-			.data_in_num = I2S_PIN_NO_CHANGE};
+			.data_in_num = I2S_PIN_NO_CHANGE
+		};
 		a2dp_sink->set_pin_config(pin_config);
 		a2dp_sink->set_rssi_callback(rssi);
 	#endif
