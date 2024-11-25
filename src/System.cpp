@@ -193,9 +193,9 @@ void System_PreparePowerDown(void) {
 	Mqtt_Exit();
 	Led_Exit();
 
-#ifdef USE_LAST_VOLUME_AFTER_REBOOT
-	gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
-#endif
+	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
+		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
+	}
 	SdCard_Exit();
 
 	Serial.flush();

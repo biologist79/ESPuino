@@ -202,9 +202,9 @@ void Bluetooth_Init(void) {
 		a2dp_sink->set_rssi_callback(rssi);
 	#endif
 		a2dp_sink->activate_pin_code(false);
-	#ifdef PLAY_MONO_SPEAKER
-		a2dp_sink->set_mono_downmix(true);
-	#endif
+		if (gPrefsSettings.getBool("playMono", false)) {
+			a2dp_sink->set_mono_downmix(true);
+		}
 		a2dp_sink->set_auto_reconnect(true);
 		a2dp_sink->set_rssi_active(true);
 		// start bluetooth sink
