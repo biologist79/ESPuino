@@ -122,7 +122,9 @@ void setup() {
 
 	// Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
 	Button_Init(); // To preseed internal button-storage with values
+
 #ifdef PN5180_ENABLE_LPCD
+	System_Init_LPCD();
 	Rfid_Init();
 #endif
 

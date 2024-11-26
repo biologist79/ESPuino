@@ -377,7 +377,7 @@ void Rfid_EnableLpcd(void) {
 	#endif
 }
 
-// wake up from LPCD, check card is present. This works only for ISO-14443 compatible cards
+// wake up from LPCD, check card is present in NVS
 void Rfid_WakeupCheck(void) {
 	#ifdef PN5180_ENABLE_LPCD
 	// disable pin hold from deep sleep
@@ -387,36 +387,63 @@ void Rfid_WakeupCheck(void) {
 		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 	pinMode(RFID_IRQ, INPUT);
 		#endif
+
+	// read card serial to check NVS for entries
+	uint8_t uid[10];
+	bool isCardPresent;
+	bool cardInNVS = false;
+
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	nfc14443.begin();
 	nfc14443.reset();
 	// enable RF field
 	nfc14443.setupRF();
-	// 1.check for ISO-14443 card present
-	bool isCardPresent = nfc14443.isCardPresent();
+
+	// 1. check for ISO-14443 card present
+	isCardPresent = nfc14443.readCardSerial(uid) >= 4;
+
+	// 2. check for ISO-15693 card present
 	if (!isCardPresent) {
-		// 2.check for ISO-15693 card present
 		static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
 		nfc15693.begin();
 		nfc15693.setupRF();
-		uint8_t uid[10];
+		// do not handle encrypted cards in any way here
 		isCardPresent = nfc15693.getInventory(uid) == ISO15693_EC_OK;
 	}
-	if (!isCardPresent) {
-		// no card found, go back to deep sleep
+
+	// check for card id in NVS
+	if (isCardPresent) {
+		// uint8_t[10] -> char[cardIdStringSize]
+		char tagId[cardIdStringSize];
+		size_t pos = 0;
+		for (size_t i = 0; i < 10; i++) {
+			pos += snprintf(tagId + pos, cardIdStringSize - pos, "%03d", uid[i]);
+		}
+		tagId[cardIdStringSize - 1] = '\0';
+
+		// Try to lookup tagId in NVS
+		if (gPrefsRfid.isKey(tagId)) {
+			cardInNVS = gPrefsRfid.getString(tagId, "-1").compareTo("-1");
+		}
+	}
+
+	if (!cardInNVS) {
+		// no card found or card not in NVS, go back to deep sleep
 		nfc14443.reset();
 		uint16_t wakeupCounterInMs = 0x3FF; //  needs to be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 		if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
 			Log_Println(lowPowerCardSuccess, LOGLEVEL_INFO);
-		// configure wakeup pin for deep-sleep wake-up, use ext1
-		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-			// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
-			esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
-		#endif
-		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
-			// reset IRQ state on port-expander
-			Port_Exit();
-		#endif
+
+			// configure wakeup pin for deep-sleep wake-up, use ext1
+			#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+				// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
+				esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+			#endif
+			#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+				// reset IRQ state on port-expander
+				Port_Exit();
+			#endif
+
 			// freeze pin states in deep sleep
 			gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
 			gpio_hold_en(gpio_num_t(RFID_RST)); // RST
