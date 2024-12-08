@@ -110,7 +110,8 @@ void AudioPlayer_Init(void) {
 		AudioPlayer_SetMaxVolume(nvsMaxVolumeSpeaker);
 		Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForSpeakerFromNvs, nvsMaxVolumeSpeaker);
 	} else {
-		gPrefsSettings.putUInt("maxVolumeSp", nvsMaxVolumeSpeaker);
+		// Set max volume to max per default. Can be adjusted later via webinterface.
+		gPrefsSettings.putUInt("maxVolumeSp", 21);
 		Log_Println(wroteMaxLoudnessForSpeakerToNvs, LOGLEVEL_ERROR);
 	}
 
@@ -126,7 +127,8 @@ void AudioPlayer_Init(void) {
 		AudioPlayer_MaxVolumeHeadphone = nvsAudioPlayer_MaxVolumeHeadphone;
 		Log_Printf(LOGLEVEL_INFO, restoredMaxLoudnessForHeadphoneFromNvs, nvsAudioPlayer_MaxVolumeHeadphone);
 	} else {
-		gPrefsSettings.putUInt("maxVolumeHp", nvsAudioPlayer_MaxVolumeHeadphone);
+		// Set max volume to max per default. Can be adjusted later via webinterface.
+		gPrefsSettings.putUInt("maxVolumeHp", 21);
 		Log_Println(wroteMaxLoudnessForHeadphoneToNvs, LOGLEVEL_ERROR);
 	}
 #endif
