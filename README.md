@@ -49,11 +49,18 @@ signal of it: I did all my tests with
 You could start on a breadboard with jumper wires but I _strongly_ recommend to start right away
 with a PCB that was especially developed for ESPuino. There are several available, but
 [ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661) can be considered as
-being the latest generation. Furthermore you need a ESP32-develboard like (or another one that's
+being the latest generation. This pcb can obtained via the forum.
+
+![mini4L](https://forum.espuino.de/uploads/default/original/2X/b/b2762236b56ea3d4aa776dcbb5f5c7254f8a02b4.jpeg "Mini4L carrier PCB")
+
+Furthermore you need a ESP32-develboard like (or another one that's
 pin compatible):
 
 - [D32 pro LiFePO4](https://forum.espuino.de/t/esp32-develboard-d32-pro-lifepo4/1109)
 - [Wemos Lolin D32 pro](https://www.wemos.cc/en/latest/d32/d32_pro.html)
+
+LiFePO4-Develboard was developed my myself can be obtained obtained via the forum. This is how it looks like:
+![LiFePO4-Develboard](https://forum.espuino.de/uploads/default/original/2X/b/b0b6d9562a5b33e396850a9ab307dfc6f2a913cc.jpeg "LiFePO4-Develboard")
 
 > :warning: **Due to memory restrictions meanwhile it's mandatory to use ESP32 with
 PSRAM.** This being said you need to make sure that your develboard carries an ESP32-WROVER.
@@ -63,8 +70,7 @@ develboards named above).
 Optionally a [headphone-pcb](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/)
 can be attached to [ESPuino-mini 4L (SMD)](https://forum.espuino.de/t/espuino-mini-4layer/1661).
 
-However, feel free to develop PCBs yourself. But again, be advised your ESP32 needs PSRAM in order to
-run ESPuino properly.
+However, feel free to develop PCBs yourself. But again, be advised your ESP32 needs PSRAM in order to run ESPuino properly.
 
 ## Getting started
 
@@ -121,9 +127,9 @@ run ESPuino properly.
 
 ## SD-card: SPI or SD-MMC (1 bit)-mode?
 
-Having the SD card working is mandatory, ESPuino doesn't start without working SD card (at least
+Having the µSD card working is mandatory, ESPuino doesn't start without working SD card (at least
 unless `NO_SDCARD` hasn't been enabled previously). However, there are two modes available to
-interface SD cards: SPI and SDMMC (1 bit). Be advised that SDMMC is twice as fast as SPI and
+interface µSD cards: SPI and SDMMC (1 bit). Be advised that SDMMC is twice as fast as SPI and
 needs one GPIO less. So basically it's a no-brainer.
 
 ## Which RFID-reader: RC522 or PN5180?
@@ -246,49 +252,45 @@ width="30%"></img>
 
 It's not just simply playing music; different playback modes are supported:
 
-- `Single track` => plays one track one time
-- `Single track (loop)` => plays one track forever
-- `Single track of a directory (random). Followed by sleep` => picks and plays one single track out
-  of a directory and falls asleep subsequently. Neopixel gets dimmed.
-- `Audiobook`=> single file or playlist/folder; last play position (file and playlist) is saved
-  (when pushing pause or moving to another track) and reused next time
-- `Audiobook (loop)` => same as audiobook but loops forever
-- `Folder/playlist (sorted)` => plays all tracks in order from a folder one time
-- `Folder/playlist (random order)` => plays all tracks in random order from a folder one time
-- `Folder/playlist (sorted)` => plays all tracks in order from a folder forever
-- `Folder/playlist (random order)` => plays all tracks in random order from a folder forever
-- `All tracks of a random subdirectory (sorted)` => plays of tracks in order of a
-  randomly picked subdirectory of a given directory
-- `All tracks of a random subdirectory (random order)` => plays all tracks in random order of a
-  randomly picked subdirectory of a given directory
-- `Webradio` => always only one "track": plays a webstream
-- `List (files from SD and/or webstreams) from local .m3u-File` => can be one or more files /
-  webradio stations with local .m3u as sourcefile
+| Type      | Action     |
+| ------------- | ------------- |
+| `Single track` | Plays one track one time |
+| `Single track (loop)` | Plays one track forever |
+| `Single track of a directory (random). Followed by sleep` | Picks and plays one single track out of a directory and falls asleep subsequently. Neopixel gets dimmed.|
+| `Audiobook` | Single file or playlist/folder; last play position (file and playlist) is saved (when pushing pause or moving to another track) and reused next time |
+| `Audiobook (loop)` | Same as audiobook but loops forever |
+| `Folder/playlist (sorted)` | Plays all tracks in order from a folder one time |
+| `Folder/playlist (random order)` | Plays all tracks in random order from a folder one time |
+| `Folder/playlist (sorted)` | Plays all tracks in order from a folder forever|
+| `Folder/playlist (random order)` | Plays all tracks in random order from a folder forever |
+| `All tracks of a random subdirectory (sorted)` | Plays of tracks in order of a randomly picked subdirectory of a given directory |
+| `All tracks of a random subdirectory (random order)` | Plays all tracks in random order of a randomly picked subdirectory of a given directory |
+| `Webradio` | always only one "track": plays a webstream |
+| `List (files from SD and/or webstreams) from local .m3u-File` | Can be one or more files / webradio stations with local .m3u as sourcefile |
 
 ### Modification RFID tags
 
-There are special RFID tags, that don't start music by themselves but can modify things. If applied
+There are special RFID tags, that don't start music by themselves but can modify ESPuinos behaviour. If applied
 a second time, it's previous action/modification will be reversed.
 
 So first make sure to start the music then use a modification card in order to apply your desired
 modification:
 
-- Lock/unlock all buttons
-- Sleep after 5/30/60/120 minutes
-- Sleep after end of current track
-- Sleep after end of playlist
-- Sleep after five tracks
-- Dim Neopixel
-- Loop track
-- Loop playlist
-- Toggle WiFi (enable/disable) => disabling WiFi while webstream is active will stop a running
-  webstream instantly!
-- Toggle Bluetooth sink (enable/disable) => restarts ESPuino immediately. In this mode you can
-  stream to your ESPuino via BT.
-- Toggle Bluetooth source (enable/disable) => restarts ESPuino immediately. In this mode your
-  ESPuino can stream via BT to an external device.
-- Toggle through the different modes (Normal => BT-Sink => BT-Source => Normal)
-- Speech output of IP-address or current time
+| Type      | Action     |
+| ------------- | ------------- |
+| Lock/unlock all buttons | Locks / unlocks all buttons (might be useful for toddlers|
+| Sleep after 5/30/60/120 minutes | ESPuino falls asleep automatically after the given period |
+| Sleep after end of current track | ESPuino falls asleep after the current track |
+| Sleep after end of playlist | ESPuino falls asleep after the current playlist |
+| Sleep after five tracks | ESPuino falls asleep after five tracks |
+| Dim Neopixel | Dim Neopixel to nightmode |
+| Loop track | Loops / unloops current track |
+| Loop playlist | Loops / unloops current playlist |
+| Toggle WiFi (enable/disable) | Enables / disables WiFi. Please note: disabling WiFi while webstream is active will stop a running webstream instantly! |
+| Toggle Bluetooth sink (enable/disable) | Restarts ESPuino immediately. In this mode you can stream to your ESPuino via BT whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino. |
+| Toggle Bluetooth source (enable/disable) | Restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino.|
+| Toggle through the different modes | Normal => BT-Sink => BT-Source => Normal |
+| Speech output of IP-address or current time | Speech output of IP address or current time |
 
 > :information_source: All sleep modes do dimming (Neopixel) automatically because it's supposed to
   be used in the evening when going to bed. Well, at least that's my children's indication :-)
@@ -347,7 +349,7 @@ Most designs use a Neopixel ring, but a linear strip is also possible.
 
 > :warning: This section describes my default-design: 3 buttons + rotary-encoder. Feel free to
   change number of buttons (up to 5) and button-actions according your needs in `settings.h` and
-  your develboard-specific config-file (e.g. `settings-lolin32.h`). At maximum you can activate five
+  your develboard-specific config-file (e.g. `settings-lolin_d32_pro_sdmmc_pe.h`). At maximum you can activate five
   buttons + rotary-encoder. Minimum duration for long press (to distinguish vom short press) in ms
   is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using
   GPIO \>= 34 make sure to add a external pullup-resistor (10 k).
