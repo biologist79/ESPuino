@@ -252,4 +252,5 @@ const char cantConnectToWifi[] = "Impossible de se connecter au WiFi.";
 const char wifiSetLastSSID[] = "Écrire le dernier SSID réussi dans le NVS pour le chemin rapide WiFi : %s";
 const char mDNSStarted[] = "mDNS démarré : http://%s.local";
 const char mDNSFailed[] = "Échec de mDNS, nom d'hôte : %s";
+const char restartAfterOperationModeChange[] = "Le mode de fonctionnement a changé. Redémarrez ESPuino maintenant...";
 #endif

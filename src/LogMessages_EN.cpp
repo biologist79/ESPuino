@@ -254,4 +254,5 @@ const char cantConnectToWifi[] = "Failed to connect to WiFi.";
 const char wifiSetLastSSID[] = "Write last successful SSID to NVS for WiFi fast-path: %s";
 const char mDNSStarted[] = "mDNS started: http://%s.local";
 const char mDNSFailed[] = "mDNS failure, hostname: %s";
+const char restartAfterOperationModeChange[] = "Operation Mode changed. Restart ESPuino now...";
 #endif

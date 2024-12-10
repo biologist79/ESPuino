@@ -253,4 +253,5 @@ const char cantConnectToWifi[] = "WLAN-Verbindung fehlgeschlagen.";
 const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WLAN Schnellstart: %s";
 const char mDNSStarted[] = "mDNS gestartet: http://%s.local";
 const char mDNSFailed[] = "mDNS Start fehlgeschlagen, Hostname: %s";
+const char restartAfterOperationModeChange[] = "Operation Mode geändert. ESPuino wird neu gestartet...";
 #endif
