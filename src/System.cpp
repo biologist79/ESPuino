@@ -38,10 +38,19 @@ volatile uint8_t System_OperationMode;
 void System_SleepHandler(void);
 void System_DeepSleepManager(void);
 
+// Init only NVS required for LPCD
+void System_Init_LPCD(void) {
+#ifdef PN5180_ENABLE_LPCD
+	gPrefsRfid.begin(prefsRfidNamespace);
+#endif
+}
+
 void System_Init(void) {
 	srand(esp_random());
 
+#ifndef PN5180_ENABLE_LPCD
 	gPrefsRfid.begin(prefsRfidNamespace);
+#endif
 	gPrefsSettings.begin(prefsSettingsNamespace);
 
 	// Get maximum inactivity-time from NVS
@@ -194,9 +203,9 @@ void System_PreparePowerDown(void) {
 	Mqtt_Exit();
 	Led_Exit();
 
-#ifdef USE_LAST_VOLUME_AFTER_REBOOT
-	gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
-#endif
+	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
+		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
+	}
 	SdCard_Exit();
 
 	Serial.flush();

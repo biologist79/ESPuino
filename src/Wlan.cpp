@@ -232,7 +232,7 @@ static void migrateFromVersion2() {
 		}
 
 		// clean up old nvs entries
-		delete settings;
+		std::destroy_at(settings);
 		gPrefsSettings.remove(nvsKey);
 	}
 }

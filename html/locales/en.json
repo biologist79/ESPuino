@@ -15,7 +15,7 @@
 	"infos": "Infos",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
-	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again..",
+	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again.",
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
@@ -102,7 +102,7 @@
 			"desc": "Upload directory with all files and subdirectories"
 		},
 		"search": {
-			"placeholder": "Search files.."
+			"placeholder": "Search files..."
 		},
 		"upload": {
 			"title": "Upload",
@@ -111,12 +111,12 @@
 			"selectFile": "Please select files to upload!",
 			"success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
 			"error": "Upload error",
-			"timeCalc": "Remaining time is being calculated..",
+			"timeCalc": "Remaining time is being calculated...",
 			"minutes_one": "minute",
 			"minutes_other": "minutes",
 			"seconds": "seconds",
 			"fewSec": "few",
-			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining.."
+			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining..."
 		},
 		"rfid": {
 			"title": "RFID Assignments",
@@ -262,6 +262,21 @@
 			"gainBandPass": "Mids (in dB)",
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
+		},
+		"options": {
+			"title": "Options",
+			"playMono": "Mono Playback",
+			"playMonoExp": "If two speakers are installed, stereo can be played. More infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>.",
+			"savePlayPosShutdown": "Remember playback position at shutdown",
+			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
+			"savePlayPosRfidChange": "Remember playback position at RFID tag change",
+			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"pauseOnMinVolume": "Pause at minimum volume",
+			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
+			"recoverVolBoot": "Use last volume at restart",
+			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
+			"volumeCurve": "Finer gradations at low volume",
+			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse."
 		},
 		"neopixel": {
 			"title": "Neopixel (brightness)",

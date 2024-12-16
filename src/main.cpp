@@ -58,12 +58,6 @@ uint32_t bootCount = 0;
 
 ////////////
 
-#if (HAL == 2)
-	#include "AC101.h"
-static TwoWire i2cBusOne = TwoWire(0);
-static AC101 ac(&i2cBusOne);
-#endif
-
 // I2C
 #ifdef I2C_2_ENABLE
 TwoWire i2cBusTwo = TwoWire(1);
@@ -128,7 +122,9 @@ void setup() {
 
 	// Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
 	Button_Init(); // To preseed internal button-storage with values
+
 #ifdef PN5180_ENABLE_LPCD
+	System_Init_LPCD();
 	Rfid_Init();
 #endif
 
@@ -160,21 +156,6 @@ void setup() {
 	Power_PeripheralOn();
 
 	Led_Init();
-
-// Only used for ESP32-A1S-Audiokit
-#if (HAL == 2)
-	i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
-
-	while (not ac.begin()) {
-		Log_Println("AC101 Failed!", LOGLEVEL_ERROR);
-		delay(1000);
-	}
-	Log_Println("AC101 via I2C - OK!", LOGLEVEL_NOTICE);
-
-	pinMode(22, OUTPUT);
-	digitalWrite(22, HIGH);
-	ac.SetVolumeHeadphone(80);
-#endif
 
 	// Needs power first
 	SdCard_Init();
