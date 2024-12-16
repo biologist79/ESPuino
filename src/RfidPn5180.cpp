@@ -434,15 +434,15 @@ void Rfid_WakeupCheck(void) {
 		if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
 			Log_Println(lowPowerCardSuccess, LOGLEVEL_INFO);
 
-			// configure wakeup pin for deep-sleep wake-up, use ext1
-			#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-				// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
-				esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
-			#endif
-			#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
-				// reset IRQ state on port-expander
-				Port_Exit();
-			#endif
+		// configure wakeup pin for deep-sleep wake-up, use ext1
+		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+			// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
+			esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
+		#endif
+		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+			// reset IRQ state on port-expander
+			Port_Exit();
+		#endif
 
 			// freeze pin states in deep sleep
 			gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
