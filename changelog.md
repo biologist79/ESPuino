@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 16.12.2024: Add verbose log to indicate, that the restart is on purpose (#356), thanks to @thebino !
+* 16.12.2024: LPCD: Only wake up if card is present in NVS (#352), thanks to @fox34 ! 
 * 25.11.2024: Moving some settings to the Web UI (#350), thanks to @trainbird !
 * 17.11.2024: Simplify 'SdCard_ParseM3UPlaylist' and fix parsing, thanks to @h4kun4m4t4t4 !
 * 29.10.2024: Update Audio lib
