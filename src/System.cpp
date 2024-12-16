@@ -40,17 +40,17 @@ void System_DeepSleepManager(void);
 
 // Init only NVS required for LPCD
 void System_Init_LPCD(void) {
-	#ifdef PN5180_ENABLE_LPCD
-		gPrefsRfid.begin(prefsRfidNamespace);
-	#endif
+#ifdef PN5180_ENABLE_LPCD
+	gPrefsRfid.begin(prefsRfidNamespace);
+#endif
 }
 
 void System_Init(void) {
 	srand(esp_random());
 
-	#ifndef PN5180_ENABLE_LPCD
-		gPrefsRfid.begin(prefsRfidNamespace);
-	#endif
+#ifndef PN5180_ENABLE_LPCD
+	gPrefsRfid.begin(prefsRfidNamespace);
+#endif
 	gPrefsSettings.begin(prefsSettingsNamespace);
 
 	// Get maximum inactivity-time from NVS
