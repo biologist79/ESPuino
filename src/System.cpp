@@ -157,6 +157,7 @@ void System_SetOperationMode(uint8_t opMode) {
 	uint8_t currentOperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
 	if (currentOperationMode != opMode) {
 		if (gPrefsSettings.putUChar("operationMode", opMode)) {
+			Log_Println(restartAfterOperationModeChange, LOGLEVEL_INFO);
 			ESP.restart();
 		}
 	}
