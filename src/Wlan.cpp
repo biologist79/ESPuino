@@ -271,6 +271,12 @@ void Wlan_Init(void) {
 			ipMode = buffer;
 		}
 		Log_Printf(LOGLEVEL_DEBUG, "SSID: %s, Password: %s, %s", s.ssid.c_str(), (s.password.length()) ? "yes" : "no", ipMode);
+		
+		if (gPrefsSettings.isKey("LAST_SSID") == false) {
+			gPrefsSettings.putString("LAST_SSID", s.ssid);
+			Log_Println("Warn: using saved SSID as LAST_SSID", LOGLEVEL_NOTICE);
+		}
+		
 		return true;
 	});
 

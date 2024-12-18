@@ -2,6 +2,9 @@
 
 ## DEV-branch
 
+* 18.12.2024: Use saved SSID as LAST_SSID, when no successfull connection was possible #355, thanks to @nona00 !
+* 18.12.2024: Check if #POWER defined, thanks to @QDaniel !
+* 18.12.2024: Prepare for Arduino 3.1.0
 * 16.12.2024: Add verbose log to indicate, that the restart is on purpose (#356), thanks to @thebino !
 * 16.12.2024: LPCD: Only wake up if card is present in NVS (#352), thanks to @fox34 ! 
 * 25.11.2024: Moving some settings to the Web UI (#350), thanks to @trainbird !
