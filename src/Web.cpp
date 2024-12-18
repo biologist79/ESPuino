@@ -379,7 +379,7 @@ void webserverStart(void) {
 				if (WiFi.getMode() == WIFI_STA) {
 					// serve management.html in station-mode
 #ifdef NO_SDCARD
-					response = request->beginResponse_P(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
 					response->addHeader("Content-Encoding", "gzip");
 #else
 					if (gFSystem.exists("/.html/index.htm")) {
