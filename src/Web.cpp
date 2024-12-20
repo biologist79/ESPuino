@@ -109,13 +109,13 @@ bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
 
 // If PSRAM is available use it allocate memory for JSON-objects
 struct SpiRamAllocator : ArduinoJson::Allocator {
-	void *allocate(size_t size) {
+	void *allocate(size_t size) override {
 		return ps_malloc(size);
 	}
-	void deallocate(void *pointer) {
+	void deallocate(void *pointer) override {
 		free(pointer);
 	}
-	void *reallocate(void *ptr, size_t new_size) {
+	void *reallocate(void *ptr, size_t new_size) override {
 		return ps_realloc(ptr, new_size);
 	}
 };
@@ -1110,10 +1110,10 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 	JsonObject tasksObj = infoObj["tasks"].to<JsonObject>();
 	tasksObj["taskCount"] = taskNum;
 	tasksObj["totalRunTime"] = pulTotalRunTime;
-	JsonArray tasksList = tasksObj.createNestedArray("tasksList");
+	JsonArray tasksList = tasksObj["tasksList"].to<JsonArray>();
 
 	for (int i = 0; i < taskNum; i++) {
-		JsonObject taskObj = tasksList.createNestedObject();
+		JsonObject taskObj = tasksList.add<JsonObject>();
 
 		float ulStatsAsPercentage = 100.f * ((float) task_status_arr[i].ulRunTimeCounter / (float) pulTotalRunTime);
 
