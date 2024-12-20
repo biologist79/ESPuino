@@ -108,15 +108,17 @@ bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
 }
 
 // If PSRAM is available use it allocate memory for JSON-objects
-struct SpiRamAllocator {
-	void *allocate(size_t size) {
+struct SpiRamAllocator : ArduinoJson::Allocator {
+	void *allocate(size_t size) override {
 		return ps_malloc(size);
 	}
-	void deallocate(void *pointer) {
+	void deallocate(void *pointer) override {
 		free(pointer);
 	}
+	void *reallocate(void *ptr, size_t new_size) override {
+		return ps_realloc(ptr, new_size);
+	}
 };
-using SpiRamJsonDocument = BasicJsonDocument<SpiRamAllocator>;
 
 static void destroyDoubleBuffer() {
 	for (size_t i = 0; i < nr_of_buffers; i++) {
@@ -634,7 +636,7 @@ bool JSONToSettings(JsonObject doc) {
 		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
 		return false;
 	}
-	if (doc.containsKey("general")) {
+	if (doc["general"].is<JsonObject>()) {
 		// general settings
 		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) == 0 || gPrefsSettings.putBool("pauseOnMinVol", doc["general"]["pauseOnMinVol"].as<bool>()) == 0 || gPrefsSettings.putBool("recoverVolBoot", doc["general"]["recoverVolBoot"].as<bool>()) == 0 || gPrefsSettings.putUChar("volumeCurve", doc["general"]["volumeCurve"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
@@ -644,7 +646,7 @@ bool JSONToSettings(JsonObject doc) {
 		gPlayProperties.SavePlayPosRfidChange = doc["general"]["savePosRfidChg"].as<bool>();
 		gPlayProperties.pauseOnMinVolume = doc["general"]["pauseOnMinVol"].as<bool>();
 	}
-	if (doc.containsKey("equalizer")) {
+	if (doc["equalizer"].is<JsonObject>()) {
 		int8_t _gainLowPass = doc["equalizer"]["gainLowPass"].as<int8_t>();
 		int8_t _gainBandPass = doc["equalizer"]["gainBandPass"].as<int8_t>();
 		int8_t _gainHighPass = doc["equalizer"]["gainHighPass"].as<int8_t>();
@@ -657,7 +659,7 @@ bool JSONToSettings(JsonObject doc) {
 			AudioPlayer_EqualizerToQueueSender(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
 	}
-	if (doc.containsKey("wifi")) {
+	if (doc["wifi"].is<JsonObject>()) {
 		// WiFi settings
 		String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
@@ -669,14 +671,14 @@ bool JSONToSettings(JsonObject doc) {
 			return false;
 		}
 	}
-	if (doc.containsKey("led")) {
+	if (doc["led"].is<JsonObject>()) {
 		// Neopixel settings
 		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0 || gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
 		}
 	}
-	if (doc.containsKey("battery")) {
+	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
 		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
@@ -684,14 +686,14 @@ bool JSONToSettings(JsonObject doc) {
 		}
 		Battery_Init();
 	}
-	if (doc.containsKey("playlist")) {
+	if (doc["playlist"].is<JsonObject>()) {
 		// playlist settings
 		if (!AudioPlayer_SetPlaylistSortMode(doc["playlist"]["sortMode"].as<uint8_t>())) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
 			return false;
 		}
 	}
-	if (doc.containsKey("ftp")) {
+	if (doc["ftp"].is<JsonObject>()) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
 
@@ -702,13 +704,13 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp");
 			return false;
 		}
-	} else if (doc.containsKey("ftpStatus")) {
+	} else if (doc["ftpStatus"].is<JsonObject>()) {
 		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
 		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
 			Ftp_EnableServer();
 		}
 	}
-	if (doc.containsKey("mqtt")) {
+	if (doc["mqtt"].is<JsonObject>()) {
 		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
 		const char *_mqttClientId = doc["mqtt"]["clientID"];
 		const char *_mqttServer = doc["mqtt"]["server"];
@@ -728,7 +730,7 @@ bool JSONToSettings(JsonObject doc) {
 			return false;
 		}
 	}
-	if (doc.containsKey("bluetooth")) {
+	if (doc["bluetooth"].is<JsonObject>()) {
 		// bluetooth settings
 		const char *_btDeviceName = doc["bluetooth"]["deviceName"];
 		gPrefsSettings.putString("btDeviceName", (String) _btDeviceName);
@@ -739,7 +741,7 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "bluetooth");
 			return false;
 		}
-	} else if (doc.containsKey("rfidMod")) {
+	} else if (doc["rfidMod"].is<JsonObject>()) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
 		uint8_t _modId = doc["rfidMod"]["modId"];
 		if (_modId <= 0) {
@@ -755,7 +757,7 @@ bool JSONToSettings(JsonObject doc) {
 			}
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
-	} else if (doc.containsKey("rfidAssign")) {
+	} else if (doc["rfidAssign"].is<JsonObject>()) {
 		const char *_rfidIdAssinId = doc["rfidAssign"]["rfidIdMusic"];
 		const char *_fileOrUrlAscii = doc["rfidAssign"]["fileOrUrl"];
 		uint8_t _playMode = doc["rfidAssign"]["playMode"];
@@ -775,36 +777,38 @@ bool JSONToSettings(JsonObject doc) {
 			return false;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
-	} else if (doc.containsKey("ping")) {
+	} else if (doc["ping"].is<JsonObject>()) {
 		if ((millis() - lastPongTimestamp) > 1000u) {
 			// send pong (keep-alive heartbeat), check for excessive calls
 			lastPongTimestamp = millis();
 			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
 		return false;
-	} else if (doc.containsKey("controls")) {
-		if (doc["controls"].containsKey("set_volume")) {
-			uint8_t new_vol = doc["controls"]["set_volume"].as<uint8_t>();
+	} else if (doc["controls"].is<JsonObject>()) {
+		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
+		if (controlsObj["set_volume"].is<uint8_t>()) {
+			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
 			AudioPlayer_VolumeToQueueSender(new_vol, true);
 		}
-		if (doc["controls"].containsKey("action")) {
-			uint8_t cmd = doc["controls"]["action"].as<uint8_t>();
+		if (controlsObj["action"].is<uint8_t>()) {
+			uint8_t cmd = controlsObj["action"].as<uint8_t>();
 			Cmd_Action(cmd);
 		}
-	} else if (doc.containsKey("trackinfo")) {
+	} else if (doc["trackinfo"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
-	} else if (doc.containsKey("coverimg")) {
+	} else if (doc["coverimg"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
-	} else if (doc.containsKey("volume")) {
+	} else if (doc["volume"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
-	} else if (doc.containsKey("settings")) {
+	} else if (doc["settings"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Settings);
-	} else if (doc.containsKey("ssids")) {
+	} else if (doc["ssids"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
-	} else if (doc.containsKey("trackProgress")) {
-		if (doc["trackProgress"].containsKey("posPercent")) {
+	} else if (doc["trackProgress"].is<JsonObject>()) {
+		const JsonObject trackObj = doc["trackProgress"].as<JsonObject>();
+		if (trackObj["posPercent"].is<uint8_t>()) {
 			gPlayProperties.seekmode = SEEK_POS_PERCENT;
-			gPlayProperties.currentRelPos = doc["trackProgress"]["posPercent"].as<uint8_t>();
+			gPlayProperties.currentRelPos = trackObj["posPercent"].as<uint8_t>();
 		}
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
 	}
@@ -816,13 +820,13 @@ bool JSONToSettings(JsonObject doc) {
 static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "current")) {
 		// current values
-		JsonObject curObj = obj.createNestedObject("current");
+		JsonObject curObj = obj["current"].to<JsonObject>();
 		curObj["volume"].set(AudioPlayer_GetCurrentVolume());
 		curObj["rfidTagId"] = String(gCurrentRfidTagId);
 	}
 	if ((section == "") || (section == "general")) {
 		// general settings
-		JsonObject generalObj = obj.createNestedObject("general");
+		JsonObject generalObj = obj["general"].to<JsonObject>();
 		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
@@ -836,21 +840,21 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
-		JsonObject equalizerObj = obj.createNestedObject("equalizer");
+		JsonObject equalizerObj = obj["equalizer"].to<JsonObject>();
 		equalizerObj["gainLowPass"].set(gPrefsSettings.getChar("gainLowPass", 0));
 		equalizerObj["gainBandPass"].set(gPrefsSettings.getChar("gainBandPass", 0));
 		equalizerObj["gainHighPass"].set(gPrefsSettings.getChar("gainHighPass", 0));
 	}
 	if ((section == "") || (section == "wifi")) {
 		// WiFi settings
-		JsonObject wifiObj = obj.createNestedObject("wifi");
+		JsonObject wifiObj = obj["wifi"].to<JsonObject>();
 		wifiObj["hostname"] = Wlan_GetHostname();
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
 	}
 	if (section == "ssids") {
 		// saved SSID's
-		JsonObject ssidsObj = obj.createNestedObject("ssids");
-		JsonArray ssidArr = ssidsObj.createNestedArray("savedSSIDs");
+		JsonObject ssidsObj = obj["ssids"].to<JsonObject>();
+		JsonArray ssidArr = ssidsObj["savedSSIDs"].to<JsonArray>();
 		Wlan_GetSavedNetworks([ssidArr](const WiFiSettings &network) {
 			ssidArr.add(network.ssid);
 		});
@@ -863,20 +867,20 @@ static void settingsToJSON(JsonObject obj, const String section) {
 #ifdef NEOPIXEL_ENABLE
 	if ((section == "") || (section == "led")) {
 		// LED settings
-		JsonObject ledObj = obj.createNestedObject("led");
+		JsonObject ledObj = obj["led"].to<JsonObject>();
 		ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 	}
 #endif
 	// playlist
 	if ((section == "") || (section == "playlist")) {
-		JsonObject playlistObj = obj.createNestedObject("playlist");
+		JsonObject playlistObj = obj["playlist"].to<JsonObject>();
 		playlistObj["sortMode"] = EnumUtils::underlying_value(AudioPlayer_GetPlaylistSortMode());
 	}
 #ifdef BATTERY_MEASURE_ENABLE
 	if ((section == "") || (section == "battery")) {
 		// battery settings
-		JsonObject batteryObj = obj.createNestedObject("battery");
+		JsonObject batteryObj = obj["battery"].to<JsonObject>();
 	#ifdef MEASURE_BATTERY_VOLTAGE
 		batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
@@ -891,8 +895,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 #endif
 	if (section == "defaults") {
 		// default factory settings NOTE: maintain the settings section structure as above to make it easier for clients to use
-		JsonObject defaultsObj = obj.createNestedObject("defaults");
-		JsonObject genSettings = defaultsObj.createNestedObject("general");
+		JsonObject defaultsObj = obj["defaults"].to<JsonObject>();
+		JsonObject genSettings = defaultsObj["general"].to<JsonObject>();
 		genSettings["initVolume"].set(3u); // AUDIOPLAYER_VOLUME_INIT
 		genSettings["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
@@ -903,19 +907,19 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
-		JsonObject eqSettings = defaultsObj.createNestedObject("equalizer");
+		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
 		eqSettings["gainLowPass"].set(0);
 #ifdef NEOPIXEL_ENABLE
-		JsonObject ledSettings = defaultsObj.createNestedObject("led");
+		JsonObject ledSettings = defaultsObj["led"].to<JsonObject>();
 		ledSettings["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		ledSettings["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
 #endif
-		JsonObject playlistSettings = defaultsObj.createNestedObject("playlist");
+		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));
 #ifdef BATTERY_MEASURE_ENABLE
-		JsonObject batSettings = defaultsObj.createNestedObject("battery");
+		JsonObject batSettings = defaultsObj["battery"].to<JsonObject>();
 	#ifdef MEASURE_BATTERY_VOLTAGE
 		batSettings["warnLowVoltage"].set(s_warningLowVoltage);
 		batSettings["indicatorLow"].set(s_voltageIndicatorLow);
@@ -930,7 +934,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 // FTP
 #ifdef FTP_ENABLE
 	if ((section == "") || (section == "ftp")) {
-		JsonObject ftpObj = obj.createNestedObject("ftp");
+		JsonObject ftpObj = obj["ftp"].to<JsonObject>();
 		ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
 		ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
 		ftpObj["maxUserLength"].set(ftpUserLength - 1);
@@ -940,7 +944,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 // MQTT
 #ifdef MQTT_ENABLE
 	if ((section == "") || (section == "mqtt")) {
-		JsonObject mqttObj = obj.createNestedObject("mqtt");
+		JsonObject mqttObj = obj["mqtt"].to<JsonObject>();
 		mqttObj["enable"].set(Mqtt_IsEnabled());
 		mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
 		mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
@@ -956,7 +960,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 // Bluetooth
 #ifdef BLUETOOTH_ENABLE
 	if ((section == "") || (section == "bluetooth")) {
-		JsonObject btObj = obj.createNestedObject("bluetooth");
+		JsonObject btObj = obj["bluetooth"].to<JsonObject>();
 		if (gPrefsSettings.isKey("btDeviceName")) {
 			btObj["deviceName"] = gPrefsSettings.getString("btDeviceName", "");
 		} else {
@@ -979,11 +983,11 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if (request->hasParam("section")) {
 		section = request->getParam("section")->value();
 	}
-	AsyncJsonResponse *response = new AsyncJsonResponse(false, 768);
+	AsyncJsonResponse *response = new AsyncJsonResponse(false);
 	JsonObject infoObj = response->getRoot();
 	// software
 	if ((section == "") || (section == "software")) {
-		JsonObject softwareObj = infoObj.createNestedObject("software");
+		JsonObject softwareObj = infoObj["software"].to<JsonObject>();
 		softwareObj["version"] = (String) softwareRevision;
 		softwareObj["git"] = (String) gitRevision;
 		softwareObj["arduino"] = String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH);
@@ -991,14 +995,14 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	}
 	// hardware
 	if ((section == "") || (section == "hardware")) {
-		JsonObject hardwareObj = infoObj.createNestedObject("hardware");
+		JsonObject hardwareObj = infoObj["hardware"].to<JsonObject>();
 		hardwareObj["model"] = String(ESP.getChipModel());
 		hardwareObj["revision"] = ESP.getChipRevision();
 		hardwareObj["freq"] = ESP.getCpuFreqMHz();
 	}
 	// memory
 	if ((section == "") || (section == "memory")) {
-		JsonObject memoryObj = infoObj.createNestedObject("memory");
+		JsonObject memoryObj = infoObj["memory"].to<JsonObject>();
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 #ifdef BOARD_HAS_PSRAM
@@ -1008,14 +1012,14 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
-		JsonObject wifiObj = infoObj.createNestedObject("wifi");
+		JsonObject wifiObj = infoObj["wifi"].to<JsonObject>();
 		wifiObj["ip"] = Wlan_GetIpAddress();
 		wifiObj["macAddress"] = Wlan_GetMacAddress();
 		wifiObj["rssi"] = (int8_t) Wlan_GetRssi();
 	}
 	// audio
 	if ((section == "") || (section == "audio")) {
-		JsonObject audioObj = infoObj.createNestedObject("audio");
+		JsonObject audioObj = infoObj["audio"].to<JsonObject>();
 		audioObj["playtimeTotal"] = AudioPlayer_GetPlayTimeAllTime();
 		audioObj["playtimeSinceStart"] = AudioPlayer_GetPlayTimeSinceStart();
 		audioObj["firstStart"] = gPrefsSettings.getULong("firstStart", 0);
@@ -1023,7 +1027,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 #ifdef BATTERY_MEASURE_ENABLE
 	// battery
 	if ((section == "") || (section == "battery")) {
-		JsonObject batteryObj = infoObj.createNestedObject("battery");
+		JsonObject batteryObj = infoObj["battery"].to<JsonObject>();
 		batteryObj["currVoltage"] = Battery_GetVoltage();
 		batteryObj["chargeLevel"] = Battery_EstimateLevel() * 100;
 	}
@@ -1031,7 +1035,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 #ifdef HALLEFFECT_SENSOR_ENABLE
 	if ((section == "") || (section == "hallsensor")) {
 		// hallsensor
-		JsonObject hallObj = infoObj.createNestedObject("hallsensor");
+		JsonObject hallObj = infoObj["hallsensor"].to<JsonObject>();
 		uint16_t sva = gHallEffectSensor.readSensorValueAverage(true);
 		int diff = sva - gHallEffectSensor.NullFieldValue();
 
@@ -1063,7 +1067,7 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 		section = request->getParam("section")->value();
 	}
 
-	AsyncJsonResponse *response = new AsyncJsonResponse(false, 2048);
+	AsyncJsonResponse *response = new AsyncJsonResponse(false);
 	JsonObject settingsObj = response->getRoot();
 	settingsToJSON(settingsObj, section);
 	if (response->overflowed()) {
@@ -1091,7 +1095,7 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 // returns memory and task runtime information as JSON
 void handleDebugRequest(AsyncWebServerRequest *request) {
 
-	AsyncJsonResponse *response = new AsyncJsonResponse(false, 2048);
+	AsyncJsonResponse *response = new AsyncJsonResponse(false);
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 	JsonObject infoObj = response->getRoot();
 	// task runtime info
@@ -1103,13 +1107,13 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 
 	uxTaskGetSystemState(task_status_arr, 20, &pulTotalRunTime);
 
-	JsonObject tasksObj = infoObj.createNestedObject("tasks");
+	JsonObject tasksObj = infoObj["tasks"].to<JsonObject>();
 	tasksObj["taskCount"] = taskNum;
 	tasksObj["totalRunTime"] = pulTotalRunTime;
-	JsonArray tasksList = tasksObj.createNestedArray("tasksList");
+	JsonArray tasksList = tasksObj["tasksList"].to<JsonArray>();
 
 	for (int i = 0; i < taskNum; i++) {
-		JsonObject taskObj = tasksList.createNestedObject();
+		JsonObject taskObj = tasksList.add<JsonObject>();
 
 		float ulStatsAsPercentage = 100.f * ((float) task_status_arr[i].ulRunTimeCounter / (float) pulTotalRunTime);
 
@@ -1137,9 +1141,10 @@ bool processJsonRequest(char *_serialJson) {
 		return false;
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(1000);
+	SpiRamAllocator allocator;
+	JsonDocument doc(&allocator);
 #else
-	StaticJsonDocument<1000> doc;
+	JsonDocument doc;
 #endif
 
 	DeserializationError error = deserializeJson(doc, _serialJson);
@@ -1164,9 +1169,10 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		return;
 	}
 #ifdef BOARD_HAS_PSRAM
-	SpiRamJsonDocument doc(1024);
+	SpiRamAllocator allocator;
+	JsonDocument doc(&allocator);
 #else
-	StaticJsonDocument<1024> doc;
+	JsonDocument doc;
 #endif
 	JsonObject object = doc.to<JsonObject>();
 
@@ -1184,7 +1190,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		// todo: battery percent + loading status +++
 		// object["battery"] = Battery_GetVoltage();
 	} else if (code == WebsocketCodeType::TrackInfo) {
-		JsonObject entry = object.createNestedObject("trackinfo");
+		JsonObject entry = object["trackinfo"].to<JsonObject>();
 		entry["pausePlay"] = gPlayProperties.pausePlay;
 		entry["currentTrackNumber"] = gPlayProperties.currentTrackNumber + 1;
 		entry["numberOfTracks"] = (gPlayProperties.playlist) ? gPlayProperties.playlist->size() : 0;
@@ -1197,13 +1203,13 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	} else if (code == WebsocketCodeType::Volume) {
 		object["volume"] = AudioPlayer_GetCurrentVolume();
 	} else if (code == WebsocketCodeType::Settings) {
-		JsonObject entry = object.createNestedObject("settings");
+		JsonObject entry = object["settings"].to<JsonObject>();
 		settingsToJSON(entry, "");
 	} else if (code == WebsocketCodeType::Ssid) {
-		JsonObject entry = object.createNestedObject("settings");
+		JsonObject entry = object["settings"].to<JsonObject>();
 		settingsToJSON(entry, "ssids");
 	} else if (code == WebsocketCodeType::TrackProgress) {
-		JsonObject entry = object.createNestedObject("trackProgress");
+		JsonObject entry = object["trackProgress"].to<JsonObject>();
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["time"] = AudioPlayer_GetCurrentTime();
 		entry["duration"] = AudioPlayer_GetFileDuration();
@@ -1506,20 +1512,14 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 
-#ifdef BOARD_HAS_PSRAM
-	const size_t buffSize = 65536;
-#else
-	const size_t buffSize = 8192;
-#endif
-	AsyncJsonResponse *response = new AsyncJsonResponse(true, buffSize);
-
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
 	JsonArray obj = response->getRoot();
 	bool isDir = false;
 	String MyfileName = root.getNextFileName(&isDir);
 	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
 		if (!MyfileName.startsWith("/.")) {
-			JsonObject entry = obj.createNestedObject();
+			JsonObject entry = obj.add<JsonObject>();
 			entry["name"] = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
 			if (isDir) {
 				entry["dir"].set(true);
@@ -1875,8 +1875,8 @@ static String tagIdToJsonStr(const char *key, const bool nameOnly) {
 	if (nameOnly) {
 		return "\"" + String(key) + "\"";
 	} else {
-		StaticJsonDocument<512> doc;
-		JsonObject entry = doc.createNestedObject(key);
+		JsonDocument doc;
+		JsonObject entry = doc[key].to<JsonObject>();
 		if (!tagIdToJSON(key, entry)) {
 			return "";
 		}
@@ -1968,7 +1968,7 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 	}
 	const char *_fileOrUrlAscii = fileOrUrl.c_str();
 	uint8_t _playModeOrModId;
-	if (jsonObj.containsKey("modId")) {
+	if (jsonObj["modId"].is<u_int8_t>()) {
 		_playModeOrModId = jsonObj["modId"];
 	} else {
 		_playModeOrModId = jsonObj["playMode"];
