@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 27.12.2024: Fix audio dropouts in BT-Source mode
+* 27.12.2024: ArduinoJson 7 (#357)
 * 18.12.2024: Use saved SSID as LAST_SSID, when no successfull connection was possible #355, thanks to @nona00 !
 * 18.12.2024: Check if #POWER defined, thanks to @QDaniel !
 * 18.12.2024: Prepare for Arduino 3.1.0
