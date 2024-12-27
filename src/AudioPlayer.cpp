@@ -900,12 +900,7 @@ void AudioPlayer_Task(void *parameter) {
 			// we are idle, update timeout so that we do not get a spurious error when launching into a playlist
 			playbackTimeoutStart = millis();
 		}
-		if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && audio->isRunning()) {
-			// do not delay here, audio task is time critical in BT-Source mode
-		} else {
-			vTaskDelay(portTICK_PERIOD_MS * 1);
-		}
-		// esp_task_wdt_reset(); // Don't forget to feed the dog!
+		vTaskDelay(portTICK_PERIOD_MS * 1);
 
 #ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 		static uint8_t resetOnNextIdle = false;
@@ -1446,19 +1441,8 @@ void audio_eof_speech(const char *info) {
 	gPlayProperties.currentSpeechActive = false;
 }
 
+// bitsPerSample always 16
+// channels always 2
 void audio_process_i2s(int16_t *outBuff, uint16_t validSamples, uint8_t bitsPerSample, uint8_t channels, bool *continueI2S) {
-
-	uint32_t sample;
-	for (int i = 0; i < validSamples; i++) {
-		if (channels == 2) {
-			// stereo
-			sample = (uint16_t(outBuff[i * 2]) << 16) | uint16_t(outBuff[i * 2 + 1]);
-			*continueI2S = !Bluetooth_Source_SendAudioData(&sample);
-		}
-		if (channels == 1) {
-			// mono
-			sample = (uint16_t(outBuff[i]) << 16) | uint16_t(outBuff[i]);
-			*continueI2S = !Bluetooth_Source_SendAudioData(&sample);
-		}
-	}
+	*continueI2S = !Bluetooth_Source_SendAudioData(outBuff, validSamples);
 }

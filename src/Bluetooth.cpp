@@ -132,6 +132,8 @@ int32_t get_data_channels(Frame *frame, int32_t channel_len) {
 		};
 		vRingbufferReturnItem(audioSourceRingBuffer, (void *) sampleBuff);
 	};
+	// avoid WDT reset & give audio/other tasks some CPU time
+	vTaskDelay(portTICK_PERIOD_MS * 1);
 	return channel_len;
 };
 #endif
@@ -186,7 +188,6 @@ void Bluetooth_Init(void) {
 				; // do nothing
 		}
 		a2dp_sink = new BluetoothA2DPSink(i2s);
-		a2dp_sink->set_rssi_calldoxback(rssi);
 	#else
 		a2dp_sink = new BluetoothA2DPSink();
 		i2s_pin_config_t pin_config = {
@@ -199,8 +200,8 @@ void Bluetooth_Init(void) {
 			.data_in_num = I2S_PIN_NO_CHANGE
 		};
 		a2dp_sink->set_pin_config(pin_config);
-		a2dp_sink->set_rssi_callback(rssi);
 	#endif
+		a2dp_sink->set_rssi_callback(rssi);
 		a2dp_sink->activate_pin_code(false);
 		if (gPrefsSettings.getBool("playMono", false)) {
 			a2dp_sink->set_mono_downmix(true);
@@ -325,11 +326,11 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 #endif
 }
 
-bool Bluetooth_Source_SendAudioData(uint32_t *sample) {
+bool Bluetooth_Source_SendAudioData(int16_t *outBuff, uint16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	// send audio data to ringbuffer
-	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()) {
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, sample, sizeof(uint32_t), (TickType_t) portMAX_DELAY));
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && (validSamples > 0) && a2dp_source->is_connected()) {
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, (TickType_t) portMAX_DELAY));
 	} else {
 		return false;
 	}
