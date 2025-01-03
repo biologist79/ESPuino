@@ -130,7 +130,6 @@ void Led_Init(void) {
 	// get dimmableStates from NVS
 	dimmableStates = gPrefsSettings.getUChar("dimmableStates", DIMMABLE_STATES);
 
-
 	// delete running task
 	if (Led_TaskHandle) {
 		vTaskDelete(Led_TaskHandle);
