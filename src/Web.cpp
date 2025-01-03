@@ -697,7 +697,9 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
-
+		success = success && (gPrefsSettings.putBool("ledReverseRot", ledObj["reverseRot"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putUChar("ledOffset", ledObj["offset"].as<uint8_t>()) != 0);
+		
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
@@ -974,6 +976,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START));
 		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END));
 		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES));
+		ledObj["reverseRot"].set(gPrefsSettings.getBool("ledReverseRot", false));
+		ledObj["offset"].set(gPrefsSettings.getUChar("ledOffset", 0));
 	}
 #endif
 	if ((section == "") || (section == "buttons")) {
@@ -1062,7 +1066,16 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["hueStart"].set(PROGRESS_HUE_START); // PROGRESS_HUE_START
 		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
 		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES
-
+	#ifdef NEOPIXEL_REVERSE_ROTATION
+		ledSettings["reverseRot"].set(true); 
+	#else
+		ledSettings["reverseRot"].set(false); 
+	#endif
+	#ifdef LED_OFFSET
+		ledSettings["offset"].set(LED_OFFSET); 
+	#else
+		ledSettings["offset"].set(false); 
+	#endif
 		JsonArray colorArr = ledSettings["controlColors"].to<JsonArray>();
 		std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
 		for (uint8_t controlLed = 0; controlLed < controlLedColors.size(); controlLed++) {

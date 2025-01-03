@@ -26,12 +26,6 @@
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t) indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator)	((Led_Indicators) &= ~(1u << ((uint8_t) indicator)))
 
-	#ifndef LED_OFFSET
-		#define LED_OFFSET 0
-	#elif LED_OFFSET < 0 || LED_OFFSET >= numIndicatorLeds
-		#error LED_OFFSET must be between 0 and numIndicatorLeds-1
-	#endif
-
 	// Time in milliseconds the volume indicator is visible
 	#define LED_VOLUME_INDICATOR_RETURN_DELAY 1000U
 	#define LED_VOLUME_INDICATOR_NUM_CYCLES	  (LED_VOLUME_INDICATOR_RETURN_DELAY / 20)
@@ -57,6 +51,8 @@ static bool offsetLedPause = OFFSET_PAUSE_LEDS;
 static int16_t progressHueStart = PROGRESS_HUE_START;
 static int16_t progressHueEnd = PROGRESS_HUE_END;
 static uint8_t dimmableStates = DIMMABLE_STATES;
+static bool neopixelReverseRotation;
+static uint8_t ledOffset;
 
 static uint8_t Led_IdleDotDistance = numIndicatorLeds / numIdleDots;
 
@@ -128,7 +124,27 @@ void Led_Init(void) {
 	offsetLedPause = gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS);
 
 	// get dimmableStates from NVS
-	dimmableStates = gPrefsSettings.getUChar("dimmableStates", DIMMABLE_STATES);
+	dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+
+	// get reverse rotation from NVS
+	#ifdef NEOPIXEL_REVERSE_ROTATION
+	const bool defReverseRotation = NEOPIXEL_REVERSE_ROTATION;
+	#else
+	const bool defReverseRotation = false;
+	#endif
+	neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", defReverseRotation);
+
+	// get LED offset from NVS
+	#ifdef LED_OFFSET
+	const uint8_t defLedOffset = LED_OFFSET;
+	#else
+	const uint8_t defLedOffset = 0;
+	#endif
+	ledOffset = gPrefsSettings.getUChar("ledOffset", defLedOffset);
+	if (ledOffset >= numIndicatorLeds) {
+		Log_Println("ledOffset must be between 0 and numIndicatorLeds-1", LOGLEVEL_ERROR);
+		return;
+	}
 
 	// delete running task
 	if (Led_TaskHandle) {
@@ -272,19 +288,19 @@ void Led_ToggleNightmode() {
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
 #ifdef NEOPIXEL_ENABLE
 uint8_t Led_Address(uint8_t number) {
-	#ifdef NEOPIXEL_REVERSE_ROTATION
-		#if LED_OFFSET > 0
-	return number <= LED_OFFSET - 1 ? LED_OFFSET - 1 - number : numIndicatorLeds + LED_OFFSET - 1 - number;
-		#else
-	return numIndicatorLeds - 1 - number;
-		#endif
-	#else
-		#if LED_OFFSET > 0
-	return number >= numIndicatorLeds - LED_OFFSET ? number + LED_OFFSET - numIndicatorLeds : number + LED_OFFSET;
-		#else
-	return number;
-		#endif
-	#endif
+	if (neopixelReverseRotation) {
+		if (ledOffset > 0) {
+			return number <= ledOffset - 1 ? ledOffset - 1 - number : numIndicatorLeds + ledOffset - 1 - number;
+		} else {
+			return numIndicatorLeds - 1 - number;
+		}
+	} else {
+		if (ledOffset > 0) {
+			return number >= numIndicatorLeds - ledOffset ? number + ledOffset - numIndicatorLeds : number + ledOffset;
+		} else {
+			return number;
+		}
+	}
 }
 #endif
 
