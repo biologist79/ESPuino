@@ -23,11 +23,19 @@ int32_t lastVolume = -1; // Don't change -1 as initial-value!
 void RotaryEncoder_Init(void) {
 // Init rotary encoder
 #ifdef USEROTARY_ENABLE
-	#ifndef REVERSE_ROTARY
-	encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
+	if (encoder.isAttached()) {
+		encoder.detach();
+	}
+	#ifdef REVERSE_ROTARY
+	const bool bReverse = true;
 	#else
-	encoder.attachHalfQuad(ROTARYENCODER_DT, ROTARYENCODER_CLK);
+	const bool bReverse = false;
 	#endif
+	if (gPrefsSettings.getBool("rotaryReverse", bReverse)) {
+		encoder.attachHalfQuad(ROTARYENCODER_DT, ROTARYENCODER_CLK);
+	} else {
+		encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
+	}
 	encoder.clearCount();
 #endif
 }

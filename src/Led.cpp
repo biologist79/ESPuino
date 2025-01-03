@@ -28,8 +28,8 @@
 
 	#ifndef LED_OFFSET
 		#define LED_OFFSET 0
-	#elif LED_OFFSET < 0 || LED_OFFSET >= NUM_INDICATOR_LEDS
-		#error LED_OFFSET must be between 0 and NUM_INDICATOR_LEDS-1
+	#elif LED_OFFSET < 0 || LED_OFFSET >= numIndicatorLeds
+		#error LED_OFFSET must be between 0 and numIndicatorLeds-1
 	#endif
 
 	// Time in milliseconds the volume indicator is visible
@@ -49,11 +49,20 @@ static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
 static bool Led_NightMode = false;
 static uint8_t Led_savedBrightness;
 
-constexpr uint8_t Led_IdleDotDistance = NUM_INDICATOR_LEDS / NUM_LEDS_IDLE_DOTS;
+// Default values configurable at runtime
+static uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
+static uint8_t numControlLeds = NUM_CONTROL_LEDS;
+static uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
+static bool offsetLedPause = OFFSET_PAUSE_LEDS;
+static int16_t progressHueStart = PROGRESS_HUE_START;
+static int16_t progressHueEnd = PROGRESS_HUE_END;
+static uint8_t dimmableStates = DIMMABLE_STATES;
 
-static CRGBArray<NUM_INDICATOR_LEDS + NUM_CONTROL_LEDS> leds;
-static CRGBSet indicator(leds(0, NUM_INDICATOR_LEDS - 1));
-static CRGBSet controlLeds(leds(NUM_INDICATOR_LEDS, NUM_INDICATOR_LEDS + NUM_CONTROL_LEDS - 1));
+static uint8_t Led_IdleDotDistance = numIndicatorLeds / numIdleDots;
+
+static CRGB *leds = nullptr;
+static CRGBSet *indicator = nullptr;
+static std::vector<CRGB::HTMLColorCode> controlLedColors;
 
 TaskHandle_t Led_TaskHandle;
 static void Led_Task(void *parameter);
@@ -101,6 +110,48 @@ void Led_Init(void) {
 		Log_Println(wroteNmBrightnessToNvs, LOGLEVEL_ERROR);
 	}
 
+	// Get the number of indicator LEDs from NVS
+	numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS);
+
+	// Get the number of control LEDs from NVS
+	numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
+
+	// Get the number of Led idle dots from NVS
+	numIdleDots = gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS);
+	if (numIdleDots == 0) {
+		// avoid division by zero
+		numIdleDots = 4;
+	}
+	Led_IdleDotDistance = numIndicatorLeds / numIdleDots;
+
+	// Get offset LED pause from NVS
+	offsetLedPause = gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS);
+
+	// get dimmableStates from NVS
+	dimmableStates = gPrefsSettings.getUChar("dimmableStates", DIMMABLE_STATES);
+
+
+	// delete running task
+	if (Led_TaskHandle) {
+		vTaskDelete(Led_TaskHandle);
+	}
+
+	// Allocate memory for LED arrays
+	delete (leds);
+	delete (indicator);
+	leds = new CRGB[numIndicatorLeds + numControlLeds];
+	indicator = new CRGBSet(leds, numIndicatorLeds);
+	controlLedColors = CONTROL_LEDS_COLORS;
+
+	// load control colors from NVS
+	if ((numControlLeds > 0) && gPrefsSettings.isKey("controlColors")) {
+		size_t keySize = gPrefsSettings.getBytesLength("controlColors");
+		if (keySize == (numControlLeds * sizeof(CRGB::HTMLColorCode))) {
+			controlLedColors.resize(numControlLeds);
+			gPrefsSettings.getBytes("controlColors", controlLedColors.data(), keySize);
+		}
+	}
+
 	xTaskCreatePinnedToCore(
 		Led_Task, /* Function to implement the task */
 		"Led_Task", /* Name of the task */
@@ -122,6 +173,9 @@ void Led_Exit(void) {
 	}
 	// Turn off LEDs in order to avoid LEDs still glowing when ESP32 is in deepsleep
 	FastLED.clear(true);
+	// cleanup memory
+	delete (leds);
+	delete (indicator);
 #endif
 }
 
@@ -221,13 +275,13 @@ void Led_ToggleNightmode() {
 uint8_t Led_Address(uint8_t number) {
 	#ifdef NEOPIXEL_REVERSE_ROTATION
 		#if LED_OFFSET > 0
-	return number <= LED_OFFSET - 1 ? LED_OFFSET - 1 - number : NUM_INDICATOR_LEDS + LED_OFFSET - 1 - number;
+	return number <= LED_OFFSET - 1 ? LED_OFFSET - 1 - number : numIndicatorLeds + LED_OFFSET - 1 - number;
 		#else
-	return NUM_INDICATOR_LEDS - 1 - number;
+	return numIndicatorLeds - 1 - number;
 		#endif
 	#else
 		#if LED_OFFSET > 0
-	return number >= NUM_INDICATOR_LEDS - LED_OFFSET ? number + LED_OFFSET - NUM_INDICATOR_LEDS : number + LED_OFFSET;
+	return number >= numIndicatorLeds - LED_OFFSET ? number + LED_OFFSET - numIndicatorLeds : number + LED_OFFSET;
 		#else
 	return number;
 		#endif
@@ -237,12 +291,11 @@ uint8_t Led_Address(uint8_t number) {
 
 #ifdef NEOPIXEL_ENABLE
 void Led_DrawControls() {
-	#if NUM_CONTROL_LEDS > 0
-	static CRGB::HTMLColorCode controlLedColors[NUM_CONTROL_LEDS] = CONTROL_LEDS_COLORS;
-	for (uint8_t controlLed = 0; controlLed < NUM_CONTROL_LEDS; controlLed++) {
-		controlLeds[controlLed] = controlLedColors[controlLed];
+	if (numControlLeds > 0) {
+		for (uint8_t controlLed = 0; controlLed < numControlLeds; controlLed++) {
+			leds[numIndicatorLeds + controlLed] = controlLedColors[controlLed];
+		}
 	}
-	#endif
 }
 #endif
 
@@ -254,7 +307,7 @@ void Led_SetButtonLedsEnabled(boolean value) {
 
 #ifdef NEOPIXEL_ENABLE
 CRGB Led_DimColor(CRGB color, uint8_t brightness) {
-	const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / DIMMABLE_STATES;
+	const uint8_t factor = uint16_t(brightness * __UINT8_MAX__) / dimmableStates;
 	return color.nscale8(factor);
 }
 CRGB::HTMLColorCode Led_GetIdleColor() {
@@ -279,7 +332,7 @@ CRGB::HTMLColorCode Led_GetIdleColor() {
 }
 
 void Led_DrawIdleDots(CRGBSet &leds, uint8_t offset, CRGB::HTMLColorCode color) {
-	for (uint8_t i = 0; i < NUM_LEDS_IDLE_DOTS; i++) {
+	for (uint8_t i = 0; i < numIdleDots; i++) {
 		leds[(Led_Address(offset) + i * Led_IdleDotDistance) % leds.size()] = color;
 	}
 }
@@ -297,7 +350,7 @@ bool CheckForPowerButtonAnimation() {
 #ifdef NEOPIXEL_ENABLE
 static void Led_Task(void *parameter) {
 	static uint8_t lastLedBrightness = Led_Brightness;
-	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, leds.size()).setCorrection(TypicalSMD5050);
+	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
 	FastLED.setBrightness(Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
 
@@ -383,67 +436,67 @@ static void Led_Task(void *parameter) {
 			// animate the current animation
 			switch (activeAnimation) {
 				case LedAnimationType::Boot:
-					ret = Animation_Boot(startNewAnimation, indicator);
+					ret = Animation_Boot(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Shutdown:
-					ret = Animation_Shutdown(startNewAnimation, indicator);
+					ret = Animation_Shutdown(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Error:
-					ret = Animation_Error(startNewAnimation, indicator);
+					ret = Animation_Error(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Ok:
-					ret = Animation_Ok(startNewAnimation, indicator);
+					ret = Animation_Ok(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Volume:
-					ret = Animation_Volume(startNewAnimation, indicator);
+					ret = Animation_Volume(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::VoltageWarning:
-					ret = Animation_VoltageWarning(startNewAnimation, indicator);
+					ret = Animation_VoltageWarning(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::BatteryMeasurement:
-					ret = Animation_BatteryMeasurement(startNewAnimation, indicator);
+					ret = Animation_BatteryMeasurement(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Rewind:
-					ret = Animation_Rewind(startNewAnimation, indicator);
+					ret = Animation_Rewind(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Playlist:
-					ret = Animation_PlaylistProgress(startNewAnimation, indicator);
+					ret = Animation_PlaylistProgress(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Idle:
-					ret = Animation_Idle(startNewAnimation, indicator);
+					ret = Animation_Idle(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Busy:
-					ret = Animation_Busy(startNewAnimation, indicator);
+					ret = Animation_Busy(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Speech:
-					ret = Animation_Speech(startNewAnimation, indicator);
+					ret = Animation_Speech(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Pause:
-					ret = Animation_Pause(startNewAnimation, indicator);
+					ret = Animation_Pause(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Progress:
-					ret = Animation_Progress(startNewAnimation, indicator);
+					ret = Animation_Progress(startNewAnimation, *indicator);
 					break;
 
 				case LedAnimationType::Webstream:
-					ret = Animation_Webstream(startNewAnimation, indicator);
+					ret = Animation_Webstream(startNewAnimation, *indicator);
 					break;
 
 				default:
-					indicator = CRGB::Black;
+					*indicator = CRGB::Black;
 					FastLED.show();
 					ret.animationActive = false;
 					ret.animationDelay = 50;
@@ -522,7 +575,7 @@ AnimationReturnType Animation_Shutdown(const bool startNewAnimation, CRGBSet &le
 		animationIndex = 0;
 	}
 
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		leds = CRGB::Black;
 		if (millis() - gButtons[gShutdownButton].firstPressedTimestamp <= intervalToLongPress) {
 			leds[0] = CRGB::Red;
@@ -578,7 +631,7 @@ AnimationReturnType Animation_Error(const bool startNewAnimation, CRGBSet &leds)
 		animationIndex = 0;
 	}
 
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		leds = CRGB::Black;
 		if (singleLedStatus) {
 			leds[0] = CRGB::Red;
@@ -616,7 +669,7 @@ AnimationReturnType Animation_Ok(const bool startNewAnimation, CRGBSet &leds) {
 		animationIndex = 0;
 	}
 
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		leds = CRGB::Black;
 		if (singleLedStatus) {
 			leds[0] = CRGB::Green;
@@ -691,7 +744,7 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 		if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 			generalColor = CRGB::Blue;
 		}
-		if constexpr (NUM_INDICATOR_LEDS == 1) {
+		if (numIndicatorLeds == 1) {
 			leds[0] = generalColor;
 		} else {
 			leds[Led_Address(ledPosWebstream)] = generalColor;
@@ -711,11 +764,11 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 			}
 			if (System_AreControlsLocked()) {
 				leds[Led_Address(ledPosWebstream)] = CRGB::Red;
-				if constexpr (NUM_INDICATOR_LEDS > 1) {
+				if (numIndicatorLeds > 1) {
 					leds[(Led_Address(ledPosWebstream) + leds.size() / 2) % leds.size()] = CRGB::Red;
 				}
 			} else {
-				if constexpr (NUM_INDICATOR_LEDS == 1) {
+				if (numIndicatorLeds == 1) {
 					leds[0].setHue(webstreamColor++);
 				} else {
 					if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
@@ -752,7 +805,7 @@ AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds
 		animationIndex = 0;
 	}
 
-	if constexpr (NUM_INDICATOR_LEDS >= 4) {
+	if (numIndicatorLeds >= 4) {
 		animationActive = true;
 
 		if (animationIndex < (leds.size())) {
@@ -814,7 +867,7 @@ AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGBSet &leds) 
 	if (startNewAnimation) {
 		animationIndex = 0;
 	}
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		leds = CRGB::Black;
 		singleLedStatus = !singleLedStatus;
 		if (singleLedStatus) {
@@ -850,8 +903,8 @@ AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGBSet &leds)
 	}
 
 	uint8_t pauseOffset = 0;
-	if (OFFSET_PAUSE_LEDS) {
-		pauseOffset = ((leds.size() / NUM_LEDS_IDLE_DOTS) / 2) - 1;
+	if (offsetLedPause) {
+		pauseOffset = ((leds.size() / numIdleDots) / 2) - 1;
 	}
 	Led_DrawIdleDots(leds, pauseOffset, generalColor);
 
@@ -867,8 +920,8 @@ AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds
 
 	leds = CRGB::Black;
 	uint8_t pauseOffset = 0;
-	if (OFFSET_PAUSE_LEDS) {
-		pauseOffset = ((leds.size() / NUM_LEDS_IDLE_DOTS) / 2) - 1;
+	if (offsetLedPause) {
+		pauseOffset = ((leds.size() / numIdleDots) / 2) - 1;
 	}
 	Led_DrawIdleDots(leds, pauseOffset, CRGB::Yellow);
 
@@ -887,24 +940,24 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 	if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
 		lastPos = gPlayProperties.currentRelPos;
 		leds = CRGB::Black;
-		if constexpr (NUM_INDICATOR_LEDS == 1) {
+		if (numIndicatorLeds == 1) {
 			leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
 		} else {
-			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
-			const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-			const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * dimmableStates), 0, leds.size() * dimmableStates);
+			const uint8_t fullLeds = ledValue / dimmableStates;
+			const uint8_t lastLed = ledValue % dimmableStates;
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
 				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-					leds[Led_Address(led)].setHue((uint8_t) (((float) PROGRESS_HUE_END - (float) PROGRESS_HUE_START) / (leds.size() - 1) * led + PROGRESS_HUE_START));
+					leds[Led_Address(led)].setHue((uint8_t) (((float) progressHueEnd - (float) progressHueStart) / (leds.size() - 1) * led + progressHueStart));
 				}
 			}
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
 				} else {
-					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) PROGRESS_HUE_END - (float) PROGRESS_HUE_START) / (leds.size() - 1) * fullLeds + PROGRESS_HUE_START));
+					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) progressHueEnd - (float) progressHueStart) / (leds.size() - 1) * fullLeds + progressHueStart));
 				}
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 			}
@@ -928,13 +981,13 @@ AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGBSet &leds
 	static uint16_t cyclesWaited = 0;
 
 	// wait for further volume changes within next 20ms for 50 cycles = 1s
-	const uint32_t ledValue = std::clamp<uint32_t>(map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
-	const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-	const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+	const uint32_t ledValue = std::clamp<uint32_t>(map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, leds.size() * dimmableStates), 0, leds.size() * dimmableStates);
+	const uint8_t fullLeds = ledValue / dimmableStates;
+	const uint8_t lastLed = ledValue % dimmableStates;
 
 	leds = CRGB::Black;
 
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		const uint8_t hue = 85 - (90 * ((double) AudioPlayer_GetCurrentVolume() / (double) AudioPlayer_GetMaxVolumeSpeaker()));
 		leds[0].setHue(hue);
 	} else {
@@ -981,12 +1034,12 @@ AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRG
 	static uint32_t staticLastBarLenghtPlaylist = 0; // variable to remember the last length of the progress-bar (for connecting animations)
 	static uint32_t staticLastTrack = 0; // variable to remember the last track (for connecting animations)
 
-	if constexpr (NUM_INDICATOR_LEDS >= 4) {
+	if (numIndicatorLeds >= 4) {
 		const uint16_t currentTrack = (gPlayProperties.playlist) ? gPlayProperties.playlist->size() : 0;
 		if (currentTrack > 1 && gPlayProperties.currentTrackNumber < currentTrack) {
-			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, currentTrack - 1, 0, leds.size() * DIMMABLE_STATES), 0, leds.size() * DIMMABLE_STATES);
-			const uint8_t fullLeds = ledValue / DIMMABLE_STATES;
-			const uint8_t lastLed = ledValue % DIMMABLE_STATES;
+			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentTrackNumber, 0, currentTrack - 1, 0, leds.size() * dimmableStates), 0, leds.size() * dimmableStates);
+			const uint8_t fullLeds = ledValue / dimmableStates;
+			const uint8_t lastLed = ledValue % dimmableStates;
 			static LedPlaylistProgressStates animationState = LedPlaylistProgressStates::Done; // Statemachine-variable of this animation
 
 			if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
@@ -1116,7 +1169,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 		leds = CRGB::Black;
 		refresh = true;
 	}
-	if constexpr (NUM_INDICATOR_LEDS == 1) {
+	if (numIndicatorLeds == 1) {
 		if (staticBatteryLevel < 0.3) {
 			leds[0] = CRGB::Red;
 		} else if (staticBatteryLevel < 0.6) {
