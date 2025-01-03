@@ -699,7 +699,7 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("ledReverseRot", ledObj["reverseRot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("ledOffset", ledObj["offset"].as<uint8_t>()) != 0);
-		
+
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
@@ -1067,14 +1067,14 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
 		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES
 	#ifdef NEOPIXEL_REVERSE_ROTATION
-		ledSettings["reverseRot"].set(true); 
+		ledSettings["reverseRot"].set(true);
 	#else
-		ledSettings["reverseRot"].set(false); 
+		ledSettings["reverseRot"].set(false);
 	#endif
 	#ifdef LED_OFFSET
-		ledSettings["offset"].set(LED_OFFSET); 
+		ledSettings["offset"].set(LED_OFFSET);
 	#else
-		ledSettings["offset"].set(false); 
+		ledSettings["offset"].set(false);
 	#endif
 		JsonArray colorArr = ledSettings["controlColors"].to<JsonArray>();
 		std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
