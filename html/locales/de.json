@@ -33,6 +33,56 @@
 		"tools": "Tools",
 		"help": "Hilfe"
 	},
+	"settingsex": {
+		"title": "Erweiterte Einstellungen",
+		"led": {
+			"title": "LED-Einstellungen",
+			"numindicator": "Anzahl Anzeige-LEDs",
+			"numcontrol": "Anzahl Kontroll-LEDs",
+			"controlled": "Kontroll-LED",
+			"numidledots": "Anzahl LEDs im Leerlauf",
+			"offsetpause": "Pausen-LEDs zentrieren",
+			"huestart": "Farbton-Start",
+			"hueend": "Farbton-Ende",
+			"dimmablestates": "Dimmbare Stufen",
+			"reverserotation": "Drehrichtung umkehren",
+			"offset": "Offset Start-LED"
+		},
+		"buttons": {
+			"title": "Taster-Zuordnungen",
+			"short": "kurz",
+			"long": "lang",
+			"noaction": "--",
+			"button0": "Next-Taste",
+			"button1": "Play/Pause-Taste",
+			"button2": "Prev-Taste",
+			"button3": "Drehenkoder-Taste",
+			"button4": "Btn4-Taste",
+			"button5": "Btn5-Taste"
+		},
+		"multibuttons": {
+			"title": "Multi-Taster Zuordnungen",
+			"01": "0+1 (Next + Play/Pause)",
+			"02": "0+2 (Next + Prev)",
+			"03": "0+3 (Next + Drehenkoder)",
+			"04": "0+4 (Next + Btn4)",
+			"05": "0+5 (Next + Btn5)",
+			"12": "1+2 (Play/Pause + Prev)",
+			"13": "1+3 (Play/Pause + Drehenkoder)",
+			"14": "1+4 (Play/Pause + Btn4)",
+			"15": "1+5 (Play/Pause + Btn5)",
+			"23": "2+3 (Prev + Drehenkoder)",
+			"24": "2+4 (Prev + Btn4)",
+			"25": "2+5 (Prev + Btn5)",
+			"34": "3+4 (Drehenkoder + Btn4)",
+			"35": "3+5 (Drehenkoder + Btn5)",
+			"45": "4+5 (Btn4 + Btn5)"
+		},
+		"rotary": {
+			"title": "Drehimpulsgeber",
+			"reverse": "Drehrichtung umkehren"
+		}
+	},
 	"wifi": {
 		"title": "WLAN-Einstellungen",
 		"networks": "Netzwerke",
@@ -152,7 +202,6 @@
 				"placeholder": "Modifikation auswählen",
 				"cmd": {
 					"100": "Tastensperre",
-					"179": "Schlafe sofort",
 					"101": "Schlafen nach 15 Minuten",
 					"102": "Schlafen nach 30 Minuten",
 					"103": "Schlafen nach 1 Stunde",
@@ -176,13 +225,21 @@
 					"172": "Nächster Titel",
 					"173": "Erster Titel",
 					"174": "Letzter Titel",
+					"175": "Initialie Lautstärke",
+					"176": "Lauter",
+					"177": "Leiser",
+					"178": "Batteriespannung anzeigen",
+					"179": "Schlafe sofort",
 					"180": "Springe vorwärts (n Sekunden)",
-					"181": "Springe rückwärts (n Sekunden)"
+					"181": "Springe rückwärts (n Sekunden)",
+					"182": "Stop",
+					"183": "Neustart",
+					"199": "Taskauslastung anzeigen"
 				}
 			}
 		}
 	},
-	"mqtt": {
+		"mqtt": {
 		"title": "MQTT-Einstellungen",
 		"enable": "MQTT aktivieren",
 		"clientId": {

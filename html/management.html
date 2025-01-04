@@ -1124,6 +1124,82 @@
 							</select>
 						</fieldset>
 					</div>
+					<p data-i18n="settingsex.title"></p>
+					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+						data-bs-target="#settingsExConfigContainer" aria-expanded="false"
+						aria-controls="settingsExConfigContainer" data-i18n="showhide"></button><br><br>
+					<span class="collapse" id="settingsExConfigContainer">
+					<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
+							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
+							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
+						</fieldset>
+					</div>
+					<div class="col-md-12 mb-4" id="settingsExConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
+							<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>: <br>
+							<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator" min="0" max="128"><br>
+							<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
+							<input type="number" class="form-control" id="led_numControl" name="led_numcontrol" min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
+							<div id="ControlColorList" style="display:none"></div>
+							<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
+							<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0" max="128"><br>
+							<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
+							<input type="number" class="form-control" id="led_hueStart" name="led_hueStart"><br>
+							<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
+							<input type="number" class="form-control" id="led_hueEnd" name="led_hueEnd"><br>
+							<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
+							<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
+							<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
+							<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart"><br>
+							<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
+							<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label><br>
+							<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">&nbsp;
+							<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label><br><br>	
+						</fieldset>
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.buttons.title"></legend><br>
+							<legend class="fs-5" data-i18n="settingsex.buttons.button0"></legend>
+							<label for="cmdselect_short_0" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_0" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_0" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_0" class="form-control form-select"></select><br><br>	
+							<legend class="fs-5" data-i18n="settingsex.buttons.button1"></legend>
+							<label for="cmdselect_short_1" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_1" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_1" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_1" class="form-control form-select"></select><br><br>	
+							<legend class="fs-5" data-i18n="settingsex.buttons.button2"></legend>
+							<label for="cmdselect_short_2" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_2" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_2" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_2" class="form-control form-select"></select><br><br>	
+							<legend class="fs-5" data-i18n="settingsex.buttons.button3"></legend>
+							<label for="cmdselect_short_3" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_3" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_3" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_3" class="form-control form-select"></select><br><br>	
+							<legend class="fs-5" data-i18n="settingsex.buttons.button4"></legend>
+							<label for="cmdselect_short_4" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_4" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_4" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_4" class="form-control form-select"></select><br><br>	
+							<legend class="fs-5" data-i18n="settingsex.buttons.button5"></legend>
+							<label for="cmdselect_short_5" data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_5" class="form-control form-select"></select><br>
+							<label for="cmdselect_long_5" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select id="cmdselect_long_5" class="form-control form-select"></select><br><br>	
+						</fieldset>
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
+							<label for="cmdselect_multi_01" data-i18n="settingsex.multibuttons.01"></label>:&nbsp;<select id="cmdselect_multi_01" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_02" data-i18n="settingsex.multibuttons.02"></label>:&nbsp;<select id="cmdselect_multi_02" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_03" data-i18n="settingsex.multibuttons.03"></label>:&nbsp;<select id="cmdselect_multi_03" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_04" data-i18n="settingsex.multibuttons.04"></label>:&nbsp;<select id="cmdselect_multi_04" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_05" data-i18n="settingsex.multibuttons.05"></label>:&nbsp;<select id="cmdselect_multi_05" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_12" data-i18n="settingsex.multibuttons.12"></label>:&nbsp;<select id="cmdselect_multi_12" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_13" data-i18n="settingsex.multibuttons.13"></label>:&nbsp;<select id="cmdselect_multi_13" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_14" data-i18n="settingsex.multibuttons.14"></label>:&nbsp;<select id="cmdselect_multi_14" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_15" data-i18n="settingsex.multibuttons.15"></label>:&nbsp;<select id="cmdselect_multi_15" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_23" data-i18n="settingsex.multibuttons.23"></label>:&nbsp;<select id="cmdselect_multi_23" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_24" data-i18n="settingsex.multibuttons.24"></label>:&nbsp;<select id="cmdselect_multi_24" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_25" data-i18n="settingsex.multibuttons.25"></label>:&nbsp;<select id="cmdselect_multi_25" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_34" data-i18n="settingsex.multibuttons.34"></label>:&nbsp;<select id="cmdselect_multi_34" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_35" data-i18n="settingsex.multibuttons.35"></label>:&nbsp;<select id="cmdselect_multi_35" class="form-control form-select"></select><br>
+							<label for="cmdselect_multi_45" data-i18n="settingsex.multibuttons.45"></label>:&nbsp;<select id="cmdselect_multi_45" class="form-control form-select"></select><br>
+						</fieldset>
+					</div>
+					</span>
 					<div class="text-center">
 						<button type="reset" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
@@ -2043,6 +2119,28 @@
 				}
 			};
 		}
+
+		function getHexColor(number){
+			return "#"+ ('000000' + ((number)>>>0).toString(16)).slice(-6);
+		}
+		
+		// list the LED control colors
+		function listControlColors(numControlColor, data) {
+			console.log(data);
+			var list = document.getElementById("ControlColorList");
+			var h = "";
+			var color = 0xffffff;
+			for (var i = 0; i < numControlColor; i++) {
+				if (data) {
+					color = data[i];
+				}
+				h += '<div>' + i18next.t("settingsex.led.controlled") + '&nbsp;' + (i + 1) + ':&nbsp;<input id="controlColor' + i + '" type="color" value="' + getHexColor(color) + '"/></div><br>';
+			}
+			h += "<br>";
+			list.innerHTML = h;
+			list.style.display = numControlColor > 0 ? null : "none";
+		}
+
 		async function fillSettings(settings) {
 			if (!settings) {
 				return false;
@@ -2101,11 +2199,58 @@
 				document.getElementById('neopixelConfig').setAttribute('data-visible', true);
 				$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
 				$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
+				document.getElementById('led_numIndicator').value = ledSettings.numIndicator;
+				document.getElementById('led_numControl').value = ledSettings.numControl;
+				listControlColors(ledSettings.numControl, ledSettings.controlColors);
+				document.getElementById('led_idleDots').value = ledSettings.numIdleDots;
+				document.getElementById('led_hueStart').value = ledSettings.hueStart;
+				document.getElementById('led_hueEnd').value = ledSettings.hueEnd;
+				document.getElementById('led_dimStates').value = ledSettings.dimStates;
+				$('#led_offsetPause').prop('checked', ledSettings.offsetPause);
+				$('#led_reverseRotation').prop('checked', ledSettings.reverseRot);
+				document.getElementById('led_offsetStart').value = ledSettings.offsetStart;				
 			}
 			// playlist
 			let playlistSettings = settings.playlist;
 			if (playlistSettings) {
 				$("#playlistSortMode").val(playlistSettings.sortMode).change();
+			}
+			// rotary encoder
+			let rotarySettings = settings.rotary;
+			if (rotarySettings) {
+				document.getElementById("rotaryConfig").style.display = null;
+				$('#rotaryReverse').prop('checked', rotarySettings.reverse);
+			}
+			// buttons
+			let buttonSettings = settings.buttons;
+			if (buttonSettings) {
+				document.getElementById("cmdselect_short_0").value = buttonSettings.short0;
+				document.getElementById("cmdselect_short_1").value = buttonSettings.short1;
+				document.getElementById("cmdselect_short_2").value = buttonSettings.short2;
+				document.getElementById("cmdselect_short_3").value = buttonSettings.short3;
+				document.getElementById("cmdselect_short_4").value = buttonSettings.short4;
+				document.getElementById("cmdselect_short_5").value = buttonSettings.short5;
+				document.getElementById("cmdselect_long_0").value = buttonSettings.long0;
+				document.getElementById("cmdselect_long_1").value = buttonSettings.long1;
+				document.getElementById("cmdselect_long_2").value = buttonSettings.long2;
+				document.getElementById("cmdselect_long_3").value = buttonSettings.long3;
+				document.getElementById("cmdselect_long_4").value = buttonSettings.long4;
+				document.getElementById("cmdselect_long_5").value = buttonSettings.long5;
+				document.getElementById("cmdselect_multi_01").value = buttonSettings.multi01;
+				document.getElementById("cmdselect_multi_02").value = buttonSettings.multi02;
+				document.getElementById("cmdselect_multi_03").value = buttonSettings.multi03;
+				document.getElementById("cmdselect_multi_04").value = buttonSettings.multi04;
+				document.getElementById("cmdselect_multi_05").value = buttonSettings.multi05;
+				document.getElementById("cmdselect_multi_12").value = buttonSettings.multi12;
+				document.getElementById("cmdselect_multi_13").value = buttonSettings.multi13;
+				document.getElementById("cmdselect_multi_14").value = buttonSettings.multi14;
+				document.getElementById("cmdselect_multi_15").value = buttonSettings.multi15;
+				document.getElementById("cmdselect_multi_23").value = buttonSettings.multi23;
+				document.getElementById("cmdselect_multi_24").value = buttonSettings.multi24;
+				document.getElementById("cmdselect_multi_25").value = buttonSettings.multi25;
+				document.getElementById("cmdselect_multi_34").value = buttonSettings.multi34;
+				document.getElementById("cmdselect_multi_35").value = buttonSettings.multi35;
+				document.getElementById("cmdselect_multi_45").value = buttonSettings.multi45;
 			}
 			// battery
 			let batSettings = settings.battery;
@@ -2156,8 +2301,8 @@
 			}
 		}
 		async function resetSettings() {
-			let defaults = await (await fetch("http://" + host + "/settings?section=defaults")).json();
-			fillSettings(defaults);
+			let obj = await (await fetch("http://" + host + "/settings?section=defaults")).json();
+			fillSettings(obj.defaults);
 		}
 		const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
 		async function rebuildSSIDList(data) {
@@ -2364,6 +2509,10 @@
 			}
 		}
 
+		function hexColorToInt(input) {
+  			return parseInt(input.replace(/^#([\da-f])([\da-f])([\da-f])$/i, '#$1$1$2$2$3$3').substring(1), 16);
+		};
+
 		function genSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
@@ -2381,7 +2530,17 @@
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),
-					nightBrightness: Number($('#nightBrightness').val())
+					nightBrightness: Number($('#nightBrightness').val()),
+					numIndicator: Number(document.getElementById("led_numIndicator").value),
+					numControl: Number(document.getElementById("led_numControl").value),
+					controlColors: [],
+					numIdleDots: Number(document.getElementById("led_idleDots").value),
+					hueStart: Number(document.getElementById("led_hueStart").value),
+					hueEnd: Number(document.getElementById("led_hueEnd").value),
+					dimStates: Number(document.getElementById("led_dimStates").value),
+					offsetPause: $('#led_offsetPause').prop('checked'),
+					reverseRot: $('#led_reverseRotation').prop('checked'),
+					offsetStart: Number(document.getElementById("led_offsetStart").value),
 				},
 				"battery": {
 					warnLowVoltage: Number($('#warningLowVoltage').val()),
@@ -2392,8 +2551,48 @@
 				},
 				"playlist": {
 					sortMode: Number($('#playlistSortMode').val())
+				},
+				"buttons": {
+					short0: Number(document.getElementById("cmdselect_short_0").value),
+					short1: Number(document.getElementById("cmdselect_short_1").value),
+					short2: Number(document.getElementById("cmdselect_short_2").value),
+					short3: Number(document.getElementById("cmdselect_short_3").value),
+					short4: Number(document.getElementById("cmdselect_short_4").value),
+					short5: Number(document.getElementById("cmdselect_short_5").value),
+					long0: Number(document.getElementById("cmdselect_long_0").value),
+					long1: Number(document.getElementById("cmdselect_long_1").value),
+					long2: Number(document.getElementById("cmdselect_long_2").value),
+					long3: Number(document.getElementById("cmdselect_long_3").value),
+					long4: Number(document.getElementById("cmdselect_long_4").value),
+					long5: Number(document.getElementById("cmdselect_long_5").value),
+					multi01: Number(document.getElementById("cmdselect_multi_01").value),
+					multi02: Number(document.getElementById("cmdselect_multi_02").value),
+					multi03: Number(document.getElementById("cmdselect_multi_03").value),
+					multi04: Number(document.getElementById("cmdselect_multi_04").value),
+					multi05: Number(document.getElementById("cmdselect_multi_05").value),
+					multi12: Number(document.getElementById("cmdselect_multi_12").value),
+					multi13: Number(document.getElementById("cmdselect_multi_13").value),
+					multi14: Number(document.getElementById("cmdselect_multi_14").value),
+					multi15: Number(document.getElementById("cmdselect_multi_15").value),
+					multi23: Number(document.getElementById("cmdselect_multi_23").value),
+					multi24: Number(document.getElementById("cmdselect_multi_24").value),
+					multi25: Number(document.getElementById("cmdselect_multi_25").value),
+					multi34: Number(document.getElementById("cmdselect_multi_34").value),
+					multi35: Number(document.getElementById("cmdselect_multi_35").value),
+					multi45: Number(document.getElementById("cmdselect_multi_45").value),
+				},			
+				"rotary": {
+					reverse: $('#rotaryReverse').prop('checked')
 				}
 			};
+			// fill LED control colors
+			for (var i = 0; i < myObj.led.numControl; i++){ 
+				var element = document.getElementById('controlColor' + i);
+				if (element) {
+					myObj.led.controlColors.push(hexColorToInt(element.value));
+				} 
+			}
+			console.log(myObj);
 			var myJSON = JSON.stringify(myObj);
 			// update global settings
 			window.settings = {
@@ -2855,6 +3054,28 @@
 					}
 				});
 			}
+
+			function addOption(selectelement, value) {
+				var opt = document.createElement("option");
+   				opt.value= value;
+				opt.setAttribute('data-i18n', "files.rfid.mod.cmd." + value);
+				selectelement.appendChild(opt);
+				return opt; 
+			}
+
+			function fillCommands(selectelement) {
+				var cmdNothing = addOption(selectelement, 0, "--");
+				cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
+				var cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111];
+				for(var i = 0; i < cmds.length; i++) {
+					addOption(selectelement, cmds[i]);
+				}
+			}
+			/* fill button commands */
+			document.querySelectorAll('[id*=cmdselect_]').forEach((element) => {
+					fillCommands(element);
+				});
+
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
 		});

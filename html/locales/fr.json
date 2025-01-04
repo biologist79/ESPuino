@@ -33,6 +33,56 @@
 		"tools": "Outils",
 		"help": "Aide"
 	},
+	"settingsex": {
+		"title": "Paramètres avancés",
+		"led": {
+			"title": "Réglages des LED",
+			"numindicator": "Nombre d'indicateurs LED",
+			"numcontrol": "Nombre de LED de contrôle",
+			"controlled": "LED de contrôle",
+			"numidledots": "Nombre de LED en état de veille",
+			"offsetpause": "LED pause centre",
+			"huestart": "Début de la couleur",
+			"hueend": "Fin de la couleur",
+			"dimmablestates": "Étapes à gradation",
+			"reverserotation": "Inversion du sens de rotation",
+			"offset": "Début de l'offset LED"
+		},
+		"buttons": {
+			"title": "Attribution des boutons",
+			"short": "presse courte",
+			"long": "appui long",
+			"noaction": "--",
+			"button0": "Bouton Next",
+			"button1": "Bouton Play/Pause",
+			"button2": "Bouton Prev",
+			"button3": "Bouton Encoder",
+			"button4": "Bouton Btn4",
+			"button5": "Bouton Btn5"
+		},
+		"multibuttons": {
+			"title": "Affectation des boutons multiples",
+			"01": "0+1 (Next + Play/Pause)",
+			"02": "0+2 (Next + Prev)",
+			"03": "0+3 (Next + Encoder)",
+			"04": "0+4 (Next + Btn4)",
+			"05": "0+5 (Next + Btn5)",
+			"12": "1+2 (Play/Pause + Prev)",
+			"13": "1+3 (Play/Pause + Encoder)",
+			"14": "1+4 (Play/Pause + Btn4)",
+			"15": "1+5 (Play/Pause + Btn5)",
+			"23": "2+3 (Prev + Encoder)",
+			"24": "2+4 (Prev + Btn4)",
+			"25": "2+5 (Prev + Btn5)",
+			"34": "3+4 (Encoder + Btn4)",
+			"35": "3+5 (Encoder + Btn5)",
+			"45": "4+5 (Btn4 + Btn5)"
+		},
+		"rotary": {
+			"title": "Codeur rotatif",
+			"reverse": "Inversion du sens de rotation"
+		}
+	},
 	"wifi": {
 		"title": "Configuration WiFi",
 		"networks": "Réseaux",
@@ -152,7 +202,6 @@
 				"placeholder": "Sélectionnez la modification",
 				"cmd": {
 					"100": "Verrouillage des touches",
-					"179": "Mise en veille immédiate",
 					"101": "Mise en veille après 15 minutes",
 					"102": "Mise en veille après 30 minutes",
 					"103": "Mise en veille après 1 heure",
@@ -176,6 +225,11 @@
 					"172": "Piste suivante",
 					"173": "Première piste",
 					"174": "Dernière piste",
+					"175": "Volume initial",
+					"176": "Louder",
+					"177": "Quieter",
+					"178": "Afficher la tension de la batterie",
+					"179": "Mise en veille immédiate",
 					"180": "Avancer de n secondes",
 					"181": "Reculer de n secondes"
 				}
