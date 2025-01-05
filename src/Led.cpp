@@ -127,8 +127,8 @@ void Led_Init(void) {
 	dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
 
 	// get hui start/end from NVS
-	progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START); 
-	progressHueEnd = gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END); 
+	progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
+	progressHueEnd = gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END);
 
 	// get reverse rotation from NVS
 	#ifdef NEOPIXEL_REVERSE_ROTATION
