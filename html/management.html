@@ -1143,7 +1143,10 @@
 							<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator" min="0" max="128"><br>
 							<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
 							<input type="number" class="form-control" id="led_numControl" name="led_numcontrol" min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
-							<div id="ControlColorList" style="display:none"></div>
+							<div id="controlColorList" class="mb-2 d-none"></div>
+							<div id="controlColorTemp" class="pb-2 d-none">
+								<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
+							</div>
 							<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
 							<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0" max="128"><br>
 							<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
@@ -2127,18 +2130,20 @@
 		// list the LED control colors
 		function listControlColors(numControlColor, data) {
 			console.log(data);
-			var list = document.getElementById("ControlColorList");
-			var h = "";
-			var color = 0xffffff;
-			for (var i = 0; i < numControlColor; i++) {
-				if (data) {
-					color = data[i];
+			const list = $("#controlColorList");
+			list.toggleClass("d-none", numControlColor <= 0).empty();
+			if (numControlColor > 0) {
+				const t = $("#controlColorTemp");
+				for (let i = 0; i < numControlColor; i++) {
+					const ledN = t.clone().removeClass("d-none");
+					const input = $("input", ledN).attr("id", `controlColor${i}`);
+					$(".ledNumber", ledN).text(i + 1);
+					if (data) {
+						input.val(getHexColor(data[i]));
+					}
+					list.append(ledN);
 				}
-				h += '<div>' + i18next.t("settingsex.led.controlled") + '&nbsp;' + (i + 1) + ':&nbsp;<input id="controlColor' + i + '" type="color" value="' + getHexColor(color) + '"/></div><br>';
 			}
-			h += "<br>";
-			list.innerHTML = h;
-			list.style.display = numControlColor > 0 ? null : "none";
 		}
 
 		async function fillSettings(settings) {
