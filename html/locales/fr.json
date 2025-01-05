@@ -226,12 +226,13 @@
 					"173": "Première piste",
 					"174": "Dernière piste",
 					"175": "Volume initial",
-					"176": "Louder",
-					"177": "Quieter",
+					"176": "Augmenter le volume",
+					"177": "Baisser le volume",
 					"178": "Afficher la tension de la batterie",
 					"179": "Mise en veille immédiate",
 					"180": "Avancer de n secondes",
-					"181": "Reculer de n secondes"
+					"181": "Reculer de n secondes",
+					"199": "Affichage de la charge de travail (console)"
 				}
 			}
 		}

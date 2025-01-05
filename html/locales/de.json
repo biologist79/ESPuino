@@ -225,7 +225,7 @@
 					"172": "Nächster Titel",
 					"173": "Erster Titel",
 					"174": "Letzter Titel",
-					"175": "Initialie Lautstärke",
+					"175": "Initiale Lautstärke",
 					"176": "Lauter",
 					"177": "Leiser",
 					"178": "Batteriespannung anzeigen",
@@ -234,7 +234,7 @@
 					"181": "Springe rückwärts (n Sekunden)",
 					"182": "Stop",
 					"183": "Neustart",
-					"199": "Taskauslastung anzeigen"
+					"199": "Taskauslastung anzeigen (Konsole)"
 				}
 			}
 		}

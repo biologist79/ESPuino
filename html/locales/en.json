@@ -41,7 +41,7 @@
 			"numcontrol": "Number of control LEDs",
 			"controlled": "Control-LED",
 			"numidledots": "Number of LEDs in idle state",
-			"offsetpause": "Centre pause LEDs",
+			"offsetpause": "Center pause LEDs",
 			"huestart": "Hue-Start",
 			"hueend": "Hue-End",
 			"dimmablestates": "Dimmable steps",
@@ -226,13 +226,13 @@
 					"173": "First track",
 					"174": "Last track",
 					"175": "Initial volume",
-					"176": "Louder",
-					"177": "Quieter",
+					"176": "Volume up",
+					"177": "Volume down",
 					"178": "Show battery voltage",
 					"179": "Sleep immediately",
 					"180": "Seek forwards (n seconds)",
 					"181": "Seek backwards (n seconds)",
-					"199": "Display task load"
+					"199": "Display task load (console)"
 				}
 			}
 		}
