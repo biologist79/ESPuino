@@ -42,8 +42,8 @@
 			"controlled": "Kontroll-LED",
 			"numidledots": "Anzahl LEDs im Leerlauf",
 			"offsetpause": "Pausen-LEDs zentrieren",
-			"huestart": "Farbton-Start",
-			"hueend": "Farbton-Ende",
+			"huestart": "Farbton-Start (Playlist-Fortschritt)",
+			"hueend": "Farbton-Ende (Playlist-Fortschritt)",
 			"dimmablestates": "Dimmbare Stufen",
 			"reverserotation": "Drehrichtung umkehren",
 			"offset": "Offset Start-LED"
@@ -81,6 +81,14 @@
 		"rotary": {
 			"title": "Drehimpulsgeber",
 			"reverse": "Drehrichtung umkehren"
+		},
+		"import": {
+			"title": "Import",
+			"desc": "Hier können die Einstellungen aus einer Datei importiert werden."
+		},
+		"export": {
+			"title": "Export",
+			"desc": "Hier kann eine Backup-Datei für alle Einstellungen heruntergeladen werden."
 		}
 	},
 	"wifi": {

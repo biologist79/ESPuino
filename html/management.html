@@ -80,6 +80,15 @@
 			top: -5px;
 		}
 
+		.hue-slider .slider-track {
+			background: linear-gradient(to right in hsl, #f00, #0f0, #0ff, #00f, #f00);
+		}
+
+		.hue-slider .slider-selection {
+			/* hide the white selection that would hide the gradient */
+			opacity: 0;
+		}
+
 		legend.scheduler-border {
 			width: inherit;
 			/* Or auto */
@@ -1150,9 +1159,15 @@
 							<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
 							<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0" max="128"><br>
 							<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
-							<input type="number" class="form-control" id="led_hueStart" name="led_hueStart"><br>
+							<div class="hue-slider">
+								<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1" data-slider-max="255"
+									min="-1" max="255" class="form-control" name="led_hueStart" data-slider-value="-1" value="-1">
+							</div>							
 							<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
-							<input type="number" class="form-control" id="led_hueEnd" name="led_hueEnd"><br>
+							<div class="hue-slider">
+								<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1" data-slider-max="255"
+									min="-1" max="255" class="form-control" name="led_hueEnd" data-slider-value="-1" value="-1">
+							</div>							
 							<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
 							<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
 							<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
@@ -2208,8 +2223,8 @@
 				document.getElementById('led_numControl').value = ledSettings.numControl;
 				listControlColors(ledSettings.numControl, ledSettings.controlColors);
 				document.getElementById('led_idleDots').value = ledSettings.numIdleDots;
-				document.getElementById('led_hueStart').value = ledSettings.hueStart;
-				document.getElementById('led_hueEnd').value = ledSettings.hueEnd;
+				$('#led_hueStart').bootstrapSlider('setValue', ledSettings.hueStart);
+				$('#led_hueEnd').bootstrapSlider('setValue', ledSettings.hueEnd);
 				document.getElementById('led_dimStates').value = ledSettings.dimStates;
 				$('#led_offsetPause').prop('checked', ledSettings.offsetPause);
 				$('#led_reverseRotation').prop('checked', ledSettings.reverseRot);
@@ -2540,8 +2555,8 @@
 					numControl: Number(document.getElementById("led_numControl").value),
 					controlColors: [],
 					numIdleDots: Number(document.getElementById("led_idleDots").value),
-					hueStart: Number(document.getElementById("led_hueStart").value),
-					hueEnd: Number(document.getElementById("led_hueEnd").value),
+					hueStart: Number($('#led_hueStart').val()),
+					hueEnd: Number($('#led_hueEnd').val()),
 					dimStates: Number(document.getElementById("led_dimStates").value),
 					offsetPause: $('#led_offsetPause').prop('checked'),
 					reverseRot: $('#led_reverseRotation').prop('checked'),

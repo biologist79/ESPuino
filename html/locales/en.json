@@ -42,8 +42,8 @@
 			"controlled": "Control-LED",
 			"numidledots": "Number of LEDs in idle state",
 			"offsetpause": "Center pause LEDs",
-			"huestart": "Hue-Start",
-			"hueend": "Hue-End",
+			"huestart": "Hue-Start for playlist progress",
+			"hueend": "Hue-End for playlist progress",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
 			"offset": "Offset start LED"
