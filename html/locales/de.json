@@ -81,14 +81,6 @@
 		"rotary": {
 			"title": "Drehimpulsgeber",
 			"reverse": "Drehrichtung umkehren"
-		},
-		"import": {
-			"title": "Import",
-			"desc": "Hier können die Einstellungen aus einer Datei importiert werden."
-		},
-		"export": {
-			"title": "Export",
-			"desc": "Hier kann eine Backup-Datei für alle Einstellungen heruntergeladen werden."
 		}
 	},
 	"wifi": {
