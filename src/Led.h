@@ -71,7 +71,7 @@ struct LedSettings {
 	uint8_t ledOffset;
 	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 	bool Led_NightMode = false;
-}; 
+};
 
 void Led_Init(void);
 void Led_Exit(void);
