@@ -20,9 +20,6 @@
 #ifdef NEOPIXEL_ENABLE
 	#include <FastLED.h>
 
-	#define LED_INITIAL_BRIGHTNESS		 16u
-	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
-
 	#define LED_INDICATOR_SET(indicator)	((Led_Indicators) |= (1u << ((uint8_t) indicator)))
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t) indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator)	((Led_Indicators) &= ~(1u << ((uint8_t) indicator)))
@@ -35,10 +32,6 @@ extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5
 extern uint8_t gShutdownButton;
 
 static uint32_t Led_Indicators = 0u;
-
-static uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
-static uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
-static uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
 static uint8_t Led_savedBrightness;
 
 // global led settings
@@ -68,6 +61,28 @@ AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds
 
 #ifdef NEOPIXEL_ENABLE
 bool Led_LoadSettings(LedSettings &settings) {
+	// Get some stuff from NVS...
+	// Get initial LED-brightness from NVS
+	uint8_t nvsILedBrightness = gPrefsSettings.getUChar("iLedBrightness", 0);
+	if (nvsILedBrightness) {
+		settings.Led_InitialBrightness = nvsILedBrightness;
+		settings.Led_Brightness = nvsILedBrightness;
+		Log_Printf(LOGLEVEL_INFO, initialBrightnessfromNvs, nvsILedBrightness);
+	} else {
+		gPrefsSettings.putUChar("iLedBrightness", settings.Led_InitialBrightness);
+		Log_Println(wroteInitialBrightnessToNvs, LOGLEVEL_ERROR);
+	}
+
+	// Get night LED-brightness from NVS
+	uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
+	if (nvsNLedBrightness != 255) {
+		settings.Led_NightBrightness = nvsNLedBrightness;
+		Log_Printf(LOGLEVEL_INFO, restoredInitialBrightnessForNmFromNvs, nvsNLedBrightness);
+	} else {
+		gPrefsSettings.putUChar("nLedBrightness", settings.Led_NightBrightness);
+		Log_Println(wroteNmBrightnessToNvs, LOGLEVEL_ERROR);
+	}
+
 	// Get the number of indicator LEDs from NVS
 	settings.numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS);
 
@@ -133,28 +148,6 @@ void Led_Init(void) {
 		return;
 	}
 
-	// Get some stuff from NVS...
-	// Get initial LED-brightness from NVS
-	uint8_t nvsILedBrightness = gPrefsSettings.getUChar("iLedBrightness", 0);
-	if (nvsILedBrightness) {
-		Led_InitialBrightness = nvsILedBrightness;
-		Led_Brightness = nvsILedBrightness;
-		Log_Printf(LOGLEVEL_INFO, initialBrightnessfromNvs, nvsILedBrightness);
-	} else {
-		gPrefsSettings.putUChar("iLedBrightness", Led_InitialBrightness);
-		Log_Println(wroteInitialBrightnessToNvs, LOGLEVEL_ERROR);
-	}
-
-	// Get night LED-brightness from NVS
-	uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
-	if (nvsNLedBrightness != 255) {
-		Led_NightBrightness = nvsNLedBrightness;
-		Log_Printf(LOGLEVEL_INFO, restoredInitialBrightnessForNmFromNvs, nvsNLedBrightness);
-	} else {
-		gPrefsSettings.putUChar("nLedBrightness", Led_NightBrightness);
-		Log_Println(wroteNmBrightnessToNvs, LOGLEVEL_ERROR);
-	}
-
 	// load led settings from NVS
 	Led_LoadSettings(gLedSettings);
 
@@ -197,8 +190,8 @@ void Led_SetPause(boolean value) {
 // Used to reset brightness to initial value after prevously active sleepmode was left
 void Led_ResetToInitialBrightness(void) {
 #ifdef NEOPIXEL_ENABLE
-	if (Led_Brightness == Led_NightBrightness || Led_Brightness == 0) { // Only reset to initial value if brightness wasn't intentionally changed (or was zero)
-		Led_Brightness = Led_InitialBrightness;
+	if (gLedSettings.Led_Brightness == gLedSettings.Led_NightBrightness || gLedSettings.Led_Brightness == 0) { // Only reset to initial value if brightness wasn't intentionally changed (or was zero)
+		gLedSettings.Led_Brightness = gLedSettings.Led_InitialBrightness;
 		Log_Println(ledsDimmedToInitialValue, LOGLEVEL_INFO);
 	}
 #endif
@@ -209,7 +202,7 @@ void Led_ResetToInitialBrightness(void) {
 
 void Led_ResetToNightBrightness(void) {
 #ifdef NEOPIXEL_ENABLE
-	Led_Brightness = Led_NightBrightness;
+	gLedSettings.Led_Brightness = gLedSettings.Led_NightBrightness;
 	Log_Println(ledsDimmedToNightmode, LOGLEVEL_INFO);
 #endif
 #ifdef BUTTONS_LED
@@ -219,7 +212,7 @@ void Led_ResetToNightBrightness(void) {
 
 uint8_t Led_GetBrightness(void) {
 #ifdef NEOPIXEL_ENABLE
-	return Led_Brightness;
+	return gLedSettings.Led_Brightness;
 #else
 	return 0u;
 #endif
@@ -227,7 +220,7 @@ uint8_t Led_GetBrightness(void) {
 
 void Led_SetBrightness(uint8_t value) {
 #ifdef NEOPIXEL_ENABLE
-	Led_Brightness = value;
+	gLedSettings.Led_Brightness = value;
 	#ifdef BUTTONS_LED
 	Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
 	#endif
@@ -249,9 +242,9 @@ void Led_SetNightmode(bool enabled) {
 	uint8_t newValue = Led_savedBrightness;
 	if (enabled) {
 		// we are switching to night mode
-		Led_savedBrightness = Led_Brightness;
+		Led_savedBrightness = gLedSettings.Led_Brightness;
 		msg = ledsDimmedToNightmode;
-		newValue = Led_NightBrightness;
+		newValue = gLedSettings.Led_NightBrightness;
 	}
 	gLedSettings.Led_NightMode = enabled;
 	Led_SetBrightness(newValue);
@@ -353,7 +346,7 @@ bool CheckForPowerButtonAnimation() {
 
 #ifdef NEOPIXEL_ENABLE
 static void Led_Task(void *parameter) {
-	static uint8_t lastLedBrightness = Led_Brightness;
+	static uint8_t lastLedBrightness = gLedSettings.Led_Brightness;
 	static CRGB *leds = nullptr;
 	static CRGBSet *indicator = nullptr;
 
@@ -364,7 +357,7 @@ static void Led_Task(void *parameter) {
 	indicator = new CRGBSet(leds, numIndicatorLeds);
 	// initialize FastLED
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
-	FastLED.setBrightness(Led_Brightness);
+	FastLED.setBrightness(gLedSettings.Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
 
 	LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
@@ -456,9 +449,9 @@ static void Led_Task(void *parameter) {
 		}
 
 		// apply brightness-changes
-		if (lastLedBrightness != Led_Brightness) {
-			FastLED.setBrightness(Led_Brightness);
-			lastLedBrightness = Led_Brightness;
+		if (lastLedBrightness != gLedSettings.Led_Brightness) {
+			FastLED.setBrightness(gLedSettings.Led_Brightness);
+			lastLedBrightness = gLedSettings.Led_Brightness;
 		}
 
 		// when there is no delay anymore we have to animate something
