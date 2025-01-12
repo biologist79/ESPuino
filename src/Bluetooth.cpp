@@ -180,6 +180,7 @@ void Bluetooth_Init(void) {
 #ifdef BLUETOOTH_ENABLE
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 	// bluetooth in sink mode (player acts as a BT-Speaker)
+	a2dp_sink = new BluetoothA2DPSink();
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 		i2s.setPins(I2S_BCLK, I2S_LRC, I2S_DOUT);
 		if (!i2s.begin(I2S_MODE_STD, 44100, I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO, I2S_STD_SLOT_BOTH)) {
@@ -187,9 +188,8 @@ void Bluetooth_Init(void) {
 			while (1)
 				; // do nothing
 		}
-		a2dp_sink = new BluetoothA2DPSink(i2s);
+		a2dp_sink->set_output(i2s);
 	#else
-		a2dp_sink = new BluetoothA2DPSink();
 		i2s_pin_config_t pin_config = {
 		#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0)
 			.mck_io_num = 0,
