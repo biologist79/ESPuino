@@ -179,8 +179,8 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 void Bluetooth_Init(void) {
 #ifdef BLUETOOTH_ENABLE
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-	// bluetooth in sink mode (player acts as a BT-Speaker)
-	a2dp_sink = new BluetoothA2DPSink();
+		// bluetooth in sink mode (player acts as a BT-Speaker)
+		a2dp_sink = new BluetoothA2DPSink();
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 		i2s.setPins(I2S_BCLK, I2S_LRC, I2S_DOUT);
 		if (!i2s.begin(I2S_MODE_STD, 44100, I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO, I2S_STD_SLOT_BOTH)) {
@@ -197,8 +197,7 @@ void Bluetooth_Init(void) {
 			.bck_io_num = I2S_BCLK,
 			.ws_io_num = I2S_LRC,
 			.data_out_num = I2S_DOUT,
-			.data_in_num = I2S_PIN_NO_CHANGE
-		};
+			.data_in_num = I2S_PIN_NO_CHANGE};
 		a2dp_sink->set_pin_config(pin_config);
 	#endif
 		a2dp_sink->set_rssi_callback(rssi);
