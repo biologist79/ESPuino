@@ -11,6 +11,9 @@
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
 #include "EnumUtils.h"
+#ifdef NEOPIXEL_ENABLE
+	#include <FastLED.h>
+#endif
 #include "Ftp.h"
 #include "HTMLbinary.h"
 #include "HallEffectSensor.h"
@@ -19,6 +22,7 @@
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Rfid.h"
+#include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
@@ -638,7 +642,17 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc["general"].is<JsonObject>()) {
 		// general settings
-		if (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) == 0 || gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) == 0 || gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) == 0 || gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) == 0 || gPrefsSettings.putBool("pauseOnMinVol", doc["general"]["pauseOnMinVol"].as<bool>()) == 0 || gPrefsSettings.putBool("recoverVolBoot", doc["general"]["recoverVolBoot"].as<bool>()) == 0 || gPrefsSettings.putUChar("volumeCurve", doc["general"]["volumeCurve"].as<uint8_t>()) == 0) {
+		bool success = (gPrefsSettings.putUInt("initVolume", doc["general"]["initVolume"].as<uint8_t>()) != 0);
+		success = success || (gPrefsSettings.putUInt("maxVolumeSp", doc["general"]["maxVolumeSp"].as<uint8_t>()) != 0);
+		success = success || (gPrefsSettings.putUInt("maxVolumeHp", doc["general"]["maxVolumeHp"].as<uint8_t>()) != 0);
+		success = success || (gPrefsSettings.putUInt("mInactiviyT", doc["general"]["sleepInactivity"].as<uint8_t>()) != 0);
+		success = success || (gPrefsSettings.putBool("playMono", doc["general"]["playMono"].as<bool>()) != 0);
+		success = success || (gPrefsSettings.putBool("savePosShutdown", doc["general"]["savePosShutdown"].as<bool>()) != 0);
+		success = success || (gPrefsSettings.putBool("savePosRfidChge", doc["general"]["savePosRfidChge"].as<bool>()) != 0);
+		success = success || (gPrefsSettings.putBool("pauseOnMinVol", doc["general"]["pauseOnMinVol"].as<bool>()) != 0);
+		success = success || (gPrefsSettings.putBool("recoverVolBoot", doc["general"]["recoverVolBoot"].as<bool>()) != 0);
+		success = success || (gPrefsSettings.putUChar("volumeCurve", doc["general"]["volumeCurve"].as<uint8_t>()) != 0);
+		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
 		}
@@ -673,10 +687,82 @@ bool JSONToSettings(JsonObject doc) {
 	}
 	if (doc["led"].is<JsonObject>()) {
 		// Neopixel settings
-		if (gPrefsSettings.putUChar("iLedBrightness", doc["led"]["initBrightness"].as<uint8_t>()) == 0 || gPrefsSettings.putUChar("nLedBrightness", doc["led"]["nightBrightness"].as<uint8_t>()) == 0) {
+		JsonObject ledObj = doc["led"];
+		bool success = (gPrefsSettings.putUChar("iLedBrightness", ledObj["initBrightness"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("nLedBrightness", ledObj["nightBrightness"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("numIndicator", ledObj["numIndicator"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
+		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putBool("ledReverseRot", ledObj["reverseRot"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putUChar("ledOffset", ledObj["offsetStart"].as<uint8_t>()) != 0);
+
+		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return false;
 		}
+		// write led control color array to NVS.
+		JsonArray colorArr = ledObj["controlColors"].as<JsonArray>();
+		if (colorArr.size() == 0) {
+			if (gPrefsSettings.isKey("controlColors")) {
+				gPrefsSettings.remove("controlColors");
+			}
+			gPrefsSettings.putUChar("numControl", 0);
+		} else {
+			std::vector<uint32_t> controlLedColors;
+			for (uint8_t controlLed = 0; controlLed < colorArr.size(); controlLed++) {
+				controlLedColors.push_back(colorArr[controlLed].as<uint32_t>());
+			}
+			gPrefsSettings.putBytes("controlColors", controlLedColors.data(), controlLedColors.size() * sizeof(uint32_t));
+		}
+		Led_Init();
+	}
+	if (doc["buttons"].is<JsonObject>()) {
+		// buttons
+		JsonObject buttonsObj = doc["buttons"];
+		bool success = (gPrefsSettings.putUChar("btnShort0", buttonsObj["short0"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort1", buttonsObj["short1"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort2", buttonsObj["short2"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort3", buttonsObj["short3"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort4", buttonsObj["short4"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort5", buttonsObj["short5"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong0", buttonsObj["long0"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong1", buttonsObj["long1"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong2", buttonsObj["long2"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong3", buttonsObj["long3"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong4", buttonsObj["long4"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong5", buttonsObj["long5"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti01", buttonsObj["multi01"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti02", buttonsObj["multi02"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti03", buttonsObj["multi03"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti04", buttonsObj["multi04"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti05", buttonsObj["multi05"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti12", buttonsObj["multi12"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti13", buttonsObj["multi13"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti14", buttonsObj["multi14"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti15", buttonsObj["multi15"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti23", buttonsObj["multi23"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti24", buttonsObj["multi24"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti25", buttonsObj["multi25"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti34", buttonsObj["multi34"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti35", buttonsObj["multi35"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti45", buttonsObj["multi45"].as<uint8_t>()) != 0);
+
+		if (!success) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "buttons");
+			return false;
+		}
+	}
+	if (doc["rotary"].is<JsonObject>()) {
+		// Rotary encoder
+		if (gPrefsSettings.putBool("rotaryReverse", doc["rotary"]["reverse"].as<bool>()) == 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rotary");
+			return false;
+		}
+		RotaryEncoder_Init();
 	}
 	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
@@ -870,8 +956,69 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject ledObj = obj["led"].to<JsonObject>();
 		ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
+		ledObj["numIndicator"].set(gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS));
+		uint8_t numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
+		ledObj["numControl"].set(numControlLeds);
+		if (numControlLeds > 0) {
+			// get control led colors from NVS
+			std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+			size_t keySize = gPrefsSettings.getBytesLength("controlColors");
+			if (keySize == (numControlLeds * sizeof(CRGB::HTMLColorCode))) {
+				controlLedColors.resize(numControlLeds);
+				gPrefsSettings.getBytes("controlColors", controlLedColors.data(), keySize);
+			}
+			if (controlLedColors.size() > 0) {
+				JsonArray colorArr = ledObj["controlColors"].to<JsonArray>();
+				for (uint8_t controlLed = 0; controlLed < controlLedColors.size(); controlLed++) {
+					colorArr.add(controlLedColors[controlLed]);
+				}
+			}
+		}
+		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS));
+		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS));
+		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START));
+		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END));
+		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES));
+		ledObj["reverseRot"].set(gPrefsSettings.getBool("ledReverseRot", false));
+		ledObj["offsetStart"].set(gPrefsSettings.getUChar("ledOffset", 0));
 	}
 #endif
+	if ((section == "") || (section == "buttons")) {
+		// button settings
+		JsonObject buttonsObj = obj["buttons"].to<JsonObject>();
+		buttonsObj["short0"].set(gPrefsSettings.getUChar("btnShort0", BUTTON_0_SHORT));
+		buttonsObj["short1"].set(gPrefsSettings.getUChar("btnShort1", BUTTON_1_SHORT));
+		buttonsObj["short2"].set(gPrefsSettings.getUChar("btnShort2", BUTTON_2_SHORT));
+		buttonsObj["short3"].set(gPrefsSettings.getUChar("btnShort3", BUTTON_3_SHORT));
+		buttonsObj["short4"].set(gPrefsSettings.getUChar("btnShort4", BUTTON_4_SHORT));
+		buttonsObj["short5"].set(gPrefsSettings.getUChar("btnShort5", BUTTON_5_SHORT));
+		buttonsObj["long0"].set(gPrefsSettings.getUChar("btnLong0", BUTTON_0_LONG));
+		buttonsObj["long1"].set(gPrefsSettings.getUChar("btnLong1", BUTTON_1_LONG));
+		buttonsObj["long2"].set(gPrefsSettings.getUChar("btnLong2", BUTTON_2_LONG));
+		buttonsObj["long3"].set(gPrefsSettings.getUChar("btnLong3", BUTTON_3_LONG));
+		buttonsObj["long4"].set(gPrefsSettings.getUChar("bttLong4", BUTTON_4_LONG));
+		buttonsObj["long5"].set(gPrefsSettings.getUChar("btnLong5", BUTTON_5_LONG));
+		buttonsObj["multi01"].set(gPrefsSettings.getUChar("btnMulti01", BUTTON_MULTI_01));
+		buttonsObj["multi02"].set(gPrefsSettings.getUChar("btnMulti02", BUTTON_MULTI_02));
+		buttonsObj["multi03"].set(gPrefsSettings.getUChar("btnMulti03", BUTTON_MULTI_03));
+		buttonsObj["multi04"].set(gPrefsSettings.getUChar("btnMulti04", BUTTON_MULTI_04));
+		buttonsObj["multi05"].set(gPrefsSettings.getUChar("btnMulti05", BUTTON_MULTI_05));
+		buttonsObj["multi12"].set(gPrefsSettings.getUChar("btnMulti12", BUTTON_MULTI_12));
+		buttonsObj["multi13"].set(gPrefsSettings.getUChar("btnMulti13", BUTTON_MULTI_13));
+		buttonsObj["multi14"].set(gPrefsSettings.getUChar("btnMulti14", BUTTON_MULTI_14));
+		buttonsObj["multi15"].set(gPrefsSettings.getUChar("btnMulti15", BUTTON_MULTI_15));
+		buttonsObj["multi23"].set(gPrefsSettings.getUChar("btnMulti23", BUTTON_MULTI_23));
+		buttonsObj["multi24"].set(gPrefsSettings.getUChar("btnMulti24", BUTTON_MULTI_24));
+		buttonsObj["multi25"].set(gPrefsSettings.getUChar("btnMulti25", BUTTON_MULTI_25));
+		buttonsObj["multi34"].set(gPrefsSettings.getUChar("btnMulti34", BUTTON_MULTI_34));
+		buttonsObj["multi35"].set(gPrefsSettings.getUChar("btnMulti35", BUTTON_MULTI_35));
+		buttonsObj["multi45"].set(gPrefsSettings.getUChar("btnMulti45", BUTTON_MULTI_45));
+	}
+	if ((section == "") || (section == "rotary")) {
+		// Rotary encoder
+		JsonObject rotaryObj = obj["rotary"].to<JsonObject>();
+		rotaryObj["reverse"].set(gPrefsSettings.getBool("rotaryReverse", false));
+	}
 	// playlist
 	if ((section == "") || (section == "playlist")) {
 		JsonObject playlistObj = obj["playlist"].to<JsonObject>();
@@ -915,6 +1062,60 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject ledSettings = defaultsObj["led"].to<JsonObject>();
 		ledSettings["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		ledSettings["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
+		ledSettings["numIndicator"].set(NUM_INDICATOR_LEDS); // NUM_INDICATOR_LEDS
+		ledSettings["numControl"].set(NUM_CONTROL_LEDS); // NUM_CONTROL_LEDS
+		ledSettings["numIdleDots"].set(NUM_LEDS_IDLE_DOTS); // NUM_LEDS_IDLE_DOTS
+		ledSettings["offsetPause"].set(OFFSET_PAUSE_LEDS); // OFFSET_PAUSE_LEDS
+		ledSettings["hueStart"].set(PROGRESS_HUE_START); // PROGRESS_HUE_START
+		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
+		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES
+	#ifdef NEOPIXEL_REVERSE_ROTATION
+		ledSettings["reverseRot"].set(true);
+	#else
+		ledSettings["reverseRot"].set(false);
+	#endif
+	#ifdef LED_OFFSET
+		ledSettings["offsetStart"].set(LED_OFFSET);
+	#else
+		ledSettings["offsetStart"].set(0);
+	#endif
+		JsonArray colorArr = ledSettings["controlColors"].to<JsonArray>();
+		std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+		for (uint8_t controlLed = 0; controlLed < controlLedColors.size(); controlLed++) {
+			colorArr.add(controlLedColors[controlLed]);
+		}
+#endif
+		JsonObject buttonsSettings = defaultsObj["buttons"].to<JsonObject>();
+		buttonsSettings["short0"].set(BUTTON_0_SHORT);
+		buttonsSettings["short1"].set(BUTTON_1_SHORT);
+		buttonsSettings["short2"].set(BUTTON_2_SHORT);
+		buttonsSettings["short3"].set(BUTTON_3_SHORT);
+		buttonsSettings["short4"].set(BUTTON_4_SHORT);
+		buttonsSettings["short5"].set(BUTTON_5_SHORT);
+		buttonsSettings["long0"].set(BUTTON_0_LONG);
+		buttonsSettings["long1"].set(BUTTON_1_LONG);
+		buttonsSettings["long2"].set(BUTTON_2_LONG);
+		buttonsSettings["long3"].set(BUTTON_3_LONG);
+		buttonsSettings["long4"].set(BUTTON_4_LONG);
+		buttonsSettings["long5"].set(BUTTON_5_LONG);
+		buttonsSettings["multi01"].set(BUTTON_MULTI_01);
+		buttonsSettings["multi02"].set(BUTTON_MULTI_02);
+		buttonsSettings["multi03"].set(BUTTON_MULTI_03);
+		buttonsSettings["multi04"].set(BUTTON_MULTI_04);
+		buttonsSettings["multi05"].set(BUTTON_MULTI_05);
+		buttonsSettings["multi12"].set(BUTTON_MULTI_12);
+		buttonsSettings["multi13"].set(BUTTON_MULTI_13);
+		buttonsSettings["multi14"].set(BUTTON_MULTI_14);
+		buttonsSettings["multi15"].set(BUTTON_MULTI_15);
+		buttonsSettings["multi23"].set(BUTTON_MULTI_23);
+		buttonsSettings["multi24"].set(BUTTON_MULTI_24);
+		buttonsSettings["multi25"].set(BUTTON_MULTI_25);
+		buttonsSettings["multi34"].set(BUTTON_MULTI_34);
+		buttonsSettings["multi35"].set(BUTTON_MULTI_35);
+		buttonsSettings["multi45"].set(BUTTON_MULTI_45);
+#ifdef USEROTARY_ENABLE
+		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
+		rotarySettings["reverse"].set(false); // REVERSE_ROTARY
 #endif
 		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));

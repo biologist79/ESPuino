@@ -33,6 +33,56 @@
 		"tools": "Tools",
 		"help": "Help"
 	},
+	"settingsex": {
+		"title": "Advanced settings",
+		"led": {
+			"title": "LED settings",
+			"numindicator": "Number of indicator LEDs",
+			"numcontrol": "Number of control LEDs",
+			"controlled": "Control-LED",
+			"numidledots": "Number of LEDs in idle state",
+			"offsetpause": "Center pause LEDs",
+			"huestart": "Hue-Start for playlist progress",
+			"hueend": "Hue-End for playlist progress",
+			"dimmablestates": "Dimmable steps",
+			"reverserotation": "Reverse direction of rotation",
+			"offset": "Offset start LED"
+		},
+		"buttons": {
+			"title": "Button assignments",
+			"short": "short press",
+			"long": "long press",
+			"noaction": "--",
+			"button0": "Next-Button",
+			"button1": "Play/Pause-Button",
+			"button2": "Prev-Button",
+			"button3": "Encoder-Button",
+			"button4": "Btn4-Button",
+			"button5": "Btn5-Button"
+		},
+		"multibuttons": {
+			"title": "Multi-button assignments",
+			"01": "0+1 (Next + Play/Pause)",
+			"02": "0+2 (Next + Prev)",
+			"03": "0+3 (Next + Encoder)",
+			"04": "0+4 (Next + Btn4)",
+			"05": "0+5 (Next + Btn5)",
+			"12": "1+2 (Play/Pause + Prev)",
+			"13": "1+3 (Play/Pause + Encoder)",
+			"14": "1+4 (Play/Pause + Btn4)",
+			"15": "1+5 (Play/Pause + Btn5)",
+			"23": "2+3 (Prev + Encoder)",
+			"24": "2+4 (Prev + Btn4)",
+			"25": "2+5 (Prev + Btn5)",
+			"34": "3+4 (Encoder + Btn4)",
+			"35": "3+5 (Encoder + Btn5)",
+			"45": "4+5 (Btn4 + Btn5)"
+		},
+		"rotary": {
+			"title": "Rotary encoder",
+			"reverse": "Reverse direction of rotation"
+		}
+	},
 	"wifi": {
 		"title": "WiFi-configuration",
 		"networks": "Networks",
@@ -152,7 +202,6 @@
 				"placeholder": "Select modification",
 				"cmd": {
 					"100": "Keylock",
-					"179": "Sleep immediately",
 					"101": "Sleep after 15 minutes",
 					"102": "Sleep after 30 minutes",
 					"103": "Sleep after 1 hour",
@@ -176,8 +225,14 @@
 					"172": "Next track",
 					"173": "First track",
 					"174": "Last track",
+					"175": "Initial volume",
+					"176": "Volume up",
+					"177": "Volume down",
+					"178": "Show battery voltage",
+					"179": "Sleep immediately",
 					"180": "Seek forwards (n seconds)",
-					"181": "Seek backwards (n seconds)"
+					"181": "Seek backwards (n seconds)",
+					"199": "Display task load (console)"
 				}
 			}
 		}
