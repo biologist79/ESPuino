@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 28.01.2025: Make led, rotary & button settings configurable at runtime #358
 * 27.12.2024: Fix audio dropouts in BT-Source mode
 * 27.12.2024: ArduinoJson 7 (#357)
 * 18.12.2024: Use saved SSID as LAST_SSID, when no successfull connection was possible #355, thanks to @nona00 !
