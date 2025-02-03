@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 03.02.2025: ESPAsyncWebServer moved to new location: https://github.com/ESP32Async/ESPAsyncWebServer
+* 03.02.2025: PlatformIO package 6.10.0 (Arduino 2.0.17, ESP-IDF 4.4.7)
 * 28.01.2025: Make led, rotary & button settings configurable at runtime #358
 * 27.12.2024: Fix audio dropouts in BT-Source mode
 * 27.12.2024: ArduinoJson 7 (#357)
