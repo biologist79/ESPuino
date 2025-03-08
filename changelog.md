@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields!
 * 03.02.2025: ESPAsyncWebServer moved to new location: https://github.com/ESP32Async/ESPAsyncWebServer
 * 03.02.2025: PlatformIO package 6.10.0 (Arduino 2.0.17, ESP-IDF 4.4.7)
 * 28.01.2025: Make led, rotary & button settings configurable at runtime #358

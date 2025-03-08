@@ -69,6 +69,36 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 #endif
 
 #ifdef BLUETOOTH_ENABLE
+// gets called when pause/resume/next/previous button on bluetooth speaker is pressed
+void button_handler(uint8_t id, bool isReleased) {
+	if (isReleased) {
+		switch (id) {
+			case 70:
+			case 68:
+				// 70=pause, 68=resume
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (pause/resume) is released.", id);
+				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+				break;
+			case 75:
+				// 75=next
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (next track) is released.", id);
+				AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
+				break;
+			case 76:
+				// 76=previous
+				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (previous track) is released.", id);
+				AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
+				break;
+			default:
+				// unknown/unsupported button id
+				Log_Printf(LOGLEVEL_DEBUG, "Unknown bluetooth button id %u is released.", id);
+				break;
+		}
+	}
+}
+#endif
+
+#ifdef BLUETOOTH_ENABLE
 // handle Bluetooth AVRC metadata
 // https://docs.espressif.com/projects/esp-idf/en/release-v3.2/api-reference/bluetooth/esp_avrc.html
 void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
@@ -234,10 +264,11 @@ void Bluetooth_Init(void) {
 		String btPinCode = gPrefsSettings.getString("btPinCode", "");
 		if (btPinCode != "") {
 			a2dp_source->set_ssp_enabled(true);
-			a2dp_source->set_pin_code(btPinCode.c_str());
+			a2dp_source->set_pin_code(btPinCode.c_str(), ESP_BT_PIN_TYPE_VARIABLE);
 		}
 		// start bluetooth source
 		a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
+		a2dp_source->set_avrc_passthru_command_callback(button_handler);
 		a2dp_source->start(get_data_channels);
 		// get device name
 		btDeviceName = "";
