@@ -593,35 +593,7 @@
 					<legend data-i18n="control.command"></legend>
 					<div class="tab-pane" id="commandExecution" role="tabpanel">
 						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control form-select" id="commandId" name="commandId">
-							<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
-							<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
-							<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
-							<option value="102" data-i18n="files.rfid.mod.cmd.102"></option>
-							<option value="103" data-i18n="files.rfid.mod.cmd.103"></option>
-							<option value="104" data-i18n="files.rfid.mod.cmd.104"></option>
-							<option value="105" data-i18n="files.rfid.mod.cmd.105"></option>
-							<option value="106" data-i18n="files.rfid.mod.cmd.106"></option>
-							<option value="107" data-i18n="files.rfid.mod.cmd.107"></option>
-							<option value="110" data-i18n="files.rfid.mod.cmd.110"></option>
-							<option value="111" data-i18n="files.rfid.mod.cmd.111"></option>
-							<option value="120" data-i18n="files.rfid.mod.cmd.120"></option>
-							<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
-							<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
-							<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
-							<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
-							<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
-							<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
-							<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
-							<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
-							<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
-							<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
-							<option value="172" data-i18n="files.rfid.mod.cmd.172"></option>
-							<option value="173" data-i18n="files.rfid.mod.cmd.173"></option>
-							<option value="174" data-i18n="files.rfid.mod.cmd.174"></option>
-							<option value="180" data-i18n="files.rfid.mod.cmd.180"></option>
-							<option value="181" data-i18n="files.rfid.mod.cmd.181"></option>
-						</select>
+						<select class="form-control form-select" id="commandId" name="commandId"></select>
 					</div>
 					<br>
 					<div class="text-center">
@@ -747,35 +719,7 @@
 								</div>
 								<div class="tab-pane" id="rfidmod" role="tabpanel">
 									<label for="modId" data-i18n="files.rfid.mod.title"></label>
-									<select class="form-control form-select" id="modId" name="modId">
-										<option value="100" data-i18n="files.rfid.mod.cmd.100"></option>
-										<option value="179" data-i18n="files.rfid.mod.cmd.179"></option>
-										<option value="101" data-i18n="files.rfid.mod.cmd.101"></option>
-										<option value="102" data-i18n="files.rfid.mod.cmd.102"></option>
-										<option value="103" data-i18n="files.rfid.mod.cmd.103"></option>
-										<option value="104" data-i18n="files.rfid.mod.cmd.104"></option>
-										<option value="105" data-i18n="files.rfid.mod.cmd.105"></option>
-										<option value="106" data-i18n="files.rfid.mod.cmd.106"></option>
-										<option value="107" data-i18n="files.rfid.mod.cmd.107"></option>
-										<option value="110" data-i18n="files.rfid.mod.cmd.110"></option>
-										<option value="111" data-i18n="files.rfid.mod.cmd.111"></option>
-										<option value="120" data-i18n="files.rfid.mod.cmd.120"></option>
-										<option value="130" data-i18n="files.rfid.mod.cmd.130"></option>
-										<option value="140" data-i18n="files.rfid.mod.cmd.140"></option>
-										<option value="141" data-i18n="files.rfid.mod.cmd.141"></option>
-										<option value="142" data-i18n="files.rfid.mod.cmd.142"></option>
-										<option value="150" data-i18n="files.rfid.mod.cmd.150"></option>
-										<option value="151" data-i18n="files.rfid.mod.cmd.151"></option>
-										<option value="152" data-i18n="files.rfid.mod.cmd.152"></option>
-										<option value="0" data-i18n="files.rfid.mod.cmd.0"></option>
-										<option value="170" data-i18n="files.rfid.mod.cmd.170"></option>
-										<option value="171" data-i18n="files.rfid.mod.cmd.171"></option>
-										<option value="172" data-i18n="files.rfid.mod.cmd.172"></option>
-										<option value="173" data-i18n="files.rfid.mod.cmd.173"></option>
-										<option value="174" data-i18n="files.rfid.mod.cmd.174"></option>
-										<option value="180" data-i18n="files.rfid.mod.cmd.180"></option>
-										<option value="181" data-i18n="files.rfid.mod.cmd.181"></option>
-									</select>
+									<select class="form-control form-select" id="modId" name="modId"></select>
 								</div>
 							</div>
 						</div>
@@ -3076,25 +3020,43 @@
 			}
 
 			function addOption(selectelement, value) {
-				var opt = document.createElement("option");
+				const opt = document.createElement("option");
    				opt.value= value;
 				opt.setAttribute('data-i18n', "files.rfid.mod.cmd." + value);
 				selectelement.appendChild(opt);
 				return opt; 
 			}
 
-			function fillCommands(selectelement) {
-				var cmdNothing = addOption(selectelement, 0, "--");
-				cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-				var cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111];
-				for(var i = 0; i < cmds.length; i++) {
-					addOption(selectelement, cmds[i]);
-				}
+			/* Replaces a dom element and copies id and classes from the original */
+			function replaceCommandSelect(elem, replaceWith) {
+				const newElem = replaceWith.cloneNode(true);
+				newElem.id = elem.id;
+				newElem.className = elem.className;
+				newElem.setAttribute('name', elem.getAttribute('name'));
+				elem.replaceWith(newElem);
 			}
-			/* fill button commands */
-			document.querySelectorAll('[id*=cmdselect_]').forEach((element) => {
-					fillCommands(element);
-				});
+
+			/* The <select /> that houses all the commands for the settingsex buttons */
+			const cmdElem = document.createElement('select');
+			const cmdNothing = addOption(cmdElem, 0);
+			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
+			const cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111];
+			for(const cmd of cmds) {
+				addOption(cmdElem, cmd);
+			}
+
+			/* fill settingsex button commands */
+			document.querySelectorAll('[id*=cmdselect_]').forEach(e => replaceCommandSelect(e, cmdElem));
+
+			/* The <select /> that houses all commands for the modification selectors */
+			const modElem = document.createElement('select');
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 180, 181];
+			for(const mod of mods) {
+				addOption(modElem, mod);
+			}
+
+			/* fill command selectors at the control page and the rfid assignment */
+			document.querySelectorAll("#modId, #commandId").forEach(e => replaceCommandSelect(e, modElem));
 
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
