@@ -650,6 +650,7 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putBool("playMono", generalObj["playMono"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosShutdown", generalObj["savePosShutdown"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosRfidChge", generalObj["savePosRfidChge"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putBool("playLastOnBoot", generalObj["playLastRfidOnReboot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("pauseOnMinVol", generalObj["pauseOnMinVol"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("recoverVolBoot", generalObj["recoverVolBoot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("volumeCurve", generalObj["volumeCurve"].as<uint8_t>()) != 0);
@@ -921,6 +922,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+		generalObj["playLastRfidOnReboot"].set(gPrefsSettings.getBool("playLastOnBoot", false)); // PLAY_LAST_RFID_AFTER_REBOOT
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
@@ -1052,6 +1054,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["playMono"].set(false); // PLAY_MONO_SPEAKER
 		genSettings["savePosShutdown"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		genSettings["savePosRfidChge"].set(false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+		genSettings["playLastRfidOnReboot"].set(false); // PLAY_LAST_RFID_AFTER_REBOOT
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE

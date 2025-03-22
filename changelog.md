@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime
 * 17.03.2025: Refactor <select> fields for buttons & modifications, thanks to @trainbird !
 * 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields !
 * 03.02.2025: ESPAsyncWebServer moved to new location: https://github.com/ESP32Async/ESPAsyncWebServer

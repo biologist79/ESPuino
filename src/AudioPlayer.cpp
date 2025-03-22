@@ -1047,10 +1047,8 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 	gPlayProperties.saveLastPlayPosition = false;
 	gPlayProperties.playUntilTrackNumber = 0;
 
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
 	// Store last RFID-tag to NVS
 	gPrefsSettings.putString("lastRfid", gCurrentRfidTagId);
-#endif
 
 	bool error = false;
 	switch (_playMode) {
