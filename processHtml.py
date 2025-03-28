@@ -24,7 +24,7 @@ try:
     import minify_html
 except ImportError:
   print("Trying to Install required module: minify_html\nIf this failes, please execute \"pip install minify_html\" manually.")
-  env.Execute("$PYTHONEXE -m pip install minify_html")
+  env.Execute("$PYTHONEXE -m pip install minify_html==0.15.0")
 import minify_html
 
 OUTPUT_DIR = (
