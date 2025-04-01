@@ -232,6 +232,8 @@
 					"179": "Mise en veille immédiate",
 					"180": "Avancer de n secondes",
 					"181": "Reculer de n secondes",
+					"182": "Stop",
+					"183": "Redémarrer",
 					"199": "Affichage de la charge de travail (console)"
 				}
 			}
