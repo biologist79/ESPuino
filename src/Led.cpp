@@ -222,11 +222,11 @@ void Led_SetBrightness(uint8_t value) {
 #ifdef NEOPIXEL_ENABLE
 	gLedSettings.Led_Brightness = value;
 	#ifdef BUTTONS_LED
-	Port_Write(BUTTONS_LED, value <= Led_NightBrightness ? LOW : HIGH, false);
+	Port_Write(BUTTONS_LED, value <= gLedSettings.Led_NightBrightness ? LOW : HIGH, false);
 	#endif
 
 	#ifdef MQTT_ENABLE
-	publishMqtt(topicLedBrightnessState, Led_Brightness, false);
+	publishMqtt(topicLedBrightnessState, gLedSettings.Led_Brightness, false);
 	#endif
 #endif
 }
