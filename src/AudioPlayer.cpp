@@ -409,7 +409,7 @@ void AudioPlayer_Task(void *parameter) {
 			audio->setVolume(currentVolume, gPrefsSettings.getUChar("volumeCurve", 0));
 			Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
-			publishMqtt(topicLoudnessState, currentVolume, false);
+			publishMqtt(topicLoudnessState, static_cast<uint32_t>(currentVolume), false);
 #endif
 		}
 
@@ -463,8 +463,8 @@ void AudioPlayer_Task(void *parameter) {
 				gPlayProperties.trackFinished = false;
 				gPlayProperties.playlistFinished = false;
 #ifdef MQTT_ENABLE
-				publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
-				publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+				publishMqtt(topicPlaymodeState, static_cast<uint32_t>(gPlayProperties.playMode), false);
+				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 
 				// If we're in audiobook-mode and apply a modification-card, we don't
@@ -546,7 +546,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 #ifdef MQTT_ENABLE
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 					}
 					// Allow next track if current track played in playlist isn't the last track.
@@ -581,7 +581,7 @@ void AudioPlayer_Task(void *parameter) {
 					if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 						gPlayProperties.repeatCurrentTrack = false;
 #ifdef MQTT_ENABLE
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 					}
 					if (gPlayProperties.playMode == WEBSTREAM) {
@@ -705,7 +705,7 @@ void AudioPlayer_Task(void *parameter) {
 					Audio_setTitle(noPlaylist);
 					AudioPlayer_ClearCover();
 #ifdef MQTT_ENABLE
-					publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
+					publishMqtt(topicPlaymodeState, static_cast<uint32_t>(gPlayProperties.playMode), false);
 #endif
 					gPlayProperties.currentTrackNumber = 0;
 					if (gPlayProperties.sleepAfterPlaylist) {

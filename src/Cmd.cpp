@@ -155,7 +155,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatPlaylist = !gPlayProperties.repeatPlaylist;
 #ifdef MQTT_ENABLE
-				publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
 			}
@@ -174,7 +174,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
 #ifdef MQTT_ENABLE
-				publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
 			}
