@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 18.04.2025: Make MQTT compatible with Arduino 3, thanks to @Joe91 !
 * 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime
 * 17.03.2025: Refactor <select> fields for buttons & modifications, thanks to @trainbird !
 * 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields !
