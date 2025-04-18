@@ -41,6 +41,7 @@ typedef struct { // Bit field
 	bool lastSpeechActive		 : 1; // If speech-play was active
 	bool SavePlayPosRfidChange	 : 1; // Save last play-position
 	bool pauseOnMinVolume		 : 1; // When playback is active and volume is changed to zero, playback is paused automatically.
+	bool pauseIfRfidRemoved		 : 1; // When playback is active and RFID is removed, playback is paused automatically.
 	int8_t gainLowPass = 0; // Low Pass for EQ Control
 	int8_t gainBandPass = 0; // Band Pass for EQ Control
 	int8_t gainHighPass = 0; // High Pass for EQ Control
