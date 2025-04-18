@@ -146,11 +146,11 @@ void AudioPlayer_Init(void) {
 	gPlayProperties.playlist = new Playlist();
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
-	#ifdef PAUSE_WHEN_RFID_REMOVED
+#ifdef PAUSE_WHEN_RFID_REMOVED
 	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", true);
-	#else
+#else
 	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false);
-	#endif
+#endif
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
 		xTaskCreatePinnedToCore(
