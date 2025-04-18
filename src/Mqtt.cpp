@@ -164,7 +164,7 @@ bool publishMqtt(const char *topic, const char *payload, bool retained) {
 bool publishMqtt(const char *topic, int32_t payload, bool retained) {
 #ifdef MQTT_ENABLE
 	char buf[11];
-	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%d", payload);
+	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%ld", payload);
 	return publishMqtt(topic, buf, retained);
 #else
 	return false;
@@ -186,7 +186,7 @@ bool publishMqtt(const char *topic, unsigned long payload, bool retained) {
 bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 #ifdef MQTT_ENABLE
 	char buf[11];
-	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%u", payload);
+	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%lu", payload);
 	return publishMqtt(topic, buf, retained);
 #else
 	return false;
@@ -200,7 +200,7 @@ void Mqtt_PostWiFiRssi(void) {
 
 	if (!lastMqttRssiTimestamp || (millis() - lastMqttRssiTimestamp >= 60000)) {
 		lastMqttRssiTimestamp = millis();
-		publishMqtt(topicWiFiRssiState, Wlan_GetRssi(), false);
+		publishMqtt(topicWiFiRssiState, static_cast<int32_t>(Wlan_GetRssi()), false);
 	}
 #endif
 }
@@ -267,13 +267,13 @@ bool Mqtt_Reconnect() {
 			publishMqtt(topicState, "Online", false);
 			publishMqtt(topicTrackState, gPlayProperties.title, false);
 			publishMqtt(topicCoverChangedState, "", false);
-			publishMqtt(topicLoudnessState, AudioPlayer_GetCurrentVolume(), false);
+			publishMqtt(topicLoudnessState, static_cast<uint32_t>(AudioPlayer_GetCurrentVolume()), false);
 			publishMqtt(topicSleepTimerState, System_GetSleepTimerTimeStamp(), false);
-			publishMqtt(topicLockControlsState, System_AreControlsLocked(), false);
-			publishMqtt(topicPlaymodeState, gPlayProperties.playMode, false);
-			publishMqtt(topicLedBrightnessState, Led_GetBrightness(), false);
+			publishMqtt(topicLockControlsState, static_cast<uint32_t>(System_AreControlsLocked()), false);
+			publishMqtt(topicPlaymodeState, static_cast<uint32_t>(gPlayProperties.playMode), false);
+			publishMqtt(topicLedBrightnessState, static_cast<uint32_t>(Led_GetBrightness()), false);
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
-			publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+			publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 
 			char revBuf[12];
 			strncpy(revBuf, softwareRevision + 19, sizeof(revBuf) - 1);
@@ -341,7 +341,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 	else if (strcmp_P(topic, topicSleepTimerCmnd) == 0) {
 		if (gPlayProperties.playMode == NO_PLAYLIST) { // Don't allow sleep-modications if no playlist is active
 			Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
-			publishMqtt(topicSleepState, 0, false);
+			publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
 			System_IndicateError();
 			return;
 		}
@@ -381,7 +381,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 				Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
 				System_IndicateOk();
 				Led_SetNightmode(false);
-				publishMqtt(topicSleepState, 0, false);
+				publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
 				gPlayProperties.sleepAfterPlaylist = false;
 				gPlayProperties.sleepAfterCurrentTrack = false;
 				gPlayProperties.playUntilTrackNumber = 0;
@@ -425,7 +425,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 		Log_Printf(LOGLEVEL_NOTICE, "Repeat: %d", repeatMode);
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
 			if (gPlayProperties.playMode == NO_PLAYLIST) {
-				publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 				Log_Println(noPlaylistNotAllowedMqtt, LOGLEVEL_ERROR);
 				System_IndicateError();
 			} else {
@@ -433,7 +433,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 					case NO_REPEAT:
 						gPlayProperties.repeatCurrentTrack = false;
 						gPlayProperties.repeatPlaylist = false;
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 						Log_Println(modeRepeatNone, LOGLEVEL_INFO);
 						System_IndicateOk();
 						break;
@@ -441,7 +441,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 					case TRACK:
 						gPlayProperties.repeatCurrentTrack = true;
 						gPlayProperties.repeatPlaylist = false;
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 						Log_Println(modeRepeatTrack, LOGLEVEL_INFO);
 						System_IndicateOk();
 						break;
@@ -449,7 +449,7 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 					case PLAYLIST:
 						gPlayProperties.repeatCurrentTrack = false;
 						gPlayProperties.repeatPlaylist = true;
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 						Log_Println(modeRepeatPlaylist, LOGLEVEL_INFO);
 						System_IndicateOk();
 						break;
@@ -457,14 +457,14 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 					case TRACK_N_PLAYLIST:
 						gPlayProperties.repeatCurrentTrack = true;
 						gPlayProperties.repeatPlaylist = true;
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 						Log_Println(modeRepeatTracknPlaylist, LOGLEVEL_INFO);
 						System_IndicateOk();
 						break;
 
 					default:
 						System_IndicateError();
-						publishMqtt(topicRepeatModeState, AudioPlayer_GetRepeatMode(), false);
+						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 						break;
 				}
 			}
