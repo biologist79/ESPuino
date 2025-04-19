@@ -14,9 +14,7 @@
 
 unsigned long Rfid_LastRfidCheckTimestamp = 0;
 char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
-#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
-#endif
 
 // check if we have RFID-reader enabled
 #if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
@@ -77,15 +75,15 @@ void Rfid_PreferenceLookupHandler(void) {
 				// Modification-cards can change some settings (e.g. introducing track-looping or sleep after track/playlist).
 				Cmd_Action(_playMode);
 			} else {
-	#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-				if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
-					Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
-					// System_IndicateError(); // Enable to have shown error @neopixel every time
-					return;
-				} else {
-					strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+				if (gPlayProperties.dontAcceptRfidTwice) {
+					if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
+						Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
+						// System_IndicateError(); // Enable to have shown error @neopixel every time
+						return;
+					} else {
+						strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+					}
 				}
-	#endif
 	#ifdef MQTT_ENABLE
 				publishMqtt(topicRfidState, gCurrentRfidTagId, false);
 	#endif
@@ -104,11 +102,9 @@ void Rfid_PreferenceLookupHandler(void) {
 #endif
 }
 
-#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
 void Rfid_ResetOldRfid() {
 	strncpy(gOldRfidTagId, "X", cardIdStringSize - 1);
 }
-#endif
 
 #if defined(RFID_READER_ENABLED)
 extern TaskHandle_t rfidTaskHandle;

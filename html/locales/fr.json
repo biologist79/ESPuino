@@ -330,6 +330,8 @@
 			"savePlayPosRfidChangeExp": "Lors du passage à une nouvelle balise RFID, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"pauseIfRfidRemoved": "Mettre en pause si la balise RFID est retirée",
 			"pauseIfRfidRemovedExp": "Mettre en pause la lecture si la balise RFID est retirée. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Ne pas accepter la balise RFID deux fois",
+			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>DONT_ACCEPT_RFID_TWICE</code>.",
 			"playLastRfidOnReboot": "Lire la dernière balise RFID au redémarrage",
 			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause au volume minimal",

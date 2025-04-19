@@ -330,6 +330,8 @@
 			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"pauseIfRfidRemoved": "Pause when RFID tag is removed",
 			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Dont accept same RFID twice",
+			"dontAcceptRfidTwiceExp": "RFID tags are not accepted twice in a row. This is useful for RFID tags that are used to control the volume or to switch between modes. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>DO_NOT_ACCEPT_RFID_TWICE</code>.",
 			"playLastRfidOnReboot": "Play last RFID tag on restart",
 			"playLastRfidOnRebootExp": "Play last RFID tag on restart. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause at minimum volume",
