@@ -321,21 +321,25 @@
 			"info": "Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
 		},
 		"options": {
-            "title": "Optionen",
-            "playMono": "Mono-Wiedergabe",
+			"title": "Optionen",
+			"playMono": "Mono-Wiedergabe",
 			"playMonoExp": "Wenn zwei Lautsprecher verbaut sind, kann Stereo abgespielt werden. Mehr Infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>hier</a>.",
-            "savePlayPosShutdown": "Abspielposition beim Ausschalten merken",
-            "savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
-            "savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
-            "savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"savePlayPosShutdown": "Abspielposition beim Ausschalten merken",
+			"savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
+			"savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
+			"savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",
+			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PAUSE_WHEN_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Denselben RFID-Tag nicht erneut akzeptieren",
+			"dontAcceptRfidTwiceExp": "Denselben RFID-Tag nicht erneut akzeptieren. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>DONT_ACCEPT_SAME_RFID_TWICE</code>.",
 			"playLastRfidOnReboot": "Letzten RFID-Tag nach Neustart abspielen",
 			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
 			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
 			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
-			"volumeCurve" : "Feinere Abstufungen bei niedriger Lautstärke",
-			"volumeCurveExp" : "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
+			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",
+			"volumeCurveExp": "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
 		},
 		"neopixel": {
 			"title": "Neopixel (Helligkeit)",
