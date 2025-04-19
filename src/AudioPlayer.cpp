@@ -151,6 +151,17 @@ void AudioPlayer_Init(void) {
 #else
 	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false);
 #endif
+#ifdef DONT_ACCEPT_SAME_RFID_TWICE
+	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", true);
+#else
+	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false);
+#endif
+	if (gPlayProperties.pauseIfRfidRemoved) {
+		// ignore feature silently if PAUSE_WHEN_RFID_REMOVED is active
+		Log_Println("pauseIfRfidRemoved is enabled -> deactivate dontAcceptRfidTwice", LOGLEVEL_NOTICE);
+		gPlayProperties.dontAcceptRfidTwice = false;
+	} 
+
 	// Don't start audio-task in BT-speaker mode!
 	if ((System_GetOperationMode() == OPMODE_NORMAL) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE)) {
 		xTaskCreatePinnedToCore(
@@ -906,17 +917,17 @@ void AudioPlayer_Task(void *parameter) {
 		}
 		vTaskDelay(portTICK_PERIOD_MS * 1);
 
-#ifdef DONT_ACCEPT_SAME_RFID_TWICE_ENABLE
-		static uint8_t resetOnNextIdle = false;
-		if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
-			if (resetOnNextIdle) {
-				Rfid_ResetOldRfid();
-				resetOnNextIdle = false;
+		if (gPlayProperties.dontAcceptRfidTwice) {
+			static uint8_t resetOnNextIdle = false;
+			if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
+				if (resetOnNextIdle) {
+					Rfid_ResetOldRfid();
+					resetOnNextIdle = false;
+				}
+			} else {
+				resetOnNextIdle = true;
 			}
-		} else {
-			resetOnNextIdle = true;
 		}
-#endif
 	}
 	vTaskDelete(NULL);
 }
