@@ -92,7 +92,7 @@ void Rfid_Task(void *parameter) {
 				continue;
 			}
 
-			if (gPlayProperties.pauseIfRfidRemoved) {
+			if (!gPlayProperties.pauseIfRfidRemoved) {
 				mfrc522.PICC_HaltA();
 				mfrc522.PCD_StopCrypto1();
 			}
