@@ -2228,6 +2228,7 @@
 				$('#playLastRfidOnReboot').prop('checked', genSettings.playLastRfidOnReboot);
 				$('#pauseIfRfidRemoved').prop('checked', genSettings.pauseIfRfidRemoved);
 				$('#dontAcceptRfidTwice').prop('checked', genSettings.dontAcceptRfidTwice);
+				$('#dontAcceptRfidTwice').prop('disabled', genSettings.pauseIfRfidRemoved);
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
