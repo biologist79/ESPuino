@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef MQTT_ENABLE
-	#define MQTT_SOCKET_TIMEOUT 1 // https://github.com/knolleary/pubsubclient/issues/403
-	#include <PubSubClient.h>
-#endif
 // MQTT-configuration
 // Please note: all lengths will be published n-1 as maxlength to GUI
 constexpr uint8_t mqttClientIdLength = 16u;
