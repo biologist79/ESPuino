@@ -224,6 +224,7 @@ static NumberType toNumber(const std::string str) {
 }
 
 // Is called if there's a new MQTT-message for us
+#ifdef MQTT_ENABLE
 void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
 	// Log_Printf(LOGLEVEL_DEBUG, "Event dispatched from event loop base=%s, event_id=%" PRIi32 "", base, event_id);
 	esp_mqtt_event_handle_t event = reinterpret_cast<esp_mqtt_event_handle_t>(event_data);
@@ -304,6 +305,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 		}
 	}
 }
+#endif
 
 void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const char *payload_buf, uint32_t payload_length) {
 #ifdef MQTT_ENABLE
