@@ -121,11 +121,11 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.username = gMqttUser.c_str();
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
-		mqtt_cfg.task.priority = 1;
+		mqtt_cfg.task.priority = 1; // default is 5, keep it below the audio
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
-		// don't start the client, without wifi-connection! (see Mqtt_Cyclic())
+		// don't start the task yet, wait for WiFi to be connected
 	}
 #else
 	Mqtt_Enabled = false;
@@ -140,7 +140,7 @@ void Mqtt_Cyclic(void) {
 			esp_mqtt_client_start(mqtt_client);
 			mqtt_started = true;
 		}
-		// no need to reconnect anymore, since it automatically reconnects on new publish
+		// no need to reconnect anymore, should do so automatically (default 10 s)
 		Mqtt_PostWiFiRssi();
 	}
 #endif
@@ -225,7 +225,7 @@ static NumberType toNumber(const std::string str) {
 
 // Is called if there's a new MQTT-message for us
 void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
-	Log_Printf(LOGLEVEL_DEBUG, "Event dispatched from event loop base=%s, event_id=%" PRIi32 "", base, event_id);
+	// Log_Printf(LOGLEVEL_DEBUG, "Event dispatched from event loop base=%s, event_id=%" PRIi32 "", base, event_id);
 	esp_mqtt_event_handle_t event = reinterpret_cast<esp_mqtt_event_handle_t>(event_data);
 	esp_mqtt_client_handle_t client = event->client;
 
