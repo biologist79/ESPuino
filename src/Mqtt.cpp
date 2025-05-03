@@ -33,7 +33,6 @@ uint16_t gMqttPort = 1883; // MQTT-Port
 
 // MQTT
 static bool Mqtt_Enabled = true;
-static bool Mqtt_Connected = false;
 
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
@@ -125,6 +124,7 @@ void Mqtt_Init() {
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
+		esp_mqtt_client_start(mqtt_client);
 		// don't start the task yet, wait for WiFi to be connected
 	}
 #else
@@ -132,17 +132,9 @@ void Mqtt_Init() {
 #endif
 }
 
-void Mqtt_Cyclic(void) {
+void Mqtt_OnWifiConnected(void) {
 #ifdef MQTT_ENABLE
-	if (Mqtt_Enabled && Wlan_IsConnected()) {
-		static bool mqtt_started = false;
-		if (!mqtt_started) {
-			esp_mqtt_client_start(mqtt_client);
-			mqtt_started = true;
-		}
-		// no need to reconnect anymore, should do so automatically (default 10 s)
-		Mqtt_PostWiFiRssi();
-	}
+	esp_mqtt_client_reconnect(mqtt_client);
 #endif
 }
 
@@ -164,7 +156,7 @@ bool Mqtt_IsEnabled(void) {
 /* Wrapper-functions for MQTT-publish */
 bool publishMqtt(const char *topic, const char *payload, bool retained) {
 #ifdef MQTT_ENABLE
-	if ((strcmp(topic, "") != 0) && Mqtt_Connected) {
+	if (strcmp(topic, "") != 0) {
 		int qos = 0;
 		int ret = esp_mqtt_client_publish(mqtt_client, topic, payload, 0, qos, retained);
 		// int ret = esp_mqtt_client_enqueue(mqtt_client, topic, payload, 0, qos, retained, true);
@@ -195,18 +187,6 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 #endif
 }
 
-// Cyclic posting of WiFi-signal-strength
-void Mqtt_PostWiFiRssi(void) {
-#ifdef MQTT_ENABLE
-	static uint32_t lastMqttRssiTimestamp = 0;
-
-	if (!lastMqttRssiTimestamp || (millis() - lastMqttRssiTimestamp >= 60000)) {
-		lastMqttRssiTimestamp = millis();
-		publishMqtt(topicWiFiRssiState, static_cast<int32_t>(Wlan_GetRssi()), false);
-	}
-#endif
-}
-
 template <typename NumberType>
 static NumberType toNumber(const std::string str) {
 	NumberType result;
@@ -232,7 +212,6 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 
 	switch ((esp_mqtt_event_id_t) event_id) {
 		case MQTT_EVENT_CONNECTED: {
-			Mqtt_Connected = true;
 			int qos = 0;
 
 			// Deepsleep-subscription
@@ -279,7 +258,6 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			break;
 		}
 		case MQTT_EVENT_DISCONNECTED: {
-			Mqtt_Connected = false;
 			break;
 		}
 		case MQTT_EVENT_SUBSCRIBED: {
