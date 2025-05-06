@@ -44,6 +44,8 @@
 			"offsetpause": "LED pause centre",
 			"huestart": "Début de la couleur",
 			"hueend": "Fin de la couleur",
+			"hueatmo": "Couleur d'ambiance",
+			"satatmo": "Saturation d'ambiance",
 			"dimmablestates": "Étapes à gradation",
 			"reverserotation": "Inversion du sens de rotation",
 			"offset": "Début de l'offset LED"
@@ -219,6 +221,7 @@
 					"150": "Activer FTP",
 					"151": "Annoncer l'adresse IP",
 					"152": "Annoncer l'heure actuelle",
+					"153": "Basculement de la lumière ambiante",
 					"0": "Supprimer l'assignation",
 					"170": "Basculer Lecture/Pause",
 					"171": "Piste précédente",
@@ -344,7 +347,8 @@
 		"neopixel": {
 			"title": "Neopixel (luminosité)",
 			"restart": "Après le redémarrage",
-			"nightmode": "Pour le mode nuit"
+			"nightmode": "Pour le mode nuit",
+			"atmomode": "Pour le mode ambiance"
 		},
 		"sleep": {
 			"title": "Veille profonde",

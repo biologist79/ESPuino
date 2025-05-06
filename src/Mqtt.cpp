@@ -251,6 +251,9 @@ bool Mqtt_Reconnect() {
 			// Sleep-Timer-subscription
 			Mqtt_PubSubClient.subscribe(topicSleepTimerCmnd);
 
+			// Ambient-Light-subscription
+			Mqtt_PubSubClient.subscribe(topicAmbientLightCmnd);
+
 			// Next/previous/stop/play-track-subscription
 			Mqtt_PubSubClient.subscribe(topicTrackControlCmnd);
 
@@ -397,6 +400,14 @@ void Mqtt_ClientCallback(const char *topic, const byte *payload, uint32_t length
 
 		gPlayProperties.sleepAfterPlaylist = false;
 		gPlayProperties.sleepAfterCurrentTrack = false;
+	}
+	// Ambient Light
+	else if (strcmp_P(topic, topicAmbientLightCmnd) == 0) {
+		if (receivedString == "OFF" || receivedString == "0") {
+			Led_SetAmbientLight(false);
+		} else if (receivedString == "ON" || receivedString == "1") {
+			Led_SetAmbientLight(true);
+		}
 	}
 	// Track-control (pause/play, stop, first, last, next, previous)
 	else if (strcmp_P(topic, topicTrackControlCmnd) == 0) {

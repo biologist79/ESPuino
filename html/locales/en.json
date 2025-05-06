@@ -44,6 +44,8 @@
 			"offsetpause": "Center pause LEDs",
 			"huestart": "Hue-Start for playlist progress",
 			"hueend": "Hue-End for playlist progress",
+			"hueatmo": "Hue-Atmolight",
+			"satatmo": "Saturaion-Atmolight",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
 			"offset": "Offset start LED"
@@ -219,6 +221,7 @@
 					"150": "Enable FTP",
 					"151": "Announce IP-Address",
 					"152": "Announce current time",
+					"153": "Toggle Ambient Light",
 					"0": "Remove assignment",
 					"170": "Toggle Play/Pause",
 					"171": "Previous track",
@@ -344,7 +347,8 @@
 		"neopixel": {
 			"title": "Neopixel (brightness)",
 			"restart": "After restart",
-			"nightmode": "For nightmode"
+			"nightmode": "For nightmode",
+			"atmomode": "For Atmolight-mode"
 		},
 		"sleep": {
 			"title": "Deep Sleep",
