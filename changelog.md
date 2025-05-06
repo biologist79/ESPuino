@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 05.05.2025: Switch DEV-branch to Arduino 3.2.0 (ESP-IDF 5.4.1)
+* 30.04.2025: Fix loosing Websocket Ping/Pong connection, thanks to @Joe91 !
 * 24.04.2025: Make PAUSE_WHEN_RFID_REMOVED & DONT_ACCEPT_SAME_RFID_TWICE configurable at runtime (#362)
 * 18.04.2025: Make MQTT compatible with Arduino 3, thanks to @Joe91 !
 * 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime

@@ -2093,7 +2093,7 @@
 		function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
-				setInterval(ping, 15000);
+				setInterval(ping, 3000);
 				setInterval(getTrackProgress, 1000);
 				// clear old socket messages
 				socket.sendBuffer = [];
@@ -2533,7 +2533,7 @@
 		})
 		toolsTabObserver.observe(toolsTab, config);
 
-		function ping() {
+		async function ping() {
 			var myObj = {
 				"ping": {
 					ping: 'ping'
