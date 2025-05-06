@@ -70,14 +70,18 @@ struct LedSettings {
 	bool offsetLedPause = OFFSET_PAUSE_LEDS;
 	int16_t progressHueStart = PROGRESS_HUE_START;
 	int16_t progressHueEnd = PROGRESS_HUE_END;
+	int16_t atmoHue = ATMO_HUE;
+	int16_t atmoSaturation = ATMO_SATURATION;
 	uint8_t dimmableStates = DIMMABLE_STATES;
 	bool neopixelReverseRotation;
 	uint8_t ledOffset;
 	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
 	bool Led_NightMode = false;
+	bool Led_AmbientLight = false;
 	uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
 	uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+	uint8_t Led_AmbientBrightness = LED_INITIAL_BRIGHTNESS;
 };
 #endif
 
@@ -95,3 +99,6 @@ void Led_TaskResume(void);
 void Led_SetNightmode(bool enabled);
 bool Led_GetNightmode();
 void Led_ToggleNightmode();
+void Led_SetAmbientLight(bool enabled);
+bool Led_GetAmbientLight();
+void Led_ToggleAmbientLight();
