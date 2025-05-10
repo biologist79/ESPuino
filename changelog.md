@@ -8,7 +8,7 @@
 * 24.04.2025: Make PAUSE_WHEN_RFID_REMOVED & DONT_ACCEPT_SAME_RFID_TWICE configurable at runtime (#362)
 * 18.04.2025: Make MQTT compatible with Arduino 3, thanks to @Joe91 !
 * 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime
-* 17.03.2025: Refactor <select> fields for buttons & modifications, thanks to @trainbird !
+* 17.03.2025: Refactor select fields for buttons & modifications, thanks to @trainbird !
 * 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields !
 * 03.02.2025: ESPAsyncWebServer moved to new location: <https://github.com/ESP32Async/ESPAsyncWebServer>
 * 03.02.2025: PlatformIO package 6.10.0 (Arduino 2.0.17, ESP-IDF 4.4.7)
