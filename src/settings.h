@@ -262,8 +262,6 @@
 
 	// (optional) Topics for MQTT
 	#ifdef MQTT_ENABLE
-		constexpr uint16_t mqttRetryInterval = 60;                // Try to reconnect to MQTT-server every (n) seconds if connection is broken
-		constexpr uint8_t mqttMaxRetriesPerInterval = 1;          // Number of retries per time-interval (mqttRetryInterval). mqttRetryInterval 60 / mqttMaxRetriesPerInterval 1 => once every 60s
 		#define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
 		constexpr const char topicSleepCmnd[] = "Cmnd/ESPuino/Sleep";
 		constexpr const char topicSleepState[] = "State/ESPuino/Sleep";

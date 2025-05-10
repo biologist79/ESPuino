@@ -180,7 +180,7 @@ const char sdMountedMmc1BitMode[] = "Versuche SD-Karte im SD_MMC-Modus (1 Bit) z
 const char sdMountedSpiMode[] = "Versuche SD-Karte im SPI-Modus zu mounten...";
 const char restartWebsite[] = "<p>Der ESPuino wird neu gestartet...<br />Zur letzten Seite <a href=\"javascript:history.back()\">zur&uuml;ckkehren</a>.</p>";
 const char shutdownWebsite[] = "Der ESPuino wird ausgeschaltet...";
-const char mqttMsgReceived[] = "MQTT-Nachricht empfangen: [Topic: %s] [Command: %.*s]";
+const char mqttMsgReceived[] = "MQTT-Nachricht empfangen: [Topic: %s] [Command: %s]";
 const char trackPausedAtPos[] = "Titel pausiert bei Position: %u (%u)";
 const char freeHeapWithoutFtp[] = "Freier Heap-Speicher vor FTP-Instanzierung: %u";
 const char freeHeapWithFtp[] = "Freier Heap-Speicher nach FTP-Instanzierung: %u";
