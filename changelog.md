@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 10.05.2025: MQTT: switch from pubsubclient to IDF-MQTT (#363), thanks to @Joe91
 * 05.05.2025: Switch DEV-branch to Arduino 3.2.0 (ESP-IDF 5.4.1)
 * 30.04.2025: Fix loosing Websocket Ping/Pong connection, thanks to @Joe91 !
 * 24.04.2025: Make PAUSE_WHEN_RFID_REMOVED & DONT_ACCEPT_SAME_RFID_TWICE configurable at runtime (#362)
@@ -9,7 +10,7 @@
 * 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime
 * 17.03.2025: Refactor <select> fields for buttons & modifications, thanks to @trainbird !
 * 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields !
-* 03.02.2025: ESPAsyncWebServer moved to new location: https://github.com/ESP32Async/ESPAsyncWebServer
+* 03.02.2025: ESPAsyncWebServer moved to new location: <https://github.com/ESP32Async/ESPAsyncWebServer>
 * 03.02.2025: PlatformIO package 6.10.0 (Arduino 2.0.17, ESP-IDF 4.4.7)
 * 28.01.2025: Make led, rotary & button settings configurable at runtime #358
 * 27.12.2024: Fix audio dropouts in BT-Source mode
@@ -18,7 +19,7 @@
 * 18.12.2024: Check if #POWER defined, thanks to @QDaniel !
 * 18.12.2024: Prepare for Arduino 3.1.0
 * 16.12.2024: Add verbose log to indicate, that the restart is on purpose (#356), thanks to @thebino !
-* 16.12.2024: LPCD: Only wake up if card is present in NVS (#352), thanks to @fox34 ! 
+* 16.12.2024: LPCD: Only wake up if card is present in NVS (#352), thanks to @fox34 !
 * 25.11.2024: Moving some settings to the Web UI (#350), thanks to @trainbird !
 * 17.11.2024: Simplify 'SdCard_ParseM3UPlaylist' and fix parsing, thanks to @h4kun4m4t4t4 !
 * 29.10.2024: Update Audio lib
