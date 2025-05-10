@@ -37,7 +37,6 @@ static bool Mqtt_Enabled = true;
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const char *payload_buf, uint32_t payload_length);
-static void Mqtt_PostWiFiRssi(void);
 #endif
 
 void Mqtt_Init() {
@@ -250,7 +249,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
 			publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 
-			char revBuf[12];
+			char revBuf[16];
 			strncpy(revBuf, softwareRevision + 19, sizeof(revBuf) - 1);
 			revBuf[sizeof(revBuf) - 1] = '\0';
 			publishMqtt(topicSRevisionState, revBuf, false);
