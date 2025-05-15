@@ -56,6 +56,7 @@ extern playProps gPlayProperties;
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
+void AudioPlayer_Loop(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
 void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
 void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);

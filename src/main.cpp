@@ -235,7 +235,6 @@ void loop() {
 	AudioPlayer_Cyclic();
 	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	Battery_Cyclic();
-	// Port_Cyclic(); // called by button (controlled via hw-timer)
 	Button_Cyclic();
 	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	System_Cyclic();
