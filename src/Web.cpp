@@ -682,7 +682,7 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
 			return false;
 		} else {
-			AudioPlayer_EqualizerToQueueSender(_gainLowPass, _gainBandPass, _gainHighPass);
+			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
 	}
 	if (doc["wifi"].is<JsonObject>()) {
@@ -886,7 +886,7 @@ bool JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_VolumeToQueueSender(new_vol, true);
+			AudioPlayer_SetVolume(new_vol, true);
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -1926,7 +1926,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		if (gPlayProperties.dontAcceptRfidTwice) {
 			Rfid_ResetOldRfid();
 		}
-		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
+		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
 	}

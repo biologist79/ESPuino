@@ -197,7 +197,7 @@ void AudioPlayer_Exit(void) {
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
 	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
 	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
-		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+		AudioPlayer_SetTrackControl(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
@@ -374,7 +374,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
 			gPlayProperties.newPlayMono = false; // Always stereo for headphones
 			if (AudioPlayer_GetCurrentVolume() > AudioPlayer_MaxVolume) {
-				AudioPlayer_VolumeToQueueSender(AudioPlayer_MaxVolume, true); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+				AudioPlayer_SetVolume(AudioPlayer_MaxVolume, true); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
 			}
 
 	#ifdef GPIO_PA_EN
@@ -899,7 +899,7 @@ uint8_t AudioPlayer_GetRepeatMode(void) {
 
 // Adds new volume-entry to volume-queue
 // If volume is changed via webgui or MQTT, it's necessary to re-adjust current value of rotary-encoder.
-void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary) {
+void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 	uint32_t _volume;
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
 
@@ -927,7 +927,7 @@ void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRota
 }
 
 // Adds equalizer settings low, band and high pass and readjusts the equalizer
-void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
+void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
 	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
 }
 
@@ -953,10 +953,10 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 
 // Receives de-serialized RFID-data (from NVS) and dispatches playlists for the given
 // playmode to the track-queue.
-void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
+void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
 	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
 	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
-		AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+		AudioPlayer_SetTrackControl(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
@@ -988,7 +988,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		Log_Println(errorOccured, LOGLEVEL_ERROR);
 		System_IndicateError();
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
-			AudioPlayer_TrackControlToQueueSender(STOP);
+			AudioPlayer_SetTrackControl(STOP);
 		}
 		return;
 	}
@@ -999,7 +999,7 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 		Log_Println(noMp3FilesInDir, LOGLEVEL_NOTICE);
 		System_IndicateError();
 		if (!gPlayProperties.pausePlay) {
-			AudioPlayer_TrackControlToQueueSender(STOP);
+			AudioPlayer_SetTrackControl(STOP);
 			while (!gPlayProperties.pausePlay) {
 				vTaskDelay(portTICK_PERIOD_MS * 10u);
 			}
@@ -1187,7 +1187,7 @@ std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_w
 }
 
 // Adds new control-command to control-queue
-void AudioPlayer_TrackControlToQueueSender(const uint8_t new_trackCommand) {
+void AudioPlayer_SetTrackControl(const uint8_t new_trackCommand) {
 	trackCommand = new_trackCommand;
 }
 
