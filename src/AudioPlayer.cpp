@@ -62,8 +62,15 @@ static uint32_t AudioPlayer_HeadphoneLastDetectionTimestamp = 0u;
 static uint8_t AudioPlayer_MaxVolumeHeadphone = 11u; // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
 #endif
 
-Audio audio_class;
-Audio *audio = &audio_class;
+// dummy class to allocate audio object in PSRAM if available
+class AudioCustom : public Audio {
+public:
+	void *operator new(size_t size) {
+		return psramFound() ? ps_malloc(size) : malloc(size);
+	}
+};
+
+Audio *audio = nullptr;
 
 // new old varibles
 constexpr uint32_t playbackTimeout = 2000;
@@ -87,6 +94,13 @@ static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const cha
 static void AudioPlayer_ClearCover(void);
 
 void AudioPlayer_Init(void) {
+	// create audio object
+#ifdef BOARD_HAS_PSRAM
+	audio = new AudioCustom();
+#else
+	static Audio audioAsStatic; // Don't use heap as it's needed for other stuff :-)
+	audio = &audioAsStatic;
+#endif
 	// load playtime total from NVS
 	playTimeSecTotal = gPrefsSettings.getULong("playTimeTotal", 0);
 
