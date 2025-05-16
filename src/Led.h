@@ -62,9 +62,10 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
-	#define FASTLED_WS2812_T1 350 // original 250 - changed
-	#define FASTLED_WS2812_T2 700 // original 625 - changed
-	#define FASTLED_WS2812_T3 150 // original 375 - changed
+	#define FASTLED_WS2812_T1	  250 // original 250
+	#define FASTLED_WS2812_T2	  625 // original 625
+	#define FASTLED_WS2812_T3	  375 // original 375
+	#define FASTLED_LED_OVERCLOCK 1.0f // original 1.0f
 
 	#include <FastLED.h>
 
