@@ -35,8 +35,14 @@ static uint8_t Led_savedBrightness;
 // global led settings
 static LedSettings gLedSettings;
 
-TaskHandle_t Led_TaskHandle;
-static void Led_Task(void *parameter);
+static CRGB *leds = nullptr;
+static CRGBSet *indicator = nullptr;
+static uint8_t lastLedBrightness = 0;
+bool leds_active = false;
+bool led_settings_changed = false;
+uint8_t numIndicatorLeds = 0;
+uint8_t numControlLeds = 0;
+
 static uint8_t Led_Address(uint8_t number);
 
 // animation-functions prototypes
@@ -139,35 +145,28 @@ bool Led_LoadSettings(LedSettings &settings) {
 void Led_Init(void) {
 #ifdef NEOPIXEL_ENABLE
 
-	if (Led_TaskHandle) {
-		// if led task is already running notify to reload settings
-		uint8_t ledSettingsChanged = 1;
-		xQueueSend(gLedQueue, &ledSettingsChanged, 0);
-		return;
-	}
-
 	// load led settings from NVS
 	Led_LoadSettings(gLedSettings);
+	led_settings_changed = true;
 
-	xTaskCreatePinnedToCore(
-		Led_Task, /* Function to implement the task */
-		"Led_Task", /* Name of the task */
-		2048, /* Stack size in words */
-		NULL, /* Task input parameter */
-		1, /* Priority of the task */
-		&Led_TaskHandle, /* Task handle. */
-		1 /* Core where the task should run */
-	);
+	lastLedBrightness = gLedSettings.Led_Brightness;
+	numIndicatorLeds = gLedSettings.numIndicatorLeds;
+	numControlLeds = gLedSettings.numControlLeds;
+	// Allocate memory for LED arrays
+	leds = new CRGB[numIndicatorLeds + numControlLeds];
+	indicator = new CRGBSet(leds, numIndicatorLeds);
+	// initialize FastLED
+	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
+	FastLED.setBrightness(gLedSettings.Led_Brightness);
+	FastLED.setDither(DISABLE_DITHER);
+	FastLED.setMaxRefreshRate(120); // limit LED refresh rate to 120Hz (less likely to cause flickering)
+	leds_active = true;
 #endif
 }
 
 void Led_Exit(void) {
 #ifdef NEOPIXEL_ENABLE
 	Log_Println("shutdown LED..", LOGLEVEL_NOTICE);
-	if (Led_TaskHandle) {
-		vTaskDelete(Led_TaskHandle);
-		Led_TaskHandle = NULL;
-	}
 	// Turn off LEDs in order to avoid LEDs still glowing when ESP32 is in deepsleep
 	FastLED.clear(true);
 #endif
@@ -343,206 +342,189 @@ bool CheckForPowerButtonAnimation() {
 #endif
 
 #ifdef NEOPIXEL_ENABLE
-static void Led_Task(void *parameter) {
-	static uint8_t lastLedBrightness = gLedSettings.Led_Brightness;
-	static CRGB *leds = nullptr;
-	static CRGBSet *indicator = nullptr;
+void Led_Cyclic(void) {
+	static LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
+	static LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
+	static bool animationActive = false;
+	static int32_t animationTimer = 0;
+	static uint32_t animationStartTimestamp = 0;
 
-	uint8_t numIndicatorLeds = gLedSettings.numIndicatorLeds;
-	uint8_t numControlLeds = gLedSettings.numControlLeds;
-	// Allocate memory for LED arrays
-	leds = new CRGB[numIndicatorLeds + numControlLeds];
-	indicator = new CRGBSet(leds, numIndicatorLeds);
-	// initialize FastLED
-	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
-	FastLED.setBrightness(gLedSettings.Led_Brightness);
-	FastLED.setDither(DISABLE_DITHER);
-	FastLED.setMaxRefreshRate(120); // limit LED refresh rate to 120Hz (less likely to cause flickering)
-
-	LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
-	LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
-	bool animationActive = false;
-	int32_t animationTimer = 0;
-	uint8_t ledSettingsChanged;
-
-	for (;;) {
-
-		if (xQueueReceive(gLedQueue, &ledSettingsChanged, 0) == pdPASS) {
-			// load led settings from NVS
-			Led_LoadSettings(gLedSettings);
-			// number of indicator/control leds changed
-			if (((gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds) != (numIndicatorLeds + numControlLeds)) || (gLedSettings.numControlLeds != numControlLeds)) {
-				FastLED.clear(true);
-				numIndicatorLeds = gLedSettings.numIndicatorLeds;
-				numControlLeds = gLedSettings.numControlLeds;
-				delete (leds);
-				delete (indicator);
-				leds = new CRGB[numIndicatorLeds + numControlLeds];
-				indicator = new CRGBSet(leds, numIndicatorLeds);
-				FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
-			}
-		}
-
-		// special handling
-		if (gLedSettings.Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
-			vTaskDelay(portTICK_PERIOD_MS * 10);
-			continue;
-		}
-
-		Led_DrawControls(leds);
-
-		uint32_t taskDelay = 20;
-		bool startNewAnimation = false;
-
-		// check indications and set led-mode
-		// this mode will then be animated if the priority and the current animation state fit
-		if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
-			nextAnimation = LedAnimationType::Boot;
-		} else if (CheckForPowerButtonAnimation()) {
-			nextAnimation = LedAnimationType::Shutdown;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::Error);
-			nextAnimation = LedAnimationType::Error;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
-			nextAnimation = LedAnimationType::Ok;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
-			nextAnimation = LedAnimationType::VoltageWarning;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
-			nextAnimation = LedAnimationType::BatteryMeasurement;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange)) {
-			nextAnimation = LedAnimationType::Volume;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
-			LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
-			nextAnimation = LedAnimationType::Rewind;
-		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
-			nextAnimation = LedAnimationType::Playlist;
-		} else if (gPlayProperties.currentSpeechActive) {
-			nextAnimation = LedAnimationType::Speech;
-		} else if (gPlayProperties.playlistFinished) {
-			nextAnimation = LedAnimationType::Idle;
-		} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
-			nextAnimation = LedAnimationType::Pause;
-		} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST) && gPlayProperties.audioFileSize > 0) { // progress for a file/stream with known size
-			nextAnimation = LedAnimationType::Progress;
-		} else if (gPlayProperties.isWebstream) { // webstream animation (for streams with unknown size); pause animation is also handled by the webstream animation function
-			nextAnimation = LedAnimationType::Webstream;
-		} else if (gPlayProperties.playMode == NO_PLAYLIST) {
-			nextAnimation = LedAnimationType::Idle;
-		} else if (gPlayProperties.playMode == BUSY) {
-			nextAnimation = LedAnimationType::Busy;
-		} else {
-			nextAnimation = LedAnimationType::NoNewAnimation; // should not happen
-		}
-
-		// check for instant transition if the requested animation has a higher priority then the current one
-		if (nextAnimation < activeAnimation) {
-			animationActive = false; // abort current animation
-			animationTimer = 0;
-		}
-		// transition to new animation
-		if ((!animationActive) && (animationTimer <= 0)) {
-			activeAnimation = nextAnimation; // set new animation
-			startNewAnimation = true;
-		}
-
-		// apply brightness-changes
-		if (lastLedBrightness != gLedSettings.Led_Brightness) {
-			FastLED.setBrightness(gLedSettings.Led_Brightness);
-			lastLedBrightness = gLedSettings.Led_Brightness;
-		}
-
-		// when there is no delay anymore we have to animate something
-		if (animationTimer <= 0) {
-			AnimationReturnType ret;
-			// animate the current animation
-			switch (activeAnimation) {
-				case LedAnimationType::Boot:
-					ret = Animation_Boot(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Shutdown:
-					ret = Animation_Shutdown(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Error:
-					ret = Animation_Error(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Ok:
-					ret = Animation_Ok(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Volume:
-					ret = Animation_Volume(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::VoltageWarning:
-					ret = Animation_VoltageWarning(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::BatteryMeasurement:
-					ret = Animation_BatteryMeasurement(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Rewind:
-					ret = Animation_Rewind(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Playlist:
-					ret = Animation_PlaylistProgress(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Idle:
-					ret = Animation_Idle(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Busy:
-					ret = Animation_Busy(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Speech:
-					ret = Animation_Speech(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Pause:
-					ret = Animation_Pause(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Progress:
-					ret = Animation_Progress(startNewAnimation, *indicator);
-					break;
-
-				case LedAnimationType::Webstream:
-					ret = Animation_Webstream(startNewAnimation, *indicator);
-					break;
-
-				default:
-					*indicator = CRGB::Black;
-					FastLED.show();
-					ret.animationActive = false;
-					ret.animationDelay = 50;
-					break;
-			}
-			// apply delay and state from animation
-			animationActive = ret.animationActive;
-			animationTimer = ret.animationDelay;
-			if (ret.animationRefresh) {
-				FastLED.show();
-			}
-		}
-
-		// get the time to wait and delay the task
-		if ((animationTimer > 0) && (animationTimer < taskDelay)) {
-			taskDelay = animationTimer;
-		}
-		animationTimer -= taskDelay;
-		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
+	// directly return if no LEDs are active
+	if (!leds_active) {
+		return;
 	}
-	delete (leds);
-	delete (indicator);
-	vTaskDelete(NULL);
+
+	if (led_settings_changed) {
+		led_settings_changed = false;
+		// load led settings from NVS
+		Led_LoadSettings(gLedSettings);
+		// number of indicator/control leds changed
+		if (((gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds) != (numIndicatorLeds + numControlLeds)) || (gLedSettings.numControlLeds != numControlLeds)) {
+			FastLED.clear(true);
+			numIndicatorLeds = gLedSettings.numIndicatorLeds;
+			numControlLeds = gLedSettings.numControlLeds;
+			delete (leds);
+			delete (indicator);
+			leds = new CRGB[numIndicatorLeds + numControlLeds];
+			indicator = new CRGBSet(leds, numIndicatorLeds);
+			FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
+		}
+	}
+
+	// special handling
+	if (gLedSettings.Led_Pause) { // Workaround to prevent exceptions while NVS-writes take place
+		return;
+	}
+
+	Led_DrawControls(leds);
+
+	bool startNewAnimation = false;
+
+	// check indications and set led-mode
+	// this mode will then be animated if the priority and the current animation state fit
+	if (!LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
+		nextAnimation = LedAnimationType::Boot;
+	} else if (CheckForPowerButtonAnimation()) {
+		nextAnimation = LedAnimationType::Shutdown;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Error)) {
+		LED_INDICATOR_CLEAR(LedIndicatorType::Error);
+		nextAnimation = LedAnimationType::Error;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Ok)) {
+		LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
+		nextAnimation = LedAnimationType::Ok;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
+		LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
+		nextAnimation = LedAnimationType::VoltageWarning;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
+		nextAnimation = LedAnimationType::BatteryMeasurement;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange)) {
+		nextAnimation = LedAnimationType::Volume;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Rewind)) {
+		LED_INDICATOR_CLEAR(LedIndicatorType::Rewind);
+		nextAnimation = LedAnimationType::Rewind;
+	} else if (LED_INDICATOR_IS_SET(LedIndicatorType::PlaylistProgress)) {
+		nextAnimation = LedAnimationType::Playlist;
+	} else if (gPlayProperties.currentSpeechActive) {
+		nextAnimation = LedAnimationType::Speech;
+	} else if (gPlayProperties.playlistFinished) {
+		nextAnimation = LedAnimationType::Idle;
+	} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
+		nextAnimation = LedAnimationType::Pause;
+	} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST) && gPlayProperties.audioFileSize > 0) { // progress for a file/stream with known size
+		nextAnimation = LedAnimationType::Progress;
+	} else if (gPlayProperties.isWebstream) { // webstream animation (for streams with unknown size); pause animation is also handled by the webstream animation function
+		nextAnimation = LedAnimationType::Webstream;
+	} else if (gPlayProperties.playMode == NO_PLAYLIST) {
+		nextAnimation = LedAnimationType::Idle;
+	} else if (gPlayProperties.playMode == BUSY) {
+		nextAnimation = LedAnimationType::Busy;
+	} else {
+		nextAnimation = LedAnimationType::NoNewAnimation; // should not happen
+	}
+
+	// check for instant transition if the requested animation has a higher priority then the current one
+	if (nextAnimation < activeAnimation) {
+		animationActive = false; // abort current animation
+		animationTimer = 0;
+	}
+	// transition to new animation
+	if ((!animationActive) && (animationTimer <= 0)) {
+		activeAnimation = nextAnimation; // set new animation
+		startNewAnimation = true;
+	}
+
+	// apply brightness-changes
+	if (lastLedBrightness != gLedSettings.Led_Brightness) {
+		FastLED.setBrightness(gLedSettings.Led_Brightness);
+		lastLedBrightness = gLedSettings.Led_Brightness;
+	}
+
+	// when there is no delay anymore we have to animate something
+	if (animationTimer <= 0) {
+		AnimationReturnType ret;
+		// animate the current animation
+		switch (activeAnimation) {
+			case LedAnimationType::Boot:
+				ret = Animation_Boot(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Shutdown:
+				ret = Animation_Shutdown(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Error:
+				ret = Animation_Error(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Ok:
+				ret = Animation_Ok(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Volume:
+				ret = Animation_Volume(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::VoltageWarning:
+				ret = Animation_VoltageWarning(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::BatteryMeasurement:
+				ret = Animation_BatteryMeasurement(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Rewind:
+				ret = Animation_Rewind(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Playlist:
+				ret = Animation_PlaylistProgress(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Idle:
+				ret = Animation_Idle(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Busy:
+				ret = Animation_Busy(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Speech:
+				ret = Animation_Speech(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Pause:
+				ret = Animation_Pause(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Progress:
+				ret = Animation_Progress(startNewAnimation, *indicator);
+				break;
+
+			case LedAnimationType::Webstream:
+				ret = Animation_Webstream(startNewAnimation, *indicator);
+				break;
+
+			default:
+				*indicator = CRGB::Black;
+				FastLED.show();
+				ret.animationActive = false;
+				ret.animationDelay = 50;
+				break;
+		}
+		// apply delay and state from animation
+		animationActive = ret.animationActive;
+		animationTimer = ret.animationDelay;
+		animationStartTimestamp = millis();
+		if (ret.animationRefresh) {
+			FastLED.show();
+		}
+	}
+
+	// don't do anything else, until time is up
+	if (((millis() - animationStartTimestamp) >= animationTimer)) {
+		// we have to wait for the next animation
+		animationTimer = 0;
+	}
 }
 #endif
 
@@ -1233,13 +1215,13 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 void Led_TaskPause(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskSuspend(Led_TaskHandle);
+	leds_active = false;
 	FastLED.clear(true);
 #endif
 }
 
 void Led_TaskResume(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskResume(Led_TaskHandle);
+	leds_active = true;
 #endif
 }
