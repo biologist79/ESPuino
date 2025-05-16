@@ -159,6 +159,7 @@ void Led_Init(void) {
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
 	FastLED.setBrightness(gLedSettings.Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
+	FastLED.setMaxRefreshRate(120);
 	leds_active = true;
 #endif
 }
