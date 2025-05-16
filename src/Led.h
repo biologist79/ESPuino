@@ -62,6 +62,12 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
+	#define FASTLED_WS2812_T1 350 // original 250 - changed
+	#define FASTLED_WS2812_T2 700 // original 625 - changed
+	#define FASTLED_WS2812_T3 150 // original 375 - changed
+
+	#include <FastLED.h>
+
 struct LedSettings {
 	uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
 	uint8_t numControlLeds = NUM_CONTROL_LEDS;
