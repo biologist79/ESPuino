@@ -255,5 +255,5 @@ void loop() {
 	gHallEffectSensor.cyclic();
 #endif
 
-	vTaskDelay(portTICK_PERIOD_MS * 5u);
+	vTaskDelay(portTICK_PERIOD_MS * 6u);
 }

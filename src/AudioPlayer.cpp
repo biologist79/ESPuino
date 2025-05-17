@@ -202,6 +202,8 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.getChar("gainLowPass", 0),
 		gPrefsSettings.getChar("gainBandPass", 0),
 		gPrefsSettings.getChar("gainHighPass", 0));
+
+	audio->setAudioTaskCore(1);
 }
 
 void AudioPlayer_Exit(void) {

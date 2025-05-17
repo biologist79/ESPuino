@@ -357,7 +357,7 @@ static void Led_Task(void *parameter) {
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
 	FastLED.setBrightness(gLedSettings.Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
-	FastLED.setMaxRefreshRate(120); // limit LED refresh rate to 120Hz (less likely to cause flickering)
+	FastLED.setMaxRefreshRate(200); // limit LED refresh rate to 120Hz (less likely to cause flickering)
 
 	LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
 	LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
