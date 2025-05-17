@@ -314,7 +314,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 	// Loudness to change?
 	else if (topic_str == topicLoudnessCmnd) {
 		unsigned long vol = toNumber<uint32_t>(payload_str);
-		AudioPlayer_VolumeToQueueSender(vol, true);
+		AudioPlayer_SetVolume(vol, true);
 	}
 	// Modify sleep-timer?
 	else if (topic_str == topicSleepTimerCmnd) {
@@ -380,7 +380,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 	// Track-control (pause/play, stop, first, last, next, previous)
 	else if (topic_str == topicTrackControlCmnd) {
 		uint8_t controlCommand = toNumber<uint8_t>(payload_str);
-		AudioPlayer_TrackControlToQueueSender(controlCommand);
+		AudioPlayer_SetTrackControl(controlCommand);
 	}
 
 	// Check if controls should be locked

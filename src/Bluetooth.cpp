@@ -11,10 +11,10 @@
 #include <AudioPlayer.h>
 
 #ifdef BLUETOOTH_ENABLE
-	#include "esp_bt.h"
 	#include "BluetoothA2DPCommon.h"
 	#include "BluetoothA2DPSink.h"
 	#include "BluetoothA2DPSource.h"
+	#include "esp_bt.h"
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 		#include "ESP_I2S.h"
 I2SClass i2s;
@@ -77,17 +77,17 @@ void button_handler(uint8_t id, bool isReleased) {
 			case 68:
 				// 70=pause, 68=resume
 				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (pause/resume) is released.", id);
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+				AudioPlayer_SetTrackControl(PAUSEPLAY);
 				break;
 			case 75:
 				// 75=next
 				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (next track) is released.", id);
-				AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
+				AudioPlayer_SetTrackControl(NEXTTRACK);
 				break;
 			case 76:
 				// 76=previous
 				Log_Printf(LOGLEVEL_DEBUG, "Bluetooth button id %u (previous track) is released.", id);
-				AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
+				AudioPlayer_SetTrackControl(PREVIOUSTRACK);
 				break;
 			default:
 				// unknown/unsupported button id
@@ -201,7 +201,7 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 	_volume = map(_newVolume, 0, 0x7F, BLUETOOTHPLAYER_VOLUME_MIN, BLUETOOTHPLAYER_VOLUME_MAX);
 	if (AudioPlayer_GetCurrentVolume() != _volume) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _volume);
-		AudioPlayer_VolumeToQueueSender(_volume, true);
+		AudioPlayer_SetVolume(_volume, true);
 	}
 #endif
 }
@@ -227,7 +227,7 @@ void Bluetooth_Init(void) {
 			.bck_io_num = I2S_BCLK,
 			.ws_io_num = I2S_LRC,
 			.data_out_num = I2S_DOUT,
-			.data_in_num = I2S_PIN_NO_CHANGE
+			.data_in_num = I2S_PIN_NO_CHANGE,
 		};
 		a2dp_sink->set_pin_config(pin_config);
 	#endif

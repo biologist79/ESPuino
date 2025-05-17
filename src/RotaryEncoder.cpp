@@ -60,7 +60,7 @@ void RotaryEncoder_Cyclic(void) {
 		// just reset the encoder here, so we get a new delta next time
 		encoder.clearCount();
 		auto currentVol = AudioPlayer_GetCurrentVolume();
-		AudioPlayer_VolumeToQueueSender(currentVol + (encoderValue / 2), false);
+		AudioPlayer_SetVolume(currentVol + (encoderValue / 2), false);
 		return;
 	}
 #endif
