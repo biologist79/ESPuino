@@ -32,8 +32,6 @@
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
 playProps gPlayProperties;
-TaskHandle_t AudioTaskHandle;
-// uint32_t cnt123 = 0;
 
 // Playlist
 static playlistSortMode AudioPlayer_PlaylistSortMode = AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT;
@@ -82,6 +80,7 @@ bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
+bool audio_active = false;
 
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
@@ -92,6 +91,13 @@ static void AudioPlayer_SortPlaylist(Playlist *playlist);
 static void AudioPlayer_RandomizePlaylist(Playlist *playlist);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
 static void AudioPlayer_ClearCover(void);
+
+void Audio_TaskPause(void) {
+	bool audio_active = false;
+}
+void Audio_TaskResume(void) {
+	bool audio_active = true;
+}
 
 void AudioPlayer_Init(void) {
 	// create audio object
@@ -204,6 +210,8 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.getChar("gainHighPass", 0));
 
 	audio->setAudioTaskCore(1);
+
+	audio_active = true;
 }
 
 void AudioPlayer_Exit(void) {
@@ -223,6 +231,10 @@ void AudioPlayer_Exit(void) {
 static uint32_t lastPlayingTimestamp = 0;
 
 void AudioPlayer_Cyclic(void) {
+	if (!audio_active) {
+		return;
+	}
+
 	AudioPlayer_HeadphoneVolumeManager();
 	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !gPlayProperties.pausePlay) {
 		// audio is playing, update the playtime since start
@@ -409,9 +421,6 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 
 // Function to play music as task
 void AudioPlayer_Loop() {
-
-	audio->loop();
-
 	// Update playtime stats every 250 ms
 	if ((millis() - AudioPlayer_LastPlaytimeStatsTimestamp) > 250) {
 		AudioPlayer_LastPlaytimeStatsTimestamp = millis();
@@ -860,7 +869,8 @@ void AudioPlayer_Loop() {
 		audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 	}
 
-	// audio->loop(); was here before
+	audio->loop(); // Call audio-loop function to process incoming data
+
 	if (gPlayProperties.playlistFinished || gPlayProperties.pausePlay) {
 	} else {
 		System_UpdateActivityTimer(); // Refresh if playlist is active so uC will not fall asleep due to reaching inactivity-time
