@@ -96,7 +96,7 @@ void Rfid_Init(void) {
 		"rfid", /* Name of the task */
 		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
-		1 | portPRIVILEGE_BIT, /* Priority of the task */
+		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
 		0 /* Core where the task should run */
 	);
