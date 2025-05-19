@@ -11,9 +11,6 @@
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
 #include "EnumUtils.h"
-#ifdef NEOPIXEL_ENABLE
-	#include <FastLED.h>
-#endif
 #include "Ftp.h"
 #include "HTMLbinary.h"
 #include "HallEffectSensor.h"
@@ -445,8 +442,8 @@ void webserverStart(void) {
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
-					vTaskSuspend(AudioTaskHandle);
-					Led_TaskPause();
+					// Audio_TaskPause();
+					// Led_TaskPause();
 					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -458,8 +455,8 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
-					Led_TaskResume();
-					vTaskResume(AudioTaskHandle);
+					// Led_TaskResume();
+					// Audio_TaskResume();
 					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
@@ -682,7 +679,7 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
 			return false;
 		} else {
-			AudioPlayer_EqualizerToQueueSender(_gainLowPass, _gainBandPass, _gainHighPass);
+			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
 	}
 	if (doc["wifi"].is<JsonObject>()) {
@@ -889,7 +886,7 @@ bool JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_VolumeToQueueSender(new_vol, true);
+			AudioPlayer_SetVolume(new_vol, true);
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -1651,8 +1648,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
-	vTaskSuspend(AudioTaskHandle);
-	Led_TaskPause();
+	// Audio_TaskPause();
+	// Led_TaskPause();
 	Rfid_TaskPause();
 
 	for (;;) {
@@ -1689,8 +1686,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				free(parameter);
 				// resume the paused tasks
-				Led_TaskResume();
-				vTaskResume(AudioTaskHandle);
+				// Led_TaskResume();
+				// Audio_TaskResume();
 				Rfid_TaskResume();
 				// destroy double buffer memory, since the upload was interrupted
 				destroyDoubleBuffer();
@@ -1704,8 +1701,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 	}
 	free(parameter);
 	// resume the paused tasks
-	Led_TaskResume();
-	vTaskResume(AudioTaskHandle);
+	// Led_TaskResume();
+	// Audio_TaskResume();
 	Rfid_TaskResume();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);
@@ -1935,7 +1932,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		if (gPlayProperties.dontAcceptRfidTwice) {
 		Rfid_ResetOldRfid();
 		}
-		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
+		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
 	}

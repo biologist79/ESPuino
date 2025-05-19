@@ -281,7 +281,7 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_PLAYPAUSE: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+				AudioPlayer_SetTrackControl(PAUSEPLAY);
 			} else {
 				Bluetooth_PlayPauseTrack();
 			}
@@ -290,7 +290,7 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_PREVTRACK: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_TrackControlToQueueSender(PREVIOUSTRACK);
+				AudioPlayer_SetTrackControl(PREVIOUSTRACK);
 			} else {
 				Bluetooth_PreviousTrack();
 			}
@@ -299,7 +299,7 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_NEXTTRACK: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_TrackControlToQueueSender(NEXTTRACK);
+				AudioPlayer_SetTrackControl(NEXTTRACK);
 			} else {
 				Bluetooth_NextTrack();
 			}
@@ -307,23 +307,23 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_FIRSTTRACK: {
-			AudioPlayer_TrackControlToQueueSender(FIRSTTRACK);
+			AudioPlayer_SetTrackControl(FIRSTTRACK);
 			break;
 		}
 
 		case CMD_LASTTRACK: {
-			AudioPlayer_TrackControlToQueueSender(LASTTRACK);
+			AudioPlayer_SetTrackControl(LASTTRACK);
 			break;
 		}
 
 		case CMD_VOLUMEINIT: {
-			AudioPlayer_VolumeToQueueSender(AudioPlayer_GetInitVolume(), true);
+			AudioPlayer_SetVolume(AudioPlayer_GetInitVolume(), true);
 			break;
 		}
 
 		case CMD_VOLUMEUP: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() + 1, true);
+				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
 			} else {
 				Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
 			}
@@ -332,7 +332,7 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_VOLUMEDOWN: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_VolumeToQueueSender(AudioPlayer_GetCurrentVolume() - 1, true);
+				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
 			} else {
 				Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
 			}
@@ -369,7 +369,7 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_STOP: {
-			AudioPlayer_TrackControlToQueueSender(STOP);
+			AudioPlayer_SetTrackControl(STOP);
 			break;
 		}
 

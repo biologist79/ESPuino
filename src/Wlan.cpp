@@ -6,6 +6,7 @@
 #include "AudioPlayer.h"
 #include "Log.h"
 #include "MemX.h"
+#include "Mqtt.h"
 #include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
@@ -508,6 +509,7 @@ void handleWifiStateConnectionSuccess() {
 	}
 
 	wifiState = WIFI_STATE_CONNECTED;
+	Mqtt_OnWifiConnected();
 }
 
 unsigned long lastRssiTimestamp;
@@ -538,6 +540,9 @@ void handleWifiStateConnected() {
 			Log_Printf(LOGLEVEL_DEBUG, "RSSI: %d dBm", Wlan_GetRssi());
 			lastRssiValue = Wlan_GetRssi();
 		}
+#ifdef MQTT_ENABLE
+		publishMqtt(topicWiFiRssiState, static_cast<int32_t>(Wlan_GetRssi()), false);
+#endif
 	}
 }
 
@@ -772,7 +777,7 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 	} else {
 		Log_Println(wifiDisabledMsg, LOGLEVEL_NOTICE);
 		if (gPlayProperties.isWebstream) {
-			AudioPlayer_TrackControlToQueueSender(STOP);
+			AudioPlayer_SetTrackControl(STOP);
 		}
 	}
 

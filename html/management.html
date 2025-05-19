@@ -1177,6 +1177,7 @@
 									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
 										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
 										data-slider-value="-1" value="-1">
+							</div>
 							<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>: <br>
 							<div class="hue-slider">
 									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1" 
@@ -1186,8 +1187,8 @@
 							<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>: <br>
 							<div class="sat-slider">
 									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
-									data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
-									data-slider-value="-1" value="-1">
+										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
+										data-slider-value="-1" value="-1">
 							</div>
 							<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
 							<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
@@ -3195,7 +3196,7 @@
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
 			const cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111];
-			for(const cmd of cmds) {
+			for (const cmd of cmds) {
 				addOption(cmdElem, cmd);
 			}
 
@@ -3205,7 +3206,7 @@
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
 			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 180, 181];
-			for(const mod of mods) {
+			for (const mod of mods) {
 				addOption(modElem, mod);
 			}
 

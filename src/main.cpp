@@ -171,7 +171,6 @@ void setup() {
 	SdCard_PrintInfo();
 
 	Ftp_Init();
-	Mqtt_Init();
 #ifndef PN5180_ENABLE_LPCD
 	#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
 	Rfid_Init();
@@ -179,6 +178,7 @@ void setup() {
 #endif
 	RotaryEncoder_Init();
 	Wlan_Init();
+	Mqtt_Init();
 	Bluetooth_Init();
 
 	if (OPMODE_NORMAL == System_GetOperationMode()) {
@@ -230,15 +230,11 @@ void loop() {
 		Web_Cyclic();
 		Ftp_Cyclic();
 		RotaryEncoder_Cyclic();
-		Mqtt_Cyclic();
 	}
-	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	AudioPlayer_Cyclic();
-	vTaskDelay(portTICK_PERIOD_MS * 1u);
+	Led_Cyclic();
 	Battery_Cyclic();
-	// Port_Cyclic(); // called by button (controlled via hw-timer)
 	Button_Cyclic();
-	vTaskDelay(portTICK_PERIOD_MS * 1u);
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
@@ -255,9 +251,10 @@ void loop() {
 	}
 
 	IrReceiver_Cyclic();
-	vTaskDelay(portTICK_PERIOD_MS * 2u);
 
 #ifdef HALLEFFECT_SENSOR_ENABLE
 	gHallEffectSensor.cyclic();
 #endif
+
+	vTaskDelay(portTICK_PERIOD_MS * 6u);
 }
