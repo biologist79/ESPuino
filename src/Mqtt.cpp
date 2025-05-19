@@ -29,6 +29,7 @@ String gMqttServer = "192.168.2.43"; // IP-address of MQTT-server (if not found 
 String gMqttUser = "mqtt-user"; // MQTT-user
 String gMqttPassword = "mqtt-password"; // MQTT-password
 uint16_t gMqttPort = 1883; // MQTT-Port
+constexpr uint8_t MQTT_TOPIC_MAX_LENGTH = 128u; // Maximal length of MQTT-topic
 #endif
 
 // MQTT
@@ -137,6 +138,27 @@ void Mqtt_OnWifiConnected(void) {
 #endif
 }
 
+#ifdef MQTT_ENABLE
+const char *Mqtt_GetTopic(const char *topic, bool isStateTopic) {
+	static char out_string[MQTT_TOPIC_MAX_LENGTH]; // Static buffer to hold the result
+
+	// Build the topic string
+	if (!isStateTopic) {
+		snprintf(out_string, MQTT_TOPIC_MAX_LENGTH, "%s/%s/%s", commandWord, gMqttClientId.c_str(), topic);
+	} else {
+		snprintf(out_string, MQTT_TOPIC_MAX_LENGTH, "%s/%s/%s", stateWord, gMqttClientId.c_str(), topic);
+	}
+
+	return out_string; // Return the static buffer
+}
+const char *Mqtt_GetStateTopic(const char *topic) {
+	return Mqtt_GetTopic(topic, true);
+}
+const char *Mqtt_GetCommandTopic(const char *topic) {
+	return Mqtt_GetTopic(topic, false);
+}
+#endif
+
 void Mqtt_Exit(void) {
 #ifdef MQTT_ENABLE
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
@@ -157,7 +179,7 @@ bool publishMqtt(const char *topic, const char *payload, bool retained) {
 #ifdef MQTT_ENABLE
 	if (strcmp(topic, "") != 0) {
 		int qos = 0;
-		int ret = esp_mqtt_client_publish(mqtt_client, topic, payload, 0, qos, retained);
+		int ret = esp_mqtt_client_publish(mqtt_client, Mqtt_GetStateTopic(topic), payload, 0, qos, retained);
 		// int ret = esp_mqtt_client_enqueue(mqtt_client, topic, payload, 0, qos, retained, true);
 		return ret == 0;
 	}
@@ -214,28 +236,28 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			int qos = 0;
 
 			// Deepsleep-subscription
-			esp_mqtt_client_subscribe(client, topicSleepCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleepCmnd), qos);
 
 			// RFID-"mqtt_debug"-ID-subscription
-			esp_mqtt_client_subscribe(client, topicRfidCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRfidCmnd), qos);
 
 			// Loudness-subscription
-			esp_mqtt_client_subscribe(client, topicLoudnessCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLoudnessCmnd), qos);
 
 			// Sleep-Timer-subscription
-			esp_mqtt_client_subscribe(client, topicSleepTimerCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleepTimerCmnd), qos);
 
 			// Next/previous/stop/play-track-subscription
-			esp_mqtt_client_subscribe(client, topicTrackControlCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicTrackControlCmnd), qos);
 
 			// Lock controls
-			esp_mqtt_client_subscribe(client, topicLockControlsCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLockControlsCmnd), qos);
 
 			// Current repeat-Mode
-			esp_mqtt_client_subscribe(client, topicRepeatModeCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRepeatModeCmnd), qos);
 
 			// LED-brightness
-			esp_mqtt_client_subscribe(client, topicLedBrightnessCmnd, qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLedBrightnessCmnd), qos);
 
 			// Publish current state
 			publishMqtt(topicState, "Online", false);
@@ -297,166 +319,181 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 
 	Log_Printf(LOGLEVEL_INFO, mqttMsgReceived, topic_str.c_str(), payload_str.c_str());
 
-	// Go to sleep?
-	if (topic_str == topicSleepCmnd) {
-		if (payload_str == "OFF" || payload_str == "0") {
-			System_RequestSleep();
+	// Define the prefix to match (e.g., "commandWord/gMqttClientId/")
+	char prefix[MQTT_TOPIC_MAX_LENGTH];
+	snprintf(prefix, sizeof(prefix), "%s/%s/", commandWord, gMqttClientId.c_str());
+
+	// Check if the topic starts with the prefix
+	if (strncmp(topic_str.c_str(), prefix, strlen(prefix)) == 0) {
+
+		// Remove the prefix from the topic
+		std::string reduced_topic_str = std::string(topic_str.c_str() + strlen(prefix));
+
+		// Go to sleep?
+		if (reduced_topic_str == topicSleepCmnd) {
+			if (payload_str == "OFF" || payload_str == "0") {
+				System_RequestSleep();
+			}
 		}
-	}
-	// New track to play? Take RFID-ID as input
-	else if (topic_str == topicRfidCmnd) {
-		if (payload_str.size() >= (cardIdStringSize - 1)) {
-			xQueueSend(gRfidCardQueue, payload_str.data(), 0);
-		} else {
-			System_IndicateError();
+		// New track to play? Take RFID-ID as input
+		else if (reduced_topic_str == topicRfidCmnd) {
+			if (payload_str.size() >= (cardIdStringSize - 1)) {
+				xQueueSend(gRfidCardQueue, payload_str.data(), 0);
+			} else {
+				System_IndicateError();
+			}
 		}
-	}
-	// Loudness to change?
-	else if (topic_str == topicLoudnessCmnd) {
-		unsigned long vol = toNumber<uint32_t>(payload_str);
-		AudioPlayer_SetVolume(vol, true);
-	}
-	// Modify sleep-timer?
-	else if (topic_str == topicSleepTimerCmnd) {
-		if (gPlayProperties.playMode == NO_PLAYLIST) { // Don't allow sleep-modications if no playlist is active
-			Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
-			publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
-			System_IndicateError();
-			return;
+		// Loudness to change?
+		else if (reduced_topic_str == topicLoudnessCmnd) {
+			unsigned long vol = toNumber<uint32_t>(payload_str);
+			AudioPlayer_SetVolume(vol, true);
 		}
-		if (payload_str == "EOP") {
-			gPlayProperties.sleepAfterPlaylist = true;
-			Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
-			publishMqtt(topicSleepTimerState, "EOP", false);
-			Led_SetNightmode(true);
-			System_IndicateOk();
-			return;
-		} else if (payload_str == "EOT") {
-			gPlayProperties.sleepAfterCurrentTrack = true;
-			Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
-			publishMqtt(topicSleepTimerState, "EOT", false);
-			Led_SetNightmode(true);
-			System_IndicateOk();
-			return;
-		} else if (payload_str == "EO5T") {
-			if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
-				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
+		// Modify sleep-timer?
+		else if (reduced_topic_str == topicSleepTimerCmnd) {
+			if (gPlayProperties.playMode == NO_PLAYLIST) { // Don't allow sleep-modications if no playlist is active
+				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
+				publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
 				System_IndicateError();
 				return;
 			}
-			if ((gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
-				gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
-			} else {
-				gPlayProperties.sleepAfterPlaylist = true; // If +5 tracks is > than active playlist, take end of current playlist
-			}
-			Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
-			publishMqtt(topicSleepTimerState, "EO5T", false);
-			Led_SetNightmode(true);
-			System_IndicateOk();
-			return;
-		} else if (payload_str == "0") { // Disable sleep after it was active previously
-			if (System_IsSleepTimerEnabled()) {
-				System_DisableSleepTimer();
-				Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
+			if (payload_str == "EOP") {
+				gPlayProperties.sleepAfterPlaylist = true;
+				Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
+				publishMqtt(topicSleepTimerState, "EOP", false);
+				Led_SetNightmode(true);
 				System_IndicateOk();
-				Led_SetNightmode(false);
-				publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
-				gPlayProperties.sleepAfterPlaylist = false;
-				gPlayProperties.sleepAfterCurrentTrack = false;
-				gPlayProperties.playUntilTrackNumber = 0;
-			} else {
-				Log_Println(sleepTimerAlreadyStopped, LOGLEVEL_INFO);
-				System_IndicateError();
+				return;
+			} else if (payload_str == "EOT") {
+				gPlayProperties.sleepAfterCurrentTrack = true;
+				Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
+				publishMqtt(topicSleepTimerState, "EOT", false);
+				Led_SetNightmode(true);
+				System_IndicateOk();
+				return;
+			} else if (payload_str == "EO5T") {
+				if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
+					Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
+					System_IndicateError();
+					return;
+				}
+				if ((gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
+					gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
+				} else {
+					gPlayProperties.sleepAfterPlaylist = true; // If +5 tracks is > than active playlist, take end of current playlist
+				}
+				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
+				publishMqtt(topicSleepTimerState, "EO5T", false);
+				Led_SetNightmode(true);
+				System_IndicateOk();
+				return;
+			} else if (payload_str == "0") { // Disable sleep after it was active previously
+				if (System_IsSleepTimerEnabled()) {
+					System_DisableSleepTimer();
+					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
+					System_IndicateOk();
+					Led_SetNightmode(false);
+					publishMqtt(topicSleepState, static_cast<uint32_t>(0), false);
+					gPlayProperties.sleepAfterPlaylist = false;
+					gPlayProperties.sleepAfterCurrentTrack = false;
+					gPlayProperties.playUntilTrackNumber = 0;
+				} else {
+					Log_Println(sleepTimerAlreadyStopped, LOGLEVEL_INFO);
+					System_IndicateError();
+				}
+				return;
 			}
-			return;
-		}
-		System_SetSleepTimer(toNumber<uint8_t>(payload_str));
-		Log_Printf(LOGLEVEL_NOTICE, sleepTimerSetTo, System_GetSleepTimer());
-		System_IndicateOk();
-
-		gPlayProperties.sleepAfterPlaylist = false;
-		gPlayProperties.sleepAfterCurrentTrack = false;
-	}
-	// Track-control (pause/play, stop, first, last, next, previous)
-	else if (topic_str == topicTrackControlCmnd) {
-		uint8_t controlCommand = toNumber<uint8_t>(payload_str);
-		AudioPlayer_SetTrackControl(controlCommand);
-	}
-
-	// Check if controls should be locked
-	else if (topic_str == topicLockControlsCmnd) {
-		if (payload_str == "OFF") {
-			System_SetLockControls(false);
-			Log_Println(allowButtons, LOGLEVEL_NOTICE);
-			publishMqtt(topicLockControlsState, "OFF", false);
+			System_SetSleepTimer(toNumber<uint8_t>(payload_str));
+			Log_Printf(LOGLEVEL_NOTICE, sleepTimerSetTo, System_GetSleepTimer());
 			System_IndicateOk();
-		} else if (payload_str == "ON") {
-			System_SetLockControls(true);
-			Log_Println(lockButtons, LOGLEVEL_NOTICE);
-			publishMqtt(topicLockControlsState, "ON", false);
-			System_IndicateOk();
+
+			gPlayProperties.sleepAfterPlaylist = false;
+			gPlayProperties.sleepAfterCurrentTrack = false;
 		}
-	}
+		// Track-control (pause/play, stop, first, last, next, previous)
+		else if (reduced_topic_str == topicTrackControlCmnd) {
+			uint8_t controlCommand = toNumber<uint8_t>(payload_str);
+			AudioPlayer_SetTrackControl(controlCommand);
+		}
 
-	// Check if playmode should be adjusted
-	else if (topic_str == topicRepeatModeCmnd) {
-		uint8_t repeatMode = toNumber<uint8_t>(payload_str);
-		Log_Printf(LOGLEVEL_NOTICE, "Repeat: %d", repeatMode);
-		if (gPlayProperties.playMode != NO_PLAYLIST) {
-			if (gPlayProperties.playMode == NO_PLAYLIST) {
-				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-				Log_Println(noPlaylistNotAllowedMqtt, LOGLEVEL_ERROR);
-				System_IndicateError();
-			} else {
-				switch (repeatMode) {
-					case NO_REPEAT:
-						gPlayProperties.repeatCurrentTrack = false;
-						gPlayProperties.repeatPlaylist = false;
-						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-						Log_Println(modeRepeatNone, LOGLEVEL_INFO);
-						System_IndicateOk();
-						break;
+		// Check if controls should be locked
+		else if (reduced_topic_str == topicLockControlsCmnd) {
+			if (payload_str == "OFF") {
+				System_SetLockControls(false);
+				Log_Println(allowButtons, LOGLEVEL_NOTICE);
+				publishMqtt(topicLockControlsState, "OFF", false);
+				System_IndicateOk();
+			} else if (payload_str == "ON") {
+				System_SetLockControls(true);
+				Log_Println(lockButtons, LOGLEVEL_NOTICE);
+				publishMqtt(topicLockControlsState, "ON", false);
+				System_IndicateOk();
+			}
+		}
 
-					case TRACK:
-						gPlayProperties.repeatCurrentTrack = true;
-						gPlayProperties.repeatPlaylist = false;
-						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-						Log_Println(modeRepeatTrack, LOGLEVEL_INFO);
-						System_IndicateOk();
-						break;
+		// Check if playmode should be adjusted
+		else if (reduced_topic_str == topicRepeatModeCmnd) {
+			uint8_t repeatMode = toNumber<uint8_t>(payload_str);
+			Log_Printf(LOGLEVEL_NOTICE, "Repeat: %d", repeatMode);
+			if (gPlayProperties.playMode != NO_PLAYLIST) {
+				if (gPlayProperties.playMode == NO_PLAYLIST) {
+					publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+					Log_Println(noPlaylistNotAllowedMqtt, LOGLEVEL_ERROR);
+					System_IndicateError();
+				} else {
+					switch (repeatMode) {
+						case NO_REPEAT:
+							gPlayProperties.repeatCurrentTrack = false;
+							gPlayProperties.repeatPlaylist = false;
+							publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+							Log_Println(modeRepeatNone, LOGLEVEL_INFO);
+							System_IndicateOk();
+							break;
 
-					case PLAYLIST:
-						gPlayProperties.repeatCurrentTrack = false;
-						gPlayProperties.repeatPlaylist = true;
-						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-						Log_Println(modeRepeatPlaylist, LOGLEVEL_INFO);
-						System_IndicateOk();
-						break;
+						case TRACK:
+							gPlayProperties.repeatCurrentTrack = true;
+							gPlayProperties.repeatPlaylist = false;
+							publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+							Log_Println(modeRepeatTrack, LOGLEVEL_INFO);
+							System_IndicateOk();
+							break;
 
-					case TRACK_N_PLAYLIST:
-						gPlayProperties.repeatCurrentTrack = true;
-						gPlayProperties.repeatPlaylist = true;
-						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-						Log_Println(modeRepeatTracknPlaylist, LOGLEVEL_INFO);
-						System_IndicateOk();
-						break;
+						case PLAYLIST:
+							gPlayProperties.repeatCurrentTrack = false;
+							gPlayProperties.repeatPlaylist = true;
+							publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+							Log_Println(modeRepeatPlaylist, LOGLEVEL_INFO);
+							System_IndicateOk();
+							break;
 
-					default:
-						System_IndicateError();
-						publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
-						break;
+						case TRACK_N_PLAYLIST:
+							gPlayProperties.repeatCurrentTrack = true;
+							gPlayProperties.repeatPlaylist = true;
+							publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+							Log_Println(modeRepeatTracknPlaylist, LOGLEVEL_INFO);
+							System_IndicateOk();
+							break;
+
+						default:
+							System_IndicateError();
+							publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+							break;
+					}
 				}
 			}
 		}
-	}
 
-	// Check if LEDs should be dimmed
-	else if (topic_str == topicLedBrightnessCmnd) {
-		Led_SetBrightness(toNumber<uint8_t>(payload_str));
-	}
+		// Check if LEDs should be dimmed
+		else if (reduced_topic_str == topicLedBrightnessCmnd) {
+			Led_SetBrightness(toNumber<uint8_t>(payload_str));
+		}
 
-	// Requested something that isn't specified?
-	else {
+		// Requested something that isn't specified?
+		else {
+			Log_Printf(LOGLEVEL_ERROR, noValidTopic, topic_str.c_str());
+			System_IndicateError();
+		}
+	} else {
+		// Topic doesn't start with the prefix
 		Log_Printf(LOGLEVEL_ERROR, noValidTopic, topic_str.c_str());
 		System_IndicateError();
 	}
