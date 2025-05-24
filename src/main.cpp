@@ -151,7 +151,9 @@ void setup() {
 	// All checks that could send us to sleep are done, power up fully
 	Power_PeripheralOn();
 
-	Led_Init();
+	// Init moved to start of cyclic-task, to be executed on the same core-context as the task.
+	// Workaround for a bug in old RMT-driver of LED-strip-lib (from FastLED)
+	// Led_Init();
 
 	// Needs power first
 	SdCard_Init();
@@ -217,6 +219,13 @@ void setup() {
 }
 
 void loop() {
+	// Init in Core-1-context to avoid issues with LED-strip lib (FastLED) and RMT-driver
+	static bool first_time = true;
+	if (first_time) {
+		Led_Init();
+		first_time = false;
+	}
+
 	if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 		// bluetooth speaker mode
 		Bluetooth_Cyclic();
@@ -232,7 +241,6 @@ void loop() {
 		RotaryEncoder_Cyclic();
 	}
 	AudioPlayer_Cyclic();
-	Led_Cyclic();
 	Battery_Cyclic();
 	Button_Cyclic();
 	System_Cyclic();
