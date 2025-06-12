@@ -30,9 +30,6 @@
 
 #include <Wire.h>
 
-bool gPlayLastRfIdWhenWiFiConnected = false;
-bool gTriedToConnectToHost = false;
-
 static constexpr const char *logo = R"literal(
  _____   ____    ____            _
 | ____| / ___|  |  _ \   _   _  (_)  _ __     ___
@@ -94,8 +91,8 @@ void recoverBootCountFromNvs(void) {
 }
 
 // Get last RFID-tag applied from NVS
-void recoverLastRfidPlayedFromNvs(bool force) {
-	if (recoverLastRfid || force) {
+void recoverLastRfidPlayedFromNvs() {
+	if (recoverLastRfid) {
 		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
 			recoverLastRfid = false;
 			return;
@@ -106,7 +103,6 @@ void recoverLastRfidPlayedFromNvs(bool force) {
 			Log_Println(unableToRestoreLastRfidFromNVS, LOGLEVEL_INFO);
 		} else {
 			xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
-			gPlayLastRfIdWhenWiFiConnected = !force;
 			Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());
 		}
 	}

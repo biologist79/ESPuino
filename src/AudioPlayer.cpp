@@ -751,9 +751,18 @@ void AudioPlayer_Task(void *parameter) {
 			audioReturnCode = false;
 
 			if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
-				audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
-				gPlayProperties.playlistFinished = false;
-				gTriedToConnectToHost = true;
+				// wait for wlan to connect or fail to connect before continuing
+				// NOTE: In the current implementation, the Wifi only tries to connect for a few seconds. So this should not block too long.
+				while (Wlan_ConnectionTryInProgress()) {
+					vTaskDelay(portTICK_PERIOD_MS * 100u);
+				}
+				if (!Wlan_IsConnected()) {
+					Log_Println(webstreamNotAvailable, LOGLEVEL_ERROR);
+					audioReturnCode = false;
+				} else {
+					audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+					gPlayProperties.playlistFinished = false;
+				}
 			} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 				// Files from SD
 				if (!gFSystem.exists(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -1140,10 +1149,6 @@ void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _l
 
 		case WEBSTREAM: { // This is always just one "track"
 			Log_Println(modeWebstream, LOGLEVEL_NOTICE);
-			if (!Wlan_IsConnected()) {
-				Log_Println(webstreamNotAvailable, LOGLEVEL_ERROR);
-				error = true;
-			}
 			break;
 		}
 
