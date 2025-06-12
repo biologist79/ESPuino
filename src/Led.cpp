@@ -106,7 +106,7 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get reverse rotation from NVS
 	#ifdef NEOPIXEL_REVERSE_ROTATION
-	const bool defReverseRotation = NEOPIXEL_REVERSE_ROTATION;
+	const bool defReverseRotation = true;
 	#else
 	const bool defReverseRotation = false;
 	#endif
