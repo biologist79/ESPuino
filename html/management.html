@@ -2087,14 +2087,18 @@
 		/* File Explorer functions end */
 		var socket = undefined;
 		var tm;
+		var pingInterval;
+		var getTrackProgressInterval;
 		var volumeSlider = new Slider("#setVolume");
 		document.getElementById('setVolume').remove();
 
 		function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
-				setInterval(ping, 3000);
-				setInterval(getTrackProgress, 1000);
+				clearInterval(pingInterval);
+				clearInterval(getTrackProgressInterval);
+				pingInterval = setInterval(ping, 3000);
+				setTrackProgressInterval = setInterval(getTrackProgress, 1000);
 				// clear old socket messages
 				socket.sendBuffer = [];
 				socket.send('{"settings":{"settings":"settings"}}'); // request settings
