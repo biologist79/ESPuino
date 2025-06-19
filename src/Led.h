@@ -66,6 +66,8 @@ struct AnimationReturnType {
 // #define FASTLED_WS2812_T2 700 // original 625 - changed
 // #define FASTLED_WS2812_T3 150 // original 375 - changed
 
+	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+
 	#include <FastLED.h>
 
 struct LedSettings {
