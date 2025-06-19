@@ -152,7 +152,7 @@ void Led_Init(void) {
 	xTaskCreatePinnedToCore(
 		Led_Task, /* Function to implement the task */
 		"Led_Task", /* Name of the task */
-		4096, /* Stack size in words */
+		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
 		1, /* Priority of the task */
 		&Led_TaskHandle, /* Task handle. */
