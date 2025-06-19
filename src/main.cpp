@@ -232,7 +232,6 @@ void loop() {
 		RotaryEncoder_Cyclic();
 	}
 	AudioPlayer_Cyclic();
-	Led_Cyclic();
 	Battery_Cyclic();
 	Button_Cyclic();
 	System_Cyclic();
