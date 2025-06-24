@@ -267,6 +267,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicSleepTimerState, System_GetSleepTimerTimeStamp(), false);
 			publishMqtt(topicLockControlsState, static_cast<uint32_t>(System_AreControlsLocked()), false);
 			publishMqtt(topicPlaymodeState, static_cast<uint32_t>(gPlayProperties.playMode), false);
+			publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 			publishMqtt(topicLedBrightnessState, static_cast<uint32_t>(Led_GetBrightness()), false);
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
 			publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);

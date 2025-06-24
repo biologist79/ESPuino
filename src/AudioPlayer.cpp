@@ -461,6 +461,7 @@ void AudioPlayer_Loop() {
 			gPlayProperties.trackFinished = false;
 			gPlayProperties.playlistFinished = false;
 #ifdef MQTT_ENABLE
+			publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 			publishMqtt(topicPlaymodeState, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
@@ -517,6 +518,8 @@ void AudioPlayer_Loop() {
 				gPlayProperties.playMode = NO_PLAYLIST;
 				Audio_setTitle(noPlaylist);
 				AudioPlayer_ClearCover();
+
+				publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				return;
 
 			case PAUSEPLAY:
@@ -532,6 +535,7 @@ void AudioPlayer_Loop() {
 					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
+				publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 				return;
 
@@ -540,6 +544,7 @@ void AudioPlayer_Loop() {
 				if (gPlayProperties.pausePlay) {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
+					publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				}
 				if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 					gPlayProperties.repeatCurrentTrack = false;
@@ -575,6 +580,7 @@ void AudioPlayer_Loop() {
 				if (gPlayProperties.pausePlay) {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
+					publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				}
 				if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
 					gPlayProperties.repeatCurrentTrack = false;
@@ -636,6 +642,7 @@ void AudioPlayer_Loop() {
 				if (gPlayProperties.pausePlay) {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
+					publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				}
 				gPlayProperties.currentTrackNumber = 0;
 				if (gPlayProperties.saveLastPlayPosition) {
@@ -653,6 +660,7 @@ void AudioPlayer_Loop() {
 				if (gPlayProperties.pausePlay) {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
+					publishMqtt(topicPausePlayState, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
 				}
 				if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {
 					gPlayProperties.currentTrackNumber = gPlayProperties.playlist->size() - 1;

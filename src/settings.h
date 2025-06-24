@@ -284,6 +284,7 @@
 		constexpr const char topicState[] = "State";
 		constexpr const char topicCurrentIPv4IP[] = "IPv4";
 		constexpr const char topicLockControlsState[] ="LockControls";
+		constexpr const char topicPausePlayState[] = "PausePlay";
 		constexpr const char topicPlaymodeState[] = "Playmode";
 		constexpr const char topicRepeatModeState[] = "RepeatMode";
 		constexpr const char topicLedBrightnessState[] = "LedBrightness";
