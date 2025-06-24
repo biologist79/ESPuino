@@ -124,7 +124,7 @@ void Mqtt_Init() {
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
-		esp_mqtt_client_start(mqtt_client);
+
 		// don't start the task yet, wait for WiFi to be connected
 	}
 #else
@@ -134,7 +134,13 @@ void Mqtt_Init() {
 
 void Mqtt_OnWifiConnected(void) {
 #ifdef MQTT_ENABLE
-	esp_mqtt_client_reconnect(mqtt_client);
+	static bool mqtt_started = false;
+	if (!mqtt_started) {
+		esp_mqtt_client_start(mqtt_client);
+		mqtt_started = true;
+	} else {
+		esp_mqtt_client_reconnect(mqtt_client);
+	}
 #endif
 }
 
