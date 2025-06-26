@@ -123,7 +123,7 @@ void Mqtt_Init() {
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
-		esp_mqtt_client_start(mqtt_client);
+
 		// don't start the task yet, wait for WiFi to be connected
 	}
 #else
@@ -133,7 +133,13 @@ void Mqtt_Init() {
 
 void Mqtt_OnWifiConnected(void) {
 #ifdef MQTT_ENABLE
-	esp_mqtt_client_reconnect(mqtt_client);
+	static bool mqtt_started = false;
+	if (!mqtt_started) {
+		esp_mqtt_client_start(mqtt_client);
+		mqtt_started = true;
+	} else {
+		esp_mqtt_client_reconnect(mqtt_client);
+	}
 #endif
 }
 
@@ -225,6 +231,9 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			// Sleep-Timer-subscription
 			esp_mqtt_client_subscribe(client, topicSleepTimerCmnd, qos);
 
+			// Ambient-Light-subscription
+			esp_mqtt_client_subscribe(client, topicAmbientLightCmnd, qos);
+
 			// Next/previous/stop/play-track-subscription
 			esp_mqtt_client_subscribe(client, topicTrackControlCmnd, qos);
 
@@ -314,7 +323,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 	// Loudness to change?
 	else if (topic_str == topicLoudnessCmnd) {
 		unsigned long vol = toNumber<uint32_t>(payload_str);
-		AudioPlayer_VolumeToQueueSender(vol, true);
+		AudioPlayer_SetVolume(vol, true);
 	}
 	// Modify sleep-timer?
 	else if (topic_str == topicSleepTimerCmnd) {
@@ -377,10 +386,18 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		gPlayProperties.sleepAfterPlaylist = false;
 		gPlayProperties.sleepAfterCurrentTrack = false;
 	}
+	// Ambient Light
+	else if (topic_str == topicAmbientLightCmnd) {
+		if (payload_str == "OFF" || payload_str == "0") {
+			Led_SetAmbientLight(false);
+		} else if (payload_str == "ON" || payload_str == "1") {
+			Led_SetAmbientLight(true);
+		}
+	}
 	// Track-control (pause/play, stop, first, last, next, previous)
 	else if (topic_str == topicTrackControlCmnd) {
 		uint8_t controlCommand = toNumber<uint8_t>(payload_str);
-		AudioPlayer_TrackControlToQueueSender(controlCommand);
+		AudioPlayer_SetTrackControl(controlCommand);
 	}
 
 	// Check if controls should be locked

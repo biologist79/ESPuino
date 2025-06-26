@@ -11,9 +11,6 @@
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
 #include "EnumUtils.h"
-#ifdef NEOPIXEL_ENABLE
-	#include <FastLED.h>
-#endif
 #include "Ftp.h"
 #include "HTMLbinary.h"
 #include "HallEffectSensor.h"
@@ -445,8 +442,8 @@ void webserverStart(void) {
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
-					vTaskSuspend(AudioTaskHandle);
-					Led_TaskPause();
+					Audio_TaskPause();
+					// Led_TaskPause();
 					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -458,8 +455,8 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
-					Led_TaskResume();
-					vTaskResume(AudioTaskHandle);
+					// Led_TaskResume();
+					Audio_TaskResume();
 					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
@@ -682,7 +679,7 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
 			return false;
 		} else {
-			AudioPlayer_EqualizerToQueueSender(_gainLowPass, _gainBandPass, _gainHighPass);
+			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
 	}
 	if (doc["wifi"].is<JsonObject>()) {
@@ -702,12 +699,15 @@ bool JSONToSettings(JsonObject doc) {
 		JsonObject ledObj = doc["led"];
 		bool success = (gPrefsSettings.putUChar("iLedBrightness", ledObj["initBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("nLedBrightness", ledObj["nightBrightness"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("aLedBrightness", ledObj["atmoBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numIndicator", ledObj["numIndicator"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
+		success = success && (gPrefsSettings.putShort("hueAtmo", ledObj["hueAtmo"].as<int16_t>()) != 0);
+		success = success && (gPrefsSettings.putShort("satAtmo", ledObj["satAtmo"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("ledReverseRot", ledObj["reverseRot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("ledOffset", ledObj["offsetStart"].as<uint8_t>()) != 0);
@@ -867,7 +867,7 @@ bool JSONToSettings(JsonObject doc) {
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
 		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
 		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid(); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
+		Rfid_ResetOldRfid(); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
 		}
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
@@ -886,7 +886,7 @@ bool JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_VolumeToQueueSender(new_vol, true);
+			AudioPlayer_SetVolume(new_vol, true);
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -971,6 +971,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject ledObj = obj["led"].to<JsonObject>();
 		ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
+		ledObj["atmoBrightness"].set(gPrefsSettings.getUChar("aLedBrightness", 0));
 		ledObj["numIndicator"].set(gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS));
 		uint8_t numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
 		ledObj["numControl"].set(numControlLeds);
@@ -993,6 +994,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS));
 		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START));
 		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END));
+		ledObj["hueAtmo"].set(gPrefsSettings.getShort("hueAtmo", ATMO_HUE));
+		ledObj["satAtmo"].set(gPrefsSettings.getShort("satAtmo", ATMO_SATURATION));
 		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES));
 		ledObj["reverseRot"].set(gPrefsSettings.getBool("ledReverseRot", false));
 		ledObj["offsetStart"].set(gPrefsSettings.getUChar("ledOffset", 0));
@@ -1080,12 +1083,15 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject ledSettings = defaultsObj["led"].to<JsonObject>();
 		ledSettings["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		ledSettings["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
+		ledSettings["atmoBrightness"].set(30u); // LED_INITIAL_NIGHT_BRIGHTNESS
 		ledSettings["numIndicator"].set(NUM_INDICATOR_LEDS); // NUM_INDICATOR_LEDS
 		ledSettings["numControl"].set(NUM_CONTROL_LEDS); // NUM_CONTROL_LEDS
 		ledSettings["numIdleDots"].set(NUM_LEDS_IDLE_DOTS); // NUM_LEDS_IDLE_DOTS
 		ledSettings["offsetPause"].set(OFFSET_PAUSE_LEDS); // OFFSET_PAUSE_LEDS
 		ledSettings["hueStart"].set(PROGRESS_HUE_START); // PROGRESS_HUE_START
 		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
+		ledSettings["hueAtmo"].set(ATMO_HUE);
+		ledSettings["satAtmo"].set(ATMO_SATURATION);
 		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES
 	#ifdef NEOPIXEL_REVERSE_ROTATION
 		ledSettings["reverseRot"].set(true);
@@ -1642,8 +1648,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
-	vTaskSuspend(AudioTaskHandle);
-	Led_TaskPause();
+	Audio_TaskPause();
+	// Led_TaskPause();
 	Rfid_TaskPause();
 
 	for (;;) {
@@ -1680,8 +1686,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				free(parameter);
 				// resume the paused tasks
-				Led_TaskResume();
-				vTaskResume(AudioTaskHandle);
+				// Led_TaskResume();
+				Audio_TaskResume();
 				Rfid_TaskResume();
 				// destroy double buffer memory, since the upload was interrupted
 				destroyDoubleBuffer();
@@ -1695,8 +1701,8 @@ void explorerHandleFileStorageTask(void *parameter) {
 	}
 	free(parameter);
 	// resume the paused tasks
-	Led_TaskResume();
-	vTaskResume(AudioTaskHandle);
+	// Led_TaskResume();
+	Audio_TaskResume();
 	Rfid_TaskResume();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);
@@ -1924,9 +1930,9 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 
 		playMode = atoi(playModeString.c_str());
 		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid();
+		Rfid_ResetOldRfid();
 		}
-		AudioPlayer_TrackQueueDispatcher(filePath, 0, playMode, 0);
+		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
 	}

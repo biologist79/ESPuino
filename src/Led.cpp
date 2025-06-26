@@ -18,8 +18,6 @@
 #include <esp_task_wdt.h>
 
 #ifdef NEOPIXEL_ENABLE
-	#include <FastLED.h>
-
 	#define LED_INDICATOR_SET(indicator)	((Led_Indicators) |= (1u << ((uint8_t) indicator)))
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t) indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator)	((Led_Indicators) &= ~(1u << ((uint8_t) indicator)))
@@ -83,6 +81,19 @@ bool Led_LoadSettings(LedSettings &settings) {
 		Log_Println(wroteNmBrightnessToNvs, LOGLEVEL_ERROR);
 	}
 
+	// Get Atmo LED-brightness from NVS
+	uint8_t nvsALedBrightness = gPrefsSettings.getUChar("aLedBrightness", 255);
+	if (nvsALedBrightness != 255) {
+		settings.Led_AmbientBrightness = nvsALedBrightness;
+		if (settings.Led_AmbientLight) {
+			settings.Led_Brightness = nvsALedBrightness;
+		}
+		Log_Printf(LOGLEVEL_INFO, "restored ambient brightnes : %d", nvsALedBrightness); // TODO-> other message
+	} else {
+		gPrefsSettings.putUChar("aLedBrightness", settings.Led_AmbientBrightness);
+		Log_Println("wrote settings of ambient to nvs", LOGLEVEL_ERROR); // TODO-> other message
+	}
+
 	// Get the number of indicator LEDs from NVS
 	settings.numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS);
 
@@ -102,9 +113,12 @@ bool Led_LoadSettings(LedSettings &settings) {
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
 
-	// get hui start/end from NVS
+	// get hue start/end from NVS
 	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
 	settings.progressHueEnd = gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END);
+	// get atmo light from NVS
+	settings.atmoHue = gPrefsSettings.getShort("hueAtmo", PROGRESS_HUE_START);
+	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", PROGRESS_HUE_END);
 
 	// get reverse rotation from NVS
 	#ifdef NEOPIXEL_REVERSE_ROTATION
@@ -154,11 +168,11 @@ void Led_Init(void) {
 	xTaskCreatePinnedToCore(
 		Led_Task, /* Function to implement the task */
 		"Led_Task", /* Name of the task */
-		2048, /* Stack size in words */
+		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
 		1, /* Priority of the task */
 		&Led_TaskHandle, /* Task handle. */
-		1 /* Core where the task should run */
+		0 /* Core where the task should run */
 	);
 #endif
 }
@@ -266,6 +280,40 @@ void Led_ToggleNightmode() {
 #endif
 }
 
+void Led_SetAmbientLight(bool enabled) {
+#ifdef NEOPIXEL_ENABLE
+	if (gLedSettings.Led_AmbientLight == enabled) {
+		// we don't need to do anything
+		return;
+	}
+
+	if (enabled) {
+		gLedSettings.Led_AmbientLight = true;
+		Led_savedBrightness = gLedSettings.Led_Brightness;
+		Led_SetBrightness(gLedSettings.Led_AmbientBrightness);
+		gPrefsSettings.putBool("atmoActive", true);
+	} else {
+		gLedSettings.Led_AmbientLight = false;
+		Led_SetBrightness(Led_savedBrightness);
+		gPrefsSettings.putBool("atmoActive", false);
+	}
+#endif
+}
+
+bool Led_GetAmbientLight() {
+#ifdef NEOPIXEL_ENABLE
+	return gLedSettings.Led_AmbientLight;
+#else
+	return false;
+#endif
+}
+
+void Led_ToggleAmbientLight() {
+#ifdef NEOPIXEL_ENABLE
+	Led_SetAmbientLight(!gLedSettings.Led_AmbientLight);
+#endif
+}
+
 // Calculates physical address for a virtual LED address. This handles reversing the rotation direction of the ring and shifting the starting LED
 #ifdef NEOPIXEL_ENABLE
 uint8_t Led_Address(uint8_t number) {
@@ -359,6 +407,7 @@ static void Led_Task(void *parameter) {
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
 	FastLED.setBrightness(gLedSettings.Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
+	FastLED.setMaxRefreshRate(200); // limit LED refresh rate to 200Hz (less likely to cause flickering)
 
 	LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
 	LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
@@ -454,89 +503,108 @@ static void Led_Task(void *parameter) {
 			lastLedBrightness = gLedSettings.Led_Brightness;
 		}
 
-		// when there is no delay anymore we have to animate something
-		if (animationTimer <= 0) {
-			AnimationReturnType ret;
-			// animate the current animation
-			switch (activeAnimation) {
-				case LedAnimationType::Boot:
-					ret = Animation_Boot(startNewAnimation, *indicator);
-					break;
+		if (!gLedSettings.Led_AmbientLight || (activeAnimation == LedAnimationType::Shutdown)) {
 
-				case LedAnimationType::Shutdown:
-					ret = Animation_Shutdown(startNewAnimation, *indicator);
-					break;
+			// when there is no delay anymore we have to animate something
+			if (animationTimer <= 0) {
+				AnimationReturnType ret;
+				// animate the current animation
+				switch (activeAnimation) {
+					case LedAnimationType::Boot:
+						ret = Animation_Boot(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Error:
-					ret = Animation_Error(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Shutdown:
+						ret = Animation_Shutdown(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Ok:
-					ret = Animation_Ok(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Error:
+						ret = Animation_Error(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Volume:
-					ret = Animation_Volume(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Ok:
+						ret = Animation_Ok(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::VoltageWarning:
-					ret = Animation_VoltageWarning(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Volume:
+						ret = Animation_Volume(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::BatteryMeasurement:
-					ret = Animation_BatteryMeasurement(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::VoltageWarning:
+						ret = Animation_VoltageWarning(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Rewind:
-					ret = Animation_Rewind(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::BatteryMeasurement:
+						ret = Animation_BatteryMeasurement(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Playlist:
-					ret = Animation_PlaylistProgress(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Rewind:
+						ret = Animation_Rewind(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Idle:
-					ret = Animation_Idle(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Playlist:
+						ret = Animation_PlaylistProgress(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Busy:
-					ret = Animation_Busy(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Idle:
+						ret = Animation_Idle(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Speech:
-					ret = Animation_Speech(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Busy:
+						ret = Animation_Busy(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Pause:
-					ret = Animation_Pause(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Speech:
+						ret = Animation_Speech(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Progress:
-					ret = Animation_Progress(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Pause:
+						ret = Animation_Pause(startNewAnimation, *indicator);
+						break;
 
-				case LedAnimationType::Webstream:
-					ret = Animation_Webstream(startNewAnimation, *indicator);
-					break;
+					case LedAnimationType::Progress:
+						ret = Animation_Progress(startNewAnimation, *indicator);
+						break;
 
-				default:
-					*indicator = CRGB::Black;
+					case LedAnimationType::Webstream:
+						ret = Animation_Webstream(startNewAnimation, *indicator);
+						break;
+
+					default:
+						*indicator = CRGB::Black;
+						FastLED.show();
+						ret.animationActive = false;
+						ret.animationDelay = 50;
+						break;
+				}
+				// apply delay and state from animation
+				animationActive = ret.animationActive;
+				animationTimer = ret.animationDelay;
+				if (ret.animationRefresh) {
 					FastLED.show();
-					ret.animationActive = false;
-					ret.animationDelay = 50;
-					break;
+				}
 			}
-			// apply delay and state from animation
-			animationActive = ret.animationActive;
-			animationTimer = ret.animationDelay;
-			if (ret.animationRefresh) {
-				FastLED.show();
+		} else {
+			// ambient light mode
+			*indicator = CRGB::Black;
+			if (gLedSettings.numIndicatorLeds == 1) {
+				leds[0].setHSV(gLedSettings.atmoHue, gLedSettings.atmoSaturation, 255);
+			} else {
+				for (uint8_t i = 0; i < gLedSettings.numIndicatorLeds; i++) {
+					leds[i].setHSV(gLedSettings.atmoHue, gLedSettings.atmoSaturation, 255);
+				}
 			}
+			FastLED.show();
+			activeAnimation = LedAnimationType::NoNewAnimation;
+			animationActive = false;
+			animationTimer = 0;
 		}
-
 		// get the time to wait and delay the task
 		if ((animationTimer > 0) && (animationTimer < taskDelay)) {
 			taskDelay = animationTimer;
+			if (taskDelay < 5) {
+				taskDelay = 5; // minimum delay
+			}
 		}
 		animationTimer -= taskDelay;
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);

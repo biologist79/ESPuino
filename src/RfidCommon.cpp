@@ -95,7 +95,7 @@ void Rfid_PreferenceLookupHandler(void) {
 				}
 	#endif
 
-				AudioPlayer_TrackQueueDispatcher(_file, _lastPlayPos, _playMode, _trackLastPlayed);
+				AudioPlayer_SetPlaylist(_file, _lastPlayPos, _playMode, _trackLastPlayed);
 			}
 		}
 	}
