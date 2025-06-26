@@ -94,7 +94,7 @@ void Rfid_Init(void) {
 	xTaskCreatePinnedToCore(
 		Rfid_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
-		2176, /* Stack size in words */
+		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
 		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
@@ -225,7 +225,7 @@ void Rfid_Task(void *parameter) {
 
 		if (gPlayProperties.pauseIfRfidRemoved) {
 			if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) { // Card removed => pause
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+				AudioPlayer_SetTrackControl(PAUSEPLAY);
 				Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
 			}
 			cardAppliedLastRun = cardAppliedCurrentRun;
@@ -283,7 +283,7 @@ void Rfid_Task(void *parameter) {
 				} else {
 					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
-						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY); // ... play/pause instead
+						AudioPlayer_SetTrackControl(PAUSEPLAY); // ... play/pause instead
 						Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 					}
 				}
