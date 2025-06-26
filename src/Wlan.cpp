@@ -777,7 +777,7 @@ void writeWifiStatusToNVS(bool wifiStatus) {
 	} else {
 		Log_Println(wifiDisabledMsg, LOGLEVEL_NOTICE);
 		if (gPlayProperties.isWebstream) {
-			AudioPlayer_TrackControlToQueueSender(STOP);
+			AudioPlayer_SetTrackControl(STOP);
 		}
 	}
 
