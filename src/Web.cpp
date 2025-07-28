@@ -11,9 +11,6 @@
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
 #include "EnumUtils.h"
-#ifdef NEOPIXEL_ENABLE
-	#include <FastLED.h>
-#endif
 #include "Ftp.h"
 #include "HTMLbinary.h"
 #include "HallEffectSensor.h"

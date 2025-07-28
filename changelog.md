@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 12.06.2025: Fix compilation error with NEOPIXEL_REVERSE_ROTATION (#369), thanks to @SZenglein !
+* 12.06.2025: Clear ping- and trackProgress intervals when websocket reconnects (#368), thanks to @SZenglein !
 * 10.05.2025: MQTT: switch from pubsubclient to IDF-MQTT (#363), thanks to @Joe91
 * 05.05.2025: Switch DEV-branch to Arduino 3.2.0 (ESP-IDF 5.4.1)
 * 30.04.2025: Fix loosing Websocket Ping/Pong connection, thanks to @Joe91 !

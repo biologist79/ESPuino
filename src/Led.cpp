@@ -18,8 +18,6 @@
 #include <esp_task_wdt.h>
 
 #ifdef NEOPIXEL_ENABLE
-	#include <FastLED.h>
-
 	#define LED_INDICATOR_SET(indicator)	((Led_Indicators) |= (1u << ((uint8_t) indicator)))
 	#define LED_INDICATOR_IS_SET(indicator) (((Led_Indicators) & (1u << ((uint8_t) indicator))) > 0u)
 	#define LED_INDICATOR_CLEAR(indicator)	((Led_Indicators) &= ~(1u << ((uint8_t) indicator)))
@@ -108,7 +106,7 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get reverse rotation from NVS
 	#ifdef NEOPIXEL_REVERSE_ROTATION
-	const bool defReverseRotation = NEOPIXEL_REVERSE_ROTATION;
+	const bool defReverseRotation = true;
 	#else
 	const bool defReverseRotation = false;
 	#endif
@@ -359,6 +357,7 @@ static void Led_Task(void *parameter) {
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
 	FastLED.setBrightness(gLedSettings.Led_Brightness);
 	FastLED.setDither(DISABLE_DITHER);
+	FastLED.setMaxRefreshRate(200); // limit LED refresh rate to 200Hz (less likely to cause flickering)
 
 	LedAnimationType activeAnimation = LedAnimationType::NoNewAnimation;
 	LedAnimationType nextAnimation = LedAnimationType::NoNewAnimation;
@@ -537,6 +536,9 @@ static void Led_Task(void *parameter) {
 		// get the time to wait and delay the task
 		if ((animationTimer > 0) && (animationTimer < taskDelay)) {
 			taskDelay = animationTimer;
+			if (taskDelay < 5) {
+				taskDelay = 5; // minimum delay
+			}
 		}
 		animationTimer -= taskDelay;
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
