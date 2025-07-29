@@ -443,7 +443,7 @@ void webserverStart(void) {
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
 					// Audio_TaskPause();
-					// Led_TaskPause();
+					Led_TaskPause();
 					Rfid_TaskPause();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -455,7 +455,7 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
-					// Led_TaskResume();
+					Led_TaskResume();
 					// Audio_TaskResume();
 					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
@@ -1640,7 +1640,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 	// pause some tasks to get more free CPU time for the upload
 	// Audio_TaskPause();
-	// Led_TaskPause();
+	Led_TaskPause();
 	Rfid_TaskPause();
 
 	for (;;) {
@@ -1677,7 +1677,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 				free(parameter);
 				// resume the paused tasks
-				// Led_TaskResume();
+				Led_TaskResume();
 				// Audio_TaskResume();
 				Rfid_TaskResume();
 				// destroy double buffer memory, since the upload was interrupted
@@ -1692,7 +1692,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	}
 	free(parameter);
 	// resume the paused tasks
-	// Led_TaskResume();
+	Led_TaskResume();
 	// Audio_TaskResume();
 	Rfid_TaskResume();
 	// send signal to upload function to terminate

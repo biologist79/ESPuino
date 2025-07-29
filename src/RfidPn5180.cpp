@@ -43,6 +43,7 @@ extern TwoWire i2cBusTwo;
 #ifdef RFID_READER_TYPE_PN5180
 static void Rfid_Task(void *parameter);
 TaskHandle_t rfidTaskHandle;
+uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 
 	#ifdef PN5180_ENABLE_LPCD
 void Rfid_EnableLpcd(void);
@@ -106,6 +107,10 @@ void Rfid_Cyclic(void) {
 	// Not necessary as cyclic stuff performed by task Rfid_Task()
 }
 
+void Rfid_TaskReset(void) {
+	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+}
+
 void Rfid_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
@@ -114,7 +119,6 @@ void Rfid_Task(void *parameter) {
 	byte lastValidcardId[cardIdSize];
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
-	uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
 	uint8_t uid[10];
 	bool showDisablePrivacyNotification = true;

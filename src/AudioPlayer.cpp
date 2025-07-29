@@ -437,9 +437,9 @@ void AudioPlayer_Loop() {
 				gPlayProperties.currentRelPos = ((double) (audio->getFilePos() - audioDataStartPos - audio->inBufferFilled()) / (fileSize - audioDataStartPos)) * 100;
 			}
 		} else {
-			if (gPlayProperties.isWebstream && (audio->inBufferSize() > 0)) {
+			if (gPlayProperties.isWebstream && (audio->getInBufferSize() > 0)) {
 				// calc current fillbuffer percent for webstream with unknown size/end
-				gPlayProperties.currentRelPos = (double) (audio->inBufferFilled() / (double) audio->inBufferSize()) * 100;
+				gPlayProperties.currentRelPos = (double) (audio->inBufferFilled() / (double) audio->getInBufferSize()) * 100;
 			} else {
 				gPlayProperties.currentRelPos = 0;
 			}

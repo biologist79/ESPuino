@@ -64,6 +64,10 @@ void Rfid_Init(void) {
 	#endif
 }
 
+void Rfid_TaskReset(void) {
+	Rfid_LastRfidCheckTimestamp = millis();
+}
+
 void Rfid_Task(void *parameter) {
 	uint8_t control = 0x00;
 
