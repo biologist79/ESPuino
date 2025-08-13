@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 13.08.2025: Enforce usage of port-expander for some HALs
 * 13.08.2025: No more Audio-Task (#374), thanks to @Joe91 !
 * 12.06.2025: Fix compilation error with NEOPIXEL_REVERSE_ROTATION (#369), thanks to @SZenglein !
 * 12.06.2025: Clear ping- and trackProgress intervals when websocket reconnects (#368), thanks to @SZenglein !
