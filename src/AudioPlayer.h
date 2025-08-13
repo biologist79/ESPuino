@@ -53,14 +53,18 @@ typedef struct { // Bit field
 
 extern playProps gPlayProperties;
 
+void Audio_TaskPause(void);
+void Audio_TaskResume(void);
+
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
+void AudioPlayer_Loop(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
-void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
-void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
-void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
-void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand);
+void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary);
+void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
+void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
+void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);
 
 playlistSortMode AudioPlayer_GetPlaylistSortMode(void);

@@ -3,7 +3,6 @@
 
 extern Preferences gPrefsRfid;
 extern Preferences gPrefsSettings;
-extern TaskHandle_t AudioTaskHandle;
 
 void System_Init_LPCD(void);
 void System_Init(void);

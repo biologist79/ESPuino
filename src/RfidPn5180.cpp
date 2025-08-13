@@ -43,6 +43,7 @@ extern TwoWire i2cBusTwo;
 #ifdef RFID_READER_TYPE_PN5180
 static void Rfid_Task(void *parameter);
 TaskHandle_t rfidTaskHandle;
+uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 
 	#ifdef PN5180_ENABLE_LPCD
 void Rfid_EnableLpcd(void);
@@ -94,7 +95,7 @@ void Rfid_Init(void) {
 	xTaskCreatePinnedToCore(
 		Rfid_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
-		2176, /* Stack size in words */
+		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
 		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
@@ -106,6 +107,10 @@ void Rfid_Cyclic(void) {
 	// Not necessary as cyclic stuff performed by task Rfid_Task()
 }
 
+void Rfid_TaskReset(void) {
+	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+}
+
 void Rfid_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
@@ -114,7 +119,6 @@ void Rfid_Task(void *parameter) {
 	byte lastValidcardId[cardIdSize];
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
-	uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
 	uint8_t uid[10];
 	bool showDisablePrivacyNotification = true;
@@ -225,7 +229,7 @@ void Rfid_Task(void *parameter) {
 
 		if (gPlayProperties.pauseIfRfidRemoved) {
 			if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) { // Card removed => pause
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+				AudioPlayer_SetTrackControl(PAUSEPLAY);
 				Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
 			}
 			cardAppliedLastRun = cardAppliedCurrentRun;
@@ -283,7 +287,7 @@ void Rfid_Task(void *parameter) {
 				} else {
 					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
-						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY); // ... play/pause instead
+						AudioPlayer_SetTrackControl(PAUSEPLAY); // ... play/pause instead
 						Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 					}
 				}

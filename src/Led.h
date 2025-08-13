@@ -62,6 +62,10 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
+	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+
+	#include <FastLED.h>
+
 struct LedSettings {
 	uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
 	uint8_t numControlLeds = NUM_CONTROL_LEDS;
