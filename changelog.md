@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 16.08.2025: Measuring of battery voltage: analogRead() -> analogReadMilliVolts()
 * 15.08.2025: Reduce voltage-stepping in webinterface from 0.1 V to 0.05 V
 * 13.08.2025: Enforce usage of port-expander for some HALs
 * 13.08.2025: No more Audio-Task (#374), thanks to @Joe91 !
