@@ -100,18 +100,14 @@
         #define HP_DETECT                   22          // GPIO that detects, if there's a plug in the headphone jack or not
     #endif
 
-    // (optional) Monitoring of battery-voltage via ADC
-    #ifdef MEASURE_BATTERY_VOLTAGE
-        #define VOLTAGE_READ_PIN            33          // GPIO used to monitor battery-voltage. Change to 35 if you're using Lolin D32 or Lolin D32 pro as it's hard-wired there!
-        constexpr float referenceVoltage = 3.35;                  // Voltage between 3.3V and GND-pin at the develboard in battery-mode (disconnect USB!)
-        constexpr float offsetVoltage = 0.1;                      // If voltage measured by ESP isn't 100% accurate, you can add an correction-value here
-    #endif
-
-    // (optional) For measuring battery-voltage a voltage-divider is necessary. Their values need to be configured here.
-    #ifdef MEASURE_BATTERY_VOLTAGE
-        constexpr uint16_t rdiv1 = 129;                              // Rdiv1 of voltage-divider (kOhms) (measure exact value with multimeter!)
-        constexpr uint16_t rdiv2 = 129;                              // Rdiv2 of voltage-divider (kOhms) (measure exact value with multimeter!) => used to measure voltage via ADC!
-    #endif
+	// (optional) Monitoring of battery-voltage via ADC
+	#ifdef MEASURE_BATTERY_VOLTAGE
+		#define VOLTAGE_READ_PIN	35		        // GPIO used to monitor battery-voltage.
+		constexpr float offsetVoltage = 0.00;		// If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
+		constexpr uint16_t rdiv1 = 100;			    // Rdiv1 of voltage-divider (kOhms)
+		constexpr uint16_t rdiv2 = 100;			    // Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
+		constexpr adc_attenuation_t inputAttenuation = ADC_11db;		// ADC_0db (0.1->0.95V) // ADC_2_5db (0.1->1.25V) // ADC_6db (0.15->1.75V) // ADC_11db (0.14->2.45V)
+	#endif
 
     // (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.
     #ifdef HALLEFFECT_SENSOR_ENABLE

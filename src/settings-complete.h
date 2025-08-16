@@ -105,11 +105,11 @@
 
 	// (optional) Monitoring of battery-voltage via ADC
 	#ifdef MEASURE_BATTERY_VOLTAGE
-		#define VOLTAGE_READ_PIN	35		// GPIO used to monitor battery-voltage.
-		constexpr float referenceVoltage = 3.345;	// Reference-voltage (provided by dc-dc-converter)
-		constexpr float offsetVoltage = 0.25;		// If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
-		constexpr uint16_t rdiv1 = 300;			// Rdiv1 of voltage-divider (kOhms)
-		constexpr uint16_t rdiv2 = 300;			// Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
+		#define VOLTAGE_READ_PIN	35				// GPIO used to monitor battery-voltage.
+		constexpr float offsetVoltage = -0.04;		// If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
+		constexpr uint16_t rdiv1 = 300;				// Rdiv1 of voltage-divider (kOhms)
+		constexpr uint16_t rdiv2 = 100;				// Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
+		constexpr adc_attenuation_t inputAttenuation = ADC_0db;		// ADC_0db (0.1->0.95V) // ADC_2_5db (0.1->1.25V) // ADC_6db (0.15->1.75V) // ADC_11db (0.14->2.45V)
 	#endif
 
 	// (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.

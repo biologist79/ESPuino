@@ -14,6 +14,7 @@
 uint8_t batteryCheckInterval = s_batteryCheckInterval;
 
 void Battery_Init(void) {
+	analogSetPinAttenuation(VOLTAGE_READ_PIN, inputAttenuation);
 	uint32_t vInterval = gPrefsSettings.getUInt("vCheckIntv", 17777);
 	if (vInterval != 17777) {
 		batteryCheckInterval = vInterval;
