@@ -526,7 +526,7 @@ void AudioPlayer_Loop() {
 					Log_Println(cmndPause, LOGLEVEL_INFO);
 				}
 				if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioFileDuration());
+					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioCurrentTime());
 					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
@@ -762,6 +762,11 @@ void AudioPlayer_Loop() {
 			if (gPlayProperties.currentTrackNumber) {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
 			}
+			if (gPlayProperties.startAtFilePos > 0) {
+				audio->setAudioPlayPosition(gPlayProperties.startAtFilePos);
+				Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
+				gPlayProperties.startAtFilePos = 0;
+			}
 			const char *title = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 			if (gPlayProperties.isWebstream) {
 				title = "Webradio";
@@ -792,9 +797,9 @@ void AudioPlayer_Loop() {
 				System_IndicateError();
 			}
 		} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
-			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
-			if (audio->setAudioPlayTime(newFileTime)) {
-				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());
+			uint32_t newFilePos = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
+			if (audio->setAudioPlayPosition(newFilePos)) {
+				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getFileSize());
 			} else {
 				System_IndicateError();
 			}
