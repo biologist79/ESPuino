@@ -1,6 +1,6 @@
 # Changelog
 
-## DEV-branch
+## Version 2.4 (24.08.2025)
 
 * 16.08.2025: Measuring of battery voltage: analogRead() -> analogReadMilliVolts()
 * 15.08.2025: Reduce voltage-stepping in webinterface from 0.1 V to 0.05 V
