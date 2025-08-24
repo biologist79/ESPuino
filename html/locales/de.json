@@ -33,6 +33,56 @@
 		"tools": "Tools",
 		"help": "Hilfe"
 	},
+	"settingsex": {
+		"title": "Erweiterte Einstellungen",
+		"led": {
+			"title": "LED-Einstellungen",
+			"numindicator": "Anzahl Anzeige-LEDs",
+			"numcontrol": "Anzahl Kontroll-LEDs",
+			"controlled": "Kontroll-LED",
+			"numidledots": "Anzahl LEDs im Leerlauf",
+			"offsetpause": "Pausen-LEDs zentrieren",
+			"huestart": "Farbton-Start (Playlist-Fortschritt)",
+			"hueend": "Farbton-Ende (Playlist-Fortschritt)",
+			"dimmablestates": "Dimmbare Stufen",
+			"reverserotation": "Drehrichtung umkehren",
+			"offset": "Offset Start-LED"
+		},
+		"buttons": {
+			"title": "Taster-Zuordnungen",
+			"short": "kurz",
+			"long": "lang",
+			"noaction": "--",
+			"button0": "Next-Taste (Btn0)",
+			"button1": "Prev-Taste (Btn1)",
+			"button2": "Play/Pause-Taste (Btn2)",
+			"button3": "Drehenkoder-Taste (Btn3)",
+			"button4": "Btn4-Taste",
+			"button5": "Btn5-Taste"
+		},
+		"multibuttons": {
+			"title": "Multi-Taster Zuordnungen",
+			"01": "0+1 (Next + Prev)",
+			"02": "0+2 (Next + Play/Pause)",
+			"03": "0+3 (Next + Drehenkoder)",
+			"04": "0+4 (Next + Btn4)",
+			"05": "0+5 (Next + Btn5)",
+			"12": "1+2 (Prev + Play/Pause)",
+			"13": "1+3 (Prev + Drehenkoder)",
+			"14": "1+4 (Prev + Btn4)",
+			"15": "1+5 (Prev + Btn5)",
+			"23": "2+3 (Play/Pause + Drehenkoder)",
+			"24": "2+4 (Play/Pause + Btn4)",
+			"25": "2+5 (Play/Pause + Btn5)",
+			"34": "3+4 (Drehenkoder + Btn4)",
+			"35": "3+5 (Drehenkoder + Btn5)",
+			"45": "4+5 (Btn4 + Btn5)"
+		},
+		"rotary": {
+			"title": "Drehimpulsgeber",
+			"reverse": "Drehrichtung umkehren"
+		}
+	},
 	"wifi": {
 		"title": "WLAN-Einstellungen",
 		"networks": "Netzwerke",
@@ -102,7 +152,7 @@
 			"desc": "Einen Ordner samt Inhalt (und allen Unterordnern) hochladen"
 		},
 		"search": {
-			"placeholder": "Dateien suchen.."
+			"placeholder": "Dateien suchen..."
 		},
 		"upload": {
 			"title": "Upload",
@@ -111,12 +161,12 @@
 			"selectFile": "Wähle eine Datei zum Hochladen!",
 			"success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
 			"error": "Upload fehlgeschlagen",
-			"timeCalc": "Verbleibende Zeit wird berechnet..",
+			"timeCalc": "Verbleibende Zeit wird berechnet...",
 			"minutes_one": "Minute",
 			"minutes_other": "Minuten",
 			"seconds": "Sekunden",
 			"fewSec": "wenige",
-			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} verbleibend.."
+			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} verbleibend..."
 		},
 		"rfid": {
 			"title": "RFID-Zuweisungen",
@@ -152,7 +202,6 @@
 				"placeholder": "Modifikation auswählen",
 				"cmd": {
 					"100": "Tastensperre",
-					"179": "Schlafe sofort",
 					"101": "Schlafen nach 15 Minuten",
 					"102": "Schlafen nach 30 Minuten",
 					"103": "Schlafen nach 1 Stunde",
@@ -176,13 +225,21 @@
 					"172": "Nächster Titel",
 					"173": "Erster Titel",
 					"174": "Letzter Titel",
+					"175": "Initiale Lautstärke",
+					"176": "Lauter",
+					"177": "Leiser",
+					"178": "Batteriespannung anzeigen",
+					"179": "Schlafe sofort",
 					"180": "Springe vorwärts (n Sekunden)",
-					"181": "Springe rückwärts (n Sekunden)"
+					"181": "Springe rückwärts (n Sekunden)",
+					"182": "Stop",
+					"183": "Neustart",
+					"199": "Taskauslastung anzeigen (Konsole)"
 				}
 			}
 		}
 	},
-	"mqtt": {
+		"mqtt": {
 		"title": "MQTT-Einstellungen",
 		"enable": "MQTT aktivieren",
 		"clientId": {
@@ -262,6 +319,27 @@
 			"gainBandPass": "Mitten (in dB)",
 			"gainHighPass": "Höhen (in dB)",
 			"info": "Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
+		},
+		"options": {
+			"title": "Optionen",
+			"playMono": "Mono-Wiedergabe",
+			"playMonoExp": "Wenn zwei Lautsprecher verbaut sind, kann Stereo abgespielt werden. Mehr Infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>hier</a>.",
+			"savePlayPosShutdown": "Abspielposition beim Ausschalten merken",
+			"savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
+			"savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
+			"savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",
+			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PAUSE_WHEN_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Denselben RFID-Tag nicht erneut akzeptieren",
+			"dontAcceptRfidTwiceExp": "Denselben RFID-Tag nicht erneut akzeptieren. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>DONT_ACCEPT_SAME_RFID_TWICE</code>.",
+			"playLastRfidOnReboot": "Letzten RFID-Tag nach Neustart abspielen",
+			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
+			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
+			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
+			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
+			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",
+			"volumeCurveExp": "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
 		},
 		"neopixel": {
 			"title": "Neopixel (Helligkeit)",

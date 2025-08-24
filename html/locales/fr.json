@@ -33,6 +33,56 @@
 		"tools": "Outils",
 		"help": "Aide"
 	},
+	"settingsex": {
+		"title": "Paramètres avancés",
+		"led": {
+			"title": "Réglages des LED",
+			"numindicator": "Nombre d'indicateurs LED",
+			"numcontrol": "Nombre de LED de contrôle",
+			"controlled": "LED de contrôle",
+			"numidledots": "Nombre de LED en état de veille",
+			"offsetpause": "LED pause centre",
+			"huestart": "Début de la couleur",
+			"hueend": "Fin de la couleur",
+			"dimmablestates": "Étapes à gradation",
+			"reverserotation": "Inversion du sens de rotation",
+			"offset": "Début de l'offset LED"
+		},
+		"buttons": {
+			"title": "Attribution des boutons",
+			"short": "presse courte",
+			"long": "appui long",
+			"noaction": "--",
+			"button0": "Bouton Next (Btn0",
+			"button1": "Bouton Prev (Btn1)",
+			"button2": "Bouton Play/Pause (Btn2)",
+			"button3": "Bouton Encoder (Btn3)",
+			"button4": "Bouton Btn4",
+			"button5": "Bouton Btn5"
+		},
+		"multibuttons": {
+			"title": "Affectation des boutons multiples",
+			"01": "0+1 (Next + Prev)",
+			"02": "0+2 (Next + Play/Pause)",
+			"03": "0+3 (Next + Encoder)",
+			"04": "0+4 (Next + Btn4)",
+			"05": "0+5 (Next + Btn5)",
+			"12": "1+2 (Prev + Play/Pause)",
+			"13": "1+3 (Prev + Encoder)",
+			"14": "1+4 (Prev + Btn4)",
+			"15": "1+5 (Prev + Btn5)",
+			"23": "2+3 (Play/Pause + Encoder)",
+			"24": "2+4 (Play/Pause + Btn4)",
+			"25": "2+5 (Play/Pause + Btn5)",
+			"34": "3+4 (Encoder + Btn4)",
+			"35": "3+5 (Encoder + Btn5)",
+			"45": "4+5 (Btn4 + Btn5)"
+		},
+		"rotary": {
+			"title": "Codeur rotatif",
+			"reverse": "Inversion du sens de rotation"
+		}
+	},
 	"wifi": {
 		"title": "Configuration WiFi",
 		"networks": "Réseaux",
@@ -102,7 +152,7 @@
 			"desc": "Télécharger un répertoire avec tous les fichiers et sous-répertoires"
 		},
 		"search": {
-			"placeholder": "Rechercher des fichiers.."
+			"placeholder": "Rechercher des fichiers..."
 		},
 		"upload": {
 			"title": "Télécharger",
@@ -111,12 +161,12 @@
 			"selectFile": "Veuillez sélectionner les fichiers à télécharger!",
 			"success": "Téléchargement réussi ({{elapsed}}, {{speed}} Ko/s)",
 			"error": "Erreur de téléchargement",
-			"timeCalc": "Le temps restant est calculé..",
+			"timeCalc": "Le temps restant est calculé...",
 			"minutes_one": "minute",
 			"minutes_other": "minutes",
 			"seconds": "secondes",
 			"fewSec": "quelques",
-			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant.."
+			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant..."
 		},
 		"rfid": {
 			"title": "Assignations RFID",
@@ -152,7 +202,6 @@
 				"placeholder": "Sélectionnez la modification",
 				"cmd": {
 					"100": "Verrouillage des touches",
-					"179": "Mise en veille immédiate",
 					"101": "Mise en veille après 15 minutes",
 					"102": "Mise en veille après 30 minutes",
 					"103": "Mise en veille après 1 heure",
@@ -176,8 +225,16 @@
 					"172": "Piste suivante",
 					"173": "Première piste",
 					"174": "Dernière piste",
+					"175": "Volume initial",
+					"176": "Augmenter le volume",
+					"177": "Baisser le volume",
+					"178": "Afficher la tension de la batterie",
+					"179": "Mise en veille immédiate",
 					"180": "Avancer de n secondes",
-					"181": "Reculer de n secondes"
+					"181": "Reculer de n secondes",
+					"182": "Stop",
+					"183": "Redémarrer",
+					"199": "Affichage de la charge de travail (console)"
 				}
 			}
 		}
@@ -262,6 +319,27 @@
 			"gainBandPass": "Médiums (en dB)",
 			"gainHighPass": "Aigus (en dB)",
 			"info": "Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf."
+		},
+		"options": {
+			"title": "Options",
+			"playMono": "Lecture mono",
+			"playMonoExp": "Si deux haut-parleurs sont installés, la stéréo peut être jouée. Plus d'infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>ici</a>.",
+			"savePlayPosShutdown": "Mémoriser la position de lecture à l'extinction",
+			"savePlayPosShutdownExp": "Lorsque la boîte est éteinte, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
+			"savePlayPosRfidChange": "Mémoriser la position de lecture au changement de tag RFID",
+			"savePlayPosRfidChangeExp": "Lors du passage à une nouvelle balise RFID, la position de lecture est enregistrée pour les livres audio. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"pauseIfRfidRemoved": "Mettre en pause si la balise RFID est retirée",
+			"pauseIfRfidRemovedExp": "Mettre en pause la lecture si la balise RFID est retirée. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Ne pas accepter la balise RFID deux fois",
+			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>DONT_ACCEPT_RFID_TWICE</code>.",
+			"playLastRfidOnReboot": "Lire la dernière balise RFID au redémarrage",
+			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"pauseOnMinVolume": "Pause au volume minimal",
+			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum.Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>.",
+			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
+			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
+			"volumeCurve": "Des nuances plus fines à faible volume",
+			"volumeCurveExp": "Utilisation du calcul logarithmique du volume. Peut aider si les nuances sont trop grossières dans la plage de volume inférieure."
 		},
 		"neopixel": {
 			"title": "Neopixel (luminosité)",

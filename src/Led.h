@@ -58,6 +58,33 @@ struct AnimationReturnType {
 		, animationRefresh(refresh) { }
 };
 
+#ifdef NEOPIXEL_ENABLE
+	#define LED_INITIAL_BRIGHTNESS		 16u
+	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
+
+	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+
+	#include <FastLED.h>
+
+struct LedSettings {
+	uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
+	uint8_t numControlLeds = NUM_CONTROL_LEDS;
+	std::vector<uint32_t> controlLedColors;
+	uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
+	bool offsetLedPause = OFFSET_PAUSE_LEDS;
+	int16_t progressHueStart = PROGRESS_HUE_START;
+	int16_t progressHueEnd = PROGRESS_HUE_END;
+	uint8_t dimmableStates = DIMMABLE_STATES;
+	bool neopixelReverseRotation;
+	uint8_t ledOffset;
+	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
+	bool Led_NightMode = false;
+	uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
+	uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
+	uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+};
+#endif
+
 void Led_Init(void);
 void Led_Exit(void);
 void Led_Indicate(LedIndicatorType value);

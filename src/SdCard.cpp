@@ -266,43 +266,28 @@ static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
 	return true;
 };
 
-static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File f, bool forceExtended = false) {
-	const String line = f.readStringUntil('\n');
-	const bool extended = line.startsWith("#EXTM3U") || forceExtended;
+static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File file) {
 	Playlist *playlist = new Playlist();
 
 	// reserve a sane amount of memory to reduce heap fragmentation
 	playlist->reserve(64);
-	if (extended) {
-		// extended m3u file format
-		// ignore all lines starting with '#'
+	// normal m3u is just a bunch of filenames, 1 / line
+	// extended m3u file format can also include comments or special directives, prefaced by the "#" character
+	// -> ignore all lines starting with '#'
 
-		while (f.available()) {
-			String line = f.readStringUntil('\n');
-			if (!line.startsWith("#")) {
-				// this something we have to save
-				line.trim();
-				// save string
-				if (!SdCard_allocAndSave(playlist, line)) {
-					return std::nullopt;
-				}
+	while (file.available()) {
+		String line = file.readStringUntil('\n');
+		if (!line.startsWith("#")) {
+			// this something we have to save
+			line.trim();
+			// save string
+			if (!SdCard_allocAndSave(playlist, line)) {
+				return std::nullopt;
 			}
 		}
-		// resize std::vector memory to fit our count
-		playlist->shrink_to_fit();
-		return playlist;
 	}
 
-	// normal m3u is just a bunch of filenames, 1 / line
-	f.seek(0);
-	while (f.available()) {
-		String line = f.readStringUntil('\n');
-		// save string
-		if (!SdCard_allocAndSave(playlist, line)) {
-			return std::nullopt;
-		}
-	}
-	// resize memory to fit our count
+	// resize std::vector memory to fit our count
 	playlist->shrink_to_fit();
 	return playlist;
 }

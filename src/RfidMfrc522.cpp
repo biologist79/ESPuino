@@ -55,19 +55,21 @@ void Rfid_Init(void) {
 	xTaskCreatePinnedToCore(
 		Rfid_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
-		2048, /* Stack size in words */
+		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
 		2 | portPRIVILEGE_BIT, /* Priority of the task */
 		&rfidTaskHandle, /* Task handle. */
-		1 /* Core where the task should run */
+		0 /* Core where the task should run */
 	);
 	#endif
 }
 
+void Rfid_TaskReset(void) {
+	Rfid_LastRfidCheckTimestamp = millis();
+}
+
 void Rfid_Task(void *parameter) {
-	#ifdef PAUSE_WHEN_RFID_REMOVED
 	uint8_t control = 0x00;
-	#endif
 
 	for (;;) {
 		if (RFID_SCAN_INTERVAL / 2 >= 20) {
@@ -77,10 +79,8 @@ void Rfid_Task(void *parameter) {
 		}
 		byte cardId[cardIdSize];
 		String cardIdString;
-	#ifdef PAUSE_WHEN_RFID_REMOVED
 		byte lastValidcardId[cardIdSize];
 		bool sameCardReapplied = false;
-	#endif
 		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 
@@ -96,10 +96,10 @@ void Rfid_Task(void *parameter) {
 				continue;
 			}
 
-	#ifndef PAUSE_WHEN_RFID_REMOVED
-			mfrc522.PICC_HaltA();
-			mfrc522.PCD_StopCrypto1();
-	#endif
+			if (!gPlayProperties.pauseIfRfidRemoved) {
+				mfrc522.PICC_HaltA();
+				mfrc522.PCD_StopCrypto1();
+			}
 
 			memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
 
@@ -107,11 +107,9 @@ void Rfid_Task(void *parameter) {
 			cardId[cardIdSize - 1] = cardId[cardIdSize - 1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
 	#endif
 
-	#ifdef PAUSE_WHEN_RFID_REMOVED
 			if (memcmp((const void *) lastValidcardId, (const void *) cardId, sizeof(cardId)) == 0) {
 				sameCardReapplied = true;
 			}
-	#endif
 
 			String hexString;
 			for (uint8_t i = 0u; i < cardIdSize; i++) {
@@ -127,61 +125,61 @@ void Rfid_Task(void *parameter) {
 				cardIdString += num;
 			}
 
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-		#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
-			if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) { // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
-		#else
-			if (!sameCardReapplied) { // Don't allow to send card to queue if it's the same card again...
-		#endif
-				xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
-			} else {
-				// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
-				if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
-					AudioPlayer_TrackControlToQueueSender(PAUSEPLAY); // ... play/pause instead (but not for BT)
-				}
-			}
-			memcpy(lastValidcardId, mfrc522.uid.uidByte, cardIdSize);
+			if (gPlayProperties.pauseIfRfidRemoved) {
+	#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
+				if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) { // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
 	#else
-			xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0); // If PAUSE_WHEN_RFID_REMOVED isn't active, every card-apply leads to new playlist-generation
+				if (!sameCardReapplied) { // Don't allow to send card to queue if it's the same card again...
 	#endif
-
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-			// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
-			while (true) {
-				if (RFID_SCAN_INTERVAL / 2 >= 20) {
-					vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 				} else {
-					vTaskDelay(portTICK_PERIOD_MS * 20);
-				}
-				control = 0;
-				for (uint8_t i = 0u; i < 3; i++) {
-					if (!mfrc522.PICC_IsNewCardPresent()) {
-						if (mfrc522.PICC_ReadCardSerial()) {
-							control |= 0x16;
-						}
-						if (mfrc522.PICC_ReadCardSerial()) {
-							control |= 0x16;
-						}
-						control += 0x1;
+					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
+					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
+						AudioPlayer_SetTrackControl(PAUSEPLAY); // ... play/pause instead (but not for BT)
 					}
-					control += 0x4;
 				}
-
-				if (control == 13 || control == 14) {
-					// card is still there
-				} else {
-					break;
-				}
+				memcpy(lastValidcardId, mfrc522.uid.uidByte, cardIdSize);
+			} else {
+				xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0); // If pauseIfRfidRemoved isn't active, every card-apply leads to new playlist-generation
 			}
 
-			Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
-			if (!gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
-				AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-				Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
+			if (gPlayProperties.pauseIfRfidRemoved) {
+				// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
+				while (true) {
+					if (RFID_SCAN_INTERVAL / 2 >= 20) {
+						vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+					} else {
+						vTaskDelay(portTICK_PERIOD_MS * 20);
+					}
+					control = 0;
+					for (uint8_t i = 0u; i < 3; i++) {
+						if (!mfrc522.PICC_IsNewCardPresent()) {
+							if (mfrc522.PICC_ReadCardSerial()) {
+								control |= 0x16;
+							}
+							if (mfrc522.PICC_ReadCardSerial()) {
+								control |= 0x16;
+							}
+							control += 0x1;
+						}
+						control += 0x4;
+					}
+
+					if (control == 13 || control == 14) {
+						// card is still there
+					} else {
+						break;
+					}
+				}
+
+				Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
+				if (!gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
+					AudioPlayer_SetTrackControl(PAUSEPLAY);
+					Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
+				}
+				mfrc522.PICC_HaltA();
+				mfrc522.PCD_StopCrypto1();
 			}
-			mfrc522.PICC_HaltA();
-			mfrc522.PCD_StopCrypto1();
-	#endif
 		}
 	}
 }

@@ -39,6 +39,10 @@ typedef struct { // Bit field
 	uint8_t tellMode			 : 2; // Tell mode for text to speech announcments
 	bool currentSpeechActive	 : 1; // If speech-play is active
 	bool lastSpeechActive		 : 1; // If speech-play was active
+	bool SavePlayPosRfidChange	 : 1; // Save last play-position
+	bool pauseOnMinVolume		 : 1; // When playback is active and volume is changed to zero, playback is paused automatically.
+	bool pauseIfRfidRemoved		 : 1; // When playback is active and RFID is removed, playback is paused automatically.
+	bool dontAcceptRfidTwice	 : 1; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
 	int8_t gainLowPass = 0; // Low Pass for EQ Control
 	int8_t gainBandPass = 0; // Band Pass for EQ Control
 	int8_t gainHighPass = 0; // High Pass for EQ Control
@@ -49,14 +53,18 @@ typedef struct { // Bit field
 
 extern playProps gPlayProperties;
 
+void Audio_TaskPause(void);
+void Audio_TaskResume(void);
+
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
+void AudioPlayer_Loop(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
-void AudioPlayer_VolumeToQueueSender(const int32_t _newVolume, bool reAdjustRotary);
-void AudioPlayer_EqualizerToQueueSender(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
-void AudioPlayer_TrackQueueDispatcher(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
-void AudioPlayer_TrackControlToQueueSender(const uint8_t trackCommand);
+void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary);
+void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
+void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
+void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);
 
 playlistSortMode AudioPlayer_GetPlaylistSortMode(void);

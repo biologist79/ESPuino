@@ -1,5 +1,40 @@
 # Changelog
 
+## DEV-branch
+
+* 16.08.2025: Measuring of battery voltage: analogRead() -> analogReadMilliVolts()
+* 15.08.2025: Reduce voltage-stepping in webinterface from 0.1 V to 0.05 V
+* 13.08.2025: Enforce usage of port-expander for some HALs
+* 13.08.2025: No more Audio-Task (#374), thanks to @Joe91 !
+* 12.06.2025: Fix compilation error with NEOPIXEL_REVERSE_ROTATION (#369), thanks to @SZenglein !
+* 12.06.2025: Clear ping- and trackProgress intervals when websocket reconnects (#368), thanks to @SZenglein !
+* 10.05.2025: MQTT: switch from pubsubclient to IDF-MQTT (#363), thanks to @Joe91
+* 05.05.2025: Switch DEV-branch to Arduino 3.2.0 (ESP-IDF 5.4.1)
+* 30.04.2025: Fix loosing Websocket Ping/Pong connection, thanks to @Joe91 !
+* 24.04.2025: Make PAUSE_WHEN_RFID_REMOVED & DONT_ACCEPT_SAME_RFID_TWICE configurable at runtime (#362)
+* 18.04.2025: Make MQTT compatible with Arduino 3, thanks to @Joe91 !
+* 22.03.2025: Make PLAY_LAST_RFID_AFTER_REBOOT configurable at runtime
+* 17.03.2025: Refactor select fields for buttons & modifications, thanks to @trainbird !
+* 08.03.2025: Bluetooth: Support avrc (buttons), thanks to @sfields !
+* 03.02.2025: ESPAsyncWebServer moved to new location: <https://github.com/ESP32Async/ESPAsyncWebServer>
+* 03.02.2025: PlatformIO package 6.10.0 (Arduino 2.0.17, ESP-IDF 4.4.7)
+* 28.01.2025: Make led, rotary & button settings configurable at runtime #358
+* 27.12.2024: Fix audio dropouts in BT-Source mode
+* 27.12.2024: ArduinoJson 7 (#357)
+* 18.12.2024: Use saved SSID as LAST_SSID, when no successfull connection was possible #355, thanks to @nona00 !
+* 18.12.2024: Check if #POWER defined, thanks to @QDaniel !
+* 18.12.2024: Prepare for Arduino 3.1.0
+* 16.12.2024: Add verbose log to indicate, that the restart is on purpose (#356), thanks to @thebino !
+* 16.12.2024: LPCD: Only wake up if card is present in NVS (#352), thanks to @fox34 !
+* 25.11.2024: Moving some settings to the Web UI (#350), thanks to @trainbird !
+* 17.11.2024: Simplify 'SdCard_ParseM3UPlaylist' and fix parsing, thanks to @h4kun4m4t4t4 !
+* 29.10.2024: Update Audio lib
+* 29.10.2024: Enable CONFIG_ESP32_REV_MIN_3 to save some IRAM
+* 22.10.2024: Cleaning up `management.html` (#348), thanks to @trainbird !
+* 22.10.2024: Update Arduino-IRremote to support the ESP 3.0 core
+* 29.09.2024: Removal of support for non-PSRAM HALs (Lolin32, LolinD32, DevkitC) and ESP32-A1S
+* 29.09.2024: Prepare for Arduino 3.0.5
+* 27.09.2024: PlatformIO package 6.9.0
 
 ## Version 2.3 (23.09.2024)
 
@@ -17,8 +52,8 @@
 * 20.05.2024: PlatformIO package 6.7.0 (Arduino 2.0.16, ESP-IDF 4.4.7)
 * 20.05.2024: Disable bluetooth support for A1S (IRAM too small)
 * 09.05.2024: Upgrade to Bootstrap v5.0 + Web-UI Enhancements (#328), thanks to @caco3 !
-* 23.04.2024: Enhance UI minification (#323), thanks to @caco3 ! 
-* 22.04.2024: Added virtual RFID-Cards (#319), thanks to @caco3 ! 
+* 23.04.2024: Enhance UI minification (#323), thanks to @caco3 !
+* 22.04.2024: Added virtual RFID-Cards (#319), thanks to @caco3 !
 * 18.04.2024: Correct calculation of newFilePos for SEEK_POS_PERCENT, thanks to @sfields!
 * 18.04.2024: Correct calculation of gPlayProperties.currentRelPos, thanks to @sfields!
 * 18.04.2024: Get title from-VORBISCOMMENT and ID3, thanks to @sfields!
@@ -31,13 +66,13 @@
 * 28.03.2024: Fix some warnings with upcoming Arduino 3 (ESP-IDF v5.1)
 * 16.03.2024: Reduce memory usage by measurement of JSON payload length
 * 15.03.2024: MQTT receive: Bug fix and avoid payload copy (#309), thanks to @eikel
-* 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields ! 
+* 15.03.2024: Add coverimage support for ogg, vorbis, opus (and some flac), thanks to @sfields !
 * 19.02.2024: Add coverimage support for M4A files in Web-UI
-* 18.02.2024: Add coverimage support for flac files in Web-UI, thanks to @sfields ! 
-* 15.02.2024: Rework playlist generation (#275), thanks to @laszloh ! 
+* 18.02.2024: Add coverimage support for flac files in Web-UI, thanks to @sfields !
+* 15.02.2024: Rework playlist generation (#275), thanks to @laszloh !
 * 15.02.2024: Update sorting strings (#306), thanks to @freddy36 !
-* 15.02.2024: Set title and navbar heading to hostname (#305), thanks to @freddy36 ! 
-* 15.02.2024: Include mac address in info (#304), thanks to @freddy36 !  
+* 15.02.2024: Set title and navbar heading to hostname (#305), thanks to @freddy36 !
+* 15.02.2024: Include mac address in info (#304), thanks to @freddy36 !
 * 12.02.2024: Use natural sort (#296), thanks to @freddy36 !
 * 09.02.2024: Remove explorerCreateParentDirectories (#301), thanks to @freddy36 !
 * 08.02.2024: Remove convertFilenameToAscii (#298), Playlist fixes (#299), thanks to @freddy36 !
@@ -55,7 +90,6 @@
 * 21.01.2024: Build (tag 2.2) is broken when NEOPIXEL_ENABLE is not set #289, thanks to @RolinBert !
 * 21.01.2024: PN5180: Save about 500 Bytes of RAM
 
-
 ## Version 2.2 (17.01.2024)
 
 * 14.01.2024: Modify CMD_DIMM_LEDS_NIGHTMODE to toggle night light mode (#287), thanks to @laszloh !
@@ -68,31 +102,31 @@
 * 29.12.2023: /rfid endpoint: List all assigned nvs entries (#280)
 * 29.12.2023: Enhanced capabilities for task runtime debugging
 * 28.12.2023: Bugfix 1: DONT_ACCEPT_SAME_RFID_TWICE_ENABLE and web frontend, thanks to @sfields !
-* 28.12.2023: Add configuration for critical (shutoff) voltage in Web-UI, thanks to @SZenglein ! 
+* 28.12.2023: Add configuration for critical (shutoff) voltage in Web-UI, thanks to @SZenglein !
 * 28.12.2023: New official PlatformIO package 6.5.0 (Arduino 2.0.14, ESP-IDF 4.4.6)
 * 28.12.2023: Improve port expander handling (#283), thanks to @r-schmidt !
 * 23.12.2023: Update audio library, avoid waiting in i2s_channel_write() to have more time in other tasks #636
 * 22.12.2023: Web-UI: Preselection of root folder after load to avoid nasty warning when uploading files
-* 17.12.2023: Update audio library, fixes click-noise seeking in file 
-* 13.12.2023: Immediately go to sleep if battery is critical (#274), thanks to @SZenglein ! 
-* 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 ! 
+* 17.12.2023: Update audio library, fixes click-noise seeking in file
+* 13.12.2023: Immediately go to sleep if battery is critical (#274), thanks to @SZenglein !
+* 12.12.2023: Long press behaviour, execute cmd directly after longpress-time (#279), thanks to @Joe91 !
 * 12.12.2023: Fix false-positive error (Audio playback timeout)
 * 10.12.2023: Distribute vTaskDelay() in main loop to avoid rare audio dropouts
-* 10.12.2023: Fix wrong states on PE output pins (and SD-card failure on restart) #278, thanks to @36b6fp6s ! 
+* 10.12.2023: Fix wrong states on PE output pins (and SD-card failure on restart) #278, thanks to @36b6fp6s !
 * 09.12.2023: Fix webstream playlist abort when track fails (#276), thanks to @laszloh !
 * 07.12.2023: Show RC522 firmware version at startup, same as PN5180
 * 04.12.2023: fix stuttering sound with some WAV & MP3 files, thanks to @wolle !
 * 04.12.2023: change trackprogress communication from websocket to http to improve stability
-* 04.12.2023: Remove some convertAsciiToUtf8() #272 
+* 04.12.2023: Remove some convertAsciiToUtf8() #272
 * 30.11.2023: Fix a nullptr access after trying to replay an invalid filename (#271), thanks to Olaf!
 * 29.11.2023: Updated audio library to play more MP3s, faster track change & delivery of the cover image
 * 25.11.2023: Save some cpu time in audio task by only updating the playtime statistics every 250ms
-* 22.11.2023: Web-UI: Search for files feature #268 
+* 22.11.2023: Web-UI: Search for files feature #268
 * 21.11.2023: New command CMD_TOGGLE_MODE to switch Normal => BT-Sink => BT-Source
 * 21.11.2023: Bugfix: Some commands e.g. Play/Pause did not work in BT-Source mode
 * 21.11.2023: Faster pairing animation in BT-Source mode to better distinguish between the two BT modes
 * 19.11.2023: Give audiotask a higher task priority, fixes crackling sound
-* 19.11.2023: bugfix_same_rfid_twice init #262, see Github comments 
+* 19.11.2023: bugfix_same_rfid_twice init #262, see Github comments
 * 17.11.2023: Show track progress, current playtime & duration in web-ui (#267)
 * 16.11.2023: Fix delay with getLocalTime()
 * 14.11.2023: Multi Wlan improvements (#266), thanks to @laszloh !
@@ -100,7 +134,6 @@
 * 08.11.2023: Fix HTML syntax errors, found with static code analysis tool "HtmlHint"
 * 08.11.2023: Better logging for boards without PSRAM, fewer logs when compiling with NO_SDCARD
 * 07.11.2023: Set timezone after startup, thanks to @Joe91 !
-
 
 ## Version 2.1 (07.11.2023)
 

@@ -10,7 +10,7 @@
 #include "System.h"
 
 #ifdef IR_CONTROL_ENABLE
-	#include <IRremote.h>
+	#include <IRremote.hpp>
 #endif
 
 // HW-Timer

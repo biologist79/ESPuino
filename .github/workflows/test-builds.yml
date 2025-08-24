@@ -19,13 +19,8 @@ jobs:
     strategy:
       matrix:
         variant:
-          - esp32-a1s
-          - lolin32
-          - lolin_d32
           - lolin_d32_pro
           - lolin_d32_pro_sdmmc_pe
-          - nodemcu-32s
-          - az-delivery-devkit-v4
           - ttgo_t8
           - complete
 
@@ -40,15 +35,15 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Cache PlatformIO
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
-      - name: Setup Python 3.9
+      - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11'
       - name: Install PlatformIO Core
         run: |
           pip install -U setuptools platformio

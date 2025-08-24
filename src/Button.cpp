@@ -55,7 +55,11 @@ extern bool Port_AllowReadFromPortExpander;
 static volatile SemaphoreHandle_t Button_TimerSemaphore;
 
 hw_timer_t *Button_Timer = NULL;
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 static void IRAM_ATTR onTimer();
+#else
+static void onTimer();
+#endif
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
@@ -216,63 +220,63 @@ void Button_DoButtonActions(void) {
 	if (gButtons[0].isPressed && gButtons[1].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[1].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_01);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti01", BUTTON_MULTI_01));
 	} else if (gButtons[0].isPressed && gButtons[2].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[2].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_02);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti02", BUTTON_MULTI_02));
 	} else if (gButtons[0].isPressed && gButtons[3].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_03);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti03", BUTTON_MULTI_03));
 	} else if (gButtons[0].isPressed && gButtons[4].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_04);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti04", BUTTON_MULTI_04));
 	} else if (gButtons[0].isPressed && gButtons[5].isPressed) {
 		gButtons[0].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_05);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti05", BUTTON_MULTI_05));
 	} else if (gButtons[1].isPressed && gButtons[2].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[2].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_12);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti12", BUTTON_MULTI_12));
 	} else if (gButtons[1].isPressed && gButtons[3].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_13);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti13", BUTTON_MULTI_13));
 	} else if (gButtons[1].isPressed && gButtons[4].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_14);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti14", BUTTON_MULTI_14));
 	} else if (gButtons[1].isPressed && gButtons[5].isPressed) {
 		gButtons[1].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_15);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti15", BUTTON_MULTI_15));
 	} else if (gButtons[2].isPressed && gButtons[3].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[3].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_23);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti23", BUTTON_MULTI_23));
 	} else if (gButtons[2].isPressed && gButtons[4].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_24);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti24", BUTTON_MULTI_24));
 	} else if (gButtons[2].isPressed && gButtons[5].isPressed) {
 		gButtons[2].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_25);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti25", BUTTON_MULTI_25));
 	} else if (gButtons[3].isPressed && gButtons[4].isPressed) {
 		gButtons[3].isPressed = false;
 		gButtons[4].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_34);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti34", BUTTON_MULTI_34));
 	} else if (gButtons[3].isPressed && gButtons[5].isPressed) {
 		gButtons[3].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_35);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti35", BUTTON_MULTI_35));
 	} else if (gButtons[4].isPressed && gButtons[5].isPressed) {
 		gButtons[4].isPressed = false;
 		gButtons[5].isPressed = false;
-		Cmd_Action(BUTTON_MULTI_45);
+		Cmd_Action(gPrefsSettings.getUChar("btnMulti45", BUTTON_MULTI_45));
 	} else {
 		unsigned long currentTimestamp = millis();
 		for (uint8_t i = 0; i <= 5; i++) {
@@ -282,33 +286,33 @@ void Button_DoButtonActions(void) {
 
 				switch (i) { // Long-press-actions
 					case 0:
-						Cmd_Short = BUTTON_0_SHORT;
-						Cmd_Long = BUTTON_0_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort0", BUTTON_0_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong0", BUTTON_0_LONG);
 						break;
 
 					case 1:
-						Cmd_Short = BUTTON_1_SHORT;
-						Cmd_Long = BUTTON_1_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort1", BUTTON_1_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong1", BUTTON_1_LONG);
 						break;
 
 					case 2:
-						Cmd_Short = BUTTON_2_SHORT;
-						Cmd_Long = BUTTON_2_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort2", BUTTON_2_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong2", BUTTON_2_LONG);
 						break;
 
 					case 3:
-						Cmd_Short = BUTTON_3_SHORT;
-						Cmd_Long = BUTTON_3_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort3", BUTTON_3_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong3", BUTTON_3_LONG);
 						break;
 
 					case 4:
-						Cmd_Short = BUTTON_4_SHORT;
-						Cmd_Long = BUTTON_4_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort4", BUTTON_4_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong4", BUTTON_4_LONG);
 						break;
 
 					case 5:
-						Cmd_Short = BUTTON_5_SHORT;
-						Cmd_Long = BUTTON_5_LONG;
+						Cmd_Short = gPrefsSettings.getUChar("btnShort5", BUTTON_5_SHORT);
+						Cmd_Long = gPrefsSettings.getUChar("btnLong5", BUTTON_5_LONG);
 						break;
 				}
 
@@ -351,6 +355,10 @@ void Button_DoButtonActions(void) {
 	}
 }
 
+#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 void IRAM_ATTR onTimer() {
+#else
+void onTimer() {
+#endif
 	xSemaphoreGiveFromISR(Button_TimerSemaphore, NULL);
 }
