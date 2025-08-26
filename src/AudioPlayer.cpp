@@ -428,9 +428,8 @@ void AudioPlayer_Loop() {
 		AudioPlayer_CurrentTime = audio->getAudioCurrentTime();
 		AudioPlayer_FileDuration = audio->getAudioFileDuration();
 		// Calculate relative position in file (for trackprogress neopixel & web-ui)
-		uint32_t fileSize = audio->getFileSize();
-		gPlayProperties.audioFileSize = fileSize;
-		if (!gPlayProperties.playlistFinished && fileSize > 0) {
+		gPlayProperties.audioFileDuration = AudioPlayer_FileDuration;
+		if (!gPlayProperties.playlistFinished && AudioPlayer_FileDuration > 0) {
 			// for local files and web files with known size
 			if (!gPlayProperties.pausePlay && (gPlayProperties.seekmode != SEEK_POS_PERCENT)) { // To progress necessary when paused
 				gPlayProperties.currentRelPos = ((float) audio->getAudioCurrentTime() / audio->getAudioFileDuration()) * 100.0f;
@@ -527,7 +526,7 @@ void AudioPlayer_Loop() {
 					Log_Println(cmndPause, LOGLEVEL_INFO);
 				}
 				if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioCurrentTime());
+					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioFileDuration());
 					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
@@ -793,7 +792,7 @@ void AudioPlayer_Loop() {
 		} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
 			uint32_t newFilePos = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
 			if (audio->setAudioPlayPosition(newFilePos)) {
-				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getFileSize());
+				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getAudioFileDuration());
 			} else {
 				System_IndicateError();
 			}
