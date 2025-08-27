@@ -234,7 +234,17 @@
 					"181": "Seek backwards (n seconds)",
 					"182": "Stop",
 					"183": "Restart",
-					"199": "Display task load (console)"
+					"199": "Display task load (console)",
+					"241": "Play virtual RFID-card 01",
+					"242": "Play virtual RFID-card 02",
+					"243": "Play virtual RFID-card 03",
+					"244": "Play virtual RFID-card 04",
+					"245": "Play virtual RFID-card 05",
+					"246": "Play virtual RFID-card 06",
+					"247": "Play virtual RFID-card 07",
+					"248": "Play virtual RFID-card 08",
+					"249": "Play virtual RFID-card 09",
+					"250": "Play virtual RFID-card 10"
 				}
 			}
 		}
