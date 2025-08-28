@@ -424,7 +424,7 @@ static void Led_Task(void *parameter) {
 			nextAnimation = LedAnimationType::Idle;
 		} else if (gPlayProperties.pausePlay && !gPlayProperties.isWebstream) {
 			nextAnimation = LedAnimationType::Pause;
-		} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST) && gPlayProperties.audioFileSize > 0) { // progress for a file/stream with known size
+		} else if ((gPlayProperties.playMode != BUSY) && (gPlayProperties.playMode != NO_PLAYLIST) && gPlayProperties.audioFileDuration > 0) { // progress for a file/stream with known size
 			nextAnimation = LedAnimationType::Progress;
 		} else if (gPlayProperties.isWebstream) { // webstream animation (for streams with unknown size); pause animation is also handled by the webstream animation function
 			nextAnimation = LedAnimationType::Webstream;
