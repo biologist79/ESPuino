@@ -763,7 +763,13 @@ void AudioPlayer_Loop() {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
 			}
 			if (gPlayProperties.startAtFilePos > 0) {
-				audio->setAudioPlayPosition(gPlayProperties.startAtFilePos);
+				int32_t tiemeoutSetStartPos = 3000; // 3 seconds should be enough to set startposition
+				while (!audio->setAudioPlayPosition(gPlayProperties.startAtFilePos) && (tiemeoutSetStartPos > 0)) {
+					audio->loop();
+					Log_Println("not done yet", LOGLEVEL_NOTICE);
+					vTaskDelay(portTICK_PERIOD_MS * 20u);
+					tiemeoutSetStartPos -= 20;
+				}
 				Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 				gPlayProperties.startAtFilePos = 0;
 			}
