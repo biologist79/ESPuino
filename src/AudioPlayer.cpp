@@ -742,7 +742,14 @@ void AudioPlayer_Loop() {
 				gPlayProperties.trackFinished = true;
 				return;
 			} else {
-				audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+				int32_t fileStartTime = -1;
+				if (gPlayProperties.startAtFilePos > 0) {
+					fileStartTime = gPlayProperties.startAtFilePos;
+					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
+					gPlayProperties.startAtFilePos = 0;
+				}
+				audioReturnCode
+					= audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), fileStartTime);
 				// consider track as finished, when audio lib call was not successful
 			}
 		}
@@ -754,17 +761,6 @@ void AudioPlayer_Loop() {
 		} else {
 			if (gPlayProperties.currentTrackNumber) {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
-			}
-			if (gPlayProperties.startAtFilePos > 0) {
-				int32_t tiemeoutSetStartPos = 3000; // 3 seconds should be enough to set startposition
-				while (!audio->setAudioPlayPosition(gPlayProperties.startAtFilePos) && (tiemeoutSetStartPos > 0)) {
-					audio->loop();
-					Log_Println("not done yet", LOGLEVEL_NOTICE);
-					vTaskDelay(portTICK_PERIOD_MS * 20u);
-					tiemeoutSetStartPos -= 20;
-				}
-				Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
-				gPlayProperties.startAtFilePos = 0;
 			}
 			const char *title = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 			if (gPlayProperties.isWebstream) {
@@ -796,9 +792,9 @@ void AudioPlayer_Loop() {
 				System_IndicateError();
 			}
 		} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
-			uint32_t newFilePos = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
-			if (audio->setAudioPlayPosition(newFilePos)) {
-				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getAudioFileDuration());
+			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
+			if (audio->setAudioPlayTime(newFileTime)) {
+				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());
 			} else {
 				System_IndicateError();
 			}
