@@ -21,7 +21,7 @@ typedef struct { // Bit field
 	bool repeatCurrentTrack		: 1; // If current track should be looped
 	bool repeatPlaylist			: 1; // If whole playlist should be looped
 	uint16_t currentTrackNumber : 9; // Current tracknumber
-	unsigned long startAtFilePos; // Offset to start play (in bytes)
+	unsigned long startAtFilePos; // Offset to start play (in seconds)
 	double currentRelPos; // Current relative playPosition (in %)
 	bool sleepAfterCurrentTrack : 1; // If uC should go to sleep after current track
 	bool sleepAfterPlaylist		: 1; // If uC should go to sleep after whole playlist
@@ -48,7 +48,7 @@ typedef struct { // Bit field
 	int8_t gainHighPass = 0; // High Pass for EQ Control
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
-	size_t audioFileSize; // file size of current audio file
+	size_t audioFileDuration; // file duration of current audio file (in seconds)
 } playProps;
 
 extern playProps gPlayProperties;
