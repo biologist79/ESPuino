@@ -51,3 +51,11 @@ jobs:
           pio pkg update --global
       - name: Build ${{ matrix.variant }}
         run: platformio run -e ${{ matrix.variant }}
+      - name: Create Firmware
+        id: create_firmware
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "latest"
+          files: firmware/${{ matrix.variant }}/firmware_default_settings.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
