@@ -49,10 +49,21 @@ jobs:
           pip install -U setuptools platformio
           pio upgrade --dev
           pio pkg update --global
-      - name: Build ${{ matrix.variant }}
+      - name: Build ${{ matrix.variant }} for RC522
         run: platformio run -e ${{ matrix.variant }}
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}.bin
+          name: firmware-${{ matrix.variant }}-RC522.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Change RFID type
+        run: |
+          sed -i '' 's/\/\/#define RFID_READER_TYPE_PN5180/#define RFID_READER_TYPE_PN5180/' src/settings.h
+          sed -i '' 's/#define RFID_READER_TYPE_MFRC522_SPI/\/\/#define RFID_READER_TYPE_MFRC522_SPI/' src/settings.h
+      - name: Build ${{ matrix.variant }} for PN5180
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.variant }}-RPN5180.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
