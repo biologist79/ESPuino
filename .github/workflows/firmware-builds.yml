@@ -1,5 +1,5 @@
-name: build-all
-run-name: Build all boards
+name: build-all-firmwares
+run-name: Build firmwares for all boards and RFID-readers
 on:
   workflow_dispatch:
   push:
@@ -40,10 +40,10 @@ jobs:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.13
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.13'
       - name: Install PlatformIO Core
         run: |
           pip install -U setuptools platformio
