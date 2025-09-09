@@ -51,11 +51,8 @@ jobs:
           pio pkg update --global
       - name: Build ${{ matrix.variant }}
         run: platformio run -e ${{ matrix.variant }}
-      - name: Create Firmware
-        id: create_firmware
-        uses: softprops/action-gh-release@v2
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: "latest"
-          files: firmware/${{ matrix.variant }}/firmware_default_settings.bin
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: firmware-${{ matrix.variant }}.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
