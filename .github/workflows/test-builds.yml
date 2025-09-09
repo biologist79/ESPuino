@@ -25,9 +25,9 @@ jobs:
           - complete
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -54,7 +54,7 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}-RC522.bin
+          name: firmware-RC522-${{ matrix.variant }}.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
       - name: Change RFID type
         run: |
@@ -65,5 +65,5 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}-RPN5180.bin
+          name: firmware-PN5180-${{ matrix.variant }}.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
