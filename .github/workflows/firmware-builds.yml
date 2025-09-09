@@ -8,12 +8,12 @@ on:
       - master
   pull_request:
     paths:
-      - 'src/*'
-      - 'html/*'
-      - 'test/*'
-      - '**.ini'
-      - '**.py'
-      - '**.csv'
+      - "src/*"
+      - "html/*"
+      - "test/*"
+      - "**.ini"
+      - "**.py"
+      - "**.csv"
 
 jobs:
   test_builds:
@@ -46,7 +46,7 @@ jobs:
       - name: Setup Python 3.13
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: "3.13"
       - name: Install PlatformIO Core
         run: |
           pip install -U setuptools platformio
