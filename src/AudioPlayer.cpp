@@ -428,13 +428,11 @@ void AudioPlayer_Loop() {
 		AudioPlayer_CurrentTime = audio->getAudioCurrentTime();
 		AudioPlayer_FileDuration = audio->getAudioFileDuration();
 		// Calculate relative position in file (for trackprogress neopixel & web-ui)
-		uint32_t fileSize = audio->getFileSize();
-		gPlayProperties.audioFileSize = fileSize;
-		if (!gPlayProperties.playlistFinished && fileSize > 0) {
+		gPlayProperties.audioFileDuration = AudioPlayer_FileDuration;
+		if (!gPlayProperties.playlistFinished && AudioPlayer_FileDuration > 0) {
 			// for local files and web files with known size
 			if (!gPlayProperties.pausePlay && (gPlayProperties.seekmode != SEEK_POS_PERCENT)) { // To progress necessary when paused
-				uint32_t audioDataStartPos = audio->getAudioDataStartPos();
-				gPlayProperties.currentRelPos = ((double) (audio->getFilePos() - audioDataStartPos - audio->inBufferFilled()) / (fileSize - audioDataStartPos)) * 100;
+				gPlayProperties.currentRelPos = ((float) audio->getAudioCurrentTime() / audio->getAudioFileDuration()) * 100.0f;
 			}
 		} else {
 			if (gPlayProperties.isWebstream && (audio->getInBufferSize() > 0)) {
@@ -528,8 +526,8 @@ void AudioPlayer_Loop() {
 					Log_Println(cmndPause, LOGLEVEL_INFO);
 				}
 				if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
-					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getFilePos(), audio->getFilePos() - audio->inBufferFilled());
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getFilePos() - audio->inBufferFilled(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioFileDuration());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
 				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
@@ -744,7 +742,14 @@ void AudioPlayer_Loop() {
 				gPlayProperties.trackFinished = true;
 				return;
 			} else {
-				audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+				int32_t fileStartTime = -1;
+				if (gPlayProperties.startAtFilePos > 0) {
+					fileStartTime = gPlayProperties.startAtFilePos;
+					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
+					gPlayProperties.startAtFilePos = 0;
+				}
+				audioReturnCode
+					= audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), fileStartTime);
 				// consider track as finished, when audio lib call was not successful
 			}
 		}
@@ -756,11 +761,6 @@ void AudioPlayer_Loop() {
 		} else {
 			if (gPlayProperties.currentTrackNumber) {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
-			}
-			if (gPlayProperties.startAtFilePos > 0) {
-				audio->setFilePos(gPlayProperties.startAtFilePos);
-				Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
-				gPlayProperties.startAtFilePos = 0;
 			}
 			const char *title = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 			if (gPlayProperties.isWebstream) {
@@ -792,9 +792,9 @@ void AudioPlayer_Loop() {
 				System_IndicateError();
 			}
 		} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
-			uint32_t newFilePos = uint32_t((double) audio->getAudioDataStartPos() * (1 - gPlayProperties.currentRelPos / 100) + (gPlayProperties.currentRelPos / 100) * audio->getFileSize());
-			if (audio->setFilePos(newFilePos)) {
-				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFilePos, audio->getFileSize());
+			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
+			if (audio->setAudioPlayTime(newFileTime)) {
+				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());
 			} else {
 				System_IndicateError();
 			}
