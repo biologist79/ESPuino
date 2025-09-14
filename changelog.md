@@ -2,6 +2,8 @@
 
 ## Version 2.4 (24.08.2025)
 
+* 11.09.2025: Update audio-lib and Fast-LED (#375), thanks to @Joe91
+* 27.08.2025: support of virtual RFID-Cards in Webserver (#376), thanks to @Joe91
 * 16.08.2025: Measuring of battery voltage: analogRead() -> analogReadMilliVolts()
 * 15.08.2025: Reduce voltage-stepping in webinterface from 0.1 V to 0.05 V
 * 13.08.2025: Enforce usage of port-expander for some HALs
