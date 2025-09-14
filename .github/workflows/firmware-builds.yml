@@ -72,7 +72,7 @@ jobs:
     needs: test_builds
     steps:
       - name: Checkout target repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: biologist79/ESPuino-Firmware
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
