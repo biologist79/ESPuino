@@ -1437,8 +1437,7 @@ void audio_eof_speech(const char *info) {
 	gPlayProperties.currentSpeechActive = false;
 }
 
-// bitsPerSample always 16
-// channels always 2
-void audio_process_i2s(int16_t *outBuff, uint16_t validSamples, uint8_t bitsPerSample, uint8_t channels, bool *continueI2S) {
+// record audiodata or send via BT
+void audio_process_i2s(int16_t *outBuff, int32_t validSamples, bool *continueI2S) {
 	*continueI2S = !Bluetooth_Source_SendAudioData(outBuff, validSamples);
 }

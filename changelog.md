@@ -6,6 +6,7 @@
 
 ## Version 2.4.1 (14.09.2025)
 
+* 16.09.2025: Fix broken Bluetooth headset mode (BT-Source)
 * 11.09.2025: Update audio-lib and Fast-LED (#375), thanks to @Joe91
 * 27.08.2025: support of virtual RFID-Cards in Webserver (#376), thanks to @Joe91
 
