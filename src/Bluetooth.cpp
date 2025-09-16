@@ -357,7 +357,7 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 #endif
 }
 
-bool Bluetooth_Source_SendAudioData(int16_t *outBuff, uint16_t validSamples) {
+bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	// send audio data to ringbuffer
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && (validSamples > 0) && a2dp_source->is_connected()) {
