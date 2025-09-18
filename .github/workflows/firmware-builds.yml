@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - dev
+      - master
   pull_request:
     paths:
       - 'src/*'
@@ -84,7 +85,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: "firmware*"
-          path: target-repo/Firmwares/dev
+          path: target-repo/Firmwares/${{ github.ref_name }}
 
       - name: Commit and push changes
         run: |
@@ -93,8 +94,8 @@ jobs:
           git config user.email "actions@github.com"
           for variant in lolin_d32_pro lolin_d32_pro_sdmmc_pe ttgo_t8 complete; do
             for extension in RC522 PN5180; do
-              git add Firmwares/dev/firmware-$extension-$variant.bin
+              git add Firmwares/${{ github.ref_name }}/firmware-$extension-$variant.bin
             done
           done
-          git commit -m "Add firmwares for dev@${{ github.sha }}"
+          git commit -m "Firmware built from commit [biologist79/ESPuino@${{ github.sha }}](https://github.com/biologist79/ESPuino/commit/${{ github.sha }})"
           git push
