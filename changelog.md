@@ -1,6 +1,6 @@
 # Changelog
 
-## DEV-branch
+## Version 2.4 (24.08.2025)
 
 * nothing yet...
 
