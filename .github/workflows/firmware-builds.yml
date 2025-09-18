@@ -97,5 +97,5 @@ jobs:
               git add Firmwares/${{ github.ref_name }}/firmware-$extension-$variant.bin
             done
           done
-          git commit -m "Firmware built from commit [biologist79/ESPuino@${{ github.sha }}](https://github.com/biologist79/ESPuino/commit/${{ github.sha }})"
+          git commit -m "Firmware built from commit biologist79/ESPuino@${{ github.sha }}"
           git push
