@@ -79,13 +79,10 @@ jobs:
           path: target-repo
 
       - name: Download artifacts
-        run: |
-          for variant in lolin_d32_pro lolin_d32_pro_sdmmc_pe ttgo_t8 complete; do
-            for extension in RC522 PN5180; do
-              echo "Downloading artifact for $variant with extension $extension"
-              actions/download-artifact@v2 --name firmware-$extension-$variant.bin --path target-repo/Firmwares/dev/firmware-$extension-$variant.bin
-            done
-          done
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "firmware*"
+          path: target-repo/Firmwares/dev
 
       - name: Commit and push changes
         run: |
