@@ -8,12 +8,12 @@ on:
       - master
   pull_request:
     paths:
-      - 'src/*'
-      - 'html/*'
-      - 'test/*'
-      - '**.ini'
-      - '**.py'
-      - '**.csv'
+      - "src/*"
+      - "html/*"
+      - "test/*"
+      - "**.ini"
+      - "**.py"
+      - "**.csv"
 
 jobs:
   test_builds:
@@ -46,24 +46,44 @@ jobs:
       - name: Setup Python 3.13
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: "3.13"
       - name: Install PlatformIO Core
         run: |
           pip install -U setuptools platformio
           pio upgrade --dev
           pio pkg update --global
-      - name: Build ${{ matrix.variant }} for RC522
+      - name: Build ${{ matrix.variant }} for RC522 without BT
         run: platformio run -e ${{ matrix.variant }}
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
           name: firmware-RC522-${{ matrix.variant }}.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Activate BT
+        run: |
+          sed -i 's/\/\/#define BLUETOOTH_ENABLE/#define BLUETOOTH_ENABLE/' src/settings.h
+      - name: Build ${{ matrix.variant }} for RC522 with BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-RC522-BT-${{ matrix.variant }}.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
       - name: Change RFID type
         run: |
           sed -i 's/\/\/#define RFID_READER_TYPE_PN5180/#define RFID_READER_TYPE_PN5180/' src/settings.h
           sed -i 's/#define RFID_READER_TYPE_MFRC522_SPI/\/\/#define RFID_READER_TYPE_MFRC522_SPI/' src/settings.h
-      - name: Build ${{ matrix.variant }} for PN5180
+      - name: Build ${{ matrix.variant }} for PN5180 with BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-PN5180-BT-${{ matrix.variant }}.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Disable BT
+        run: |
+          sed -i 's/#define BLUETOOTH_ENABLE/\/\/#define BLUETOOTH_ENABLE/' src/settings.h
+      - name: Build ${{ matrix.variant }} for PN5180 without BT
         run: platformio run -e ${{ matrix.variant }}
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
@@ -93,9 +113,7 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           for variant in lolin_d32_pro lolin_d32_pro_sdmmc_pe ttgo_t8 complete; do
-            for extension in RC522 PN5180; do
-              git add Firmwares/${{ github.ref_name }}/firmware-$extension-$variant.bin
-            done
+            git add Firmwares/${{ github.ref_name }}/firmware-*.bin
           done
           git commit -m "Firmware built from commit biologist79/ESPuino@${{ github.sha }}"
           git push
