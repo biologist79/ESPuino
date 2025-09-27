@@ -57,7 +57,7 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-RC522-${{ matrix.variant }}.bin
+          name: firmware-${{ matrix.variant }}-RC522-noBT.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
       - name: Activate BT
         run: |
@@ -67,7 +67,7 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-RC522-BT-${{ matrix.variant }}.bin
+          name: firmware-${{ matrix.variant }}-RC522-BT.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
       - name: Change RFID type
         run: |
@@ -78,7 +78,7 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-PN5180-BT-${{ matrix.variant }}.bin
+          name: firmware-${{ matrix.variant }}-PN5180-BT.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
       - name: Disable BT
         run: |
@@ -88,7 +88,7 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-PN5180-${{ matrix.variant }}.bin
+          name: firmware-${{ matrix.variant }}-PN5180-noBT.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
   commit:
     runs-on: ubuntu-latest
