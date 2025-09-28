@@ -12,6 +12,10 @@
   dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr
   insbesondere hier: <https://forum.espuino.de/c/dokumentation/anleitungen/10>.
 
+## Firmwares
+
+Ready-to-use firmwares are [available for download now](https://github.com/biologist79/ESPuino-Firmware).
+
 ## News
 
 > :warning: Due to memory restrictions and complexity, ESPuino doesn't run safely on ESP32
@@ -28,7 +32,7 @@ branch. Feel free to test but be advised this could be unstable.
 The basic idea of ESPuino is to use RFID tags to control an audio player. Even for kids this concept
 is simple: place a RFID-tagged object (card, toy character, etc.) on top of a box and stuff
 starts to play right away from SD card or webradio. Place a different RFID tag on it and something else
-is played. Simple as that. Multiple actions can be assigned to buttons and a rotary encoder is
+is played. Simple as that. Multiple types of actions can be assigned to buttons and a rotary encoder is
 used to adjust the volume.
 
 This project is based on the popular microcontroller [ESP32 by
@@ -46,12 +50,14 @@ into an analog signal. I did all my tests with the following DACs:
 
 ## Hardware setup
 
-You could start on a breadboard with jumper wires. However, the simplier way is to start right away
+You could start on a breadboard with jumper wires. However, the simplier way is to kickstart right away
 with a PCB that was especially developed for ESPuino. There are [several available](https://forum.espuino.de/c/hardware/pcbs/11),
 but ["ESPuino Complete"](https://forum.espuino.de/t/espuino-complete/3817) can be considered being the
 latest one. This pcb can obtained via the [forum](https://forum.espuino.de/). It's available
-for LiFePO4 or LiPo batteries and covers connectors for up to 5 buttons, rfid-reader, rotary encoder,
-i2c, Neopixel, USB-C, µSD, speaker, [headphones PCB](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099) and some custom stuff. [Port-expander](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) and [MAX98357a](https://www.analog.com/en/products/MAX98357A.html) are integrated, too. A [buck boost converter](https://www.ti.com/product/TPS63000) provides
+for LiFePO4 or LiPo batteries (for sure also runs with USB-C only) and covers connectors for up to 5 buttons,
+rfid-reader, rotary encoder, i2c, Neopixel, USB-C, µSD, speaker, [headphones PCB](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099) and some custom stuff.
+[Port-expander](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) and [MAX98357a](https://www.analog.com/en/products/MAX98357A.html)
+are integrated, too. A [buck boost converter](https://www.ti.com/product/TPS63000) provides
 stable 3.3 V while battery's voltage is [supervised](https://www.sg-micro.com/product/SGM809)
 in order to prevent deep discharge. However, never use a lithium battery without a
 further protection circuit that's already part of the battery pack!
@@ -68,7 +74,9 @@ While headphone's plugged in, speaker is automatically disabled.
 
 - [Much more documentation in german
   language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
-- You need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
+- There are already ready-to-use firmwares for [download available](https://github.com/biologist79/ESPuino-Firmware) that
+  probably already fit your needs. Further informations can be found [here](https://forum.espuino.de/t/fertige-espuino-firmwares-zum-runterladen/3941).
+- In case you want to compile your own firmware, first you need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
 - Install [PlatformIO Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio
   Code](https://code.visualstudio.com/) and make sure to have a look at the
   [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html).
