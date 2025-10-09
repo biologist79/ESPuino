@@ -11,6 +11,13 @@
 * 28.09.2025: Update PN5180 lib
 * 27.09.2025: Enable firmware builds with BT
 
+## Version 2.4.3 (09.10.2025)
+
+* 08.10.2025: Bump to ESP-IDF 5.5.1
+* 08.10.2025: Use importlib instead of setuptools
+* 28.09.2025: Update PN5180 lib
+* 27.09.2025: Enable firmware builds with BT
+
 ## Version 2.4.2 (18.09.2025)
 
 * 16.09.2025: Fix broken Bluetooth headset mode (BT-Source)
