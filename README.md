@@ -14,7 +14,10 @@
 
 ## Firmwares
 
-Ready-to-use firmwares are [available for download now](https://github.com/biologist79/ESPuino-Firmware).
+Ready-to-use firmwares are available for [download](https://github.com/biologist79/ESPuino-Firmware) for several
+HALs, RFID-readers PN5180 or RC522 and with or without bluetooth. These are provided for
+[master](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/master) and
+[dev-branch](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/dev).
 
 ## News
 
@@ -32,12 +35,13 @@ branch. Feel free to test but be advised this could be unstable.
 The basic idea of ESPuino is to use RFID tags to control an audio player. Even for kids this concept
 is simple: place a RFID-tagged object (card, toy character, etc.) on top of a box and stuff
 starts to play right away from SD card or webradio. Place a different RFID tag on it and something else
-is played. Simple as that. Multiple types of actions can be assigned to buttons and a rotary encoder is
-used to adjust the volume.
+is played. Simple as that. Multiple types of actions can be assigned to buttons and an optionak rotary
+encoder is in place to adjust the volume easily. Configuration can be done mostly via
+ESPuino's [webinterface](https://forum.espuino.de/t/dokumentation-webinterface/2807).
 
 This project is based on the popular microcontroller [ESP32 by
 Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). It's powerful, cheap and
-having WiFi support out-of-the-box enables further features like an integrated webserver,
+having WiFi support out-of-the-box enables further features like an integrated [webserver](https://forum.espuino.de/t/dokumentation-webinterface/2807),
 smarthome-integration via MQTT, webradio and FTP server. And even Bluetooth, too! MP3-decoding is
 done in [software](https://github.com/schreibfaul1/ESP32-audioI2S/) and the digital music output is
 done via the popular [I2S protocol](https://en.wikipedia.org/wiki/I%C2%B2S).
@@ -53,16 +57,16 @@ into an analog signal. I did all my tests with the following DACs:
 You could start on a breadboard with jumper wires. However, the simplier way is to kickstart right away
 with a PCB that was especially developed for ESPuino. There are [several available](https://forum.espuino.de/c/hardware/pcbs/11),
 but ["ESPuino Complete"](https://forum.espuino.de/t/espuino-complete/3817) can be considered being the
-latest one. This pcb can obtained via the [forum](https://forum.espuino.de/). It's available
-for LiFePO4 or LiPo batteries (for sure also runs with USB-C only) and covers connectors for up to 5 buttons,
-rfid-reader, rotary encoder, i2c, Neopixel, USB-C, µSD, speaker, [headphones PCB](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099) and some custom stuff.
+latest one. This pcb can obtained via the [forum](https://forum.espuino.de/). It covers a charger
+for LiFePO4 or LiPo batteries (for sure also runs with USB-C only) and provides connectors for up to 5 buttons,
+rfid-reader, rotary encoder, i2c external, Neopixel, USB-C, µSD, speaker, [headphones PCB](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099) and some custom stuff.
 [Port-expander](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) and [MAX98357a](https://www.analog.com/en/products/MAX98357A.html)
 are integrated, too. A [buck boost converter](https://www.ti.com/product/TPS63000) provides
 stable 3.3 V while battery's voltage is [supervised](https://www.sg-micro.com/product/SGM809)
-in order to prevent deep discharge. However, never use a lithium battery without a
+in order to prevent it from deep discharge. However, never use a lithium battery without a
 further protection circuit that's already part of the battery pack!
 
-![Complete](https://forum.espuino.de/uploads/default/original/2X/3/3834593b2ab5f474d9976da353622f3ea63b7ec8.jpeg "Complete")
+![Complete](https://forum.espuino.de/uploads/default/original/2X/7/750a5af3cf71bc7ef35f9adc7054c981f169f96b.jpeg "Complete")
 
 > :warning: However, feel free to develop PCBs yourself. But again, be advised your ESP32 needs PSRAM in order to run ESPuino properly.
 
@@ -142,16 +146,16 @@ Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4
 it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3 V
 only make sure to connect these 3.3 V to PN5180's 5 V AND 3.3 V. Sounds weird but it's necessary.
 
-## 3.3 V or 5 V?
+## 3.3 V only or 5 V, too?
 
 ESP32 itself runs at 3.3 V only. But what about the periphery? Spoiler: "Complete" internally runs at
 3.3 V only.
 
-- 3.3 V! Because it's simple. If you plan to use battery mode with LiPo/LiFePO4,
+- My opinion: 3.3 V! Because it's simple. If you plan to use battery mode with LiPo/LiFePO4,
   there's no 5 V available (unless USB is connected or you make use of a boost converter).
 - MAX98357A: provides more power at 5 V but also runs at 3.3 V. Anyway: it's still loud enough (in
   my opinion).
-- Neopixel: specification says it needs 5 V but runs at 3.3 V as well.
+- Neopixel: specification says it needs 5 V but runs at 3.3 V absolutely fine.
 - RC522: needs 3.3 V (don't ever power with 5 V!)
 - PN5180: at 3.3 V make sure to connect both 5 V and 3.3 V pins to 3.3 V. If 5 V is available all
   the time: connect 5 V to 5 V and 3.3 V to 3.3 V.
@@ -397,9 +401,9 @@ This mode is different from the others because the last playback position is sav
 - track is over.
 - playlist is over (position is reset to the first track and file position 0).
 - As per default last playback position is not saved when applying a new RFID tag. You can enable
-  this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE`.
+  this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE` or by webinterface.
 - As per default last playback position is not saved when doing shutdown. You can enable this using
-  `SAVE_PLAYPOS_BEFORE_SHUTDOWN`.
+  `SAVE_PLAYPOS_BEFORE_SHUTDOWN` or by webinterface.
 
 ### FTP (optional)
 
