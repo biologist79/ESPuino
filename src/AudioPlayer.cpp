@@ -220,7 +220,7 @@ void AudioPlayer_Exit(void) {
 	playTimeSecTotal += playTimeSecSinceStart;
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
 	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
-	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP || gPlayProperties.playMode == AUDIOBOOK_RECURSIVE)) {
 		AudioPlayer_SetTrackControl(PAUSEPLAY);
 		// Call the loop explicitely to make sure that PAUSE is set (because this saves the current playpos)
 		AudioPlayer_Loop();
@@ -448,7 +448,7 @@ void AudioPlayer_Loop() {
 			newPlayListAvailable = false;
 			audio->stopSong();
 
-			// destroy the old playlist and assign the new
+			// destroy the old playlist and assign the new one
 			freePlaylist(gPlayProperties.playlist);
 			gPlayProperties.playlist = newPlayList;
 			Log_Printf(LOGLEVEL_NOTICE, newPlaylistReceived, gPlayProperties.playlist->size());
@@ -663,6 +663,46 @@ void AudioPlayer_Loop() {
 					}
 				} else {
 					Log_Println(lastTrackAlreadyActive, LOGLEVEL_NOTICE);
+					System_IndicateError();
+					return;
+				}
+				break;
+
+			case NEXTFOLDER: // Used for recursive playmodes
+				trackCommand = NO_ACTION;
+				if (gPlayProperties.pausePlay) {
+					audio->pauseResume();
+					gPlayProperties.pausePlay = false;
+				}
+				gPlayProperties.jumpToFolderTrack = findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Forward);
+				if (gPlayProperties.jumpToFolderTrack != -1) {
+					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
+					gPlayProperties.jumpToFolderTrack = -1;
+					if (gPlayProperties.saveLastPlayPosition) {
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					}
+				} else {
+					Log_Println(lastFolderAlreadyActive, LOGLEVEL_NOTICE);
+					System_IndicateError();
+					return;
+				}
+				break;
+
+			case PREVIOUSFOLDER: // Used for recursive playmodes
+				trackCommand = NO_ACTION;
+				if (gPlayProperties.pausePlay) {
+					audio->pauseResume();
+					gPlayProperties.pausePlay = false;
+				}
+
+				gPlayProperties.jumpToFolderTrack = findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Backward);
+				if (gPlayProperties.jumpToFolderTrack != -1) {
+					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
+					gPlayProperties.jumpToFolderTrack = -1;
+					if (gPlayProperties.saveLastPlayPosition) {
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					}
+				} else {
 					System_IndicateError();
 					return;
 				}
@@ -981,7 +1021,7 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 // playmode to the track-queue.
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
 	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
-	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP)) {
+	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP || gPlayProperties.playMode == AUDIOBOOK_RECURSIVE)) {
 		AudioPlayer_SetTrackControl(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
@@ -1000,10 +1040,15 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 				// If error occured while extracting random subdirectory
 				musicFiles = std::nullopt;
 			} else {
-				musicFiles = SdCard_ReturnPlaylist(folderPath.c_str(), _playMode); // Provide random subdirectory in order to enter regular playlist-generation
+				musicFiles = SdCard_ReturnPlaylist(folderPath.c_str(), _playMode, 0, false); // Provide random subdirectory in order to enter regular playlist-generation
 			}
 		} else {
-			musicFiles = SdCard_ReturnPlaylist(_itemToPlay, _playMode);
+			// Need to define recursion depth for recursive playmodes. Other playmodes get static recursion depth of 0
+			if (_playMode == ALL_TRACKS_OF_DIR_SORTED_RECURSIVE || _playMode == AUDIOBOOK_RECURSIVE || _playMode == ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE) {
+				musicFiles = SdCard_ReturnPlaylist(_itemToPlay, _playMode, SdCard_GetMaxRecursionDepth(), false);
+			} else {
+				musicFiles = SdCard_ReturnPlaylist(_itemToPlay, _playMode, 0, false);
+			}
 		}
 	} else {
 		musicFiles = AudioPlayer_ReturnPlaylistFromWebstream(_itemToPlay);
@@ -1077,6 +1122,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
+		case AUDIOBOOK_RECURSIVE:
 		case AUDIOBOOK: { // Tracks need to be sorted!
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobook, LOGLEVEL_NOTICE);
@@ -1092,6 +1138,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
+		case ALL_TRACKS_OF_DIR_SORTED_RECURSIVE:
 		case ALL_TRACKS_OF_DIR_SORTED:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackAlphSorted, folderPath.c_str());
@@ -1099,6 +1146,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
+		case ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE:
 		case ALL_TRACKS_OF_DIR_RANDOM:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackRandom, folderPath.c_str());
@@ -1264,8 +1312,11 @@ void AudioPlayer_SortPlaylist(Playlist *playlist) {
 			break;
 	}
 
-	Log_Printf(LOGLEVEL_INFO, "Sorting files using %s", mode);
+	Log_Printf(LOGLEVEL_INFO, "Sorting files using %s", mode, "\n");
 	std::sort(playlist->begin(), playlist->end(), cmpFunc);
+	/*for (const char *str : *playlist) {
+		Serial.println(str);
+	}*/
 }
 
 // Clear cover send notification

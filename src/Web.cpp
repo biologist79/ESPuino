@@ -787,6 +787,10 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
 			return false;
 		}
+		if (!SdCard_SetMaxRecursionDepth(doc["playlist"]["recDepth"].as<uint8_t>())) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
+			return false;
+		}
 	}
 	if (doc["ftp"].is<JsonObject>()) {
 		const char *_ftpUser = doc["ftp"]["username"];
@@ -1035,6 +1039,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "playlist")) {
 		JsonObject playlistObj = obj["playlist"].to<JsonObject>();
 		playlistObj["sortMode"] = EnumUtils::underlying_value(AudioPlayer_GetPlaylistSortMode());
+		playlistObj["recDepth"] = SdCard_GetMaxRecursionDepth();
 	}
 #ifdef BATTERY_MEASURE_ENABLE
 	if ((section == "") || (section == "battery")) {

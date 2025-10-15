@@ -311,6 +311,16 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_NEXTFOLDER: {
+			AudioPlayer_SetTrackControl(NEXTFOLDER);
+			break;
+		}
+
+		case CMD_PREVFOLDER: {
+			AudioPlayer_SetTrackControl(PREVIOUSFOLDER);
+			break;
+		}
+
 		case CMD_VOLUMEINIT: {
 			AudioPlayer_SetVolume(AudioPlayer_GetInitVolume(), true);
 			break;

@@ -18,6 +18,8 @@ SPIClass spiSD(HSPI);
 fs::FS gFSystem = (fs::FS) SD;
 #endif
 
+uint8_t maxRecursionDepth;
+
 void SdCard_Init(void) {
 #ifdef NO_SDCARD
 	// Initialize without any SD card, e.g. for webplayer only
@@ -52,6 +54,13 @@ void SdCard_Init(void) {
 			esp_deep_sleep_start();
 		}
 #endif
+	}
+
+	// Used when building recursive playlists
+	maxRecursionDepth = gPrefsSettings.getUInt("nvsRecDepth", 255);
+	if (maxRecursionDepth == 255) {
+		gPrefsSettings.putUInt("nvsRecDepth", 2);
+		maxRecursionDepth = 2;
 	}
 }
 
@@ -93,6 +102,16 @@ uint64_t SdCard_GetFreeSize() {
 #else
 	return SD.cardSize() - SD.usedBytes();
 #endif
+}
+
+uint8_t SdCard_GetMaxRecursionDepth(void) {
+	return maxRecursionDepth;
+}
+
+// Returns recursion depth that's used then playlists are generated for recursive playmodes
+size_t SdCard_SetMaxRecursionDepth(uint8_t _maxRecursionDepth) {
+	maxRecursionDepth = _maxRecursionDepth;
+	return gPrefsSettings.putUInt("nvsRecDepth", SdCard_GetMaxRecursionDepth());
 }
 
 void SdCard_PrintInfo() {
@@ -294,15 +313,13 @@ static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File file) {
 
 /* Puts SD-file(s) or directory into a playlist
 	First element of array always contains the number of payload-items. */
-std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode) {
+std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode, const uint8_t _maxRecursionDepth, bool _recursionMode) {
 	// Look if file/folder requested really exists. If not => break.
 	File fileOrDirectory = gFSystem.open(fileName);
 	if (!fileOrDirectory) {
 		Log_Printf(LOGLEVEL_ERROR, dirOrFileDoesNotExist, fileName);
 		return std::nullopt;
 	}
-
-	Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
 
 	// Parse m3u-playlist and create linear-playlist out of it
 	if (_playMode == LOCAL_M3U) {
@@ -312,9 +329,16 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 		}
 	}
 
-	// if we reach here, this was not a m3u
-	Log_Println(playlistGen, LOGLEVEL_NOTICE);
-	Playlist *playlist = new Playlist;
+	// if we reach this code, it was not a m3u
+
+	static Playlist *playlist = nullptr; // static because of possible recursion
+	if (_recursionMode == false) {
+		Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
+		playlist = new Playlist();
+		Log_Printf(LOGLEVEL_NOTICE, playlistRecDepth, _maxRecursionDepth);
+	}
+
+	static uint8_t currentRecDepth = 0;
 
 	// File-mode
 	if (!fileOrDirectory.isDirectory()) {
@@ -335,7 +359,15 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 			break;
 		}
 		if (isDir) {
-			continue;
+			//  Jump into directory if recursion is allowed
+			if (currentRecDepth < _maxRecursionDepth) {
+				currentRecDepth++;
+				// Log_Printf(LOGLEVEL_DEBUG, "Added folder: %s, depth of recursion: %d\n", name.c_str(), currentRecDepth);
+				SdCard_ReturnPlaylist(name.c_str(), _playMode, _maxRecursionDepth, true);
+				currentRecDepth--;
+			} else {
+				continue;
+			}
 		}
 		// Don't support filenames that start with "." and only allow .mp3 and other supported audio file formats
 		if (fileValid(name.c_str())) {
@@ -350,7 +382,83 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	}
 	playlist->shrink_to_fit();
 
-	Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
-	Log_Printf(LOGLEVEL_DEBUG, "Hidden files: %u", hiddenFiles);
+	// Only show sum up at last run (when no recursion is active)
+	if (!_recursionMode) {
+		Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
+		Log_Printf(LOGLEVEL_DEBUG, "Hidden files: %u", hiddenFiles);
+	}
+
 	return playlist;
+}
+
+// Used for recursive playmodes. Allows to jump forwards and backwards between folders using
+// CMD_PREVFOLDER (backwards) and CMD_NEXTFOLDER (forwards) to previous / next folder in playlist.
+// Returns -1 if no prev or next folder was found
+// Returns >=0 if folderjump is possible. Number represents the number of the current playlist's track to jump to.
+int16_t findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t currentIndex, SearchDirection direction) {
+	// Look if index requested is out of bounds
+	if (currentIndex >= _playlist.size()) {
+		return -1;
+	}
+
+	// Get basedir from track played currently
+	const char *currentPath = _playlist[currentIndex];
+	size_t lastSlashPos = std::string(currentPath).find_last_of('/');
+	size_t lastSlashPosArrayElement1st = lastSlashPos; // When basepath changes for the 1st time
+	size_t lastSlashPosArrayElement2nd = lastSlashPos; // When basepath changes for the 2nd time
+	std::string currentDirectory = std::string(currentPath).substr(0, lastSlashPos);
+	// Serial.printf("\n\Current directory: %s\n", currentDirectory.c_str());
+
+	// Look forwards
+	if (direction == SearchDirection::Forward) {
+		// Start with index current track + 1
+		for (size_t i = currentIndex + 1; i < _playlist.size(); ++i) {
+			const char *path = _playlist[i];
+			if (path != nullptr) {
+				std::string strPath(path);
+
+				// Jump to index, where basepath changes
+				lastSlashPosArrayElement1st = strPath.find_last_of('/');
+				if (lastSlashPos != lastSlashPosArrayElement1st) {
+					Log_Printf(LOGLEVEL_DEBUG, jumpForwardsToFolder, strPath.substr(0, lastSlashPosArrayElement1st).c_str(), "\n");
+					return i;
+				}
+			}
+		}
+		// Look backwards
+	} else if (direction == SearchDirection::Backward) {
+		//  Go back as long as we don't hit 0
+		if (!currentIndex) {
+			return currentIndex;
+		}
+		for (size_t i = currentIndex; --i > 0;) {
+			const char *path = _playlist[i];
+			if (path != nullptr) {
+				std::string strPath(path);
+				// Check when basedir changed for the first time
+				lastSlashPosArrayElement1st = strPath.find_last_of('/');
+				if (lastSlashPos != lastSlashPosArrayElement1st) {
+					// If first basedir change was found: try to lookup next change (unless index 0 reached)
+					for (size_t j = i; --j > 0;) {
+						const char *innerPath = _playlist[j];
+						if (innerPath != nullptr) {
+							std::string innerStrPath(innerPath);
+							lastSlashPosArrayElement2nd = innerStrPath.find_last_of('/');
+							if (lastSlashPosArrayElement1st != lastSlashPosArrayElement2nd) {
+								//  If second basedir change was found: return the previous index
+								//  That's the element we're looking for!
+								Log_Printf(LOGLEVEL_DEBUG, jumpBackwardsToFolder, strPath.substr(0, lastSlashPosArrayElement2nd).c_str(), "\n");
+								return j + 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		// If index 0 (first track) was hit -> return it!
+		return 0;
+	}
+
+	// If no jump possible, return -1
+	return -1;
 }
