@@ -2,7 +2,7 @@
 
 ## DEV-branch
 
-* nothing yet...
+* 17.10.2025: Regression fix: remove volume-queue from IRreceiver.cpp
 
 ## Version 2.4.3 (09.10.2025)
 
