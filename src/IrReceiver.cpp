@@ -88,13 +88,11 @@ void IrReceiver_Cyclic() {
 					if (AudioPlayer_GetCurrentVolume() > 0) {
 						lastVolume = AudioPlayer_GetCurrentVolume();
 						AudioPlayer_SetCurrentVolume(0u);
+						Log_Println("RC: Mute", LOGLEVEL_NOTICE);
 					} else {
-						AudioPlayer_SetCurrentVolume(lastVolume); // Remember last volume if mute is pressed again
+						AudioPlayer_SetCurrentVolume(lastVolume); // Reset to last value if mute is pressed again
+						Log_Println("RC: Unmute", LOGLEVEL_NOTICE);
 					}
-
-					uint8_t currentVolume = AudioPlayer_GetCurrentVolume();
-					xQueueSend(gVolumeQueue, &currentVolume, 0);
-					Log_Println("RC: Mute", LOGLEVEL_NOTICE);
 				}
 				break;
 			}
