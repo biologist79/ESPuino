@@ -15,7 +15,7 @@ enum class playlistSortMode : uint8_t {
 };
 
 typedef struct { // Bit field
-	uint8_t playMode : 4; // playMode
+	uint8_t playMode; // playMode
 	Playlist *playlist; // playlist
 	char title[255]; // current title
 	bool repeatCurrentTrack		: 1; // If current track should be looped
