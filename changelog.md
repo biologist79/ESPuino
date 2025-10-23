@@ -2,6 +2,9 @@
 
 ## DEV-branch
 
+* 23.10.2025: New feature: recursive playlists (#381)
+* 23.10.2025: Cleanup log messages
+* 22.10.2025: Switch to long commit IDs
 * 17.10.2025: Regression fix: remove volume-queue from IRreceiver.cpp
 
 ## Version 2.4.3 (09.10.2025)
