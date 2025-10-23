@@ -4,8 +4,6 @@
 #if (LANGUAGE == DE)
 	#include "Log.h"
 
-const char tryConnectMqttS[] = "Versuche Verbindung zu MQTT-Broker aufzubauen: %s";
-const char mqttOk[] = "MQTT-Session aufgebaut.";
 const char sleepTimerEOP[] = "Sleep-Timer: Nach dem letzten Track der Playlist.";
 const char sleepTimerEOT[] = "Sleep-Timer: Nach dem Ende des laufenden Tracks.";
 const char sleepTimerStop[] = "Sleep-Timer wurde deaktiviert.";
@@ -18,23 +16,14 @@ const char noPlaylistNotAllowedMqtt[] = "Playmode kann nicht auf 'Keine Playlist
 const char playmodeChangedMQtt[] = "Playmode per MQTT angepasst.";
 const char noPlaymodeChangeIfIdle[] = "Playmode kann nicht verändert werden, wenn keine Playlist aktiv ist.";
 const char noValidTopic[] = "Kein gültiges Topic: %s";
-const char freePtr[] = "Ptr-Freigabe: %s (0x%04x)";
 const char freeMemory[] = "Freier Speicher: %u Bytes";
 const char writeEntryToNvs[] = "[%u] Schreibe Eintrag in NVS: %s => %s";
-const char freeMemoryAfterFree[] = "Freier Speicher nach Aufräumen: %u Bytes";
-const char releaseMemoryOfOldPlaylist[] = "Gebe Speicher der alten Playlist frei (Freier Speicher: %u Bytes)";
 const char dirOrFileDoesNotExist[] = "Datei oder Verzeichnis existiert nicht: %s";
-const char unableToAllocateMemForPlaylist[] = "Speicher für Playlist konnte nicht allokiert werden!";
 const char unableToAllocateMem[] = "Speicher konnte nicht allokiert werden!";
-const char fileModeDetected[] = "Dateimodus erkannt.";
-const char fileInvalid[] = "Ungültige Datei: %s";
 const char nameOfFileFound[] = "Gefundenes File: %s";
-const char reallocCalled[] = "Speicher reallokiert.";
 const char unableToAllocateMemForLinearPlaylist[] = "Speicher für lineare Playlist konnte nicht allokiert werden!";
 const char numberOfValidFiles[] = "Anzahl gültiger Files/Webstreams: %u";
-const char newLoudnessReceivedQueue[] = "Neue Lautstärke empfangen via Queue: %u";
-const char newEqualizerReceivedQueue[] = "Neue Equalizer-Einstellungen empfangen via Queue: %i, %i, %i";
-const char newCntrlReceivedQueue[] = "Kontroll-Kommando empfangen via Queue: %u";
+const char newLoudnessReceived[] = "Neue Lautstärke empfangen: %u";
 const char newPlaylistReceived[] = "Neue Playlist mit %d Titel(n) empfangen";
 const char repeatTrackDueToPlaymode[] = "Wiederhole Titel aufgrund von Playmode.";
 const char repeatPlaylistDueToPlaymode[] = "Wiederhole Playlist aufgrund von Playmode.";
@@ -112,7 +101,6 @@ const char modificatorNotAllowed[] = "Modifikator konnte nicht angewendet werden
 const char modificatorLoopRev[] = "Modifikator: Endlosschleife beendet.";
 const char modificatorDoesNotExist[] = "Ein Karten-Modifikator existiert nicht vom Typ %d!";
 const char errorOccuredNvs[] = "Es ist ein Fehler aufgetreten beim Lesen aus dem NVS!";
-const char statementsReceivedByServer[] = "Vom Server wurde Folgendes empfangen";
 const char apReady[] = "Access-Point geöffnet";
 const char httpReady[] = "HTTP-Server gestartet.";
 const char unableToMountSd[] = "SD-Karte konnte nicht gemountet werden.";
@@ -146,12 +134,8 @@ const char restoredMqttUserFromNvs[] = "MQTT-User wurde aus NVS geladen: %s";
 const char wroteMqttPwdToNvs[] = "MQTT-Passwort wurde ins NVS geschrieben.";
 const char restoredMqttPwdFromNvs[] = "MQTT-Passwort wurde aus NVS geladen: %s";
 const char restoredMqttPortFromNvs[] = "MQTT-Port wurde aus NVS geladen: %u";
-const char mqttWithPwd[] = "Verbinde zu MQTT-Server mit User und Passwort";
-const char mqttWithoutPwd[] = "Verbinde zu MQTT-Server ohne User und Passwort";
 const char ssidNotFoundInNvs[] = "SSID wurde im NVS nicht gefunden.";
-const char wifiStaticIpConfigNotFoundInNvs[] = "Statische WLAN-IP-Konfiguration wurde im NVS nicht gefunden.";
 const char wifiHostnameNotSet[] = "Keine Hostname-Konfiguration im NVS gefunden.";
-const char mqttConnFailed[] = "Verbindung fehlgeschlagen, versuche in Kürze erneut: rc=%i (%d / %d)";
 const char restoredHostnameFromNvs[] = "Hostname aus NVS geladen: %s";
 const char currentVoltageMsg[] = "Aktuelle Batteriespannung: %.2f V";
 const char currentChargeMsg[] = "Aktuelle Batterieladung: %.2f %%";
@@ -172,11 +156,8 @@ const char batteryLowFromNVS[] = "Batterieladestand fuer Niedrig-Warnung via Neo
 const char batteryCriticalFromNVS[] = "Batterieladestand fuer Kritisch-Warnung via Neopixel aus NVS geladen: %.2f %%";
 const char unableToRestoreLastRfidFromNVS[] = "Letzte RFID konnte nicht aus NVS geladen werden";
 const char restoredLastRfidFromNVS[] = "Letzte RFID wurde aus NVS geladen: %s";
-const char failedOpenFileForWrite[] = "Öffnen der Datei für den Schreibvorgang fehlgeschlagen";
 const char fileWritten[] = "Datei geschrieben: %s => %zu bytes in %lu ms (%lu kiB/s)";
-const char writeFailed[] = "Schreibvorgang fehlgeschlagen";
 const char writingFile[] = "Schreibe Datei: %s";
-const char failedToOpenFileForAppending[] = "Öffnen der Datei zum Schreiben der JSON-Datei fehlgeschlagen";
 const char listingDirectory[] = "Verzeichnisinhalt anzeigen";
 const char failedToOpenDirectory[] = "Öffnen des Verzeichnisses fehlgeschlagen";
 const char notADirectory[] = "Kein Verzeichnis";
@@ -246,8 +227,6 @@ const char wifiCurrentIp[] = "Aktuelle IP: %s";
 const char jsonErrorMsg[] = "deserializeJson() fehlgeschlagen: %s";
 const char jsonbufferOverflow[] = "JSON-Puffer zu klein für Daten";
 const char wifiDeleteNetwork[] = "Lösche gespeichertes WLAN %s";
-const char wifiNetworkLoaded[] = "SSID %d von NVS geladen: %s";
-const char wifiTooManyNetworks[] = "Anzahl der WLAN-Netze in NVS ist %d, aber es sind maximal %d erlaubt.";
 const char wifiAddTooManyNetworks[] = "Kein Platz, weiteres WLAN zu speichern!";
 const char wifiAddNetwork[] = "Füge WLAN hinzu: %s";
 const char wifiUpdateNetwork[] = "Ändere Passwort für WLAN %s";

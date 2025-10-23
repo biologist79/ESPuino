@@ -982,7 +982,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 			RotaryEncoder_Readjust();
 		}
 
-		Log_Printf(LOGLEVEL_INFO, newLoudnessReceivedQueue, _volume);
+		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
 		audio->setVolume(_volume, gPrefsSettings.getUChar("volumeCurve", 0));
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
