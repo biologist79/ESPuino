@@ -89,7 +89,7 @@ static bool AudioPlayer_ArrSortHelper_strnatcmp(const char *a, const char *b);
 static bool AudioPlayer_ArrSortHelper_strnatcasecmp(const char *a, const char *b);
 static void AudioPlayer_SortPlaylist(Playlist *playlist);
 static void AudioPlayer_RandomizePlaylist(Playlist *playlist);
-static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks);
+static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed);
 static void AudioPlayer_ClearCover(void);
 
 void Audio_TaskPause(void) {
@@ -477,7 +477,7 @@ void AudioPlayer_Loop() {
 			if (gPlayProperties.saveLastPlayPosition) { // Don't save for AUDIOBOOK_LOOP because not necessary
 				if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {
 					// Only save if there's another track, otherwise it will be saved at end of playlist anyway
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1);
 				}
 			}
 			if (gPlayProperties.sleepAfterCurrentTrack) { // Go to sleep if "sleep after track" was requested
@@ -526,7 +526,7 @@ void AudioPlayer_Loop() {
 				}
 				if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioFileDuration());
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
 				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
@@ -553,7 +553,7 @@ void AudioPlayer_Loop() {
 						gPlayProperties.currentTrackNumber++;
 					}
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 						Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 					}
 					Log_Println(cmndNextTrack, LOGLEVEL_INFO);
@@ -602,7 +602,7 @@ void AudioPlayer_Loop() {
 						}
 
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 							Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 						}
 
@@ -612,7 +612,7 @@ void AudioPlayer_Loop() {
 						}
 					} else {
 						if (gPlayProperties.saveLastPlayPosition) {
-							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 						}
 						audio->stopSong();
 						Led_Indicate(LedIndicatorType::Rewind);
@@ -636,7 +636,7 @@ void AudioPlayer_Loop() {
 				}
 				gPlayProperties.currentTrackNumber = 0;
 				if (gPlayProperties.saveLastPlayPosition) {
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 					Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 				}
 				Log_Println(cmndFirstTrack, LOGLEVEL_INFO);
@@ -654,7 +654,7 @@ void AudioPlayer_Loop() {
 				if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {
 					gPlayProperties.currentTrackNumber = gPlayProperties.playlist->size() - 1;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 						Log_Println(trackStartAudiobook, LOGLEVEL_INFO);
 					}
 					Log_Println(cmndLastTrack, LOGLEVEL_INFO);
@@ -679,7 +679,7 @@ void AudioPlayer_Loop() {
 					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
 					gPlayProperties.jumpToFolderTrack = -1;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 					}
 				} else {
 					Log_Println(lastFolderAlreadyActive, LOGLEVEL_NOTICE);
@@ -700,7 +700,7 @@ void AudioPlayer_Loop() {
 					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
 					gPlayProperties.jumpToFolderTrack = -1;
 					if (gPlayProperties.saveLastPlayPosition) {
-						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+						AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 					}
 				} else {
 					System_IndicateError();
@@ -720,7 +720,7 @@ void AudioPlayer_Loop() {
 
 		if (gPlayProperties.playUntilTrackNumber == gPlayProperties.currentTrackNumber && gPlayProperties.playUntilTrackNumber > 0) {
 			if (gPlayProperties.saveLastPlayPosition) {
-				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 0, gPlayProperties.playMode, 0, gPlayProperties.playlist->size());
+				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, 0);
 			}
 			gPlayProperties.playlistFinished = true;
 			gPlayProperties.playMode = NO_PLAYLIST;
@@ -733,7 +733,7 @@ void AudioPlayer_Loop() {
 			if (!gPlayProperties.repeatPlaylist) {
 				if (gPlayProperties.saveLastPlayPosition) {
 					// Set back to first track
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, 0, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, 0);
 				}
 				gPlayProperties.playlistFinished = true;
 				gPlayProperties.playMode = NO_PLAYLIST;
@@ -757,7 +757,7 @@ void AudioPlayer_Loop() {
 				Log_Println(repeatPlaylistDueToPlaymode, LOGLEVEL_NOTICE);
 				gPlayProperties.currentTrackNumber = 0;
 				if (gPlayProperties.saveLastPlayPosition) {
-					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, gPlayProperties.playlist->at(0), 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber, gPlayProperties.playlist->size());
+					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 				}
 			}
 		}
@@ -1122,7 +1122,6 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
-		case AUDIOBOOK_RECURSIVE:
 		case AUDIOBOOK: { // Tracks need to be sorted!
 			gPlayProperties.saveLastPlayPosition = true;
 			Log_Println(modeSingleAudiobook, LOGLEVEL_NOTICE);
@@ -1138,7 +1137,19 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
-		case ALL_TRACKS_OF_DIR_SORTED_RECURSIVE:
+		case AUDIOBOOK_RECURSIVE: { // Tracks need to be sorted!
+			gPlayProperties.saveLastPlayPosition = true;
+			Log_Println(modeAudiobookRecursive, LOGLEVEL_NOTICE);
+			AudioPlayer_SortPlaylist(list);
+			break;
+		}
+
+		case ALL_TRACKS_OF_DIR_SORTED_RECURSIVE: {
+			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackAlphSortedRecursive, folderPath.c_str());
+			AudioPlayer_SortPlaylist(list);
+			break;
+		}
+
 		case ALL_TRACKS_OF_DIR_SORTED:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackAlphSorted, folderPath.c_str());
@@ -1146,7 +1157,12 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			break;
 		}
 
-		case ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE:
+		case ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE: {
+			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackRandomRecursive, folderPath.c_str());
+			AudioPlayer_RandomizePlaylist(list);
+			break;
+		}
+
 		case ALL_TRACKS_OF_DIR_RANDOM:
 		case RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM: {
 			Log_Printf(LOGLEVEL_NOTICE, modeAllTrackRandom, folderPath.c_str());
@@ -1202,31 +1218,27 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 
 /* Wraps putString for writing settings into NVS for RFID-cards.
    Returns number of characters written. */
-size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const char *_track, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed, const uint16_t _numberOfTracks) {
+size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed) {
 	if (_playMode == NO_PLAYLIST) {
 		// writing back to NVS with NO_PLAYLIST seems to be a bug - Todo: Find the cause here
 		Log_Printf(LOGLEVEL_ERROR, modeInvalid, _playMode);
 		return 0;
 	}
 	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
+	char firstPart[275] = {0};
 	char prefBuf[275];
-	char trackBuf[255];
-	snprintf(trackBuf, sizeof(trackBuf) / sizeof(trackBuf[0]), _track);
 
-	// If it's a directory we just want to play/save basename(path)
-	if (_numberOfTracks > 1) {
-		const char s = '/';
-		const char *last = strrchr(_track, s);
-		const char *first = strchr(_track, s);
-		unsigned long substr = last - first + 1;
-		if (substr <= sizeof(trackBuf) / sizeof(trackBuf[0])) {
-			snprintf(trackBuf, substr, _track); // save substring basename(_track)
-		} else {
-			return 0; // Filename too long!
-		}
+	gPrefsRfid.getString(_rfidCardId, firstPart, sizeof(firstPart)); // read back previous value from NVS
+
+	// Remove everything after the first part (after the first stringDelimiter)
+	char *pos = strchr(firstPart + strlen(stringDelimiter), stringDelimiter[0]);
+	if (pos != NULL) {
+		*pos = '\0'; // Terminate the string at this position
 	}
 
-	snprintf(prefBuf, sizeof(prefBuf) / sizeof(prefBuf[0]), "%s%s%s%" PRIu32 "%s%d%s%" PRIu16, stringDelimiter, trackBuf, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
+	// Build the new string with the preserved first part (which already contains the track)
+	snprintf(prefBuf, sizeof(prefBuf), "%s%s%" PRIu32 "%s%d%s%" PRIu16, firstPart, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
+
 	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
 	Log_Println(prefBuf, LOGLEVEL_INFO);
 	Led_SetPause(false);
