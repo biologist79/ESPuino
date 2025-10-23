@@ -391,71 +391,69 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	return playlist;
 }
 
+// Extracts basepath out of a given filepath
+std::string_view SdCard_Basepath(const char *filepath) {
+	if (!filepath) {
+		return std::string_view();
+	}
+	std::string_view str(filepath);
+	auto pos = str.find_last_of('/');
+	if (pos == std::string::npos) {
+		return std::string_view();
+	}
+	return str.substr(0, pos + 1);
+}
+
 // Used for recursive playmodes. Allows to jump forwards and backwards between folders using
 // CMD_PREVFOLDER (backwards) and CMD_NEXTFOLDER (forwards) to previous / next folder in playlist.
-// Returns -1 if no prev or next folder was found
-// Returns >=0 if folderjump is possible. Number represents the number of the current playlist's track to jump to.
-int16_t findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t currentIndex, SearchDirection direction) {
+// Returns -1 if no prev or next folder was found or no playlist is available
+// Returns >=0 if folderjump is possible. Number represents the index of the current playlist's track to jump to.
+int16_t SdCard_findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t currentTrackIndexInPlaylist, SearchDirection direction) {
 	// Look if index requested is out of bounds
-	if (currentIndex >= _playlist.size()) {
+	if (currentTrackIndexInPlaylist >= _playlist.size()) {
 		return -1;
 	}
 
-	// Get basedir from track played currently
-	const char *currentPath = _playlist[currentIndex];
-	size_t lastSlashPos = std::string(currentPath).find_last_of('/');
-	size_t lastSlashPosArrayElement1st = lastSlashPos; // When basepath changes for the 1st time
-	size_t lastSlashPosArrayElement2nd = lastSlashPos; // When basepath changes for the 2nd time
-	std::string currentDirectory = std::string(currentPath).substr(0, lastSlashPos);
-	// Serial.printf("\n\Current directory: %s\n", currentDirectory.c_str());
+	std::string_view basepathOfCurrentTrack = SdCard_Basepath(_playlist[currentTrackIndexInPlaylist]); // Get basepath of current track
 
 	// Look forwards
 	if (direction == SearchDirection::Forward) {
-		// Start with index current track + 1
-		for (size_t i = currentIndex + 1; i < _playlist.size(); ++i) {
-			const char *path = _playlist[i];
-			if (path != nullptr) {
-				std::string strPath(path);
-
-				// Jump to index, where basepath changes
-				lastSlashPosArrayElement1st = strPath.find_last_of('/');
-				if (lastSlashPos != lastSlashPosArrayElement1st) {
-					Log_Printf(LOGLEVEL_DEBUG, jumpForwardsToFolder, strPath.substr(0, lastSlashPosArrayElement1st).c_str(), "\n");
-					return i;
+		if (_playlist[currentTrackIndexInPlaylist] != nullptr) {
+			for (uint16_t i = (currentTrackIndexInPlaylist + 1); i < _playlist.size(); ++i) { // Iterate through playlist and start with current track +1
+				std::string_view basepathOfTrackToLookUp = SdCard_Basepath(_playlist[i]);
+				if (basepathOfTrackToLookUp != basepathOfCurrentTrack) {
+					Log_Printf(LOGLEVEL_DEBUG, jumpForwardsToFolder, basepathOfTrackToLookUp.data(), "\n");
+					return i; // Return first track after basepath change
 				}
 			}
+		} else {
+			return -1;
 		}
+
 		// Look backwards
 	} else if (direction == SearchDirection::Backward) {
 		//  Go back as long as we don't hit 0
-		if (!currentIndex) {
-			return currentIndex;
+		if (!currentTrackIndexInPlaylist) {
+			return currentTrackIndexInPlaylist;
 		}
-		for (size_t i = currentIndex; --i > 0;) {
-			const char *path = _playlist[i];
-			if (path != nullptr) {
-				std::string strPath(path);
-				// Check when basedir changed for the first time
-				lastSlashPosArrayElement1st = strPath.find_last_of('/');
-				if (lastSlashPos != lastSlashPosArrayElement1st) {
-					// If first basedir change was found: try to lookup next change (unless index 0 reached)
-					for (size_t j = i; --j > 0;) {
-						const char *innerPath = _playlist[j];
-						if (innerPath != nullptr) {
-							std::string innerStrPath(innerPath);
-							lastSlashPosArrayElement2nd = innerStrPath.find_last_of('/');
-							if (lastSlashPosArrayElement1st != lastSlashPosArrayElement2nd) {
-								//  If second basedir change was found: return the previous index
-								//  That's the element we're looking for!
-								Log_Printf(LOGLEVEL_DEBUG, jumpBackwardsToFolder, strPath.substr(0, lastSlashPosArrayElement2nd).c_str(), "\n");
-								return j + 1;
-							}
+
+		if (_playlist[currentTrackIndexInPlaylist] != nullptr) {
+			for (uint16_t i = (currentTrackIndexInPlaylist - 1); i > 0; i--) {
+				std::string_view basepathOfTrackToLookUp = SdCard_Basepath(_playlist[i]);
+				if (basepathOfTrackToLookUp != basepathOfCurrentTrack) { // Look for the 1st basepath change...
+					for (uint16_t j = i - 1; j > 0; j--) {
+						std::string_view basepathOfTrackToLookUpInner = SdCard_Basepath(_playlist[j]);
+						if (basepathOfTrackToLookUpInner != basepathOfTrackToLookUp) { // ...but keep on looking for the 2nd change...
+							Log_Printf(LOGLEVEL_DEBUG, jumpBackwardsToFolder, basepathOfTrackToLookUpInner.data(), "\n");
+							return j + 1; // ...just to add +1 to get the previous element before the 2nd change
 						}
 					}
 				}
 			}
+		} else {
+			return -1;
 		}
-		// If index 0 (first track) was hit -> return it!
+		// If index 0 (first track) was hit meanwhile -> return it!
 		return 0;
 	}
 

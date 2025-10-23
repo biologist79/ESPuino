@@ -674,7 +674,7 @@ void AudioPlayer_Loop() {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
 				}
-				gPlayProperties.jumpToFolderTrack = findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Forward);
+				gPlayProperties.jumpToFolderTrack = SdCard_findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Forward);
 				if (gPlayProperties.jumpToFolderTrack != -1) {
 					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
 					gPlayProperties.jumpToFolderTrack = -1;
@@ -695,7 +695,7 @@ void AudioPlayer_Loop() {
 					gPlayProperties.pausePlay = false;
 				}
 
-				gPlayProperties.jumpToFolderTrack = findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Backward);
+				gPlayProperties.jumpToFolderTrack = SdCard_findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Backward);
 				if (gPlayProperties.jumpToFolderTrack != -1) {
 					gPlayProperties.currentTrackNumber = gPlayProperties.jumpToFolderTrack;
 					gPlayProperties.jumpToFolderTrack = -1;

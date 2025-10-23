@@ -27,4 +27,5 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 const String SdCard_pickRandomSubdirectory(const char *_directory);
 uint8_t SdCard_GetMaxRecursionDepth(void);
 size_t SdCard_SetMaxRecursionDepth(uint8_t _maxRecursionDepth);
-int16_t findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t currentIndex, SearchDirection direction);
+int16_t SdCard_findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t currentTrackIndexInPlaylist, SearchDirection direction);
+std::string_view SdCard_Basepath(const char *filepath);
