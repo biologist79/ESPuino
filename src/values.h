@@ -6,26 +6,31 @@
 #define OPMODE_BLUETOOTH_SOURCE 2 // Bluetooth sourcemode. Player sennds audio to bluetooth speaker/headset. WiFi is deactivated. Music from SD and webstreams can't be played.
 
 // Track-Control
-#define NO_ACTION	  0 // Dummy to unset track-control-command
-#define STOP		  1 // Stop play
-#define PLAY		  2 // Start play (currently not used)
-#define PAUSEPLAY	  3 // Pause/play
-#define NEXTTRACK	  4 // Next track of playlist
-#define PREVIOUSTRACK 5 // Previous track of playlist
-#define FIRSTTRACK	  6 // First track of playlist
-#define LASTTRACK	  7 // Last track of playlist
+#define NO_ACTION	   0 // Dummy to unset track-control-command
+#define STOP		   1 // Stop play
+#define PLAY		   2 // Start play (currently not used)
+#define PAUSEPLAY	   3 // Pause/play
+#define NEXTTRACK	   4 // Next track of playlist
+#define PREVIOUSTRACK  5 // Previous track of playlist
+#define FIRSTTRACK	   6 // First track of playlist
+#define LASTTRACK	   7 // Last track of playlist
+#define NEXTFOLDER	   8 // Next folder (recursive mode only)
+#define PREVIOUSFOLDER 9 // Next folder (recursive mode only)
 
 // Playmodes
 #define NO_PLAYLIST												  0 // If no playlist is active
 #define SINGLE_TRACK											  1 // Play a single track
 #define SINGLE_TRACK_LOOP										  2 // Play a single track in infinite-loop
 #define SINGLE_TRACK_OF_DIR_RANDOM								  12 // Play a single track of a directory and fall asleep subsequently
-#define AUDIOBOOK												  3 // Single track, can save last play-position
-#define AUDIOBOOK_LOOP											  4 // Single track as infinite-loop, can save last play-position
+#define AUDIOBOOK												  3 // Single track or tracks of single folder, can save last play-position
+#define AUDIOBOOK_LOOP											  4 // Single track or tracks of single folder as infinite-loop, can save last play-position
+#define AUDIOBOOK_RECURSIVE										  16 // Single track or track of single folder or folder recursive, can save last play-position
 #define ALL_TRACKS_OF_DIR_SORTED								  5 // Play all files of a directory (sorted)
 #define ALL_TRACKS_OF_DIR_RANDOM								  6 // Play all files of a directory (randomized)
+#define ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE						  17 // Play all files of a directory and subdirectories (randomized)
 #define ALL_TRACKS_OF_DIR_SORTED_LOOP							  7 // Play all files of a directory (sorted) in infinite-loop
 #define ALL_TRACKS_OF_DIR_RANDOM_LOOP							  9 // Play all files of a directory (randomized) in infinite-loop
+#define ALL_TRACKS_OF_DIR_SORTED_RECURSIVE						  15 // Like AUDIOBOOK_RECURSIVE, but without saving last play-position
 #define RANDOM_SUBDIRECTORY_OF_DIRECTORY						  13 // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_SORTED
 #define RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM 14 // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_RANDOM
 #define WEBSTREAM												  8 // Play webradio-stream
@@ -67,6 +72,8 @@
 #define CMD_SEEK_BACKWARDS 181 // Command: jump backwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
 #define CMD_STOP		   182 // Command: stops playback
 #define CMD_RESTARTSYSTEM  183 // Command: restart System
+#define CMD_NEXTFOLDER	   184 // Command: jump forwards to next folder (only applicable for recursive playmodes)
+#define CMD_PREVFOLDER	   185 // Command: jump forwards to previous folder (only applicable for recursive playmodes)
 
 #define CMD_VIRTUAL_RFID_CARD_01 241 // Command: Virtual RFID-Card 900000000001
 #define CMD_VIRTUAL_RFID_CARD_02 242 // Command: Virtual RFID-Card 900000000002

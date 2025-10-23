@@ -15,7 +15,7 @@ enum class playlistSortMode : uint8_t {
 };
 
 typedef struct { // Bit field
-	uint8_t playMode : 4; // playMode
+	uint8_t playMode; // playMode
 	Playlist *playlist; // playlist
 	char title[255]; // current title
 	bool repeatCurrentTrack		: 1; // If current track should be looped
@@ -43,6 +43,7 @@ typedef struct { // Bit field
 	bool pauseOnMinVolume		 : 1; // When playback is active and volume is changed to zero, playback is paused automatically.
 	bool pauseIfRfidRemoved		 : 1; // When playback is active and RFID is removed, playback is paused automatically.
 	bool dontAcceptRfidTwice	 : 1; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
+	int16_t jumpToFolderTrack = -1; // track to jump to
 	int8_t gainLowPass = 0; // Low Pass for EQ Control
 	int8_t gainBandPass = 0; // Band Pass for EQ Control
 	int8_t gainHighPass = 0; // High Pass for EQ Control
