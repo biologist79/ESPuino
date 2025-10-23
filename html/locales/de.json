@@ -185,9 +185,12 @@
 					"2": "Einzelner Titel (Endlosschleife)",
 					"12": "Einzelner Titel eines Verzeichnis (zufällig). Danach schlafen.",
 					"3": "Hörbuch",
+					"16": "Hörbuch mit Unterverzeichnissen (rekursiv)",
 					"4": "Hörbuch (Endlosschleife)",
 					"5": "Alle Titel eines Verzeichnis (sortiert)",
+					"15": "Alle Titel eines Verzeichnis + Unterverzeichnisse (rekursiv, sortiert)",
 					"6": "Alle Titel eines Verzeichnis (zufällig)",
+					"17": "Alle Titel eines Verzeichnis + Unterverzeichnisse (rekursiv, zufällig)",
 					"7": "Alle Titel eines Verzeichnis (sortiert, Endlosschleife)",
 					"9": "Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
 					"13": "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
@@ -234,6 +237,8 @@
 					"181": "Springe rückwärts (n Sekunden)",
 					"182": "Stop",
 					"183": "Neustart",
+					"184": "Springe zum nächsten Ordner",
+					"185": "Springe zum vorherigen Ordner",
 					"199": "Taskauslastung anzeigen (Konsole)",
 					"241": "Spiele virtuelle RFID-Karte 01",
 					"242": "Spiele virtuelle RFID-Karte 02",
@@ -374,7 +379,8 @@
 			"sortMode": "Sortierungsmodus für Wiedergabeliste und Dateibrowser",
 			"strcmp": "Standardsortierung",
 			"strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
-			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren"
+			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren",
+			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists"
 		}
 	},
 	"tools": {

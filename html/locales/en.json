@@ -185,9 +185,12 @@
 					"2": "Single track (loop)",
 					"12": "Single track of a directory (random). Followed by sleep.",
 					"3": "Audiobook",
+					"16": "Audiobook with subdirectories (rekursive)",
 					"4": "Audiobook (loop)",
 					"5": "All tracks of a directory (sorted)",
+					"15": "All tracks of a directory + subdirectories (sorted, recursive)",
 					"6": "All tracks of a directory (random)",
+					"17": "All tracks of a directory + subdirectories (random, recursive)",
 					"7": "All tracks of a directory (sorted, loop)",
 					"9": "All tracks of a directory (random, loop)",
 					"13": "All tracks of a random subdirectory (sorted)",
@@ -234,6 +237,8 @@
 					"181": "Seek backwards (n seconds)",
 					"182": "Stop",
 					"183": "Restart",
+					"184": "Jump to next folder",
+					"185": "Jump to previous folder",
 					"199": "Display task load (console)",
 					"241": "Play virtual RFID-card 01",
 					"242": "Play virtual RFID-card 02",
@@ -374,7 +379,8 @@
 			"sortMode": "Sorting mode for playlist and file browser",
 			"strcmp": "Standard sorting",
 			"strnatcmp": "Natural: case-sensitive",
-			"strnatcasecmp": "Natural: case-insensitive"
+			"strnatcasecmp": "Natural: case-insensitive",
+			"recDepth": "Maximum recursion depth at generation of recursive playlists"
 		}
 	},
 	"tools": {

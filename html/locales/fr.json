@@ -185,9 +185,12 @@
 					"2": "Piste unique (boucle)",
 					"12": "Piste unique d'un répertoire (aléatoire). Suivi par un mode veille.",
 					"3": "Livre audio",
+					"16": "Livre audio avec sous-répertoires (récursif)",
 					"4": "Livre audio (boucle)",
 					"5": "Toutes les pistes d'un répertoire (triées)",
+					"15": "Tous les titres d'un répertoire + sous-répertoires (triées, récursif)",
 					"6": "Toutes les pistes d'un répertoire (aléatoire)",
+					"17": "Tous les titres d'un répertoire + sous-répertoires (aléatoire, récursif)",
 					"7": "Toutes les pistes d'un répertoire (triées, boucle)",
 					"9": "Toutes les pistes d'un répertoire (aléatoire, boucle)",
 					"13": "Toutes les pistes d'un sous-répertoire aléatoire (triées)",
@@ -234,6 +237,8 @@
 					"181": "Reculer de n secondes",
 					"182": "Stop",
 					"183": "Redémarrer",
+					"184": "Passer au dossier suivant",
+					"185": "Passer au dossier précédent",
 					"199": "Affichage de la charge de travail (console)",
 					"241": "Jouez à la carte RFID virtuelle 01",
 					"242": "Jouez à la carte RFID virtuelle 02",
@@ -374,7 +379,8 @@
 			"sortMode": "Mode de tri pour la liste de lecture et le navigateur de fichiers",
 			"strcmp": "Tri standard",
 			"strnatcmp": "Naturel: sensible à la casse",
-			"strnatcasecmp": "Naturel: insensible à la casse"
+			"strnatcasecmp": "Naturel: insensible à la casse",
+			"recDepth": "Profondeur de récursion maximale lors de la génération de playlists récursives"
 		}
 	},
 	"tools": {

@@ -697,11 +697,19 @@
 											data-i18n="files.rfid.playmode.mode.12"></option>
 										<option class="option-file-and-folder" value="3"
 											data-i18n="files.rfid.playmode.mode.3"></option>
+										<option class="option-file-and-folder" value="16"
+											data-i18n="files.rfid.playmode.mode.16"></option>
 										<option class="option-file-and-folder" value="4"
 											data-i18n="files.rfid.playmode.mode.4"></option>
 										<option class="option-folder" value="5" data-i18n="files.rfid.playmode.mode.5">
 										</option>
+										<option class="option-folder" value="15"
+											data-i18n="files.rfid.playmode.mode.15">
+										</option>
 										<option class="option-folder" value="6" data-i18n="files.rfid.playmode.mode.6">
+										</option>
+										<option class="option-folder" value="17"
+											data-i18n="files.rfid.playmode.mode.17">
 										</option>
 										<option class="option-folder" value="7" data-i18n="files.rfid.playmode.mode.7">
 										</option>
@@ -1115,6 +1123,15 @@
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 								<option value="1" data-i18n="general.playlist.strcmp"></option>
+							</select>
+						</fieldset>
+						<fieldset>
+							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
+							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
+								<option value="4">4</option>
+								<option value="3">3</option>
+								<option value="2">2</option>
+								<option value="1">1</option>
 							</select>
 						</fieldset>
 					</div>
@@ -2287,6 +2304,7 @@
 			let playlistSettings = settings.playlist;
 			if (playlistSettings) {
 				$("#playlistSortMode").val(playlistSettings.sortMode).change();
+				$("#playlistRecDepth").val(playlistSettings.recDepth).change();
 			}
 			// rotary encoder
 			let rotarySettings = settings.rotary;
@@ -2626,7 +2644,8 @@
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
-					sortMode: Number($('#playlistSortMode').val())
+					sortMode: Number($('#playlistSortMode').val()),
+					recDepth: Number($('#playlistRecDepth').val()),
 				},
 				"buttons": {
 					short0: Number(document.getElementById("cmdselect_short_0").value),
@@ -3162,7 +3181,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				addOption(cmdElem, cmd);
 			}
@@ -3172,7 +3191,7 @@
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
 				addOption(modElem, mod);
 			}
