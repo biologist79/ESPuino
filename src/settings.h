@@ -12,25 +12,24 @@
 
 	//################## HARDWARE-PLATFORM ###############################
 	/* Make sure to also edit the configfile, that is specific for your platform.
-	If in doubts (your develboard is not listed) use HAL 7
+	If in doubts (your board is not listed) use HAL 7
 
 	!!!Only ESP32 with PSRAM are supported!!!
 
-	1: Wemos Lolin32                        => REMOVED (because of missing PSRAM)
-	2: ESP32-A1S Audiokit                   => REMOVED (because of stale development, lack of users and lack of GPIOs)
-	3: Wemos Lolin D32                      => REMOVED (because of missing PSRAM)
-	4: Wemos Lolin D32 pro                  => settings-lolin_D32_pro.h
-	5: Lilygo T8 (V1.7)                     => settings-ttgo_t8.h
-	6: ESPuino complete                     => settings-complete.h
-	7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
-	8: AZDelivery ESP32 NodeMCU             => REMOVED (because of missing PSRAM)
-	9: Lolin D32 SDMMC Port-Expander        => REMOVED (because of missing PSRAM)
-	99: custom                              => settings-custom.h
+	HAL 4: Wemos Lolin D32 pro                  => settings-lolin_D32_pro.h
+	HAL 5: Lilygo T8 (V1.7)                     => settings-ttgo_t8.h
+	HAL 6: ESPuino complete                     => settings-complete.h
+	HAL 7: Lolin D32 pro SDMMC Port-Expander    => settings-lolin_d32_pro_sdmmc_pe.h
+	HAL 99: custom                              => settings-custom.h
 	*/
 	#ifndef HAL             // Will be set by platformio.ini. There's no need to adjust this manually right here
 		#define HAL 7
 	#endif
 
+	// Enforce port expander for some HALs because it's mandatory for those and users constantly forget it. Endless story...
+	#if (HAL == 6) || (HAL == 7)
+		#define PORT_EXPANDER_ENABLE 
+	#endif
 
 	//########################## MODULES #################################
 	//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)

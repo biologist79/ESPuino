@@ -234,12 +234,22 @@
 					"181": "Springe rückwärts (n Sekunden)",
 					"182": "Stop",
 					"183": "Neustart",
-					"199": "Taskauslastung anzeigen (Konsole)"
+					"199": "Taskauslastung anzeigen (Konsole)",
+					"241": "Spiele virtuelle RFID-Karte 01",
+					"242": "Spiele virtuelle RFID-Karte 02",
+					"243": "Spiele virtuelle RFID-Karte 03",
+					"244": "Spiele virtuelle RFID-Karte 04",
+					"245": "Spiele virtuelle RFID-Karte 05",
+					"246": "Spiele virtuelle RFID-Karte 06",
+					"247": "Spiele virtuelle RFID-Karte 07",
+					"248": "Spiele virtuelle RFID-Karte 08",
+					"249": "Spiele virtuelle RFID-Karte 09",
+					"250": "Spiele virtuelle RFID-Karte 10"
 				}
 			}
 		}
 	},
-		"mqtt": {
+	"mqtt": {
 		"title": "MQTT-Einstellungen",
 		"enable": "MQTT aktivieren",
 		"clientId": {

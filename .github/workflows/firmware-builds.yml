@@ -1,0 +1,119 @@
+name: build-all-firmwares
+run-name: Build firmwares for all boards and RFID-readers
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - master
+  pull_request:
+    paths:
+      - "src/*"
+      - "html/*"
+      - "test/*"
+      - "**.ini"
+      - "**.py"
+      - "**.csv"
+
+jobs:
+  test_builds:
+    name: Run all Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant:
+          - lolin_d32_pro
+          - lolin_d32_pro_sdmmc_pe
+          - ttgo_t8
+          - complete
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+      - name: Install PlatformIO Core
+        run: |
+          pip install -U setuptools platformio
+          pio upgrade --dev
+          pio pkg update --global
+      - name: Build ${{ matrix.variant }} for RC522 without BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.variant }}-RC522-noBT.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Activate BT
+        run: |
+          sed -i 's/\/\/#define BLUETOOTH_ENABLE/#define BLUETOOTH_ENABLE/' src/settings.h
+      - name: Build ${{ matrix.variant }} for RC522 with BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.variant }}-RC522-BT.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Change RFID type
+        run: |
+          sed -i 's/\/\/#define RFID_READER_TYPE_PN5180/#define RFID_READER_TYPE_PN5180/' src/settings.h
+          sed -i 's/#define RFID_READER_TYPE_MFRC522_SPI/\/\/#define RFID_READER_TYPE_MFRC522_SPI/' src/settings.h
+      - name: Build ${{ matrix.variant }} for PN5180 with BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.variant }}-PN5180-BT.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+      - name: Disable BT
+        run: |
+          sed -i 's/#define BLUETOOTH_ENABLE/\/\/#define BLUETOOTH_ENABLE/' src/settings.h
+      - name: Build ${{ matrix.variant }} for PN5180 without BT
+        run: platformio run -e ${{ matrix.variant }}
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.variant }}-PN5180-noBT.bin
+          path: .pio/build/${{ matrix.variant }}/firmware.bin
+  commit:
+    runs-on: ubuntu-latest
+    needs: test_builds
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: biologist79/ESPuino-Firmware
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: target-repo
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "firmware*"
+          path: target-repo/Firmwares/${{ github.ref_name }}
+
+      - name: Commit and push changes
+        run: |
+          cd target-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          for variant in lolin_d32_pro lolin_d32_pro_sdmmc_pe ttgo_t8 complete; do
+            git add Firmwares/${{ github.ref_name }}/firmware-*.bin
+          done
+          git commit -m "Firmware built from commit biologist79/ESPuino@${{ github.sha }}"
+          git push

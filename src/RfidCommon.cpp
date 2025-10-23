@@ -117,6 +117,7 @@ void Rfid_TaskPause(void) {
 }
 void Rfid_TaskResume(void) {
 #if defined(RFID_READER_ENABLED)
+	Rfid_TaskReset(); // Reset state machine to initial state
 	vTaskResume(rfidTaskHandle);
 #endif
 }

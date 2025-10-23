@@ -2,6 +2,33 @@
 
 ## DEV-branch
 
+* 17.10.2025: Regression fix: remove volume-queue from IRreceiver.cpp
+
+## Version 2.4.3 (09.10.2025)
+
+* 08.10.2025: Bump to ESP-IDF 5.5.1
+* 08.10.2025: Use importlib instead of setuptools
+* 28.09.2025: Update PN5180 lib
+* 27.09.2025: Enable firmware builds with BT
+
+## Version 2.4.2 (18.09.2025)
+
+* 16.09.2025: Fix broken Bluetooth headset mode (BT-Source)
+* 15.09.2025: Fix "Abspielposition beim Ausschalten merken"
+
+## Version 2.4.1 (14.09.2025)
+
+* 11.09.2025: Update audio-lib and Fast-LED (#375), thanks to @Joe91
+* 27.08.2025: support of virtual RFID-Cards in Webserver (#376), thanks to @Joe91
+
+## Version 2.4 (24.08.2025)
+
+* 16.08.2025: Measuring of battery voltage: analogRead() -> analogReadMilliVolts()
+* 15.08.2025: Reduce voltage-stepping in webinterface from 0.1 V to 0.05 V
+* 13.08.2025: Enforce usage of port-expander for some HALs
+* 13.08.2025: No more Audio-Task (#374), thanks to @Joe91 !
+* 12.06.2025: Fix compilation error with NEOPIXEL_REVERSE_ROTATION (#369), thanks to @SZenglein !
+* 12.06.2025: Clear ping- and trackProgress intervals when websocket reconnects (#368), thanks to @SZenglein !
 * 10.05.2025: MQTT: switch from pubsubclient to IDF-MQTT (#363), thanks to @Joe91
 * 05.05.2025: Switch DEV-branch to Arduino 3.2.0 (ESP-IDF 5.4.1)
 * 30.04.2025: Fix loosing Websocket Ping/Pong connection, thanks to @Joe91 !
