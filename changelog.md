@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 24.10.2025: Fix: Remove of error indication while track change
 * 23.10.2025: New feature: recursive playlists (#381)
 * 23.10.2025: Cleanup log messages
 * 22.10.2025: Switch to long commit IDs
