@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+...nothing so far
+
+## Version 2.4.3 (24.10.2025)
+
 * 24.10.2025: Fix: Remove of error indication while track change
 * 23.10.2025: New feature: recursive playlists (#381)
 * 23.10.2025: Cleanup log messages
