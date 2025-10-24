@@ -15,7 +15,7 @@
 #define FIRSTTRACK	   6 // First track of playlist
 #define LASTTRACK	   7 // Last track of playlist
 #define NEXTFOLDER	   8 // Next folder (recursive mode only)
-#define PREVIOUSFOLDER 9 // Next folder (recursive mode only)
+#define PREVIOUSFOLDER 9 // Previous folder (recursive mode only)
 
 // Playmodes
 #define NO_PLAYLIST												  0 // If no playlist is active
