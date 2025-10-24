@@ -927,7 +927,7 @@ void AudioPlayer_Loop() {
 		// we check for timeout
 		if (noAudio && timeout) {
 			// Audio playback timed out, move on to the next
-			System_IndicateError();
+			// System_IndicateError();
 			gPlayProperties.trackFinished = true;
 			playbackTimeoutStart = millis();
 		}
