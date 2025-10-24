@@ -479,7 +479,7 @@ described as follows.
 | topicRfidCmnd           | 12 digits       | Set number of RFID tag which 'emulates' an RFID tag (e.g. `123789456089`)                                                                              |
 | topicRfidState          | 12 digits       | ID of current RFID tag (if not a modification card)                                                                                                    |
 | topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3"                     |
-| topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last                                                                         |
+| topicTrackControlCmnd   | 1 -> 9          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last; `8`=next folder; `9`=previous folder                                                                             |
 | topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
 | topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                                                                                        |
 | topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                                                                                                       |
