@@ -2,7 +2,7 @@
 
 ## DEV-branch
 
-...nothing so far
+* 26.10.2025: Make LFP-voltages default
 
 ## Version 2.4.4 (24.10.2025)
 
