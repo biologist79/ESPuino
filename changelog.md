@@ -2,7 +2,6 @@
 
 ## DEV-branch
 
-* 31.10.2025: Audio_Loop necessary after task removal
 * 26.10.2025: Make LFP-voltages default
 
 ## Version 2.4.4 (24.10.2025)
