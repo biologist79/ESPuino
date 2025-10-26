@@ -2,23 +2,6 @@
 
 ## DEV-branch
 
-* nothing yet...
-
-## Version 2.5 (01.01.2026)
-
-* 01.01.2026: Add bluetooth source connection handling and flushing (#384)
-* 01.01.2026: Refactor button handling logic (#387)
-* 01.01.2026: Refactor shutdown button logic for clarity (#385)
-* 01.01.2026: Simplify channel to bit mapping in Port_ChannelToBit (#386)
-* 09.12.2025: Web UI: Allow escape from Bluetooth mode
-* 07.12.2025: WiFi / Bluetooth coexistence
-* 30.11.2025: Allocate playlist, tasklist in PSRAM if available
-* 30.11.2025: Web UI: Show SD card icon and volume label
-* 30.11.2025: BT-Source: Allocate ringbuffer in PSRAM to save heap, use lazy initialization
-* 26.11.2025: Web UI: Add missing WiFi & BT commands in button command selects
-* 24.11.2025: Audio Library Update: Switch to callbacks, restore cover images (#383), thanks to @sfields !
-* 24.11.2025: Bugfix crash in BT-Sink mode
-* 31.10.2025: Audio_Loop necessary after task removal
 * 26.10.2025: Make LFP-voltages default
 
 ## Version 2.4.4 (24.10.2025)
