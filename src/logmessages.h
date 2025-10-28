@@ -236,3 +236,4 @@ extern const char mDNSFailed[];
 extern const char restartAfterOperationModeChange[];
 extern const char jumpForwardsToFolder[];
 extern const char jumpBackwardsToFolder[];
+extern const char audioPlaybackTimeout[];

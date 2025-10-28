@@ -99,6 +99,20 @@ void Audio_TaskResume(void) {
 	bool audio_active = true;
 }
 
+void Audio_InfoCallback(Audio::msg_t m) {
+	switch(m.e) {
+        case Audio::evt_info:
+            Log_Printf(LOGLEVEL_DEBUG, "Audio lib info event: %s", m.msg);
+			break;
+		case Audio::evt_eof:
+			Log_Printf(LOGLEVEL_DEBUG, "Audio lib: finished playing file %s", m.msg);
+			gPlayProperties.trackFinished = true;
+			break;
+		default:
+			break;
+    }
+}
+
 void AudioPlayer_Init(void) {
 	// create audio object
 #ifdef BOARD_HAS_PSRAM
@@ -210,6 +224,7 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.getChar("gainHighPass", 0));
 
 	audio->setAudioTaskCore(1);
+	audio->audio_info_callback = Audio_InfoCallback;
 
 	audio_active = true;
 }
@@ -927,7 +942,8 @@ void AudioPlayer_Loop() {
 		// we check for timeout
 		if (noAudio && timeout) {
 			// Audio playback timed out, move on to the next
-			// System_IndicateError();
+			Log_Println(audioPlaybackTimeout, LOGLEVEL_ERROR);
+			System_IndicateError();
 			gPlayProperties.trackFinished = true;
 			playbackTimeoutStart = millis();
 		}

@@ -235,4 +235,5 @@ const char wifiSetLastSSID[] = "Écrire le dernier SSID réussi dans le NVS pour
 const char mDNSStarted[] = "mDNS démarré : http://%s.local";
 const char mDNSFailed[] = "Échec de mDNS, nom d'hôte : %s";
 const char restartAfterOperationModeChange[] = "Le mode de fonctionnement a changé. Redémarrez ESPuino maintenant...";
+const char audioPlaybackTimeout[] = "La lecture audio a expiré, passage à la piste suivante";
 #endif
