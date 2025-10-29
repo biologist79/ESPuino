@@ -2409,9 +2409,13 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		}
 	} else if (strncmp(fileType, "fLaC", 4) == 0) { // flac Routine
 		uint32_t length = 0; // length of strings: MIME type, description of the picture, binary picture data
-		coverFile.seek(gPlayProperties.coverFilePos + 7); // pass cover filesize (3 Bytes) and picture type (4 Bytes)
+		coverFile.seek(gPlayProperties.coverFilePos + 4); // pass only picture type (4 Bytes) (audioI2S points to METADATA_BLOCK_PICTURE since 6241daa)
 		for (int i = 0; i < 4; ++i) { // length of mime type string
 			length = (length << 8) | coverFile.read();
+		}
+		if (length > 255) {
+			Log_Printf(LOGLEVEL_ERROR, "Unexpected MIME type string length (%u > 255). Possible corrupted cover image or wrong coverFilePos (%u). Aborting extraction.", length, gPlayProperties.coverFilePos);
+			return;
 		}
 		for (uint8_t i = 0u; i < length; i++) {
 			mimeType[i] = coverFile.read();

@@ -91,12 +91,118 @@ static void AudioPlayer_SortPlaylist(Playlist *playlist);
 static void AudioPlayer_RandomizePlaylist(Playlist *playlist);
 static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed);
 static void AudioPlayer_ClearCover(void);
+static void audio_id3image(File &file, const size_t pos, const size_t size);
+static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
 void Audio_TaskPause(void) {
 	bool audio_active = false;
 }
 void Audio_TaskResume(void) {
 	bool audio_active = true;
+}
+
+void Audio_InfoCallback(Audio::msg_t m) {
+    switch (m.e) {
+		case Audio::evt_info: {
+			// Log_Printf(LOGLEVEL_INFO, "info:         %s", m.msg); // disabled to reduce log especially from files with numerous comments
+			if (startsWith((char *) m.msg, "slow stream, dropouts")) {
+				// websocket notify for slow stream
+				Web_SendWebsocketData(0, WebsocketCodeType::Dropout);
+			}
+			break;
+		}
+		case Audio::evt_eof: { // end of file
+			Log_Printf(LOGLEVEL_INFO, "end of file:  %s", m.msg);
+			gPlayProperties.trackFinished = true;
+			break;
+		}
+		case Audio::evt_bitrate: {
+			Log_Printf(LOGLEVEL_INFO, "bitrate:      %s", m.msg);
+			break;
+		}
+		case Audio::evt_icyurl: {
+			Log_Printf(LOGLEVEL_INFO, "icy URL:      %s", m.msg);
+			if (m.msg && m.msg[0] != '\0' && AudioPlayer_StationLogoUrl.isEmpty()) {
+				// has station homepage, get favicon url
+				AudioPlayer_StationLogoUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" + String(m.msg);
+				// websocket and mqtt notify station logo has changed
+				Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+			}
+			break;
+		}
+		case Audio::evt_id3data: {
+			if (!m.msg) break;
+			// Log_Printf(LOGLEVEL_INFO, "ID3 data:     %s", m.msg); // disabled to prevent log spam from files with numerous metadata
+			// get title
+			if (startsWith((char *) m.msg, "Title") || startsWith((char *) m.msg, "TITLE=") || startsWith((char *) m.msg, "title=")) { // ID3: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg + 6);
+				} else {
+					Audio_setTitle("%s", m.msg + 6);
+				}
+			}
+			break;
+		}
+		case Audio::evt_lasthost: { // stream URL played
+			Log_Printf(LOGLEVEL_INFO, "last URL:     %s", m.msg);
+			break;
+		}
+		case Audio::evt_name: { // station name or icy-name
+			Log_Printf(LOGLEVEL_NOTICE, "station name: %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg);
+				} else {
+					Audio_setTitle("%s", m.msg);
+				}
+			}
+			break;
+		}
+		case Audio::evt_streamtitle: {
+			if (!gPlayProperties.isWebstream) break; // prevents overwriting correct title for local files
+			Log_Printf(LOGLEVEL_INFO, "stream title: %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg);
+				} else {
+					Audio_setTitle("%s", m.msg);
+				}
+			}
+			break;
+		}
+		case Audio::evt_icylogo: { // logo
+			Log_Printf(LOGLEVEL_INFO, "icy logo:     %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				AudioPlayer_StationLogoUrl = m.msg;
+				// websocket and mqtt notify station logo has changed
+				Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+			}
+			break;
+		}
+		case Audio::evt_image: {
+			if (!gPlayProperties.playlist || gPlayProperties.currentTrackNumber >= gPlayProperties.playlist->size()) {
+				break;
+			}
+			const char *fileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
+			File file = gFSystem.open(fileName, FILE_READ);
+            if (!file) {
+                Log_Printf(LOGLEVEL_ERROR, "Failed to open file: %s", fileName);
+                break;
+            }
+			char fileType[4];
+			if (file.readBytes(fileType, 4) == 4) {
+				if (strncmp(fileType, "OggS", 4) == 0) {
+					audio_oggimage(file, m.vec);
+				} else {
+					audio_id3image(file, m.vec[0], m.vec[1]);
+				}
+			}
+			file.close();
+            break;
+        }
+        default: // ignored events: evt_icydescription, evt_lyrics, evt_log
+            break;
+    }
 }
 
 void AudioPlayer_Init(void) {
@@ -210,6 +316,7 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.getChar("gainHighPass", 0));
 
 	audio->setAudioTaskCore(1);
+	audio->audio_info_callback = Audio_InfoCallback;
 
 	audio_active = true;
 }
@@ -927,7 +1034,7 @@ void AudioPlayer_Loop() {
 		// we check for timeout
 		if (noAudio && timeout) {
 			// Audio playback timed out, move on to the next
-			// System_IndicateError();
+			System_IndicateError();
 			gPlayProperties.trackFinished = true;
 			playbackTimeoutStart = millis();
 		}
@@ -1342,85 +1449,6 @@ void AudioPlayer_ClearCover(void) {
 #endif
 }
 
-// Some mp3-lib-stuff (slightly changed from default)
-void audio_info(const char *info) {
-	Log_Printf(LOGLEVEL_INFO, "info        : %s", info);
-	if (startsWith((char *) info, "slow stream, dropouts")) {
-		// websocket notify for slow stream
-		Web_SendWebsocketData(0, WebsocketCodeType::Dropout);
-	}
-}
-
-void audio_id3data(const char *info) { // id3 metadata
-	Log_Printf(LOGLEVEL_INFO, "id3data     : %s", info);
-	// get title
-	if (startsWith((char *) info, "Title") || startsWith((char *) info, "TITLE=") || startsWith((char *) info, "title=")) { // ID3: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
-		if (gPlayProperties.playlist->size() > 1) {
-			Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), info + 6);
-		} else {
-			Audio_setTitle("%s", info + 6);
-		}
-	}
-}
-
-void audio_eof_mp3(const char *info) { // end of file
-	Log_Printf(LOGLEVEL_INFO, "eof_mp3     : %s", info);
-	gPlayProperties.trackFinished = true;
-}
-
-void audio_showstation(const char *info) {
-	Log_Printf(LOGLEVEL_NOTICE, "station     : %s", info);
-	if (strcmp(info, "")) {
-		if (gPlayProperties.playlist->size() > 1) {
-			Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), info);
-		} else {
-			Audio_setTitle("%s", info);
-		}
-	}
-}
-
-void audio_showstreamtitle(const char *info) {
-	Log_Printf(LOGLEVEL_INFO, "streamtitle : %s", info);
-	if (strcmp(info, "")) {
-		if (gPlayProperties.playlist->size() > 1) {
-			Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), info);
-		} else {
-			Audio_setTitle("%s", info);
-		}
-	}
-}
-
-void audio_bitrate(const char *info) {
-	Log_Printf(LOGLEVEL_INFO, "bitrate     : %s", info);
-}
-
-void audio_commercial(const char *info) { // duration in sec
-	Log_Printf(LOGLEVEL_INFO, "commercial  : %s", info);
-}
-
-void audio_icyurl(const char *info) { // homepage
-	Log_Printf(LOGLEVEL_INFO, "icyurl      : %s", info);
-	if ((String(info) != "") && (AudioPlayer_StationLogoUrl == "")) {
-		// has station homepage, get favicon url
-		AudioPlayer_StationLogoUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" + String(info);
-		// websocket and mqtt notify station logo has changed
-		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
-	}
-}
-
-void audio_icylogo(const char *info) { // logo
-	Log_Printf(LOGLEVEL_INFO, "icylogo      : %s", info);
-	if (String(info) != "") {
-		AudioPlayer_StationLogoUrl = info;
-		// websocket and mqtt notify station logo has changed
-		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
-	}
-}
-
-void audio_lasthost(const char *info) { // stream URL played
-	Log_Printf(LOGLEVEL_INFO, "lasthost    : %s", info);
-}
-
 // id3 tag: save cover image
 void audio_id3image(File &file, const size_t pos, const size_t size) {
 	// save cover image position and size for later use
@@ -1488,7 +1516,7 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 		gFSystem.rename(tmpDecodedCover, decodedCover);
 		Log_Printf(LOGLEVEL_DEBUG, "Cover decoded and cached in %s", decodedCover.c_str());
 	}
-	gPlayProperties.coverFilePos = 1; // flacMarker gives 4 Bytes before METADATA_BLOCK_PICTURE, whereas for flac files audioI2S points 3 Bytes before METADATA_BLOCK_PICTURE, so gPlayProperties.coverFilePos has to be set to 4-3=1
+	gPlayProperties.coverFilePos = 4; // flacMarker gives 4 Bytes before METADATA_BLOCK_PICTURE (audioI2S points to METADATA_BLOCK_PICTURE since 6241daa)
 	// websocket and mqtt notify cover image has changed
 	Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
 #ifdef MQTT_ENABLE
