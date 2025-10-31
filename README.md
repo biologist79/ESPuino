@@ -32,8 +32,6 @@ branch. Feel free to test but be advised this could be unstable.
 
 ## ESPuino - what's that?
 
-## ESPuino Concept
-
 The concept of ESPuino is a [more-or-less small enclosure](https://forum.espuino.de/t/zeigt-her-eure-espuinos/554/)
 that contains a speaker so it can play music and audiobooks. Here is an example of a 3D-printed
 unit, the [Biobox 3d](https://forum.espuino.de/t/biobox-3d/3130):
