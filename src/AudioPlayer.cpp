@@ -1024,6 +1024,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP || gPlayProperties.playMode == AUDIOBOOK_RECURSIVE)) {
 		AudioPlayer_SetTrackControl(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
+			AudioPlayer_Loop();
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
 		}
 	}
@@ -1072,6 +1073,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 		if (!gPlayProperties.pausePlay) {
 			AudioPlayer_SetTrackControl(STOP);
 			while (!gPlayProperties.pausePlay) {
+				AudioPlayer_Loop();
 				vTaskDelay(portTICK_PERIOD_MS * 10u);
 			}
 		}
