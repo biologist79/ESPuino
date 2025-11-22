@@ -134,11 +134,15 @@ void Audio_InfoCallback(Audio::msg_t m) {
 			if (!m.msg) break;
 			// Log_Printf(LOGLEVEL_INFO, "ID3 data:     %s", m.msg); // disabled to prevent log spam from files with numerous metadata
 			// get title
-			if (startsWith((char *) m.msg, "Title") || startsWith((char *) m.msg, "TITLE=") || startsWith((char *) m.msg, "title=")) { // ID3: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
+			if (startsWith((char *) m.msg, "Title") || startsWith((char *) m.msg, "TITLE=") || startsWith((char *) m.msg, "title=")) { // ID3v1, ID3v2.3 and ID3v2.4: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
+				int titleStart = 6;
+				if (m.msg[5] == '/') { // ID3v2.2 "Title/Songname/Content description:"
+					titleStart = 36;
+				}
 				if (gPlayProperties.playlist->size() > 1) {
-					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg + 6);
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg + titleStart);
 				} else {
-					Audio_setTitle("%s", m.msg + 6);
+					Audio_setTitle("%s", m.msg + titleStart);
 				}
 			}
 			break;
