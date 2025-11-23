@@ -2392,14 +2392,9 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		if (fileType[3] == 0x02) {
 			// image format (3 Bytes) for ID3v2.2
 			coverFile.readBytes(mimeType, 3);
-			if (strcmp(mimeType, "-->") == 0) { // no image, only link to image file available
-				request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
-				coverFile.close();
-				return;
-			}
-			else if (strcmp(mimeType, "JPG") == 0) strcpy(mimeType, "image/jpeg");
+			if (strcmp(mimeType, "JPG") == 0) strcpy(mimeType, "image/jpeg");
 			else if (strcmp(mimeType, "PNG") == 0) strcpy(mimeType, "image/png");
-			else strcpy(mimeType, "application/octet-stream");
+			else if (strcmp(mimeType, "-->") != 0) strcpy(mimeType, "application/octet-stream");
 		} else {
 			// mime-type (null terminated) for ID3v2.3 and ID3v2.4
 			for (uint8_t i = 0u; i < 255; i++) {
@@ -2453,6 +2448,12 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			strcpy(mimeType, "application/octet-stream");
 			coverFile.seek(gPlayProperties.coverFilePos);
 		}
+	}
+	if (strncmp(mimeType, "image", 5) != 0 && strncmp(mimeType, "application/octet-stream", 24) != 0) {
+		Log_Printf(LOGLEVEL_ERROR, "Unexpected MIME type (%s). Possible corrupted cover image or wrong coverFilePos (%u). Aborting extraction.", mimeType, gPlayProperties.coverFilePos);
+		request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
+		coverFile.close();
+		return;
 	}
 	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFile.name());
 
