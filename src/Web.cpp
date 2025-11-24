@@ -2371,6 +2371,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			}
 		return;
 	}
+	if (gPlayProperties.currentTrackNumber >= gPlayProperties.playlist->size()) return;
 	const char *coverFileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 	String decodedCover = "/.cache";
 	decodedCover.concat(coverFileName);
@@ -2381,37 +2382,47 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	} else {
 		coverFile = gFSystem.open(coverFileName, FILE_READ);
 	}
-	char mimeType[255] {0};
+	char mimeType[256] {0};
 	char fileType[4];
 	coverFile.readBytes(fileType, 4);
 	if (strncmp(fileType, "ID3", 3) == 0) { // mp3 (ID3v2) Routine
 		// seek to start position
 		coverFile.seek(gPlayProperties.coverFilePos);
 		uint8_t encoding = coverFile.read();
-		// mime-type (null terminated)
-		for (uint8_t i = 0u; i < 255; i++) {
-			mimeType[i] = coverFile.read();
-			if (uint8_t(mimeType[i]) == 0) {
-				break;
+		if (fileType[3] == 0x02) {
+			// image format (3 Bytes) for ID3v2.2
+			coverFile.readBytes(mimeType, 3);
+			if (strcmp(mimeType, "JPG") == 0) strcpy(mimeType, "image/jpeg");
+			else if (strcmp(mimeType, "PNG") == 0) strcpy(mimeType, "image/png");
+			else if (strcmp(mimeType, "-->") != 0) strcpy(mimeType, "application/octet-stream");
+		} else {
+			// mime-type (null terminated) for ID3v2.3 and ID3v2.4
+			for (uint8_t i = 0u; i < 255; i++) {
+				mimeType[i] = coverFile.read();
+				if (uint8_t(mimeType[i]) == 0) {
+					break;
+				}
 			}
 		}
 		// skip image type (1 Byte)
 		coverFile.read();
 		// skip description (null terminated)
-		for (uint8_t i = 0u; i < 255; i++) {
-			if (uint8_t(coverFile.read()) == 0) {
-				break;
-			}
-		}
-		// UTF-16 and UTF-16BE are terminated with an extra 0
-		if (encoding == 1 || encoding == 2) {
-			coverFile.read();
+		if (encoding == 0 || encoding == 3) { // ISO-8859-1 and UTF-8: 00 terminated
+			while (coverFile.read() != 0) {}
+		} else if (encoding == 1 || encoding == 2) { // UTF-16 and UTF-16BE: 00 00 terminated
+			while ((coverFile.read() | (coverFile.read() << 8)) != 0) {}
 		}
 	} else if (strncmp(fileType, "fLaC", 4) == 0) { // flac Routine
 		uint32_t length = 0; // length of strings: MIME type, description of the picture, binary picture data
-		coverFile.seek(gPlayProperties.coverFilePos + 7); // pass cover filesize (3 Bytes) and picture type (4 Bytes)
+		coverFile.seek(gPlayProperties.coverFilePos + 4); // pass only picture type (4 Bytes) (audioI2S points to METADATA_BLOCK_PICTURE since 6241daa)
 		for (int i = 0; i < 4; ++i) { // length of mime type string
 			length = (length << 8) | coverFile.read();
+		}
+		if (length > 255) {
+			Log_Printf(LOGLEVEL_ERROR, "Unexpected MIME type string length (%u > 255). Possible corrupted cover image or wrong coverFilePos (%u). Aborting extraction.", length, gPlayProperties.coverFilePos);
+			request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
+			coverFile.close();
+			return;
 		}
 		for (uint8_t i = 0u; i < length; i++) {
 			mimeType[i] = coverFile.read();
@@ -2434,9 +2445,15 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		coverFile.seek(8);
 		coverFile.readBytes(fileType, 3);
 		if (strncmp(fileType, "M4A", 3) == 0) {
-			// M4A header found, seek to image start position. Image length adjustment seems to be not needed, every browser shows cover image correct!
-			coverFile.seek(gPlayProperties.coverFilePos + 8);
+			strcpy(mimeType, "application/octet-stream");
+			coverFile.seek(gPlayProperties.coverFilePos);
 		}
+	}
+	if (strncmp(mimeType, "image", 5) != 0 && strncmp(mimeType, "application/octet-stream", 24) != 0) {
+		Log_Printf(LOGLEVEL_ERROR, "Unexpected MIME type (%s). Possible corrupted cover image or wrong coverFilePos (%u). Aborting extraction.", mimeType, gPlayProperties.coverFilePos);
+		request->send(200, "image/svg+xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg width=\"1792\" height=\"1792\" viewBox=\"0 0 1792 1792\" transform=\"scale (0.6)\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1664 224v1120q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-537l-768 237v709q0 50-34 89t-86 60.5-103.5 32-96.5 10.5-96.5-10.5-103.5-32-86-60.5-34-89 34-89 86-60.5 103.5-32 96.5-10.5q105 0 192 39v-967q0-31 19-56.5t49-35.5l832-256q12-4 28-4 40 0 68 28t28 68z\"/></svg>");
+		coverFile.close();
+		return;
 	}
 	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFile.name());
 
@@ -2457,6 +2474,6 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		index += willWrite;
 		return willWrite;
 	});
-	response->addHeader("Cache Control", "no-cache, must-revalidate");
+	response->addHeader("Cache-Control", "no-cache, must-revalidate");
 	request->send(response);
 }
