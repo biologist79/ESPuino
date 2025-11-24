@@ -549,7 +549,7 @@ void AudioPlayer_Loop() {
 				gPlayProperties.currentRelPos = ((float) audio->getAudioCurrentTime() / audio->getAudioFileDuration()) * 100.0f;
 			}
 		} else {
-			if (gPlayProperties.isWebstream && (audio->getInBufferSize() > 0)) {
+			if (gPlayProperties.isWebstream && (System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) && (audio->getInBufferSize() > 0)) {
 				// calc current fillbuffer percent for webstream with unknown size/end
 				gPlayProperties.currentRelPos = (double) (audio->inBufferFilled() / (double) audio->getInBufferSize()) * 100;
 			} else {
