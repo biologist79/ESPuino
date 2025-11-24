@@ -102,7 +102,7 @@ void Audio_TaskResume(void) {
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
-    switch (m.e) {
+	switch (m.e) {
 		case Audio::evt_info: {
 			// Log_Printf(LOGLEVEL_INFO, "info:         %s", m.msg); // disabled to reduce log especially from files with numerous comments
 			if (startsWith((char *) m.msg, "slow stream, dropouts")) {
@@ -131,7 +131,9 @@ void Audio_InfoCallback(Audio::msg_t m) {
 			break;
 		}
 		case Audio::evt_id3data: {
-			if (!m.msg) break;
+			if (!m.msg) {
+				break;
+			}
 			// Log_Printf(LOGLEVEL_INFO, "ID3 data:     %s", m.msg); // disabled to prevent log spam from files with numerous metadata
 			// get title
 			if (startsWith((char *) m.msg, "Title") || startsWith((char *) m.msg, "TITLE=") || startsWith((char *) m.msg, "title=")) { // ID3v1, ID3v2.3 and ID3v2.4: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
@@ -163,7 +165,9 @@ void Audio_InfoCallback(Audio::msg_t m) {
 			break;
 		}
 		case Audio::evt_streamtitle: {
-			if (!gPlayProperties.isWebstream) break; // prevents overwriting correct title for local files
+			if (!gPlayProperties.isWebstream) {
+				break; // prevents overwriting correct title for local files
+			}
 			Log_Printf(LOGLEVEL_INFO, "stream title: %s", m.msg);
 			if (m.msg && m.msg[0] != '\0') {
 				if (gPlayProperties.playlist->size() > 1) {
@@ -189,10 +193,10 @@ void Audio_InfoCallback(Audio::msg_t m) {
 			}
 			const char *fileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 			File file = gFSystem.open(fileName, FILE_READ);
-            if (!file) {
-                Log_Printf(LOGLEVEL_ERROR, "Failed to open file: %s", fileName);
-                break;
-            }
+			if (!file) {
+				Log_Printf(LOGLEVEL_ERROR, "Failed to open file: %s", fileName);
+				break;
+			}
 			char fileType[4];
 			if (file.readBytes(fileType, 4) == 4) {
 				if (strncmp(fileType, "OggS", 4) == 0) {
@@ -202,11 +206,11 @@ void Audio_InfoCallback(Audio::msg_t m) {
 				}
 			}
 			file.close();
-            break;
-        }
-        default: // ignored events: evt_icydescription, evt_lyrics, evt_log
-            break;
-    }
+			break;
+		}
+		default: // ignored events: evt_icydescription, evt_lyrics, evt_log
+			break;
+	}
 }
 
 void AudioPlayer_Init(void) {
