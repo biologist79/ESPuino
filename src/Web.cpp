@@ -2371,7 +2371,9 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 			}
 		return;
 	}
-	if (gPlayProperties.currentTrackNumber >= gPlayProperties.playlist->size()) return;
+	if (gPlayProperties.currentTrackNumber >= gPlayProperties.playlist->size()) {
+		return;
+	}
 	const char *coverFileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
 	String decodedCover = "/.cache";
 	decodedCover.concat(coverFileName);
@@ -2392,9 +2394,13 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		if (fileType[3] == 0x02) {
 			// image format (3 Bytes) for ID3v2.2
 			coverFile.readBytes(mimeType, 3);
-			if (strcmp(mimeType, "JPG") == 0) strcpy(mimeType, "image/jpeg");
-			else if (strcmp(mimeType, "PNG") == 0) strcpy(mimeType, "image/png");
-			else if (strcmp(mimeType, "-->") != 0) strcpy(mimeType, "application/octet-stream");
+			if (strcmp(mimeType, "JPG") == 0) {
+				strcpy(mimeType, "image/jpeg");
+			} else if (strcmp(mimeType, "PNG") == 0) {
+				strcpy(mimeType, "image/png");
+			} else if (strcmp(mimeType, "-->") != 0) {
+				strcpy(mimeType, "application/octet-stream");
+			}
 		} else {
 			// mime-type (null terminated) for ID3v2.3 and ID3v2.4
 			for (uint8_t i = 0u; i < 255; i++) {
@@ -2408,9 +2414,9 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		coverFile.read();
 		// skip description (null terminated)
 		if (encoding == 0 || encoding == 3) { // ISO-8859-1 and UTF-8: 00 terminated
-			while (coverFile.read() != 0) {}
+			while (coverFile.read() != 0) { }
 		} else if (encoding == 1 || encoding == 2) { // UTF-16 and UTF-16BE: 00 00 terminated
-			while ((coverFile.read() | (coverFile.read() << 8)) != 0) {}
+			while ((coverFile.read() | (coverFile.read() << 8)) != 0) { }
 		}
 	} else if (strncmp(fileType, "fLaC", 4) == 0) { // flac Routine
 		uint32_t length = 0; // length of strings: MIME type, description of the picture, binary picture data
