@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 26.11.2025: Web UI: Add missing WiFi & BT commands in button command selects
 * 24.11.2025: Audio Library Update: Switch to callbacks, restore cover images (#383), thanks to @sfields !
 * 24.11.2025: Bugfix crash in BT-Sink mode
 * 31.10.2025: Audio_Loop necessary after task removal
