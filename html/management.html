@@ -2389,6 +2389,12 @@
 				document.getElementById('nav-bt-tab').setAttribute('data-visible', true);
 				document.getElementById('btDeviceName').value = btSettings.deviceName;
 				document.getElementById('btPinCode').value = btSettings.pinCode;
+				// make BT commands visible in button command selects
+				document.querySelectorAll('[id*=cmdselect_], #modId').forEach(select => {
+					select.querySelectorAll('option[value="140"], option[value="141"], option[value="142"]').forEach(option => {
+						option.style.display = '';
+					});
+				});
 			}
 		}
 		async function resetSettings() {
@@ -3181,9 +3187,13 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
-				addOption(cmdElem, cmd);
+				const opt = addOption(cmdElem, cmd);
+				if ([140, 141, 142].includes(cmd)) {
+					// initially hide bluetooth commands, will be shown when bt is enabled
+					opt.style.display = 'none';
+				}
 			}
 
 			/* fill settingsex button commands */
@@ -3193,7 +3203,10 @@
 			const modElem = document.createElement('select');
 			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
-				addOption(modElem, mod);
+				const opt = addOption(modElem, mod);
+				if ([140, 141, 142].includes(mod)) {
+					opt.style.display = 'none';
+				}
 			}
 
 			/* fill command selectors at the control page and the rfid assignment */
