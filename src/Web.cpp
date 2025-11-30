@@ -1012,7 +1012,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsObj["long1"].set(gPrefsSettings.getUChar("btnLong1", BUTTON_1_LONG));
 		buttonsObj["long2"].set(gPrefsSettings.getUChar("btnLong2", BUTTON_2_LONG));
 		buttonsObj["long3"].set(gPrefsSettings.getUChar("btnLong3", BUTTON_3_LONG));
-		buttonsObj["long4"].set(gPrefsSettings.getUChar("bttLong4", BUTTON_4_LONG));
+		buttonsObj["long4"].set(gPrefsSettings.getUChar("btnLong4", BUTTON_4_LONG));
 		buttonsObj["long5"].set(gPrefsSettings.getUChar("btnLong5", BUTTON_5_LONG));
 		buttonsObj["multi01"].set(gPrefsSettings.getUChar("btnMulti01", BUTTON_MULTI_01));
 		buttonsObj["multi02"].set(gPrefsSettings.getUChar("btnMulti02", BUTTON_MULTI_02));
@@ -1714,13 +1714,18 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 #endif
 
 	File root;
+	bool isRoot = false;
 	if (request->hasParam("path")) {
 		const AsyncWebParameter *param;
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
+		if (strcmp(filePath, "/") == 0) {
+			isRoot = true;
+		}
 		root = gFSystem.open(filePath);
 	} else {
 		root = gFSystem.open("/");
+		isRoot = true;
 	}
 
 	if (!root) {
@@ -1735,6 +1740,17 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
 	AsyncJsonResponse *response = new AsyncJsonResponse(true);
 	JsonArray obj = response->getRoot();
+
+	// For root directory, add volume label as first element if available
+	if (isRoot) {
+		String volumeLabel = SdCard_GetVolumeLabel();
+		if (volumeLabel.length() > 0) {
+			JsonObject labelEntry = obj.add<JsonObject>();
+			labelEntry["name"] = volumeLabel;
+			labelEntry["root"] = "sd";
+		}
+	}
+
 	bool isDir = false;
 	String MyfileName = root.getNextFileName(&isDir);
 	while (MyfileName != "") {
