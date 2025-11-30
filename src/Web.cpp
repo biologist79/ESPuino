@@ -498,7 +498,7 @@ void webserverStart(void) {
 			// show tasklist
 			response->println("Tasklist:<div class='text'><pre>");
 			response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
-			char *pbuffer = (char *) calloc(2048, 1);
+			char *pbuffer = x_calloc(2048, 1);
 			vTaskList(pbuffer);
 			response->println(pbuffer);
 			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
