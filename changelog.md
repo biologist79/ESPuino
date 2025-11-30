@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 30.11.2025: BT-Source: Allocate ringbuffer in PSRAM to save heap, use lazy initialization
 * 26.11.2025: Web UI: Add missing WiFi & BT commands in button command selects
 * 24.11.2025: Audio Library Update: Switch to callbacks, restore cover images (#383), thanks to @sfields !
 * 24.11.2025: Bugfix crash in BT-Sink mode
