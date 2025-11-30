@@ -10,6 +10,7 @@
 #include "System.h"
 
 #include <esp_random.h>
+#include <esp_vfs_fat.h>
 
 #ifdef SD_MMC_1BIT_MODE
 fs::FS gFSystem = (fs::FS) SD_MMC;
@@ -459,4 +460,19 @@ int16_t SdCard_findNextOrPrevDirectoryTrack(const Playlist &_playlist, size_t cu
 
 	// If no jump possible, return -1
 	return -1;
+}
+
+const String SdCard_GetVolumeLabel() {
+#if FF_USE_LABEL
+	char label[24];
+	memset(label, 0, sizeof(label));
+
+	DWORD vsn = 0;
+	FRESULT res = f_getlabel("", label, &vsn);
+
+	if (res == FR_OK && strlen(label) > 0) {
+		return String(label);
+	}
+#endif
+	return String("/");
 }
