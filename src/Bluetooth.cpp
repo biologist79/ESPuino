@@ -383,7 +383,7 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	// Lazy initialization: create ringbuffer on first use to save heap memory
-	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && (validSamples > 0) && a2dp_source->is_connected()) {
 		// Create ringbuffer on first use (lazy initialization)
 		if (audioSourceRingBuffer == NULL) {
 	#ifdef BOARD_HAS_PSRAM
@@ -419,8 +419,7 @@ bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 			}
 		}
 
-		const TickType_t sendTimeout = pdMS_TO_TICKS(20);
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, sendTimeout));
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, (TickType_t) portMAX_DELAY));
 	} else {
 		return false;
 	}
