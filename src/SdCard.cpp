@@ -287,7 +287,7 @@ static bool SdCard_allocAndSave(Playlist *playlist, const String &s) {
 };
 
 static std::optional<Playlist *> SdCard_ParseM3UPlaylist(File file) {
-	Playlist *playlist = new Playlist();
+	Playlist *playlist = allocatePlaylist();
 
 	// reserve a sane amount of memory to reduce heap fragmentation
 	playlist->reserve(64);
@@ -335,7 +335,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	static Playlist *playlist = nullptr; // static because of possible recursion
 	if (_recursionMode == false) {
 		Log_Printf(LOGLEVEL_DEBUG, freeMemory, ESP.getFreeHeap());
-		playlist = new Playlist();
+		playlist = allocatePlaylist();
 		Log_Printf(LOGLEVEL_NOTICE, playlistRecDepth, _maxRecursionDepth);
 	}
 

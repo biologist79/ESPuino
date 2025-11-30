@@ -290,7 +290,7 @@ void AudioPlayer_Init(void) {
 	gPlayProperties.title[0] = '\0';
 	gPlayProperties.coverFilePos = 0;
 	AudioPlayer_StationLogoUrl = "";
-	gPlayProperties.playlist = new Playlist();
+	gPlayProperties.playlist = allocatePlaylist();
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
 #ifdef PAUSE_WHEN_RFID_REMOVED
@@ -1234,7 +1234,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			auto first = list->at(0);
 			list->at(0) = nullptr; // prevent our entry from being destroyed
 			freePlaylist(list); // this also scrapped our vector --> recreate it
-			list = new Playlist();
+			list = allocatePlaylist();
 			list->push_back(first);
 			break;
 		}
@@ -1373,7 +1373,7 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _
 
 // Adds webstream to playlist; same like SdCard_ReturnPlaylist() but always only one entry
 std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl) {
-	Playlist *playlist = new Playlist();
+	Playlist *playlist = allocatePlaylist();
 	const size_t len = strlen(_webUrl) + 1;
 	char *entry = static_cast<char *>(x_malloc(len));
 	if (!entry) {
