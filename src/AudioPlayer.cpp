@@ -31,7 +31,8 @@
 #define AUDIOPLAYER_VOLUME_MIN	0u
 #define AUDIOPLAYER_VOLUME_INIT 3u
 
-playProps gPlayProperties;
+// Allocate gPlayProperties in PSRAM if available
+EXT_RAM_BSS_ATTR playProps gPlayProperties;
 
 // Playlist
 static playlistSortMode AudioPlayer_PlaylistSortMode = AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT;
@@ -285,6 +286,10 @@ void AudioPlayer_Init(void) {
 	// initialize gPlayProperties
 	gPlayProperties = {};
 	gPlayProperties.playlistFinished = true;
+	gPlayProperties.jumpToFolderTrack = -1;
+	gPlayProperties.gainLowPass = 0;
+	gPlayProperties.gainBandPass = 0;
+	gPlayProperties.gainHighPass = 0;
 
 	// clear title and cover image
 	gPlayProperties.title[0] = '\0';
