@@ -255,11 +255,6 @@ void Wlan_Init(void) {
 	migrateFromVersion1();
 	migrateFromVersion2();
 
-	if (OPMODE_NORMAL != System_GetOperationMode()) {
-		wifiState = WIFI_STATE_END;
-		return;
-	}
-
 	// dump all network settings
 	iterateNvsEntries([](const char *, const WiFiSettings &s) {
 		char buffer[128]; // maximum buffer needed when we have static IP
@@ -449,9 +444,10 @@ void ntpTimeAvailable(struct timeval *t) {
 		Log_Println(ntpFailed, LOGLEVEL_NOTICE);
 		return;
 	}
-	static char timeStringBuff[255];
-	snprintf(timeStringBuff, sizeof(timeStringBuff), ntpGotTime, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+	char *timeStringBuff = (char *) x_malloc(255);
+	snprintf(timeStringBuff, sizeof(char) * 255, ntpGotTime, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
+	free(timeStringBuff);
 	// set ESPuino's very first start date
 	if (!gPrefsSettings.isKey("firstStart")) {
 		gPrefsSettings.putULong("firstStart", t->tv_sec);

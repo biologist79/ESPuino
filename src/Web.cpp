@@ -442,7 +442,7 @@ void webserverStart(void) {
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
-					// Audio_TaskPause();
+					Audio_TaskPause();
 					Led_TaskPause();
 					Rfid_TaskPause();
 					Update.begin();
@@ -456,7 +456,7 @@ void webserverStart(void) {
 					Update.end(true);
 					// resume the paused tasks
 					Led_TaskResume();
-					// Audio_TaskResume();
+					Audio_TaskResume();
 					Rfid_TaskResume();
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
@@ -1644,7 +1644,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
-	// Audio_TaskPause();
+	Audio_TaskPause();
 	Led_TaskPause();
 	Rfid_TaskPause();
 
@@ -1683,7 +1683,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 				free(parameter);
 				// resume the paused tasks
 				Led_TaskResume();
-				// Audio_TaskResume();
+				Audio_TaskResume();
 				Rfid_TaskResume();
 				// destroy double buffer memory, since the upload was interrupted
 				destroyDoubleBuffer();
@@ -1698,7 +1698,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	free(parameter);
 	// resume the paused tasks
 	Led_TaskResume();
-	// Audio_TaskResume();
+	Audio_TaskResume();
 	Rfid_TaskResume();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);
