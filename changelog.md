@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 07.12.2025: WiFi / Bluetooth coexistence
 * 30.11.2025: Allocate playlist, tasklist in PSRAM if available
 * 30.11.2025: Web UI: Show SD card icon and volume label
 * 30.11.2025: BT-Source: Allocate ringbuffer in PSRAM to save heap, use lazy initialization
