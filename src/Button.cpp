@@ -44,7 +44,8 @@ bool gButtonInitComplete = false;
 	#define EXPANDER_5_ENABLE
 #endif
 
-t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+// Allocate gButtons in PSRAM if available
+EXT_RAM_BSS_ATTR t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
 uint16_t gLongPressTime = 0;
 
