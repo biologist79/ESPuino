@@ -300,16 +300,24 @@
 		}
 	},
 	"bt": {
+		"normal": {
+			"title": "Exit Bluetooth Mode",
+			"desc": "Returns to normal mode with WiFi functionality. Music from SD card and web streams can be played.",
+			"button": "Exit Bluetooth Mode",
+			"indicator": "WiFi Mode (RSSI: {{rssi}} dBm)"
+		},
 		"sink": {
 			"title": "ESPuino as Bluetooth speaker",
 			"desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
-			"button": "Start as Bluetooth speaker"
+			"button": "Start as Bluetooth speaker",
+			"indicator": "Bluetooth Speaker Mode"
 		},
 		"source": {
 			"configtitle": "Bluetooth headphone settings",
 			"title": "Connect with Bluetooth headphone",
 			"desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
-			"button": "Start in headphone mode"
+			"button": "Start in headphone mode",
+			"indicator": "Bluetooth Headphone Mode"
 		},
 		"device": {
 			"title": "Bluetooth device (headphone)",

@@ -10,7 +10,7 @@ info:
 servers:
   - url: /
     description: Local Device
-  - url: 'http://espuino.local/'
+  - url: "http://espuino.local/"
     description: Development ESPuino
 paths:
   /explorer:
@@ -25,7 +25,7 @@ paths:
             default: /
           description: Path to the directory to be listed.
       responses:
-        '200':
+        "200":
           description: Directory content successfully listed.
           content:
             application/json:
@@ -61,7 +61,7 @@ paths:
                   type: string
                   format: binary
       responses:
-        '200':
+        "200":
           description: File successfully uploaded.
     delete:
       summary: Delete a file or directory.
@@ -73,7 +73,7 @@ paths:
             type: string
           description: Path to the file or directory to be deleted.
       responses:
-        '200':
+        "200":
           description: File or directory successfully deleted.
     put:
       summary: Create a new directory.
@@ -85,7 +85,7 @@ paths:
             type: string
           description: Path for the new directory to be created.
       responses:
-        '200':
+        "200":
           description: Directory successfully created.
     patch:
       summary: Rename a file.
@@ -102,7 +102,7 @@ paths:
             type: string
           description: New path for the file.
       responses:
-        '200':
+        "200":
           description: File successfully renamed.
   /exploreraudio:
     post:
@@ -120,7 +120,7 @@ paths:
             type: string
           description: Play mode for audio.
       responses:
-        '200':
+        "200":
           description: Successful audio play.
           content:
             application/json:
@@ -140,14 +140,14 @@ paths:
             type: string
           description: Path of the file to download.
       responses:
-        '200':
+        "200":
           description: Successful download.
   /savedSSIDs:
     get:
       summary: Get a list of saved networks.
       description: Get a list of saved Wi-Fi networks.
       responses:
-        '200':
+        "200":
           description: Successful response with saved networks.
           content:
             application/json:
@@ -186,7 +186,7 @@ paths:
                 - SSID
                 - pwd
       responses:
-        '200':
+        "200":
           description: Successful network save.
     delete:
       summary: Delete a saved network.
@@ -198,14 +198,14 @@ paths:
             type: string
           description: SSID of the network to delete.
       responses:
-        '200':
+        "200":
           description: Successful network deletion.
   /activeSSID:
     get:
       summary: Get the current active network name.
       description: Get the SSID of the currently active network.
       responses:
-        '200':
+        "200":
           description: Successful response with active network name.
           content:
             application/json:
@@ -216,7 +216,7 @@ paths:
       summary: Get current common Wi-Fi configuration.
       description: Get the current common Wi-Fi configuration settings.
       responses:
-        '200':
+        "200":
           description: Successful response with Wi-Fi configuration.
           content:
             application/json:
@@ -246,12 +246,61 @@ paths:
                 - hostname
                 - ScanWiFiOnStart
       responses:
-        '200':
+        "200":
           description: Successful Wi-Fi configuration save.
+  /mode:
+    get:
+      summary: Get current operation mode.
+      description: Get the current operation mode of the device (Normal, Bluetooth Sink, or Bluetooth Source).
+      responses:
+        "200":
+          description: Successful response with current operation mode.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mode:
+                    type: integer
+                    description: >-
+                      Operation mode: 0 = Normal, 1 = Bluetooth Sink, 2 = Bluetooth Source
+                    enum:
+                      - 0
+                      - 1
+                      - 2
+    post:
+      summary: Set operation mode.
+      description: >-
+        Set the operation mode of the device. The device will restart immediately after receiving this request.
+        Note: The HTTP response may not be received as the device restarts before sending it.
+        The client should display a restart notification immediately after sending this request.
+      requestBody:
+        description: Operation mode to set.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: integer
+                  description: >-
+                    Operation mode: 0 = Normal, 1 = Bluetooth Sink, 2 = Bluetooth Source
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+              required:
+                - mode
+      responses:
+        "200":
+          description: Operation mode change accepted (device restarts immediately - response may not be received).
+        "400":
+          description: Bad request - missing or invalid 'mode' parameter.
   /settings:
     get:
       summary: Get common settings.
-      description: 'Get common settings, optionally for a specific section.'
+      description: "Get common settings, optionally for a specific section."
       parameters:
         - in: query
           name: section
@@ -259,7 +308,7 @@ paths:
             type: string
           description: Optional section to retrieve specific settings.
       responses:
-        '200':
+        "200":
           description: Successful response with common settings.
           content:
             application/json:
@@ -267,7 +316,7 @@ paths:
                 type: object
                 properties:
                   # Include your common settings properties here.
-                  null
+                  {}
     post:
       summary: Save settings.
       description: Save common settings.
@@ -306,7 +355,7 @@ paths:
               required:
                 - general
       responses:
-        '200':
+        "200":
           description: Successful settings save.
   /rfid:
     get:
@@ -321,7 +370,7 @@ paths:
             type: string
           description: Optional ID to list only a single assignment.
       responses:
-        '200':
+        "200":
           description: Successful response with RFID-tag assignments.
           content:
             application/json:
@@ -329,9 +378,8 @@ paths:
                 type: array
                 items:
                   type: object
-                  properties:
-                    # Include your RFID-tag assignment properties here.
-                    null
+                  # Include your RFID-tag assignment properties here.
+                  additionalProperties: true
     post:
       summary: Save or overwrite RFID-tag assignment.
       description: Save a new RFID-tag assignment or overwrite an existing one.
@@ -355,7 +403,7 @@ paths:
                 - id
                 - fileOrUrl
       responses:
-        '200':
+        "200":
           description: Successful RFID-tag assignment save.
     delete:
       summary: Delete an RFID-tag assignment.
@@ -367,14 +415,14 @@ paths:
             type: string
           description: ID of the RFID-tag assignment to delete.
       responses:
-        '200':
+        "200":
           description: Successful RFID-tag assignment deletion.
   /rfid/ids-only:
     get:
       summary: Get an array of RFID tag ID names.
       description: Returns an array of RFID tag IDs without additional details.
       responses:
-        '200':
+        "200":
           description: Successful response with RFID tag IDs.
           content:
             application/json:
@@ -387,7 +435,7 @@ paths:
       summary: Get album cover image.
       description: Handle album cover image requests and serve the current cover art image.
       responses:
-        '200':
+        "200":
           description: Successful response with album cover image.
           content:
             image/jpeg:
@@ -399,21 +447,20 @@ paths:
       summary: Get common information.
       description: Returns a JSON object with common information about ESPuino.
       responses:
-        '200':
+        "200":
           description: Successful response with common information.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  # Include your common information properties here.
-                  null
+                # Include your common information properties here.
+                additionalProperties: true
   /log:
     get:
       summary: Get current log.
       description: Returns the current log as text.
       responses:
-        '200':
+        "200":
           description: Successful response with log text.
           content:
             text/plain:
@@ -424,7 +471,7 @@ paths:
       summary: Get task runtime information.
       description: Returns an HTML webpage with task runtime information.
       responses:
-        '200':
+        "200":
           description: Successful response with task runtime information.
           content:
             text/html:
@@ -435,21 +482,20 @@ paths:
       summary: Get debug information.
       description: Returns task runtime and debug information as JSON.
       responses:
-        '200':
+        "200":
           description: Successful response with debug information.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  # Include your debug information properties here.
-                  null
+                # Include your debug information properties here.
+                additionalProperties: true
   /upload:
     post:
       summary: Upload NVS backup.
       description: Uploads a NVS backup file.
       responses:
-        '200':
+        "200":
           description: Successful response for NVS backup upload.
       requestBody:
         required: true
@@ -466,7 +512,7 @@ paths:
       summary: Upload new firmware.
       description: Uploads new firmware to ESPuino. Make sure to restart afterwards.
       responses:
-        '200':
+        "200":
           description: Successful response for firmware update.
       requestBody:
         required: true
@@ -483,21 +529,21 @@ paths:
       summary: Restart ESPuino.
       description: Performs a restart of ESPuino. No parameters required.
       responses:
-        '200':
+        "200":
           description: Successful response for ESPuino restart.
   /shutdown:
     post:
       summary: Shutdown ESPuino.
       description: Performs a shutdown (deep-sleep) of ESPuino. No parameters required.
       responses:
-        '200':
+        "200":
           description: Successful response for ESPuino shutdown.
   /rfidnvserase:
     post:
       summary: Erase RFID assignments from NVS.
       description: Erases all RFID assignments from NVS.
       responses:
-        '200':
+        "200":
           description: Successful response for RFID assignments erasure.
   /wifiscan:
     get:
@@ -507,7 +553,7 @@ paths:
         return 0 results unless you start the scan from somewhere else
         (loop/setup). Do not request more often than 3-5 seconds!
       responses:
-        '200':
+        "200":
           description: Successful response with nearby WiFi networks.
           content:
             application/json:
@@ -518,21 +564,20 @@ paths:
   /trackprogress:
     get:
       summary: Get current track progress.
-      description: 'Get current track progress, time, and duration.'
+      description: "Get current track progress, time, and duration."
       responses:
-        '200':
+        "200":
           description: Successful response with track progress information.
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  # Include your track progress information properties here.
-                  null
+                # Include your track progress information properties here.
+                additionalProperties: true
   /inithalleffectsensor:
     get:
       summary: Initialize Hall Effect Sensor Value.
       description: Initializes the Hall Effect Sensor Value.
       responses:
-        '200':
+        "200":
           description: Successful response for initializing Hall Effect Sensor Value.

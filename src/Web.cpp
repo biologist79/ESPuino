@@ -88,6 +88,8 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleGetOperationMode(AsyncWebServerRequest *request);
+static void handlePostOperationMode(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDebugRequest(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
@@ -604,6 +606,9 @@ void webserverStart(void) {
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/settings", handlePostSettings));
+		// operation mode
+		wServer.on("/mode", HTTP_GET, handleGetOperationMode);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/mode", handlePostOperationMode));
 		// Init HallEffectSensor Value
 #ifdef HALLEFFECT_SENSOR_ENABLE
 		wServer.on("/inithalleffectsensor", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -1312,6 +1317,27 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	}
 }
 
+// handle get operation mode
+void handleGetOperationMode(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse(false);
+	JsonObject object = response->getRoot();
+	object["mode"] = System_GetOperationMode();
+	response->setLength();
+	request->send(response);
+}
+
+// handle post operation mode
+void handlePostOperationMode(AsyncWebServerRequest *request, JsonVariant &json) {
+	const JsonObject &jsonObj = json.as<JsonObject>();
+	if (jsonObj["mode"].is<uint8_t>()) {
+		uint8_t mode = jsonObj["mode"].as<uint8_t>();
+		System_SetOperationMode(mode);
+		request->send(200);
+	} else {
+		request->send(400, "text/plain; charset=utf-8", "missing 'mode' parameter");
+	}
+}
+
 // handle debug request
 // returns memory and task runtime information as JSON
 void handleDebugRequest(AsyncWebServerRequest *request) {
@@ -1410,6 +1436,8 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		object["rssi"] = Wlan_GetRssi();
 		// todo: battery percent + loading status +++
 		// object["battery"] = Battery_GetVoltage();
+	} else if (code == WebsocketCodeType::OperationMode) {
+		object["opmode"] = System_GetOperationMode();
 	} else if (code == WebsocketCodeType::TrackInfo) {
 		JsonObject entry = object["trackinfo"].to<JsonObject>();
 		entry["pausePlay"] = gPlayProperties.pausePlay;
@@ -1466,6 +1494,8 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 	if (type == WS_EVT_CONNECT) {
 		// client connected
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
+		// Send initial operation mode and RSSI to newly connected client
+		Web_SendWebsocketData(client->id(), WebsocketCodeType::OperationMode);
 		// client->printf("Hello Client %u :)", client->id());
 		// client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {
