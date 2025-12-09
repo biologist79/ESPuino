@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 09.12.2025: Web UI: Allow escape from Bluetooth mode
 * 07.12.2025: WiFi / Bluetooth coexistence
 * 30.11.2025: Allocate playlist, tasklist in PSRAM if available
 * 30.11.2025: Web UI: Show SD card icon and volume label
