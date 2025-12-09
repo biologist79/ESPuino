@@ -300,16 +300,24 @@
 		}
 	},
 	"bt": {
+		"normal": {
+			"title": "Bluetooth-Modus verlassen",
+			"desc": "Kehrt zum normalen Modus mit WiFi-Funktionalität zurück. Musik von SD-Karte und Webstreams können abgespielt werden.",
+			"button": "Bluetooth-Modus verlassen",
+			"indicator": "WiFi-Modus (RSSI: {{rssi}} dBm)"
+		},
 		"sink": {
 			"title": "ESPuino als Bluetooth-Lautsprecher",
 			"desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
-			"button": "Als Bluetooth-Lautsprecher starten"
+			"button": "Als Bluetooth-Lautsprecher starten",
+			"indicator": "Bluetooth-Lautsprecher Modus"
 		},
 		"source": {
 			"configtitle": "Bluetooth-Kopfhörer Einstellungen",
 			"title": "Mit Bluetooth-Kopfhörer verbinden",
 			"desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth-Kopfhörer. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
-			"button": "Im Kopfhörer-Modus starten"
+			"button": "Im Kopfhörer-Modus starten",
+			"indicator": "Bluetooth-Kopfhörer Modus"
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",

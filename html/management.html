@@ -808,6 +808,18 @@
 		</div>
 		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+			<div class="container" id="btBackToNormal" style="display: none;">
+				<div class="mb-3 col-md-12">
+					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
+					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
+					<br>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
+							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
+					</div>
+				</div>
+				<hr>
+			</div>
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
@@ -831,7 +843,7 @@
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(141)"
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
 				</div>
@@ -843,7 +855,7 @@
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(140)"
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
@@ -2126,7 +2138,31 @@
 		var volumeSlider = new Slider("#setVolume");
 		document.getElementById('setVolume').remove();
 
-		function connect() {
+		function updateOperationModeIndicator(opmode) {
+			const btStartSource = document.getElementById('btStartSource');
+			const btStartSink = document.getElementById('btStartSink');
+
+			// OPMODE_NORMAL = 0, OPMODE_BLUETOOTH_SINK = 1, OPMODE_BLUETOOTH_SOURCE = 2
+			if (opmode === 0) {
+				// Normal mode - no active panel
+				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Hide back to normal section
+				document.getElementById('btBackToNormal').style.display = 'none';
+			} else if (opmode === 1) {
+				// Bluetooth Sink - highlight sink panel
+				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSink.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Show back to normal section
+				document.getElementById('btBackToNormal').style.display = 'block';
+			} else if (opmode === 2) {
+				// Bluetooth Source - highlight source panel
+				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Show back to normal section
+				document.getElementById('btBackToNormal').style.display = 'block';
+			}
+		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
 				clearInterval(pingInterval);
@@ -2177,6 +2213,9 @@
 					if (socketMsg.pong == 'pong') {
 						pong();
 					}
+				}
+				if ("opmode" in socketMsg) {
+					updateOperationModeIndicator(socketMsg.opmode);
 				}
 				if ("volume" in socketMsg) {
 					volumeSlider.setValue(parseInt(socketMsg.volume));
@@ -2867,6 +2906,27 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+		}
+
+		function setOperationMode(mode) {
+			console.log("set operation mode: " + mode);
+			// Show modal immediately before sending request
+			tryRedirect();
+			$('.modal-title').text(i18next.t("restart"));
+			$('.modal-body').html(i18next.t("restartinfo"));
+			$(".modal-body").removeAttr("style");
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+
+			// Send mode change request (device will restart immediately)
+			fetch('/mode', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ mode: mode })
+			}).catch(error => {
+				console.log('Device restarting, connection lost (expected):', error);
+			});
 		}
 
 		function executeCommand() {
