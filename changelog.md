@@ -6,6 +6,7 @@
 
 ## Version 2.5 (01.01.2026)
 
+* 01.01.2026: Add bluetooth source connection handling and flushing (#384)
 * 01.01.2026: Refactor button handling logic (#387)
 * 01.01.2026: Refactor shutdown button logic for clarity (#385)
 * 01.01.2026: Simplify channel to bit mapping in Port_ChannelToBit (#386)
