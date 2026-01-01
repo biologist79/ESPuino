@@ -70,35 +70,18 @@ void Button_Init() {
 #endif
 
 #ifdef NEOPIXEL_ENABLE // Try to find button that is used for shutdown via longpress-action (only necessary for Neopixel)
-	#if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
-		#if (BUTTON_0_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 0;
-		#endif
-	#endif
-	#if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
-		#if (BUTTON_1_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 1;
-		#endif
-	#endif
-	#if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
-		#if (BUTTON_2_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 2;
-		#endif
-	#endif
-	#if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-		#if (BUTTON_3_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 3;
-		#endif
-	#endif
-	#if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
-		#if (BUTTON_4_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 4;
-		#endif
-	#endif
-	#if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
-		#if (BUTTON_5_LONG == CMD_SLEEPMODE)
-	gShutdownButton = 5;
-		#endif
+	#if (defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)) && (BUTTON_0_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 0;
+	#elif (defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)) && (BUTTON_1_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 1;
+	#elif (defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)) && (BUTTON_2_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 2;
+	#elif (defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)) && (BUTTON_3_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 3;
+	#elif (defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)) && (BUTTON_4_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 4;
+	#elif (defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)) && (BUTTON_5_LONG == CMD_SLEEPMODE)
+		gShutdownButton = 5;
 	#endif
 #endif
 
