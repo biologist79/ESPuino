@@ -149,11 +149,11 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 #ifdef PORT_EXPANDER_ENABLE
 // Translates digitalWrite-style "GPIO" to bit
 uint8_t Port_ChannelToBit(const uint8_t _channel) {
-    if (_channel >= 100 && _channel <= 115) {
-        return (_channel - 100) % 8;
-    } else {
-        return 255; // not valid!
-    }
+	if (_channel >= 100 && _channel <= 115) {
+		return (_channel - 100) % 8;
+	} else {
+		return 255; // not valid!
+	}
 }
 
 // Writes initial port-configuration (I/O) for port-expander PCA9555
