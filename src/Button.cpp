@@ -144,197 +144,181 @@ void Button_Init() {
 #endif
 }
 
-// If timer-semaphore is set, read buttons (unless controls are locked)
-void Button_Cyclic() {
-	if (xSemaphoreTake(Button_TimerSemaphore, 0) == pdTRUE) {
-		unsigned long currentTimestamp = millis();
-#ifdef PORT_EXPANDER_ENABLE
-		Port_Cyclic();
-#endif
-
-		if (System_AreControlsLocked()) {
-			return;
-		}
-
-// Buttons can be mixed between GPIO and port-expander.
-// But at the same time only one of them can be for example NEXT_BUTTON
+// Read current state of all enabled buttons
+static void Button_ReadAllStates(void) {
 #if defined(BUTTON_0_ENABLE) || defined(EXPANDER_0_ENABLE)
-		gButtons[0].currentState = Port_Read(NEXT_BUTTON) ^ BUTTON_0_ACTIVE_STATE;
+	gButtons[0].currentState = Port_Read(NEXT_BUTTON) ^ BUTTON_0_ACTIVE_STATE;
 #endif
 #if defined(BUTTON_1_ENABLE) || defined(EXPANDER_1_ENABLE)
-		gButtons[1].currentState = Port_Read(PREVIOUS_BUTTON) ^ BUTTON_1_ACTIVE_STATE;
+	gButtons[1].currentState = Port_Read(PREVIOUS_BUTTON) ^ BUTTON_1_ACTIVE_STATE;
 #endif
 #if defined(BUTTON_2_ENABLE) || defined(EXPANDER_2_ENABLE)
-		gButtons[2].currentState = Port_Read(PAUSEPLAY_BUTTON) ^ BUTTON_2_ACTIVE_STATE;
+	gButtons[2].currentState = Port_Read(PAUSEPLAY_BUTTON) ^ BUTTON_2_ACTIVE_STATE;
 #endif
 #if defined(BUTTON_3_ENABLE) || defined(EXPANDER_3_ENABLE)
-		gButtons[3].currentState = Port_Read(ROTARYENCODER_BUTTON) ^ BUTTON_3_ACTIVE_STATE;
+	gButtons[3].currentState = Port_Read(ROTARYENCODER_BUTTON) ^ BUTTON_3_ACTIVE_STATE;
 #endif
 #if defined(BUTTON_4_ENABLE) || defined(EXPANDER_4_ENABLE)
-		gButtons[4].currentState = Port_Read(BUTTON_4) ^ BUTTON_4_ACTIVE_STATE;
+	gButtons[4].currentState = Port_Read(BUTTON_4) ^ BUTTON_4_ACTIVE_STATE;
 #endif
 #if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
-		gButtons[5].currentState = Port_Read(BUTTON_5) ^ BUTTON_5_ACTIVE_STATE;
+	gButtons[5].currentState = Port_Read(BUTTON_5) ^ BUTTON_5_ACTIVE_STATE;
 #endif
+}
 
-		// Iterate over all buttons in struct-array
-		for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {
-			if (gButtons[i].currentState != gButtons[i].lastState && currentTimestamp - gButtons[i].lastPressedTimestamp > buttonDebounceInterval) {
-				if (!gButtons[i].currentState) {
-					gButtons[i].isPressed = true;
-					gButtons[i].lastPressedTimestamp = currentTimestamp;
-					if (!gButtons[i].firstPressedTimestamp) {
-						gButtons[i].firstPressedTimestamp = currentTimestamp;
-					}
-				} else {
-					gButtons[i].isReleased = true;
-					gButtons[i].lastReleasedTimestamp = currentTimestamp;
-					gButtons[i].firstPressedTimestamp = 0;
-				}
+// Update press/release state for a single button with debouncing
+static void Button_UpdateState(t_button &btn, unsigned long currentTimestamp) {
+	bool const stateChanged = btn.currentState != btn.lastState;
+	bool const debounceElapsed = currentTimestamp - btn.lastPressedTimestamp > buttonDebounceInterval;
+
+	if (stateChanged && debounceElapsed) {
+		bool const buttonPressed = !btn.currentState;
+		if (buttonPressed) {
+			btn.isPressed = true;
+			btn.lastPressedTimestamp = currentTimestamp;
+			if (!btn.firstPressedTimestamp) {
+				btn.firstPressedTimestamp = currentTimestamp;
 			}
-			gButtons[i].lastState = gButtons[i].currentState;
+		} else {
+			btn.isReleased = true;
+			btn.lastReleasedTimestamp = currentTimestamp;
+			btn.firstPressedTimestamp = 0;
 		}
 	}
+	btn.lastState = btn.currentState;
+}
+
+// If timer-semaphore is set, read buttons (unless controls are locked)
+void Button_Cyclic() {
+	if (xSemaphoreTake(Button_TimerSemaphore, 0) != pdTRUE) {
+		return;
+	}
+
+	unsigned long currentTimestamp = millis();
+
+#ifdef PORT_EXPANDER_ENABLE
+	Port_Cyclic();
+#endif
+
+	if (System_AreControlsLocked()) {
+		return;
+	}
+
+	Button_ReadAllStates();
+
+	for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {
+		Button_UpdateState(gButtons[i], currentTimestamp);
+	}
+
 	gButtonInitComplete = true;
 	Button_DoButtonActions();
 }
 
+// Multi-button combination configuration: {btn1, btn2, prefsKey, defaultCmd}
+static const struct {
+	uint8_t btn1;
+	uint8_t btn2;
+	const char *prefsKey;
+	uint8_t defaultCmd;
+} multiButtonCombos[] = {
+	{0, 1, "btnMulti01", BUTTON_MULTI_01},
+	{0, 2, "btnMulti02", BUTTON_MULTI_02},
+	{0, 3, "btnMulti03", BUTTON_MULTI_03},
+	{0, 4, "btnMulti04", BUTTON_MULTI_04},
+	{0, 5, "btnMulti05", BUTTON_MULTI_05},
+	{1, 2, "btnMulti12", BUTTON_MULTI_12},
+	{1, 3, "btnMulti13", BUTTON_MULTI_13},
+	{1, 4, "btnMulti14", BUTTON_MULTI_14},
+	{1, 5, "btnMulti15", BUTTON_MULTI_15},
+	{2, 3, "btnMulti23", BUTTON_MULTI_23},
+	{2, 4, "btnMulti24", BUTTON_MULTI_24},
+	{2, 5, "btnMulti25", BUTTON_MULTI_25},
+	{3, 4, "btnMulti34", BUTTON_MULTI_34},
+	{3, 5, "btnMulti35", BUTTON_MULTI_35},
+	{4, 5, "btnMulti45", BUTTON_MULTI_45},
+};
+
+// Check for multi-button combinations and execute corresponding action
+static bool Button_HandleMultiButtonPress(void) {
+	for (const auto &combo : multiButtonCombos) {
+		if (gButtons[combo.btn1].isPressed && gButtons[combo.btn2].isPressed) {
+			gButtons[combo.btn1].isPressed = false;
+			gButtons[combo.btn2].isPressed = false;
+			Cmd_Action(gPrefsSettings.getUChar(combo.prefsKey, combo.defaultCmd));
+			return true;
+		}
+	}
+	return false;
+}
+
+// Button command configuration: {prefsKeyShort, prefsKeyLong, defaultShort, defaultLong}
+static const struct {
+	const char *prefsKeyShort;
+	const char *prefsKeyLong;
+	uint8_t defaultShort;
+	uint8_t defaultLong;
+} buttonCmdConfig[] = {
+	{"btnShort0", "btnLong0", BUTTON_0_SHORT, BUTTON_0_LONG},
+	{"btnShort1", "btnLong1", BUTTON_1_SHORT, BUTTON_1_LONG},
+	{"btnShort2", "btnLong2", BUTTON_2_SHORT, BUTTON_2_LONG},
+	{"btnShort3", "btnLong3", BUTTON_3_SHORT, BUTTON_3_LONG},
+	{"btnShort4", "btnLong4", BUTTON_4_SHORT, BUTTON_4_LONG},
+	{"btnShort5", "btnLong5", BUTTON_5_SHORT, BUTTON_5_LONG},
+};
+
+// Handle a single button's short/long press action
+static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) {
+	uint8_t Cmd_Short = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyShort, buttonCmdConfig[i].defaultShort);
+	uint8_t Cmd_Long = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyLong, buttonCmdConfig[i].defaultLong);
+	unsigned long const pressDuration = currentTimestamp - gButtons[i].lastPressedTimestamp;
+	bool const wasReleased = gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp;
+
+	// Handle button release (short or long press completed)
+	if (wasReleased) {
+		unsigned long const releaseDuration = gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp;
+		bool const wasShortPress = releaseDuration < intervalToLongPress;
+
+		if (wasShortPress) {
+			Cmd_Action(Cmd_Short);
+		} else if (Cmd_Long == CMD_SLEEPMODE) {
+			// Sleep-mode only triggers on release to prevent immediate wake-up
+			Cmd_Action(Cmd_Long);
+		}
+
+		gButtons[i].isPressed = false;
+		return;
+	}
+
+	// Handle volume buttons with repeat functionality
+	if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
+		if (pressDuration <= intervalToLongPress) {
+			return;
+		}
+		uint16_t remainder = pressDuration % intervalToLongPress;
+		if (remainder < gLongPressTime) {
+			Cmd_Action(Cmd_Long);
+		}
+		gLongPressTime = remainder;
+		return;
+	}
+
+	// Handle other long-press actions (except sleep mode which triggers on release)
+	if (Cmd_Long != CMD_SLEEPMODE && pressDuration > intervalToLongPress) {
+		gButtons[i].isPressed = false;
+		Cmd_Action(Cmd_Long);
+	}
+}
+
 // Do corresponding actions for all buttons
 void Button_DoButtonActions(void) {
-	if (gButtons[0].isPressed && gButtons[1].isPressed) {
-		gButtons[0].isPressed = false;
-		gButtons[1].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti01", BUTTON_MULTI_01));
-	} else if (gButtons[0].isPressed && gButtons[2].isPressed) {
-		gButtons[0].isPressed = false;
-		gButtons[2].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti02", BUTTON_MULTI_02));
-	} else if (gButtons[0].isPressed && gButtons[3].isPressed) {
-		gButtons[0].isPressed = false;
-		gButtons[3].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti03", BUTTON_MULTI_03));
-	} else if (gButtons[0].isPressed && gButtons[4].isPressed) {
-		gButtons[0].isPressed = false;
-		gButtons[4].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti04", BUTTON_MULTI_04));
-	} else if (gButtons[0].isPressed && gButtons[5].isPressed) {
-		gButtons[0].isPressed = false;
-		gButtons[5].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti05", BUTTON_MULTI_05));
-	} else if (gButtons[1].isPressed && gButtons[2].isPressed) {
-		gButtons[1].isPressed = false;
-		gButtons[2].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti12", BUTTON_MULTI_12));
-	} else if (gButtons[1].isPressed && gButtons[3].isPressed) {
-		gButtons[1].isPressed = false;
-		gButtons[3].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti13", BUTTON_MULTI_13));
-	} else if (gButtons[1].isPressed && gButtons[4].isPressed) {
-		gButtons[1].isPressed = false;
-		gButtons[4].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti14", BUTTON_MULTI_14));
-	} else if (gButtons[1].isPressed && gButtons[5].isPressed) {
-		gButtons[1].isPressed = false;
-		gButtons[5].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti15", BUTTON_MULTI_15));
-	} else if (gButtons[2].isPressed && gButtons[3].isPressed) {
-		gButtons[2].isPressed = false;
-		gButtons[3].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti23", BUTTON_MULTI_23));
-	} else if (gButtons[2].isPressed && gButtons[4].isPressed) {
-		gButtons[2].isPressed = false;
-		gButtons[4].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti24", BUTTON_MULTI_24));
-	} else if (gButtons[2].isPressed && gButtons[5].isPressed) {
-		gButtons[2].isPressed = false;
-		gButtons[5].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti25", BUTTON_MULTI_25));
-	} else if (gButtons[3].isPressed && gButtons[4].isPressed) {
-		gButtons[3].isPressed = false;
-		gButtons[4].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti34", BUTTON_MULTI_34));
-	} else if (gButtons[3].isPressed && gButtons[5].isPressed) {
-		gButtons[3].isPressed = false;
-		gButtons[5].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti35", BUTTON_MULTI_35));
-	} else if (gButtons[4].isPressed && gButtons[5].isPressed) {
-		gButtons[4].isPressed = false;
-		gButtons[5].isPressed = false;
-		Cmd_Action(gPrefsSettings.getUChar("btnMulti45", BUTTON_MULTI_45));
-	} else {
-		unsigned long currentTimestamp = millis();
-		for (uint8_t i = 0; i <= 5; i++) {
-			if (gButtons[i].isPressed) {
-				uint8_t Cmd_Short = 0;
-				uint8_t Cmd_Long = 0;
+	if (Button_HandleMultiButtonPress()) {
+		return;
+	}
 
-				switch (i) { // Long-press-actions
-					case 0:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort0", BUTTON_0_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong0", BUTTON_0_LONG);
-						break;
-
-					case 1:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort1", BUTTON_1_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong1", BUTTON_1_LONG);
-						break;
-
-					case 2:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort2", BUTTON_2_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong2", BUTTON_2_LONG);
-						break;
-
-					case 3:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort3", BUTTON_3_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong3", BUTTON_3_LONG);
-						break;
-
-					case 4:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort4", BUTTON_4_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong4", BUTTON_4_LONG);
-						break;
-
-					case 5:
-						Cmd_Short = gPrefsSettings.getUChar("btnShort5", BUTTON_5_SHORT);
-						Cmd_Long = gPrefsSettings.getUChar("btnLong5", BUTTON_5_LONG);
-						break;
-				}
-
-				if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) { // short action
-					if (gButtons[i].lastReleasedTimestamp - gButtons[i].lastPressedTimestamp < intervalToLongPress) {
-						Cmd_Action(Cmd_Short);
-					} else {
-						// sleep-mode should only be triggered on release, otherwise it will wake it up directly again
-						if (Cmd_Long == CMD_SLEEPMODE) {
-							Cmd_Action(Cmd_Long);
-						}
-					}
-
-					gButtons[i].isPressed = false;
-
-				} else if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) { // volume-buttons
-					// only start action if intervalToLongPress has been reached
-					if (currentTimestamp - gButtons[i].lastPressedTimestamp > intervalToLongPress) {
-
-						// calculate remainder
-						uint16_t remainder = (currentTimestamp - gButtons[i].lastPressedTimestamp) % intervalToLongPress;
-
-						// trigger action if remainder rolled over
-						if (remainder < gLongPressTime) {
-							Cmd_Action(Cmd_Long);
-						}
-
-						gLongPressTime = remainder;
-					}
-
-				} else if (Cmd_Long != CMD_SLEEPMODE) { // long action, if not sleep-mode
-					// start action if intervalToLongPress has been reached
-					if ((currentTimestamp - gButtons[i].lastPressedTimestamp) > intervalToLongPress) {
-						gButtons[i].isPressed = false;
-						Cmd_Action(Cmd_Long);
-					}
-				}
-			}
+	unsigned long currentTimestamp = millis();
+	for (uint8_t i = 0; i < 7; i++) {
+		if (gButtons[i].isPressed) {
+			Button_HandleSinglePress(i, currentTimestamp);
 		}
 	}
 }
