@@ -1,4 +1,4 @@
 #pragma once
 
 #include "gitrevision.h"
-constexpr const char softwareRevision[] = "Software-revision: 20251209-1-DEV";
+constexpr const char softwareRevision[] = "Software-revision: 20260101-1-DEV";
