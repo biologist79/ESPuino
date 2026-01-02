@@ -7,6 +7,7 @@
 #include "AudioPlayer.h"
 #include "Led.h"
 #include "Log.h"
+#include "MemX.h"
 #include "Mqtt.h"
 #include "Port.h"
 #include "Power.h"
@@ -276,7 +277,7 @@ void System_ShowWakeUpReason() {
 
 void System_esp_print_tasks(void) {
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
-	char *pbuffer = (char *) calloc(2048, 1);
+	char *pbuffer = x_calloc(2048, 1);
 	vTaskGetRunTimeStats(pbuffer);
 	Serial.printf("=====\n%s\n=====", pbuffer);
 	free(pbuffer);

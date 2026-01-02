@@ -107,9 +107,9 @@
 		}
 
 		.coverimage-container {
-			width: 80%;
-			max-width: 400px;
-			height: 15%;
+			object-fit: cover;
+			max-width: 100%;
+			height: 300px;
 			margin: auto;
 			display: block;
 		}
@@ -697,11 +697,19 @@
 											data-i18n="files.rfid.playmode.mode.12"></option>
 										<option class="option-file-and-folder" value="3"
 											data-i18n="files.rfid.playmode.mode.3"></option>
+										<option class="option-file-and-folder" value="16"
+											data-i18n="files.rfid.playmode.mode.16"></option>
 										<option class="option-file-and-folder" value="4"
 											data-i18n="files.rfid.playmode.mode.4"></option>
 										<option class="option-folder" value="5" data-i18n="files.rfid.playmode.mode.5">
 										</option>
+										<option class="option-folder" value="15"
+											data-i18n="files.rfid.playmode.mode.15">
+										</option>
 										<option class="option-folder" value="6" data-i18n="files.rfid.playmode.mode.6">
+										</option>
+										<option class="option-folder" value="17"
+											data-i18n="files.rfid.playmode.mode.17">
 										</option>
 										<option class="option-folder" value="7" data-i18n="files.rfid.playmode.mode.7">
 										</option>
@@ -800,6 +808,18 @@
 		</div>
 		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
+			<div class="container" id="btBackToNormal" style="display: none;">
+				<div class="mb-3 col-md-12">
+					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
+					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
+					<br>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
+							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
+					</div>
+				</div>
+				<hr>
+			</div>
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
@@ -823,7 +843,7 @@
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(141)"
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
 				</div>
@@ -835,7 +855,7 @@
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="sendControl(140)"
+						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
@@ -1115,6 +1135,15 @@
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
 								<option value="1" data-i18n="general.playlist.strcmp"></option>
+							</select>
+						</fieldset>
+						<fieldset>
+							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
+							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
+								<option value="4">4</option>
+								<option value="3">3</option>
+								<option value="2">2</option>
+								<option value="1">1</option>
 							</select>
 						</fieldset>
 					</div>
@@ -1939,7 +1968,7 @@
 							opened: true,
 							selected: true
 						},
-						type: 'folder',
+						type: 'sdcard',
 						children: [],
 						data: {
 							path: '/',
@@ -1948,6 +1977,9 @@
 					}
 				},
 				'types': {
+					'sdcard': {
+						'icon': "fa fa-sd-card"
+					},
 					'folder': {
 						'icon': "fa fa-folder"
 					},
@@ -2068,8 +2100,22 @@
 			getData("http://" + host + "/explorer?path=/", function (data) {
 				/* We now have data! */
 				$('#explorerTree').jstree(true).settings.core.data.children = [];
+
+				// If first element has root flag, use it to rename root node and skip it
+				var startIndex = 0;
+				if (data.length > 0 && data[0].root === "sd") {
+					// Rename root node with volume label from backend
+					var tree = $('#explorerTree').jstree(true);
+					tree.settings.core.data.text = data[0].name;
+					var rootNode = tree.get_node(tree.get_container().children('ul').children('li')[0]);
+					if (rootNode) {
+						tree.rename_node(rootNode, data[0].name);
+					}
+					startIndex = 1; // Skip volume label entry, it's not a child
+				}
+
 				sortData(data);
-				for (var i = 0; i < data.length; i++) {
+				for (var i = startIndex; i < data.length; i++) {
 					var newChild = {
 						text: data[i].name,
 						type: getType(data[i]),
@@ -2092,7 +2138,31 @@
 		var volumeSlider = new Slider("#setVolume");
 		document.getElementById('setVolume').remove();
 
-		function connect() {
+		function updateOperationModeIndicator(opmode) {
+			const btStartSource = document.getElementById('btStartSource');
+			const btStartSink = document.getElementById('btStartSink');
+
+			// OPMODE_NORMAL = 0, OPMODE_BLUETOOTH_SINK = 1, OPMODE_BLUETOOTH_SOURCE = 2
+			if (opmode === 0) {
+				// Normal mode - no active panel
+				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Hide back to normal section
+				document.getElementById('btBackToNormal').style.display = 'none';
+			} else if (opmode === 1) {
+				// Bluetooth Sink - highlight sink panel
+				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSink.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Show back to normal section
+				document.getElementById('btBackToNormal').style.display = 'block';
+			} else if (opmode === 2) {
+				// Bluetooth Source - highlight source panel
+				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
+				// Show back to normal section
+				document.getElementById('btBackToNormal').style.display = 'block';
+			}
+		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
 				clearInterval(pingInterval);
@@ -2143,6 +2213,9 @@
 					if (socketMsg.pong == 'pong') {
 						pong();
 					}
+				}
+				if ("opmode" in socketMsg) {
+					updateOperationModeIndicator(socketMsg.opmode);
 				}
 				if ("volume" in socketMsg) {
 					volumeSlider.setValue(parseInt(socketMsg.volume));
@@ -2287,6 +2360,7 @@
 			let playlistSettings = settings.playlist;
 			if (playlistSettings) {
 				$("#playlistSortMode").val(playlistSettings.sortMode).change();
+				$("#playlistRecDepth").val(playlistSettings.recDepth).change();
 			}
 			// rotary encoder
 			let rotarySettings = settings.rotary;
@@ -2371,6 +2445,12 @@
 				document.getElementById('nav-bt-tab').setAttribute('data-visible', true);
 				document.getElementById('btDeviceName').value = btSettings.deviceName;
 				document.getElementById('btPinCode').value = btSettings.pinCode;
+				// make BT commands visible in button command selects
+				document.querySelectorAll('[id*=cmdselect_], #modId').forEach(select => {
+					select.querySelectorAll('option[value="140"], option[value="141"], option[value="142"]').forEach(option => {
+						option.style.display = '';
+					});
+				});
 			}
 		}
 		async function resetSettings() {
@@ -2626,7 +2706,8 @@
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
-					sortMode: Number($('#playlistSortMode').val())
+					sortMode: Number($('#playlistSortMode').val()),
+					recDepth: Number($('#playlistRecDepth').val()),
 				},
 				"buttons": {
 					short0: Number(document.getElementById("cmdselect_short_0").value),
@@ -2825,6 +2906,27 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+		}
+
+		function setOperationMode(mode) {
+			console.log("set operation mode: " + mode);
+			// Show modal immediately before sending request
+			tryRedirect();
+			$('.modal-title').text(i18next.t("restart"));
+			$('.modal-body').html(i18next.t("restartinfo"));
+			$(".modal-body").removeAttr("style");
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+
+			// Send mode change request (device will restart immediately)
+			fetch('/mode', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ mode: mode })
+			}).catch(error => {
+				console.log('Device restarting, connection lost (expected):', error);
+			});
 		}
 
 		function executeCommand() {
@@ -3162,9 +3264,13 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
-				addOption(cmdElem, cmd);
+				const opt = addOption(cmdElem, cmd);
+				if ([140, 141, 142].includes(cmd)) {
+					// initially hide bluetooth commands, will be shown when bt is enabled
+					opt.style.display = 'none';
+				}
 			}
 
 			/* fill settingsex button commands */
@@ -3172,9 +3278,12 @@
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
-				addOption(modElem, mod);
+				const opt = addOption(modElem, mod);
+				if ([140, 141, 142].includes(mod)) {
+					opt.style.display = 'none';
+				}
 			}
 
 			/* fill command selectors at the control page and the rfid assignment */

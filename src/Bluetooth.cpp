@@ -15,6 +15,7 @@
 	#include "BluetoothA2DPSink.h"
 	#include "BluetoothA2DPSource.h"
 	#include "esp_bt.h"
+	#include "esp_heap_caps.h"
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
 		#include "ESP_I2S.h"
 I2SClass i2s;
@@ -28,6 +29,7 @@ I2SClass i2s;
 BluetoothA2DPSink *a2dp_sink;
 BluetoothA2DPSource *a2dp_source;
 RingbufHandle_t audioSourceRingBuffer;
+static bool bluetoothSourceConnected = false;
 String btDeviceName;
 #endif
 
@@ -42,6 +44,19 @@ const char *getType() {
 #endif
 
 #ifdef BLUETOOTH_ENABLE
+static void Bluetooth_Source_FlushRingbuffer(void) {
+	if (!audioSourceRingBuffer) {
+		return;
+	}
+	size_t bytesRead = 0;
+	uint8_t *item = nullptr;
+	while ((item = static_cast<uint8_t *>(xRingbufferReceiveUpTo(audioSourceRingBuffer, &bytesRead, 0, SIZE_MAX))) != nullptr) {
+		vRingbufferReturnItem(audioSourceRingBuffer, item);
+	}
+}
+#endif
+
+#ifdef BLUETOOTH_ENABLE
 // for esp_a2d_connection_state_t see https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/bluetooth/esp_a2dp.html#_CPPv426esp_a2d_connection_state_t
 void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 	Log_Printf(LOGLEVEL_INFO, "Bluetooth %s => connection state: %s (Free heap: %u Bytes)", getType(), ((BluetoothA2DPCommon *) ptr)->to_str(state), ESP.getFreeHeap());
@@ -50,6 +65,12 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		gPlayProperties.isWebstream = false;
 		gPlayProperties.pausePlay = false;
 		gPlayProperties.playlistFinished = true;
+	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		const bool connected = (state == ESP_A2D_CONNECTION_STATE_CONNECTED);
+		if (!connected && bluetoothSourceConnected) {
+			Bluetooth_Source_FlushRingbuffer();
+		}
+		bluetoothSourceConnected = connected;
 	}
 }
 #endif
@@ -144,6 +165,9 @@ int32_t get_data_channels(Frame *frame, int32_t channel_len) {
 	if (channel_len < 0 || frame == NULL) {
 		return 0;
 	}
+	if (audioSourceRingBuffer == NULL) {
+		return 0;
+	}
 	// Receive data from ring buffer
 	size_t len {};
 	vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
@@ -208,6 +232,7 @@ void Bluetooth_VolumeChanged(int _newVolume) {
 
 void Bluetooth_Init(void) {
 #ifdef BLUETOOTH_ENABLE
+	bluetoothSourceConnected = false;
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 		// bluetooth in sink mode (player acts as a BT-Speaker)
 		a2dp_sink = new BluetoothA2DPSink();
@@ -247,11 +272,9 @@ void Bluetooth_Init(void) {
 		a2dp_sink->set_avrc_metadata_callback(avrc_metadata_callback);
 		a2dp_sink->set_on_volumechange(Bluetooth_VolumeChanged);
 	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
-		// create audio source ringbuffer on demand
-		audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
-		if (audioSourceRingBuffer == NULL) {
-			Log_Println("cannot create audioSourceRingBuffer!", LOGLEVEL_ERROR);
-		}
+		// Ringbuffer will be allocated on first use (lazy initialization)
+		audioSourceRingBuffer = NULL;
+
 		//  setup BT source
 		a2dp_source = new BluetoothA2DPSource();
 
@@ -359,9 +382,45 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 
 bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
-	// send audio data to ringbuffer
-	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && (validSamples > 0) && a2dp_source->is_connected()) {
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, (TickType_t) portMAX_DELAY));
+	// Lazy initialization: create ringbuffer on first use to save heap memory
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
+		// Create ringbuffer on first use (lazy initialization)
+		if (audioSourceRingBuffer == NULL) {
+	#ifdef BOARD_HAS_PSRAM
+			if (psramFound()) {
+				// Allocate ringbuffer storage in PSRAM
+				size_t bufferSize = 8192;
+				StaticRingbuffer_t *bufferStruct = (StaticRingbuffer_t *) heap_caps_malloc(sizeof(StaticRingbuffer_t), MALLOC_CAP_SPIRAM);
+				uint8_t *bufferStorage = (uint8_t *) heap_caps_malloc(bufferSize, MALLOC_CAP_SPIRAM);
+
+				if (bufferStruct != NULL && bufferStorage != NULL) {
+					audioSourceRingBuffer = xRingbufferCreateStatic(bufferSize, RINGBUF_TYPE_BYTEBUF, bufferStorage, bufferStruct);
+					Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in PSRAM on demand (%d bytes, free heap: %u Bytes)", bufferSize, ESP.getFreeHeap());
+				} else {
+					Log_Println("Failed to allocate PSRAM for audioSourceRingBuffer, using heap", LOGLEVEL_ERROR);
+					if (bufferStruct) {
+						heap_caps_free(bufferStruct);
+					}
+					if (bufferStorage) {
+						heap_caps_free(bufferStorage);
+					}
+					audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
+				}
+			} else
+	#endif
+			{
+				audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
+				Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in heap on demand (Free heap: %u Bytes)", ESP.getFreeHeap());
+			}
+
+			if (audioSourceRingBuffer == NULL) {
+				Log_Println("Failed to create audioSourceRingBuffer!", LOGLEVEL_ERROR);
+				return false;
+			}
+		}
+
+		const TickType_t sendTimeout = pdMS_TO_TICKS(20);
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, sendTimeout));
 	} else {
 		return false;
 	}
@@ -373,7 +432,7 @@ bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 bool Bluetooth_Device_Connected() {
 #ifdef BLUETOOTH_ENABLE
 	// send audio data to ringbuffer
-	return (((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink) && a2dp_sink->is_connected()) || ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && a2dp_source->is_connected()));
+	return (((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink) && a2dp_sink->is_connected()) || ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected));
 #else
 	return false;
 #endif

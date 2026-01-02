@@ -152,7 +152,7 @@ void Led_Init(void) {
 	xTaskCreatePinnedToCore(
 		Led_Task, /* Function to implement the task */
 		"Led_Task", /* Name of the task */
-		2048, /* Stack size in words */
+		3072, /* Stack size in words */ // 20251015: increased to 3072 because saving of "allgemeine Einstellungen" let to restarts because of stack overflows
 		NULL, /* Task input parameter */
 		1, /* Priority of the task */
 		&Led_TaskHandle, /* Task handle. */

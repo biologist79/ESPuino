@@ -32,25 +32,47 @@ branch. Feel free to test but be advised this could be unstable.
 
 ## ESPuino - what's that?
 
-The basic idea of ESPuino is to use RFID tags to control an audio player. Even for kids this concept
-is simple: place a RFID-tagged object (card, toy character, etc.) on top of a box and stuff
-starts to play right away from SD card or webradio. Place a different RFID tag on it and something else
-is played. Simple as that. Multiple types of actions can be assigned to buttons and an optionak rotary
-encoder is in place to adjust the volume easily. Configuration can be done mostly via
-ESPuino's [webinterface](https://forum.espuino.de/t/dokumentation-webinterface/2807).
+The concept of ESPuino is a [more-or-less small enclosure](https://forum.espuino.de/t/zeigt-her-eure-espuinos/554/)
+that contains a speaker so it can play music and audiobooks. Here is an example of a 3D-printed
+unit, the [Biobox 3d](https://forum.espuino.de/t/biobox-3d/3130):
 
-This project is based on the popular microcontroller [ESP32 by
-Espressif](https://www.espressif.com/en/products/hardware/esp32/overview). It's powerful, cheap and
-having WiFi support out-of-the-box enables further features like an integrated [webserver](https://forum.espuino.de/t/dokumentation-webinterface/2807),
-smarthome-integration via MQTT, webradio and FTP server. And even Bluetooth, too! MP3-decoding is
-done in [software](https://github.com/schreibfaul1/ESP32-audioI2S/) and the digital music output is
-done via the popular [I2S protocol](https://en.wikipedia.org/wiki/I%C2%B2S).
-So we need a [DAC](https://en.wikipedia.org/wiki/Digital-to-analog_converter) to transform it
-into an analog signal. I did all my tests with the following DACs:
-[MAX98357A](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/pinouts),
-[MS6324](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308/1099/),
-[UDA1334](https://www.adafruit.com/product/3678) and
-[PCM5102a](https://github.com/biologist79/ESPuino/tree/master/PCBs/Headphone%20with%20PCM5102a%20and%20TDA1308).
+![Biobox 3d](https://forum.espuino.de/uploads/default/original/2X/d/d8e0904fd78723dbc1b5c039ab9da2d778c7c987.jpeg "Biobox 3d")
+
+Primarily the device is controlled using RFID cards, similar to those used for access control
+(ski lifts, office access, etc.). To uniquely identify an RFID card, it carries a fixed ID.
+ESPuino reads that ID (a 12-digit number) with an RFID card reader and triggers an action based
+on it. Which action to take is taught beforehand via ESPuino’s web interface: you upload audio
+files to a microSD card, pick the desired audio file (or an entire folder) in the web interface’s
+file browser and link it to the RFID card you placed. You mostly just click through the
+interface while manual input is possible (but usually unnecessary). When the RFID card is presented
+again, ESPuino loads the mapping and starts the desired playback. Present a different RFID card and
+the playback associated with that card starts. In addition to audio files from the local microSD
+card, web streams can be played, too. In Bluetooth mode you can also stream to the ESPuino from
+your phone using [A2DP](https://de.wikipedia.org/wiki/A2DP), for example.
+
+Further control elements on ESPuino are buttons and a [rotary encoder](https://forum.espuino.de/t/drehencoder-by-espuino/2414).
+Buttons can be assigned dozens of different actions via the web interface — double assignments (short
+press vs. long press) are possible. If used, the rotary encoder is reserved exclusively
+for volume control but includes an integrated button, that's usually used to switch on ESPuino and
+start measurement of battery's voltage which is instantly indicated via neopixel. By default
+ESPuino is designed for three buttons and one rotary encoder, but this can be varied: from 0 to 5
+buttons, and no rotaty encoder or one rotaty encoder. If no rotary encoder is present, volume
+control is handled, for example, via buttons.
+
+A key feedback element is color-programmable LEDs (Neopixels), typically used as a
+[Neopixel ring](https://duckduckgo.com/?t=ffab&q=neopixel+ring&ia=images&iax=images). They can
+show, for example, track progress (if half the LEDs are lit, the track is half done), volume,
+battery level, and error states — and
+[much, much more](https://forum.espuino.de/t/was-zeigt-der-neopixel-des-espuino-alles-an/86)! ESPuino
+also works without Neopixels, but that is not recommended because they convey a lot of information.
+
+There is also a [headphone jack](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099)
+that mutes the speaker when headphones are plugged in. Alternatively, a Bluetooth headphone can be used.
+
+ESPuino also communicates with the outside world: besides the web interface, it supports
+[MQTT](https://de.wikipedia.org/wiki/MQTT), a [REST API](https://github.com/biologist79/ESPuino/blob/master/REST-API.yaml)
+and an FTP server. New audio files can be copied to the microSD card via the web interface or
+FTP — so the microSD card does not need to be removed.
 
 ## Hardware setup
 
@@ -479,7 +501,7 @@ described as follows.
 | topicRfidCmnd           | 12 digits       | Set number of RFID tag which 'emulates' an RFID tag (e.g. `123789456089`)                                                                              |
 | topicRfidState          | 12 digits       | ID of current RFID tag (if not a modification card)                                                                                                    |
 | topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3"                     |
-| topicTrackControlCmnd   | 1 -> 7          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last                                                                         |
+| topicTrackControlCmnd   | 1 -> 9          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last; `8`=next folder; `9`=previous folder                                                                             |
 | topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
 | topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                                                                                        |
 | topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                                                                                                       |

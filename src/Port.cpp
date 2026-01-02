@@ -149,42 +149,10 @@ void Port_Write(const uint8_t _channel, const bool _newState, const bool _initGp
 #ifdef PORT_EXPANDER_ENABLE
 // Translates digitalWrite-style "GPIO" to bit
 uint8_t Port_ChannelToBit(const uint8_t _channel) {
-	switch (_channel) {
-		case 100:
-		case 108:
-			return 0;
-			break;
-		case 101:
-		case 109:
-			return 1;
-			break;
-		case 102:
-		case 110:
-			return 2;
-			break;
-		case 103:
-		case 111:
-			return 3;
-			break;
-		case 104:
-		case 112:
-			return 4;
-			break;
-		case 105:
-		case 113:
-			return 5;
-			break;
-		case 106:
-		case 114:
-			return 6;
-			break;
-		case 107:
-		case 115:
-			return 7;
-			break;
-
-		default:
-			return 255; // not valid!
+	if (_channel >= 100 && _channel <= 115) {
+		return (_channel - 100) % 8;
+	} else {
+		return 255; // not valid!
 	}
 }
 

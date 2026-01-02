@@ -183,13 +183,16 @@
 				"mode": {
 					"1": "Einzelner Titel",
 					"2": "Einzelner Titel (Endlosschleife)",
-					"12": "Einzelner Titel eines Verzeichnis (zufällig). Danach schlafen.",
+					"12": "Einzelner Titel eines Verzeichnisses (zufällig). Danach schlafen.",
 					"3": "Hörbuch",
+					"16": "Hörbuch mit Unterverzeichnissen (rekursiv)",
 					"4": "Hörbuch (Endlosschleife)",
-					"5": "Alle Titel eines Verzeichnis (sortiert)",
-					"6": "Alle Titel eines Verzeichnis (zufällig)",
-					"7": "Alle Titel eines Verzeichnis (sortiert, Endlosschleife)",
-					"9": "Alle Titel eines Verzeichnis (zufällig, Endlosschleife)",
+					"5": "Alle Titel eines Verzeichnisses (sortiert)",
+					"15": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, sortiert)",
+					"6": "Alle Titel eines Verzeichnisses (zufällig)",
+					"17": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, zufällig)",
+					"7": "Alle Titel eines Verzeichnisses (sortiert, Endlosschleife)",
+					"9": "Alle Titel eines Verzeichnisses (zufällig, Endlosschleife)",
 					"13": "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
 					"14": "Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
 					"8": "Webradio",
@@ -234,6 +237,8 @@
 					"181": "Springe rückwärts (n Sekunden)",
 					"182": "Stop",
 					"183": "Neustart",
+					"184": "Springe zum nächsten Ordner",
+					"185": "Springe zum vorherigen Ordner",
 					"199": "Taskauslastung anzeigen (Konsole)",
 					"241": "Spiele virtuelle RFID-Karte 01",
 					"242": "Spiele virtuelle RFID-Karte 02",
@@ -295,16 +300,24 @@
 		}
 	},
 	"bt": {
+		"normal": {
+			"title": "Bluetooth-Modus verlassen",
+			"desc": "Kehrt zum normalen Modus mit WiFi-Funktionalität zurück. Musik von SD-Karte und Webstreams können abgespielt werden.",
+			"button": "Bluetooth-Modus verlassen",
+			"indicator": "WiFi-Modus (RSSI: {{rssi}} dBm)"
+		},
 		"sink": {
 			"title": "ESPuino als Bluetooth-Lautsprecher",
 			"desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
-			"button": "Als Bluetooth-Lautsprecher starten"
+			"button": "Als Bluetooth-Lautsprecher starten",
+			"indicator": "Bluetooth-Lautsprecher Modus"
 		},
 		"source": {
 			"configtitle": "Bluetooth-Kopfhörer Einstellungen",
 			"title": "Mit Bluetooth-Kopfhörer verbinden",
 			"desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth-Kopfhörer. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
-			"button": "Im Kopfhörer-Modus starten"
+			"button": "Im Kopfhörer-Modus starten",
+			"indicator": "Bluetooth-Kopfhörer Modus"
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
@@ -374,7 +387,8 @@
 			"sortMode": "Sortierungsmodus für Wiedergabeliste und Dateibrowser",
 			"strcmp": "Standardsortierung",
 			"strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
-			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren"
+			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren",
+			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists"
 		}
 	},
 	"tools": {
