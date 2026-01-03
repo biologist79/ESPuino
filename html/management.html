@@ -2107,8 +2107,7 @@
 				/* We now have data! */
 				$('#explorerTree').jstree(true).settings.core.data.children = [];
 
-				// If first element has root flag, use it to rename root node and skip it
-				var startIndex = 0;
+				// If first element has root flag, use it to rename root node and remove it from data
 				if (data.length > 0 && data[0].root === "sd") {
 					// Rename root node with volume label from backend
 					var tree = $('#explorerTree').jstree(true);
@@ -2117,11 +2116,12 @@
 					if (rootNode) {
 						tree.rename_node(rootNode, data[0].name);
 					}
-					startIndex = 1; // Skip volume label entry, it's not a child
+					// Remove volume label from data array before sorting
+					data = data.slice(1);
 				}
 
 				sortData(data);
-				for (var i = startIndex; i < data.length; i++) {
+				for (var i = 0; i < data.length; i++) {
 					var newChild = {
 						text: data[i].name,
 						type: getType(data[i]),
