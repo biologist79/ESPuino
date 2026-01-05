@@ -287,6 +287,10 @@
 			"placeholder": "f.e. ESPuino-<MAC>",
 			"validation": ""
 		},
+		"topicsPreview": "Full topics (preview)",
+		"topics": {
+			"preview": "Full topics (preview)"
+		},
 		"port": {
 			"title": "MQTT-port",
 			"placeholder": "f.e. 1883",

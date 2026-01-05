@@ -2448,6 +2448,7 @@
 				document.getElementById('mqttPwd').value = mqttSettings.password;
 				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 				document.getElementById('mqttPort').value = mqttSettings.port;
+				if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			}
 			// bluetooth
 			let btSettings = settings.bluetooth;
@@ -2834,6 +2835,33 @@
 			return str;
 		}
 
+		function buildMqttTopic(base, device, topic, isState) {
+			var dev = device && device.length ? device : (document.getElementById('mqttClientId') ? document.getElementById('mqttClientId').value : 'UNKNOWN');
+			var setterToken = 'set';
+			if (base && base.length) {
+				return base + '/' + dev + '/' + topic + (isState ? '' : '/' + setterToken);
+			} else {
+				return dev + '/' + topic + (isState ? '' : '/' + setterToken);
+			}
+		}
+
+		function updateMqttTopicsPreview() {
+			var base = document.getElementById('mqttBaseTopic') ? document.getElementById('mqttBaseTopic').value.trim() : '';
+			var device = document.getElementById('mqttDeviceId') ? document.getElementById('mqttDeviceId').value.trim() : '';
+			if (!device && document.getElementById('mqttClientId')) device = document.getElementById('mqttClientId').value.trim();
+			var nodes = document.querySelectorAll('#mqttConfig input[id^="mqttTopic"]');
+			var lines = [];
+			nodes.forEach(function (el) {
+				var id = el.id;
+				var val = el.value.trim();
+				if (!val) return;
+				var isState = id.toLowerCase().includes('state');
+				var t = buildMqttTopic(base, device, val, isState);
+				lines.push((isState ? 'State: ' : 'Command: ') + val + ' -> ' + t);
+			});
+			document.getElementById('mqttTopicsPreview').textContent = lines.join('\n') || 'No topics configured';
+		}
+
 		function rfidAssign(clickedId) {
 			lastIdclicked = clickedId;
 			if (ActiveSubTab == 'rfid-music-tab') {
@@ -3112,6 +3140,12 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			// insert MQTT topics preview if not present
+			if ($('#mqttTopicsPreview').length === 0) {
+				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
+				$('#mqttConfig form .text-center').first().before(preview);
+			}
+			if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			$('#deleteSSIDModal').on('show.bs.modal', function (event) {
 				var ssid = $(event.relatedTarget).data('ssid')
 				$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));

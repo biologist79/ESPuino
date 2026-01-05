@@ -34,25 +34,38 @@ uint16_t gMqttPort = 1883; // MQTT-Port
 constexpr uint8_t MQTT_TOPIC_MAX_LENGTH = 128u; // Maximal length of MQTT-topic
 #endif
 
-// helper to replace <MAC> with actual MAC-address (no colons, lowercase)
+// helper to replace <MAC> or <mac> with actual MAC-address (no colons, lowercase). Uses Wlan_GetMacAddress() which is available earlier than WiFi
 static String ReplaceMacToken(const String &in) {
-	if (in.indexOf("<MAC>") == -1) {
+	if (in.indexOf("<MAC>") == -1 && in.indexOf("<mac>") == -1) {
 		return in;
 	}
-	String mac = WiFi.macAddress(); // returns AA:BB:CC:DD:EE:FF
+	String mac = Wlan_GetMacAddress(); // returns AA:BB:CC:DD:EE:FF or empty
 	mac.replace(":", "");
 	mac.toLowerCase();
+	// if MAC not available yet, indicate unresolved by returning empty string so callers can fallback to defaults
+	if (mac.length() == 0) {
+		return String();
+	}
 	String out = in;
 	out.replace("<MAC>", mac);
+	out.replace("<mac>", mac);
 	return out;
 }
 
-static void storeAndSetDeviceId(const String &id) {
-	// store in NVS and update runtime variable (with <MAC> resolved)
+static bool storeAndSetDeviceId(const String &id) {
+	// store raw value in NVS (may contain <MAC>)
 	gPrefsSettings.putString("mqttDeviceId", id);
-	gDeviceId = ReplaceMacToken(id);
-	// client id usually equals device id
+	String resolved = ReplaceMacToken(id);
+	resolved.trim();
+	// validate resolved device id (must not be empty and not contain '/')
+	if (resolved.length() == 0 || resolved.indexOf('/') >= 0) {
+		Log_Printf(LOGLEVEL_ERROR, "Invalid mqttDeviceId after resolving MAC: %s", resolved.c_str());
+		return false;
+	}
+	// update runtime variables
+	gDeviceId = resolved;
 	gMqttClientId = gDeviceId;
+	return true;
 }
 
 // MQTT
@@ -91,6 +104,11 @@ void Mqtt_Init() {
 	} else {
 		// If device id contains <MAC> it'll be replaced
 		gDeviceId = ReplaceMacToken(nvsMqttDeviceId);
+		// If unresolved/empty after replacement fallback to compile-time default
+		if (gDeviceId.length() == 0) {
+			Log_Printf(LOGLEVEL_NOTICE, "restored mqttDeviceId resolved to empty, using default");
+			gDeviceId = device_id;
+		}
 		gMqttClientId = gDeviceId;
 		Log_Printf(LOGLEVEL_INFO, restoredMqttClientIdFromNvs, nvsMqttDeviceId.c_str());
 	}
@@ -113,14 +131,18 @@ void Mqtt_Init() {
 		Log_Printf(LOGLEVEL_INFO, restoredMqttServerFromNvs, nvsMqttServer.c_str());
 	}
 
-	// Get Base topic from NVS
+	// Get Base topic from NVS (sanitize leading/trailing slashes)
 	String nvsMqttBaseTopic = gPrefsSettings.getString("mqttBaseTopic", "-1");
 	if (!nvsMqttBaseTopic.compareTo("-1")) {
 		gPrefsSettings.putString("mqttBaseTopic", gBaseTopic);
 		Log_Println(wroteMqttServerToNvs, LOGLEVEL_ERROR);
 	} else {
-		gBaseTopic = nvsMqttBaseTopic;
-		Log_Printf(LOGLEVEL_INFO, "restored BaseTopic from NVS: %s", nvsMqttBaseTopic.c_str());
+		String tmp = nvsMqttBaseTopic;
+		tmp.trim();
+		while (tmp.startsWith("/")) tmp = tmp.substring(1);
+		while (tmp.endsWith("/")) tmp = tmp.substring(0, tmp.length() - 1);
+		gBaseTopic = tmp;
+		Log_Printf(LOGLEVEL_INFO, "restored BaseTopic from NVS: %s", gBaseTopic.c_str());
 	}
 
 	// Get MQTT-user from NVS

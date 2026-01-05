@@ -824,32 +824,70 @@ bool JSONToSettings(JsonObject doc) {
 		const char *_mqttPwd = doc["mqtt"]["password"];
 		uint16_t _mqttPort = doc["mqtt"]["port"].as<uint16_t>();
 
+		// Sanitize and validate inputs
+		String mqttClientIdStr = String(_mqttClientId);
+		String mqttDeviceIdStr = String(_mqttDeviceId);
+		String mqttBaseTopicStr = String(_mqttBaseTopic);
+
+		// sanitize base topic (trim slashes and whitespace)
+		mqttBaseTopicStr.trim();
+		while (mqttBaseTopicStr.startsWith("/")) mqttBaseTopicStr = mqttBaseTopicStr.substring(1);
+		while (mqttBaseTopicStr.endsWith("/")) mqttBaseTopicStr = mqttBaseTopicStr.substring(0, mqttBaseTopicStr.length() - 1);
+		if (mqttBaseTopicStr.length() >= mqttBaseTopicLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.baseTopic too long");
+			return false;
+		}
+
+		// validate device id (must not be empty and must not contain '/')
+		mqttDeviceIdStr.trim();
+		if (mqttDeviceIdStr.length() == 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId empty");
+			return false;
+		}
+		if (mqttDeviceIdStr.indexOf('/') >= 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId contains invalid char '/'");
+			return false;
+		}
+		if (mqttDeviceIdStr.length() >= mqttDeviceIdLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId too long");
+			return false;
+		}
+
+		// store sanitized values
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-		gPrefsSettings.putString("mqttClientId", (String) _mqttClientId);
-		gPrefsSettings.putString("mqttDeviceId", (String) _mqttDeviceId);
-		gPrefsSettings.putString("mqttBaseTopic", (String) _mqttBaseTopic);
+		gPrefsSettings.putString("mqttClientId", mqttClientIdStr);
+		gPrefsSettings.putString("mqttDeviceId", mqttDeviceIdStr);
+		gPrefsSettings.putString("mqttBaseTopic", mqttBaseTopicStr);
 		gPrefsSettings.putString("mqttServer", (String) _mqttServer);
 		gPrefsSettings.putString("mqttUser", (String) _mqttUser);
 		gPrefsSettings.putString("mqttPassword", (String) _mqttPwd);
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
-		// verify writes
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!String(_mqttBaseTopic).equals(gPrefsSettings.getString("mqttBaseTopic", "-1")))) {
+		// verify writes (include deviceId and baseTopic)
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!mqttBaseTopicStr.equals(gPrefsSettings.getString("mqttBaseTopic", "-1"))) || (!mqttDeviceIdStr.equals(gPrefsSettings.getString("mqttDeviceId", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
 
 		// update runtime globals
-		// device id may contain <MAC>, replace with actual mac
 		String storedDeviceId = gPrefsSettings.getString("mqttDeviceId", "-1");
 		String resolvedDeviceId = storedDeviceId;
-		if (resolvedDeviceId.indexOf("<MAC>") >= 0) {
+		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0) {
 			String mac = Wlan_GetMacAddress();
 			mac.replace(":", "");
 			mac.toLowerCase();
-			resolvedDeviceId.replace("<MAC>", mac);
+			if (mac.length() > 0) {
+				resolvedDeviceId.replace("<MAC>", mac);
+				resolvedDeviceId.replace("<mac>", mac);
+			}
 		}
-		gDeviceId = resolvedDeviceId;
+		// if it still contains an unresolved token or resolves to empty, fall back to default gDeviceId
+		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0 || resolvedDeviceId.length() == 0) {
+			Log_Printf(LOGLEVEL_NOTICE, "mqtt deviceId unresolved or empty, using default");
+			gDeviceId = device_id;
+		} else {
+			gDeviceId = resolvedDeviceId;
+		}
 		gBaseTopic = gPrefsSettings.getString("mqttBaseTopic", "");
 		gMqttClientId = gDeviceId;
 	}

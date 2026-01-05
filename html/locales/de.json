@@ -277,6 +277,10 @@
 			"placeholder": "z.B. ESPuino-<MAC>",
 			"validation": ""
 		},
+		"topicsPreview": "Vollständige Topics (Vorschau)",
+		"topics": {
+			"preview": "Vollständige Topics (Vorschau)"
+		},
 		"user": {
 			"title": "MQTT-Benutzername (optional)",
 			"placeholder": "Benutzername",
