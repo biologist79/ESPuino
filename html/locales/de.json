@@ -267,6 +267,16 @@
 			"placeholder": "f.e. 192.168.2.89",
 			"validation": ""
 		},
+		"baseTopic": {
+			"title": "Basis-Topic (optional)",
+			"placeholder": "z.B. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Geräte-ID",
+			"placeholder": "z.B. ESPuino-<MAC>",
+			"validation": ""
+		},
 		"user": {
 			"title": "MQTT-Benutzername (optional)",
 			"placeholder": "Benutzername",

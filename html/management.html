@@ -754,6 +754,12 @@
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
 							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+						<label for="mqttBaseTopic" data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+						<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
+							data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
+						<label for="mqttDeviceId" data-i18n="[prepend]mqtt.deviceId.title">:</label>
+						<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
+							data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
 						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
 						<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
 							data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
@@ -2428,6 +2434,10 @@
 			if (mqttSettings) {
 				// todo: get the bootstrap sliders to work:
 				document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
+				document.getElementById('mqttBaseTopic').value = mqttSettings.baseTopic;
+				document.getElementById('mqttBaseTopic').setAttribute('maxlength', mqttSettings.maxBaseTopicLength);
+				document.getElementById('mqttDeviceId').value = mqttSettings.deviceId;
+				document.getElementById('mqttDeviceId').setAttribute('maxlength', mqttSettings.maxDeviceIdLength);
 				document.getElementById('mqttEnable').checked = mqttSettings.enable;
 				document.getElementById('mqttClientId').value = mqttSettings.clientID;
 				document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
@@ -2793,6 +2803,8 @@
 				"mqtt": {
 					enable: val,
 					clientID: document.getElementById('mqttClientId').value,
+					deviceId: document.getElementById('mqttDeviceId').value,
+					baseTopic: document.getElementById('mqttBaseTopic').value,
 					server: document.getElementById('mqttServer').value,
 					username: document.getElementById('mqttUser').value,
 					password: document.getElementById('mqttPwd').value,

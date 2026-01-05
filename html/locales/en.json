@@ -277,6 +277,16 @@
 			"placeholder": "password",
 			"validation": ""
 		},
+		"baseTopic": {
+			"title": "Base topic (optional)",
+			"placeholder": "f.e. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Device Id",
+			"placeholder": "f.e. ESPuino-<MAC>",
+			"validation": ""
+		},
 		"port": {
 			"title": "MQTT-port",
 			"placeholder": "f.e. 1883",

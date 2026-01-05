@@ -261,34 +261,27 @@
 
 	// (optional) Topics for MQTT
 	#ifdef MQTT_ENABLE
-		#define DEVICE_HOSTNAME "ESP32-ESPuino"         // Name that is used for MQTT
-		constexpr const char commandWord[] = "Cmnd";
-		constexpr const char stateWord[] = "State";
-		// Commands
-		constexpr const char topicSleepCmnd[] = "Sleep";
-		constexpr const char topicRfidCmnd[] = "Rfid";
-		constexpr const char topicTrackControlCmnd[] = "TrackControl";
-		constexpr const char topicLoudnessCmnd[] = "Loudness";
-		constexpr const char topicSleepTimerCmnd[] = "SleepTimer";
-		constexpr const char topicLockControlsCmnd[] ="LockControls";
-		constexpr const char topicRepeatModeCmnd[] = "RepeatMode";
-		constexpr const char topicLedBrightnessCmnd[] = "LedBrightness";
-		// States
-		constexpr const char topicSleepState[] = "Sleep";
-		constexpr const char topicRfidState[] = "Rfid";
-		constexpr const char topicTrackState[] = "Track";
-		constexpr const char topicCoverChangedState[] = "CoverChanged";
-		constexpr const char topicLoudnessState[] = "Loudness";
-		constexpr const char topicSleepTimerState[] = "SleepTimer";
+		constexpr const char base_topic[] = "";
+		constexpr const char device_id[] = "Espuino-<MAC>";        // Name that is used for MQTT
+		constexpr const char setter_token[] = "Set";        // Word to identify command-topics
+		// Topics (settable)
+		constexpr const char topicSleep[] = "Sleep";
+		constexpr const char topicRfid[] = "Rfid";
+		constexpr const char topicTrackControl[] = "TrackControl";
+		constexpr const char topicLoudness[] = "Loudness";
+		constexpr const char topicSleepTimer[] = "SleepTimer";
+		constexpr const char topicLockControls[] ="LockControls";
+		constexpr const char topicRepeatMode[] = "RepeatMode";
+		constexpr const char topicLedBrightness[] = "LedBrightness";
+		// Topics (state only)
+		constexpr const char topicTrack[] = "Track";
+		constexpr const char topicCoverChanged[] = "CoverChanged";
 		constexpr const char topicState[] = "State";
 		constexpr const char topicCurrentIPv4IP[] = "IPv4";
-		constexpr const char topicLockControlsState[] ="LockControls";
-		constexpr const char topicPausePlayState[] = "PausePlay";
-		constexpr const char topicPlaymodeState[] = "Playmode";
-		constexpr const char topicRepeatModeState[] = "RepeatMode";
-		constexpr const char topicLedBrightnessState[] = "LedBrightness";
-		constexpr const char topicWiFiRssiState[] = "WifiRssi";
-		constexpr const char topicSRevisionState[] = "SoftwareRevision";
+		constexpr const char topicPausePlay[] = "PausePlay";
+		constexpr const char topicPlaymode[] = "Playmode";
+		constexpr const char topicWiFiRssi[] = "WifiRssi";
+		constexpr const char topicSRevision[] = "SoftwareRevision";
 		#ifdef BATTERY_MEASURE_ENABLE
 		constexpr const char topicBatteryVoltage[] = "Voltage";
 		constexpr const char topicBatterySOC[]     = "Battery";

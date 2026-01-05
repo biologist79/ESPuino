@@ -817,6 +817,8 @@ bool JSONToSettings(JsonObject doc) {
 	if (doc["mqtt"].is<JsonObject>()) {
 		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
 		const char *_mqttClientId = doc["mqtt"]["clientID"];
+		const char *_mqttDeviceId = doc["mqtt"]["deviceId"];
+		const char *_mqttBaseTopic = doc["mqtt"]["baseTopic"];
 		const char *_mqttServer = doc["mqtt"]["server"];
 		const char *_mqttUser = doc["mqtt"]["username"];
 		const char *_mqttPwd = doc["mqtt"]["password"];
@@ -824,15 +826,32 @@ bool JSONToSettings(JsonObject doc) {
 
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
 		gPrefsSettings.putString("mqttClientId", (String) _mqttClientId);
+		gPrefsSettings.putString("mqttDeviceId", (String) _mqttDeviceId);
+		gPrefsSettings.putString("mqttBaseTopic", (String) _mqttBaseTopic);
 		gPrefsSettings.putString("mqttServer", (String) _mqttServer);
 		gPrefsSettings.putString("mqttUser", (String) _mqttUser);
 		gPrefsSettings.putString("mqttPassword", (String) _mqttPwd);
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+		// verify writes
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!String(_mqttBaseTopic).equals(gPrefsSettings.getString("mqttBaseTopic", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
+
+		// update runtime globals
+		// device id may contain <MAC>, replace with actual mac
+		String storedDeviceId = gPrefsSettings.getString("mqttDeviceId", "-1");
+		String resolvedDeviceId = storedDeviceId;
+		if (resolvedDeviceId.indexOf("<MAC>") >= 0) {
+			String mac = Wlan_GetMacAddress();
+			mac.replace(":", "");
+			mac.toLowerCase();
+			resolvedDeviceId.replace("<MAC>", mac);
+		}
+		gDeviceId = resolvedDeviceId;
+		gBaseTopic = gPrefsSettings.getString("mqttBaseTopic", "");
+		gMqttClientId = gDeviceId;
 	}
 	if (doc["bluetooth"].is<JsonObject>()) {
 		// bluetooth settings
@@ -1173,6 +1192,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject mqttObj = obj["mqtt"].to<JsonObject>();
 		mqttObj["enable"].set(Mqtt_IsEnabled());
 		mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
+		mqttObj["deviceId"] = gPrefsSettings.getString("mqttDeviceId", "-1");
+		mqttObj["baseTopic"] = gPrefsSettings.getString("mqttBaseTopic", "-1");
 		mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
 		mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
 		mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
@@ -1181,6 +1202,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
 		mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
 		mqttObj["maxServerLength"].set(mqttServerLength - 1);
+		mqttObj["maxBaseTopicLength"].set(mqttBaseTopicLength - 1);
+		mqttObj["maxDeviceIdLength"].set(mqttDeviceIdLength - 1);
 	}
 #endif
 // Bluetooth

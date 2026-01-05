@@ -19,13 +19,13 @@ static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char 
 	if (enable) {
 		Log_Println(enLogMsg, LOGLEVEL_INFO);
 #ifdef MQTT_ENABLE
-		publishMqtt(topicSleepTimerState, enMqttMsg, false);
+		publishMqtt(topicSleepTimer, enMqttMsg, false);
 #endif
 	} else {
 		System_DisableSleepTimer();
 		Log_Println(modificatorSleepd, LOGLEVEL_INFO);
 #ifdef MQTT_ENABLE
-		publishMqtt(topicSleepTimerState, "0", false);
+		publishMqtt(topicSleepTimer, "0", false);
 #endif
 	}
 }
@@ -37,12 +37,12 @@ void Cmd_Action(const uint16_t mod) {
 			if (System_AreControlsLocked()) {
 				Log_Println(modificatorAllButtonsLocked, LOGLEVEL_NOTICE);
 #ifdef MQTT_ENABLE
-				publishMqtt(topicLockControlsState, "ON", false);
+				publishMqtt(topicLockControls, "ON", false);
 #endif
 			} else {
 				Log_Println(modificatorAllButtonsUnlocked, LOGLEVEL_NOTICE);
 #ifdef MQTT_ENABLE
-				publishMqtt(topicLockControlsState, "OFF", false);
+				publishMqtt(topicLockControls, "OFF", false);
 #endif
 			}
 			System_IndicateOk();
@@ -155,7 +155,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatPlaylist = !gPlayProperties.repeatPlaylist;
 #ifdef MQTT_ENABLE
-				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+				publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
 			}
@@ -174,7 +174,7 @@ void Cmd_Action(const uint16_t mod) {
 				}
 				gPlayProperties.repeatCurrentTrack = !gPlayProperties.repeatCurrentTrack;
 #ifdef MQTT_ENABLE
-				publishMqtt(topicRepeatModeState, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+				publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
 			}

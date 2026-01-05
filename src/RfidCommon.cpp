@@ -85,7 +85,7 @@ void Rfid_PreferenceLookupHandler(void) {
 					}
 				}
 	#ifdef MQTT_ENABLE
-				publishMqtt(topicRfidState, gCurrentRfidTagId, false);
+				publishMqtt(topicRfid, gCurrentRfidTagId, false);
 	#endif
 
 	#ifdef BLUETOOTH_ENABLE

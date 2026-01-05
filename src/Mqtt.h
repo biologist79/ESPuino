@@ -6,7 +6,12 @@ constexpr uint8_t mqttClientIdLength = 16u;
 constexpr uint8_t mqttServerLength = 32u;
 constexpr uint8_t mqttUserLength = 16u;
 constexpr uint8_t mqttPasswordLength = 16u;
+constexpr uint8_t mqttBaseTopicLength = 32u;
+constexpr uint8_t mqttDeviceIdLength = 32u;
 
+extern String gBaseTopic;
+extern String gDeviceId;
+extern String gMqttClientId;
 extern String gMqttUser;
 extern String gMqttPassword;
 extern uint16_t gMqttPort;

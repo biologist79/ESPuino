@@ -224,7 +224,7 @@ void Led_SetBrightness(uint8_t value) {
 	#endif
 
 	#ifdef MQTT_ENABLE
-	publishMqtt(topicLedBrightnessState, static_cast<uint32_t>(gLedSettings.Led_Brightness), false);
+	publishMqtt(topicLedBrightness, static_cast<uint32_t>(gLedSettings.Led_Brightness), false);
 	#endif
 #endif
 }
