@@ -2886,7 +2886,7 @@
 				var t = buildMqttTopic(base, device, val, true);
 				lines.push('State: ' + val + ' -> ' + t);
 			});
-			previewEl.textContent = lines.join('\n') || 'No topics configured';
+			previewEl.innerHTML = lines.join('<br>') || 'No topics configured';
 		}
 
 		function rfidAssign(clickedId) {
