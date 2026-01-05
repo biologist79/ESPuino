@@ -34,14 +34,14 @@ uint16_t gMqttPort = 1883; // MQTT-Port
 constexpr uint8_t MQTT_TOPIC_MAX_LENGTH = 128u; // Maximal length of MQTT-topic
 #endif
 
-// helper to replace <MAC> or <mac> with actual MAC-address (no colons, lowercase). Uses Wlan_GetMacAddress() which is available earlier than WiFi
+// helper to replace <MAC> or <mac> with actual MAC-address (no colons, uppercase). Uses Wlan_GetMacAddress() which is available earlier than WiFi
 static String ReplaceMacToken(const String &in) {
 	if (in.indexOf("<MAC>") == -1 && in.indexOf("<mac>") == -1) {
 		return in;
 	}
 	String mac = Wlan_GetMacAddress(); // returns AA:BB:CC:DD:EE:FF or empty
 	mac.replace(":", "");
-	mac.toLowerCase();
+	mac.toUpperCase();
 	// if MAC not available yet, indicate unresolved by returning empty string so callers can fallback to defaults
 	if (mac.length() == 0) {
 		return String();
@@ -52,21 +52,7 @@ static String ReplaceMacToken(const String &in) {
 	return out;
 }
 
-static bool storeAndSetDeviceId(const String &id) {
-	// store raw value in NVS (may contain <MAC>)
-	gPrefsSettings.putString("mqttDeviceId", id);
-	String resolved = ReplaceMacToken(id);
-	resolved.trim();
-	// validate resolved device id (must not be empty and not contain '/')
-	if (resolved.length() == 0 || resolved.indexOf('/') >= 0) {
-		Log_Printf(LOGLEVEL_ERROR, "Invalid mqttDeviceId after resolving MAC: %s", resolved.c_str());
-		return false;
-	}
-	// update runtime variables
-	gDeviceId = resolved;
-	gMqttClientId = gDeviceId;
-	return true;
-}
+
 
 // MQTT
 static bool Mqtt_Enabled = true;

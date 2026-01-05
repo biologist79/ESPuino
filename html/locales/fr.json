@@ -281,6 +281,20 @@
 			"title": "Port MQTT",
 			"placeholder": "par exemple 1883",
 			"validation": ""
+		},
+		"baseTopic": {
+			"title": "Topic de base (optionnel)",
+			"placeholder": "p.ex. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Identifiant de l'appareil",
+			"placeholder": "p.ex. ESPuino-<MAC>",
+			"validation": ""
+		},
+		"topicsPreview": "Sujets complets (aperçu)",
+		"topics": {
+			"preview": "Sujets complets (aperçu)"
 		}
 	},
 	"ftp": {

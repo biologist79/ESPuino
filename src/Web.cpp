@@ -875,7 +875,7 @@ bool JSONToSettings(JsonObject doc) {
 		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0) {
 			String mac = Wlan_GetMacAddress();
 			mac.replace(":", "");
-			mac.toLowerCase();
+			mac.toUpperCase();
 			if (mac.length() > 0) {
 				resolvedDeviceId.replace("<MAC>", mac);
 				resolvedDeviceId.replace("<mac>", mac);

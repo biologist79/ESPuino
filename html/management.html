@@ -2846,20 +2846,47 @@
 		}
 
 		function updateMqttTopicsPreview() {
+			// Create preview UI if not present (helps when management.html wasn't updated)
+			var previewEl = document.getElementById('mqttTopicsPreview');
+			if (!previewEl) {
+				var field = document.createElement('fieldset');
+				field.className = 'mb-3';
+				var leg = document.createElement('legend');
+				leg.setAttribute('data-i18n', 'mqtt.topics.preview');
+				field.appendChild(leg);
+				previewEl = document.createElement('pre');
+				previewEl.id = 'mqttTopicsPreview';
+				previewEl.style.whiteSpace = 'pre-wrap';
+				field.appendChild(previewEl);
+				var port = document.getElementById('mqttPort');
+				if (port && port.parentNode) {
+					// Insert after the parent container of the port input
+					var parent = port.parentNode;
+					parent.parentNode.insertBefore(field, parent.nextSibling);
+				} else {
+					var cfg = document.getElementById('mqttConfig');
+					if (cfg) cfg.appendChild(field);
+					else document.body.appendChild(field);
+				}
+				if (typeof locI18Next !== 'undefined') locI18Next.translate([field]);
+			}
+
 			var base = document.getElementById('mqttBaseTopic') ? document.getElementById('mqttBaseTopic').value.trim() : '';
 			var device = document.getElementById('mqttDeviceId') ? document.getElementById('mqttDeviceId').value.trim() : '';
 			if (!device && document.getElementById('mqttClientId')) device = document.getElementById('mqttClientId').value.trim();
-			var nodes = document.querySelectorAll('#mqttConfig input[id^="mqttTopic"]');
+			// Static list of known topics (mirrors firmware settings.h)
+			var commandTopics = ['Sleep', 'Rfid', 'TrackControl', 'Loudness', 'SleepTimer', 'LockControls', 'RepeatMode', 'LedBrightness'];
+			var stateTopics = ['Track', 'CoverChanged', 'State', 'IPv4', 'PausePlay', 'Playmode', 'WifiRssi', 'SoftwareRevision'];
 			var lines = [];
-			nodes.forEach(function (el) {
-				var id = el.id;
-				var val = el.value.trim();
-				if (!val) return;
-				var isState = id.toLowerCase().includes('state');
-				var t = buildMqttTopic(base, device, val, isState);
-				lines.push((isState ? 'State: ' : 'Command: ') + val + ' -> ' + t);
+			commandTopics.forEach(function (val) {
+				var t = buildMqttTopic(base, device, val, false);
+				lines.push('Command: ' + val + ' -> ' + t);
 			});
-			document.getElementById('mqttTopicsPreview').textContent = lines.join('\n') || 'No topics configured';
+			stateTopics.forEach(function (val) {
+				var t = buildMqttTopic(base, device, val, true);
+				lines.push('State: ' + val + ' -> ' + t);
+			});
+			previewEl.textContent = lines.join('\n') || 'No topics configured';
 		}
 
 		function rfidAssign(clickedId) {
@@ -3145,6 +3172,10 @@
 				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
 				$('#mqttConfig form .text-center').first().before(preview);
 			}
+			// Bind live update when relevant mqtt fields change
+			$('#mqttBaseTopic, #mqttDeviceId, #mqttClientId').off('input.mqttPreview').on('input.mqttPreview', function () {
+				if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
+			});
 			if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			$('#deleteSSIDModal').on('show.bs.modal', function (event) {
 				var ssid = $(event.relatedTarget).data('ssid')
