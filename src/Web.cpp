@@ -874,8 +874,7 @@ bool JSONToSettings(JsonObject doc) {
 		}
 
 		// update runtime globals
-		String storedDeviceId = gPrefsSettings.getString("mqttDeviceId", "-1");
-		String resolvedDeviceId = storedDeviceId;
+		String resolvedDeviceId = mqttDeviceIdStr;
 		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0) {
 			String mac = Wlan_GetMacAddress();
 			mac.replace(":", "");
@@ -885,15 +884,7 @@ bool JSONToSettings(JsonObject doc) {
 				resolvedDeviceId.replace("<mac>", mac);
 			}
 		}
-		// if it still contains an unresolved token or resolves to empty, fall back to default gDeviceId
-		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0 || resolvedDeviceId.length() == 0) {
-			Log_Printf(LOGLEVEL_NOTICE, "mqtt deviceId unresolved or empty, using default");
-			gDeviceId = device_id;
-		} else {
-			gDeviceId = resolvedDeviceId;
-		}
-		gBaseTopic = gPrefsSettings.getString("mqttBaseTopic", "");
-		gMqttClientId = gDeviceId;
+		// don't set globals here, restart or recall of Mqtt_Init() will do, but 2nd once might not work this way
 	}
 	if (doc["bluetooth"].is<JsonObject>()) {
 		// bluetooth settings

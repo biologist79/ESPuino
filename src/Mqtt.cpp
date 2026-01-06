@@ -34,6 +34,7 @@ uint16_t gMqttPort = 1883; // MQTT-Port
 constexpr uint8_t MQTT_TOPIC_MAX_LENGTH = 128u; // Maximal length of MQTT-topic
 #endif
 
+#ifdef MQTT_ENABLE
 // helper to replace <MAC> or <mac> with actual MAC-address (no colons, uppercase). Uses Wlan_GetMacAddress() which is available earlier than WiFi
 static String ReplaceMacToken(const String &in) {
 	if (in.indexOf("<MAC>") == -1 && in.indexOf("<mac>") == -1) {
@@ -51,6 +52,7 @@ static String ReplaceMacToken(const String &in) {
 	out.replace("<mac>", mac);
 	return out;
 }
+#endif
 
 // MQTT
 static bool Mqtt_Enabled = true;
@@ -93,7 +95,6 @@ void Mqtt_Init() {
 			Log_Printf(LOGLEVEL_NOTICE, "restored mqttDeviceId resolved to empty, using default");
 			gDeviceId = device_id;
 		}
-		gMqttClientId = gDeviceId;
 		Log_Printf(LOGLEVEL_INFO, restoredMqttClientIdFromNvs, nvsMqttDeviceId.c_str());
 	}
 
