@@ -283,8 +283,8 @@
 		constexpr const char topicWiFiRssi[] = "wifi_rssi";
 		constexpr const char topicSRevision[] = "software_revision";
 		#ifdef BATTERY_MEASURE_ENABLE
-		constexpr const char topicBatteryVoltage[] = "voltage";
-		constexpr const char topicBatterySOC[]     = "battery";
+		constexpr const char topicBatteryVoltage[] = "battery_voltage";
+		constexpr const char topicBatterySOC[]     = "battery_soc";
 		#endif
 	#endif
 
