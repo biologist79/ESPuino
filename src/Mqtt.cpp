@@ -52,8 +52,6 @@ static String ReplaceMacToken(const String &in) {
 	return out;
 }
 
-
-
 // MQTT
 static bool Mqtt_Enabled = true;
 
@@ -125,8 +123,12 @@ void Mqtt_Init() {
 	} else {
 		String tmp = nvsMqttBaseTopic;
 		tmp.trim();
-		while (tmp.startsWith("/")) tmp = tmp.substring(1);
-		while (tmp.endsWith("/")) tmp = tmp.substring(0, tmp.length() - 1);
+		while (tmp.startsWith("/")) {
+			tmp = tmp.substring(1);
+		}
+		while (tmp.endsWith("/")) {
+			tmp = tmp.substring(0, tmp.length() - 1);
+		}
 		gBaseTopic = tmp;
 		Log_Printf(LOGLEVEL_INFO, "restored BaseTopic from NVS: %s", gBaseTopic.c_str());
 	}
@@ -395,12 +397,33 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		snprintf(prefix, sizeof(prefix), "%s/", gDeviceId.c_str());
 	}
 
+	Log_Printf(LOGLEVEL_ERROR, "Using prefix: %s", prefix);
+
 	// Check if the topic starts with the prefix
-	// also check if the topic ends with "/set" (the setter token)
-	if ((strncmp(topic_str.c_str(), prefix, strlen(prefix)) == 0) && (topic_str.length() > strlen(prefix) && topic_str.substr(topic_str.length() - 4) == "/set")) {
+	// also check if the topic ends with the setter token)
+	// make compare more readable
+	bool starts_with_prefix = (strncmp(topic_str.c_str(), prefix, strlen(prefix)) == 0);
+	bool ends_with_setter = false;
+	// compare-string = "/" + setter_token
+	String setter_part = String("/") + String(setter_token);
+	if (topic_str.length() >= (sizeof(setter_token) + 1)) {
+
+		// check for setter_part at end of topic_str
+		String end_of_topic = topic_str.substr(topic_str.length() - setter_part.length()).c_str();
+		ends_with_setter = (end_of_topic == setter_part);
+
+		Log_Printf(LOGLEVEL_ERROR, "End-of-Topic-Substring: %s, compare-string: %s", end_of_topic.c_str(), setter_part.c_str());
+	}
+
+	Log_Printf(LOGLEVEL_ERROR, "starts_with_prefix: %d, ends_with_setter: %d", starts_with_prefix, ends_with_setter);
+
+	if (starts_with_prefix && ends_with_setter) {
 
 		// Remove the prefix from the topic
 		std::string reduced_topic_str = std::string(topic_str.c_str() + strlen(prefix));
+		// Also remove the setter token at the end
+		reduced_topic_str = reduced_topic_str.substr(0, reduced_topic_str.length() - setter_part.length());
+		Log_Printf(LOGLEVEL_ERROR, "Reduced topic: %s", reduced_topic_str.c_str());
 
 		// Go to sleep?
 		if (reduced_topic_str == topicSleep) {
