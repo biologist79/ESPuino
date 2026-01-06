@@ -86,16 +86,19 @@ void Mqtt_Init() {
 	if (!nvsMqttDeviceId.compareTo("-1")) {
 		// not found: store default (from settings.h) and persist
 		gPrefsSettings.putString("mqttDeviceId", gDeviceId);
-		Log_Println(wroteMqttClientIdToNvs, LOGLEVEL_ERROR);
+		gDeviceId = ReplaceMacToken(gDeviceId);
+		Log_Println(wroteMqttClientIdToNvs, LOGLEVEL_INFO);
 	} else {
 		// If device id contains <MAC> it'll be replaced
 		gDeviceId = ReplaceMacToken(nvsMqttDeviceId);
 		// If unresolved/empty after replacement fallback to compile-time default
 		if (gDeviceId.length() == 0) {
-			Log_Printf(LOGLEVEL_NOTICE, "restored mqttDeviceId resolved to empty, using default");
-			gDeviceId = device_id;
+			gPrefsSettings.putString("mqttDeviceId", device_id); // restore default
+			gDeviceId = ReplaceMacToken(device_id);
+			Log_Println(wroteMqttClientIdToNvs, LOGLEVEL_INFO);
+		} else {
+			Log_Printf(LOGLEVEL_INFO, restoredMqttClientIdFromNvs, nvsMqttDeviceId.c_str());
 		}
-		Log_Printf(LOGLEVEL_INFO, restoredMqttClientIdFromNvs, nvsMqttDeviceId.c_str());
 	}
 
 	// Also make sure client id follows device id if not set explicitly
