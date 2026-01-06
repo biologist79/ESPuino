@@ -578,7 +578,7 @@ void AudioPlayer_Loop() {
 			gPlayProperties.trackFinished = false;
 			gPlayProperties.playlistFinished = false;
 #ifdef MQTT_ENABLE
-			publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+			publishMqtt(topicPausePlay, "play", false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
@@ -636,7 +636,7 @@ void AudioPlayer_Loop() {
 				Audio_setTitle(noPlaylist);
 				AudioPlayer_ClearCover();
 #ifdef MQTT_ENABLE
-				publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+				publishMqtt(topicPausePlay, "idle", false);
 #endif
 				return;
 
@@ -645,17 +645,21 @@ void AudioPlayer_Loop() {
 				audio->pauseResume();
 				if (gPlayProperties.pausePlay) {
 					Log_Println(cmndResumeFromPause, LOGLEVEL_INFO);
+#ifdef MQTT_ENABLE
+					publishMqtt(topicPausePlay, "play", false);
+#endif
 				} else {
 					Log_Println(cmndPause, LOGLEVEL_INFO);
+#ifdef MQTT_ENABLE
+					publishMqtt(topicPausePlay, "pause", false);
+#endif
 				}
 				if (gPlayProperties.saveLastPlayPosition && !gPlayProperties.pausePlay) {
 					Log_Printf(LOGLEVEL_INFO, trackPausedAtPos, audio->getAudioCurrentTime(), audio->getAudioFileDuration());
 					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, audio->getAudioCurrentTime(), gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 				}
 				gPlayProperties.pausePlay = !gPlayProperties.pausePlay;
-#ifdef MQTT_ENABLE
-				publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
-#endif
+
 				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 				return;
 
@@ -665,7 +669,7 @@ void AudioPlayer_Loop() {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
-					publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+					publishMqtt(topicPausePlay, "play", false);
 #endif
 				}
 				if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
@@ -703,7 +707,7 @@ void AudioPlayer_Loop() {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
-					publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+					publishMqtt(topicPausePlay, "play", false);
 #endif
 				}
 				if (gPlayProperties.repeatCurrentTrack) { // End loop if button was pressed
@@ -767,7 +771,7 @@ void AudioPlayer_Loop() {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
-					publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+					publishMqtt(topicPausePlay, "play", false);
 #endif
 				}
 				gPlayProperties.currentTrackNumber = 0;
@@ -787,7 +791,7 @@ void AudioPlayer_Loop() {
 					audio->pauseResume();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
-					publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+					publishMqtt(topicPausePlay, "play", false);
 #endif
 				}
 				if (gPlayProperties.currentTrackNumber + 1 < gPlayProperties.playlist->size()) {

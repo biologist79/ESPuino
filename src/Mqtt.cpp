@@ -336,7 +336,15 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicSleepTimer, System_GetSleepTimerTimeStamp(), false);
 			publishMqtt(topicLockControls, static_cast<uint32_t>(System_AreControlsLocked()), false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
-			publishMqtt(topicPausePlay, static_cast<uint32_t>(gPlayProperties.pausePlay), false);
+			if (gPlayProperties.playMode == NO_PLAYLIST) { // idle
+				publishMqtt(topicPausePlay, "idle", false);
+			} else {
+				if (gPlayProperties.pausePlay == false) {
+					publishMqtt(topicPausePlay, "play", false);
+				} else { // paused
+					publishMqtt(topicPausePlay, "pause", false);
+				}
+			}
 			publishMqtt(topicLedBrightness, static_cast<uint32_t>(Led_GetBrightness()), false);
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
 			publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
