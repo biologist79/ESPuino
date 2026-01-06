@@ -872,19 +872,6 @@ bool JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
-
-		// update runtime globals
-		String resolvedDeviceId = mqttDeviceIdStr;
-		if (resolvedDeviceId.indexOf("<MAC>") >= 0 || resolvedDeviceId.indexOf("<mac>") >= 0) {
-			String mac = Wlan_GetMacAddress();
-			mac.replace(":", "");
-			mac.toUpperCase();
-			if (mac.length() > 0) {
-				resolvedDeviceId.replace("<MAC>", mac);
-				resolvedDeviceId.replace("<mac>", mac);
-			}
-		}
-		// don't set globals here, restart or recall of Mqtt_Init() will do, but 2nd once might not work this way
 	}
 	if (doc["bluetooth"].is<JsonObject>()) {
 		// bluetooth settings
