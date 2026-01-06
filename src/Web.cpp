@@ -831,8 +831,12 @@ bool JSONToSettings(JsonObject doc) {
 
 		// sanitize base topic (trim slashes and whitespace)
 		mqttBaseTopicStr.trim();
-		while (mqttBaseTopicStr.startsWith("/")) mqttBaseTopicStr = mqttBaseTopicStr.substring(1);
-		while (mqttBaseTopicStr.endsWith("/")) mqttBaseTopicStr = mqttBaseTopicStr.substring(0, mqttBaseTopicStr.length() - 1);
+		while (mqttBaseTopicStr.startsWith("/")) {
+			mqttBaseTopicStr = mqttBaseTopicStr.substring(1);
+		}
+		while (mqttBaseTopicStr.endsWith("/")) {
+			mqttBaseTopicStr = mqttBaseTopicStr.substring(0, mqttBaseTopicStr.length() - 1);
+		}
 		if (mqttBaseTopicStr.length() >= mqttBaseTopicLength) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.baseTopic too long");
 			return false;
@@ -1229,6 +1233,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "mqtt")) {
 		JsonObject mqttObj = obj["mqtt"].to<JsonObject>();
 		mqttObj["enable"].set(Mqtt_IsEnabled());
+		String macPlain = Wlan_GetMacAddress(); // returns AA:BB:CC:DD:EE:FF or empty
+		macPlain.replace(":", "");
+		macPlain.toUpperCase();
+		mqttObj["macAddressPlain"] = macPlain;
 		mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
 		mqttObj["deviceId"] = gPrefsSettings.getString("mqttDeviceId", "-1");
 		mqttObj["baseTopic"] = gPrefsSettings.getString("mqttBaseTopic", "-1");

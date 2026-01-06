@@ -2448,6 +2448,15 @@
 				document.getElementById('mqttPwd').value = mqttSettings.password;
 				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 				document.getElementById('mqttPort').value = mqttSettings.port;
+				// Hidden field with MAC without colons & uppercase for MQTT preview
+				var macField = document.getElementById('macAddress');
+				if (!macField) {
+					macField = document.createElement('input');
+					macField.type = 'hidden';
+					macField.id = 'macAddress';
+					document.getElementById('mqttConfig').appendChild(macField);
+				}
+				macField.value = mqttSettings.macAddressPlain;
 				if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			}
 			// bluetooth
@@ -2870,23 +2879,44 @@
 				}
 				if (typeof locI18Next !== 'undefined') locI18Next.translate([field]);
 			}
-
 			var base = document.getElementById('mqttBaseTopic') ? document.getElementById('mqttBaseTopic').value.trim() : '';
 			var device = document.getElementById('mqttDeviceId') ? document.getElementById('mqttDeviceId').value.trim() : '';
 			if (!device && document.getElementById('mqttClientId')) device = document.getElementById('mqttClientId').value.trim();
+
+			// Get MAC address and replace <MAC> placeholder. Use only hidden DOM field for MAC (upper-case, no colons).
+			var macAddress = document.getElementById('macAddress') ? document.getElementById('macAddress').value.trim().toUpperCase() : 'AABBCCDDEEFF';
+			device = device.replace(/<MAC>/gi, macAddress);
+
 			// Static list of known topics (mirrors firmware settings.h)
 			var commandTopics = ['Sleep', 'Rfid', 'TrackControl', 'Loudness', 'SleepTimer', 'LockControls', 'RepeatMode', 'LedBrightness'];
 			var stateTopics = ['Track', 'CoverChanged', 'State', 'IPv4', 'PausePlay', 'Playmode', 'WifiRssi', 'SoftwareRevision'];
+
+			// Combine command and state topics
+			var allTopics = commandTopics.concat(stateTopics);
+
 			var lines = [];
 			commandTopics.forEach(function (val) {
 				var t = buildMqttTopic(base, device, val, false);
-				lines.push('Command: ' + val + ' -> ' + t);
+				// Escape HTML to prevent <MAC> from being treated as HTML tag
+				lines.push('Command: ' + escapeHtml(val) + ' -&gt; ' + escapeHtml(t));
 			});
-			stateTopics.forEach(function (val) {
+			allTopics.forEach(function (val) {
 				var t = buildMqttTopic(base, device, val, true);
-				lines.push('State: ' + val + ' -> ' + t);
+				lines.push('State: ' + escapeHtml(val) + ' -&gt; ' + escapeHtml(t));
 			});
 			previewEl.innerHTML = lines.join('<br>') || 'No topics configured';
+		}
+
+		// Helper function to escape HTML
+		function escapeHtml(text) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 		}
 
 		function rfidAssign(clickedId) {
