@@ -259,7 +259,7 @@
 		"enable": "Activer MQTT",
 		"clientId": {
 			"title": "Identifiant client MQTT",
-			"placeholder": "par exemple ESPuino",
+			"placeholder": "par exemple ESPuino-<MAC>",
 			"validation": ""
 		},
 		"server": {
@@ -281,6 +281,22 @@
 			"title": "Port MQTT",
 			"placeholder": "par exemple 1883",
 			"validation": ""
+		},
+		"baseTopic": {
+			"title": "Topic de base (optionnel)",
+			"placeholder": "p.ex. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Identifiant de l'appareil",
+			"placeholder": "p.ex. ESPuino-<MAC>",
+			"validation": ""
+		},
+		"topicsPreview": "Sujets complets (aperçu)",
+		"restartNote": "Remarque : les modifications MQTT ne prennent effet qu'après le redémarrage de l'appareil.",
+		"restartPrompt": "Les paramètres MQTT ont été enregistrés. Redémarrer maintenant pour appliquer les modifications ?",
+		"topics": {
+			"preview": "Sujets complets (aperçu)"
 		}
 	},
 	"ftp": {

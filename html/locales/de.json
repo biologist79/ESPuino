@@ -259,13 +259,29 @@
 		"enable": "MQTT aktivieren",
 		"clientId": {
 			"title": "MQTT-ClientId",
-			"placeholder": "z.B. ESPuino",
+			"placeholder": "z.B. ESPuino-<MAC>",
 			"validation": ""
 		},
 		"server": {
 			"title": "MQTT-Server",
 			"placeholder": "f.e. 192.168.2.89",
 			"validation": ""
+		},
+		"baseTopic": {
+			"title": "Basis-Topic (optional)",
+			"placeholder": "z.B. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Geräte-ID",
+			"placeholder": "z.B. ESPuino-<MAC>",
+			"validation": ""
+		},
+		"topicsPreview": "Vollständige Topics (Vorschau)",
+		"restartNote": "Hinweis: MQTT-Änderungen werden erst nach einem Neustart des Geräts wirksam.",
+		"restartPrompt": "MQTT-Einstellungen wurden gespeichert. Jetzt neu starten, um die Änderungen anzuwenden?",
+		"topics": {
+			"preview": "Vollständige Topics (Vorschau)"
 		},
 		"user": {
 			"title": "MQTT-Benutzername (optional)",

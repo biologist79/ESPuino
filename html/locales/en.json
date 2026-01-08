@@ -259,7 +259,7 @@
 		"enable": "Enable MQTT",
 		"clientId": {
 			"title": "MQTT-ClientId",
-			"placeholder": "f.e. ESPuino",
+			"placeholder": "f.e. ESPuino-<MAC>",
 			"validation": ""
 		},
 		"server": {
@@ -276,6 +276,22 @@
 			"title": "MQTT-password (optional)",
 			"placeholder": "password",
 			"validation": ""
+		},
+		"baseTopic": {
+			"title": "Base topic (optional)",
+			"placeholder": "f.e. home/espuino",
+			"validation": ""
+		},
+		"deviceId": {
+			"title": "Device Id",
+			"placeholder": "f.e. ESPuino-<MAC>",
+			"validation": ""
+		},
+		"topicsPreview": "Full topics (preview)",
+		"restartNote": "Note: MQTT settings only take effect after restarting the device.",
+		"restartPrompt": "MQTT settings were saved. Restart now to apply changes?",
+		"topics": {
+			"preview": "Full topics (preview)"
 		},
 		"port": {
 			"title": "MQTT-port",

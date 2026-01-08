@@ -817,19 +817,58 @@ bool JSONToSettings(JsonObject doc) {
 	if (doc["mqtt"].is<JsonObject>()) {
 		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
 		const char *_mqttClientId = doc["mqtt"]["clientID"];
+		const char *_mqttDeviceId = doc["mqtt"]["deviceId"];
+		const char *_mqttBaseTopic = doc["mqtt"]["baseTopic"];
 		const char *_mqttServer = doc["mqtt"]["server"];
 		const char *_mqttUser = doc["mqtt"]["username"];
 		const char *_mqttPwd = doc["mqtt"]["password"];
 		uint16_t _mqttPort = doc["mqtt"]["port"].as<uint16_t>();
 
+		// Sanitize and validate inputs
+		String mqttClientIdStr = String(_mqttClientId);
+		String mqttDeviceIdStr = String(_mqttDeviceId);
+		String mqttBaseTopicStr = String(_mqttBaseTopic);
+
+		// sanitize base topic (trim slashes and whitespace)
+		mqttBaseTopicStr.trim();
+		while (mqttBaseTopicStr.startsWith("/")) {
+			mqttBaseTopicStr = mqttBaseTopicStr.substring(1);
+		}
+		while (mqttBaseTopicStr.endsWith("/")) {
+			mqttBaseTopicStr = mqttBaseTopicStr.substring(0, mqttBaseTopicStr.length() - 1);
+		}
+		if (mqttBaseTopicStr.length() >= mqttBaseTopicLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.baseTopic too long");
+			return false;
+		}
+
+		// validate device id (must not be empty and must not contain '/')
+		mqttDeviceIdStr.trim();
+		if (mqttDeviceIdStr.length() == 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId empty");
+			return false;
+		}
+		if (mqttDeviceIdStr.indexOf('/') >= 0) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId contains invalid char '/'");
+			return false;
+		}
+		if (mqttDeviceIdStr.length() >= mqttDeviceIdLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId too long");
+			return false;
+		}
+
+		// store sanitized values
 		gPrefsSettings.putUChar("enableMQTT", _mqttEnable);
-		gPrefsSettings.putString("mqttClientId", (String) _mqttClientId);
+		gPrefsSettings.putString("mqttClientId", mqttClientIdStr);
+		gPrefsSettings.putString("mqttDeviceId", mqttDeviceIdStr);
+		gPrefsSettings.putString("mqttBaseTopic", mqttBaseTopicStr);
 		gPrefsSettings.putString("mqttServer", (String) _mqttServer);
 		gPrefsSettings.putString("mqttUser", (String) _mqttUser);
 		gPrefsSettings.putString("mqttPassword", (String) _mqttPwd);
 		gPrefsSettings.putUInt("mqttPort", _mqttPort);
 
-		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1")))) {
+		// verify writes (include deviceId and baseTopic)
+		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!mqttBaseTopicStr.equals(gPrefsSettings.getString("mqttBaseTopic", "-1"))) || (!mqttDeviceIdStr.equals(gPrefsSettings.getString("mqttDeviceId", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
 			return false;
 		}
@@ -1172,7 +1211,13 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "mqtt")) {
 		JsonObject mqttObj = obj["mqtt"].to<JsonObject>();
 		mqttObj["enable"].set(Mqtt_IsEnabled());
+		String macPlain = Wlan_GetMacAddress(); // returns AA:BB:CC:DD:EE:FF or empty
+		macPlain.replace(":", "");
+		macPlain.toUpperCase();
+		mqttObj["macAddressPlain"] = macPlain;
 		mqttObj["clientID"] = gPrefsSettings.getString("mqttClientId", "-1");
+		mqttObj["deviceId"] = gPrefsSettings.getString("mqttDeviceId", "-1");
+		mqttObj["baseTopic"] = gPrefsSettings.getString("mqttBaseTopic", "-1");
 		mqttObj["server"] = gPrefsSettings.getString("mqttServer", "-1");
 		mqttObj["port"].set(gPrefsSettings.getUInt("mqttPort", 0));
 		mqttObj["username"] = gPrefsSettings.getString("mqttUser", "-1");
@@ -1181,6 +1226,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		mqttObj["maxPwdLength"].set(mqttPasswordLength - 1);
 		mqttObj["maxClientIdLength"].set(mqttClientIdLength - 1);
 		mqttObj["maxServerLength"].set(mqttServerLength - 1);
+		mqttObj["maxBaseTopicLength"].set(mqttBaseTopicLength - 1);
+		mqttObj["maxDeviceIdLength"].set(mqttDeviceIdLength - 1);
 	}
 #endif
 // Bluetooth
