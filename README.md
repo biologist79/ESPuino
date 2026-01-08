@@ -487,43 +487,28 @@ However, there's also stuff available for [Home Assistant](https://forum.espuino
 Feel free to use your own smarthome environments (Home Assistant, Node Red...). The MQTT topics available are
 described as follows.
 
-> :information_source: If you want to send a command to ESPuino, you have to use a cmnd-topic
-  whereas ESPuino pushes its states back via state-topics. So guess you want to change the volume to
-  8 you have to send this number via topic-variable `topicLoudnessCmnd`. Immediately after doing so,
-  ESPuino sends a conformation of this command using `topicLoudnessState`. To get hands on MQTT I
-  recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introduction (covers more than
-  you need for ESPuino).
+> :information_source: Topics follow the pattern: `[<base_topic>/]device_id/topic[/setter_token]`. Command topics use the optional setter token appended to the topic (for example: `<baseTopic>/<deviceId>/<topic>/<setter_token>`, e.g. `home/ESPuino-01/loudness/set`), while state topics are published on the topic without the setter token (for example: `<baseTopic>/<deviceId>/<topic>`, e.g. `home/ESPuino-01/loudness`). For example, to change the volume to `8`, publish `8` to the command topic for `topicLoudness` (e.g. `.../loudness/set`); ESPuino will confirm by publishing the value on the state topic for `topicLoudness` (`.../loudness`). To get hands on MQTT I recommend this [one](https://www.hivemq.com/mqtt-essentials/) as introduction (covers more than you need for ESPuino).
 
 | topic-variable          | range           | meaning                                                                                                                                                |
 | ----------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| topicSleepCmnd          | 0 or OFF        | Power off ESPuino immediately                                                                                                                          |
-| topicSleepState         | ON or OFF       | Sends ESPuino's last state                                                                                                                             |
-| topicRfidCmnd           | 12 digits       | Set number of RFID tag which 'emulates' an RFID tag (e.g. `123789456089`)                                                                              |
-| topicRfidState          | 12 digits       | ID of current RFID tag (if not a modification card)                                                                                                    |
-| topicTrackState         | String          | Sends current track number, total number of tracks and full path of curren track. E.g. "(2/10) /mp3/kinderlieder/Ri ra rutsch.mp3"                     |
-| topicTrackControlCmnd   | 1 -> 9          | `1`=stop; `2`=unused!; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last; `8`=next folder; `9`=previous folder                                                                             |
-| topicCoverChangedState  |                 | Indicated that the cover image has potentially changed. For performance reasons the application should load the image only if it's visible to the user |
-| topicLoudnessCmnd       | 0 -> 21         | Set loudness (depends on minVolume / maxVolume)                                                                                                        |
-| topicLoudnessState      | 0 -> 21         | Sends loudness (depends on minVolume / maxVolume                                                                                                       |
-| topicSleepTimerCmnd     | EOP             | Power off after end to playlist                                                                                                                        |
-|                         | EOT             | Power off after end of track                                                                                                                           |
-|                         | EO5T            | Power off after end of five tracks                                                                                                                     |
-|                         | 1 -> 2^32       | Duration in minutes to power off                                                                                                                       |
-|                         | 0               | Deactivate timer (if active)                                                                                                                           |
-| topicSleepTimerState    | various         | Sends active timer (`EOP`, `EOT`, `EO5T`, `0`, ...)                                                                                                    |
+| topicSleep              | Cmnd: 0 or OFF; State: ON or OFF | Cmnd: power off (send '0' or 'OFF'); State: sends current power state                                                                                 |
+| topicRfid               | Cmnd/State: 12 digits | Cmnd: emulate an RFID tag by sending a 12-digit id (e.g. `123789456089`); State: current RFID tag id                                                   |
+| topicTrack              | String          | State: current track info (e.g. "(2/10) /mp3/.../file.mp3")                                                                                         |
+| topicTrackControl       | 1 -> 9          | Cmnd: playback control (`1`=stop; `3`=play/pause; `4`=next; `5`=prev; `6`=first; `7`=last; `8`=next folder; `9`=previous folder)                     |
+| topicCoverChanged       | (flag)          | State: indicates cover image may have changed (load only if visible)                                                                                |
+| topicLoudness           | Cmnd/State: 0 -> 21 | Set/report loudness (depends on minVolume / maxVolume)                                                                                               |
+| topicSleepTimer         | Cmnd/State: EOP / EOT / EO5T / 1->2^32 / 0 | Cmnd: set sleep timer (EOP/EOT/EO5T or minutes; 0 to deactivate). State: current timer value (e.g. `EOP`, `EOT`, `EO5T`, `0`, ...) |
 | topicState              | Online, Offline | `Online` when powering on, `Offline` when powering off                                                                                                 |
 | topicCurrentIPv4IP      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                                                                                                       |
-| topicLockControlsCmnd   | ON, OFF         | Set if controls (buttons, rotary encoder) should be locked                                                                                             |
-| topicLockControlsState  | ON, OFF         | Sends if controls (buttons, rotary encoder) are locked                                                                                                 |
-| topicPlaymodeState      | 0 - 10          | Sends current playback mode (single track, audiobook...; see [playback modes](#playback-modes))                                                        |
-| topicRepeatModeCmnd     | 0 - 3           | Set repeat-mode: `0`=no; `1`=track; `2`=playlist; `3`=both                                                                                             |
-| topicRepeatModeState    | 0 - 3           | Sends repeat-mode                                                                                                                                      |
-| topicLedBrightnessCmnd  | 0 - 255         | Set brightness of Neopixel                                                                                                                             |
-| topicLedBrightnessState | 0 - 255         | Sends brightness of Neopixel                                                                                                                           |
+| topicPausePlay          | idle, play, pause | Sends playback state: `idle` (no playback), `play` (playing), `pause` (paused)                                                                         |
+| topicLockControls       | Cmnd/State: ON or OFF | Set/report whether physical controls are locked                                                                                                        |
+| topicPlaymode           | 0 - 10          | State: current playback mode (single track, audiobook...; see [playback modes](#playback-modes))                                                        |
+| topicRepeatMode         | Cmnd/State: 0 - 3 | Set/report repeat mode (`0`=no; `1`=track; `2`=playlist; `3`=both)                                                                                    |
+| topicLedBrightness      | Cmnd/State: 0 - 255 | Set/report Neopixel brightness                                                                                                                         |
 | topicBatteryVoltage     | float           | Voltage (e.g. 3.81)                                                                                                                                    |
 | topicBatterySOC         | float           | Current battery charge in percent (e.g. 83.0)                                                                                                          |
-| topicWiFiRssiState      | int             | Numeric WiFi signal-strength (dBm)                                                                                                                     |
-| topicSRevisionState     | String          | Software-revision                                                                                                                                      |
+| topicWiFiRssi           | int             | State: numeric WiFi signal-strength (dBm)                                                                                                             |
+| topicSRevision          | String          | State: software revision string                                                                                                                        |
 
 ### REST API
 

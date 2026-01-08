@@ -537,7 +537,7 @@ void handleWifiStateConnected() {
 			lastRssiValue = Wlan_GetRssi();
 		}
 #ifdef MQTT_ENABLE
-		publishMqtt(topicWiFiRssiState, static_cast<int32_t>(Wlan_GetRssi()), false);
+		publishMqtt(topicWiFiRssi, static_cast<int32_t>(Wlan_GetRssi()), false);
 #endif
 	}
 }

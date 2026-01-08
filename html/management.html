@@ -278,6 +278,8 @@
 				<div class="modal-footer">
 					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
 							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"
+						onclick="restartDevice()"><span data-i18n="restart"></span></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
 							data-i18n="ok"></span></button>
 				</div>
@@ -745,6 +747,7 @@
 				<form class="needs-validation" action="#mqttConfig" method="POST"
 					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
+					<div class="mb-2"><small class="text-muted" data-i18n="mqtt.restartNote"></small></div>
 					<div class="form-check col-md-12">
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
 							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
@@ -754,6 +757,12 @@
 						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
 						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
 							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+						<label for="mqttBaseTopic" data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+						<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
+							data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
+						<label for="mqttDeviceId" data-i18n="[prepend]mqtt.deviceId.title">:</label>
+						<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
+							data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
 						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
 						<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
 							data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
@@ -1620,15 +1629,36 @@
 		} /* putData */
 		async function restartDevice() {
 			console.log("restart..");
+			// Close any existing prompt/modal immediately
+			try {
+				const modalEl = document.getElementById('modalInfo');
+				const modalInst = bootstrap.Modal.getInstance(modalEl);
+				if (modalInst) modalInst.hide();
+			} catch (e) { }
 			await fetch("http://" + host + "/restart", {
 				method: "POST"
 			});
 			tryRedirect();
+			// Ensure modal buttons are in correct state for restart
+			$('#modalRestartNow').hide();
+			$('#modalInfoRefresh').show();
 			$('.modal-title').text(i18next.t("restart"));
 			$('.modal-body').html(i18next.t("restartinfo"));
 			$(".modal-body").removeAttr("style");
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			// Show restart info modal
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
 		} /* restart */
+
+		function showMqttRestartPrompt() {
+			// Reuse the info modal to prompt the user to restart now or later
+			$('.modal-title').text(i18next.t('restart'));
+			$('.modal-body').html(i18next.t('mqtt.restartPrompt'));
+			// Hide refresh button and show restart-now button
+			$('#modalInfoRefresh').hide();
+			$('#modalRestartNow').show();
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+		}
+
 		async function shutdownDevice() {
 			console.log("shutdown..");
 			await fetch("http://" + host + "/shutdown", {
@@ -2434,6 +2464,10 @@
 			if (mqttSettings) {
 				// todo: get the bootstrap sliders to work:
 				document.getElementById('nav-mqtt-tab').setAttribute('data-visible', true);
+				document.getElementById('mqttBaseTopic').value = mqttSettings.baseTopic;
+				document.getElementById('mqttBaseTopic').setAttribute('maxlength', mqttSettings.maxBaseTopicLength);
+				document.getElementById('mqttDeviceId').value = mqttSettings.deviceId;
+				document.getElementById('mqttDeviceId').setAttribute('maxlength', mqttSettings.maxDeviceIdLength);
 				document.getElementById('mqttEnable').checked = mqttSettings.enable;
 				document.getElementById('mqttClientId').value = mqttSettings.clientID;
 				document.getElementById('mqttClientId').setAttribute('maxlength', mqttSettings.maxClientIdLength);
@@ -2444,6 +2478,16 @@
 				document.getElementById('mqttPwd').value = mqttSettings.password;
 				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 				document.getElementById('mqttPort').value = mqttSettings.port;
+				// Hidden field with MAC without colons & uppercase for MQTT preview
+				var macField = document.getElementById('macAddress');
+				if (!macField) {
+					macField = document.createElement('input');
+					macField.type = 'hidden';
+					macField.id = 'macAddress';
+					document.getElementById('mqttConfig').appendChild(macField);
+				}
+				macField.value = mqttSettings.macAddressPlain;
+				if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			}
 			// bluetooth
 			let btSettings = settings.bluetooth;
@@ -2799,6 +2843,8 @@
 				"mqtt": {
 					enable: val,
 					clientID: document.getElementById('mqttClientId').value,
+					deviceId: document.getElementById('mqttDeviceId').value,
+					baseTopic: document.getElementById('mqttBaseTopic').value,
 					server: document.getElementById('mqttServer').value,
 					username: document.getElementById('mqttUser').value,
 					password: document.getElementById('mqttPwd').value,
@@ -2807,6 +2853,21 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+
+			// If any MQTT setting changed, prompt user to restart to apply changes
+			try {
+				var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
+				var nw = myObj.mqtt;
+				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'password', 'port'];
+				var changed = false;
+				for (var i = 0; i < fields.length; i++) {
+					var f = fields[i];
+					var ov = old[f];
+					var nv = nw[f];
+					if (String(ov) !== String(nv)) { changed = true; break; }
+				}
+				if (changed) showMqttRestartPrompt();
+			} catch (e) { console.log('mqttSettings compare error', e); }
 		}
 
 		function btSettings(clickedId) {
@@ -2826,6 +2887,81 @@
 				return str.substr(0, str.length - 1);
 			}
 			return str;
+		}
+
+		function buildMqttTopic(base, device, topic, isState) {
+			var dev = device && device.length ? device : (document.getElementById('mqttClientId') ? document.getElementById('mqttClientId').value : 'UNKNOWN');
+			var setterToken = 'set';
+			if (base && base.length) {
+				return base + '/' + dev + '/' + topic + (isState ? '' : '/' + setterToken);
+			} else {
+				return dev + '/' + topic + (isState ? '' : '/' + setterToken);
+			}
+		}
+
+		function updateMqttTopicsPreview() {
+			// Create preview UI if not present (helps when management.html wasn't updated)
+			var previewEl = document.getElementById('mqttTopicsPreview');
+			if (!previewEl) {
+				var field = document.createElement('fieldset');
+				field.className = 'mb-3';
+				var leg = document.createElement('legend');
+				leg.setAttribute('data-i18n', 'mqtt.topics.preview');
+				field.appendChild(leg);
+				previewEl = document.createElement('pre');
+				previewEl.id = 'mqttTopicsPreview';
+				previewEl.style.whiteSpace = 'pre-wrap';
+				field.appendChild(previewEl);
+				var port = document.getElementById('mqttPort');
+				if (port && port.parentNode) {
+					// Insert after the parent container of the port input
+					var parent = port.parentNode;
+					parent.parentNode.insertBefore(field, parent.nextSibling);
+				} else {
+					var cfg = document.getElementById('mqttConfig');
+					if (cfg) cfg.appendChild(field);
+					else document.body.appendChild(field);
+				}
+				if (typeof locI18Next !== 'undefined') locI18Next.translate([field]);
+			}
+			var base = document.getElementById('mqttBaseTopic') ? document.getElementById('mqttBaseTopic').value.trim() : '';
+			var device = document.getElementById('mqttDeviceId') ? document.getElementById('mqttDeviceId').value.trim() : '';
+			if (!device && document.getElementById('mqttClientId')) device = document.getElementById('mqttClientId').value.trim();
+
+			// Get MAC address and replace <MAC> placeholder. Use only hidden DOM field for MAC (upper-case, no colons).
+			var macAddress = document.getElementById('macAddress') ? document.getElementById('macAddress').value.trim().toUpperCase() : 'AABBCCDDEEFF';
+			device = device.replace(/<MAC>/gi, macAddress);
+
+			// Static list of known topics (mirrors firmware settings.h)
+			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness'];
+			var stateTopics = ['track', 'cover_changed', 'state', 'ipv4', 'pauseplay', 'playmode', 'wifi_rssi', 'software_revision'];
+
+			// Combine command and state topics
+			var allTopics = commandTopics.concat(stateTopics);
+
+			var lines = [];
+			commandTopics.forEach(function (val) {
+				var t = buildMqttTopic(base, device, val, false);
+				// Escape HTML to prevent <MAC> from being treated as HTML tag
+				lines.push('Command: ' + escapeHtml(val) + ' -&gt; ' + escapeHtml(t));
+			});
+			allTopics.forEach(function (val) {
+				var t = buildMqttTopic(base, device, val, true);
+				lines.push('State: ' + escapeHtml(val) + ' -&gt; ' + escapeHtml(t));
+			});
+			previewEl.innerHTML = lines.join('<br>') || 'No topics configured';
+		}
+
+		// Helper function to escape HTML
+		function escapeHtml(text) {
+			var map = {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#039;'
+			};
+			return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 		}
 
 		function rfidAssign(clickedId) {
@@ -3106,6 +3242,16 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			// insert MQTT topics preview if not present
+			if ($('#mqttTopicsPreview').length === 0) {
+				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
+				$('#mqttConfig form .text-center').first().before(preview);
+			}
+			// Bind live update when relevant mqtt fields change
+			$('#mqttBaseTopic, #mqttDeviceId, #mqttClientId').off('input.mqttPreview').on('input.mqttPreview', function () {
+				if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
+			});
+			if (typeof updateMqttTopicsPreview === 'function') updateMqttTopicsPreview();
 			$('#deleteSSIDModal').on('show.bs.modal', function (event) {
 				var ssid = $(event.relatedTarget).data('ssid')
 				$(this).find('.modal-title').text(i18next.t("wifi.delete.title"));
@@ -3123,6 +3269,8 @@
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
 			})
 			$('.openPopupInfo').on('click', function () {
+				// Reset modal buttons when modal is closed
+				$('#modalInfo').on('hidden.bs.modal', function () { $('#modalInfoRefresh').show(); $('#modalRestartNow').hide(); });
 				fetchInfo();
 				$('.modal-title').text(i18next.t("systeminfo.title"));
 				$('#modalInfoRefresh').on('click', fetchInfo);
