@@ -2,7 +2,7 @@
 
 ## DEV-branch
 
-* nothing yet...
+* 08.01.2026: More flexible MQTT-handling and new MQTT naming scheme (#373)
 
 ## Version 2.5 (01.01.2026)
 
