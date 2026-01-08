@@ -278,6 +278,8 @@
 				<div class="modal-footer">
 					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
 							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"
+						onclick="restartDevice()"><span data-i18n="restart"></span></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
 							data-i18n="ok"></span></button>
 				</div>
@@ -745,6 +747,7 @@
 				<form class="needs-validation" action="#mqttConfig" method="POST"
 					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
+					<div class="mb-2"><small class="text-muted" data-i18n="mqtt.restartNote"></small></div>
 					<div class="form-check col-md-12">
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
 							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
@@ -1626,15 +1629,36 @@
 		} /* putData */
 		async function restartDevice() {
 			console.log("restart..");
+			// Close any existing prompt/modal immediately
+			try {
+				const modalEl = document.getElementById('modalInfo');
+				const modalInst = bootstrap.Modal.getInstance(modalEl);
+				if (modalInst) modalInst.hide();
+			} catch (e) { }
 			await fetch("http://" + host + "/restart", {
 				method: "POST"
 			});
 			tryRedirect();
+			// Ensure modal buttons are in correct state for restart
+			$('#modalRestartNow').hide();
+			$('#modalInfoRefresh').show();
 			$('.modal-title').text(i18next.t("restart"));
 			$('.modal-body').html(i18next.t("restartinfo"));
 			$(".modal-body").removeAttr("style");
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			// Show restart info modal
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
 		} /* restart */
+
+		function showMqttRestartPrompt() {
+			// Reuse the info modal to prompt the user to restart now or later
+			$('.modal-title').text(i18next.t('restart'));
+			$('.modal-body').html(i18next.t('mqtt.restartPrompt'));
+			// Hide refresh button and show restart-now button
+			$('#modalInfoRefresh').hide();
+			$('#modalRestartNow').show();
+			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+		}
+
 		async function shutdownDevice() {
 			console.log("shutdown..");
 			await fetch("http://" + host + "/shutdown", {
@@ -2829,6 +2853,21 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+
+			// If any MQTT setting changed, prompt user to restart to apply changes
+			try {
+				var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
+				var nw = myObj.mqtt;
+				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'password', 'port'];
+				var changed = false;
+				for (var i = 0; i < fields.length; i++) {
+					var f = fields[i];
+					var ov = old[f];
+					var nv = nw[f];
+					if (String(ov) !== String(nv)) { changed = true; break; }
+				}
+				if (changed) showMqttRestartPrompt();
+			} catch (e) { console.log('mqttSettings compare error', e); }
 		}
 
 		function btSettings(clickedId) {
@@ -3230,6 +3269,8 @@
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
 			})
 			$('.openPopupInfo').on('click', function () {
+				// Reset modal buttons when modal is closed
+				$('#modalInfo').on('hidden.bs.modal', function () { $('#modalInfoRefresh').show(); $('#modalRestartNow').hide(); });
 				fetchInfo();
 				$('.modal-title').text(i18next.t("systeminfo.title"));
 				$('#modalInfoRefresh').on('click', fetchInfo);

@@ -288,6 +288,8 @@
 			"validation": ""
 		},
 		"topicsPreview": "Full topics (preview)",
+		"restartNote": "Note: MQTT settings only take effect after restarting the device.",
+		"restartPrompt": "MQTT settings were saved. Restart now to apply changes?",
 		"topics": {
 			"preview": "Full topics (preview)"
 		},

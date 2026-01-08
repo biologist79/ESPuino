@@ -263,28 +263,28 @@
 	#ifdef MQTT_ENABLE
 		constexpr const char base_topic[] = "";
 		constexpr const char device_id[] = "ESPuino-<MAC>";        // Name that is used for MQTT
-		constexpr const char setter_token[] = "set";        // Word to identify command-topics
+		constexpr const char setter_token[] = "set";        		// Word to identify command-topics
 		// Topics (settable)
-		constexpr const char topicSleep[] = "sleep";
-		constexpr const char topicRfid[] = "rfid";
-		constexpr const char topicTrackControl[] = "trackcontrol";
-		constexpr const char topicLoudness[] = "loudness";
-		constexpr const char topicSleepTimer[] = "sleep_timer";
-		constexpr const char topicLockControls[] ="lock_controls";
-		constexpr const char topicRepeatMode[] = "repeatmode";
-		constexpr const char topicLedBrightness[] = "led_brightness";
+		constexpr const char topicSleep[] = "sleep";           // Cmnd/State: power off (Cmnd '0' or 'OFF' to shutdown), State: ON/OFF
+		constexpr const char topicRfid[] = "rfid";            // Cmnd/State: emulate an RFID tag (Cmnd: 12-digit id), State: current RFID tag id
+		constexpr const char topicTrackControl[] = "trackcontrol"; // Cmnd: playback control (1=stop,3=play/pause,4=next,5=prev,6=first,7=last,8=next folder,9=prev folder)
+		constexpr const char topicLoudness[] = "loudness";    // Cmnd/State: set / report volume (numeric)
+		constexpr const char topicSleepTimer[] = "sleep_timer"; // Cmnd/State: sleep timer commands (EOP/EOT/EO5T, minutes, or 0 to deactivate)
+		constexpr const char topicLockControls[] ="lock_controls"; // Cmnd/State: lock or unlock physical controls (ON/OFF)
+		constexpr const char topicRepeatMode[] = "repeatmode"; // Cmnd/State: set repeat mode (0=no,1=track,2=playlist,3=both)
+		constexpr const char topicLedBrightness[] = "led_brightness"; // Cmnd/State: set LED brightness 0..255
 		// Topics (state only)
-		constexpr const char topicTrack[] = "track";
-		constexpr const char topicCoverChanged[] = "cover_changed";
-		constexpr const char topicState[] = "state";
-		constexpr const char topicCurrentIPv4IP[] = "ipv4";
-		constexpr const char topicPausePlay[] = "pauseplay";
-		constexpr const char topicPlaymode[] = "playmode";
-		constexpr const char topicWiFiRssi[] = "wifi_rssi";
-		constexpr const char topicSRevision[] = "software_revision";
+		constexpr const char topicTrack[] = "track";          // State: current track info (e.g. "(2/10) /mp3/.../file.mp3")
+		constexpr const char topicCoverChanged[] = "cover_changed"; // State: indicates cover image may have changed
+		constexpr const char topicState[] = "state";         // State: 'Online' when powering on, 'Offline' when powering off
+		constexpr const char topicCurrentIPv4IP[] = "ipv4";  // State: sends current IPv4 address
+		constexpr const char topicPausePlay[] = "pauseplay"; // State: playback state: 'idle', 'play', 'pause'
+		constexpr const char topicPlaymode[] = "playmode";  // State: numeric playmode
+		constexpr const char topicWiFiRssi[] = "wifi_rssi"; // State: WiFi signal strength (dBm)
+		constexpr const char topicSRevision[] = "software_revision"; // State: software revision string
 		#ifdef BATTERY_MEASURE_ENABLE
-		constexpr const char topicBatteryVoltage[] = "battery_voltage";
-		constexpr const char topicBatterySOC[]     = "battery_soc";
+		constexpr const char topicBatteryVoltage[] = "battery_voltage"; // State: battery voltage float (e.g. 3.81)
+		constexpr const char topicBatterySOC[]     = "battery_soc"; // State: battery charge percent (e.g. 83.0)
 		#endif
 	#endif
 

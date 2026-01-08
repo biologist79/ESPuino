@@ -293,6 +293,8 @@
 			"validation": ""
 		},
 		"topicsPreview": "Sujets complets (aperçu)",
+		"restartNote": "Remarque : les modifications MQTT ne prennent effet qu'après le redémarrage de l'appareil.",
+		"restartPrompt": "Les paramètres MQTT ont été enregistrés. Redémarrer maintenant pour appliquer les modifications ?",
 		"topics": {
 			"preview": "Sujets complets (aperçu)"
 		}
