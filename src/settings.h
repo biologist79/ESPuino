@@ -259,7 +259,8 @@
 	// Seekmode-configuration
 	constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
 
-	// (optional) Topics for MQTT
+	// Topics for MQTT: used to build actual topics in webinterface. So normally there's no need to apply any changes here 
+	// MQTT configuration available via webinterface: https://forum.espuino.de/t/dokumentation-webinterface/2807.
 	#ifdef MQTT_ENABLE
 		constexpr const char base_topic[] = "";
 		constexpr const char device_id[] = "ESPuino-<MAC>";        // Name that is used for MQTT

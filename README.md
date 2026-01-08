@@ -24,6 +24,8 @@ HALs, RFID-readers PN5180 or RC522 and with or without bluetooth. These are prov
 > :warning: Due to memory restrictions and complexity, ESPuino doesn't run safely on ESP32
 without PSRAM. So please make sure to use an ESP32-WROVER!
 
+> :warning: As of January 8, 2026, MQTT topics have changed! Further infos [here](https://forum.espuino.de/t/neues-namensschema-fuer-mqtt/2553/34?u=biologist).
+
 ## Current development
 
 There is a [development branch (dev)](https://github.com/biologist79/ESPuino/tree/dev) that contains
