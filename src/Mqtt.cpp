@@ -27,9 +27,9 @@ static esp_mqtt_client_handle_t mqtt_client = NULL;
 String gBaseTopic = ""; // Base topic for MQTT (if not found in NVS this one will be taken)
 String gDeviceId = device_id; // Device ID that is used for MQTT (if not found in NVS this one will be taken)
 String gMqttClientId = device_id; // ClientId for the MQTT-server, must be server wide unique (if not found in NVS this one will be taken)
-String gMqttServer = "192.168.2.43"; // IP-address of MQTT-server (if not found in NVS this one will be taken)
-String gMqttUser = "mqtt-user"; // MQTT-user
-String gMqttPassword = "mqtt-password"; // MQTT-password
+String gMqttServer = ""; // IP-address of MQTT-server (if not found in NVS this one will be taken)
+String gMqttUser = ""; // MQTT-user
+String gMqttPassword = ""; // MQTT-password
 uint16_t gMqttPort = 1883; // MQTT-Port
 constexpr uint8_t MQTT_TOPIC_MAX_LENGTH = 128u; // Maximal length of MQTT-topic
 #endif
@@ -55,7 +55,7 @@ static String ReplaceMacToken(const String &in) {
 #endif
 
 // MQTT
-static bool Mqtt_Enabled = true;
+static bool Mqtt_Enabled = false;
 
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
@@ -187,6 +187,9 @@ void Mqtt_Init() {
 
 void Mqtt_OnWifiConnected(void) {
 #ifdef MQTT_ENABLE
+	if (mqtt_client == NULL) {
+		return;
+	}
 	static bool mqtt_started = false;
 	if (!mqtt_started) {
 		esp_mqtt_client_start(mqtt_client);
@@ -245,6 +248,9 @@ bool Mqtt_IsEnabled(void) {
 /* Wrapper-functions for MQTT-publish */
 bool publishMqtt(const char *topic, const char *payload, bool retained) {
 #ifdef MQTT_ENABLE
+	if (mqtt_client == NULL) {
+		return false;
+	}
 	if (strcmp(topic, "") != 0) {
 		int qos = 0;
 		int ret = esp_mqtt_client_publish(mqtt_client, Mqtt_GetStateTopic(topic), payload, 0, qos, retained);
@@ -258,6 +264,9 @@ bool publishMqtt(const char *topic, const char *payload, bool retained) {
 
 bool publishMqtt(const char *topic, int32_t payload, bool retained) {
 #ifdef MQTT_ENABLE
+	if (mqtt_client == NULL) {
+		return false;
+	}
 	char buf[11];
 	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%ld", payload);
 	return publishMqtt(topic, buf, retained);
@@ -268,6 +277,9 @@ bool publishMqtt(const char *topic, int32_t payload, bool retained) {
 
 bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 #ifdef MQTT_ENABLE
+	if (mqtt_client == NULL) {
+		return false;
+	}
 	char buf[11];
 	snprintf(buf, sizeof(buf) / sizeof(buf[0]), "%lu", payload);
 	return publishMqtt(topic, buf, retained);
@@ -371,12 +383,15 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			Mqtt_ClientCallback(event->topic, event->topic_len, event->data, event->data_len);
 			break;
 		}
+		case MQTT_EVENT_BEFORE_CONNECT: {
+			break;
+		}
 		case MQTT_EVENT_ERROR: {
 			Log_Printf(LOGLEVEL_ERROR, "MQTT_EVENT_ERROR. Last errno string (%s)", strerror(event->error_handle->esp_transport_sock_errno));
 			break;
 		}
 		default: {
-			Log_Printf(LOGLEVEL_INFO, "Other event id:%d", event->event_id);
+			Log_Printf(LOGLEVEL_INFO, "MQTT: Other event id:%d", event->event_id);
 			break;
 		}
 	}
