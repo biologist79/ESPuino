@@ -603,6 +603,5 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		Log_Printf(LOGLEVEL_ERROR, noValidTopic, topic_str.c_str());
 		System_IndicateError();
 	}
-
 #endif
 }
