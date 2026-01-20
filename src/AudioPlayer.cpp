@@ -115,6 +115,7 @@ void Audio_InfoCallback(Audio::msg_t m) {
 		case Audio::evt_eof: { // end of file
 			Log_Printf(LOGLEVEL_INFO, "end of file:  %s", m.msg);
 			gPlayProperties.trackFinished = true;
+			gPlayProperties.currentSpeechActive = false;
 			break;
 		}
 		case Audio::evt_bitrate: {
@@ -1560,10 +1561,6 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 #ifdef MQTT_ENABLE
 	publishMqtt(topicCoverChanged, "", false);
 #endif
-}
-
-void audio_eof_speech(const char *info) {
-	gPlayProperties.currentSpeechActive = false;
 }
 
 // record audiodata or send via BT
