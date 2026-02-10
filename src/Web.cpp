@@ -94,7 +94,7 @@ static void handleDebugRequest(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, const String section);
-static bool JSONToSettings(JsonObject obj);
+static ToastStatus JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
 // IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
@@ -637,10 +637,10 @@ void webserverStart(void) {
 unsigned long lastPongTimestamp;
 
 // process JSON to settings
-bool JSONToSettings(JsonObject doc) {
+ToastStatus JSONToSettings(JsonObject doc) {
 	if (!doc) {
-		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
-		return false;
+		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_ERROR);
+		return ToastStatus::Error;
 	}
 	if (doc["general"].is<JsonObject>()) {
 		// general settings
@@ -660,7 +660,7 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("volumeCurve", generalObj["volumeCurve"].as<uint8_t>()) != 0);
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
-			return false;
+			return ToastStatus::Error;
 		}
 		gPlayProperties.newPlayMono = generalObj["playMono"].as<bool>();
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();
@@ -682,7 +682,7 @@ bool JSONToSettings(JsonObject doc) {
 		if (
 			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 || gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
-			return false;
+			return ToastStatus::Error;
 		} else {
 			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
@@ -692,11 +692,11 @@ bool JSONToSettings(JsonObject doc) {
 		String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
 			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
-			return false;
+			return ToastStatus::Error;
 		}
 		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "wifi");
-			return false;
+			return ToastStatus::Error;
 		}
 	}
 	if (doc["led"].is<JsonObject>()) {
@@ -716,7 +716,7 @@ bool JSONToSettings(JsonObject doc) {
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
-			return false;
+			return ToastStatus::Error;
 		}
 		// write led control color array to NVS.
 		JsonArray colorArr = ledObj["controlColors"].as<JsonArray>();
@@ -767,14 +767,14 @@ bool JSONToSettings(JsonObject doc) {
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "buttons");
-			return false;
+			return ToastStatus::Error;
 		}
 	}
 	if (doc["rotary"].is<JsonObject>()) {
 		// Rotary encoder
 		if (gPrefsSettings.putBool("rotaryReverse", doc["rotary"]["reverse"].as<bool>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rotary");
-			return false;
+			return ToastStatus::Error;
 		}
 		RotaryEncoder_Init();
 	}
@@ -782,7 +782,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Battery settings
 		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
-			return false;
+			return ToastStatus::Error;
 		}
 		Battery_Init();
 	}
@@ -790,11 +790,11 @@ bool JSONToSettings(JsonObject doc) {
 		// playlist settings
 		if (!AudioPlayer_SetPlaylistSortMode(doc["playlist"]["sortMode"].as<uint8_t>())) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
-			return false;
+			return ToastStatus::Error;
 		}
 		if (!SdCard_SetMaxRecursionDepth(doc["playlist"]["recDepth"].as<uint8_t>())) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
-			return false;
+			return ToastStatus::Error;
 		}
 	}
 	if (doc["ftp"].is<JsonObject>()) {
@@ -806,7 +806,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp");
-			return false;
+			return ToastStatus::Error;
 		}
 	} else if (doc["ftpStatus"].is<JsonObject>()) {
 		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
@@ -870,7 +870,7 @@ bool JSONToSettings(JsonObject doc) {
 		// verify writes (include deviceId and baseTopic)
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!mqttBaseTopicStr.equals(gPrefsSettings.getString("mqttBaseTopic", "-1"))) || (!mqttDeviceIdStr.equals(gPrefsSettings.getString("mqttDeviceId", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
-			return false;
+			return ToastStatus::Error;
 		}
 	}
 	if (doc["bluetooth"].is<JsonObject>()) {
@@ -882,7 +882,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName || gPrefsSettings.getString("btPinCode", "") != btPinCode) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "bluetooth");
-			return false;
+			return ToastStatus::Error;
 		}
 	} else if (doc["rfidMod"].is<JsonObject>()) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
@@ -896,7 +896,8 @@ bool JSONToSettings(JsonObject doc) {
 
 			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
 			if (s.compareTo(rfidString)) {
-				return false;
+				Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rfidMod");
+				return ToastStatus::Error;
 			}
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
@@ -906,7 +907,7 @@ bool JSONToSettings(JsonObject doc) {
 		uint8_t _playMode = doc["rfidAssign"]["playMode"];
 		if (_playMode <= 0) {
 			Log_Println("rfidAssign: Invalid playmode", LOGLEVEL_ERROR);
-			return false;
+			return ToastStatus::Error;
 		}
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
@@ -917,7 +918,8 @@ bool JSONToSettings(JsonObject doc) {
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
-			return false;
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rfidAssign");
+			return ToastStatus::Error;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc["ping"].is<JsonObject>()) {
@@ -926,7 +928,7 @@ bool JSONToSettings(JsonObject doc) {
 			lastPongTimestamp = millis();
 			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
-		return false;
+		return ToastStatus::Silent;
 	} else if (doc["controls"].is<JsonObject>()) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
@@ -939,14 +941,19 @@ bool JSONToSettings(JsonObject doc) {
 		}
 	} else if (doc["trackinfo"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
+		return ToastStatus::Silent;
 	} else if (doc["coverimg"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+		return ToastStatus::Silent;
 	} else if (doc["volume"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
+		return ToastStatus::Silent;
 	} else if (doc["settings"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Settings);
+		return ToastStatus::Silent;
 	} else if (doc["ssids"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
+		return ToastStatus::Silent;
 	} else if (doc["trackProgress"].is<JsonObject>()) {
 		const JsonObject trackObj = doc["trackProgress"].as<JsonObject>();
 		if (trackObj["posPercent"].is<uint8_t>()) {
@@ -954,9 +961,10 @@ bool JSONToSettings(JsonObject doc) {
 			gPlayProperties.currentRelPos = trackObj["posPercent"].as<uint8_t>();
 		}
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
+		return ToastStatus::Silent;
 	}
 
-	return true;
+	return ToastStatus::Success;
 }
 
 // process settings to JSON object
@@ -1356,8 +1364,8 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 // handle post settings
 void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject &jsonObj = json.as<JsonObject>();
-	bool succ = JSONToSettings(jsonObj);
-	if (succ) {
+	ToastStatus status = JSONToSettings(jsonObj);
+	if (status != ToastStatus::Error) {
 		request->send(200);
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error saving settings");
@@ -1429,10 +1437,10 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 }
 
 // Takes inputs from webgui, parses JSON and saves values in NVS
-// If operation was successful (NVS-write is verified) true is returned
-bool processJsonRequest(char *_serialJson) {
+// Returns an approprate ToastStatus to display to the user
+ToastStatus processJsonRequest(char *_serialJson) {
 	if (!_serialJson) {
-		return false;
+		return ToastStatus::Silent;
 	}
 #ifdef BOARD_HAS_PSRAM
 	SpiRamAllocator allocator;
@@ -1445,7 +1453,7 @@ bool processJsonRequest(char *_serialJson) {
 
 	if (error) {
 		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, error.c_str());
-		return false;
+		return ToastStatus::Error;
 	}
 
 	JsonObject obj = doc.as<JsonObject>();
@@ -1560,11 +1568,11 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 		if (info && info->final && info->index == 0 && info->len == len && client && len > 0) {
 			// the whole message is in a single frame and we got all of it's data
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
-
-			if (processJsonRequest((char *) data)) {
-				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
-					Web_SendWebsocketData(client->id(), WebsocketCodeType::Ok);
-				}
+			ToastStatus status = processJsonRequest((char *) data);
+			if (status == ToastStatus::Success) {
+				Web_SendWebsocketData(client->id(), WebsocketCodeType::Ok);
+			} else if (status == ToastStatus::Error) {
+				Web_SendWebsocketData(client->id(), WebsocketCodeType::Error);
 			}
 
 			if (info->opcode == WS_TEXT) {
