@@ -2241,6 +2241,9 @@
 					if (socketMsg.status == "ok") {
 						toaster.success(i18next.t("toast.success"));
 					}
+					if (socketMsg.status == "error") {
+						toaster.error(i18next.t("toast.error"));
+					}
 					if (socketMsg.status == "dropout") {
 						toaster.warning(i18next.t("toast.dropout"));
 					}
