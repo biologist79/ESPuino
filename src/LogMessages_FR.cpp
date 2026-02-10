@@ -210,6 +210,7 @@ const char hpOn[] = "Casque activé";
 const char hpOff[] = "Casque désactivé";
 const char webTxCanceled[] = "Transfert Web annulé en raison du minuteur d'inactivité.";
 const char webSaveSettingsError[] = "Échec de la sauvegarde des paramètres pour '%s'";
+const char webSaveSettingsVolumeMinMaxError[] = "Le volume minimum doit être inférieur au volume maximum.";
 const char tryToPickRandomDir[] = "Essayer de choisir un sous-répertoire au hasard parmi : %s";
 const char pickedRandomDir[] = "Sous-répertoire choisi au hasard : %s";
 const char wrongWakeUpGpio[] = "Le GPIO choisi comme broche de réveil n'est pas de type RTC et pour cette raison, il ne peut pas réveiller l'ESP32 ! (GPIO : %u)";

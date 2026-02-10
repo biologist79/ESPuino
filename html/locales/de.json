@@ -349,6 +349,7 @@
 		"language": "Sprache",
 		"volume": {
 			"title": "Lautstärke",
+			"min": "Minimal",
 			"restart": "Nach dem Einschalten",
 			"speakerMax": "Maximal (Lautsprecher)",
 			"headphoneMax": "Maximal (Kopfhörer)"

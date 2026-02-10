@@ -646,8 +646,16 @@ ToastStatus JSONToSettings(JsonObject doc) {
 		// general settings
 		JsonObject generalObj = doc["general"];
 		bool success = (gPrefsSettings.putUInt("initVolume", generalObj["initVolume"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
+		uint8_t minVolume = generalObj["minVolume"].as<uint8_t>();
+		uint8_t maxVolumeSp = generalObj["maxVolumeSp"].as<uint8_t>();
+		uint8_t maxVolumeHp = generalObj["maxVolumeHp"].as<uint8_t>();
+		if (!(minVolume < maxVolumeSp && minVolume < maxVolumeHp)) {
+			Log_Println(webSaveSettingsVolumeMinMaxError, LOGLEVEL_ERROR);
+			return ToastStatus::Error;
+		}
+		success = success && (gPrefsSettings.putUInt("minVolume", minVolume) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeSp", maxVolumeSp) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeHp", maxVolumeHp) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("playMono", generalObj["playMono"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosShutdown", generalObj["savePosShutdown"].as<bool>()) != 0);
@@ -979,6 +987,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// general settings
 		JsonObject generalObj = obj["general"].to<JsonObject>();
 		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
+		generalObj["minVolume"].set(gPrefsSettings.getUInt("minVolume", 0));
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
@@ -1114,6 +1123,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject defaultsObj = obj["defaults"].to<JsonObject>();
 		JsonObject genSettings = defaultsObj["general"].to<JsonObject>();
 		genSettings["initVolume"].set(3u); // AUDIOPLAYER_VOLUME_INIT
+		genSettings["minVolume"].set(0u); // AUDIOPLAYER_VOLUME_MIN
 		genSettings["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		genSettings["sleepInactivity"].set(10u); // System_MaxInactivityTime
