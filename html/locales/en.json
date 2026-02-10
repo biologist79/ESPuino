@@ -349,6 +349,7 @@
 		"language": "Language",
 		"volume": {
 			"title": "Volume",
+			"min": "Minimum",
 			"restart": "After restart",
 			"speakerMax": "Max. volume (speaker)",
 			"headphoneMax": "Max. volume (headphones)"

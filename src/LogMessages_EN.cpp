@@ -212,6 +212,7 @@ const char hpOn[] = "Headphones on";
 const char hpOff[] = "Headphones off";
 const char webTxCanceled[] = "Webtransfer canceled due to inactivity-timer.";
 const char webSaveSettingsError[] = "Failed to save settings for '%s'";
+const char webSaveSettingsVolumeMinMaxError[] = "Minimum volume must be less than maximum volume settings.";
 const char tryToPickRandomDir[] = "Try to pick randon subdirectory out of: %s";
 const char pickedRandomDir[] = "Randomly picked subdirectory: %s";
 const char wrongWakeUpGpio[] = "GPIO choosen as wakeup-pin isn't of type RTC and that reason for can't wake up ESP32! (GPIO: %u)";

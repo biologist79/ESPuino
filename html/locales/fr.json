@@ -349,6 +349,7 @@
 		"language": "Langue",
 		"volume": {
 			"title": "Volume",
+			"min": "Volume minimal",
 			"restart": "Après le redémarrage",
 			"speakerMax": "Volume maximal (haut-parleur)",
 			"headphoneMax": "Volume maximal (écouteurs)"

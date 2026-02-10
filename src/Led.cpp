@@ -1009,7 +1009,7 @@ AnimationReturnType Animation_Volume(const bool startNewAnimation, CRGBSet &leds
 	static uint16_t cyclesWaited = 0;
 
 	// wait for further volume changes within next 20ms for 50 cycles = 1s
-	const uint32_t ledValue = std::clamp<uint32_t>(map(AudioPlayer_GetCurrentVolume(), 0, AudioPlayer_GetMaxVolume(), 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
+	const uint32_t ledValue = std::clamp<uint32_t>(map(AudioPlayer_GetCurrentVolume(), AudioPlayer_GetMinVolume(), AudioPlayer_GetMaxVolume(), 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
 	const uint8_t fullLeds = ledValue / gLedSettings.dimmableStates;
 	const uint8_t lastLed = ledValue % gLedSettings.dimmableStates;
 
