@@ -324,14 +324,14 @@
 		},
 		"sink": {
 			"title": "ESPuino en tant que haut-parleur Bluetooth",
-			"desc": "ESPuino est démarré en tant que haut-parleur Bluetooth. Après le passage à ce mode, l'interface web ne sera plus disponible jusqu'à ce que le système soit redémarré en mode normal.",
+			"desc": "ESPuino est démarré en tant que haut-parleur Bluetooth.",
 			"button": "Démarrer en tant que haut-parleur Bluetooth",
 			"indicator": "Mode haut-parleur Bluetooth"
 		},
 		"source": {
 			"configtitle": "Paramètres du casque Bluetooth",
 			"title": "Connecter avec un casque Bluetooth",
-			"desc": "Le périphérique se connecte au casque Bluetooth spécifié. Après le passage à ce mode, l'interface web ne sera plus disponible jusqu'à ce que le système soit redémarré en mode normal.",
+			"desc": "Le périphérique se connecte au casque Bluetooth spécifié.",
 			"button": "Démarrer en mode casque",
 			"indicator": "Mode casque Bluetooth"
 		},
