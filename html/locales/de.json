@@ -324,14 +324,14 @@
 		},
 		"sink": {
 			"title": "ESPuino als Bluetooth-Lautsprecher",
-			"desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
+			"desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet.",
 			"button": "Als Bluetooth-Lautsprecher starten",
 			"indicator": "Bluetooth-Lautsprecher Modus"
 		},
 		"source": {
 			"configtitle": "Bluetooth-Kopfhörer Einstellungen",
 			"title": "Mit Bluetooth-Kopfhörer verbinden",
-			"desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth-Kopfhörer. Nach dem Wechsel in diesen Modus wird die Web-Schnittstelle nicht mehr zur Verfügung stehen, bis das System im normalen Modus neu gestartet wird.",
+			"desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth-Kopfhörer.",
 			"button": "Im Kopfhörer-Modus starten",
 			"indicator": "Bluetooth-Kopfhörer Modus"
 		},

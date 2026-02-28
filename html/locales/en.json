@@ -324,14 +324,14 @@
 		},
 		"sink": {
 			"title": "ESPuino as Bluetooth speaker",
-			"desc": "ESPuino is started as a Bluetooth speaker. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
+			"desc": "ESPuino is started as a Bluetooth speaker.",
 			"button": "Start as Bluetooth speaker",
 			"indicator": "Bluetooth Speaker Mode"
 		},
 		"source": {
 			"configtitle": "Bluetooth headphone settings",
 			"title": "Connect with Bluetooth headphone",
-			"desc": "The device connects to the specified Bluetooth headset. After switching to this mode, the web interface will no longer be available until the system is restarted in normal mode.",
+			"desc": "The device connects to the specified Bluetooth headset.",
 			"button": "Start in headphone mode",
 			"indicator": "Bluetooth Headphone Mode"
 		},
