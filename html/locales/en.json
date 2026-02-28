@@ -19,6 +19,7 @@
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
+		"error": "Error performing action (check logs).",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
 		"dropout": "slow stream, dropouts are possible."
 	},
@@ -348,6 +349,7 @@
 		"language": "Language",
 		"volume": {
 			"title": "Volume",
+			"min": "Minimum",
 			"restart": "After restart",
 			"speakerMax": "Max. volume (speaker)",
 			"headphoneMax": "Max. volume (headphones)"

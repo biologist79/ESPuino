@@ -263,6 +263,12 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.putUInt("maxVolumeSp", 21);
 		Log_Println(wroteMaxLoudnessForSpeakerToNvs, LOGLEVEL_ERROR);
 	}
+	uint32_t nvsMinVolume = gPrefsSettings.getUInt("minVolume", 999);
+	if (nvsMinVolume != 999) {
+		AudioPlayer_SetMinVolume(nvsMinVolume);
+	} else {
+		gPrefsSettings.putUInt("minVolume", 0);
+	}
 
 #ifdef HEADPHONE_ADJUST_ENABLE
 	#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)

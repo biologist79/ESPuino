@@ -892,6 +892,20 @@
 									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 								</div>
 							</div>
+							<label for="minVolume" data-i18n="[prepend]general.volume.min">:</label>
+							<div class="slider-container">
+								<div class="float-end" style="padding-left: 30px">
+									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+								</div>
+								<div class="slider-container-inner">
+									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="10"
+										min="0" max="10" class="form-control" id="minVolume"
+										name="minVolume" required>
+								</div>
+								<div class="float-end" style="padding-left: 10px">
+									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								</div>
+							</div>
 							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
@@ -2241,6 +2255,9 @@
 					if (socketMsg.status == "ok") {
 						toaster.success(i18next.t("toast.success"));
 					}
+					if (socketMsg.status == "error") {
+						toaster.error(i18next.t("toast.error"));
+					}
 					if (socketMsg.status == "dropout") {
 						toaster.warning(i18next.t("toast.dropout"));
 					}
@@ -2332,6 +2349,7 @@
 			let genSettings = settings.general;
 			if (genSettings) {
 				$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
+				$('#minVolume').bootstrapSlider('setValue', genSettings.minVolume);
 				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
@@ -2721,6 +2739,7 @@
 			var myObj = {
 				"general": {
 					initVolume: Number($('#initialVolume').val()),
+					minVolume: Number($('#minVolume').val()),
 					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
 					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 					sleepInactivity: Number($('#inactivityTime').val()),

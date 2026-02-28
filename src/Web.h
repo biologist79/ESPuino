@@ -15,5 +15,11 @@ typedef enum class WebsocketCode {
 	OperationMode
 } WebsocketCodeType;
 
+typedef enum class ToastStatus {
+  Silent = 0,
+  Success,
+  Error
+} ToastStatusType;
+
 void Web_Cyclic(void);
 void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code);

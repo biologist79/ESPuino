@@ -19,6 +19,7 @@
 	"toast": {
 		"rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
 		"success": "Aktion erfolgreich ausgeführt.",
+		"error": "Aktion konnte nicht ausgeführt werden (siehe Logs).",
 		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
 		"dropout": "Langsamer Stream, Aussetzer möglich."
 	},
@@ -348,6 +349,7 @@
 		"language": "Sprache",
 		"volume": {
 			"title": "Lautstärke",
+			"min": "Minimal",
 			"restart": "Nach dem Einschalten",
 			"speakerMax": "Maximal (Lautsprecher)",
 			"headphoneMax": "Maximal (Kopfhörer)"

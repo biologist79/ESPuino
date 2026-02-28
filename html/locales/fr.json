@@ -19,6 +19,7 @@
 	"toast": {
 		"rfidDetect": "Étiquette RFID {{rfidId}} détectée.",
 		"success": "Action effectuée avec succès.",
+		"error": "Erreur lors de l'exécution de l'action (consultez les journal).",
 		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
 		"dropout": "flux lent, des interruptions sont possibles."
 	},
@@ -348,6 +349,7 @@
 		"language": "Langue",
 		"volume": {
 			"title": "Volume",
+			"min": "Volume minimal",
 			"restart": "Après le redémarrage",
 			"speakerMax": "Volume maximal (haut-parleur)",
 			"headphoneMax": "Volume maximal (écouteurs)"
