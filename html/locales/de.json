@@ -44,6 +44,8 @@
 			"offsetpause": "Pausen-LEDs zentrieren",
 			"huestart": "Farbton-Start (Playlist-Fortschritt)",
 			"hueend": "Farbton-Ende (Playlist-Fortschritt)",
+			"hueatmo": "Farbton-Atmolight",
+			"satatmo": "Sättigung-Atmolight",
 			"dimmablestates": "Dimmbare Stufen",
 			"reverserotation": "Drehrichtung umkehren",
 			"offset": "Offset Start-LED"
@@ -222,6 +224,7 @@
 					"150": "Aktiviere FTP",
 					"151": "IP-Adresse ansagen",
 					"152": "Uhrzeit ansagen",
+					"153": "Ambient Light umschalten",
 					"0": "Lösche Zuordnung",
 					"170": "Play/Pause",
 					"171": "Vorheriger Titel",
@@ -383,7 +386,8 @@
 		"neopixel": {
 			"title": "Neopixel (Helligkeit)",
 			"restart": "Nach dem Einschalten",
-			"nightmode": "Im Nachtmodus"
+			"nightmode": "Im Nachtmodus",
+			"atmomode": "Im Atmolight-Modus"
 		},
 		"sleep": {
 			"title": "Deep Sleep",
