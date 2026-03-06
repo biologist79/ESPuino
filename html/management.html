@@ -968,6 +968,13 @@
 									data-i18n="[data-bs-content]general.options.dontAcceptRfidTwiceExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+							<div class="d-flex gap-2 ms-4">
+								<input type="checkbox" id="resumeOnSameRfid" name="resumeOnSameRfid" value="false">
+								<label for="resumeOnSameRfid" data-i18n="general.options.resumeOnSameRfid"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.options.resumeOnSameRfidExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
@@ -2342,6 +2349,8 @@
 				$('#pauseIfRfidRemoved').prop('checked', genSettings.pauseIfRfidRemoved);
 				$('#dontAcceptRfidTwice').prop('checked', genSettings.dontAcceptRfidTwice);
 				$('#dontAcceptRfidTwice').prop('disabled', genSettings.pauseIfRfidRemoved);
+				$('#resumeOnSameRfid').prop('checked', genSettings.resumeOnSameRfid);
+				$('#resumeOnSameRfid').prop('disabled', genSettings.pauseIfRfidRemoved || !genSettings.dontAcceptRfidTwice);
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
@@ -2730,6 +2739,7 @@
 					playLastRfidOnReboot: $('#playLastRfidOnReboot').prop('checked'),
 					pauseIfRfidRemoved: $('#pauseIfRfidRemoved').prop('checked'),
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
+					resumeOnSameRfid: $('#resumeOnSameRfid').prop('checked'),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
@@ -3326,13 +3336,30 @@
 				$('[data-bs-toggle="tooltip"]').tooltip();
 			});
 
-			/* Disable dontAcceptRfidTwice if pauseIfRfidRemoved enabled. */
+			/* Disable dontAcceptRfidTwice and resumeOnSameRfid if pauseIfRfidRemoved enabled. */
 			$('#pauseIfRfidRemoved').on('change', function () {
 				const dontAcceptRfidTwice = $('#dontAcceptRfidTwice');
+				const resumeOnSameRfid = $('#resumeOnSameRfid');
 				if ($(this).prop('checked')) {
 					dontAcceptRfidTwice.prop('checked', false).prop('disabled', true);
+					resumeOnSameRfid.prop('checked', false).prop('disabled', true);
 				} else {
 					dontAcceptRfidTwice.prop('disabled', false);
+					resumeOnSameRfid.prop('disabled', !dontAcceptRfidTwice.prop('checked'));
+				}
+			});
+
+			/* Enable/disable resumeOnSameRfid depending on dontAcceptRfidTwice. */
+			$('#dontAcceptRfidTwice').on('change', function () {
+				const resumeOnSameRfid = $('#resumeOnSameRfid');
+				if ($('#pauseIfRfidRemoved').prop('checked')) {
+					resumeOnSameRfid.prop('checked', false).prop('disabled', true);
+					return;
+				}
+				if ($(this).prop('checked')) {
+					resumeOnSameRfid.prop('disabled', false);
+				} else {
+					resumeOnSameRfid.prop('checked', false).prop('disabled', true);
 				}
 			});
 
