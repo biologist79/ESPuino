@@ -17,25 +17,25 @@
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
 	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again.",
 	"toast": {
-			  "rfidDetect": "RFID tag {{rfidId}} detected.",
-			  "success": "Action performed successfully.",
-			  "conlost": "Connection to ESPuino broken! Please reload website.",
-			  "dropout": "slow stream, dropouts are possible."
+		"rfidDetect": "RFID tag {{rfidId}} detected.",
+		"success": "Action performed successfully.",
+		"conlost": "Connection to ESPuino broken! Please reload website.",
+		"dropout": "slow stream, dropouts are possible."
 	},
 	"nav": {
-			  "control": "Control",
-			  "rfid": "RFID",
-			  "wifi": "WiFi",
-			  "mqtt": "MQTT",
-			  "ftp": "FTP",
-			  "bluetooth": "Bluetooth",
-			  "general": "General",
-			  "tools": "Tools",
-			  "help": "Help"
+		"control": "Control",
+		"rfid": "RFID",
+		"wifi": "WiFi",
+		"mqtt": "MQTT",
+		"ftp": "FTP",
+		"bluetooth": "Bluetooth",
+		"general": "General",
+		"tools": "Tools",
+		"help": "Help"
 	},
 	"settingsex": {
-			  "title": "Advanced settings",
-			  "led": {
+		"title": "Advanced settings",
+		"led": {
 			"title": "LED settings",
 			"numindicator": "Number of indicator LEDs",
 			"numcontrol": "Number of control LEDs",
@@ -48,7 +48,7 @@
 			"reverserotation": "Reverse direction of rotation",
 			"offset": "Offset start LED"
 		},
-			  "buttons": {
+		"buttons": {
 			"title": "Button assignments",
 			"short": "short press",
 			"long": "long press",
@@ -60,7 +60,7 @@
 			"button4": "Btn4-Button",
 			"button5": "Btn5-Button"
 		},
-			  "multibuttons": {
+		"multibuttons": {
 			"title": "Multi-button assignments",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
@@ -78,31 +78,31 @@
 			"35": "3+5 (Encoder + Btn5)",
 			"45": "4+5 (Btn4 + Btn5)"
 		},
-			  "rotary": {
+		"rotary": {
 			"title": "Rotary encoder",
 			"reverse": "Reverse direction of rotation"
 		}
 	},
 	"wifi": {
-			  "title": "WiFi-configuration",
-			  "networks": "Networks",
-			  "savedNetworks": "Saved Networks",
-			  "ssid": {
+		"title": "WiFi-configuration",
+		"networks": "Networks",
+		"savedNetworks": "Saved Networks",
+		"ssid": {
 			"title": "WiFi-name (SSID)",
 			"placeholder": "SSID",
 			"validation": "Enter WiFi's SSID"
 		},
-			  "password": {
+		"password": {
 			"title": "Password",
 			"placeholder": "Password",
 			"validation": "Enter the WiFi's password"
 		},
-			  "hostname": {
+		"hostname": {
 			"title": "ESPuino's name (hostname)",
 			"placeholder": "espuino",
 			"validation": "Enter a valid hostname"
 		},
-			  "static": {
+		"static": {
 			"addr": "Static IP-Address",
 			"enabled": "Static IP-Configuration",
 			"gateway": "Gateway for static IP-Configuration",
@@ -110,32 +110,32 @@
 			"dns1": " DNS 1 for static IP-Configuration",
 			"dns2": "DNS 2 for static IP-Configuration"
 		},
-			  "scan": {
+		"scan": {
 			"enabled": "Start with strongest WiFi"
 		},
-			  "delete": {
+		"delete": {
 			"title": "Delete WiFi",
 			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
 		},
-			  "restartPrompt": "Ready to go?"
+		"restartPrompt": "Ready to go?"
 	},
 	"control": {
-			  "title": "Control",
-			  "first": "First",
-			  "prev": "Previous",
-			  "playpause": "Play / Pause",
-			  "forward": "Next",
-			  "last": "Last",
-			  "volume": "Volume",
-			  "voldown": "Volume Down",
-			  "volup": "Volume Up",
-			  "current": "Current track",
-			  "command": "Execute Modification"
+		"title": "Control",
+		"first": "First",
+		"prev": "Previous",
+		"playpause": "Play / Pause",
+		"forward": "Next",
+		"last": "Last",
+		"volume": "Volume",
+		"voldown": "Volume Down",
+		"volup": "Volume Up",
+		"current": "Current track",
+		"command": "Execute Modification"
 	},
 	"files": {
-			  "title": "Files",
-			  "loading": "Please wait...",
-			  "context": {
+		"title": "Files",
+		"loading": "Please wait...",
+		"context": {
 			"newFolder": "New Folder",
 			"play": "Play",
 			"refresh": "Refresh",
@@ -143,18 +143,18 @@
 			"rename": "Rename",
 			"download": "Download"
 		},
-			  "files": {
+		"files": {
 			"title": "Files",
 			"desc": "Upload one ore more files"
 		},
-			  "directory": {
+		"directory": {
 			"title": "Directory",
 			"desc": "Upload directory with all files and subdirectories"
 		},
-			  "search": {
+		"search": {
 			"placeholder": "Search files..."
 		},
-			  "upload": {
+		"upload": {
 			"title": "Upload",
 			"desc": "Start Upload",
 			"selectFolder": "Please select the upload location!",
@@ -168,7 +168,7 @@
 			"fewSec": "few",
 			"progress": "{{percent}}% ({{speed}} KB/s), {{remaining.value}} {{remaining.unit}} remaining..."
 		},
-			  "rfid": {
+		"rfid": {
 			"title": "RFID Assignments",
 			"idNumber": "RFID-number (12 digits) or <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtual</a>",
 			"music": "Music",
@@ -255,111 +255,111 @@
 		}
 	},
 	"mqtt": {
-			  "title": "MQTT-settings",
-			  "enable": "Enable MQTT",
-			  "clientId": {
+		"title": "MQTT-settings",
+		"enable": "Enable MQTT",
+		"clientId": {
 			"title": "MQTT-ClientId",
 			"placeholder": "f.e. ESPuino-<MAC>",
 			"validation": ""
 		},
-			  "server": {
+		"server": {
 			"title": "MQTT-server",
 			"placeholder": "f.e. 192.168.2.89",
 			"validation": ""
 		},
-			  "user": {
+		"user": {
 			"title": "MQTT-username (optional)",
 			"placeholder": "username",
 			"validation": ""
 		},
-			  "pwd": {
+		"pwd": {
 			"title": "MQTT-password (optional)",
 			"placeholder": "password",
 			"validation": ""
 		},
-			  "baseTopic": {
+		"baseTopic": {
 			"title": "Base topic (optional)",
 			"placeholder": "f.e. home/espuino",
 			"validation": ""
 		},
-			  "deviceId": {
+		"deviceId": {
 			"title": "Device Id",
 			"placeholder": "f.e. ESPuino-<MAC>",
 			"validation": ""
 		},
-			  "topicsPreview": "Full topics (preview)",
-			  "restartNote": "Note: MQTT settings only take effect after restarting the device.",
-			  "restartPrompt": "MQTT settings were saved. Restart now to apply changes?",
-			  "topics": {
+		"topicsPreview": "Full topics (preview)",
+		"restartNote": "Note: MQTT settings only take effect after restarting the device.",
+		"restartPrompt": "MQTT settings were saved. Restart now to apply changes?",
+		"topics": {
 			"preview": "Full topics (preview)"
 		},
-			  "port": {
+		"port": {
 			"title": "MQTT-port",
 			"placeholder": "f.e. 1883",
 			"validation": ""
 		}
 	},
 	"ftp": {
-			  "title": "FTP-settings",
-			  "user": {
+		"title": "FTP-settings",
+		"user": {
 			"title": "FTP-Username",
 			"placeholder": "username"
 		},
-			  "pwd": {
+		"pwd": {
 			"title": "FTP-password",
 			"placeholder": "password"
 		},
-			  "start": {
+		"start": {
 			"title": "Start FTP-server",
 			"desc": "Enables FTP-server until device is restarted.",
 			"button": "Start FTP-server"
 		}
 	},
 	"bt": {
-			  "normal": {
+		"normal": {
 			"title": "Exit Bluetooth Mode",
 			"desc": "Returns to normal mode with WiFi functionality. Music from SD card and web streams can be played.",
 			"button": "Exit Bluetooth Mode",
 			"indicator": "WiFi Mode (RSSI: {{rssi}} dBm)"
 		},
-			  "sink": {
+		"sink": {
 			"title": "ESPuino as Bluetooth speaker",
 			"desc": "ESPuino is started as a Bluetooth speaker.",
 			"button": "Start as Bluetooth speaker",
 			"indicator": "Bluetooth Speaker Mode"
 		},
-			  "source": {
+		"source": {
 			"configtitle": "Bluetooth headphone settings",
 			"title": "Connect with Bluetooth headphone",
 			"desc": "The device connects to the specified Bluetooth headset.",
 			"button": "Start in headphone mode",
 			"indicator": "Bluetooth Headphone Mode"
 		},
-			  "device": {
+		"device": {
 			"title": "Bluetooth device (headphone)",
 			"placeholder": "e.g. My POGS Wireless Headphone"
 		},
-			  "pincode": {
+		"pincode": {
 			"title": "Pairing PIN-Code",
 			"placeholder": "e.g. 0000"
 		}
 	},
 	"general": {
-			  "language": "Language",
-			  "volume": {
+		"language": "Language",
+		"volume": {
 			"title": "Volume",
 			"restart": "After restart",
 			"speakerMax": "Max. volume (speaker)",
 			"headphoneMax": "Max. volume (headphones)"
 		},
-			  "equalizer": {
+		"equalizer": {
 			"title": "Equalizer",
 			"gainLowPass": "Lows (in dB)",
 			"gainBandPass": "Mids (in dB)",
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
 		},
-			  "options": {
+		"options": {
 			"title": "Options",
 			"playMono": "Mono Playback",
 			"playMonoExp": "If two speakers are installed, stereo can be played. More infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>.",
@@ -382,16 +382,16 @@
 			"volumeCurve": "Finer gradations at low volume",
 			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse."
 		},
-			  "neopixel": {
+		"neopixel": {
 			"title": "Neopixel (brightness)",
 			"restart": "After restart",
 			"nightmode": "For nightmode"
 		},
-			  "sleep": {
+		"sleep": {
 			"title": "Deep Sleep",
 			"inactivity": "After n minutes inactivity"
 		},
-			  "battery": {
+		"battery": {
 			"title": "Battery",
 			"desc": "Show voltage-status via Neopixel",
 			"lowWarning": "Show warning below this threshold (in volt)",
@@ -400,7 +400,7 @@
 			"high": "Voltage (in volt), that is indicated by all LEDs",
 			"measureInterval": "Interval between measurements (in minutes)"
 		},
-			  "playlist": {
+		"playlist": {
 			"title": "Playlist",
 			"sortMode": "Sorting mode for playlist and file browser",
 			"strcmp": "Standard sorting",
@@ -410,7 +410,7 @@
 		}
 	},
 	"tools": {
-			  "nvs": {
+		"nvs": {
 			"title": "Saved RFID assignments",
 			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
 			"list": {
@@ -435,47 +435,47 @@
 				"desc": "A backup file can be download here in order to export the RFID assignments."
 			}
 		},
-			  "fwupdate": {
+		"fwupdate": {
 			"title": "Firmware-Update",
 			"desc": "Firmware can be updated right here."
 		}
 	},
 	"help": {
-			  "forum": {
+		"forum": {
 			"title": "Forum",
 			"desc": "Having problems or aim to discuss about ESPuino?<br /> Join us at <a href=\"https://forum.espuino.de\" target=\"_blank\">ESPuino-Forum</a>! Especially there's a lot of (german) <a href=\"https://forum.espuino.de/c/dokumentation/anleitungen/10\" target=\"_blank\">documentation</a> online!"
 		},
-			  "swagger": {
+		"swagger": {
 			"title": "Swagger",
 			"desc": "Documentation of the REST API: <a href=\"swagger.html\" target=\"_blank\">Swagger</a>."
 		}
 	},
 	"datetime": {
-			  "day": "day",
-			  "days": "days",
-			  "hour": "hour",
-			  "hours": "hours",
-			  "minute": "minute",
-			  "minutes": "minutes",
-			  "second": "second",
-			  "seconds": "seconds"
+		"day": "day",
+		"days": "days",
+		"hour": "hour",
+		"hours": "hours",
+		"minute": "minute",
+		"minutes": "minutes",
+		"second": "second",
+		"seconds": "seconds"
 	},
 	"systeminfo": {
-			  "title": "Information",
-			  "softwareversion": "ESPuino {{softwareversion}}",
-			  "gitversion": "ESPuino {{gitversion}}",
-			  "arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
-			  "hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
-			  "freeheap": "Free heap: {{freeheap}} Bytes",
-			  "largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
-			  "freepsram": "Free PS-RAM: {{freepsram}} Bytes",
-			  "currentip": "Current IP-Address: {{currentip}}",
-			  "macAddress": "MAC-Address: {{macAddress}}",
-			  "rssi": "WiFi signal strength: {{rssi}} dBm",
-			  "audiotimetotal": "Total audio playtime since {{firststart}}: {{audiotimetotal}}",
-			  "audiotimesincestart": "Playtime since last start: {{audiotimesincestart}}",
-			  "currvoltage": "Current battery voltage: {{currvoltage}} V",
-			  "chargelevel": "Current charge level: {{chargelevel}} %",
-			  "hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)"
+		"title": "Information",
+		"softwareversion": "ESPuino {{softwareversion}}",
+		"gitversion": "ESPuino {{gitversion}}",
+		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
+		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
+		"freeheap": "Free heap: {{freeheap}} Bytes",
+		"largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
+		"freepsram": "Free PS-RAM: {{freepsram}} Bytes",
+		"currentip": "Current IP-Address: {{currentip}}",
+		"macAddress": "MAC-Address: {{macAddress}}",
+		"rssi": "WiFi signal strength: {{rssi}} dBm",
+		"audiotimetotal": "Total audio playtime since {{firststart}}: {{audiotimetotal}}",
+		"audiotimesincestart": "Playtime since last start: {{audiotimesincestart}}",
+		"currvoltage": "Current battery voltage: {{currvoltage}} V",
+		"chargelevel": "Current charge level: {{chargelevel}} %",
+		"hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)"
 	}
 }
