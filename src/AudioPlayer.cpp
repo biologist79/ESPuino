@@ -309,6 +309,11 @@ void AudioPlayer_Init(void) {
 #else
 	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false);
 #endif
+#ifdef RESUME_PLAY_ON_SAME_RFID
+	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", true);
+#else
+	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", false);
+#endif
 	if (gPlayProperties.pauseIfRfidRemoved) {
 		// ignore feature silently if PAUSE_WHEN_RFID_REMOVED is active
 		Log_Println("pauseIfRfidRemoved is enabled -> deactivate dontAcceptRfidTwice", LOGLEVEL_NOTICE);
