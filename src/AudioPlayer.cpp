@@ -26,6 +26,7 @@
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 #include <random>
+#include <atomic>
 
 #define AUDIOPLAYER_VOLUME_MAX	21u
 #define AUDIOPLAYER_VOLUME_MIN	0u
@@ -81,7 +82,7 @@ bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
-bool audio_active = false;
+std::atomic_bool audio_active{false};
 
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
@@ -96,10 +97,10 @@ static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
 void Audio_TaskPause(void) {
-	bool audio_active = false;
+	audio_active.store(false);
 }
 void Audio_TaskResume(void) {
-	bool audio_active = true;
+	audio_active.store(true);
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
