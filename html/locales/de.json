@@ -6,13 +6,13 @@
 	"title": "ESPuino",
 	"shutdown": "Ausschalten",
 	"log": "Log",
-	"info": "Info",
+	"info": "Information",
 	"delete": "Löschen",
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
 	"ok": "OK",
 	"showhide": "Ein-/Ausblenden",
-	"infos": "Infos",
+	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",
 	"restartinfo": "ESPuino wird jetzt neu gestartet...<br>Die Seite lädt sich nach dem Neustart automatisch neu.",
 	"shutdowninfo": "ESPuino wird jetzt ausgeschaltet...<br>Die Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
@@ -56,7 +56,7 @@
 			"button0": "Next-Taste (Btn0)",
 			"button1": "Prev-Taste (Btn1)",
 			"button2": "Play/Pause-Taste (Btn2)",
-			"button3": "Drehenkoder-Taste (Btn3)",
+			"button3": "Drehimpulsgeber-Taste (Btn3)",
 			"button4": "Btn4-Taste",
 			"button5": "Btn5-Taste"
 		},
@@ -64,18 +64,18 @@
 			"title": "Multi-Taster Zuordnungen",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
-			"03": "0+3 (Next + Drehenkoder)",
+			"03": "0+3 (Next + Drehimpulsgeber)",
 			"04": "0+4 (Next + Btn4)",
 			"05": "0+5 (Next + Btn5)",
 			"12": "1+2 (Prev + Play/Pause)",
-			"13": "1+3 (Prev + Drehenkoder)",
+			"13": "1+3 (Prev + Drehimpulsgeber)",
 			"14": "1+4 (Prev + Btn4)",
 			"15": "1+5 (Prev + Btn5)",
-			"23": "2+3 (Play/Pause + Drehenkoder)",
+			"23": "2+3 (Play/Pause + Drehimpulsgeber)",
 			"24": "2+4 (Play/Pause + Btn4)",
 			"25": "2+5 (Play/Pause + Btn5)",
-			"34": "3+4 (Drehenkoder + Btn4)",
-			"35": "3+5 (Drehenkoder + Btn5)",
+			"34": "3+4 (Drehimpulsgeber + Btn4)",
+			"35": "3+5 (Drehimpulsgeber + Btn5)",
 			"45": "4+5 (Btn4 + Btn5)"
 		},
 		"rotary": {
@@ -95,7 +95,7 @@
 		"password": {
 			"title": "Passwort",
 			"placeholder": "Passwort",
-			"validation": "Bitte Passwort vom WLANs eintragen"
+			"validation": "Bitte Passwort des WLANs eintragen"
 		},
 		"hostname": {
 			"title": "ESPuino-Name (Hostname)",
@@ -141,11 +141,11 @@
 			"refresh": "Aktualisieren",
 			"delete": "Löschen",
 			"rename": "Umbenennen",
-			"download": "Download"
+			"download": "Herunterladen"
 		},
 		"files": {
 			"title": "Dateien",
-			"desc": "Eine oder mehrere Datei(en) hochladen"
+			"desc": "Eine oder mehrere Dateien hochladen"
 		},
 		"directory": {
 			"title": "Ordner",
@@ -155,12 +155,12 @@
 			"placeholder": "Dateien suchen..."
 		},
 		"upload": {
-			"title": "Upload",
-			"desc": "Upload starten",
-			"selectFolder": "Wähle den Zielordner für den Upload!",
-			"selectFile": "Wähle eine Datei zum Hochladen!",
-			"success": "Upload erfolgreich ({{elapsed}}, {{speed}} KB/s)",
-			"error": "Upload fehlgeschlagen",
+			"title": "Hochladen",
+			"desc": "Hochladen starten",
+			"selectFolder": "Wähle den Zielordner zum Hochladen aus!",
+			"selectFile": "Wähle Dateien oder Ordner zum Hochladen aus!",
+			"success": "Hochladen erfolgreich ({{elapsed}}, {{speed}} KB/s)",
+			"error": "Hochladen fehlgeschlagen",
 			"timeCalc": "Verbleibende Zeit wird berechnet...",
 			"minutes_one": "Minute",
 			"minutes_other": "Minuten",
@@ -370,7 +370,7 @@
 			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",
 			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PAUSE_WHEN_RFID_REMOVED</code>.",
 			"dontAcceptRfidTwice": "Denselben RFID-Tag nicht erneut akzeptieren",
-			"dontAcceptRfidTwiceExp": "Denselben RFID-Tag nicht erneut akzeptieren. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>DONT_ACCEPT_SAME_RFID_TWICE</code>.",
+			"resumeOnSameRfidExp": "Wenn die Wiedergabe pausiert ist und derselbe RFID-Tag erneut aufgelegt wird, wird die Wiedergabe fortgesetzt. Funktioniert nur, wenn <em>Denselben RFID-Tag nicht erneut akzeptieren</em> aktiv ist.",
 			"playLastRfidOnReboot": "Letzten RFID-Tag nach Neustart abspielen",
 			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
@@ -474,6 +474,6 @@
 		"audiotimesincestart": "Spielzeit seit letztem Start: {{audiotimesincestart}}",
 		"currvoltage": "Aktuelle Batteriespannung: {{currvoltage}} V",
 		"chargelevel": "Aktuelle Batterieladung: {{chargelevel}} %",
-		"hallsensor": "HallEffectSensor NullFieldValue: {{hsnullfieldvalue}}, actual: {{hsactual}}, diff:{{hsdiff}}, LastWaitFor_State:{{hslastwaitforstate}} (waited:{{hswaited}} ms)"
+		"hallsensor": "Hall-Sensor Nullfeldwert: {{hsnullfieldvalue}}, aktueller Wert: {{hsactual}}, Differenz:{{hsdiff}}, letzter WaitFor-Zustand:{{hslastwaitforstate}} (Wartezeit:{{hswaited}} ms)"
 	}
 }

@@ -6,13 +6,13 @@
 	"title": "ESPuino",
 	"shutdown": "Éteindre",
 	"log": "Journal",
-	"info": "Info",
+	"info": "Information",
 	"delete": "Supprimer",
 	"cancel": "Annuler",
 	"refresh": "Actualiser",
 	"ok": "OK",
 	"showhide": "Afficher/Masquer",
-	"infos": "Infos",
+	"infos": "Informations",
 	"darkmode": "Mode sombre",
 	"restartinfo": "ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
 	"shutdowninfo": "ESPuino est maintenant éteint...<br>La page se recharge automatiquement lorsque l'ESPuino est rallumé.",
@@ -53,10 +53,10 @@
 			"short": "presse courte",
 			"long": "appui long",
 			"noaction": "--",
-			"button0": "Bouton Next (Btn0",
+			"button0": "Bouton Next (Btn0)",
 			"button1": "Bouton Prev (Btn1)",
 			"button2": "Bouton Play/Pause (Btn2)",
-			"button3": "Bouton Encoder (Btn3)",
+			"button3": "Bouton Codeur rotatif (Btn3)",
 			"button4": "Bouton Btn4",
 			"button5": "Bouton Btn5"
 		},
@@ -64,18 +64,18 @@
 			"title": "Affectation des boutons multiples",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
-			"03": "0+3 (Next + Encoder)",
+			"03": "0+3 (Next + Codeur rotatif)",
 			"04": "0+4 (Next + Btn4)",
 			"05": "0+5 (Next + Btn5)",
 			"12": "1+2 (Prev + Play/Pause)",
-			"13": "1+3 (Prev + Encoder)",
+			"13": "1+3 (Prev + Codeur rotatif)",
 			"14": "1+4 (Prev + Btn4)",
 			"15": "1+5 (Prev + Btn5)",
-			"23": "2+3 (Play/Pause + Encoder)",
+			"23": "2+3 (Play/Pause + Codeur rotatif)",
 			"24": "2+4 (Play/Pause + Btn4)",
 			"25": "2+5 (Play/Pause + Btn5)",
-			"34": "3+4 (Encoder + Btn4)",
-			"35": "3+5 (Encoder + Btn5)",
+			"34": "3+4 (Codeur rotatif + Btn4)",
+			"35": "3+5 (Codeur rotatif + Btn5)",
 			"45": "4+5 (Btn4 + Btn5)"
 		},
 		"rotary": {
@@ -145,22 +145,22 @@
 		},
 		"files": {
 			"title": "Fichiers",
-			"desc": "Télécharger un ou plusieurs fichiers"
+			"desc": "Téléverser un ou plusieurs fichiers"
 		},
 		"directory": {
 			"title": "Répertoire",
-			"desc": "Télécharger un répertoire avec tous les fichiers et sous-répertoires"
+			"desc": "Téléverser un répertoire avec tous les fichiers et sous-répertoires"
 		},
 		"search": {
 			"placeholder": "Rechercher des fichiers..."
 		},
 		"upload": {
-			"title": "Télécharger",
-			"desc": "Démarrer le téléchargement",
-			"selectFolder": "Veuillez sélectionner l'emplacement de téléchargement!",
-			"selectFile": "Veuillez sélectionner les fichiers à télécharger!",
-			"success": "Téléchargement réussi ({{elapsed}}, {{speed}} Ko/s)",
-			"error": "Erreur de téléchargement",
+			"title": "Téléverser",
+			"desc": "Démarrer le téléversement",
+			"selectFolder": "Veuillez sélectionner le dossier de destination pour le téléversement !",
+			"selectFile": "Veuillez sélectionner des fichiers ou dossiers à téléverser !",
+			"success": "Téléversement réussi ({{elapsed}}, {{speed}} Ko/s)",
+			"error": "Erreur de téléversement",
 			"timeCalc": "Le temps restant est calculé...",
 			"minutes_one": "minute",
 			"minutes_other": "minutes",
@@ -169,7 +169,7 @@
 			"progress": "{{percent}}% ({{speed}} Ko/s), {{remaining.value}} {{remaining.unit}} restant..."
 		},
 		"rfid": {
-			"title": "Assignations RFID",
+			"title": "Affectations RFID",
 			"idNumber": "Numéro RFID (12 chiffres) ou <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuelle</a>",
 			"music": "Musique",
 			"modification": "Modification",
@@ -201,7 +201,7 @@
 				"error": "Mode de lecture invalide"
 			},
 			"mod": {
-				"title": "Mod",
+				"title": "Modification",
 				"placeholder": "Sélectionnez la modification",
 				"cmd": {
 					"100": "Verrouillage des touches",
@@ -222,7 +222,7 @@
 					"150": "Activer FTP",
 					"151": "Annoncer l'adresse IP",
 					"152": "Annoncer l'heure actuelle",
-					"0": "Supprimer l'assignation",
+					"0": "Supprimer l'affectation",
 					"170": "Basculer Lecture/Pause",
 					"171": "Piste précédente",
 					"172": "Piste suivante",
@@ -240,16 +240,16 @@
 					"184": "Passer au dossier suivant",
 					"185": "Passer au dossier précédent",
 					"199": "Affichage de la charge de travail (console)",
-					"241": "Jouez à la carte RFID virtuelle 01",
-					"242": "Jouez à la carte RFID virtuelle 02",
-					"243": "Jouez à la carte RFID virtuelle 03",
-					"244": "Jouez à la carte RFID virtuelle 04",
-					"245": "Jouez à la carte RFID virtuelle 05",
-					"246": "Jouez à la carte RFID virtuelle 06",
-					"247": "Jouez à la carte RFID virtuelle 07",
-					"248": "Jouez à la carte RFID virtuelle 08",
-					"249": "Jouez à la carte RFID virtuelle 09",
-					"250": "Jouez à la carte RFID virtuelle 10"
+					"241": "Lire la carte RFID virtuelle 01",
+					"242": "Lire la carte RFID virtuelle 02",
+					"243": "Lire la carte RFID virtuelle 03",
+					"244": "Lire la carte RFID virtuelle 04",
+					"245": "Lire la carte RFID virtuelle 05",
+					"246": "Lire la carte RFID virtuelle 06",
+					"247": "Lire la carte RFID virtuelle 07",
+					"248": "Lire la carte RFID virtuelle 08",
+					"249": "Lire la carte RFID virtuelle 09",
+					"250": "Lire la carte RFID virtuelle 10"
 				}
 			}
 		}
@@ -267,21 +267,6 @@
 			"placeholder": "par exemple 192.168.2.89",
 			"validation": ""
 		},
-		"user": {
-			"title": "Nom d'utilisateur MQTT (facultatif)",
-			"placeholder": "nom d'utilisateur",
-			"validation": ""
-		},
-		"pwd": {
-			"title": "Mot de passe MQTT (facultatif)",
-			"placeholder": "mot de passe",
-			"validation": ""
-		},
-		"port": {
-			"title": "Port MQTT",
-			"placeholder": "par exemple 1883",
-			"validation": ""
-		},
 		"baseTopic": {
 			"title": "Topic de base (optionnel)",
 			"placeholder": "p.ex. home/espuino",
@@ -297,6 +282,21 @@
 		"restartPrompt": "Les paramètres MQTT ont été enregistrés. Redémarrer maintenant pour appliquer les modifications ?",
 		"topics": {
 			"preview": "Sujets complets (aperçu)"
+		},
+		"user": {
+			"title": "Nom d'utilisateur MQTT (facultatif)",
+			"placeholder": "nom d'utilisateur",
+			"validation": ""
+		},
+		"pwd": {
+			"title": "Mot de passe MQTT (facultatif)",
+			"placeholder": "mot de passe",
+			"validation": ""
+		},
+		"port": {
+			"title": "Port MQTT",
+			"placeholder": "par exemple 1883",
+			"validation": ""
 		}
 	},
 	"ftp": {
@@ -370,7 +370,7 @@
 			"pauseIfRfidRemoved": "Mettre en pause si la balise RFID est retirée",
 			"pauseIfRfidRemovedExp": "Mettre en pause la lecture si la balise RFID est retirée. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PAUSE_IF_RFID_REMOVED</code>.",
 			"dontAcceptRfidTwice": "Ne pas accepter la balise RFID deux fois",
-			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>DONT_ACCEPT_RFID_TWICE</code>.",
+			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Ne peut pas être utilisé avec <em>Mettre en pause si la balise RFID est retirée</em>.",
 			"playLastRfidOnReboot": "Lire la dernière balise RFID au redémarrage",
 			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause au volume minimal",
@@ -409,28 +409,28 @@
 	},
 	"tools": {
 		"nvs": {
-			"title": "Assignations RFID enregistrées",
+			"title": "Affectations RFID enregistrées",
 			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",
 			"list": {
 				"title": "Liste de toutes les affectations RFID enregistrées"
 			},
 			"erase": {
-				"title": "Effacer toutes les assignations RFID",
-				"desc": "Via l'importateur, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas effacées. Seules les anciennes assignations au même entrée seront écrasées. Avec cette fonction, toutes les assignations RFID existantes seront effacées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> (en allemand).",
-				"button": "Supprimer toutes les assignations",
-				"prompt": "Effacer toutes les assignations RFID enregistrées?"
+				"title": "Supprimer toutes les affectations RFID",
+				"desc": "Lors de l’import, de nouvelles entrées seront uniquement insérées mais les anciennes ne seront pas supprimées. Seules les anciennes affectations à la même entrée seront écrasées. Avec cette fonction, toutes les affectations RFID existantes seront supprimées. Autres <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">informations</a> (en allemand).",
+				"button": "Supprimer toutes les affectations",
+				"prompt": "Supprimer toutes les affectations RFID enregistrées ?"
 			},
 			"delete": {
-				"title": "Effacer le assignations RFID",
-				"prompt": "Remove assignment \"{{rfid}}\"?"
+				"title": "Supprimer les affectations RFID",
+				"prompt": "Supprimer l’affectation \"{{rfid}}\" ?"
 			},
 			"import": {
 				"title": "Importer",
-				"desc": "Le fichier de sauvegarde peut être téléchargé ici pour importer les assignations RFID."
+				"desc": "Le fichier de sauvegarde peut être téléversé ici pour importer les affectations RFID."
 			},
 			"export": {
 				"title": "Exporter",
-				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les attributions RFID."
+				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les affectations RFID."
 			}
 		},
 		"fwupdate": {
@@ -474,6 +474,6 @@
 		"audiotimesincestart": "Temps de lecture depuis le dernier démarrage : {{audiotimesincestart}}",
 		"currvoltage": "Tension de la batterie actuelle : {{currvoltage}} V",
 		"chargelevel": "Niveau de charge actuel : {{chargelevel}} %",
-		"hallsensor": "Valeur nulle du capteur d'effet Hall : {{hsnullfieldvalue}}, actuel : {{hsactual}}, diff : {{hsdiff}}, Dernier état de LastWaitFor : {{hslastwaitforstate}} (attendu : {{hswaited}} ms)"
+		"hallsensor": "Valeur nulle du capteur d'effet Hall : {{hsnullfieldvalue}}, actuel : {{hsactual}}, diff : {{hsdiff}}, Dernier état (LastWaitFor) : {{hslastwaitforstate}} (attendu : {{hswaited}} ms)"
 	}
 }
