@@ -77,6 +77,12 @@ void Rfid_PreferenceLookupHandler(void) {
 			} else {
 				if (gPlayProperties.dontAcceptRfidTwice) {
 					if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
+						// If pause is active, resume playback when the same RFID is put on again.
+						if (gPlayProperties.pausePlay && gPlayProperties.resumeOnSameRfid) {
+							Log_Printf(LOGLEVEL_INFO, "Same RFID while paused -> resume playback (%s)", gCurrentRfidTagId);
+							AudioPlayer_SetTrackControl(PAUSEPLAY);
+							return;
+						}
 						Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
 						// System_IndicateError(); // Enable to have shown error @neopixel every time
 						return;

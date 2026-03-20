@@ -371,6 +371,8 @@
 			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
 			"dontAcceptRfidTwice": "Dont accept same RFID twice",
 			"dontAcceptRfidTwiceExp": "RFID tags are not accepted twice in a row. This is useful for RFID tags that are used to control the volume or to switch between modes. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>DO_NOT_ACCEPT_RFID_TWICE</code>.",
+			"resumeOnSameRfid": "Resume from pause when placing the same RFID again",
+			"resumeOnSameRfidExp": "If playback is paused and the same RFID tag is placed again, playback continues. Only effective if <em>Don't accept the same RFID twice</em> is enabled.",
 			"playLastRfidOnReboot": "Play last RFID tag on restart",
 			"playLastRfidOnRebootExp": "Play last RFID tag on restart. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause at minimum volume",
