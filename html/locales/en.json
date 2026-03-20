@@ -107,7 +107,7 @@
 			"enabled": "Static IP-Configuration",
 			"gateway": "Gateway for static IP-Configuration",
 			"subnet": "Subnet-mask for static IP-Configuration",
-			"dns1": " DNS 1 for static IP-Configuration",
+			"dns1": "DNS 1 for static IP-Configuration",
 			"dns2": "DNS 2 for static IP-Configuration"
 		},
 		"scan": {
