@@ -45,7 +45,7 @@
 			"huestart": "Hue-Start for playlist progress",
 			"hueend": "Hue-End for playlist progress",
 			"hueatmo": "Hue-Atmolight",
-			"satatmo": "Saturaion-Atmolight",
+			"satatmo": "Saturation-Atmolight",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
 			"offset": "Offset start LED"

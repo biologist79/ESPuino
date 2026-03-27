@@ -88,10 +88,10 @@ bool Led_LoadSettings(LedSettings &settings) {
 		if (settings.Led_AmbientLight) {
 			settings.Led_Brightness = nvsALedBrightness;
 		}
-		Log_Printf(LOGLEVEL_INFO, "restored ambient brightnes : %d", nvsALedBrightness); // TODO-> other message
+		Log_Printf(LOGLEVEL_INFO, restoredAtmoBrightnessForNmFromNvs, nvsALedBrightness); // TODO-> other message
 	} else {
 		gPrefsSettings.putUChar("aLedBrightness", settings.Led_AmbientBrightness);
-		Log_Println("wrote settings of ambient to nvs", LOGLEVEL_ERROR); // TODO-> other message
+		Log_Println(wroteAtmoBrightnessToNvs, LOGLEVEL_ERROR); // TODO-> other message
 	}
 
 	// Get the number of indicator LEDs from NVS
