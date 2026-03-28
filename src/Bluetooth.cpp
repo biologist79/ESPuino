@@ -5,6 +5,7 @@
 
 #include "Common.h"
 #include "Log.h"
+#include "Port.h"
 #include "RotaryEncoder.h"
 #include "System.h"
 
@@ -71,6 +72,12 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 			Bluetooth_Source_FlushRingbuffer();
 		}
 		bluetoothSourceConnected = connected;
+		// to prevent audio clips during Bluetooth playback
+		if (connected) {
+			Port_Write(GPIO_PA_EN, false, true); // Speaker off
+		} else {
+			AudioPlayer_SetupVolumeAndAmps(); // decides whether to turn the speaker on based on HP_DETECT. If headphones are connected via cable.
+		}
 	}
 }
 #endif
