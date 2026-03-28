@@ -2,8 +2,8 @@
 
 ## DEV-branch
 
-* 28.02.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
-* 28.02.2026: feature: Atmolight (#393)
+* 28.03.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
+* 28.03.2026: feature: Atmolight (#393)
 
 ## Version 2.6 (28.02.2026)
 
