@@ -2,6 +2,11 @@
 
 ## DEV-branch
 
+* 28.02.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
+* 28.02.2026: feature: Atmolight (#393)
+
+## Version 2.6 (28.02.2026)
+
 * 08.01.2026: More flexible MQTT-handling and new MQTT naming scheme (#373)
 
 ## Version 2.5 (01.01.2026)
