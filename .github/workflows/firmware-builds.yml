@@ -17,9 +17,11 @@ on:
 
 jobs:
   test_builds:
+    timeout-minutes: 180
     name: Run all Tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         variant:
           - lolin_d32_pro
