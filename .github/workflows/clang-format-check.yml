@@ -1,6 +1,5 @@
-name: clang-format-check
-run-name: Clang-format Check
-on: [workflow_dispatch, push, pull_request]
+name: clang-format Check
+on: [push, pull_request]
 jobs:
   formatting-check:
     name: Formatting Check
@@ -8,8 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run clang-format style check for C/C++/Protobuf programs.
-        uses: jidicula/clang-format-action@v4.15.0
+        uses: jidicula/clang-format-action@v4.18.0
         with:
-          # clang-format-version: "15"
+          clang-format-version: "16"
           check-path: "src"
           fallback-style: "LLVM" # optional
