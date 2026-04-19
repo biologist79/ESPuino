@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 19.04.2026: improvement to the i18n files (#399)
 * 28.03.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
 * 28.03.2026: feature: Atmolight (#393)
 
