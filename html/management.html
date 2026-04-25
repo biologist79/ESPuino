@@ -926,6 +926,21 @@
 							</div>
 						</fieldset>
 					</div>
+					<div class="col-md-12 mb-4" id="rfidConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
+							<div class="mb-3">
+								<label for="rfidReaderType" data-i18n="general.rfid.readerType.title"></label>
+								<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
+									<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
+									<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
+									<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
+									<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
+								</select>
+								<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+							</div>
+						</fieldset>
+					</div>
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
@@ -2376,6 +2391,9 @@
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
+				if (genSettings.rfidReaderType !== undefined) {
+					$('#rfidReaderType').val(genSettings.rfidReaderType);
+				}
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2766,7 +2784,8 @@
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
-					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
+					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
+					rfidReaderType: Number($('#rfidReaderType').val())
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),

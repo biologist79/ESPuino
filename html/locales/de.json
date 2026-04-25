@@ -362,6 +362,17 @@
 			"gainHighPass": "Höhen (in dB)",
 			"info": "Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
 		},
+		"rfid": {
+			"title": "RFID Reader",
+			"readerType": {
+				"title": "Reader Type",
+				"auto": "Auto-detect",
+				"mfrc522_spi": "MFRC522 (SPI)",
+				"mfrc522_i2c": "MFRC522 (I2C)",
+				"pn5180": "PN5180"
+			},
+			"description": "Wähle den Typ des RFID readers. Auto-detect wird versuchen den Reader automatisch zu erkennen."
+		},
 		"options": {
 			"title": "Optionen",
 			"playMono": "Mono-Wiedergabe",

@@ -9,6 +9,7 @@
 #include "Mqtt.h"
 #include "Queues.h"
 #include "Rfid.h"
+#include "RfidConfig.h"
 #include "System.h"
 #include "Web.h"
 
@@ -17,7 +18,7 @@ char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it c
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
 
 // check if we have RFID-reader enabled
-#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
 	#define RFID_READER_ENABLED 1
 #endif
 
@@ -119,5 +120,16 @@ void Rfid_TaskResume(void) {
 #if defined(RFID_READER_ENABLED)
 	Rfid_TaskReset(); // Reset state machine to initial state
 	vTaskResume(rfidTaskHandle);
+#endif
+}
+
+void Rfid_Exit(void) {
+#if defined(RFID_READER_ENABLED)
+	// Handle reader-specific exit logic
+	extern void RfidMfrc522_Exit(void);
+	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_PN5180) {
+		RfidMfrc522_Exit();
+	}
+	// PN5180 exit is handled in RfidPn5180.cpp via weak symbol
 #endif
 }

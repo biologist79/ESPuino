@@ -21,6 +21,7 @@
 #include "Power.h"
 #include "Queues.h"
 #include "Rfid.h"
+#include "RfidConfig.h"
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
@@ -172,9 +173,7 @@ void setup() {
 
 	Ftp_Init();
 #ifndef PN5180_ENABLE_LPCD
-	#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
 	Rfid_Init();
-	#endif
 #endif
 	RotaryEncoder_Init();
 	Bluetooth_Init();

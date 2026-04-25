@@ -362,6 +362,17 @@
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
 		},
+		"rfid": {
+			"title": "RFID Reader",
+			"readerType": {
+				"title": "Reader Type",
+				"auto": "Auto-detect",
+				"mfrc522_spi": "MFRC522 (SPI)",
+				"mfrc522_i2c": "MFRC522 (I2C)",
+				"pn5180": "PN5180"
+			},
+			"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically."
+		},
 		"options": {
 			"title": "Options",
 			"playMono": "Mono Playback",
