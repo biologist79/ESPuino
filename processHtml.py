@@ -2,6 +2,7 @@
 
 """
 Use this script for creating binary header files from html files.
+Generates output directly into the project's include directory.
 """
 
 from pathlib import Path
@@ -9,41 +10,28 @@ import os
 import shutil
 import mimetypes
 import gzip
-Import("env")  # pylint: disable=undefined-variable
-
-try:
-    from flask_minify.parsers import Parser
-except ImportError:
-  print("Trying to Install required module: flask_minify\nIf this failes, please execute \"pip install flask_minify\" manually.")
-  env.Execute("$PYTHONEXE -m pip install flask_minify")
-
-from flask_minify.parsers import Parser
 import json
+import re
 
-# Ensure minify_html is installed in version necessary
+# Try to handle PlatformIO environment
 try:
-    from importlib.metadata import version, PackageNotFoundError
-except ImportError:
-    from importlib.metadata import version, PackageNotFoundError
+    Import("env")  # pylint: disable=undefined-variable
+    # Set OUTPUT_DIR to the project's include directory
+    OUTPUT_DIR = Path(env.subst("$PROJECT_DIR")) / "include"
+except NameError:
+    # Manual execution fallback (creates a local include folder)
+    print("Running outside of PlatformIO - outputting to ./include")
+    OUTPUT_DIR = Path("./include")
+    class MockEnv:
+        def Execute(self, cmd):
+            os.system(cmd)
+    env = MockEnv()
 
-try:
-    if version("minify_html") != "0.15.0":
-        raise PackageNotFoundError
-    import minify_html
-except (ImportError, PackageNotFoundError):
-    print("Trying to Install required module: minify_html\nIf this failes, please execute \"pip install minify_html==0.15.0\" manually.")
-    env.Execute("$PYTHONEXE -m pip install minify_html==0.15.0")
-    import minify_html
-
-OUTPUT_DIR = (
-    Path(env.subst("$BUILD_DIR")) / "generated"
-)  # pylint: disable=undefined-variable
+# Ensure include directory exists
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 HTML_DIR = Path("html").absolute()
-# List of files, which will only be minifed but not compressed (f.e. html files with templates)
-WWW_FILES = []
-# list of all files, which shall be compressed before embedding
-# files with ".json" ending will be minifed before compression, ".js" and ".yaml" will not be changed!
-BINARY_FILES =[
+
+BINARY_FILES = [
     Path("management.html"),
     Path("accesspoint.html"),
     Path("js/i18next.min.js"),
@@ -57,128 +45,101 @@ BINARY_FILES =[
     Path("locales/fr.json")
 ]
 
-
 class HtmlHeaderProcessor:
-    """Create c code binary header files from HTML files"""
+    """Create C++ code binary header files from web assets"""
 
     @staticmethod
-    def _escape_html(data):
-        """Escape HTML characters for usage in C"""
-        data = data.replace("\n", "\\n")
-        data = data.replace('"', r"\"")
-        data = data.replace(r"\d", r"\\d")
-        data = data.replace(r"\.", r"\\.")
-        data = data.replace(r"\^", r"\\^")
-        data = data.replace("%;", "%%;")
-        return data
-
-    @classmethod
-    def _process_header_file(cls, html_path, header_path):
-        parser = Parser({}, True)
-        parser.update_runtime_options(True, True, True)
-        with html_path.open(mode="r", encoding="utf-8") as html_file:
-            content = html_file.read()
-            content = parser.minify(content, "html")    # minify content as html
-            content = cls._escape_html(content)
-
-        with header_path.open(mode="w", encoding="utf-8") as header_file:
-            header_file.write(
-                f"static const char {html_path.name.split('.')[0]}_HTML[] = \""
-            )
-            header_file.write(content)
-            header_file.write('";\n')
-        header_file.close()
+    def _safe_minify(content, suffix):
+        """
+        Improved Python minification that is less likely to break JS/HTML.
+        Avoids collapsing all whitespace into a single line.
+        """
+        lines = []
+        for line in content.splitlines():
+            # Remove leading/trailing whitespace from each line
+            stripped = line.strip()
+            if stripped:
+                # Basic HTML tag space removal
+                if suffix in [".html", ".htm"]:
+                    stripped = re.sub(r'>\s+<', '><', stripped)
+                lines.append(stripped)
+        
+        # Join with newlines (safer for JS) instead of merging into one line
+        return "\n".join(lines)
 
     @classmethod
     def _process_binary_file(cls, binary_path, header_path, info):
-        # minify json files explicitly
+        content = ""
         if binary_path.suffix == ".json":
             with binary_path.open(mode="r", encoding="utf-8") as f:
-                jsonObj = json.load(f)
-                content = json.dumps(jsonObj, separators=(',', ':'))
+                content = json.dumps(json.load(f), separators=(',', ':'))
         elif binary_path.suffix in [".htm", ".html", ".js", ".css"]:
-            with open(binary_path, 'r') as f:
+            with open(binary_path, 'r', encoding="utf-8") as f:
                 content = f.read()
-                if ".min" not in str(binary_path):  # Only minify if it is not already minified
-                    # Minify the HTML, JS and CSS code
-                    content = minify_html.minify(content, minify_js=True, minify_css=True,
-                                                 remove_processing_instructions=True)
-                    # Write it to a file, just for debugging
-                    with open(str(binary_path).replace(binary_path.suffix, ".min" + binary_path.suffix), "w",
-                              encoding="utf-8") as f:
-                        for line in content:
-                            f.write(str(line))
-        elif binary_path.suffix in [".yml", ".yaml"]:
-            with open(binary_path, 'r') as f:
-                content = f.read()
-        # use everything else as is
+                if ".min" not in str(binary_path):
+                    content = cls._safe_minify(content, binary_path.suffix)
         else:
             with binary_path.open(mode="r", encoding="utf-8") as f:
                 content = f.read()
 
-        # get status of the file (copy modified time to gzip header)
         stinfo = os.stat(binary_path)
-
-        # compress content
         data = gzip.compress(content.encode(), mtime=stinfo.st_mtime)
 
         with header_path.open(mode="a", encoding="utf-8") as header_file:
-            varName = binary_path.name.split('.')[0]
-            header_file.write(
-                f"static const uint8_t {varName}_BIN[] = {{\n    "
-            )
+            # Clean variable name (replace dots/slashes with underscores)
+            varName = re.sub(r'[^a-zA-Z0-9]', '_', binary_path.name.split('.')[0])
+            header_file.write(f"static const uint8_t {varName}_BIN[] = {{\n    ")
+ 
             size = 0
             for d in data:
-                # write out the compressed byte stream as a hex array and create a newline after every 20th entry
                 header_file.write("0x{:02X},".format(d))
-                size = size + 1
+                size += 1
                 if not (size % 20):
                     header_file.write("\n    ")
             header_file.write("\n};\n\n")
-            # populate dict with our information
+
             info["size"] = size
             info["variable"] = f"{varName}_BIN"
             return info
 
-    @classmethod
-    def process(cls):
-        print("GENERATING HTML HEADER FILES")
-        for html_file in WWW_FILES:
-            header_file = f"HTML{html_file.stem}.h"
-            print(f"  {HTML_DIR / html_file} -> {OUTPUT_DIR / header_file}")
-            cls._process_header_file(HTML_DIR / html_file, OUTPUT_DIR / header_file)
+    def process(self):
+        print(f"GENERATING HTML BINARY HEADERS -> {OUTPUT_DIR}")
         binary_header = OUTPUT_DIR / "HTMLbinary.h"
 
-        shutil.copy2('REST-API.yaml', 'html/REST_API.yaml')  # Copy and rename the file with keeping the mtime
+        # Sync YAML
+        yaml_src = Path("REST-API.yaml")
+        if yaml_src.exists():
+            shutil.copy2(yaml_src, HTML_DIR / "REST_API.yaml")
 
         if binary_header.exists():
-            os.remove(binary_header)    # remove file if it exists, since we are appending to it
+            os.remove(binary_header)
 
-        fileList = []   # dict holding the array of metadata for all processed binary files
+        file_list = []
         for binary_file in BINARY_FILES:
-            filePath = HTML_DIR / binary_file
-            print(f"  {filePath} -> {binary_header}")
+            file_path = HTML_DIR / binary_file
+            if not file_path.exists():
+                print(f"  Warning: {file_path} not found.")
+                continue
 
-            info = dict()   # the dict entry for this file
-            info["uri"] = "/" + filePath.relative_to(HTML_DIR).as_posix()
-            if filePath.suffix == ".yaml":
-                info["mimeType"] = "application/yaml" # mimetypes does not yet know yaml, see https://datatracker.ietf.org/doc/rfc9512/
-            else:
-                info["mimeType"] = mimetypes.types_map[filePath.suffix]
-            info = cls._process_binary_file(HTML_DIR / binary_file, binary_header, info)
-            fileList.append(info)
+            print(f"  Encoding: {file_path.name}")
+            info = {
+                "uri": "/" + binary_file.as_posix(),
+                "mimeType": mimetypes.types_map.get(file_path.suffix, "application/octet-stream")
+            }
+            if file_path.suffix in [".yaml", ".yml"]:
+                info["mimeType"] = "application/yaml"
+
+            processed_info = self._process_binary_file(file_path, binary_header, info)
+            file_list.append(processed_info)
 
         with binary_header.open(mode="a", encoding="utf-8") as f:
-            f.write("""using RouteRegistrationHandler = std::function<void(const String& uri, const String& contentType, const uint8_t * content, size_t len)>;
-
-class WWWData {
-    public:
-        static void registerRoutes(RouteRegistrationHandler handler) {
-""")
-            for info in fileList:
-                # write the fileList entries to the binary file. These will be the paramenter with which the handler is called to register the endpoint on the webserver
-                f.write(f'            handler("{info["uri"]}", "{info["mimeType"]}", {info["variable"]}, {info["size"]});\n')
+            f.write("#include <Arduino.h>\n")
+            f.write("#include <functional>\n\n")
+            f.write("using RouteRegistrationHandler = std::function<void(const String& uri, const String& contentType, const uint8_t * content, size_t len)>;\n\n")
+            f.write("class WWWData {\n    public:\n        static void registerRoutes(RouteRegistrationHandler handler) {\n")
+            for item in file_list:
+                f.write(f'            handler("{item["uri"]}", "{item["mimeType"]}", {item["variable"]}, {item["size"]});\n')
             f.write("        }\n};\n")
 
-
-HtmlHeaderProcessor().process()
+if __name__ == "__main__":
+    HtmlHeaderProcessor().process()
