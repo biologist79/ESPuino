@@ -939,6 +939,13 @@
 								</select>
 								<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
 							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
+								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="optionsConfig">
@@ -2394,6 +2401,9 @@
 				if (genSettings.rfidReaderType !== undefined) {
 					$('#rfidReaderType').val(genSettings.rfidReaderType);
 				}
+				if (genSettings.pn5180Lpcd !== undefined) {
+					$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				}
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2785,7 +2795,8 @@
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
-					rfidReaderType: Number($('#rfidReaderType').val())
+					rfidReaderType: Number($('#rfidReaderType').val()),
+					pn5180Lpcd: $('#pn5180Lpcd').prop('checked')
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),

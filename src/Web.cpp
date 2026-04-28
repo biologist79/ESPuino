@@ -659,6 +659,7 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putBool("recoverVolBoot", generalObj["recoverVolBoot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("volumeCurve", generalObj["volumeCurve"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("rfidReaderType", generalObj["rfidReaderType"].as<uint8_t>()) != 0);
+		success = success && (gPrefsRfid.putBool("pn5180Lpcd", generalObj["pn5180Lpcd"].as<bool>()) != 0);
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return false;
@@ -985,6 +986,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["pauseIfRfidRemoved"].set(gPrefsSettings.getBool("pauseRfidRem", false)); // PAUSE_WHEN_RFID_REMOVED
 		generalObj["dontAcceptRfidTwice"].set(gPrefsSettings.getBool("dAccRfidTwice", false)); // DONT_ACCEPT_SAME_RFID_TWICE
 		generalObj["rfidReaderType"].set(gPrefsSettings.getUChar("rfidReaderType", 0)); // RFID_READER_TYPE_RUNTIME
+		generalObj["pn5180Lpcd"].set(gPrefsRfid.getBool("pn5180Lpcd", false)); // PN5180 LPCD
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
