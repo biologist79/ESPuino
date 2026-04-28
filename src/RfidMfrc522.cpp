@@ -209,10 +209,6 @@ void RfidMfrc522_Cyclic(void) {
 void RfidMfrc522_Exit(void) {
 	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
 		mfrc522.PCD_SoftPowerDown();
-	} else {
-	#if defined(I2C_2_ENABLE)
-		mfrc522I2C.PCD_Reset();
-	#endif
 	}
 }
 
