@@ -40,7 +40,7 @@ void System_SleepHandler(void);
 void System_DeepSleepManager(void);
 
 // Init only NVS required for LPCD
-void System_Init_LPCD(void) {
+void System_Init_Rfid_Prefs(void) {
 	gPrefsRfid.begin(prefsRfidNamespace);
 }
 

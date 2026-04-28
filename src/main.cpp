@@ -120,7 +120,7 @@ void setup() {
 	// Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
 	Button_Init(); // To preseed internal button-storage with values
 
-	System_Init_LPCD();
+	System_Init_Rfid_Prefs();
 	const bool pn5180LpcdEnabled = gPrefsRfid.getBool("pn5180Lpcd", false);
 	if (pn5180LpcdEnabled) {
 		Rfid_Init();
