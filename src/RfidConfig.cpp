@@ -23,7 +23,7 @@ RfidReaderType activeRfidReaderType = RfidReaderType::TYPE_AUTO_DETECT; // Defau
 // Initialize RFID reader configuration from NVS
 void RfidConfig_Init(void) {
 	// Try to load the RFID reader type from NVS
-	activeRfidReaderType = static_cast<RfidReaderType>(gPrefsSettings.getUChar("rfidReaderType", RFID_READER_TYPE_RUNTIME)); // Default to auto-detect
+	activeRfidReaderType = static_cast<RfidReaderType>(gPrefsRfid.getUChar("rfidReaderType", RFID_READER_TYPE_RUNTIME)); // Default to auto-detect
 
 	// If auto-detect is selected, try to detect the reader
 	if ((activeRfidReaderType == RfidReaderType::TYPE_AUTO_DETECT) || (RfidConfig_IsReaderAvailable(activeRfidReaderType) == false)) {
@@ -32,7 +32,7 @@ void RfidConfig_Init(void) {
 		if (detectedType != RfidReaderType::TYPE_AUTO_DETECT) { // valid reader detected
 			activeRfidReaderType = detectedType;
 			// Save the detected type to NVS for future use
-			gPrefsSettings.putUChar("rfidReaderType", activeRfidReaderType);
+			gPrefsRfid.putUChar("rfidReaderType", activeRfidReaderType);
 			Log_Printf(LOGLEVEL_INFO, "RFID: Detected reader type: %d", activeRfidReaderType);
 		} else {
 			Log_Println("RFID: Failed to auto-detect reader type, using default", LOGLEVEL_ERROR);
