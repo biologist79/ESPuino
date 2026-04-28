@@ -27,13 +27,13 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 static void RfidMfrc522_Task(void *parameter);
 
-#if (defined(RFID_READER_TYPE_RUNTIME) && defined(I2C_2_ENABLE)) || defined(RFID_READER_TYPE_MFRC522_I2C)
+	#if (defined(RFID_READER_TYPE_RUNTIME) && defined(I2C_2_ENABLE)) || defined(RFID_READER_TYPE_MFRC522_I2C)
 extern TwoWire i2cBusTwo;
 static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
-#endif
-#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI)
+	#endif
+	#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI)
 static MFRC522 mfrc522(RFID_CS, RST_PIN);
-#endif
+	#endif
 
 void RfidMfrc522_Init(uint8_t readerType) {
 	if (readerType == 1) {
@@ -41,14 +41,14 @@ void RfidMfrc522_Init(uint8_t readerType) {
 		SPI.setFrequency(1000000);
 		mfrc522.PCD_Init();
 		delay(10);
-		byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
-		Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
+		// byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
+		// Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
 		mfrc522.PCD_SetAntennaGain(rfidGain);
 	} else if (readerType == 2) {
 		mfrc522I2C.PCD_Init();
 		delay(10);
-		byte firmwareVersion = mfrc522I2C.PCD_ReadRegister(MFRC522_I2C::VersionReg);
-		Log_Printf(LOGLEVEL_DEBUG, "RC522 I2C firmware version=%#lx", firmwareVersion);
+		// byte firmwareVersion = mfrc522I2C.PCD_ReadRegister(MFRC522_I2C::VersionReg);
+		// Log_Printf(LOGLEVEL_DEBUG, "RC522 I2C firmware version=%#lx", firmwareVersion);
 		mfrc522I2C.PCD_SetAntennaGain(rfidGain);
 	} else {
 		Log_Println("RfidMfrc522_Init: unsupported reader type", LOGLEVEL_ERROR);

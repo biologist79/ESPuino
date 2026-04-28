@@ -10,8 +10,8 @@
 #include "Rfid.h"
 #include "System.h"
 
-#include <Wire.h>
 #include <SPI.h>
+#include <Wire.h>
 #include <driver/gpio.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
@@ -149,9 +149,9 @@ void RfidPn5180_Task(void *parameter) {
 			nfc14443.begin();
 			nfc14443.reset();
 			// show PN5180 reader version
-			uint8_t firmwareVersion[2];
-			nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
+			// uint8_t firmwareVersion[2];
+			// nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
+			// Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
 
 			// activate RF field
 			delay(4u);

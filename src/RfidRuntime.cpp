@@ -1,10 +1,11 @@
 #include <Arduino.h>
-#include "Rfid.h"
-#include "RfidConfig.h"
 #include "settings.h"
+
 #include "Log.h"
 #include "MemX.h"
 #include "Queues.h"
+#include "Rfid.h"
+#include "RfidConfig.h"
 
 extern void RfidMfrc522_Init(uint8_t readerType);
 extern void RfidMfrc522_Cyclic(void);
