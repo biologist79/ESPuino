@@ -122,14 +122,3 @@ void Rfid_TaskResume(void) {
 	vTaskResume(rfidTaskHandle);
 #endif
 }
-
-void Rfid_Exit(void) {
-#if defined(RFID_READER_ENABLED)
-	// Handle reader-specific exit logic
-	extern void RfidMfrc522_Exit(void);
-	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_PN5180) {
-		RfidMfrc522_Exit();
-	}
-	// PN5180 exit is handled in RfidPn5180.cpp via weak symbol
-#endif
-}

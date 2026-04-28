@@ -15,6 +15,7 @@ extern void RfidMfrc522_WakeupCheck(void);
 
 extern void RfidPn5180_Init(void);
 extern void RfidPn5180_Cyclic(void);
+extern void RfidPn5180_Exit(void);
 extern void RfidPn5180_TaskReset(void);
 extern void RfidPn5180_WakeupCheck(void);
 
@@ -38,7 +39,15 @@ void Rfid_Cyclic(void) {
 	}
 }
 
-// Rfid_Exit, Rfid_TaskPause, and Rfid_TaskResume are implemented in RfidCommon.cpp
+void Rfid_Exit(void) {
+	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
+		RfidPn5180_Exit();
+	} else {
+		RfidMfrc522_Exit();
+	}
+}
+
+// Rfid_TaskPause and Rfid_TaskResume are implemented in RfidCommon.cpp
 
 void Rfid_TaskReset(void) {
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {

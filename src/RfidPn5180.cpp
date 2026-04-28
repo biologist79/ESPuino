@@ -312,8 +312,7 @@ void RfidPn5180_Task(void *parameter) {
 	}
 }
 
-void Rfid_Exit(void) __attribute__((weak));
-void Rfid_Exit(void) {
+void RfidPn5180_Exit(void) {
 	if (Rfid_Pn5180LpcdEnabled()) {
 		Rfid_SetLpcdShutdownStatus(true);
 		while (Rfid_GetLpcdShutdownStatus()) { // Make sure init of LPCD is complete!
