@@ -256,7 +256,7 @@
 	#endif
 
 	// enable I2C if necessary
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+	#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
 		#define I2C_2_ENABLE
 	#endif
 
