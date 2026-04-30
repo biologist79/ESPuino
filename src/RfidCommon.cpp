@@ -17,14 +17,9 @@ unsigned long Rfid_LastRfidCheckTimestamp = 0;
 char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
 
-// check if we have RFID-reader enabled
-#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-	#define RFID_READER_ENABLED 1
-#endif
-
 // Tries to lookup RFID-tag-string in NVS and extracts parameter from it if found
 void Rfid_PreferenceLookupHandler(void) {
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	BaseType_t rfidStatus;
 	char rfidTagId[cardIdStringSize];
 	char _file[255];
@@ -107,17 +102,17 @@ void Rfid_ResetOldRfid() {
 	strncpy(gOldRfidTagId, "X", cardIdStringSize - 1);
 }
 
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 extern TaskHandle_t rfidTaskHandle;
 #endif
 
 void Rfid_TaskPause(void) {
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	vTaskSuspend(rfidTaskHandle);
 #endif
 }
 void Rfid_TaskResume(void) {
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	Rfid_TaskReset(); // Reset state machine to initial state
 	vTaskResume(rfidTaskHandle);
 #endif

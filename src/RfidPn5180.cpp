@@ -16,7 +16,7 @@
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 
-#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_PN5180)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	#include <PN5180.h>
 	#include <PN5180ISO14443.h>
 	#include <PN5180ISO15693.h>
@@ -42,7 +42,7 @@ extern TaskHandle_t rfidTaskHandle;
 extern TwoWire i2cBusTwo;
 #endif
 
-#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_PN5180)
+#if defined(RFID_READER_TYPE_RUNTIME)
 static void RfidPn5180_Task(void *parameter);
 uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 

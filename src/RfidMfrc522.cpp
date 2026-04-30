@@ -12,26 +12,23 @@
 
 #include <esp_task_wdt.h>
 
-#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	#include <MFRC522.h>
 	#define MFRC522_firmware_referenceV0_0
 	#define MFRC522_firmware_referenceV1_0
 	#define MFRC522_firmware_referenceV2_0
 	#define FM17522_firmware_reference
-	#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-		#include "Wire.h"
-	#endif
+	#include "Wire.h"
+
 	#include <MFRC522_I2C.h>
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 static void RfidMfrc522_Task(void *parameter);
 
-	#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_I2C)
+	#if defined(RFID_READER_TYPE_RUNTIME)
 extern TwoWire i2cBusTwo;
 static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
-	#endif
-	#if defined(RFID_READER_TYPE_RUNTIME) || defined(RFID_READER_TYPE_MFRC522_SPI)
 static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
