@@ -373,7 +373,9 @@
 			},
 			"description": "Wähle den Typ des RFID readers. Auto-detect wird versuchen den Reader automatisch zu erkennen.",
 			"pn5180Lpcd": "PN5180 LPCD aktivieren",
-			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind."
+			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind.",
+			"mfrc522Gain": "MFRC522 Gain",
+			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7."
 		},
 		"options": {
 			"title": "Optionen",

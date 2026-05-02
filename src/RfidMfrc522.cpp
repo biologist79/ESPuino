@@ -33,6 +33,8 @@ static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
 void RfidMfrc522_Init(uint8_t readerType) {
+	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
+	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
 	if (readerType == 1) {
 		SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
 		SPI.setFrequency(1000000);

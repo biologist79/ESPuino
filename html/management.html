@@ -939,6 +939,17 @@
 								</select>
 								<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
 							</div>
+							<div class="mb-3">
+								<label for="mfrc522Gain" data-i18n="general.rfid.mfrc522Gain"></label>
+								<div class="input-group">
+									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain" min="0" max="7">
+									<span class="input-group-text bg-transparent border-0">
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</span>
+								</div>
+							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
 								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
@@ -2404,6 +2415,9 @@
 				if (genSettings.pn5180Lpcd !== undefined) {
 					$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
 				}
+				if (genSettings.mfrc522Gain !== undefined) {
+					document.getElementById('mfrc522Gain').value = genSettings.mfrc522Gain;
+				}
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2796,7 +2810,8 @@
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
 					rfidReaderType: Number($('#rfidReaderType').val()),
-					pn5180Lpcd: $('#pn5180Lpcd').prop('checked')
+					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
+					mfrc522Gain: Number($('#mfrc522Gain').val())
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),

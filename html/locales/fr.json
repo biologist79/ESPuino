@@ -373,7 +373,9 @@
 			},
 			"description": "Sélectionnez le type de lecteur RFID connecté à votre ESPuino. La détection automatique tentera de déterminer le type de lecteur connecté automatiquement.",
 			"pn5180Lpcd": "Activer PN5180 LPCD",
-			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées."
+			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées.",
+			"mfrc522Gain": "MFRC522 Gain",
+			"mfrc522GainExp": "Définit la sensibilité du lecteur RFID MFRC522. Les valeurs possibles sont de 0 (sensibilité la plus faible) à 7 (sensibilité la plus élevée). La valeur par défaut est 7."
 		},
 		"options": {
 			"title": "Options",
