@@ -221,7 +221,7 @@ float Audio_GetVolume(float t) {
 
 	// 1. Safety Checks
 	if (curve_type >= VOL_LUT_CURVES) {
-		curve_type = VOL_CURVE_LINEAR_DB;
+		curve_type = VOL_CURVE_PERCEPTUAL;
 	}
 	if (t <= 0.0f) {
 		return pgm_read_float(&(VOLUME_TABLE[curve_type][0]));

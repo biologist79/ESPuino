@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # --- CONFIGURATION ---
 MIN_DB = -60.0
 MAX_DB = 0.0
-STEPS = 64
+STEPS = 32
 
 def db_to_amp(db):
     return 10**(db / 20.0)
@@ -84,8 +84,8 @@ def generate_header():
     curves = [
         ("SQUARED", algo_squared(t)),
         ("PERCEPTUAL", algo_perceptual(t)),
-        ("LINEAR_DB", algo_linear_db(t)),
-        ("S_CURVE", algo_scurve(t))
+        # ("LINEAR_DB", algo_linear_db(t)),
+        # ("S_CURVE", algo_scurve(t))
     ]
 
     print("/* --- GENERATED VOLUME LUT HEADER --- */")
