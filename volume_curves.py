@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -51,9 +52,9 @@ def plot_all():
     t = np.linspace(0, 1, STEPS)
     
     curves = {
-        "Linear dB": algo_linear_db(t),
         "Squared (t^2)": algo_squared(t),
         "Perceptual (t^3)": algo_perceptual(t),
+        "Linear dB": algo_linear_db(t),
         "S-Curve": algo_scurve(t)
     }
 
@@ -79,41 +80,56 @@ def plot_all():
     plt.show()
 
 def generate_header():
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, "src", "VolumeCurveLut.h")
+
     t = np.linspace(0, 1, STEPS)
     
     curves = [
         ("SQUARED", algo_squared(t)),
         ("PERCEPTUAL", algo_perceptual(t)),
-        # ("LINEAR_DB", algo_linear_db(t)),
-        # ("S_CURVE", algo_scurve(t))
+        # ("SCURVE", algo_scurve(t)),
+        # ("LINEAR_DB", algo_linear_db(t))
     ]
 
-    print("/* --- GENERATED VOLUME LUT HEADER --- */")
-    print("#include <pgmspace.h>\n")
-    print(f"static constexpr int VOL_LUT_STEPS = {STEPS};")
-    print(f"static constexpr int VOL_LUT_CURVES = {len(curves)};\n")
+    out_file = []
+    out_file.append("// clang-format off")
+    out_file.append("/* --- GENERATED VOLUME LUT HEADER --- */")
+    out_file.append("#include <pgmspace.h>\n")
+    out_file.append(f"static constexpr int VOL_LUT_STEPS = {STEPS};")
+    out_file.append(f"static constexpr int VOL_LUT_CURVES = {len(curves)};\n")
     
-    print("// Curve Indices")
+    out_file.append("// Curve Indices")
     for i, (name, _) in enumerate(curves):
-        print(f"static constexpr int VOL_CURVE_{name} = {i};")
+        out_file.append(f"static constexpr int VOL_CURVE_{name} = {i};")
     
-    print(f"\nconst float VOLUME_TABLE[VOL_LUT_CURVES][VOL_LUT_STEPS] PROGMEM = {{")
+    out_file.append(f"\nconst float VOLUME_TABLE[VOL_LUT_CURVES][VOL_LUT_STEPS] PROGMEM = {{")
     
     for name, vals in curves:
-        print(f"    {{ // {name}")
+        out_file.append(f"    {{ // {name}")
+        
+        row_str = "        "
         for i, v in enumerate(vals):
-            # Print 8 values per line for readability
-            sep = ",\n        " if (i + 1) % 8 == 0 and (i + 1) != STEPS else ", "
-            if (i + 1) == STEPS: sep = ""
-            print(f"{v:7.2f}f", end=sep)
+            row_str += f"{v:7.2f}f"
+            
+            if i == STEPS - 1:
+                row_str += "" 
+            elif (i + 1) % 8 == 0:
+                row_str += ",\n        "
+            else:
+                row_str += ", "
         
+        out_file.append(row_str)
         suffix = "}," if name != curves[-1][0] else "}"
-        print(f"\n    {suffix}")
+        out_file.append(f"    {suffix}")
         
-    print("};\n")
+    out_file.append("};\n")
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, "w") as f:
+        f.write("\n".join(out_file))
 
 
 if __name__ == "__main__":
-    plot_all()
-    # Uncomment to generate C++ code:
     generate_header()
+    plot_all()
