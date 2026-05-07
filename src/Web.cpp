@@ -1844,7 +1844,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 
 	bool isDir = false;
-	String MyfileName = root.getNextFileName(&isDir);
+	String MyfileName = gFSystem.nextFileName(root, &isDir);
 	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
 		if (!MyfileName.startsWith("/.")) {
@@ -1854,7 +1854,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 				entry["dir"].set(true);
 			}
 		}
-		MyfileName = root.getNextFileName(&isDir);
+		MyfileName = gFSystem.nextFileName(root, &isDir);
 	}
 	root.close();
 
@@ -1876,7 +1876,7 @@ bool explorerDeleteDirectory(File dir) {
 		if (file.isDirectory()) {
 			explorerDeleteDirectory(file);
 		} else {
-			gFSystem.remove(file.path());
+			gFSystem.remove(file);
 		}
 
 		file = dir.openNextFile();
@@ -1884,7 +1884,7 @@ bool explorerDeleteDirectory(File dir) {
 		esp_task_wdt_reset();
 	}
 
-	return gFSystem.rmdir(dir.path());
+	return gFSystem.rmdir(dir);
 }
 
 // Handles download request of a file
@@ -2569,7 +2569,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		coverFile.close();
 		return;
 	}
-	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFile.name());
+	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, gFSystem.name(coverFile).c_str());
 
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {

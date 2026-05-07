@@ -13,11 +13,12 @@
 #include <esp_vfs_fat.h>
 
 #ifdef SD_MMC_1BIT_MODE
-fs::FS gFSystem = (fs::FS) SD_MMC;
+	#define HARDWARE_FS SD_MMC
 #else
-SPIClass spiSD(HSPI);
-fs::FS gFSystem = (fs::FS) SD;
+	// Note: SPIClass needs to be initialized before passing to SD
+	#define HARDWARE_FS SD
 #endif
+SanitizedFS gFSystem(HARDWARE_FS);
 
 uint8_t maxRecursionDepth;
 
@@ -238,7 +239,7 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	size_t dirCount = 0;
 	while (1) {
 		bool isDir;
-		const String name = directory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(directory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}
@@ -256,7 +257,7 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	dirCount = 0;
 	while (1) {
 		bool isDir;
-		const String name = directory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(directory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}
@@ -343,7 +344,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 
 	// File-mode
 	if (!fileOrDirectory.isDirectory()) {
-		if (!SdCard_allocAndSave(playlist, fileOrDirectory.path())) {
+		if (!SdCard_allocAndSave(playlist, gFSystem.path(fileOrDirectory))) {
 			// OOM, function already took care of house cleaning
 			return std::nullopt;
 		}
@@ -355,7 +356,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	size_t hiddenFiles = 0;
 	while (true) {
 		bool isDir;
-		const String name = fileOrDirectory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(fileOrDirectory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}

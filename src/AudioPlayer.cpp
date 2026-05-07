@@ -785,7 +785,8 @@ void AudioPlayer_Loop() {
 						}
 						audio->stopSong();
 						Led_Indicate(LedIndicatorType::Rewind);
-						audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+						String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+						audioReturnCode = audio->connecttoFS(gFSystem, pathToTrack.c_str());
 						// consider track as finished, when audio lib call was not successful
 						if (!audioReturnCode) {
 							System_IndicateError();
@@ -962,8 +963,9 @@ void AudioPlayer_Loop() {
 					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
 				}
+				String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 				audioReturnCode
-					= audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), fileStartTime);
+					= audio->connecttoFS(gFSystem, pathToTrack.c_str(), fileStartTime);
 				// consider track as finished, when audio lib call was not successful
 			}
 		}
