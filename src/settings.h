@@ -35,7 +35,7 @@
 	//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
 	//#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
 	#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
-	#define MQTT_ENABLE                   // Make sure to configure mqtt-server and (optionally) username+pwd
+	#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
 	#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
 	#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
 	//#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
@@ -67,22 +67,17 @@
 
 
 	//################## select RFID reader ##############################
-	#define RFID_READER_TYPE_MFRC522_SPI // use MFRC522 via SPI
-	//#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
-	//#define RFID_READER_TYPE_PN5180 // use PN5180 via SPI
+	// Runtime RFID reader selection is now supported via web interface
+	// Runtime RFID reader type configuration
+	// 0 = Auto-detect
+	// 1 = MFRC522 (SPI)
+	// 2 = MFRC522 (I2C)
+	// 3 = PN5180
+	#define RFID_READER_TYPE_RUNTIME 0    // Default to Auto-detect
 
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
+	#if defined(RFID_READER_TYPE_RUNTIME)
 		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
 	#endif
-
-	#ifdef RFID_READER_TYPE_PN5180
-		//#define PN5180_ENABLE_LPCD        // Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
-	#endif
-
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-		constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
-	#endif
-
 
 	//############# Port-expander-configuration ######################
 	#ifdef PORT_EXPANDER_ENABLE
@@ -249,7 +244,7 @@
 	#endif
 
 	// enable I2C if necessary
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+	#if defined(RFID_READER_TYPE_RUNTIME) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
 		#define I2C_2_ENABLE
 	#endif
 

@@ -7,53 +7,60 @@
 #include "MemX.h"
 #include "Queues.h"
 #include "Rfid.h"
+#include "RfidConfig.h"
 #include "System.h"
 
 #include <esp_task_wdt.h>
 
-#if defined RFID_READER_TYPE_MFRC522_SPI || defined RFID_READER_TYPE_MFRC522_I2C
-	#ifdef RFID_READER_TYPE_MFRC522_SPI
-		#include <MFRC522.h>
-	#endif
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-		#include "Wire.h"
-	#endif
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
-		#include <MFRC522_I2C.h>
-	#endif
+#if defined(RFID_READER_TYPE_RUNTIME)
+	#include <MFRC522.h>
+	#define MFRC522_firmware_referenceV0_0
+	#define MFRC522_firmware_referenceV1_0
+	#define MFRC522_firmware_referenceV2_0
+	#define FM17522_firmware_reference
+	#include "Wire.h"
+
+	#include <MFRC522_I2C.h>
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
-TaskHandle_t rfidTaskHandle;
-static void Rfid_Task(void *parameter);
+extern TaskHandle_t rfidTaskHandle;
+static void RfidMfrc522_Task(void *parameter);
 
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
+	#if defined(RFID_READER_TYPE_RUNTIME)
 extern TwoWire i2cBusTwo;
-static MFRC522_I2C mfrc522(MFRC522_ADDR, MFRC522_RST_PIN, &i2cBusTwo);
-	#endif
-	#ifdef RFID_READER_TYPE_MFRC522_SPI
+static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
 static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
-void Rfid_Init(void) {
-	#ifdef RFID_READER_TYPE_MFRC522_SPI
-	SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
-	SPI.setFrequency(1000000);
+void RfidMfrc522_Init(uint8_t readerType) {
+	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
+	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
+	if (readerType == 1) {
+		SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
+		SPI.setFrequency(1000000);
+		mfrc522.PCD_Init();
+		delay(10);
+		// byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
+		// Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
+		mfrc522.PCD_SetAntennaGain(rfidGain);
+	} else if (readerType == 2) {
+	#if defined(I2C_2_ENABLE)
+		mfrc522I2C.PCD_Init();
+		delay(10);
+		// byte firmwareVersion = mfrc522I2C.PCD_ReadRegister(MFRC522_I2C::VersionReg);
+		// Log_Printf(LOGLEVEL_DEBUG, "RC522 I2C firmware version=%#lx", firmwareVersion);
+		mfrc522I2C.PCD_SetAntennaGain(rfidGain);
 	#endif
+	} else {
+		Log_Println("RfidMfrc522_Init: unsupported reader type", LOGLEVEL_ERROR);
+		return;
+	}
 
-	// Init RC522 Card-Reader
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-	mfrc522.PCD_Init();
-	delay(10);
-	// Get the MFRC522 firmware version, should be 0x91 or 0x92
-	byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
-	Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
-
-	mfrc522.PCD_SetAntennaGain(rfidGain);
 	delay(50);
 	Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
 
 	xTaskCreatePinnedToCore(
-		Rfid_Task, /* Function to implement the task */
+		RfidMfrc522_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
 		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
@@ -61,14 +68,14 @@ void Rfid_Init(void) {
 		&rfidTaskHandle, /* Task handle. */
 		0 /* Core where the task should run */
 	);
-	#endif
 }
 
-void Rfid_TaskReset(void) {
+void RfidMfrc522_TaskReset(void) {
 	Rfid_LastRfidCheckTimestamp = millis();
 }
 
-void Rfid_Task(void *parameter) {
+template <typename Reader>
+static void RfidMfrc522_TaskImpl(Reader &reader) {
 	uint8_t control = 0x00;
 
 	for (;;) {
@@ -87,21 +94,21 @@ void Rfid_Task(void *parameter) {
 			Rfid_LastRfidCheckTimestamp = millis();
 			// Reset the loop if no new card is present on the sensor/reader. This saves the entire process when idle.
 
-			if (!mfrc522.PICC_IsNewCardPresent()) {
+			if (!reader.PICC_IsNewCardPresent()) {
 				continue;
 			}
 
 			// Select one of the cards
-			if (!mfrc522.PICC_ReadCardSerial()) {
+			if (!reader.PICC_ReadCardSerial()) {
 				continue;
 			}
 
 			if (!gPlayProperties.pauseIfRfidRemoved) {
-				mfrc522.PICC_HaltA();
-				mfrc522.PCD_StopCrypto1();
+				reader.PICC_HaltA();
+				reader.PCD_StopCrypto1();
 			}
 
-			memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
+			memcpy(cardId, reader.uid.uidByte, cardIdSize);
 
 	#ifdef HALLEFFECT_SENSOR_ENABLE
 			cardId[cardIdSize - 1] = cardId[cardIdSize - 1] + gHallEffectSensor.waitForState(HallEffectWaitMS);
@@ -138,7 +145,7 @@ void Rfid_Task(void *parameter) {
 						AudioPlayer_SetTrackControl(PAUSEPLAY); // ... play/pause instead (but not for BT)
 					}
 				}
-				memcpy(lastValidcardId, mfrc522.uid.uidByte, cardIdSize);
+				memcpy(lastValidcardId, reader.uid.uidByte, cardIdSize);
 			} else {
 				xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0); // If pauseIfRfidRemoved isn't active, every card-apply leads to new playlist-generation
 			}
@@ -153,11 +160,11 @@ void Rfid_Task(void *parameter) {
 					}
 					control = 0;
 					for (uint8_t i = 0u; i < 3; i++) {
-						if (!mfrc522.PICC_IsNewCardPresent()) {
-							if (mfrc522.PICC_ReadCardSerial()) {
+						if (!reader.PICC_IsNewCardPresent()) {
+							if (reader.PICC_ReadCardSerial()) {
 								control |= 0x16;
 							}
-							if (mfrc522.PICC_ReadCardSerial()) {
+							if (reader.PICC_ReadCardSerial()) {
 								control |= 0x16;
 							}
 							control += 0x1;
@@ -177,24 +184,34 @@ void Rfid_Task(void *parameter) {
 					AudioPlayer_SetTrackControl(PAUSEPLAY);
 					Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 				}
-				mfrc522.PICC_HaltA();
-				mfrc522.PCD_StopCrypto1();
+				reader.PICC_HaltA();
+				reader.PCD_StopCrypto1();
 			}
 		}
 	}
 }
 
-void Rfid_Cyclic(void) {
+void RfidMfrc522_Task(void *parameter) {
+	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_MFRC522_I2C) {
+	#if defined(I2C_2_ENABLE)
+		RfidMfrc522_TaskImpl(mfrc522I2C);
+	#endif
+	} else {
+		RfidMfrc522_TaskImpl(mfrc522);
+	}
+}
+
+void RfidMfrc522_Cyclic(void) {
 	// Not necessary as cyclic stuff performed by task Rfid_Task()
 }
 
-void Rfid_Exit(void) {
-	#ifndef RFID_READER_TYPE_MFRC522_I2C
-	mfrc522.PCD_SoftPowerDown();
-	#endif
+void RfidMfrc522_Exit(void) {
+	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
+		mfrc522.PCD_SoftPowerDown();
+	}
 }
 
-void Rfid_WakeupCheck(void) {
+void RfidMfrc522_WakeupCheck(void) {
 }
 
 #endif

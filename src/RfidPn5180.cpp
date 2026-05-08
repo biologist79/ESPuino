@@ -10,12 +10,13 @@
 #include "Rfid.h"
 #include "System.h"
 
+#include <SPI.h>
 #include <Wire.h>
 #include <driver/gpio.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 
-#ifdef RFID_READER_TYPE_PN5180
+#if defined(RFID_READER_TYPE_RUNTIME)
 	#include <PN5180.h>
 	#include <PN5180ISO14443.h>
 	#include <PN5180ISO15693.h>
@@ -35,18 +36,22 @@
 #define RFID_PN5180_NFC15693_STATE_ACTIVE				100u
 
 extern unsigned long Rfid_LastRfidCheckTimestamp;
+extern TaskHandle_t rfidTaskHandle;
 
 #if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
 extern TwoWire i2cBusTwo;
 #endif
 
-#ifdef RFID_READER_TYPE_PN5180
-static void Rfid_Task(void *parameter);
-TaskHandle_t rfidTaskHandle;
+#if defined(RFID_READER_TYPE_RUNTIME)
+static void RfidPn5180_Task(void *parameter);
 uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 
-	#ifdef PN5180_ENABLE_LPCD
+static bool Rfid_Pn5180LpcdEnabled(void) {
+	return gPrefsRfid.getBool("pn5180Lpcd", false);
+}
+
 void Rfid_EnableLpcd(void);
+void RfidPn5180_WakeupCheck(void);
 bool enabledLpcdShutdown = false; // Indicates if LPCD should be activated as part of the shutdown-process
 
 void Rfid_SetLpcdShutdownStatus(bool lpcdStatus) {
@@ -56,44 +61,43 @@ void Rfid_SetLpcdShutdownStatus(bool lpcdStatus) {
 bool Rfid_GetLpcdShutdownStatus(void) {
 	return enabledLpcdShutdown;
 }
-	#endif
 
-void Rfid_Init(void) {
-	#ifdef PN5180_ENABLE_LPCD
-	// Check if wakeup-reason was card-detection (PN5180 only)
-	// This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
-	esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-	if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
-		Rfid_WakeupCheck();
-	}
-
-		// wakeup-check if IRQ is connected to port-expander, signal arrives as pushbutton
-		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
-	if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
-		// read IRQ state from port-expander
-		i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
-		delay(50);
-		Port_Init();
-		Port_Cyclic();
-		uint8_t irqState = Port_Read(RFID_IRQ);
-		if (irqState == LOW) {
-			Log_Println("Wakeup caused by low power card-detection on port-expander", LOGLEVEL_NOTICE);
-			Rfid_WakeupCheck();
+void RfidPn5180_Init(void) {
+	if (Rfid_Pn5180LpcdEnabled()) {
+		// Check if wakeup-reason was card-detection (PN5180 only)
+		// This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
+		esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+		if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT1) {
+			RfidPn5180_WakeupCheck();
 		}
-	}
-		#endif
 
-	// disable pin hold from deep sleep
-	gpio_deep_sleep_hold_dis();
-	gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
-	gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-	pinMode(RFID_IRQ, INPUT); // Not necessary for port-expander as for pca9555 all pins are configured as input per default
-		#endif
+	// wakeup-check if IRQ is connected to port-expander, signal arrives as pushbutton
+	#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+		if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
+			// read IRQ state from port-expander
+			i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
+			delay(50);
+			Port_Init();
+			Port_Cyclic();
+			uint8_t irqState = Port_Read(RFID_IRQ);
+			if (irqState == LOW) {
+				Log_Println("Wakeup caused by low power card-detection on port-expander", LOGLEVEL_NOTICE);
+				RfidPn5180_WakeupCheck();
+			}
+		}
 	#endif
+
+		// disable pin hold from deep sleep
+		gpio_deep_sleep_hold_dis();
+		gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
+		gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
+	#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+		pinMode(RFID_IRQ, INPUT); // Not necessary for port-expander as for pca9555 all pins are configured as input per default
+	#endif
+	}
 
 	xTaskCreatePinnedToCore(
-		Rfid_Task, /* Function to implement the task */
+		RfidPn5180_Task, /* Function to implement the task */
 		"rfid", /* Name of the task */
 		3072, /* Stack size in words */
 		NULL, /* Task input parameter */
@@ -103,15 +107,15 @@ void Rfid_Init(void) {
 	);
 }
 
-void Rfid_Cyclic(void) {
+void RfidPn5180_Cyclic(void) {
 	// Not necessary as cyclic stuff performed by task Rfid_Task()
 }
 
-void Rfid_TaskReset(void) {
+void RfidPn5180_TaskReset(void) {
 	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
 }
 
-void Rfid_Task(void *parameter) {
+void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
 	uint32_t lastTimeDetected14443 = 0;
@@ -131,15 +135,13 @@ void Rfid_Task(void *parameter) {
 
 	for (;;) {
 		vTaskDelay(portTICK_PERIOD_MS * 10u);
-	#ifdef PN5180_ENABLE_LPCD
-		if (Rfid_GetLpcdShutdownStatus()) {
+		if (Rfid_Pn5180LpcdEnabled() && Rfid_GetLpcdShutdownStatus()) {
 			Rfid_EnableLpcd();
 			Rfid_SetLpcdShutdownStatus(false); // give feedback that execution is complete
 			while (true) {
 				vTaskDelay(portTICK_PERIOD_MS * 100u); // there's no way back if shutdown was initiated
 			}
 		}
-	#endif
 		String cardIdString;
 		bool cardReceived = false;
 		bool sameCardReapplied = false;
@@ -148,9 +150,9 @@ void Rfid_Task(void *parameter) {
 			nfc14443.begin();
 			nfc14443.reset();
 			// show PN5180 reader version
-			uint8_t firmwareVersion[2];
-			nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
+			// uint8_t firmwareVersion[2];
+			// nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
+			// Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
 
 			// activate RF field
 			delay(4u);
@@ -310,20 +312,21 @@ void Rfid_Task(void *parameter) {
 	}
 }
 
-void Rfid_Exit(void) {
-	#ifdef PN5180_ENABLE_LPCD
-	Rfid_SetLpcdShutdownStatus(true);
-	while (Rfid_GetLpcdShutdownStatus()) { // Make sure init of LPCD is complete!
-		vTaskDelay(portTICK_PERIOD_MS * 10u);
+void RfidPn5180_Exit(void) {
+	if (Rfid_Pn5180LpcdEnabled()) {
+		Rfid_SetLpcdShutdownStatus(true);
+		while (Rfid_GetLpcdShutdownStatus()) { // Make sure init of LPCD is complete!
+			vTaskDelay(portTICK_PERIOD_MS * 10u);
+		}
 	}
-	#endif
 	vTaskDelete(rfidTaskHandle);
 }
 
 // Handles activation of LPCD (while shutdown is in progress)
 void Rfid_EnableLpcd(void) {
-	// goto low power card detection mode
-	#ifdef PN5180_ENABLE_LPCD
+	if (!Rfid_Pn5180LpcdEnabled()) {
+		return;
+	}
 	static PN5180 nfc(RFID_CS, RFID_BUSY, RFID_RST);
 	nfc.begin();
 	nfc.reset();
@@ -351,12 +354,12 @@ void Rfid_EnableLpcd(void) {
 	uint16_t wakeupCounterInMs = 0x3FF; //  must be in the range of 0x0 - 0xA82. max wake-up time is 2960 ms.
 	if (nfc.switchToLPCD(wakeupCounterInMs)) {
 		Log_Println("switch to low power card detection: success", LOGLEVEL_NOTICE);
-		// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
-		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+	// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
+	#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 		if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW)) {
 			Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, RFID_IRQ);
 		}
-		#endif
+	#endif
 		// freeze pin states in deep sleep
 		gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
 		gpio_hold_en(gpio_num_t(RFID_RST)); // RST
@@ -364,19 +367,20 @@ void Rfid_EnableLpcd(void) {
 	} else {
 		Log_Println("switchToLPCD failed", LOGLEVEL_ERROR);
 	}
-	#endif
 }
 
 // wake up from LPCD, check card is present in NVS
-void Rfid_WakeupCheck(void) {
-	#ifdef PN5180_ENABLE_LPCD
+void RfidPn5180_WakeupCheck(void) {
+	if (!Rfid_Pn5180LpcdEnabled()) {
+		return;
+	}
 	// disable pin hold from deep sleep
 	gpio_deep_sleep_hold_dis();
 	gpio_hold_dis(gpio_num_t(RFID_CS)); // NSS
 	gpio_hold_dis(gpio_num_t(RFID_RST)); // RST
-		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+	#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
 	pinMode(RFID_IRQ, INPUT);
-		#endif
+	#endif
 
 	// read card serial to check NVS for entries
 	uint8_t uid[10];
@@ -424,15 +428,15 @@ void Rfid_WakeupCheck(void) {
 		if (nfc14443.switchToLPCD(wakeupCounterInMs)) {
 			Log_Println(lowPowerCardSuccess, LOGLEVEL_INFO);
 
-		// configure wakeup pin for deep-sleep wake-up, use ext1
-		#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
-			// configure wakeup pin for deep-sleep wake-up, use ext1. For a real GPIO only, not PE
+	// configure wakeup pin for deep-sleep wake-up, use ext1
+	#if (RFID_IRQ >= 0 && RFID_IRQ <= MAX_GPIO)
+			// configure wakeup pin for deep-sleep wakeup, use ext1. For a real GPIO only, not PE
 			esp_sleep_enable_ext1_wakeup((1ULL << (RFID_IRQ)), ESP_EXT1_WAKEUP_ALL_LOW);
-		#endif
-		#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
+	#endif
+	#if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
 			// reset IRQ state on port-expander
 			Port_Exit();
-		#endif
+	#endif
 
 			// freeze pin states in deep sleep
 			gpio_hold_en(gpio_num_t(RFID_CS)); // CS/NSS
@@ -445,6 +449,5 @@ void Rfid_WakeupCheck(void) {
 		}
 	}
 	nfc14443.end();
-	#endif
 }
 #endif

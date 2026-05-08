@@ -18,6 +18,7 @@
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
+#include "VolumeCurveLut.h"
 #include "Web.h"
 #include "Wlan.h"
 #include "main.h"
@@ -96,10 +97,10 @@ static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
 void Audio_TaskPause(void) {
-	bool audio_active = false;
+	// dont't pause // audio_active = false;
 }
 void Audio_TaskResume(void) {
-	bool audio_active = true;
+	// dont't pause  // audio_active = true;
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
@@ -215,6 +216,35 @@ void Audio_InfoCallback(Audio::msg_t m) {
 	}
 }
 
+float Audio_GetVolume(float t) {
+	uint8_t curve_type = gPrefsSettings.getUChar("volumeCurve", 0);
+
+	// 1. Safety Checks
+	if (curve_type >= VOL_LUT_CURVES) {
+		curve_type = VOL_CURVE_PERCEPTUAL;
+	}
+	if (t <= 0.0f) {
+		return pgm_read_float(&(VOLUME_TABLE[curve_type][0]));
+	}
+
+	// 2. Calculate indices
+	float index_f = t * (VOL_LUT_STEPS - 1);
+	int index = (int) index_f;
+
+	// Safety clamp for the edge case where index_f is exactly 63.0
+	if (index >= VOL_LUT_STEPS - 1) {
+		return pgm_read_float(&(VOLUME_TABLE[curve_type][VOL_LUT_STEPS - 1]));
+	}
+
+	float fraction = index_f - (float) index;
+
+	// 3. Interpolate
+	float val1 = pgm_read_float(&(VOLUME_TABLE[curve_type][index]));
+	float val2 = pgm_read_float(&(VOLUME_TABLE[curve_type][index + 1]));
+
+	return val1 + (val2 - val1) * fraction;
+}
+
 void AudioPlayer_Init(void) {
 	// create audio object
 #ifdef BOARD_HAS_PSRAM
@@ -322,7 +352,8 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
-	audio->setVolume(AudioPlayer_CurrentVolume, gPrefsSettings.getUChar("volumeCurve", 0));
+	audio->setVolumeCurve(Audio_GetVolume);
+	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	audio->setTone(
 		gPrefsSettings.getChar("gainLowPass", 0),
@@ -1127,7 +1158,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 		}
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
-		audio->setVolume(_volume, gPrefsSettings.getUChar("volumeCurve", 0));
+		audio->setVolume(_volume);
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
 		publishMqtt(topicLoudness, static_cast<uint32_t>(_volume), false);

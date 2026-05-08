@@ -362,6 +362,21 @@
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
 		},
+		"rfid": {
+			"title": "RFID Reader",
+			"readerType": {
+				"title": "Reader Type",
+				"auto": "Auto-detect",
+				"mfrc522_spi": "MFRC522 (SPI)",
+				"mfrc522_i2c": "MFRC522 (I2C)",
+				"pn5180": "PN5180"
+			},
+			"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically.",
+			"pn5180Lpcd": "Enable PN5180 LPCD",
+			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
+			"mfrc522Gain": "MFRC522 Gain",
+			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7."
+		},
 		"options": {
 			"title": "Options",
 			"playMono": "Mono Playback",

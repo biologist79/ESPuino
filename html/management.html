@@ -926,6 +926,39 @@
 							</div>
 						</fieldset>
 					</div>
+					<div class="col-md-12 mb-4" id="rfidConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
+							<div class="mb-3">
+								<label for="rfidReaderType" data-i18n="general.rfid.readerType.title"></label>
+								<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
+									<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
+									<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
+									<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
+									<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
+								</select>
+								<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+							</div>
+							<div class="mb-3">
+								<label for="mfrc522Gain" data-i18n="general.rfid.mfrc522Gain"></label>
+								<div class="input-group">
+									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain" min="0" max="7">
+									<span class="input-group-text bg-transparent border-0">
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</span>
+								</div>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
+								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+						</fieldset>
+					</div>
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
@@ -2376,6 +2409,15 @@
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
+				if (genSettings.rfidReaderType !== undefined) {
+					$('#rfidReaderType').val(genSettings.rfidReaderType);
+				}
+				if (genSettings.pn5180Lpcd !== undefined) {
+					$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				}
+				if (genSettings.mfrc522Gain !== undefined) {
+					document.getElementById('mfrc522Gain').value = genSettings.mfrc522Gain;
+				}
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2766,7 +2808,10 @@
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
-					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
+					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
+					rfidReaderType: Number($('#rfidReaderType').val()),
+					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
+					mfrc522Gain: Number($('#mfrc522Gain').val())
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),
