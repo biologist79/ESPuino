@@ -15,11 +15,13 @@
 ## Firmwares
 
 Ready-to-use firmwares are available for [download](https://github.com/biologist79/ESPuino-Firmware) for several
-HALs, RFID-readers PN5180 or RC522 and with or without bluetooth. These are provided for
+HALs and with or without bluetooth. These are provided for
 [master](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/master) and
 [dev-branch](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/dev).
 
 ## News
+
+> :warning: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start)
 
 > :warning: Due to memory restrictions and complexity, ESPuino doesn't run safely on ESP32
 without PSRAM. So please make sure to use an ESP32-WROVER!
@@ -287,12 +289,15 @@ It's not just simply playing music; different playback modes are supported:
 | `Single track of a directory (random). Followed by sleep` | Picks and plays one single track out of a directory and falls asleep subsequently. Neopixel gets dimmed.|
 | `Audiobook` | Single file or playlist/folder; last play position (file and playlist) is saved (when pushing pause or moving to another track) and reused next time |
 | `Audiobook (loop)` | Same as audiobook but loops forever |
+| `Audiobook with subdirectories (recursive)` | Same as audiobook, but with subdirectories |
 | `Folder/playlist (sorted)` | Plays all tracks in order from a folder one time |
 | `Folder/playlist (random order)` | Plays all tracks in random order from a folder one time |
 | `Folder/playlist (sorted)` | Plays all tracks in order from a folder forever|
 | `Folder/playlist (random order)` | Plays all tracks in random order from a folder forever |
 | `All tracks of a random subdirectory (sorted)` | Plays of tracks in order of a randomly picked subdirectory of a given directory |
 | `All tracks of a random subdirectory (random order)` | Plays all tracks in random order of a randomly picked subdirectory of a given directory |
+| `All tracks of a directory + subdirectories (random, recursive)` | Same as All tracks of a random subdirectory (random order) but with subdirectories |
+| `All tracks of a directory + subdirectories (sorted, recursive)` | Same as All tracks of a random subdirectory (sorted) but with subdirectories |
 | `Webradio` | always only one "track": plays a webstream |
 | `List (files from SD and/or webstreams) from local .m3u-File` | Can be one or more files / webradio stations with local .m3u as sourcefile |
 
@@ -319,6 +324,7 @@ modification:
 | Toggle Bluetooth source (enable/disable) | Restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino.|
 | Toggle through the different modes | Normal => BT-Sink => BT-Source => Normal |
 | Speech output of IP-address or current time | Speech output of IP address or current time |
+| Toggle Ambient Light | Enables / disables ambient light |
 
 > :information_source: All sleep modes do dimming (Neopixel) automatically because it's supposed to
   be used in the evening when going to bed. Well, at least that's my children's indication :-)

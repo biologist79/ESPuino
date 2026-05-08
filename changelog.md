@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 08.05.2026: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start (#403), thanks to @Joe91
+* 05.05.2026: Add missing mqtt topics in preview of webinterface
 * 19.04.2026: improvement to the i18n files (#399)
 * 28.03.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
 * 28.03.2026: feature: Atmolight (#393)
