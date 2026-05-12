@@ -187,6 +187,11 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_TOGGLE_AMBIENT_LIGHT: {
+			Led_ToggleAmbientLight();
+			break;
+		}
+
 		case CMD_TOGGLE_WIFI_STATUS: {
 			System_SetOperationMode(OPMODE_NORMAL); // escape from BT-mode, WiFi cannot coexist with BT and can cause a crash
 			Wlan_ToggleEnable();

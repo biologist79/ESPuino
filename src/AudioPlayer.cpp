@@ -18,6 +18,7 @@
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
+#include "VolumeCurveLut.h"
 #include "Web.h"
 #include "Wlan.h"
 #include "main.h"
@@ -96,10 +97,152 @@ static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
 void Audio_TaskPause(void) {
-	bool audio_active = false;
+	// dont't pause // audio_active = false;
 }
 void Audio_TaskResume(void) {
-	bool audio_active = true;
+	// dont't pause  // audio_active = true;
+}
+
+void Audio_InfoCallback(Audio::msg_t m) {
+	switch (m.e) {
+		case Audio::evt_info: {
+			// Log_Printf(LOGLEVEL_INFO, "info:         %s", m.msg); // disabled to reduce log especially from files with numerous comments
+			if (startsWith((char *) m.msg, "slow stream, dropouts")) {
+				// websocket notify for slow stream
+				Web_SendWebsocketData(0, WebsocketCodeType::Dropout);
+			}
+			break;
+		}
+		case Audio::evt_eof: { // end of file
+			Log_Printf(LOGLEVEL_INFO, "end of file:  %s", m.msg);
+			gPlayProperties.trackFinished = true;
+			gPlayProperties.currentSpeechActive = false;
+			break;
+		}
+		case Audio::evt_bitrate: {
+			Log_Printf(LOGLEVEL_INFO, "bitrate:      %s", m.msg);
+			break;
+		}
+		case Audio::evt_icyurl: {
+			Log_Printf(LOGLEVEL_INFO, "icy URL:      %s", m.msg);
+			if (m.msg && m.msg[0] != '\0' && AudioPlayer_StationLogoUrl.isEmpty()) {
+				// has station homepage, get favicon url
+				AudioPlayer_StationLogoUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" + String(m.msg);
+				// websocket and mqtt notify station logo has changed
+				Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+			}
+			break;
+		}
+		case Audio::evt_id3data: {
+			if (!m.msg) {
+				break;
+			}
+			// Log_Printf(LOGLEVEL_INFO, "ID3 data:     %s", m.msg); // disabled to prevent log spam from files with numerous metadata
+			// get title
+			if (startsWith((char *) m.msg, "Title") || startsWith((char *) m.msg, "TITLE=") || startsWith((char *) m.msg, "title=")) { // ID3v1, ID3v2.3 and ID3v2.4: "Title:", VORBISCOMMENT: "TITLE=", "title=", "Title="
+				int titleStart = 6;
+				if (m.msg[5] == '/') { // ID3v2.2 "Title/Songname/Content description:"
+					titleStart = 36;
+				}
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg + titleStart);
+				} else {
+					Audio_setTitle("%s", m.msg + titleStart);
+				}
+			}
+			break;
+		}
+		case Audio::evt_lasthost: { // stream URL played
+			Log_Printf(LOGLEVEL_INFO, "last URL:     %s", m.msg);
+			break;
+		}
+		case Audio::evt_name: { // station name or icy-name
+			Log_Printf(LOGLEVEL_NOTICE, "station name: %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg);
+				} else {
+					Audio_setTitle("%s", m.msg);
+				}
+			}
+			break;
+		}
+		case Audio::evt_streamtitle: {
+			if (!gPlayProperties.isWebstream) {
+				break; // prevents overwriting correct title for local files
+			}
+			Log_Printf(LOGLEVEL_INFO, "stream title: %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				if (gPlayProperties.playlist->size() > 1) {
+					Audio_setTitle("(%u/%u): %s", gPlayProperties.currentTrackNumber + 1, gPlayProperties.playlist->size(), m.msg);
+				} else {
+					Audio_setTitle("%s", m.msg);
+				}
+			}
+			break;
+		}
+		case Audio::evt_icylogo: { // logo
+			Log_Printf(LOGLEVEL_INFO, "icy logo:     %s", m.msg);
+			if (m.msg && m.msg[0] != '\0') {
+				AudioPlayer_StationLogoUrl = m.msg;
+				// websocket and mqtt notify station logo has changed
+				Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+			}
+			break;
+		}
+		case Audio::evt_image: {
+			if (!gPlayProperties.playlist || gPlayProperties.currentTrackNumber >= gPlayProperties.playlist->size()) {
+				break;
+			}
+			const char *fileName = gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber);
+			File file = gFSystem.open(fileName, FILE_READ);
+			if (!file) {
+				Log_Printf(LOGLEVEL_ERROR, "Failed to open file: %s", fileName);
+				break;
+			}
+			char fileType[4];
+			if (file.readBytes(fileType, 4) == 4) {
+				if (strncmp(fileType, "OggS", 4) == 0) {
+					audio_oggimage(file, m.vec);
+				} else {
+					audio_id3image(file, m.vec[0], m.vec[1]);
+				}
+			}
+			file.close();
+			break;
+		}
+		default: // ignored events: evt_icydescription, evt_lyrics, evt_log
+			break;
+	}
+}
+
+float Audio_GetVolume(float t) {
+	uint8_t curve_type = gPrefsSettings.getUChar("volumeCurve", 0);
+
+	// 1. Safety Checks
+	if (curve_type >= VOL_LUT_CURVES) {
+		curve_type = VOL_CURVE_PERCEPTUAL;
+	}
+	if (t <= 0.0f) {
+		return pgm_read_float(&(VOLUME_TABLE[curve_type][0]));
+	}
+
+	// 2. Calculate indices
+	float index_f = t * (VOL_LUT_STEPS - 1);
+	int index = (int) index_f;
+
+	// Safety clamp for the edge case where index_f is exactly 63.0
+	if (index >= VOL_LUT_STEPS - 1) {
+		return pgm_read_float(&(VOLUME_TABLE[curve_type][VOL_LUT_STEPS - 1]));
+	}
+
+	float fraction = index_f - (float) index;
+
+	// 3. Interpolate
+	float val1 = pgm_read_float(&(VOLUME_TABLE[curve_type][index]));
+	float val2 = pgm_read_float(&(VOLUME_TABLE[curve_type][index + 1]));
+
+	return val1 + (val2 - val1) * fraction;
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
@@ -322,7 +465,8 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
-	audio->setVolume(AudioPlayer_CurrentVolume, gPrefsSettings.getUChar("volumeCurve", 0));
+	audio->setVolumeCurve(Audio_GetVolume);
+	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
 	audio->setTone(
 		gPrefsSettings.getChar("gainLowPass", 0),
@@ -1127,7 +1271,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 		}
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
-		audio->setVolume(_volume, gPrefsSettings.getUChar("volumeCurve", 0));
+		audio->setVolume(_volume);
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
 		publishMqtt(topicLoudness, static_cast<uint32_t>(_volume), false);

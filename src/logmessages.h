@@ -107,6 +107,8 @@ extern const char initialBrightnessfromNvs[];
 extern const char wroteInitialBrightnessToNvs[];
 extern const char restoredInitialBrightnessForNmFromNvs[];
 extern const char wroteNmBrightnessToNvs[];
+extern const char restoredAtmoBrightnessForNmFromNvs[];
+extern const char wroteAtmoBrightnessToNvs[];
 extern const char wroteFtpUserToNvs[];
 extern const char restoredFtpUserFromNvs[];
 extern const char wroteFtpPwdToNvs[];

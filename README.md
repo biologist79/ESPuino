@@ -15,16 +15,18 @@
 ## Firmwares
 
 Ready-to-use firmwares are available for [download](https://github.com/biologist79/ESPuino-Firmware) for several
-HALs, RFID-readers PN5180 or RC522 and with or without bluetooth. These are provided for
+HALs with or without bluetooth support enabled. These are provided for
 [master](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/master) and
 [dev-branch](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/dev).
 
 ## News
 
+> :warning: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start)
+
 > :warning: Due to memory restrictions and complexity, ESPuino doesn't run safely on ESP32
 without PSRAM. So please make sure to use an ESP32-WROVER!
 
-> :warning: As of January 8, 2026, MQTT topics have changed! Further infos [here](https://forum.espuino.de/t/neues-namensschema-fuer-mqtt/2553/34?u=biologist).
+> :warning: As of January 8, 2026, MQTT topics have changed! Further infos [here](https://forum.espuino.de/t/neues-namensschema-fuer-mqtt/2553/34).
 
 ## Current development
 
@@ -40,24 +42,24 @@ unit, the [Biobox 3d](https://forum.espuino.de/t/biobox-3d/3130):
 
 ![Biobox 3d](https://forum.espuino.de/uploads/default/original/2X/d/d8e0904fd78723dbc1b5c039ab9da2d778c7c987.jpeg "Biobox 3d")
 
-Primarily the device is controlled using RFID cards, similar to those used for access control
+Primarily the device is controlled using RFID tags (usually cards), similar to those used for access control
 (ski lifts, office access, etc.). To uniquely identify an RFID card, it carries a fixed ID.
-ESPuino reads that ID (a 12-digit number) with an RFID card reader and triggers an action based
+ESPuino reads that ID (a 12-digit number) with an RFID card reader and triggers an action associated
 on it. Which action to take is taught beforehand via ESPuino’s web interface: you upload audio
 files to a microSD card, pick the desired audio file (or an entire folder) in the web interface’s
 file browser and link it to the RFID card you placed. You mostly just click through the
-interface while manual input is possible (but usually unnecessary). When the RFID card is presented
-again, ESPuino loads the mapping and starts the desired playback. Present a different RFID card and
-the playback associated with that card starts. In addition to audio files from the local microSD
+web interface while manual input is possible (but usually unnecessary). When the RFID tag is presented
+again, ESPuino loads the mapping and starts the desired playback. Present a different RFID tag and
+the playback associated with that tag starts. In addition to audio files from the local microSD
 card, web streams can be played, too. In Bluetooth mode you can also stream to the ESPuino from
 your phone using [A2DP](https://de.wikipedia.org/wiki/A2DP), for example.
 
 Further control elements on ESPuino are buttons and a [rotary encoder](https://forum.espuino.de/t/drehencoder-by-espuino/2414).
-Buttons can be assigned dozens of different actions via the web interface — double assignments (short
+Buttons can be assigned dozens of different actions via the web interface — even double assignments (short
 press vs. long press) are possible. If used, the rotary encoder is reserved exclusively
 for volume control but includes an integrated button, that's usually used to switch on ESPuino and
-start measurement of battery's voltage which is instantly indicated via neopixel. By default
-ESPuino is designed for three buttons and one rotary encoder, but this can be varied: from 0 to 5
+starts measurement of battery's voltage which is instantly indicated via LEDs (Neopixel). By default,
+ESPuino is designed for three buttons and one rotary encoder, but this can be varied: from 0 up to 5
 buttons, and no rotaty encoder or one rotaty encoder. If no rotary encoder is present, volume
 control is handled, for example, via buttons.
 
@@ -68,8 +70,8 @@ battery level, and error states — and
 [much, much more](https://forum.espuino.de/t/was-zeigt-der-neopixel-des-espuino-alles-an/86)! ESPuino
 also works without Neopixels, but that is not recommended because they convey a lot of information.
 
-There is also a [headphone jack](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099)
-that mutes the speaker when headphones are plugged in. Alternatively, a Bluetooth headphone can be used.
+There is also an optional [headphone jack](https://forum.espuino.de/t/kopfhoererplatine-basierend-auf-ms6324-und-tda1308-bzw-lm4808m/1099)
+that mutes the speaker when headphones are plugged in. Alternatively, Bluetooth headphones can be used.
 
 ESPuino also communicates with the outside world: besides the web interface, it supports
 [MQTT](https://de.wikipedia.org/wiki/MQTT), a [REST API](https://github.com/biologist79/ESPuino/blob/master/REST-API.yaml)
@@ -87,7 +89,7 @@ rfid-reader, rotary encoder, i2c external, Neopixel, USB-C, µSD, speaker, [head
 [Port-expander](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) and [MAX98357a](https://www.analog.com/en/products/MAX98357A.html)
 are integrated, too. A [buck boost converter](https://www.ti.com/product/TPS63000) provides
 stable 3.3 V while battery's voltage is [supervised](https://www.sg-micro.com/product/SGM809)
-in order to prevent it from deep discharge. However, never use a lithium battery without a
+in order to prevent it from deep discharge. However, NEVER(!) use a lithium battery without a
 further protection circuit that's already part of the battery pack!
 
 ![Complete](https://forum.espuino.de/uploads/default/original/2X/7/750a5af3cf71bc7ef35f9adc7054c981f169f96b.jpeg "Complete")
@@ -98,13 +100,18 @@ Optionally a [headphone-pcb](https://forum.espuino.de/t/kopfhoererplatine-basier
 can be attached to [Complete](https://forum.espuino.de/t/espuino-complete/3817) in order to connect headphones.
 While headphone's plugged in, speaker is automatically disabled.
 
-## Getting started
+## Getting started (for users)
 
 - [Much more documentation in german
   language](https://forum.espuino.de/c/dokumentation/anleitungen/10).
 - There are already ready-to-use firmwares for [download available](https://github.com/biologist79/ESPuino-Firmware) that
-  probably already fit your needs. Further informations can be found [here](https://forum.espuino.de/t/fertige-espuino-firmwares-zum-runterladen/3941).
-- In case you want to compile your own firmware, first you need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
+  probably already fit your needs. Further informations can be found [here](https://forum.espuino.de/t/fertige-espuino-firmwares-zum-runterladen/3941). [Complete](https://forum.espuino.de/t/espuino-complete/3817) is always already shipped with running firmware, so your ESPuino should start right away.
+- ESPuino opens a wifi access point that you need to join. For further details please refer [the first start](https://forum.espuino.de/t/der-erste-start-deines-espuino/29).
+- Please make sure to read the [documentation of the web interface](https://forum.espuino.de/t/dokumentation-webinterface/2807).
+
+## Getting started (for developers)
+
+- In case you want (or need) to compile your own firmware, first you need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
 - Install [PlatformIO Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio
   Code](https://code.visualstudio.com/) and make sure to have a look at the
   [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html).
@@ -139,11 +146,11 @@ While headphone's plugged in, speaker is automatically disabled.
   "ESPuino" and enter `http://192.168.4.1` to your webbrowser. Enter WiFi credentials and the
   hostname there (or in the captive portal). After saving the configuration, restart ESPuino.
 - After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that
-  was successful, an IP is shown in the serial console. You can access ESPuino's GUI using a
+  was successful, an IP is shown in the serial console. You can access ESPuino's web interface using a
   webbrowser via this IP; make sure to allow Javascript. If the mDNS feature is active in
   `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you
-  configured `espuino` as hostname, you can use `http://espuino.local` for web GUI and FTP.
-- Via FTP and web GUI you can upload data (expect a throughput like 320 kB/s up to 500 kB/s).
+  configured `espuino` as hostname, you can use `http://espuino.local` for web interface and FTP.
+- Via FTP and web interface you can upload data (expect a throughput like 320 kB/s up to 500 kB/s).
 - FTP needs to be activated after boot if you need it! Don't forget to assign action
   `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if
   enabling was successful. It'll be disabled automatically after next reboot. Means: you have to
@@ -153,7 +160,7 @@ While headphone's plugged in, speaker is automatically disabled.
 - Via webbrowser you can configure various settings and pair RFID tags with actions. If
   MQTT/FTP-support was not compiled, their config tabs won't appear.
 
-## SD-card: SPI or SD-MMC (1 bit)-mode?
+## SD-card: SPI or SD-MMC (1 bit)-mode? (for developers)
 
 Having the µSD card working is mandatory, ESPuino doesn't start without working SD card (at least
 unless `NO_SDCARD` hasn't been enabled previously). However, there are two modes available to
@@ -170,7 +177,7 @@ Disadvantages PN5180: it's more expensive and needs more GPIOs (6/7 instead of 4
 it's worth it! Refer to PN5180's wiring section below for further information. Hint: if using 3.3 V
 only make sure to connect these 3.3 V to PN5180's 5 V AND 3.3 V. Sounds weird but it's necessary.
 
-## 3.3 V only or 5 V, too?
+## 3.3 V only or 5 V, too? (for developers)
 
 ESP32 itself runs at 3.3 V only. But what about the periphery? Spoiler: "Complete" internally runs at
 3.3 V only.
@@ -189,12 +196,12 @@ ESP32 itself runs at 3.3 V only. But what about the periphery? Spoiler: "Complet
 
 ## WiFi
 
-WiFi is mandatory for web GUI, FTP, MQTT and webradio. However, it can be temporarily or
+WiFi is mandatory for web interface, FTP, MQTT and webradio. However, it can be temporarily or
 permanently disabled (and ESPuino remembers this state after the next restart). There are two ways
 to (re-)enable/disable WiFi:
 
 - Use a special [modification card](https://forum.espuino.de/t/was-sind-modifikationskarten/37) that
-  can be configured via web GUI.
+  can be configured via web interface.
 - Assign action `CMD_TOGGLE_WIFI_STATUS` to a button (or multi-button). This toggles the current
   WiFi status.
 
@@ -202,7 +209,7 @@ to (re-)enable/disable WiFi:
 
 > :warning: **Due to memory restrictions it's not possible to run Bluetooth in
   parallel with WiFi.** This means that you cannot stream webradio via Bluetooth
-  or access the web GUI while this mode is enabled. Switching both modes requires a restart.
+  or access the web interface while this mode is enabled. Switching both modes requires a restart.
 
 ### ESPuino as A2DP sink (stream to ESPuino)
 
@@ -220,7 +227,7 @@ speakers. This mode can be enabled/disabled via a RFID modification card or by a
 immediately. Activated Bluetooth is indicated by four slow rotating _blue-violet_ LEDs. After the
 Bluetooth headset is connected LEDs turn to blue.
 
-## Port expander
+## Port expander (for developers)
 
 There might be situations where you run out of GPIOs. To address this, a port expander
 [PCA9555](https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf) can be used to extend the number of
@@ -232,27 +239,28 @@ port expander's I2C-address can be changed. It's `0x20` if pins `A0`, `A1`, `A2`
 
 ## After ESPuino is connected to your WiFi
 
-After making ESPuino part of your LAN/WiFi, the 'regular' web GUI is available at the IP assigned by
-your router (or the configured hostname). Using this GUI you can:
+After making ESPuino part of your LAN/WiFi, the 'regular' web interface is available at the IP assigned by
+your router (or the configured hostname). Using this interface you can:
 
 - configure WiFi
 - make bindings between RFID tag, file/directory/URL and playback mode
 - make bindings between RFID tag and a modification type
-- configure MQTT (if enabled)
+- configure MQTT and its topics (if enabled)
 - configure FTP (if enabled)
 - configure initial volume, maximum volume (speaker / headphone), brightness of Neopixel (night mode
   / default) and inactivity time
 - configure voltage levels for battery mode
-- view logs / status / current track
+- configure type of rfid reader (however, not necessary because of [autodetection](https://forum.espuino.de/t/autoerkennung-von-rfid-reader/4453))
+- view logs / status / current track / cover art (if available)
 - control player
 - run modifications (like modification card)
 - upload audiofiles (called web transfer)
-- do OTA updates (ESP32 with 16 MB of flash memory only)
+- do OTA updates (ESP32-WROVER with 16 MB of flash memory only)
 - import + delete NVS-RFID-assigments
 - restart + shutdown ESPuino
 
 > :information_source: As you apply a RFID tag to the RFID reader, the corresponding ID is pushed to
-  the GUI automatically. So there's no need to enter such IDs manually (unless you want to). The
+  the web interface automatically. So there's no need to enter such IDs manually (unless you want to). The
   file path is filled out automatically by selecting a file/directory in the file browser.
 
 <img src="https://raw.githubusercontent.com/biologist79/ESPuino/master/pictures/Mgmt-GUI1.jpg"
@@ -287,12 +295,15 @@ It's not just simply playing music; different playback modes are supported:
 | `Single track of a directory (random). Followed by sleep` | Picks and plays one single track out of a directory and falls asleep subsequently. Neopixel gets dimmed.|
 | `Audiobook` | Single file or playlist/folder; last play position (file and playlist) is saved (when pushing pause or moving to another track) and reused next time |
 | `Audiobook (loop)` | Same as audiobook but loops forever |
+| `Audiobook with subdirectories (recursive)` | Same as audiobook, but with subdirectories |
 | `Folder/playlist (sorted)` | Plays all tracks in order from a folder one time |
 | `Folder/playlist (random order)` | Plays all tracks in random order from a folder one time |
 | `Folder/playlist (sorted)` | Plays all tracks in order from a folder forever|
 | `Folder/playlist (random order)` | Plays all tracks in random order from a folder forever |
 | `All tracks of a random subdirectory (sorted)` | Plays of tracks in order of a randomly picked subdirectory of a given directory |
 | `All tracks of a random subdirectory (random order)` | Plays all tracks in random order of a randomly picked subdirectory of a given directory |
+| `All tracks of a directory + subdirectories (random, recursive)` | Same as All tracks of a random subdirectory (random order) but with subdirectories |
+| `All tracks of a directory + subdirectories (sorted, recursive)` | Same as All tracks of a random subdirectory (sorted) but with subdirectories |
 | `Webradio` | always only one "track": plays a webstream |
 | `List (files from SD and/or webstreams) from local .m3u-File` | Can be one or more files / webradio stations with local .m3u as sourcefile |
 
@@ -319,6 +330,7 @@ modification:
 | Toggle Bluetooth source (enable/disable) | Restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino.|
 | Toggle through the different modes | Normal => BT-Sink => BT-Source => Normal |
 | Speech output of IP-address or current time | Speech output of IP address or current time |
+| Toggle Ambient Light | Enables / disables ambient light |
 
 > :information_source: All sleep modes do dimming (Neopixel) automatically because it's supposed to
   be used in the evening when going to bed. Well, at least that's my children's indication :-)
@@ -328,13 +340,12 @@ modification:
 
 ### Neopixel LEDs (optional)
 
-Indicates various things. Don't forget configuration of number of LEDs via `#define NUM_LEDS`, but
-that's also adjustable via webinterface.
-Most ESPuino designs use a Neopixel ring, but a linear strip is also possible.
+Indicates various things. Don't forget configuration of number of LEDs via via webinterface.
+Most ESPuino designs make use of Neopixel rings, but a linear strip is also possible. Even a single
+LED can be used.
 
 > :information_source: Some Neopixels use a reversed addressing which leads to the 'problem', that
-  all effects are shown counter clockwise. If you want to change that behaviour, just enable
-  `NEOPIXEL_REVERSE_ROTATION`. This is also adjustable via webinterface.
+  all effects are shown counter clockwise. If you want to change that behaviour, just change it via webinterface.
 
 #### Boot
 
@@ -369,9 +380,9 @@ Most ESPuino designs use a Neopixel ring, but a linear strip is also possible.
 #### Battery Status (optional)
 
 - **Undervoltage**: flashes three times red if battery-voltage is too low. This voltage-level can be
-  configured via GUI.
+  configured via web interface.
 - Short press of rotary encoder's button provides battery-voltage visualisation via Neopixel. Upper
-  und lower voltage cut-offs can be adjusted via GUI. So for example if lower voltage is set to 3.2
+  und lower voltage cut-offs can be adjusted via web interface. So for example if lower voltage is set to 3.2
   V and upper voltage to 4.2 V, 50% of the LEDs indicate a voltage of 3.7 V.
 
 ### Buttons
@@ -399,21 +410,10 @@ Most ESPuino designs use a Neopixel ring, but a linear strip is also possible.
 
 #### Virtual RFID cards
 
-Any of the button actions can also be assigned to virtual RFID cards.
-Those cards then can be assigned on the web GUI like normal cards.
+Any of the button actions can also be assigned to [virtual RFID cards](https://forum.espuino.de/t/virtual-rfid-cards/3218/2).
+Those cards then can be assigned on the web interface like normal cards.
 To select a virtual RFID card, just press the configured button action,
-the virtual RFID automatically gets filled in in the web GUI.
-
-### Music playback
-
-- Music starts to play right away after a valid RFID tag was applied (if it's known to ESPuino).
-- If `PLAY_LAST_RFID_AFTER_REBOOT` is active, ESPuino will remember the last RFID applied =>
-  music-autoplay.
-- If a folder should be played that contains many MP3s, the playlist generation can take a few
-  seconds.
-- A file's name including path isn't allowed to exceed 255 characters.
-- While the playlist is generated Neopixel indicates BUSY-mode.
-- After the last track was played, Neopixel indicates IDLE-mode.
+the virtual RFID automatically gets filled in in the web interface.
 
 ### Audiobook mode
 
@@ -424,26 +424,25 @@ This mode is different from the others because the last playback position is sav
 - pause was pressed.
 - track is over.
 - playlist is over (position is reset to the first track and file position 0).
-- As per default last playback position is not saved when applying a new RFID tag. You can enable
-  this using `SAVE_PLAYPOS_WHEN_RFID_CHANGE` or by webinterface.
-- As per default last playback position is not saved when doing shutdown. You can enable this using
-  `SAVE_PLAYPOS_BEFORE_SHUTDOWN` or by webinterface.
+- As per default last playback position is not saved when applying a new RFID tag. You can change this
+  this behaviour via webinterface.
+- As per default last playback position is not saved when doing shutdown. You can change this
+  this behaviour via webinterface.
 
 ### FTP (optional)
 
-- FTP needs to be activated after boot! Don't forget to assign action `ENABLE_FTP_SERVER` in
-  `settings.h` or use a modification card to activate it! Neopixel flashes green (1x) if enabling
+- FTP needs to be activated after boot! Neopixel flashes green (1x) if enabling
   was successful. It'll be disabled automatically after next reboot. Means: you have to enable it
   every time you need it (if reboot was in between). Sounds annoying and maybe it is, but it's
   running this way in order to save heap memory when FTP isn't needed.
 - Why FTP? In order to avoid exposing the SD card or disassembling ESPuino all the time for
   adding new music, it's possible to transfer music to the SD card using FTP. Another possibility
-  is to do via web GUI (webtransfer).
-- Default user and password are set to `esp32` / `esp32` but can be changed via GUI.
+  is to do via web interface (webtransfer).
+- Default user and password are set to `esp32` / `esp32` but can be changed via web interface.
 - Secured FTP is not available. So make sure to disable SSL/TLS.
 - Software: my recommendation is [Filezilla](https://filezilla-project.org/) as it's free and
   available for multiple platforms.
-- Please note: if music is played in parallel, this rate decreases! So consider to stop
+- Please note: if music is played in parallel, the transfer rate decreases! So consider to stop
   playback when doing file transfers.
 
 ### Energy saving
@@ -457,9 +456,9 @@ and any input via buttons. Every button interaction resets the counter.
 
 As all assignments between RFID IDs and actions (playback mode, file to play, ...) is saved in ESP32's
 NVS, the problem is that it's all gone when the ESP is broken. So that's where a backup comes in
-handy. Every time you change or add a new assignment between a RFID tag and an action via GUI, a
+handy. Every time you change or add a new assignment between a RFID tag and an action via web interface, a
 backup file is saved on the SD card. The file's name can be changed via `backupFile`. So better
-don't delete it! Using the web GUI you can use the upload form to import such a file.
+don't delete it! Using the web interface you can use the upload form to import such a file.
 
 ### Smarthome/MQTT (optional)
 
@@ -479,7 +478,7 @@ directory](https://github.com/biologist79/ESPuino/tree/master/openHAB).
 
 > :information_source: I [described](https://github.com/biologist79/ESPuino/tree/master/openHAB) a
   sample config for openHAB2. However, meanwhile openHAB5 is available and all the stuff described
-  can also be configured via GUI. Be advised that openHAB is pretty complex and you have to spend
+  can also be configured via web interface. Be advised that openHAB is pretty complex and you have to spend
   some time to get familiar with it.
 
 However, there's also stuff available for [Home Assistant](https://forum.espuino.de/t/home-assistant-integration/3763).

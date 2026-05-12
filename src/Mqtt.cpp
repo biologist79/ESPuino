@@ -327,6 +327,9 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			// Sleep-Timer-subscription
 			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleepTimer), qos);
 
+			// Ambient-Light-subscription
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicAmbientLight), qos);
+
 			// Next/previous/stop/play-track-subscription
 			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicTrackControl), qos);
 
@@ -519,6 +522,15 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		else if (reduced_topic_str == topicTrackControl) {
 			uint8_t controlCommand = toNumber<uint8_t>(payload_str);
 			AudioPlayer_SetTrackControl(controlCommand);
+		}
+
+		// Ambient Light
+		else if (reduced_topic_str == topicAmbientLight) {
+			if (payload_str == "OFF" || payload_str == "0") {
+				Led_SetAmbientLight(false);
+			} else if (payload_str == "ON" || payload_str == "1") {
+				Led_SetAmbientLight(true);
+			}
 		}
 
 		// Check if controls should be locked
