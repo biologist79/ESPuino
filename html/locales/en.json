@@ -20,7 +20,8 @@
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
-		"dropout": "slow stream, dropouts are possible."
+		"dropout": "slow stream, dropouts are possible.",
+		"saved": "Settings saved."
 	},
 	"nav": {
 		"control": "Control",

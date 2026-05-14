@@ -568,7 +568,7 @@
 					<div class="slider-container-inner">
 						<input class="form-control float-end" data-provide="slider" type="number" data-slider-min="1"
 							data-slider-max="21" min="1" max="21" id="setVolume" data-slider-value="" value=""
-							onchange="sendVolume(Number(this.value))">
+						onchange="sendVolume(Number(this.value))">
 					</div>
 					<div class="float-end" style="padding-left: 10px">
 						<button type="button" class="btn btn-primary btn-lg volume-button float-end"
@@ -894,7 +894,7 @@
 								</div>
 								<div class="float-end" style="padding-left: 10px">
 									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-								</div>
+							</div>
 							</div>
 							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
 							<div class="slider-container">
@@ -908,7 +908,7 @@
 								</div>
 								<div class="float-end" style="padding-left: 10px">
 									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-								</div>
+							</div>
 							</div>
 							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
 							<div class="slider-container">
@@ -2792,7 +2792,7 @@
 			return parseInt(input.replace(/^#([\da-f])([\da-f])([\da-f])$/i, '#$1$1$2$2$3$3').substring(1), 16);
 		};
 
-		function genSettings(clickedId) {
+		async function genSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
 				"general": {
@@ -2888,10 +2888,16 @@
 				...window.settings,
 				...myObj
 			};
-			socket.send(myJSON);
+			
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
-		function ftpSettings(clickedId) {
+		async function ftpSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
 				"ftp": {
@@ -2900,7 +2906,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
 		function ftpStart() {
@@ -2913,7 +2924,7 @@
 			socket.send(myJSON);
 		}
 
-		function mqttSettings(clickedId) {
+		async function mqttSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var val;
 			if (document.getElementById('mqttEnable').checked) {
@@ -2934,7 +2945,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 
 			// If any MQTT setting changed, prompt user to restart to apply changes
 			try {
@@ -2952,7 +2968,7 @@
 			} catch (e) { console.log('mqttSettings compare error', e); }
 		}
 
-		function btSettings(clickedId) {
+		async function btSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
 				"bluetooth": {
@@ -2961,7 +2977,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
 		function removeTrSlash(str) {
@@ -3046,7 +3067,7 @@
 			return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 		}
 
-		function rfidAssign(clickedId) {
+		async function rfidAssign(clickedId) {
 			lastIdclicked = clickedId;
 			if (ActiveSubTab == 'rfid-music-tab') {
 				var myObj = {
@@ -3065,7 +3086,12 @@
 				};
 			}
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 		async function globalWifiConfig(clickedId) {
 			lastIdclicked = clickedId;

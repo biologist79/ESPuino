@@ -20,7 +20,8 @@
 		"rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
 		"success": "Aktion erfolgreich ausgeführt.",
 		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
-		"dropout": "Langsamer Stream, Aussetzer möglich."
+		"dropout": "Langsamer Stream, Aussetzer möglich.",
+		"saved": "Einstellungen gespeichert."
 	},
 	"nav": {
 		"control": "Steuerung",
