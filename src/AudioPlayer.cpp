@@ -350,6 +350,9 @@ void AudioPlayer_Init(void) {
 #endif
 
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
+	// DMA-settings must be adjusted before setting the pinout
+	audio->settings.DMA_DESC_NUM = 32;
+	audio->settings.DMA_FRAME_NUM = 192; // not too high, so safe SRAM
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolumeCurve(Audio_GetVolume);

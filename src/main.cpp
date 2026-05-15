@@ -216,24 +216,20 @@ void setup() {
 }
 
 void loop() {
+	Wlan_Cyclic();
+	Web_Cyclic();
 	if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 		// bluetooth speaker mode
-		Wlan_Cyclic();
-		Web_Cyclic();
 		Bluetooth_Cyclic();
 	} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 		// bluetooth headset mode
-		Wlan_Cyclic();
-		Web_Cyclic();
 		Bluetooth_Cyclic();
 		RotaryEncoder_Cyclic();
 	} else {
 		// normal mode
-		Wlan_Cyclic();
-		Web_Cyclic();
-		Ftp_Cyclic();
 		RotaryEncoder_Cyclic();
 	}
+	Ftp_Cyclic();
 	AudioPlayer_Cyclic();
 	Battery_Cyclic();
 	Button_Cyclic();
