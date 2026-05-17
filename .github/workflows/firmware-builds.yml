@@ -15,6 +15,9 @@ on:
       - "**.py"
       - "**.csv"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test_builds:
     timeout-minutes: 180
@@ -24,9 +27,9 @@ jobs:
       fail-fast: false
       matrix:
         variant:
+          # - ttgo_t8 # disabled for now.
           - lolin_d32_pro
           - lolin_d32_pro_sdmmc_pe
-          - ttgo_t8
           - complete
 
     steps:
@@ -47,7 +50,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
       - name: Setup Python 3.13
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
@@ -91,7 +94,7 @@ jobs:
     needs: test_builds
     steps:
       - name: Checkout target repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: biologist79/ESPuino-Firmware
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
