@@ -57,32 +57,32 @@ jobs:
           pio upgrade --dev
           pio pkg update --global
 
-      # --- Build 1: Bluetooth Disabled ---
-      - name: Ensure BT is disabled
+      # --- Build 1: Language DE (Default) ---
+      - name: Ensure Language is DE
         run: |
-          sed -i 's/^#define BLUETOOTH_ENABLE/\/\/#define BLUETOOTH_ENABLE/' src/settings.h
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE DE/' src/settings.h
 
-      - name: Build ${{ matrix.variant }} (no BT)
+      - name: Build ${{ matrix.variant }} (DE)
         run: platformio run -e ${{ matrix.variant }}
 
-      - name: Upload Firmware (no BT)
+      - name: Upload Firmware (DE)
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}-noBT.bin
+          name: firmware-${{ matrix.variant }}-DE.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
 
-      # --- Build 2: Bluetooth Enabled ---
-      - name: Activate BT
+      # --- Build 2: Language EN ---
+      - name: Set Language to EN
         run: |
-          sed -i 's/\/\/#define BLUETOOTH_ENABLE/#define BLUETOOTH_ENABLE/' src/settings.h
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE EN/' src/settings.h
 
-      - name: Build ${{ matrix.variant }} (with BT)
+      - name: Build ${{ matrix.variant }} (EN)
         run: platformio run -e ${{ matrix.variant }}
 
-      - name: Upload Firmware (with BT)
+      - name: Upload Firmware (EN)
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}-BT.bin
+          name: firmware-${{ matrix.variant }}-EN.bin
           path: .pio/build/${{ matrix.variant }}/firmware.bin
 
   commit:
