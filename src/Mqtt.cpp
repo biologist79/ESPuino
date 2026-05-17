@@ -454,6 +454,10 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		}
 		// Loudness to change?
 		else if (reduced_topic_str == topicLoudness) {
+			if (!System_IsWebControlAllowed()) {
+				Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+				return;
+			}
 			unsigned long vol = toNumber<uint32_t>(payload_str);
 			AudioPlayer_SetVolume(vol, true);
 		}
@@ -521,6 +525,10 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		// Track-control (pause/play, stop, first, last, next, previous)
 		else if (reduced_topic_str == topicTrackControl) {
 			uint8_t controlCommand = toNumber<uint8_t>(payload_str);
+			if (!System_IsWebControlAllowed()) {
+				Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+				return;
+			}
 			AudioPlayer_SetTrackControl(controlCommand);
 		}
 

@@ -21,6 +21,7 @@ void System_ToggleLockControls(void);
 bool System_AreControlsLocked(void);
 void System_IndicateError(void);
 void System_IndicateOk(void);
+bool System_IsWebControlAllowed(void);
 void System_SetOperationMode(uint8_t opMode);
 uint8_t System_GetOperationMode(void);
 uint8_t System_GetOperationModeFromNvs(void);

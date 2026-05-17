@@ -282,8 +282,7 @@
 				<div class="modal-footer">
 					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
 							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"
-						onclick="restartDevice()"><span data-i18n="restart"></span></button>
+					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
 							data-i18n="ok"></span></button>
 				</div>
@@ -1657,11 +1656,24 @@
 					}
 				};
 			obj.error = function (jqXHR, textStatus, errorThrown) {
-				console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url);
+								console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url);
 				/*debugger; */
 			};
 			jQuery.ajax(obj);
 		} /* doRest */
+
+		function showSwitchModePrompt() {
+			// Reuse the info modal to prompt for mode switch
+			$('.modal-title').text(i18next.t('bt.switchmode.title'));
+			$('.modal-body').html(i18next.t('bt.switchmode.prompt'));
+			$(".modal-body").removeAttr("style");
+			$('#modalInfoRefresh').hide();
+			$('#modalRestartNow').show().text(i18next.t('bt.switchmode.button')).off('click').on('click', function () {
+				setOperationMode(0, true);
+			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
+		}
+
 		function getData(path, callback) {
 			doRest(path, callback, {
 				method: "GET"
@@ -1717,10 +1729,13 @@
 			// Reuse the info modal to prompt the user to restart now or later
 			$('.modal-title').text(i18next.t('restart'));
 			$('.modal-body').html(i18next.t('mqtt.restartPrompt'));
+			$(".modal-body").removeAttr("style");
 			// Hide refresh button and show restart-now button
 			$('#modalInfoRefresh').hide();
-			$('#modalRestartNow').show();
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			$('#modalRestartNow').show().text(i18next.t('restart')).off('click').on('click', function () {
+				restartDevice();
+			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
 		}
 
 		async function shutdownDevice() {
@@ -2307,6 +2322,9 @@
 					}
 					if (socketMsg.status == "dropout") {
 						toaster.warning(i18next.t("toast.dropout"));
+					}
+					if (socketMsg.status == "not_allowed_in_current_mode") {
+						showSwitchModePrompt();
 					}
 				}
 				if ("pong" in socketMsg) {
@@ -3158,17 +3176,17 @@
 			socket.send(myJSON);
 		}
 
-		function setOperationMode(mode) {
+		async function setOperationMode(mode, quiet = false) {
 			console.log("set operation mode: " + mode);
-			// Show modal immediately before sending request
-			tryRedirect();
-			$('.modal-title').text(i18next.t("restart"));
-			$('.modal-body').html(i18next.t("restartinfo"));
-			$(".modal-body").removeAttr("style");
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
-
+			if (!quiet) {
+				// Show modal immediately before sending request
+				$('.modal-title').text(i18next.t("restart"));
+				$('.modal-body').html(i18next.t("restartinfo"));
+				$(".modal-body").removeAttr("style");
+				new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			}
 			// Send mode change request (device will restart immediately)
-			fetch('/mode', {
+			await fetch('/mode', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -3177,6 +3195,9 @@
 			}).catch(error => {
 				console.log('Device restarting, connection lost (expected):', error);
 			});
+			
+			// Start redirecting mechanism only after the request has been sent
+			tryRedirect();
 		}
 
 		function executeCommand() {
