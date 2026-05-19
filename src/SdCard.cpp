@@ -15,7 +15,7 @@
 #ifdef SD_MMC_1BIT_MODE
 	#define HARDWARE_FS SD_MMC
 #else
-	// Note: SPIClass needs to be initialized before passing to SD
+SPIClass spiSD(HSPI);
 	#define HARDWARE_FS SD
 #endif
 SanitizedFS gFSystem(HARDWARE_FS);
