@@ -36,7 +36,7 @@ public:
 	}
 
 	fs::File open(const String &path, const char *mode = "r", const bool create = false) {
-		return open(sanitize(path).c_str(), mode, create);
+		return fs::FS::open(sanitize(path), mode, create);
 	}
 
 	bool exists(const char *path) {
@@ -92,6 +92,10 @@ public:
 	}
 
 private:
+	static const char *getIllegalChars() {
+		return ":*?\"<>|%";
+	}
+
 	// Helper to convert nibble to hex character
 	char to_hex(unsigned char v) {
 		return v < 10 ? '0' + v : 'A' + (v - 10);
@@ -111,16 +115,15 @@ private:
 		return -1;
 	}
 
-	String sanitize(String input) {
+	String sanitize(const String &input) {
 		String output = "";
 		// Pre-allocate memory to prevent heap fragmentation
 		output.reserve(input.length());
 
 		for (size_t i = 0; i < input.length(); i++) {
 			unsigned char c = input[i];
-			// Check for illegal chars, percent sign, or non-printable control chars
-			const String illegal_chars = ":*?\"<>|%";
-			if (illegal_chars.indexOf(c) != -1 || c < 32) {
+			// Check for illegal chars
+			if (strchr(getIllegalChars(), (int) c) != nullptr) {
 				output += '%';
 				output += to_hex(c >> 4);
 				output += to_hex(c & 0x0F);
@@ -131,7 +134,7 @@ private:
 		return output;
 	}
 
-	String reparse(String input) {
+	String reparse(const String &input) {
 		String output = "";
 		output.reserve(input.length());
 
@@ -141,9 +144,12 @@ private:
 				int low = from_hex(input[i + 2]);
 
 				if (high != -1 && low != -1) {
-					output += (char) ((high << 4) | low);
-					i += 2; // Skip the two hex characters
-					continue;
+					char c = (char) ((high << 4) | low);
+					if (strchr(getIllegalChars(), (int) c) != nullptr) {
+						output += c;
+						i += 2; // Skip the two hex characters
+						continue;
+					}
 				}
 			}
 			output += input[i];
