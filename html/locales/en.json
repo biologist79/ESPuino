@@ -6,13 +6,13 @@
 	"title": "ESPuino",
 	"shutdown": "Shutdown",
 	"log": "Log",
-	"info": "Info",
+	"info": "Information",
 	"delete": "Delete",
 	"cancel": "Cancel",
 	"refresh": "Refresh",
 	"ok": "OK",
 	"showhide": "Show/Hide",
-	"infos": "Infos",
+	"infos": "Information",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
 	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again.",
@@ -44,6 +44,8 @@
 			"offsetpause": "Center pause LEDs",
 			"huestart": "Hue-Start for playlist progress",
 			"hueend": "Hue-End for playlist progress",
+			"hueatmo": "Hue-Atmolight",
+			"satatmo": "Saturation-Atmolight",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
 			"offset": "Offset start LED"
@@ -107,7 +109,7 @@
 			"enabled": "Static IP-Configuration",
 			"gateway": "Gateway for static IP-Configuration",
 			"subnet": "Subnet-mask for static IP-Configuration",
-			"dns1": " DNS 1 for static IP-Configuration",
+			"dns1": "DNS 1 for static IP-Configuration",
 			"dns2": "DNS 2 for static IP-Configuration"
 		},
 		"scan": {
@@ -145,7 +147,7 @@
 		},
 		"files": {
 			"title": "Files",
-			"desc": "Upload one ore more files"
+			"desc": "Upload one or more files"
 		},
 		"directory": {
 			"title": "Directory",
@@ -158,7 +160,7 @@
 			"title": "Upload",
 			"desc": "Start Upload",
 			"selectFolder": "Please select the upload location!",
-			"selectFile": "Please select files to upload!",
+			"selectFile": "Please select files or folders to upload!",
 			"success": "Upload successful ({{elapsed}}, {{speed}} KB/s)",
 			"error": "Upload error",
 			"timeCalc": "Remaining time is being calculated...",
@@ -185,7 +187,7 @@
 					"2": "Single track (loop)",
 					"12": "Single track of a directory (random). Followed by sleep.",
 					"3": "Audiobook",
-					"16": "Audiobook with subdirectories (rekursive)",
+					"16": "Audiobook with subdirectories (recursive)",
 					"4": "Audiobook (loop)",
 					"5": "All tracks of a directory (sorted)",
 					"15": "All tracks of a directory + subdirectories (sorted, recursive)",
@@ -201,8 +203,8 @@
 				"error": "Invalid playmode"
 			},
 			"mod": {
-				"title": "Mod",
-				"placeholder": "Select modification",
+				"title": "Modification",
+				"placeholder": "Select a modification",
 				"cmd": {
 					"100": "Keylock",
 					"101": "Sleep after 15 minutes",
@@ -222,6 +224,7 @@
 					"150": "Enable FTP",
 					"151": "Announce IP-Address",
 					"152": "Announce current time",
+					"153": "Toggle Ambient Light",
 					"0": "Remove assignment",
 					"170": "Toggle Play/Pause",
 					"171": "Previous track",
@@ -267,16 +270,6 @@
 			"placeholder": "f.e. 192.168.2.89",
 			"validation": ""
 		},
-		"user": {
-			"title": "MQTT-username (optional)",
-			"placeholder": "username",
-			"validation": ""
-		},
-		"pwd": {
-			"title": "MQTT-password (optional)",
-			"placeholder": "password",
-			"validation": ""
-		},
 		"baseTopic": {
 			"title": "Base topic (optional)",
 			"placeholder": "f.e. home/espuino",
@@ -292,6 +285,16 @@
 		"restartPrompt": "MQTT settings were saved. Restart now to apply changes?",
 		"topics": {
 			"preview": "Full topics (preview)"
+		},
+		"user": {
+			"title": "MQTT-username (optional)",
+			"placeholder": "username",
+			"validation": ""
+		},
+		"pwd": {
+			"title": "MQTT-password (optional)",
+			"placeholder": "password",
+			"validation": ""
 		},
 		"port": {
 			"title": "MQTT-port",
@@ -359,24 +362,39 @@
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
 		},
+		"rfid": {
+			"title": "RFID Reader",
+			"readerType": {
+				"title": "Reader Type",
+				"auto": "Auto-detect",
+				"mfrc522_spi": "MFRC522 (SPI)",
+				"mfrc522_i2c": "MFRC522 (I2C)",
+				"pn5180": "PN5180"
+			},
+			"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically.",
+			"pn5180Lpcd": "Enable PN5180 LPCD",
+			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
+			"mfrc522Gain": "MFRC522 Gain",
+			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7."
+		},
 		"options": {
 			"title": "Options",
 			"playMono": "Mono Playback",
-			"playMonoExp": "If two speakers are installed, stereo can be played. More infos <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>.",
+			"playMonoExp": "If two speakers are installed, stereo can be played. More information <a href='https://forum.espuino.de/t/stereo-ausgabe/341' target='_blank'>here</a>.",
 			"savePlayPosShutdown": "Remember playback position at shutdown",
-			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
+			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Remember playback position at RFID tag change",
-			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"pauseIfRfidRemoved": "Pause when RFID tag is removed",
-			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
-			"dontAcceptRfidTwice": "Dont accept same RFID twice",
-			"dontAcceptRfidTwiceExp": "RFID tags are not accepted twice in a row. This is useful for RFID tags that are used to control the volume or to switch between modes. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>DO_NOT_ACCEPT_RFID_TWICE</code>.",
+			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"dontAcceptRfidTwice": "Don't accept the same RFID twice",
+			"dontAcceptRfidTwiceExp": "RFID tags are not accepted twice in a row. Cannot be used together with <em>Pause when RFID tag is removed</em>.",
 			"resumeOnSameRfid": "Resume from pause when placing the same RFID again",
 			"resumeOnSameRfidExp": "If playback is paused and the same RFID tag is placed again, playback continues. Only effective if <em>Don't accept the same RFID twice</em> is enabled.",
 			"playLastRfidOnReboot": "Play last RFID tag on restart",
-			"playLastRfidOnRebootExp": "Play last RFID tag on restart. More infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"playLastRfidOnRebootExp": "Play last RFID tag on restart. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
 			"pauseOnMinVolume": "Pause at minimum volume",
-			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
+			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More information <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
 			"recoverVolBoot": "Use last volume at restart",
 			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
 			"volumeCurve": "Finer gradations at low volume",
@@ -385,7 +403,8 @@
 		"neopixel": {
 			"title": "Neopixel (brightness)",
 			"restart": "After restart",
-			"nightmode": "For nightmode"
+			"nightmode": "For nightmode",
+			"atmomode": "For Atmolight-mode"
 		},
 		"sleep": {
 			"title": "Deep Sleep",
@@ -418,7 +437,7 @@
 			},
 			"erase": {
 				"title": "Erase all RFID assignments",
-				"desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing RFID assignments will be erased.<br>Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">infos</a> (in German).",
+				"desc": "Via importer new entries will only be inserted but old ones won't be erased. Only in case an old assignment to the same entry already exists, it will be overwritten. With this function all existing RFID assignments will be erased.<br>Further <a href=\"https://forum.espuino.de/t/die-backupfunktion-des-espuino/508\" target=\"_blank\">information</a> (in German).",
 				"button": "Delete all assignments",
 				"prompt": "Erase all saved RFID assignments?"
 			},
@@ -432,7 +451,7 @@
 			},
 			"export": {
 				"title": "Export",
-				"desc": "A backup file can be download here in order to export the RFID assignments."
+				"desc": "A backup file can be downloaded here in order to export the RFID assignments."
 			}
 		},
 		"fwupdate": {

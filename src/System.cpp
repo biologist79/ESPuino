@@ -40,18 +40,13 @@ void System_SleepHandler(void);
 void System_DeepSleepManager(void);
 
 // Init only NVS required for LPCD
-void System_Init_LPCD(void) {
-#ifdef PN5180_ENABLE_LPCD
+void System_Init_Rfid_Prefs(void) {
 	gPrefsRfid.begin(prefsRfidNamespace);
-#endif
 }
 
 void System_Init(void) {
 	srand(esp_random());
 
-#ifndef PN5180_ENABLE_LPCD
-	gPrefsRfid.begin(prefsRfidNamespace);
-#endif
 	gPrefsSettings.begin(prefsSettingsNamespace);
 
 	// Get maximum inactivity-time from NVS
@@ -236,7 +231,7 @@ void System_DeepSleepManager(void) {
 		// time to settle down..
 		delay(200);
 // .. for LPCD
-#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
+#if defined(RFID_READER_TYPE_RUNTIME)
 		Rfid_Exit();
 #endif
 #ifdef PORT_EXPANDER_ENABLE
