@@ -44,14 +44,10 @@ AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
 
-#ifdef BOARD_HAS_PSRAM
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
-#else
-static const uint32_t start_chunk_size = 4096; // save memory if no PSRAM is available
-#endif
+static constexpr uint32_t nr_of_buffers = 3; // at least two buffers. No speed improvement yet with more than two.
 
-static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two.
-static constexpr size_t retry_count = 2; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
+static constexpr size_t retry_count = 3; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
 
 uint8_t *buffer[nr_of_buffers];
 size_t chunk_size;
@@ -62,6 +58,7 @@ uint32_t index_buffer_read = 0;
 
 static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
+static volatile bool uploadAborted = false;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -492,24 +489,28 @@ void webserverStart(void) {
 			response->println("Memory:<div class='text'><pre>");
 			response->println("Free heap:           " + String(ESP.getFreeHeap()));
 			response->println("Largest free block:  " + String(ESP.getMaxAllocHeap()));
-	#ifdef BOARD_HAS_PSRAM
+			response->println("DMA free:            " + String(heap_caps_get_free_size(MALLOC_CAP_DMA)));
+			response->println("DMA largest:         " + String(heap_caps_get_largest_free_block(MALLOC_CAP_DMA)));
 			response->println("Free PSRAM heap:     " + String(ESP.getFreePsram()));
 			response->println("Largest PSRAM block: " + String(ESP.getMaxAllocPsram()));
-	#endif
 			response->println("</pre></div><br>");
-			// show tasklist
-			response->println("Tasklist:<div class='text'><pre>");
-			response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
-			char *pbuffer = x_calloc(2048, 1);
-			vTaskList(pbuffer);
-			response->println(pbuffer);
-			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
-			response->println("Taskname\tRuntime\tPercentage");
-			// show runtime stats
-			vTaskGetRunTimeStats(pbuffer);
-			response->println(pbuffer);
+
+			uint32_t taskCount = uxTaskGetNumberOfTasks();
+			size_t bufferSize = taskCount * 70; // Provide safe margin (~70 bytes per task line)
+			char *pbuffer = (char *) x_calloc(bufferSize, 1);
+			if (pbuffer) {
+				// show tasklist
+				response->println("Tasklist:<div class='text'><pre>");
+				response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
+				vTaskList(pbuffer);
+				response->println(pbuffer);
+				response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
+				response->println("Taskname\tRuntime\tPercentage");
+				vTaskGetRunTimeStats(pbuffer);
+				response->println(pbuffer);
+				free(pbuffer);
+			}
 			response->println("</pre></div></body></html>");
-			free(pbuffer);
 			// send the response last
 			request->send(response);
 		});
@@ -545,9 +546,10 @@ void webserverStart(void) {
 
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
+				// clean up buffers
+				request->onDisconnect([]() { destroyDoubleBuffer(); });
 				// we are finished with the upload
 				if (!request->_tempObject) {
-					request->onDisconnect([]() { destroyDoubleBuffer(); });
 					request->send(200);
 				}
 			},
@@ -1305,10 +1307,8 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject memoryObj = infoObj["memory"].to<JsonObject>();
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-#ifdef BOARD_HAS_PSRAM
 		memoryObj["freePSRam"] = ESP.getFreePsram();
 		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
-#endif
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
@@ -1464,12 +1464,8 @@ WebsocketCodeType processJsonRequest(char *_serialJson) {
 	if (!_serialJson) {
 		return WebsocketCodeType::Error;
 	}
-#ifdef BOARD_HAS_PSRAM
 	SpiRamAllocator allocator;
 	JsonDocument doc(&allocator);
-#else
-	JsonDocument doc;
-#endif
 
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
@@ -1492,12 +1488,10 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		// we do not have any webclient connected
 		return;
 	}
-#ifdef BOARD_HAS_PSRAM
+
 	SpiRamAllocator allocator;
 	JsonDocument doc(&allocator);
-#else
-	JsonDocument doc;
-#endif
+
 	JsonObject object = doc.to<JsonObject>();
 
 	if (code == WebsocketCodeType::Ok) {
@@ -1621,6 +1615,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 	// New File
 	if (!index) {
+		// reset abort flag
+		uploadAborted = false;
+
 		String utf8Folder = "/";
 		String utf8FilePath;
 		if (request->hasParam("path")) {
@@ -1673,9 +1670,19 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		});
 	}
 
+	if (uploadAborted) {
+		if (!request->_tempObject) {
+			handleUploadError(request, 500);
+		}
+		return;
+	}
+
 	if (len) {
 		// wait till buffer is ready
 		while (buffer_full[index_buffer_write]) {
+			if (uploadAborted) {
+				return;
+			}
 			vTaskDelay(2u);
 		}
 
@@ -1698,6 +1705,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			if (len_to_write < len) {
 				// wait till new buffer is ready
 				while (buffer_full[index_buffer_write]) {
+					if (uploadAborted) {
+						return;
+					}
 					vTaskDelay(2u);
 				}
 				size_t len_left_to_write = len - len_to_write;
@@ -1708,6 +1718,10 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	}
 
 	if (final) {
+		if (uploadAborted) {
+			handleUploadError(request, 500);
+			return;
+		}
 		// if file not completely done yet, signal that buffer is filled
 		if (size_in_buffer[index_buffer_write] > 0) {
 			buffer_full[index_buffer_write] = true;
@@ -1746,7 +1760,7 @@ void explorerHandleFileStorageTask(void *parameter) {
 	uint32_t chunkCount = 0;
 	uint32_t transferStartTimestamp = millis();
 	uint32_t lastUpdateTimestamp = millis();
-	uint32_t maxUploadDelay = 20; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
+	uint32_t maxUploadDelay = 30; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
@@ -1790,13 +1804,15 @@ void explorerHandleFileStorageTask(void *parameter) {
 		} else {
 			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis() || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 2u)) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+				uploadFile.close();
 				free(parameter);
 				// resume the paused tasks
 				Led_TaskResume();
 				Audio_TaskResume();
 				Rfid_TaskResume();
 				// destroy double buffer memory, since the upload was interrupted
-				destroyDoubleBuffer();
+				uploadAborted = true;
+				xSemaphoreGive(explorerFileUploadFinished);
 				// just delete task without signaling (abort)
 				vTaskDelete(NULL);
 				return;

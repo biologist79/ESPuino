@@ -247,12 +247,8 @@ float Audio_GetVolume(float t) {
 
 void AudioPlayer_Init(void) {
 	// create audio object
-#ifdef BOARD_HAS_PSRAM
 	audio = new AudioCustom();
-#else
-	static Audio audioAsStatic; // Don't use heap as it's needed for other stuff :-)
-	audio = &audioAsStatic;
-#endif
+
 	// load playtime total from NVS
 	playTimeSecTotal = gPrefsSettings.getULong("playTimeTotal", 0);
 

@@ -394,10 +394,9 @@ bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		// Create ringbuffer on first use (lazy initialization)
 		if (audioSourceRingBuffer == NULL) {
-	#ifdef BOARD_HAS_PSRAM
 			if (psramFound()) {
 				// Allocate ringbuffer storage in PSRAM
-				size_t bufferSize = 8192;
+				size_t bufferSize = 16384;
 				StaticRingbuffer_t *bufferStruct = (StaticRingbuffer_t *) heap_caps_malloc(sizeof(StaticRingbuffer_t), MALLOC_CAP_SPIRAM);
 				uint8_t *bufferStorage = (uint8_t *) heap_caps_malloc(bufferSize, MALLOC_CAP_SPIRAM);
 
@@ -412,12 +411,10 @@ bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
 					if (bufferStorage) {
 						heap_caps_free(bufferStorage);
 					}
-					audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
+					audioSourceRingBuffer = xRingbufferCreate(16384, RINGBUF_TYPE_BYTEBUF);
 				}
-			} else
-	#endif
-			{
-				audioSourceRingBuffer = xRingbufferCreate(8192, RINGBUF_TYPE_BYTEBUF);
+			} else {
+				audioSourceRingBuffer = xRingbufferCreate(16384, RINGBUF_TYPE_BYTEBUF);
 				Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in heap on demand (Free heap: %u Bytes)", ESP.getFreeHeap());
 			}
 
