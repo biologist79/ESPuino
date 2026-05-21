@@ -249,6 +249,7 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	}
 	if (!dirCount) {
 		// no paths in folder
+		directory.close();
 		return String();
 	}
 
@@ -263,12 +264,14 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 		}
 		if (isDir) {
 			if (dirCount == randomNumber) {
+				directory.close();
 				return name;
 			}
 			dirCount++;
 		}
 	}
 
+	directory.close();
 	// if we reached here, something went wrong
 	return String();
 }
@@ -345,9 +348,11 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	// File-mode
 	if (!fileOrDirectory.isDirectory()) {
 		if (!SdCard_allocAndSave(playlist, gFSystem.path(fileOrDirectory))) {
+			fileOrDirectory.close();
 			// OOM, function already took care of house cleaning
 			return std::nullopt;
 		}
+		fileOrDirectory.close();
 		return playlist;
 	}
 
@@ -365,7 +370,11 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 			if (currentRecDepth < _maxRecursionDepth) {
 				currentRecDepth++;
 				// Log_Printf(LOGLEVEL_DEBUG, "Added folder: %s, depth of recursion: %d\n", name.c_str(), currentRecDepth);
-				SdCard_ReturnPlaylist(name.c_str(), _playMode, _maxRecursionDepth, true);
+				if (!SdCard_ReturnPlaylist(name.c_str(), _playMode, _maxRecursionDepth, true)) {
+					currentRecDepth--;
+					fileOrDirectory.close();
+					return std::nullopt;
+				}
 				currentRecDepth--;
 			} else {
 				continue;
@@ -376,6 +385,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 			// save it to the vector
 			if (!SdCard_allocAndSave(playlist, name)) {
 				// OOM, function already took care of house cleaning
+				fileOrDirectory.close();
 				return std::nullopt;
 			}
 		} else {
@@ -389,6 +399,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 		Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
 		Log_Printf(LOGLEVEL_DEBUG, "Hidden files: %u", hiddenFiles);
 	}
+	fileOrDirectory.close();
 
 	return playlist;
 }

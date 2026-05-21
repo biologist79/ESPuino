@@ -34,8 +34,8 @@
 #include <nvs.h>
 
 typedef struct {
-	char nvsKey[13];
-	char nvsEntry[275];
+	char nvsKey[cardIdStringSize];
+	char nvsEntry[512];
 } nvs_t;
 
 AsyncWebServer wServer(80);
@@ -240,15 +240,16 @@ bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char
 	while (res == ESP_OK) {
 		nvs_entry_info_t info;
 		nvs_entry_info(it, &info);
-		// some basic sanity check
 		if (isNumber(info.key)) {
 			if (!callback(info.key, data)) {
+				nvs_release_iterator(it);
 				return false;
 			}
 		}
 		// finished, NEXT
 		res = nvs_entry_next(&it);
 	}
+	nvs_release_iterator(it);
 #else
 	nvs_iterator_t it = nvs_entry_find(partname, _namespace, NVS_TYPE_ANY);
 	if (it == nullptr) {
@@ -261,6 +262,7 @@ bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char
 		// some basic sanity checks
 		if (isNumber(info.key)) {
 			if (!callback(info.key, data)) {
+				nvs_release_iterator(it);
 				return false;
 			}
 		}
@@ -496,7 +498,7 @@ void webserverStart(void) {
 			response->println("</pre></div><br>");
 
 			uint32_t taskCount = uxTaskGetNumberOfTasks();
-			size_t bufferSize = taskCount * 70; // Provide safe margin (~70 bytes per task line)
+			size_t bufferSize = (taskCount + 10) * 80; // Provide safer margin for vTaskList
 			char *pbuffer = (char *) x_calloc(bufferSize, 1);
 			if (pbuffer) {
 				// show tasklist
@@ -1423,13 +1425,13 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 	JsonObject infoObj = response->getRoot();
 	// task runtime info
-	TaskStatus_t task_status_arr[20];
 	uint32_t pulTotalRunTime;
-	uint32_t taskNum = uxTaskGetNumberOfTasks();
+	uint32_t taskCount = uxTaskGetNumberOfTasks();
+	std::vector<TaskStatus_t> task_status_arr(taskCount + 5);
 
-	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskNum);
+	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskCount);
 
-	uxTaskGetSystemState(task_status_arr, 20, &pulTotalRunTime);
+	uint32_t taskNum = uxTaskGetSystemState(task_status_arr.data(), task_status_arr.size(), &pulTotalRunTime);
 
 	JsonObject tasksObj = infoObj["tasks"].to<JsonObject>();
 	tasksObj["taskCount"] = taskNum;
@@ -2197,20 +2199,24 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 }
 
 static bool tagIdToJSON(const String tagId, JsonObject entry) {
-	String s = gPrefsRfid.getString(tagId.c_str(), "-1"); // Try to lookup rfidId in NVS
-	if (!s.compareTo("-1")) {
+	String s = gPrefsRfid.getString(tagId.c_str(), ""); // Try to lookup rfidId in NVS
+	if (s.length() == 0 || s == "-1") {
 		return false;
 	}
-	char _file[255];
+	char _file[256] = {0};
 	uint32_t _lastPlayPos = 0;
 	uint16_t _trackLastPlayed = 0;
 	uint32_t _mode = 1;
-	char *token;
+
+	char s_buf[512];
+	strncpy(s_buf, s.c_str(), sizeof(s_buf) - 1);
+	s_buf[sizeof(s_buf) - 1] = '\0';
+
+	char *token = strtok(s_buf, stringDelimiter);
 	uint8_t i = 1;
-	token = strtok((char *) s.c_str(), stringDelimiter);
 	while (token != NULL) { // Try to extract data from string after lookup
 		if (i == 1) {
-			strncpy(_file, token, sizeof(_file) / sizeof(_file[0]));
+			strncpy(_file, token, sizeof(_file) - 1);
 		} else if (i == 2) {
 			_lastPlayPos = strtoul(token, NULL, 10);
 		} else if (i == 3) {
@@ -2276,7 +2282,6 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	bool idsOnly = request->hasParam("ids-only");
 
 	std::vector<String> nvsKeys {};
-	static size_t nvsIndex;
 	nvsKeys.clear();
 	// Dumps all RFID-keys from NVS into key array
 	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
@@ -2286,9 +2291,8 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	// construct chunked repsonse
-	nvsIndex = 0;
 	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
-		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+		[nvsKeys = std::move(nvsKeys), idsOnly, nvsIndex = size_t(0)](uint8_t *buffer, size_t maxLen, size_t index) mutable -> size_t {
 			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
 			size_t len = 0;
 			String json;
@@ -2465,13 +2469,15 @@ void Web_DumpSdToNvs(const char *_filename) {
 			while (token != NULL) {
 				if (!count) {
 					count = true;
-					memcpy(nvsEntry[0].nvsKey, token, strlen(token));
-					nvsEntry[0].nvsKey[strlen(token)] = '\0';
+					size_t keyLen = std::min(strlen(token), sizeof(nvsEntry[0].nvsKey) - 1);
+					memcpy(nvsEntry[0].nvsKey, token, keyLen);
+					nvsEntry[0].nvsKey[keyLen] = '\0';
 				} else {
 					count = false;
 					if (isUtf8) {
-						memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
-						nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+						size_t entryLen = std::min(strlen(token), sizeof(nvsEntry[0].nvsEntry) - 1);
+						memcpy(nvsEntry[0].nvsEntry, token, entryLen);
+						nvsEntry[0].nvsEntry[entryLen] = '\0';
 					} else {
 						convertAsciiToUtf8(String(token), nvsEntry[0].nvsEntry, sizeof(nvsEntry[0].nvsEntry));
 					}

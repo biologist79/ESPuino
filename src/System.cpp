@@ -190,6 +190,11 @@ void System_SleepHandler(void) {
 void System_PreparePowerDown(void) {
 
 	AudioPlayer_Exit();
+
+#if defined(RFID_READER_TYPE_RUNTIME)
+	Rfid_Exit();
+#endif
+
 // Disable amps in order to avoid ugly noises when powering off
 #ifdef GPIO_PA_EN
 	Log_Println("shutdown amplifier..", LOGLEVEL_NOTICE);
@@ -234,10 +239,6 @@ void System_DeepSleepManager(void) {
 		Power_PeripheralOff();
 		// time to settle down..
 		delay(200);
-// .. for LPCD
-#if defined(RFID_READER_TYPE_RUNTIME)
-		Rfid_Exit();
-#endif
 #ifdef PORT_EXPANDER_ENABLE
 		Port_Exit();
 #endif

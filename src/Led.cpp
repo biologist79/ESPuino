@@ -425,7 +425,7 @@ static void Led_Task(void *parameter) {
 				FastLED.clear(true);
 				numIndicatorLeds = gLedSettings.numIndicatorLeds;
 				numControlLeds = gLedSettings.numControlLeds;
-				delete (leds);
+				delete[] leds;
 				delete (indicator);
 				leds = new CRGB[numIndicatorLeds + numControlLeds];
 				indicator = new CRGBSet(leds, numIndicatorLeds);
@@ -610,7 +610,7 @@ static void Led_Task(void *parameter) {
 		animationTimer -= taskDelay;
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
 	}
-	delete (leds);
+	delete[] leds;
 	delete (indicator);
 	vTaskDelete(NULL);
 }
