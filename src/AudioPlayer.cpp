@@ -522,9 +522,8 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 	Port_Write(GPIO_HP_EN, true, true);
 	#endif
 #else
-	const bool headphoneModeActive = AudioPlayer_IsHeadphoneModeActive();
 
-	if (!headphoneModeActive) {
+	if (!AudioPlayer_IsHeadphoneModeActive()) {
 		AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
 	#ifdef GPIO_PA_EN
 		Port_Write(GPIO_PA_EN, true, true);
@@ -551,10 +550,9 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 void AudioPlayer_HeadphoneVolumeManager(void) {
 #ifdef HEADPHONE_ADJUST_ENABLE
 	const bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
-	const bool headphoneModeActive = AudioPlayer_IsHeadphoneModeActive();
 
 	if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
-		if (!headphoneModeActive) {
+		if (!AudioPlayer_IsHeadphoneModeActive()) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
 			gPlayProperties.newPlayMono = gPrefsSettings.getBool("playMono", false);
 
