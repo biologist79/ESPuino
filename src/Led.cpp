@@ -29,7 +29,7 @@
 extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 extern uint8_t gShutdownButton;
 
-static uint32_t Led_Indicators = 0u;
+static volatile uint32_t Led_Indicators = 0u;
 static uint8_t Led_savedBrightness;
 
 // global led settings
@@ -426,7 +426,7 @@ static void Led_Task(void *parameter) {
 				numIndicatorLeds = gLedSettings.numIndicatorLeds;
 				numControlLeds = gLedSettings.numControlLeds;
 				delete[] leds;
-				delete (indicator);
+				delete indicator;
 				leds = new CRGB[numIndicatorLeds + numControlLeds];
 				indicator = new CRGBSet(leds, numIndicatorLeds);
 				FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
@@ -611,7 +611,7 @@ static void Led_Task(void *parameter) {
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
 	}
 	delete[] leds;
-	delete (indicator);
+	delete indicator;
 	vTaskDelete(NULL);
 }
 #endif
@@ -1044,6 +1044,8 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
+				} else if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK)) {
+					leds[Led_Address(led)] = Led_GetIdleColor();
 				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
 				}
@@ -1051,6 +1053,8 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
+				} else if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK)) {
+					leds[Led_Address(fullLeds)] = Led_GetIdleColor();
 				} else {
 					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
 				}

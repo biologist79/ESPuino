@@ -97,10 +97,10 @@ static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
 void Audio_TaskPause(void) {
-	// dont't pause // audio_active = false;
+	audio_active = false;
 }
 void Audio_TaskResume(void) {
-	// dont't pause  // audio_active = true;
+	audio_active = true;
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
@@ -380,6 +380,9 @@ void AudioPlayer_Exit(void) {
 		// Call the loop explicitely to make sure that PAUSE is set (because this saves the current playpos)
 		AudioPlayer_Loop();
 	}
+	delete audio;
+	audio = nullptr;
+	audio_active = false;
 }
 
 static uint32_t lastPlayingTimestamp = 0;

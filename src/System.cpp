@@ -5,6 +5,7 @@
 
 #include "Audio.h"
 #include "AudioPlayer.h"
+#include "Ftp.h"
 #include "Led.h"
 #include "Log.h"
 #include "MemX.h"
@@ -25,11 +26,11 @@ constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used fo
 Preferences gPrefsRfid;
 Preferences gPrefsSettings;
 
-unsigned long System_LastTimeActiveTimestamp = 0u; // Timestamp of last user-interaction
-unsigned long System_SleepTimerStartTimestamp = 0u; // Flag if sleep-timer is active
-bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
-bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
-bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
+volatile unsigned long System_LastTimeActiveTimestamp = 0u; // Timestamp of last user-interaction
+volatile unsigned long System_SleepTimerStartTimestamp = 0u; // Flag if sleep-timer is active
+volatile bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
+volatile bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
+volatile bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
 uint8_t System_MaxInactivityTime = 10u; // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
 uint8_t System_SleepTimer = 30u; // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
 
@@ -205,6 +206,7 @@ void System_PreparePowerDown(void) {
 	Port_Write(GPIO_HP_EN, false, false);
 #endif
 
+	Ftp_Exit();
 	Mqtt_Exit();
 	Led_Exit();
 

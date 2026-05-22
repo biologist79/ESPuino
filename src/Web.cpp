@@ -1642,6 +1642,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Queue for receiving a signal from the store task as synchronisation
 		if (explorerFileUploadFinished == NULL) {
 			explorerFileUploadFinished = xSemaphoreCreateBinary();
+		} else {
+			// make sure semaphore is empty
+			xSemaphoreTake(explorerFileUploadFinished, 0);
 		}
 
 		// reset buffers
@@ -1731,7 +1734,12 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
 		// watit until the storage task is sending the signal to finish
-		xSemaphoreTake(explorerFileUploadFinished, portMAX_DELAY);
+		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
+			// timeout, something went wrong
+			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+			handleUploadError(request, 500);
+			return;
+		}
 	}
 }
 

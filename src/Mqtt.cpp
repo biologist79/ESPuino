@@ -174,6 +174,8 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
 		mqtt_cfg.task.priority = 1; // default is 5, keep it below the audio
+		mqtt_cfg.buffer.size = 2048; //
+		mqtt_cfg.buffer.out_size = 2048; //
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);

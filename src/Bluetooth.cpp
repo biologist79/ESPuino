@@ -94,6 +94,9 @@ void audio_state_changed(esp_a2d_audio_state_t state, void *ptr) {
 		// for Neopixel (indicator LEDs) use the webstream mode
 		gPlayProperties.playlistFinished = false;
 		gPlayProperties.isWebstream = true;
+	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		// nothing to do for source, as we are just sending the audio data, but not handling play/pause etc. for the BT device
+		// gPlayProperties.pausePlay = (state != ESP_A2D_AUDIO_STATE_STARTED);
 	}
 }
 #endif
@@ -287,10 +290,10 @@ void Bluetooth_Init(void) {
 		//  setup BT source
 		a2dp_source = new BluetoothA2DPSource();
 
-		// a2dp_source->set_auto_reconnect(false);   // auto reconnect
+		a2dp_source->set_auto_reconnect(true); // auto reconnect
 		// a2dp_source->set_task_core(1);            // task core
 		// a2dp_source->set_nvs_init(true);          // erase/initialize NVS
-		// a2dp_source->set_ssp_enabled(true);       // enable secure simple pairing
+		a2dp_source->set_ssp_enabled(true); // enable secure simple pairing
 
 		// pairing pin-code, see https://forum.espuino.de/t/neues-feature-bluetooth-kopfhoerer/1293/30
 		String btPinCode = gPrefsSettings.getString("btPinCode", "");
