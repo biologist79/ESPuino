@@ -237,9 +237,13 @@ void Mqtt_Exit(void) {
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
 	publishMqtt(topicTrack, "---", false);
+	// Allow some time for messages to be sent before stopping the client
+	vTaskDelay(pdMS_TO_TICKS(10));
+
 	esp_mqtt_client_disconnect(mqtt_client);
 	esp_mqtt_client_stop(mqtt_client);
 	esp_mqtt_client_destroy(mqtt_client);
+	mqtt_client = NULL;
 #endif
 }
 

@@ -339,6 +339,14 @@
 			"button": "Im Kopfhörer-Modus starten",
 			"indicator": "Bluetooth-Kopfhörer Modus"
 		},
+		"scan": {
+			"title": "Geräte suchen",
+			"button": "Suchen",
+			"connect": "Verbinden",
+			"inProgress": "Suche nach Geräten...",
+			"noDevices": "Keine Bluetooth-Geräte gefunden",
+			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus."
+		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
 			"placeholder": "z.B. My POGS Wireless Headphone"

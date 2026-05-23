@@ -339,6 +339,14 @@
 			"button": "Démarrer en mode casque",
 			"indicator": "Mode casque Bluetooth"
 		},
+		"scan": {
+			"title": "Rechercher des appareils",
+			"button": "Rechercher",
+			"connect": "Connecter",
+			"inProgress": "Recherche d'appareils...",
+			"noDevices": "Aucun appareil Bluetooth trouvé",
+			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth."
+		},
 		"device": {
 			"title": "Périphérique Bluetooth (casque)",
 			"placeholder": "par exemple Mon casque sans fil POGS"

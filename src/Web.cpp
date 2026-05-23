@@ -7,6 +7,7 @@
 #include "AsyncJson.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
+#include "Bluetooth.h"
 #include "Cmd.h"
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
@@ -78,6 +79,9 @@ static void handleGetActiveSSID(AsyncWebServerRequest *request);
 static void handleGetWiFiConfig(AsyncWebServerRequest *request);
 static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
+static void handleBluetoothScanRequest(AsyncWebServerRequest *request);
+static void handleBluetoothResultsRequest(AsyncWebServerRequest *request);
+static void handleBluetoothConnectRequest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 static void handleGetRFIDRequest(AsyncWebServerRequest *request);
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json);
@@ -581,6 +585,11 @@ void webserverStart(void) {
 
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
+
+		// ESPuino logo
+		wServer.on("/bluetoothscan", HTTP_GET, handleBluetoothScanRequest);
+		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -1537,6 +1546,10 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["time"] = AudioPlayer_GetCurrentTime();
 		entry["duration"] = AudioPlayer_GetFileDuration();
+	} else if (code == WebsocketCodeType::BluetoothScanInProgress) {
+		object["bt_scan"] = "in_progress";
+	} else if (code == WebsocketCodeType::BluetoothScanComplete) {
+		object["bt_scan"] = "complete";
 	};
 
 	if (doc.overflowed()) {
@@ -2644,4 +2657,63 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	});
 	response->addHeader("Cache-Control", "no-cache, must-revalidate");
 	request->send(response);
+}
+
+// Handles Bluetooth scan requests
+static void handleBluetoothScanRequest(AsyncWebServerRequest *request) {
+#ifdef BLUETOOTH_ENABLE
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		request->send(400, "text/plain", "Bluetooth source mode not active.");
+		return;
+	}
+
+	Bluetooth_StartScan();
+	Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanInProgress);
+	request->send(200);
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
+}
+
+// Handles Bluetooth results request
+static void handleBluetoothResultsRequest(AsyncWebServerRequest *request) {
+#ifdef BLUETOOTH_ENABLE
+	std::vector<ScannedBluetoothDevice> devices = Bluetooth_GetScannedDevices();
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	JsonArray jsonArray = response->getRoot();
+	for (const auto &device : devices) {
+		JsonObject obj = jsonArray.add<JsonObject>();
+		obj["name"] = device.name;
+		char addr_str[18];
+		sprintf(addr_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+			device.address[0], device.address[1], device.address[2],
+			device.address[3], device.address[4], device.address[5]);
+		obj["address"] = addr_str;
+		obj["rssi"] = device.rssi;
+	}
+
+	response->setLength();
+	request->send(response);
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
+}
+
+// Handles Bluetooth connect requests
+static void handleBluetoothConnectRequest(AsyncWebServerRequest *request, JsonVariant &json) {
+#ifdef BLUETOOTH_ENABLE
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		request->send(400, "text/plain", "Bluetooth source mode not active.");
+		return;
+	}
+
+	String addressStr = json["address"].as<String>();
+	esp_bd_addr_t address;
+	sscanf(addressStr.c_str(), "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+		&address[0], &address[1], &address[2], &address[3], &address[4], &address[5]);
+	Bluetooth_ConnectToAddress(address);
+	request->send(200, "text/plain", "Connecting to device.");
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
 }
