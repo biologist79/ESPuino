@@ -5,6 +5,7 @@
 
 #include "Audio.h"
 #include "AudioPlayer.h"
+#include "Bluetooth.h"
 #include "Ftp.h"
 #include "Led.h"
 #include "Log.h"
@@ -14,10 +15,12 @@
 #include "Power.h"
 #include "Rfid.h"
 #include "SdCard.h"
+#include "Web.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include <atomic>
 #include <esp_random.h>
 
 constexpr const char prefsRfidNamespace[] = "rfidTags"; // Namespace used to save IDs of rfid-tags
@@ -26,8 +29,8 @@ constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used fo
 Preferences gPrefsRfid;
 Preferences gPrefsSettings;
 
-volatile unsigned long System_LastTimeActiveTimestamp = 0u; // Timestamp of last user-interaction
-volatile unsigned long System_SleepTimerStartTimestamp = 0u; // Flag if sleep-timer is active
+std::atomic<uint32_t> System_LastTimeActiveTimestamp {0u}; // Timestamp of last user-interaction
+std::atomic<uint32_t> System_SleepTimerStartTimestamp {0u}; // Flag if sleep-timer is active
 volatile bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
 volatile bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
 volatile bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
@@ -51,7 +54,7 @@ void System_Init(void) {
 	gPrefsSettings.begin(prefsSettingsNamespace);
 
 	// Get maximum inactivity-time from NVS
-	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", 0);
+	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", System_MaxInactivityTime);
 	if (nvsMInactivityTime) {
 		System_MaxInactivityTime = nvsMInactivityTime;
 		Log_Printf(LOGLEVEL_INFO, restoredMaxInactivityFromNvs, nvsMInactivityTime);
@@ -79,13 +82,13 @@ void System_RequestSleep(void) {
 bool System_SetSleepTimer(uint8_t minutes) {
 	bool sleepTimerEnabled = false;
 
-	if (System_SleepTimerStartTimestamp && (System_SleepTimer == minutes)) {
-		System_SleepTimerStartTimestamp = 0u;
+	if (minutes == 0 || (System_SleepTimerStartTimestamp.load() > 0 && (System_SleepTimer == minutes))) {
+		System_SleepTimerStartTimestamp.store(0u);
 		System_SleepTimer = 0u;
 		Led_SetNightmode(false);
 		Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
 	} else {
-		System_SleepTimerStartTimestamp = millis();
+		System_SleepTimerStartTimestamp.store(millis());
 		System_SleepTimer = minutes;
 		sleepTimerEnabled = true;
 
@@ -109,12 +112,12 @@ bool System_SetSleepTimer(uint8_t minutes) {
 }
 
 void System_DisableSleepTimer(void) {
-	System_SleepTimerStartTimestamp = 0u;
+	System_SleepTimerStartTimestamp.store(0u);
 	Led_SetNightmode(false);
 }
 
 bool System_IsSleepTimerEnabled(void) {
-	return (System_SleepTimerStartTimestamp > 0u || gPlayProperties.sleepAfterCurrentTrack || gPlayProperties.sleepAfterPlaylist || gPlayProperties.playUntilTrackNumber);
+	return (System_SleepTimerStartTimestamp.load() > 0u || gPlayProperties.sleepAfterCurrentTrack || gPlayProperties.sleepAfterPlaylist || gPlayProperties.playUntilTrackNumber);
 }
 
 uint32_t System_GetSleepTimerTimeStamp(void) {
@@ -175,12 +178,20 @@ uint8_t System_GetOperationModeFromNvs(void) {
 
 // Sets deep-sleep-flag if max. inactivity-time is reached
 void System_SleepHandler(void) {
-	unsigned long m = millis();
-	if (m >= System_LastTimeActiveTimestamp && (m - System_LastTimeActiveTimestamp >= (System_MaxInactivityTime * 1000u * 60u))) {
-		Log_Println(goToSleepDueToIdle, LOGLEVEL_INFO);
-		System_RequestSleep();
-	} else if (System_SleepTimerStartTimestamp > 00) {
-		if (m - System_SleepTimerStartTimestamp >= (System_SleepTimer * 1000u * 60u)) {
+	uint32_t m = millis();
+	uint32_t lastActive = System_LastTimeActiveTimestamp.load();
+	uint32_t sleepStart = System_SleepTimerStartTimestamp.load();
+
+	// Only check inactivity if the limit is greater than 0
+	if (System_MaxInactivityTime > 0 && m >= lastActive) {
+		if (m - lastActive >= (System_MaxInactivityTime * 60000u)) {
+			Log_Println(goToSleepDueToIdle, LOGLEVEL_INFO);
+			System_RequestSleep();
+		}
+	}
+
+	if (sleepStart > 0 && m >= sleepStart) {
+		if (m - sleepStart >= (System_SleepTimer * 60000u)) {
 			Log_Println(goToSleepDueToTimer, LOGLEVEL_INFO);
 			System_RequestSleep();
 		}
@@ -189,7 +200,7 @@ void System_SleepHandler(void) {
 
 // prepare power down
 void System_PreparePowerDown(void) {
-
+	Web_Exit();
 	AudioPlayer_Exit();
 
 #if defined(RFID_READER_TYPE_RUNTIME)
@@ -205,9 +216,9 @@ void System_PreparePowerDown(void) {
 	Log_Println("shutdown headphone..", LOGLEVEL_NOTICE);
 	Port_Write(GPIO_HP_EN, false, false);
 #endif
-
 	Ftp_Exit();
 	Mqtt_Exit();
+	Bluetooth_Exit();
 	Led_Exit();
 
 	if (gPrefsSettings.getBool("recoverVolBoot", false)) {

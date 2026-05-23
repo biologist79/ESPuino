@@ -234,6 +234,9 @@ const char *Mqtt_GetCommandTopic(const char *topic) {
 
 void Mqtt_Exit(void) {
 #ifdef MQTT_ENABLE
+	if (Mqtt_Enabled == false || mqtt_client == NULL) {
+		return;
+	}
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
 	publishMqtt(topicTrack, "---", false);

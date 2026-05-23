@@ -1307,13 +1307,17 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 void Led_TaskPause(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskSuspend(Led_TaskHandle);
-	FastLED.clear(true);
+	if (Led_TaskHandle != NULL) {
+		vTaskSuspend(Led_TaskHandle);
+		FastLED.clear(true);
+	}
 #endif
 }
 
 void Led_TaskResume(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskResume(Led_TaskHandle);
+	if (Led_TaskHandle != NULL) {
+		vTaskResume(Led_TaskHandle);
+	}
 #endif
 }

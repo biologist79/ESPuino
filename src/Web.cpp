@@ -357,6 +357,25 @@ void Web_Cyclic(void) {
 		ws.cleanupClients();
 	}
 }
+
+void Web_Exit(void) {
+	esp_task_wdt_reset();
+	if (webserverStarted) {
+		// Gracefully abort active file storage task if running
+		if (fileStorageTaskHandle != NULL) {
+			uploadAborted = true;
+			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+			// Wait for the task to exit and close open file handles
+			uint32_t startWait = millis();
+			while (fileStorageTaskHandle != NULL && (millis() - startWait < 2000)) {
+				vTaskDelay(pdMS_TO_TICKS(50));
+			}
+		}
+		Log_Println("shutdown webserver..", LOGLEVEL_NOTICE);
+		wServer.end();
+		webserverStarted = false;
+	}
+}
 // handle not found
 void notFound(AsyncWebServerRequest *request) {
 	Log_Printf(LOGLEVEL_ERROR, "%s not found, redirect to startpage", request->url().c_str());
@@ -450,6 +469,7 @@ void webserverStart(void) {
 					Audio_TaskPause();
 					Led_TaskPause();
 					Rfid_TaskPause();
+					System_UpdateActivityTimer();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
 				}
@@ -1756,30 +1776,12 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	}
 }
 
-// feed the watchdog timer without delay
-void feedTheDog(void) {
-#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32) && (ESP_ARDUINO_VERSION_MAJOR < 3)
-	// feed dog 0
-	TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
-	TIMERG0.wdt_feed = 1; // feed dog
-	TIMERG0.wdt_wprotect = 0; // write protect
-	// feed dog 1
-	TIMERG1.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
-	TIMERG1.wdt_feed = 1; // feed dog
-	TIMERG1.wdt_wprotect = 0; // write protect
-#else
-	// Without delay upload-feature is broken for SD via SPI (for whatever reason...)
-	vTaskDelay(portTICK_PERIOD_MS * 11);
-#endif
-}
-
 // task for writing uploaded data from buffer to SD
 // parameter contains the target file path and must be freed by the task.
-void explorerHandleFileStorageTask(void *parameter) {
+static void explorerHandleFileStorageTask(void *parameter) {
 	const char *filePath = (const char *) parameter;
 	File uploadFile;
 	size_t bytesOk = 0;
-	size_t bytesNok = 0;
 	uint32_t chunkCount = 0;
 	uint32_t transferStartTimestamp = millis();
 	uint32_t lastUpdateTimestamp = millis();
@@ -1787,15 +1789,24 @@ void explorerHandleFileStorageTask(void *parameter) {
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
-	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
 	Audio_TaskPause();
 	Led_TaskPause();
 	Rfid_TaskPause();
 
+	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
+	if (uploadFile) {
+		uploadFile.setBufferSize(chunk_size);
+	} else {
+		Log_Printf(LOGLEVEL_ERROR, "Failed to open file %s for writing!", filePath);
+		uploadAborted = true;
+	}
+
 	for (;;) {
+		if (uploadAborted) {
+			break;
+		}
 		// check buffer is full with enough data or all data already sent
 		uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 1u)) {
@@ -1803,42 +1814,56 @@ void explorerHandleFileStorageTask(void *parameter) {
 			while (buffer_full[index_buffer_read]) {
 				chunkCount++;
 				size_t item_size = size_in_buffer[index_buffer_read];
-				if (!uploadFile.write(buffer[index_buffer_read], item_size)) {
-					bytesNok += item_size;
-					feedTheDog();
+				size_t written = 0;
+				if (item_size > 0) {
+					const uint8_t maxRetries = 3;
+					for (uint8_t attempt = 0; attempt < maxRetries && written != item_size; attempt++) {
+						if (attempt > 0) {
+							Log_Printf(LOGLEVEL_DEBUG, "Write retry %u for chunk %zu on %s", attempt, chunkCount, filePath);
+							vTaskDelay(pdMS_TO_TICKS(20 * attempt)); // backoff: 20ms, 40ms
+						}
+						written = uploadFile.write(buffer[index_buffer_read], item_size);
+					}
+				}
+
+				if (item_size > 0 && written != item_size) {
+					Log_Printf(LOGLEVEL_ERROR, "Write error during upload of %s! (expected %u, wrote %u after retries)",
+						filePath, item_size, (uint32_t) written);
+					uploadAborted = true;
+					break;
 				} else {
-					bytesOk += item_size;
+					bytesOk += written;
 				}
 				// update handling of buffers
 				size_in_buffer[index_buffer_read] = 0;
 				buffer_full[index_buffer_read] = 0;
 				index_buffer_read = (index_buffer_read + 1) % nr_of_buffers;
+				if (chunkCount % 64 == 0) {
+					uploadFile.flush();
+					System_UpdateActivityTimer();
+				}
 				// update timestamp
 				lastUpdateTimestamp = millis();
 			}
 
 			if (uploadFileNotification == pdPASS) {
-				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, fileWritten, filePath, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
-				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
+				if (uploadFile) {
+					uploadFile.close();
+				}
+				Log_Printf(LOGLEVEL_INFO, fileWritten, filePath, bytesOk, (millis() - transferStartTimestamp), (bytesOk) / (millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu, Chunks: %zu\n", bytesOk, chunkCount);
 				// done exit loop to terminate
 				break;
 			}
 		} else {
-			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis() || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 2u)) {
+			if ((lastUpdateTimestamp + (maxUploadDelay * 1000)) < millis() || ((uploadFileNotification == pdPASS) && (uploadFileNotificationValue == 2u))) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
-				uploadFile.close();
-				free(parameter);
-				// resume the paused tasks
-				Led_TaskResume();
-				Audio_TaskResume();
-				Rfid_TaskResume();
-				// destroy double buffer memory, since the upload was interrupted
+				if (uploadFile) {
+					uploadFile.close();
+				}
 				uploadAborted = true;
 				xSemaphoreGive(explorerFileUploadFinished);
-				// just delete task without signaling (abort)
-				vTaskDelete(NULL);
-				return;
+				break;
 			}
 			vTaskDelay(portTICK_PERIOD_MS * 2);
 			continue;
@@ -1849,8 +1874,10 @@ void explorerHandleFileStorageTask(void *parameter) {
 	Led_TaskResume();
 	Audio_TaskResume();
 	Rfid_TaskResume();
+	System_UpdateActivityTimer();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);
+	fileStorageTaskHandle = NULL;
 	vTaskDelete(NULL);
 }
 
@@ -2003,6 +2030,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
 		const AsyncWebParameter *param;
 		param = request->getParam("path");
+		System_UpdateActivityTimer();
 		const char *filePath = param->value().c_str();
 		if (gFSystem.exists(filePath)) {
 			// stop playback, file to delete might be in use
@@ -2036,6 +2064,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
 		const AsyncWebParameter *param;
+		System_UpdateActivityTimer();
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		if (gFSystem.mkdir(filePath)) {
@@ -2056,6 +2085,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
 		const AsyncWebParameter *srcPath;
 		const AsyncWebParameter *dstPath;
+		System_UpdateActivityTimer();
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
 		const char *srcFullFilePath = srcPath->value().c_str();

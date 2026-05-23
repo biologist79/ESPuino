@@ -40,6 +40,7 @@ void Rfid_Cyclic(void) {
 }
 
 void Rfid_Exit(void) {
+	Log_Println("shutdown rfid-reader..", LOGLEVEL_NOTICE);
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
 		RfidPn5180_Exit();
 	} else {

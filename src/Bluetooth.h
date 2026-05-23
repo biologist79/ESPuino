@@ -16,6 +16,7 @@ struct ScannedBluetoothDevice {
 #endif
 
 void Bluetooth_Init(void);
+void Bluetooth_Exit(void);
 void Bluetooth_Cyclic(void);
 
 // AVRC commands, see https://github.com/pschatzmann/ESP32-A2DP/wiki/Controlling-your-Phone-with-AVRC-Commands
