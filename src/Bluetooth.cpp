@@ -58,6 +58,22 @@ static volatile bool manualConnectPending = false;
 // Track whether we registered our interceptor so we always restore correctly.
 static volatile bool interceptorRegistered = false;
 
+// Peer address cached at the moment connection_state_changed fires CONNECTED.
+// More reliable than calling get_last_peer_address() later, which can return
+// all-zeros if the library internal state has not fully settled.
+static esp_bd_addr_t cachedPeerAddress = {0};
+static portMUX_TYPE cachedPeerAddressMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Returns true if addr is non-zero (i.e. a valid BT address).
+static inline bool isValidBdAddr(const esp_bd_addr_t addr) {
+	for (int i = 0; i < ESP_BD_ADDR_LEN; i++) {
+		if (addr[i] != 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 // ── connect-retry state ────────────────────────────────────────────────────
 static constexpr uint8_t CONNECT_MAX_RETRIES = 3u;
 static constexpr uint32_t CONNECT_RETRY_DELAY_MS = 1500u;
@@ -230,12 +246,26 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 	#ifdef GPIO_PA_EN
 			Port_Write(GPIO_PA_EN, false, true);
 	#endif
+			// Cache the peer address NOW while the library state is guaranteed valid.
+			// get_last_peer_address() can return all-zeros if called later (e.g. from
+			// Bluetooth_StartScan or Bluetooth_GetScannedDevices) at a moment when the
+			// library's internal peer-address field hasn't settled yet.
+			portENTER_CRITICAL(&cachedPeerAddressMux);
+			memcpy(cachedPeerAddress, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+			portEXIT_CRITICAL(&cachedPeerAddressMux);
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth => connected, cached peer: %02X:%02X:%02X:%02X:%02X:%02X",
+				cachedPeerAddress[0], cachedPeerAddress[1], cachedPeerAddress[2],
+				cachedPeerAddress[3], cachedPeerAddress[4], cachedPeerAddress[5]);
 			// Connection succeeded — clear retry and manual-connect state
 			manualConnectPending = false;
 			connectRetryPending = false;
 			connectRetryCount = 0;
 			Bluetooth_StopScan();
 		} else {
+			// Clear the cached peer address on disconnect so stale data is never used.
+			portENTER_CRITICAL(&cachedPeerAddressMux);
+			memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
+			portEXIT_CRITICAL(&cachedPeerAddressMux);
 			// If this was a manual connect attempt that failed, schedule a retry.
 			// Do NOT call AudioPlayer_SetupVolumeAndAmps() here: the library's own
 			// auto-reconnect (set_auto_reconnect(true)) fires Connecting→Disconnected
@@ -419,14 +449,27 @@ void Bluetooth_StartScan() {
 		return;
 	}
 
-	// Capture connected device so it stays at the top of the list during scan
+	// Capture connected device so it stays at the top of the list during scan.
+	// Use cachedPeerAddress (set in connection_state_changed) rather than
+	// get_last_peer_address() which can return all-zeros at this point.
 	ScannedBluetoothDevice connectedDev;
 	bool wasConnected = bluetoothSourceConnected;
-	if (wasConnected && a2dp_source) {
-		memcpy(connectedDev.address, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
-		strncpy(connectedDev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
-		connectedDev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
-		connectedDev.rssi = 0;
+	if (wasConnected) {
+		portENTER_CRITICAL(&cachedPeerAddressMux);
+		memcpy(connectedDev.address, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		portEXIT_CRITICAL(&cachedPeerAddressMux);
+		if (!isValidBdAddr(connectedDev.address)) {
+			Log_Println("Bluetooth_StartScan => WARNING: connected but cachedPeerAddress is all-zeros, skipping pre-population", LOGLEVEL_NOTICE);
+			wasConnected = false; // treat as not connected to avoid inserting a zero-address entry
+		} else {
+			strncpy(connectedDev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+			connectedDev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+			connectedDev.rssi = 0;
+			Log_Printf(LOGLEVEL_INFO, "Bluetooth_StartScan => pre-populating connected device: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
+				connectedDev.name,
+				connectedDev.address[0], connectedDev.address[1], connectedDev.address[2],
+				connectedDev.address[3], connectedDev.address[4], connectedDev.address[5]);
+		}
 	}
 
 	portENTER_CRITICAL(&scannedDevicesMux);
@@ -449,9 +492,14 @@ void Bluetooth_StartScan() {
 	// Duration: 10 * 1.28 s = 12.8 s
 	esp_err_t err = esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0);
 	if (err != ESP_OK) {
-		Log_Printf(LOGLEVEL_ERROR, "Bluetooth => esp_bt_gap_start_discovery failed: %s", esp_err_to_name(err));
+		Log_Printf(LOGLEVEL_ERROR, "Bluetooth => esp_bt_gap_start_discovery failed: %s (connected=%d, heapFree=%u)",
+			esp_err_to_name(err), (int) bluetoothSourceConnected, ESP.getFreeHeap());
 		scanInProgress = false;
 		Bluetooth_RestoreLibraryCallback();
+		// Still notify the UI so it doesn't hang waiting for a completion that will never arrive.
+		// The connected device was already pre-populated above (if applicable), so the
+		// list is as complete as it can be.
+		Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanComplete);
 	}
 }
 
@@ -514,32 +562,56 @@ void Bluetooth_ConnectToAddress(esp_bd_addr_t address) {
 	portEXIT_CRITICAL(&pendingConnectMux);
 }
 
-const std::vector<ScannedBluetoothDevice> &Bluetooth_GetScannedDevices() {
-	if (!scanInProgress && System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE && bluetoothSourceConnected && a2dp_source) {
+std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
+	// Returns a BY-VALUE snapshot so the caller never races with concurrent
+	// modifications from the BT task.  The copy is made inside the spinlock so
+	// it is always consistent.  Callers must NOT hold scannedDevicesMux when
+	// calling this function.
+
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE && bluetoothSourceConnected) {
 		esp_bd_addr_t currentAddr;
-		memcpy(currentAddr, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+		portENTER_CRITICAL(&cachedPeerAddressMux);
+		memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		portEXIT_CRITICAL(&cachedPeerAddressMux);
 
-		portENTER_CRITICAL(&scannedDevicesMux);
-		auto it = std::find_if(scannedDevices.begin(), scannedDevices.end(), [&](const ScannedBluetoothDevice &d) {
-			return memcmp(d.address, currentAddr, ESP_BD_ADDR_LEN) == 0;
-		});
+		if (!isValidBdAddr(currentAddr)) {
+			Log_Println("Bluetooth_GetScannedDevices => WARNING: bluetoothSourceConnected=true but cachedPeerAddress is all-zeros", LOGLEVEL_NOTICE);
+		} else {
+			// Inject / promote the connected device under the spinlock so the
+			// snapshot below always includes it at position 0.
+			portENTER_CRITICAL(&scannedDevicesMux);
+			auto it = std::find_if(scannedDevices.begin(), scannedDevices.end(), [&](const ScannedBluetoothDevice &d) {
+				return memcmp(d.address, currentAddr, ESP_BD_ADDR_LEN) == 0;
+			});
 
-		if (it == scannedDevices.end()) {
-			ScannedBluetoothDevice dev;
-			memcpy(dev.address, currentAddr, ESP_BD_ADDR_LEN);
-			strncpy(dev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
-			dev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
-			dev.rssi = 0;
-			scannedDevices.insert(scannedDevices.begin(), dev);
-		} else if (it != scannedDevices.begin()) {
-			ScannedBluetoothDevice dev = *it;
-			scannedDevices.erase(it);
-			scannedDevices.insert(scannedDevices.begin(), dev);
+			if (it == scannedDevices.end()) {
+				ScannedBluetoothDevice dev;
+				memcpy(dev.address, currentAddr, ESP_BD_ADDR_LEN);
+				strncpy(dev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+				dev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				dev.rssi = 0;
+				scannedDevices.insert(scannedDevices.begin(), dev);
+				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => injected connected device at top: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
+					dev.name, currentAddr[0], currentAddr[1], currentAddr[2],
+					currentAddr[3], currentAddr[4], currentAddr[5]);
+			} else if (it != scannedDevices.begin()) {
+				ScannedBluetoothDevice dev = *it;
+				scannedDevices.erase(it);
+				scannedDevices.insert(scannedDevices.begin(), dev);
+				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => moved connected device to top: %s", dev.name);
+			}
+			portEXIT_CRITICAL(&scannedDevicesMux);
 		}
-		portEXIT_CRITICAL(&scannedDevicesMux);
 	}
 
-	return scannedDevices;
+	// Take a protected snapshot — the spinlock is held only for the duration of
+	// the copy (3 POD structs ≈ microseconds), then released before returning.
+	portENTER_CRITICAL(&scannedDevicesMux);
+	std::vector<ScannedBluetoothDevice> snapshot(scannedDevices);
+	portEXIT_CRITICAL(&scannedDevicesMux);
+
+	Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => returning %u device(s)", snapshot.size());
+	return snapshot;
 }
 #endif
 
@@ -654,7 +726,9 @@ void Bluetooth_Cyclic(void) {
 		}
 		if (a2dp_source->is_connected()) {
 			esp_bd_addr_t currentAddr;
-			memcpy(currentAddr, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+			portENTER_CRITICAL(&cachedPeerAddressMux);
+			memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
+			portEXIT_CRITICAL(&cachedPeerAddressMux);
 			if (memcmp(connectAddress, currentAddr, ESP_BD_ADDR_LEN) != 0) {
 				Log_Println("Bluetooth => disconnecting current device before new connection", LOGLEVEL_INFO);
 				a2dp_source->disconnect();

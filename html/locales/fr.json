@@ -343,6 +343,7 @@
 			"title": "Rechercher des appareils",
 			"button": "Rechercher",
 			"connect": "Connecter",
+			"save": "Enregistrer l'appareil",
 			"inProgress": "Recherche d'appareils...",
 			"noDevices": "Aucun appareil Bluetooth trouvé",
 			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth."

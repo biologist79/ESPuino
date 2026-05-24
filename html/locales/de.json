@@ -343,6 +343,7 @@
 			"title": "Geräte suchen",
 			"button": "Suchen",
 			"connect": "Verbinden",
+			"save": "Gerät speichern",
 			"inProgress": "Suche nach Geräten...",
 			"noDevices": "Keine Bluetooth-Geräte gefunden",
 			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus."

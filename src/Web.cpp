@@ -2709,8 +2709,10 @@ static void handleBluetoothScanRequest(AsyncWebServerRequest *request) {
 static void handleBluetoothResultsRequest(AsyncWebServerRequest *request) {
 #ifdef BLUETOOTH_ENABLE
 	std::vector<ScannedBluetoothDevice> devices = Bluetooth_GetScannedDevices();
-	AsyncJsonResponse *response = new AsyncJsonResponse(true);
-	JsonArray jsonArray = response->getRoot();
+
+	JsonDocument doc;
+	JsonArray jsonArray = doc.to<JsonArray>();
+
 	for (const auto &device : devices) {
 		JsonObject obj = jsonArray.add<JsonObject>();
 		obj["name"] = device.name;
@@ -2722,8 +2724,9 @@ static void handleBluetoothResultsRequest(AsyncWebServerRequest *request) {
 		obj["rssi"] = device.rssi;
 	}
 
-	response->setLength();
-	request->send(response);
+	String output;
+	serializeJson(doc, output);
+	request->send(200, "application/json", output);
 #else
 	request->send(400, "text/plain", "Bluetooth is not enabled.");
 #endif
