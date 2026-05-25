@@ -1,5 +1,5 @@
 name: build-all-firmwares
-run-name: Build firmwares for all boards (BT and no-BT)
+run-name: Build firmwares for all boards (all languages)
 on:
   workflow_dispatch:
   push:
@@ -15,6 +15,9 @@ on:
       - "**.py"
       - "**.csv"
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test_builds:
     timeout-minutes: 180
@@ -24,9 +27,9 @@ jobs:
       fail-fast: false
       matrix:
         variant:
+          # - ttgo_t8 # disabled for now.
           - lolin_d32_pro
           - lolin_d32_pro_sdmmc_pe
-          - ttgo_t8
           - complete
 
     steps:
@@ -47,7 +50,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
       - name: Setup Python 3.13
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
@@ -56,34 +59,34 @@ jobs:
           pip install -U setuptools platformio
           pio upgrade --dev
           pio pkg update --global
+          mkdir binaries
 
-      # --- Build 1: Bluetooth Disabled ---
-      - name: Ensure BT is disabled
+      # --- Build 1: Language DE (Default) ---
+      - name: Build ${{ matrix.variant }} (DE)
         run: |
-          sed -i 's/^#define BLUETOOTH_ENABLE/\/\/#define BLUETOOTH_ENABLE/' src/settings.h
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE DE/' src/settings.h
+          platformio run -e ${{ matrix.variant }}
+          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-DE.bin
 
-      - name: Build ${{ matrix.variant }} (no BT)
-        run: platformio run -e ${{ matrix.variant }}
+      # --- Build 2: Language EN ---
+      - name: Build ${{ matrix.variant }} (EN)
+        run: |
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE EN/' src/settings.h
+          platformio run -e ${{ matrix.variant }}
+          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-EN.bin
 
-      - name: Upload Firmware (no BT)
+      # --- Build 3: Language FR ---
+      - name: Build ${{ matrix.variant }} (FR)
+        run: |
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE FR/' src/settings.h
+          platformio run -e ${{ matrix.variant }}
+          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-FR.bin
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.variant }}-noBT.bin
-          path: .pio/build/${{ matrix.variant }}/firmware.bin
-
-      # --- Build 2: Bluetooth Enabled ---
-      - name: Activate BT
-        run: |
-          sed -i 's/\/\/#define BLUETOOTH_ENABLE/#define BLUETOOTH_ENABLE/' src/settings.h
-
-      - name: Build ${{ matrix.variant }} (with BT)
-        run: platformio run -e ${{ matrix.variant }}
-
-      - name: Upload Firmware (with BT)
-        uses: actions/upload-artifact@v4
-        with:
-          name: firmware-${{ matrix.variant }}-BT.bin
-          path: .pio/build/${{ matrix.variant }}/firmware.bin
+          name: ${{ matrix.variant }}
+          path: binaries/
 
   commit:
     if: ${{ github.repository == 'biologist79/ESPuino' && (github.ref_name == 'dev' || github.ref_name == 'master') && github.event_name != 'pull_request' }}
@@ -91,7 +94,7 @@ jobs:
     needs: test_builds
     steps:
       - name: Checkout target repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: biologist79/ESPuino-Firmware
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -101,7 +104,6 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: "firmware*"
           path: target-repo/Firmwares/${{ github.ref_name }}
 
       - name: Commit and push changes
@@ -110,6 +112,6 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           mkdir -p Firmwares/${{ github.ref_name }}
-          git add Firmwares/${{ github.ref_name }}/*.bin
+          git add Firmwares/${{ github.ref_name }}
           git commit -m "Firmware built from commit biologist79/ESPuino@${{ github.sha }}" || echo "No changes to commit"
           git push

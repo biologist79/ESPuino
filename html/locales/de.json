@@ -20,7 +20,8 @@
 		"rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
 		"success": "Aktion erfolgreich ausgeführt.",
 		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
-		"dropout": "Langsamer Stream, Aussetzer möglich."
+		"dropout": "Langsamer Stream, Aussetzer möglich.",
+		"saved": "Einstellungen gespeichert."
 	},
 	"nav": {
 		"control": "Steuerung",
@@ -345,6 +346,11 @@
 		"pincode": {
 			"title": "Pairing PIN-Code",
 			"placeholder": "z.B. 0000"
+		},
+		"switchmode": {
+			"title": "Wechsel zu WiFi-Modus",
+			"prompt": "Der aktuelle Modus unterstützt keine Steuerung über die Webseite. Möchtest du zum WiFi-Modus wechseln, um die Steuerung über die Webseite zu ermöglichen? Das Gerät wird dabei neu gestartet.",
+			"button": "Zum WiFi-Modus wechseln"
 		}
 	},
 	"general": {

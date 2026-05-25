@@ -98,6 +98,7 @@ const char modificatorPlaylistLoopDeactive[] = "Modifikator: Alle Titel in Endlo
 const char modificatorTrackActive[] = "Modifikator: Titel in Endlosschleife aktiviert.";
 const char modificatorTrackDeactive[] = "Modifikator: Titel in Endlosschleife deaktiviert.";
 const char modificatorNotAllowed[] = "Modifikator konnte nicht angewendet werden.";
+const char notAllowedInCurrentMode[] = "Aktion nicht erlaubt im aktuellen Modus.";
 const char modificatorLoopRev[] = "Modifikator: Endlosschleife beendet.";
 const char modificatorDoesNotExist[] = "Ein Karten-Modifikator existiert nicht vom Typ %d!";
 const char errorOccuredNvs[] = "Es ist ein Fehler aufgetreten beim Lesen aus dem NVS!";

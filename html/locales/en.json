@@ -20,7 +20,8 @@
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
-		"dropout": "slow stream, dropouts are possible."
+		"dropout": "slow stream, dropouts are possible.",
+		"saved": "Settings saved."
 	},
 	"nav": {
 		"control": "Control",
@@ -345,6 +346,11 @@
 		"pincode": {
 			"title": "Pairing PIN-Code",
 			"placeholder": "e.g. 0000"
+		},
+		"switchmode": {
+			"title": "Bluetooth Mode Active",
+			"prompt": "Control via website is restricted in Bluetooth mode. Would you like to switch back to WiFi mode and restart?",
+			"button": "Switch to WiFi Mode"
 		}
 	},
 	"general": {

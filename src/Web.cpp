@@ -94,7 +94,7 @@ static void handleDebugRequest(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, const String section);
-static bool JSONToSettings(JsonObject obj);
+static WebsocketCodeType JSONToSettings(JsonObject obj);
 static void webserverStart(void);
 
 // IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
@@ -637,10 +637,10 @@ void webserverStart(void) {
 unsigned long lastPongTimestamp;
 
 // process JSON to settings
-bool JSONToSettings(JsonObject doc) {
+WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (!doc) {
 		Log_Println("JSONToSettings: doc unassigned", LOGLEVEL_DEBUG);
-		return false;
+		return WebsocketCodeType::Error;
 	}
 	if (doc["general"].is<JsonObject>()) {
 		// general settings
@@ -663,7 +663,7 @@ bool JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsRfid.putUChar("mfrc522Gain", generalObj["mfrc522Gain"].as<uint8_t>()) != 0);
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		gPlayProperties.newPlayMono = generalObj["playMono"].as<bool>();
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();
@@ -685,7 +685,7 @@ bool JSONToSettings(JsonObject doc) {
 		if (
 			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 || gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
-			return false;
+			return WebsocketCodeType::Error;
 		} else {
 			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
 		}
@@ -695,11 +695,11 @@ bool JSONToSettings(JsonObject doc) {
 		String hostName = doc["wifi"]["hostname"];
 		if (!Wlan_ValidateHostname(hostName)) {
 			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "wifi");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	}
 	if (doc["led"].is<JsonObject>()) {
@@ -722,7 +722,7 @@ bool JSONToSettings(JsonObject doc) {
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		// write led control color array to NVS.
 		JsonArray colorArr = ledObj["controlColors"].as<JsonArray>();
@@ -773,14 +773,14 @@ bool JSONToSettings(JsonObject doc) {
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "buttons");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	}
 	if (doc["rotary"].is<JsonObject>()) {
 		// Rotary encoder
 		if (gPrefsSettings.putBool("rotaryReverse", doc["rotary"]["reverse"].as<bool>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rotary");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		RotaryEncoder_Init();
 	}
@@ -788,7 +788,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Battery settings
 		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		Battery_Init();
 	}
@@ -796,11 +796,11 @@ bool JSONToSettings(JsonObject doc) {
 		// playlist settings
 		if (!AudioPlayer_SetPlaylistSortMode(doc["playlist"]["sortMode"].as<uint8_t>())) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		if (!SdCard_SetMaxRecursionDepth(doc["playlist"]["recDepth"].as<uint8_t>())) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "playlist");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	}
 	if (doc["ftp"].is<JsonObject>()) {
@@ -812,7 +812,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (!(String(_ftpUser).equals(gPrefsSettings.getString("ftpuser", "-1")) || String(_ftpPwd).equals(gPrefsSettings.getString("ftppassword", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	} else if (doc["ftpStatus"].is<JsonObject>()) {
 		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
@@ -845,22 +845,22 @@ bool JSONToSettings(JsonObject doc) {
 		}
 		if (mqttBaseTopicStr.length() >= mqttBaseTopicLength) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.baseTopic too long");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 
 		// validate device id (must not be empty and must not contain '/')
 		mqttDeviceIdStr.trim();
 		if (mqttDeviceIdStr.length() == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId empty");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		if (mqttDeviceIdStr.indexOf('/') >= 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId contains invalid char '/'");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		if (mqttDeviceIdStr.length() >= mqttDeviceIdLength) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId too long");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 
 		// store sanitized values
@@ -876,7 +876,7 @@ bool JSONToSettings(JsonObject doc) {
 		// verify writes (include deviceId and baseTopic)
 		if ((gPrefsSettings.getUChar("enableMQTT", 99) != _mqttEnable) || (!String(_mqttServer).equals(gPrefsSettings.getString("mqttServer", "-1"))) || (!mqttBaseTopicStr.equals(gPrefsSettings.getString("mqttBaseTopic", "-1"))) || (!mqttDeviceIdStr.equals(gPrefsSettings.getString("mqttDeviceId", "-1")))) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	}
 	if (doc["bluetooth"].is<JsonObject>()) {
@@ -888,7 +888,7 @@ bool JSONToSettings(JsonObject doc) {
 		// Check if settings were written successfully
 		if (gPrefsSettings.getString("btDeviceName", "") != _btDeviceName || gPrefsSettings.getString("btPinCode", "") != btPinCode) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "bluetooth");
-			return false;
+			return WebsocketCodeType::Error;
 		}
 	} else if (doc["rfidMod"].is<JsonObject>()) {
 		const char *_rfidIdModId = doc["rfidMod"]["rfidIdMod"];
@@ -902,7 +902,7 @@ bool JSONToSettings(JsonObject doc) {
 
 			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
 			if (s.compareTo(rfidString)) {
-				return false;
+				return WebsocketCodeType::Error;
 			}
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
@@ -912,7 +912,7 @@ bool JSONToSettings(JsonObject doc) {
 		uint8_t _playMode = doc["rfidAssign"]["playMode"];
 		if (_playMode <= 0) {
 			Log_Println("rfidAssign: Invalid playmode", LOGLEVEL_ERROR);
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
@@ -923,17 +923,24 @@ bool JSONToSettings(JsonObject doc) {
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
-			return false;
+			return WebsocketCodeType::Error;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
+		Web_SendWebsocketData(0, WebsocketCodeType::Ok);
 	} else if (doc["ping"].is<JsonObject>()) {
 		if ((millis() - lastPongTimestamp) > 1000u) {
 			// send pong (keep-alive heartbeat), check for excessive calls
 			lastPongTimestamp = millis();
 			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
-		return false;
+		return WebsocketCodeType::Error;
 	} else if (doc["controls"].is<JsonObject>()) {
+		// Prevent website control over volume and player actions in Bluetooth-Speaker mode
+		// we could still allow sone special commands, but it's cleaner this way
+		if (!System_IsWebControlAllowed()) {
+			Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+			return WebsocketCodeType::NotAllowedInCurrentMode;
+		}
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
@@ -954,6 +961,11 @@ bool JSONToSettings(JsonObject doc) {
 	} else if (doc["ssids"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
 	} else if (doc["trackProgress"].is<JsonObject>()) {
+		// Prevent seeking in Bluetooth mode
+		if (!System_IsWebControlAllowed()) {
+			Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+			return WebsocketCodeType::NotAllowedInCurrentMode;
+		}
 		const JsonObject trackObj = doc["trackProgress"].as<JsonObject>();
 		if (trackObj["posPercent"].is<uint8_t>()) {
 			gPlayProperties.seekmode = SEEK_POS_PERCENT;
@@ -962,7 +974,7 @@ bool JSONToSettings(JsonObject doc) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
 	}
 
-	return true;
+	return WebsocketCodeType::Ok;
 }
 
 // process settings to JSON object
@@ -1371,8 +1383,11 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 // handle post settings
 void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject &jsonObj = json.as<JsonObject>();
-	bool succ = JSONToSettings(jsonObj);
-	if (succ) {
+	WebsocketCodeType res = JSONToSettings(jsonObj);
+	if (res != WebsocketCodeType::Error) {
+		if (res != WebsocketCodeType::Ok) {
+			Web_SendWebsocketData(0, res);
+		}
 		request->send(200);
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error saving settings");
@@ -1445,9 +1460,9 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 
 // Takes inputs from webgui, parses JSON and saves values in NVS
 // If operation was successful (NVS-write is verified) true is returned
-bool processJsonRequest(char *_serialJson) {
+WebsocketCodeType processJsonRequest(char *_serialJson) {
 	if (!_serialJson) {
-		return false;
+		return WebsocketCodeType::Error;
 	}
 #ifdef BOARD_HAS_PSRAM
 	SpiRamAllocator allocator;
@@ -1460,7 +1475,7 @@ bool processJsonRequest(char *_serialJson) {
 
 	if (error) {
 		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, error.c_str());
-		return false;
+		return WebsocketCodeType::Error;
 	}
 
 	JsonObject obj = doc.as<JsonObject>();
@@ -1491,6 +1506,8 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		object["status"] = "error";
 	} else if (code == WebsocketCodeType::Dropout) {
 		object["status"] = "dropout";
+	} else if (code == WebsocketCodeType::NotAllowedInCurrentMode) {
+		object["status"] = "not_allowed_in_current_mode";
 	} else if (code == WebsocketCodeType::CurrentRfid) {
 		object["rfidId"] = gCurrentRfidTagId;
 	} else if (code == WebsocketCodeType::Pong) {
@@ -1576,9 +1593,10 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 			// the whole message is in a single frame and we got all of it's data
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
-			if (processJsonRequest((char *) data)) {
+			WebsocketCodeType result = processJsonRequest((char *) data);
+			if (result != WebsocketCodeType::Error) {
 				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
-					Web_SendWebsocketData(client->id(), WebsocketCodeType::Ok);
+					Web_SendWebsocketData(client->id(), result);
 				}
 			}
 
@@ -1844,7 +1862,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 	}
 
 	bool isDir = false;
-	String MyfileName = root.getNextFileName(&isDir);
+	String MyfileName = gFSystem.nextFileName(root, &isDir);
 	while (MyfileName != "") {
 		// ignore hidden folders, e.g. MacOS spotlight files
 		if (!MyfileName.startsWith("/.")) {
@@ -1854,7 +1872,7 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 				entry["dir"].set(true);
 			}
 		}
-		MyfileName = root.getNextFileName(&isDir);
+		MyfileName = gFSystem.nextFileName(root, &isDir);
 	}
 	root.close();
 
@@ -1876,7 +1894,7 @@ bool explorerDeleteDirectory(File dir) {
 		if (file.isDirectory()) {
 			explorerDeleteDirectory(file);
 		} else {
-			gFSystem.remove(file.path());
+			gFSystem.remove(file);
 		}
 
 		file = dir.openNextFile();
@@ -1884,7 +1902,7 @@ bool explorerDeleteDirectory(File dir) {
 		esp_task_wdt_reset();
 	}
 
-	return gFSystem.rmdir(dir.path());
+	return gFSystem.rmdir(dir);
 }
 
 // Handles download request of a file
@@ -2027,6 +2045,12 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 	String playModeString;
 	uint32_t playMode;
 	if (request->hasParam("path") && request->hasParam("playmode")) {
+		if (!System_IsWebControlAllowed()) {
+			Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+			Web_SendWebsocketData(0, WebsocketCodeType::NotAllowedInCurrentMode);
+			request->send(200);
+			return;
+		}
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		param = request->getParam("playmode");
@@ -2569,7 +2593,7 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 		coverFile.close();
 		return;
 	}
-	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, coverFile.name());
+	Log_Printf(LOGLEVEL_NOTICE, "serve cover image (%s): %s", mimeType, gFSystem.name(coverFile).c_str());
 
 	int imageSize = gPlayProperties.coverFileSize;
 	AsyncWebServerResponse *response = request->beginChunkedResponse(mimeType, [coverFile, imageSize](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {

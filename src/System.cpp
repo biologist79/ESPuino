@@ -159,6 +159,10 @@ void System_SetOperationMode(uint8_t opMode) {
 	}
 }
 
+bool System_IsWebControlAllowed(void) {
+	return (System_OperationMode != OPMODE_BLUETOOTH_SINK); // && System_OperationMode != OPMODE_BLUETOOTH_SOURCE
+}
+
 uint8_t System_GetOperationMode(void) {
 	return System_OperationMode;
 }
