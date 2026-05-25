@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 25.05.2026: Fix broken BT, FTP, support special chars in filesystem (#405), thanks to @Joe91
+
+## Version 2.7 (12.05.2026)
+
 * 08.05.2026: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start (#403), thanks to @Joe91
 * 05.05.2026: Add missing mqtt topics in preview of webinterface
 * 19.04.2026: improvement to the i18n files (#399)
