@@ -5,7 +5,6 @@
 
 #include "Common.h"
 #include "Log.h"
-#include "Port.h"
 #include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
@@ -243,9 +242,7 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		bluetoothSourceConnected = connected;
 
 		if (connected) {
-	#ifdef GPIO_PA_EN
-			Port_Write(GPIO_PA_EN, false, true);
-	#endif
+			AudioPlayer_SetupVolumeAndAmps();
 			// Cache the peer address NOW while the library state is guaranteed valid.
 			// get_last_peer_address() can return all-zeros if called later (e.g. from
 			// Bluetooth_StartScan or Bluetooth_GetScannedDevices) at a moment when the

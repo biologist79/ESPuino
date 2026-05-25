@@ -62,6 +62,18 @@ static uint32_t AudioPlayer_HeadphoneLastDetectionTimestamp = 0u;
 static uint8_t AudioPlayer_MaxVolumeHeadphone = 11u; // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
 #endif
 
+static bool AudioPlayer_IsHeadphoneModeActive() {
+#ifdef HEADPHONE_ADJUST_ENABLE
+	const bool wiredHeadphoneConnected = !Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+#else
+	const bool wiredHeadphoneConnected = false;
+#endif
+
+	const bool bluetoothHeadphoneConnected = (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected();
+
+	return wiredHeadphoneConnected || bluetoothHeadphoneConnected;
+}
+
 // dummy class to allocate audio object in PSRAM if available
 class AudioCustom : public Audio {
 public:
@@ -516,7 +528,8 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 	Port_Write(GPIO_HP_EN, true, true);
 	#endif
 #else
-	if (Audio_Detect_Mode_HP(Port_Read(HP_DETECT))) {
+
+	if (!AudioPlayer_IsHeadphoneModeActive()) {
 		AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
 	#ifdef GPIO_PA_EN
 		Port_Write(GPIO_PA_EN, true, true);
@@ -542,10 +555,10 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
 #ifdef HEADPHONE_ADJUST_ENABLE
-	bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+	const bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
 	if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
-		if (currentHeadPhoneDetectionState) {
+		if (!AudioPlayer_IsHeadphoneModeActive()) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
 			gPlayProperties.newPlayMono = gPrefsSettings.getBool("playMono", false);
 
@@ -1604,5 +1617,11 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 
 // record audiodata or send via BT
 void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
-	*continueI2S = !Bluetooth_Source_SendAudioData(outBuff, validSamples);
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
+		Bluetooth_Source_SendAudioData(outBuff, validSamples);
+		*continueI2S = false;
+		return;
+	}
+
+	*continueI2S = true;
 }
