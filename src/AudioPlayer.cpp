@@ -350,6 +350,13 @@ void AudioPlayer_Init(void) {
 #endif
 
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
+	// DMA-settings must be adjusted before setting the pinout
+	audio->setOutput16Bit(true); // to save dma-buffer and because we just don't need more than 16 bit
+	audio->settings.DMA_DESC_NUM = 32;
+	audio->settings.DMA_FRAME_NUM = 256; // not too high, so safe SRAM
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		audio->setOutput44K1Hz(true);
+	}
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolumeCurve(Audio_GetVolume);
@@ -785,7 +792,8 @@ void AudioPlayer_Loop() {
 						}
 						audio->stopSong();
 						Led_Indicate(LedIndicatorType::Rewind);
-						audioReturnCode = audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+						String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+						audioReturnCode = audio->connecttoFS(gFSystem, pathToTrack.c_str());
 						// consider track as finished, when audio lib call was not successful
 						if (!audioReturnCode) {
 							System_IndicateError();
@@ -962,8 +970,9 @@ void AudioPlayer_Loop() {
 					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
 				}
+				String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 				audioReturnCode
-					= audio->connecttoFS(gFSystem, gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), fileStartTime);
+					= audio->connecttoFS(gFSystem, pathToTrack.c_str(), fileStartTime);
 				// consider track as finished, when audio lib call was not successful
 			}
 		}
@@ -1595,6 +1604,6 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 }
 
 // record audiodata or send via BT
-void audio_process_i2s(int16_t *outBuff, int32_t validSamples, bool *continueI2S) {
+void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
 	*continueI2S = !Bluetooth_Source_SendAudioData(outBuff, validSamples);
 }

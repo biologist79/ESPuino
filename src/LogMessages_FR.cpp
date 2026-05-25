@@ -97,6 +97,7 @@ const char modificatorPlaylistLoopDeactive[] = "Modificateur : désactivé toute
 const char modificatorTrackActive[] = "Modificateur : ajusté à la piste en cours en boucle infinie.";
 const char modificatorTrackDeactive[] = "Modificateur : désactivé la piste en cours en boucle infinie.";
 const char modificatorNotAllowed[] = "Impossible d'appliquer le modificateur.";
+const char notAllowedInCurrentMode[] = "Action non autorisée dans le mode actuel.";
 const char modificatorLoopRev[] = "Modificateur : boucle infinie terminée.";
 const char modificatorDoesNotExist[] = "Ce type de modificateur de carte n'existe pas %d !";
 const char errorOccuredNvs[] = "Une erreur s'est produite lors de la lecture depuis NVS !";

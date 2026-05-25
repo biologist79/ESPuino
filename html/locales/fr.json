@@ -20,7 +20,8 @@
 		"rfidDetect": "Étiquette RFID {{rfidId}} détectée.",
 		"success": "Action effectuée avec succès.",
 		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
-		"dropout": "flux lent, des interruptions sont possibles."
+		"dropout": "flux lent, des interruptions sont possibles.",
+		"saved": "Paramètres enregistrés."
 	},
 	"nav": {
 		"control": "Contrôle",
@@ -345,6 +346,11 @@
 		"pincode": {
 			"title": "Code PIN de couplage",
 			"placeholder": "par exemple 0000"
+		},
+		"switchmode": {
+			"title": "Basculer vers le mode WiFi",
+			"prompt": "Le mode actuel ne prend pas en charge le contrôle via le site web. Voulez-vous basculer vers le mode WiFi pour permettre le contrôle via le site web ? L'appareil sera redémarré.",
+			"button": "Basculer vers le mode WiFi"
 		}
 	},
 	"general": {

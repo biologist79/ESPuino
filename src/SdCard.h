@@ -1,12 +1,14 @@
 #pragma once
 #include "settings.h"
+
+#include "FileSystem.h"
 #ifdef SD_MMC_1BIT_MODE
 	#include "SD_MMC.h"
 #else
 	#include "SD.h"
 #endif
 
-extern fs::FS gFSystem;
+extern SanitizedFS gFSystem;
 
 #include "Playlist.h"
 

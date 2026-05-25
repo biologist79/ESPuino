@@ -12,7 +12,8 @@ typedef enum class WebsocketCode {
 	Settings,
 	Ssid,
 	TrackProgress,
-	OperationMode
+	OperationMode,
+	NotAllowedInCurrentMode
 } WebsocketCodeType;
 
 void Web_Cyclic(void);

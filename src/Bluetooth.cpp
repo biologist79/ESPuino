@@ -389,9 +389,8 @@ void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 #endif
 }
 
-bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
+bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
-	// Lazy initialization: create ringbuffer on first use to save heap memory
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		// Create ringbuffer on first use (lazy initialization)
 		if (audioSourceRingBuffer == NULL) {
@@ -429,7 +428,7 @@ bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int32_t validSamples) {
 		}
 
 		const TickType_t sendTimeout = pdMS_TO_TICKS(20);
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, sizeof(uint32_t) * validSamples, sendTimeout));
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, 2 * 2 * validSamples, sendTimeout));
 	} else {
 		return false;
 	}

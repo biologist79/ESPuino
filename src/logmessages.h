@@ -94,6 +94,7 @@ extern const char modificatorPlaylistLoopDeactive[];
 extern const char modificatorTrackActive[];
 extern const char modificatorTrackDeactive[];
 extern const char modificatorNotAllowed[];
+extern const char notAllowedInCurrentMode[];
 extern const char modificatorLoopRev[];
 extern const char modificatorDoesNotExist[];
 extern const char errorOccuredNvs[];
