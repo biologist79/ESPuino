@@ -208,12 +208,13 @@ void RfidMfrc522_Cyclic(void) {
 }
 
 void RfidMfrc522_Exit(void) {
+	Log_Println("shutdown MFRC522..", LOGLEVEL_NOTICE);
+	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
+		mfrc522.PCD_SoftPowerDown();
+	}
 	if (rfidTaskHandle != NULL) {
 		vTaskDelete(rfidTaskHandle);
 		rfidTaskHandle = NULL;
-	}
-	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
-		mfrc522.PCD_SoftPowerDown();
 	}
 }
 
