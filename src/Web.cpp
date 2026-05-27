@@ -606,7 +606,7 @@ void webserverStart(void) {
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
 
-		// ESPuino logo
+		// Bluetooth-Scan and connect
 		wServer.on("/bluetoothscan", HTTP_GET, handleBluetoothScanRequest);
 		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));

@@ -1044,8 +1044,6 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
-					// } else if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK)) {
-					// 	leds[Led_Address(led)] = Led_GetIdleColor();
 				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
 				}
@@ -1053,8 +1051,6 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
-					// } else if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) || (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK)) {
-					// 	leds[Led_Address(fullLeds)] = Led_GetIdleColor();
 				} else {
 					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
 				}

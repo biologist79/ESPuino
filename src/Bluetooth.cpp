@@ -33,9 +33,6 @@ I2SClass i2s;
 
 // Timeout matches ESP-IDF inquiry duration: 10 slots * 1.28s = 12.8s
 static constexpr uint32_t SCAN_TIMEOUT_MS = 13000u;
-
-// Extra guard: if the natural DISC_STATE_CHANGED_EVT hasn't fired within this
-// margin after the ESP-IDF inquiry window expires, force-stop from Cyclic().
 static constexpr uint32_t SCAN_TIMEOUT_GUARD_MS = 2000u;
 
 BluetoothA2DPSink *a2dp_sink;
@@ -58,8 +55,6 @@ static volatile bool manualConnectPending = false;
 static volatile bool interceptorRegistered = false;
 
 // Peer address cached at the moment connection_state_changed fires CONNECTED.
-// More reliable than calling get_last_peer_address() later, which can return
-// all-zeros if the library internal state has not fully settled.
 static esp_bd_addr_t cachedPeerAddress = {0};
 static portMUX_TYPE cachedPeerAddressMux = portMUX_INITIALIZER_UNLOCKED;
 
@@ -114,11 +109,6 @@ static void Bluetooth_RestoreLibraryCallback();
 #ifdef BLUETOOTH_ENABLE
 extern "C" void ccall_app_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
 
-// ── GAP callback interceptor ───────────────────────────────────────────────
-// Registered BEFORE esp_bt_gap_start_discovery() so no early results are lost.
-// Restored to the library callback on scan stop (natural or forced), taking
-// care never to call esp_bt_gap_cancel_discovery() on an already-stopped
-// inquiry (which would produce spurious callbacks and corrupt library state).
 static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
 	if (event == ESP_BT_GAP_DISC_RES_EVT) {
 		// Accept discovery results regardless of scanInProgress so that results
@@ -476,9 +466,6 @@ void Bluetooth_StartScan() {
 	}
 	portEXIT_CRITICAL(&scannedDevicesMux);
 
-	// ── FIX: Register our interceptor BEFORE starting discovery ──────────────
-	// The original code registered it after, creating a race window where the
-	// first DISC_RES_EVT results fired on the library's callback and were lost.
 	interceptorRegistered = true;
 	esp_bt_gap_register_callback(gap_callback_interceptor);
 
@@ -500,13 +487,6 @@ void Bluetooth_StartScan() {
 	}
 }
 
-// ── FIX: Internal stop — carefully ordered to avoid double-cancel ──────────
-// Sets scanInProgress=false first, then only calls cancel if the ESP-IDF
-// inquiry is still running (i.e. we are forcing an early stop, not responding
-// to a natural DISC_STATE_CHANGED_EVT which already stopped it).
-// The library callback is restored here for the forced-stop path; the natural-
-// stop path restores it inside gap_callback_interceptor before forwarding the
-// event to the library.
 static void Bluetooth_StopScan() {
 	if (!scanInProgress) {
 		return;
