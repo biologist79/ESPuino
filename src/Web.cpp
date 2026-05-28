@@ -1021,10 +1021,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "general")) {
 		// general settings
 		JsonObject generalObj = obj["general"].to<JsonObject>();
-		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
-		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
-		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
-		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 3));
+		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
+		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
+		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
@@ -1175,6 +1175,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
+		genSettings["rfidReaderType"].set(0u); // RFID_READER_TYPE_RUNTIME (auto-detect)
+		genSettings["pn5180Lpcd"].set(false); // PN5180 LPCD disabled
+		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
@@ -1243,6 +1246,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 #endif
 		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));
+		playlistSettings["recDepth"].set(2u);
 #ifdef BATTERY_MEASURE_ENABLE
 		JsonObject batSettings = defaultsObj["battery"].to<JsonObject>();
 	#ifdef MEASURE_BATTERY_VOLTAGE

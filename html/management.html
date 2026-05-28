@@ -1381,7 +1381,7 @@
 						</div>
 					</span>
 					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset"
+						<button type="button" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
 							data-i18n="submit"></button>
 					</div>
@@ -1472,6 +1472,7 @@
 		var lastIdclicked = '';
 		var ActiveTab = 'nav-rfid-tab';
 		var ActiveSubTab = 'rfid-music-tab';
+		var initialSettingsLoaded = false;
 		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
@@ -2494,6 +2495,7 @@
 				...window.settings,
 				...settings
 			};
+
 			// general
 			let genSettings = settings.general;
 			if (genSettings) {
@@ -2511,15 +2513,9 @@
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
-				if (genSettings.rfidReaderType !== undefined) {
-					$('#rfidReaderType').val(genSettings.rfidReaderType);
-				}
-				if (genSettings.pn5180Lpcd !== undefined) {
-					$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
-				}
-				if (genSettings.mfrc522Gain !== undefined) {
-					document.getElementById('mfrc522Gain').value = genSettings.mfrc522Gain;
-				}
+				$('#rfidReaderType').val(genSettings.rfidReaderType);
+				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2680,10 +2676,23 @@
 					});
 				});
 			}
+			// On the very first settings load, restore the previously active tab now that
+			// conditional tabs (bluetooth, ftp, mqtt) are visible.
+			if (!initialSettingsLoaded) {
+				initialSettingsLoaded = true;
+				selectActiveTabFromLocalStorage();
+			}
 		}
 		async function resetSettings() {
-			let obj = await (await fetch("http://" + host + "/settings?section=defaults")).json();
-			fillSettings(obj.defaults);
+			try {
+				const response = await fetch("http://" + host + "/settings?section=defaults");
+				if (!response.ok) throw new Error(response.statusText);
+				const obj = await response.json();
+				const data = obj.defaults ? obj.defaults : obj;
+				await fillSettings(data);
+			} catch (err) {
+				toaster.error(i18next.t("toast.error") + ": " + err.message);
+			}
 		}
 		const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
 		async function rebuildSSIDList(data) {
@@ -3212,7 +3221,9 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 		}
+
 		// disable static input fields on toggle
 		document.getElementById('static_enabled').onchange = function () {
 			let new_style = this.checked ? null : "none";
@@ -3243,6 +3254,7 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 			await rebuildSSIDList();
 		}
 
@@ -3658,6 +3670,21 @@
 
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
+			
+			setTimeout(function() {
+				if (!initialSettingsLoaded) {
+					fetch("http://" + host + "/settings")
+						.then(function(r) { return r.json(); })
+						.then(function(data) { if (data && !initialSettingsLoaded) fillSettings(data); })
+						.catch(function(e) {
+							console.warn("Settings fallback HTTP fetch failed:", e);
+							if (!initialSettingsLoaded) {
+								initialSettingsLoaded = true;
+								selectActiveTabFromLocalStorage();
+							}
+						});
+				}
+			}, 3000);
 		});
 	</script>
 </body>
