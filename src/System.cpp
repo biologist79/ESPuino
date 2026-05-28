@@ -218,8 +218,8 @@ void System_PreparePowerDown(void) {
 #endif
 	Ftp_Exit();
 	Mqtt_Exit();
-	Bluetooth_Exit();
 	Led_Exit();
+	// Bluetooth_Exit(); // takes too long. Ignore the clean shutdown.
 
 	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
 		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());

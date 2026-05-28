@@ -673,6 +673,8 @@ void Bluetooth_Exit(void) {
 	}
 	if (a2dp_source) {
 		Log_Println("shutdown Bluetooth source..", LOGLEVEL_NOTICE);
+		a2dp_source->set_auto_reconnect(false);
+		a2dp_source->disconnect(); // cancels any pending page/scan
 		a2dp_source->end(true);
 		delete a2dp_source;
 		a2dp_source = nullptr;
