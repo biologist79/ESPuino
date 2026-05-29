@@ -54,8 +54,8 @@ typedef struct { // Bit field
 
 extern playProps gPlayProperties;
 
-void Audio_TaskPause(void);
-void Audio_TaskResume(void);
+void AudioPlayer_NotifyUploadStart(void);
+void AudioPlayer_NotifyUploadEnd(void);
 
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);

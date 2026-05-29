@@ -466,9 +466,7 @@ void webserverStart(void) {
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
-					Audio_TaskPause();
-					Led_TaskPause();
-					Rfid_TaskPause();
+					System_PauseTasksDuringUpload(true);
 					System_UpdateActivityTimer();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -480,9 +478,7 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
-					Led_TaskResume();
-					Audio_TaskResume();
-					Rfid_TaskResume();
+					System_PauseTasksDuringUpload(false);
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
 						Log_Println(Update.errorString(), LOGLEVEL_ERROR);
@@ -1795,9 +1791,7 @@ static void explorerHandleFileStorageTask(void *parameter) {
 	uint32_t uploadFileNotificationValue;
 
 	// pause some tasks to get more free CPU time for the upload
-	Audio_TaskPause();
-	Led_TaskPause();
-	Rfid_TaskPause();
+	System_PauseTasksDuringUpload(true);
 
 	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
 	if (uploadFile) {
@@ -1875,9 +1869,7 @@ static void explorerHandleFileStorageTask(void *parameter) {
 	}
 	free(parameter);
 	// resume the paused tasks
-	Led_TaskResume();
-	Audio_TaskResume();
-	Rfid_TaskResume();
+	System_PauseTasksDuringUpload(false);
 	System_UpdateActivityTimer();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);

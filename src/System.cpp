@@ -261,6 +261,18 @@ void System_DeepSleepManager(void) {
 	}
 }
 
+void System_PauseTasksDuringUpload(bool pause) {
+	if (pause) {
+		AudioPlayer_NotifyUploadStart();
+		Rfid_TaskPause();
+		Led_TaskPause();
+	} else {
+		Led_TaskResume();
+		Rfid_TaskResume();
+		AudioPlayer_NotifyUploadEnd();
+	}
+}
+
 // Print the wake-up reason why ESP32 is awake now
 void System_ShowWakeUpReason() {
 	esp_sleep_wakeup_cause_t wakeup_reason;

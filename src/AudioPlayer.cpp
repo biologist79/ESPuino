@@ -94,7 +94,9 @@ bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
-bool audio_active = false;
+
+static bool AudioPlayer_UploadActive = false;
+static bool AudioPlayer_WasPausedBeforeUpload = false; // remember pre-upload pause state
 
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
@@ -108,11 +110,27 @@ static void AudioPlayer_ClearCover(void);
 static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
-void Audio_TaskPause(void) {
-	audio_active = false;
+void AudioPlayer_NotifyUploadStart(void) {
+	if (AudioPlayer_UploadActive) {
+		return; // already suspended – ignore nested calls
+	}
+	AudioPlayer_UploadActive = true;
+	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+		AudioPlayer_WasPausedBeforeUpload = false;
+		audio->pauseResume();
+	} else {
+		AudioPlayer_WasPausedBeforeUpload = true; // was already paused / idle
+	}
 }
-void Audio_TaskResume(void) {
-	audio_active = true;
+
+void AudioPlayer_NotifyUploadEnd(void) {
+	if (!AudioPlayer_UploadActive) {
+		return;
+	}
+	if (!AudioPlayer_WasPausedBeforeUpload) {
+		audio->pauseResume();
+	}
+	AudioPlayer_UploadActive = false;
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
@@ -377,8 +395,6 @@ void AudioPlayer_Init(void) {
 
 	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
-
-	audio_active = true;
 }
 
 void AudioPlayer_Exit(void) {
@@ -394,13 +410,12 @@ void AudioPlayer_Exit(void) {
 	}
 	delete audio;
 	audio = nullptr;
-	audio_active = false;
 }
 
 static uint32_t lastPlayingTimestamp = 0;
 
 void AudioPlayer_Cyclic(void) {
-	if (!audio_active) {
+	if (AudioPlayer_UploadActive) {
 		return;
 	}
 
