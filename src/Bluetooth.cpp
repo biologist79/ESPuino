@@ -665,21 +665,17 @@ void Bluetooth_Init(void) {
 
 void Bluetooth_Exit(void) {
 #ifdef BLUETOOTH_ENABLE
-	if (a2dp_sink) {
-		Log_Println("shutdown Bluetooth sink..", LOGLEVEL_NOTICE);
-		a2dp_sink->end(true);
-		delete a2dp_sink;
-		a2dp_sink = nullptr;
+	if (a2dp_sink || a2dp_source) {
+		if (a2dp_sink) {
+			Log_Println("shutdown Bluetooth sink..", LOGLEVEL_NOTICE);
+			a2dp_sink = nullptr; // abandon, do NOT delete or call end()
+		}
+		if (a2dp_source) {
+			Log_Println("shutdown Bluetooth source..", LOGLEVEL_NOTICE);
+			a2dp_source = nullptr; // abandon, do NOT delete or call end()
+		}
+		bluetoothSourceConnected = false;
 	}
-	if (a2dp_source) {
-		Log_Println("shutdown Bluetooth source..", LOGLEVEL_NOTICE);
-		a2dp_source->set_auto_reconnect(false);
-		a2dp_source->disconnect(); // cancels any pending page/scan
-		a2dp_source->end(true);
-		delete a2dp_source;
-		a2dp_source = nullptr;
-	}
-	bluetoothSourceConnected = false;
 #endif
 }
 
