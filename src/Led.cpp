@@ -15,6 +15,7 @@
 #include "Wlan.h"
 
 #include <WiFi.h>
+#include <atomic>
 #include <esp_task_wdt.h>
 
 #ifdef NEOPIXEL_ENABLE
@@ -29,7 +30,7 @@
 extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 extern uint8_t gShutdownButton;
 
-static volatile uint32_t Led_Indicators = 0u;
+static std::atomic<uint32_t> Led_Indicators = 0u;
 static uint8_t Led_savedBrightness;
 
 // global led settings

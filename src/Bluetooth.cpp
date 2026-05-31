@@ -12,6 +12,7 @@
 
 #include <AudioPlayer.h>
 #include <algorithm>
+#include <atomic>
 
 #ifdef BLUETOOTH_ENABLE
 	#include "BluetoothA2DPCommon.h"
@@ -38,21 +39,21 @@ static constexpr uint32_t SCAN_TIMEOUT_GUARD_MS = 2000u;
 BluetoothA2DPSink *a2dp_sink;
 BluetoothA2DPSource *a2dp_source;
 std::vector<ScannedBluetoothDevice> scannedDevices;
-static volatile bool scanInProgress = false;
+static std::atomic<bool> scanInProgress = false;
 static uint32_t scanStartTimestamp = 0;
 static esp_bd_addr_t pendingConnectAddress = {0};
-static volatile bool pendingConnect = false;
+static std::atomic<bool> pendingConnect = false;
 static portMUX_TYPE pendingConnectMux = portMUX_INITIALIZER_UNLOCKED;
 RingbufHandle_t audioSourceRingBuffer;
-static volatile bool bluetoothSourceConnected = false;
+static std::atomic<bool> bluetoothSourceConnected = false;
 String btDeviceName;
 static portMUX_TYPE scannedDevicesMux = portMUX_INITIALIZER_UNLOCKED;
 // Suppresses auto-connect via scan_bluetooth_device_callback while a manual
 // connect is pending (i.e. user picked a device from a scan result).
-static volatile bool manualConnectPending = false;
+static std::atomic<bool> manualConnectPending = false;
 
 // Track whether we registered our interceptor so we always restore correctly.
-static volatile bool interceptorRegistered = false;
+static std::atomic<bool> interceptorRegistered = false;
 
 // Peer address cached at the moment connection_state_changed fires CONNECTED.
 static esp_bd_addr_t cachedPeerAddress = {0};

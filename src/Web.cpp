@@ -31,6 +31,7 @@
 
 #include <Update.h>
 #include <WiFi.h>
+#include <atomic>
 #include <esp_task_wdt.h>
 #include <nvs.h>
 
@@ -52,14 +53,14 @@ static constexpr size_t retry_count = 3; // how often we retry is a malloc fails
 
 uint8_t *buffer[nr_of_buffers];
 size_t chunk_size;
-volatile uint32_t size_in_buffer[nr_of_buffers];
-volatile bool buffer_full[nr_of_buffers];
+std::atomic<uint32_t> size_in_buffer[nr_of_buffers];
+std::atomic<bool> buffer_full[nr_of_buffers];
 uint32_t index_buffer_write = 0;
 uint32_t index_buffer_read = 0;
 
 static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
-static volatile bool uploadAborted = false;
+static std::atomic<bool> uploadAborted = false;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);

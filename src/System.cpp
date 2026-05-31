@@ -31,15 +31,15 @@ Preferences gPrefsSettings;
 
 std::atomic<uint32_t> System_LastTimeActiveTimestamp {0u}; // Timestamp of last user-interaction
 std::atomic<uint32_t> System_SleepTimerStartTimestamp {0u}; // Flag if sleep-timer is active
-volatile bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
-volatile bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
-volatile bool System_Rebooting = false; // Flag for rebooting is in progress
-volatile bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
+std::atomic<bool> System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
+std::atomic<bool> System_Sleeping = false; // Flag for turning into deepsleep is in progress
+std::atomic<bool> System_Rebooting = false; // Flag for rebooting is in progress
+std::atomic<bool> System_LockControls = false; // Flag if buttons and rotary encoder is locked
 uint8_t System_MaxInactivityTime = 10u; // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
 uint8_t System_SleepTimer = 30u; // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
 
 // Operation Mode
-volatile uint8_t System_OperationMode;
+std::atomic<uint8_t> System_OperationMode;
 
 void System_SleepHandler(void);
 void System_DeepSleepManager(void);

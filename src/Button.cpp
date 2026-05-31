@@ -8,6 +8,8 @@
 #include "Port.h"
 #include "System.h"
 
+#include <atomic>
+
 bool gButtonInitComplete = false;
 
 // Only enable those buttons that are not disabled (99 or >115)
@@ -53,7 +55,7 @@ uint16_t gLongPressTime = 0;
 extern bool Port_AllowReadFromPortExpander;
 #endif
 
-static volatile SemaphoreHandle_t Button_TimerSemaphore;
+static std::atomic<SemaphoreHandle_t> Button_TimerSemaphore;
 
 hw_timer_t *Button_Timer = NULL;
 #if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
