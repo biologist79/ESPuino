@@ -362,9 +362,12 @@ int32_t get_data_channels(Frame *frame, int32_t channel_len) {
 	}
 	size_t len {};
 	vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
-	if (len < (channel_len * 4)) {
-		return 0;
-	};
+	const size_t PREFILL_THRESHOLD = channel_len * 4 * 4; // 4 frames worth
+	if (len < PREFILL_THRESHOLD) {
+		// Return silence instead of 0
+		memset(frame, 0, channel_len * sizeof(Frame));
+		return channel_len; // ← keeps A2DP happy, sends silence
+	}
 	size_t sampleSize = 0;
 	uint8_t *sampleBuff;
 	sampleBuff = (uint8_t *) xRingbufferReceiveUpTo(audioSourceRingBuffer, &sampleSize, (TickType_t) portMAX_DELAY, channel_len * 4);
@@ -852,7 +855,7 @@ bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
 			}
 		}
 
-		const TickType_t sendTimeout = pdMS_TO_TICKS(20);
+		const TickType_t sendTimeout = pdMS_TO_TICKS(100);
 		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, 2 * 2 * validSamples, sendTimeout));
 	} else {
 		return false;
