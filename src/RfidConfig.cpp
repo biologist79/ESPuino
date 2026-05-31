@@ -19,7 +19,7 @@
 
 // Global variable for the current RFID reader type
 RfidReaderType activeRfidReaderType = RfidReaderType::TYPE_AUTO_DETECT; // Default to auto-detect
-
+#if defined(RFID_READER_TYPE_RUNTIME)
 // Initialize RFID reader configuration from NVS
 void RfidConfig_Init(void) {
 	// Try to load the RFID reader type from NVS
@@ -137,3 +137,4 @@ bool RfidConfig_IsReaderAvailable(RfidReaderType readerType) {
 			return false;
 	}
 }
+#endif

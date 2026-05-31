@@ -22,6 +22,7 @@ extern void RfidPn5180_WakeupCheck(void);
 TaskHandle_t rfidTaskHandle = NULL;
 
 void Rfid_Init(void) {
+#if defined(RFID_READER_TYPE_RUNTIME)
 	RfidConfig_Init();
 	RfidReaderType readerType = RfidConfig_GetReaderType();
 	if ((readerType == RfidReaderType::TYPE_MFRC522_SPI) || (readerType == RfidReaderType::TYPE_MFRC522_I2C)) {
@@ -29,39 +30,48 @@ void Rfid_Init(void) {
 	} else {
 		RfidPn5180_Init();
 	}
+#endif
 }
 
 void Rfid_Cyclic(void) {
+#if defined(RFID_READER_TYPE_RUNTIME)
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
 		RfidPn5180_Cyclic();
 	} else {
 		RfidMfrc522_Cyclic();
 	}
+#endif
 }
 
 void Rfid_Exit(void) {
+#if defined(RFID_READER_TYPE_RUNTIME)
 	Log_Println("shutdown rfid-reader..", LOGLEVEL_NOTICE);
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
 		RfidPn5180_Exit();
 	} else {
 		RfidMfrc522_Exit();
 	}
+#endif
 }
 
 // Rfid_TaskPause and Rfid_TaskResume are implemented in RfidCommon.cpp
 
 void Rfid_TaskReset(void) {
+#if defined(RFID_READER_TYPE_RUNTIME)
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
 		RfidPn5180_TaskReset();
 	} else {
 		RfidMfrc522_TaskReset();
 	}
+#endif
 }
 
 void Rfid_WakeupCheck(void) {
+#if defined(RFID_READER_TYPE_RUNTIME)
 	if (RfidConfig_GetReaderType() == RfidReaderType::TYPE_PN5180) {
 		RfidPn5180_WakeupCheck();
 	} else {
 		RfidMfrc522_WakeupCheck();
 	}
+#endif
 }

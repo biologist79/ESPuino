@@ -33,6 +33,7 @@ std::atomic<uint32_t> System_LastTimeActiveTimestamp {0u}; // Timestamp of last 
 std::atomic<uint32_t> System_SleepTimerStartTimestamp {0u}; // Flag if sleep-timer is active
 volatile bool System_GoToSleep = false; // Flag for turning uC immediately into deepsleep
 volatile bool System_Sleeping = false; // Flag for turning into deepsleep is in progress
+volatile bool System_Rebooting = false; // Flag for rebooting is in progress
 volatile bool System_LockControls = false; // Flag if buttons and rotary encoder is locked
 uint8_t System_MaxInactivityTime = 10u; // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
 uint8_t System_SleepTimer = 30u; // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
@@ -42,6 +43,7 @@ volatile uint8_t System_OperationMode;
 
 void System_SleepHandler(void);
 void System_DeepSleepManager(void);
+void System_RebootHandler(void);
 
 // Init only NVS required for LPCD
 void System_Init_Rfid_Prefs(void) {
@@ -69,6 +71,7 @@ void System_Init(void) {
 void System_Cyclic(void) {
 	System_SleepHandler();
 	System_DeepSleepManager();
+	System_RebootHandler();
 }
 
 void System_UpdateActivityTimer(void) {
@@ -230,11 +233,17 @@ void System_PreparePowerDown(void) {
 }
 
 void System_Restart(void) {
-	// prepare power down (shutdown common modules)
-	System_PreparePowerDown();
-	// restart the ESP-32
-	Log_Println("restarting..", LOGLEVEL_NOTICE);
-	ESP.restart();
+	System_Rebooting = true;
+}
+
+void System_RebootHandler(void) {
+	if (System_Rebooting) {
+		// prepare power down (shutdown common modules)
+		System_PreparePowerDown();
+		// restart the ESP-32
+		Log_Println("restarting..", LOGLEVEL_NOTICE);
+		ESP.restart();
+	}
 }
 
 // Puts uC to deep-sleep if flag is set
