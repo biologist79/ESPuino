@@ -28,10 +28,6 @@
 #include <freertos/task.h>
 #include <random>
 
-#define AUDIOPLAYER_VOLUME_MAX	21u
-#define AUDIOPLAYER_VOLUME_MIN	0u
-#define AUDIOPLAYER_VOLUME_INIT 3u
-
 // Allocate gPlayProperties in PSRAM if available
 EXT_RAM_BSS_ATTR playProps gPlayProperties;
 
@@ -587,7 +583,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
 			gPlayProperties.newPlayMono = false; // Always stereo for headphones
 			if (AudioPlayer_GetCurrentVolume() > AudioPlayer_MaxVolume) {
-				AudioPlayer_SetVolume(AudioPlayer_MaxVolume, true); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+				AudioPlayer_SetVolume(AudioPlayer_MaxVolume); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
 			}
 
 	#ifdef GPIO_PA_EN
@@ -1175,7 +1171,7 @@ uint8_t AudioPlayer_GetRepeatMode(void) {
 
 // Adds new volume-entry to volume-queue
 // If volume is changed via webgui or MQTT, it's necessary to re-adjust current value of rotary-encoder.
-void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
+void AudioPlayer_SetVolume(const int32_t _newVolume) {
 	uint32_t _volume;
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
 
@@ -1189,9 +1185,6 @@ void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 	} else {
 		_volume = _newVolume;
 		AudioPlayer_SetCurrentVolume(_volume);
-		if (reAdjustRotary) {
-			RotaryEncoder_Readjust();
-		}
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
 		audio->setVolume(_volume);

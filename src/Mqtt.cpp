@@ -468,7 +468,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				return;
 			}
 			unsigned long vol = toNumber<uint32_t>(payload_str);
-			AudioPlayer_SetVolume(vol, true);
+			AudioPlayer_SetVolume(vol);
 		}
 		// Modify sleep-timer?
 		else if (reduced_topic_str == topicSleepTimer) {

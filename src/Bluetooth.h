@@ -27,7 +27,8 @@ void Bluetooth_NextTrack(void);
 void Bluetooth_PreviousTrack(void);
 
 // Support for AVRC Commands starting from ESP32 Release 2.0.0
-void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary);
+void Bluetooth_SetVolume(const int32_t _newVolume);
+uint8_t Bluetooth_GetCurrentVolume();
 
 bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples);
 bool Bluetooth_Device_Connected();

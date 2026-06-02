@@ -327,24 +327,24 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_VOLUMEINIT: {
-			AudioPlayer_SetVolume(AudioPlayer_GetInitVolume(), true);
+			AudioPlayer_SetVolume(AudioPlayer_GetInitVolume());
 			break;
 		}
 
 		case CMD_VOLUMEUP: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
+				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() + 1);
 			} else {
-				Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() + 1, true);
+				Bluetooth_SetVolume(Bluetooth_GetCurrentVolume() + 1);
 			}
 			break;
 		}
 
 		case CMD_VOLUMEDOWN: {
 			if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
+				AudioPlayer_SetVolume(AudioPlayer_GetCurrentVolume() - 1);
 			} else {
-				Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume() - 1, true);
+				Bluetooth_SetVolume(Bluetooth_GetCurrentVolume() - 1);
 			}
 			break;
 		}

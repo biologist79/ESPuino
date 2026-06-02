@@ -29,8 +29,8 @@ I2SClass i2s;
 #endif
 
 #ifdef BLUETOOTH_ENABLE
-	#define BLUETOOTHPLAYER_VOLUME_MAX 21u
-	#define BLUETOOTHPLAYER_VOLUME_MIN 0u
+	#define BLUETOOTH_A2DP_VOLUME_MAX 127u
+	#define BLUETOOTH_A2DP_VOLUME_MIN 0u
 
 // Timeout matches ESP-IDF inquiry duration: 10 slots * 1.28s = 12.8s
 static constexpr uint32_t SCAN_TIMEOUT_MS = 13000u;
@@ -415,16 +415,25 @@ bool scan_bluetooth_device_callback(const char *ssid, esp_bd_addr_t address, int
 }
 #endif
 
+#ifdef BLUETOOTH_ENABLE
+static uint8_t mapRounded(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+	uint32_t divisor = in_max - in_min;
+	if (divisor == 0) {
+		return out_min;
+	}
+	return ((x - in_min) * (out_max - out_min) + (divisor / 2)) / divisor + out_min;
+}
+#endif
+
 void Bluetooth_VolumeChanged(int _newVolume) {
 #ifdef BLUETOOTH_ENABLE
-	if ((_newVolume < 0) || (_newVolume > 0x7F)) {
+	if ((_newVolume < int32_t(BLUETOOTH_A2DP_VOLUME_MIN)) || (_newVolume > BLUETOOTH_A2DP_VOLUME_MAX)) {
 		return;
 	}
-	uint8_t _volume;
-	_volume = map(_newVolume, 0, 0x7F, BLUETOOTHPLAYER_VOLUME_MIN, BLUETOOTHPLAYER_VOLUME_MAX);
+	uint8_t _volume = mapRounded(_newVolume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
 	if (AudioPlayer_GetCurrentVolume() != _volume) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth => volume changed:  %d !", _volume);
-		AudioPlayer_SetVolume(_volume, true);
+		AudioPlayer_SetVolume(_volume);
 	}
 #endif
 }
@@ -778,11 +787,10 @@ void Bluetooth_Cyclic(void) {
 void Bluetooth_PlayPauseTrack(void) {
 #ifdef BLUETOOTH_ENABLE
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) && (a2dp_sink)) {
-		esp_a2d_audio_state_t state = a2dp_sink->get_audio_state();
-		if (state == ESP_A2D_AUDIO_STATE_STARTED) {
-			a2dp_sink->play();
-		} else {
+		if (a2dp_sink->get_audio_state() == ESP_A2D_AUDIO_STATE_STARTED) {
 			a2dp_sink->pause();
+		} else {
+			a2dp_sink->play();
 		}
 	}
 #endif
@@ -804,23 +812,31 @@ void Bluetooth_PreviousTrack(void) {
 #endif
 }
 
-void Bluetooth_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
+void Bluetooth_SetVolume(const int32_t _newVolume) {
 #ifdef BLUETOOTH_ENABLE
 	if (!a2dp_sink) {
 		return;
 	}
-	if (_newVolume < int32_t(BLUETOOTHPLAYER_VOLUME_MIN)) {
+	if (_newVolume < int32_t(AUDIOPLAYER_VOLUME_MIN)) {
 		return;
-	} else if (_newVolume > BLUETOOTHPLAYER_VOLUME_MAX) {
+	} else if (_newVolume > AUDIOPLAYER_VOLUME_MAX) {
 		return;
 	} else {
-		uint8_t _volume = map(_newVolume, BLUETOOTHPLAYER_VOLUME_MIN, BLUETOOTHPLAYER_VOLUME_MAX, 0, 0x7F);
+		uint8_t _volume = mapRounded(_newVolume, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX);
 		a2dp_sink->set_volume(_volume);
-		if (reAdjustRotary) {
-			RotaryEncoder_Readjust();
-		}
+		Bluetooth_VolumeChanged(_volume);
 	}
 #endif
+}
+
+uint8_t Bluetooth_GetCurrentVolume() {
+#ifdef BLUETOOTH_ENABLE
+	if (a2dp_sink) {
+		auto current_volume = a2dp_sink->get_volume();
+		return mapRounded(current_volume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
+	}
+#endif
+	return 0;
 }
 
 bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {

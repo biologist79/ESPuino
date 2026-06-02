@@ -974,7 +974,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_SetVolume(new_vol, true);
+			AudioPlayer_SetVolume(new_vol);
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -1159,8 +1159,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// default factory settings NOTE: maintain the settings section structure as above to make it easier for clients to use
 		JsonObject defaultsObj = obj["defaults"].to<JsonObject>();
 		JsonObject genSettings = defaultsObj["general"].to<JsonObject>();
-		genSettings["initVolume"].set(3u); // AUDIOPLAYER_VOLUME_INIT
-		genSettings["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
+		genSettings["initVolume"].set(AUDIOPLAYER_VOLUME_INIT);
+		genSettings["maxVolumeSp"].set(AUDIOPLAYER_VOLUME_MAX);
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		genSettings["sleepInactivity"].set(10u); // System_MaxInactivityTime
 		genSettings["playMono"].set(false); // PLAY_MONO_SPEAKER
