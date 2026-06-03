@@ -49,6 +49,7 @@
 	//#define SHUTDOWN_ON_BAT_CRITICAL      // Whether to turn off on critical battery-level (only used if MEASURE_BATTERY_XXX is active)
 	//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 	#define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
+	//#define BUTTON_SEEK_REPEAT_ENABLE       // If enabled, holding seek-buttons (forwards/backwards) will trigger repeated seek-actions after the long-press-interval
 	//#define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino or to a headset via bluetooth (a2dp-sink & a2dp-source). Note: This feature consumes a lot of resources and the available flash/ram might not be sufficient.
 	//#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
 	//#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
