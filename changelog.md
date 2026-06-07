@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 07.06.2026: Memory and stability improvements and more (#407), thanks to @Joe91
 * 25.05.2026: Fix broken BT, FTP, support special chars in filesystem (#405), thanks to @Joe91
 
 ## Version 2.7 (12.05.2026)
