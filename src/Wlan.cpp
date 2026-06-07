@@ -123,6 +123,7 @@ static void iterateNvsEntries(std::function<bool(const char *, const WiFiSetting
 		if (strncmp(info.key, nvsWiFiKey, strlen(nvsWiFiKey)) == 0) {
 			if (!handler(info.key, loadWiFiSettingsFromNvs(info.key))) {
 				// handler requested an abort
+				nvs_release_iterator(it);
 				return;
 			}
 		}
@@ -138,6 +139,7 @@ static void iterateNvsEntries(std::function<bool(const char *, const WiFiSetting
 		if (strncmp(info.key, nvsWiFiKey, strlen(nvsWiFiKey)) == 0) {
 			if (!handler(info.key, loadWiFiSettingsFromNvs(info.key))) {
 				// handler requested an abort
+				nvs_release_iterator(it);
 				return;
 			}
 		}
@@ -233,7 +235,7 @@ static void migrateFromVersion2() {
 		}
 
 		// clean up old nvs entries
-		std::destroy_at(settings);
+		delete[] settings;
 		gPrefsSettings.remove(nvsKey);
 	}
 }

@@ -15,6 +15,7 @@
 #include "Wlan.h"
 
 #include <WiFi.h>
+#include <atomic>
 #include <esp_task_wdt.h>
 
 #ifdef NEOPIXEL_ENABLE
@@ -29,7 +30,7 @@
 extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 extern uint8_t gShutdownButton;
 
-static uint32_t Led_Indicators = 0u;
+static std::atomic<uint32_t> Led_Indicators = 0u;
 static uint8_t Led_savedBrightness;
 
 // global led settings
@@ -425,8 +426,8 @@ static void Led_Task(void *parameter) {
 				FastLED.clear(true);
 				numIndicatorLeds = gLedSettings.numIndicatorLeds;
 				numControlLeds = gLedSettings.numControlLeds;
-				delete (leds);
-				delete (indicator);
+				delete[] leds;
+				delete indicator;
 				leds = new CRGB[numIndicatorLeds + numControlLeds];
 				indicator = new CRGBSet(leds, numIndicatorLeds);
 				FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
@@ -610,8 +611,8 @@ static void Led_Task(void *parameter) {
 		animationTimer -= taskDelay;
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
 	}
-	delete (leds);
-	delete (indicator);
+	delete[] leds;
+	delete indicator;
 	vTaskDelete(NULL);
 }
 #endif
@@ -1303,13 +1304,17 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 void Led_TaskPause(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskSuspend(Led_TaskHandle);
-	FastLED.clear(true);
+	if (Led_TaskHandle != NULL) {
+		vTaskSuspend(Led_TaskHandle);
+		FastLED.clear(true);
+	}
 #endif
 }
 
 void Led_TaskResume(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskResume(Led_TaskHandle);
+	if (Led_TaskHandle != NULL) {
+		vTaskResume(Led_TaskHandle);
+	}
 #endif
 }

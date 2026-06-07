@@ -108,12 +108,16 @@ extern TaskHandle_t rfidTaskHandle;
 
 void Rfid_TaskPause(void) {
 #if defined(RFID_READER_TYPE_RUNTIME)
-	vTaskSuspend(rfidTaskHandle);
+	if (rfidTaskHandle != NULL) {
+		vTaskSuspend(rfidTaskHandle);
+	}
 #endif
 }
 void Rfid_TaskResume(void) {
 #if defined(RFID_READER_TYPE_RUNTIME)
-	Rfid_TaskReset(); // Reset state machine to initial state
-	vTaskResume(rfidTaskHandle);
+	if (rfidTaskHandle != NULL) {
+		Rfid_TaskReset(); // Reset state machine to initial state
+		vTaskResume(rfidTaskHandle);
+	}
 #endif
 }

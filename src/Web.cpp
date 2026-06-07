@@ -7,6 +7,7 @@
 #include "AsyncJson.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
+#include "Bluetooth.h"
 #include "Cmd.h"
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
@@ -30,12 +31,13 @@
 
 #include <Update.h>
 #include <WiFi.h>
+#include <atomic>
 #include <esp_task_wdt.h>
 #include <nvs.h>
 
 typedef struct {
-	char nvsKey[13];
-	char nvsEntry[275];
+	char nvsKey[cardIdStringSize];
+	char nvsEntry[512];
 } nvs_t;
 
 AsyncWebServer wServer(80);
@@ -44,24 +46,21 @@ AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
 
-#ifdef BOARD_HAS_PSRAM
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
-#else
-static const uint32_t start_chunk_size = 4096; // save memory if no PSRAM is available
-#endif
+static constexpr uint32_t nr_of_buffers = 3; // at least two buffers. No speed improvement yet with more than two.
 
-static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two.
-static constexpr size_t retry_count = 2; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
+static constexpr size_t retry_count = 3; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
 
 uint8_t *buffer[nr_of_buffers];
 size_t chunk_size;
-volatile uint32_t size_in_buffer[nr_of_buffers];
-volatile bool buffer_full[nr_of_buffers];
+std::atomic<uint32_t> size_in_buffer[nr_of_buffers];
+std::atomic<bool> buffer_full[nr_of_buffers];
 uint32_t index_buffer_write = 0;
 uint32_t index_buffer_read = 0;
 
 static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
+static std::atomic<bool> uploadAborted = false;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -81,6 +80,9 @@ static void handleGetActiveSSID(AsyncWebServerRequest *request);
 static void handleGetWiFiConfig(AsyncWebServerRequest *request);
 static void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleCoverImageRequest(AsyncWebServerRequest *request);
+static void handleBluetoothScanRequest(AsyncWebServerRequest *request);
+static void handleBluetoothResultsRequest(AsyncWebServerRequest *request);
+static void handleBluetoothConnectRequest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 static void handleGetRFIDRequest(AsyncWebServerRequest *request);
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json);
@@ -243,15 +245,16 @@ bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char
 	while (res == ESP_OK) {
 		nvs_entry_info_t info;
 		nvs_entry_info(it, &info);
-		// some basic sanity check
 		if (isNumber(info.key)) {
 			if (!callback(info.key, data)) {
+				nvs_release_iterator(it);
 				return false;
 			}
 		}
 		// finished, NEXT
 		res = nvs_entry_next(&it);
 	}
+	nvs_release_iterator(it);
 #else
 	nvs_iterator_t it = nvs_entry_find(partname, _namespace, NVS_TYPE_ANY);
 	if (it == nullptr) {
@@ -264,6 +267,7 @@ bool listNVSKeys(const char *_namespace, void *data, bool (*callback)(const char
 		// some basic sanity checks
 		if (isNumber(info.key)) {
 			if (!callback(info.key, data)) {
+				nvs_release_iterator(it);
 				return false;
 			}
 		}
@@ -352,6 +356,25 @@ void Web_Cyclic(void) {
 		// cleanup closed/deserted websocket clients once per second
 		lastCleanupClientsTimestamp = millis();
 		ws.cleanupClients();
+	}
+}
+
+void Web_Exit(void) {
+	esp_task_wdt_reset();
+	if (webserverStarted) {
+		// Gracefully abort active file storage task if running
+		if (fileStorageTaskHandle != NULL) {
+			uploadAborted = true;
+			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+			// Wait for the task to exit and close open file handles
+			uint32_t startWait = millis();
+			while (fileStorageTaskHandle != NULL && (millis() - startWait < 2000)) {
+				vTaskDelay(pdMS_TO_TICKS(50));
+			}
+		}
+		Log_Println("shutdown webserver..", LOGLEVEL_NOTICE);
+		wServer.end();
+		webserverStarted = false;
 	}
 }
 // handle not found
@@ -444,9 +467,8 @@ void webserverStart(void) {
 
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
-					Audio_TaskPause();
-					Led_TaskPause();
-					Rfid_TaskPause();
+					System_PauseTasksDuringUpload(true);
+					System_UpdateActivityTimer();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
 				}
@@ -457,9 +479,7 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
-					Led_TaskResume();
-					Audio_TaskResume();
-					Rfid_TaskResume();
+					System_PauseTasksDuringUpload(false);
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
 						Log_Println(Update.errorString(), LOGLEVEL_ERROR);
@@ -492,24 +512,28 @@ void webserverStart(void) {
 			response->println("Memory:<div class='text'><pre>");
 			response->println("Free heap:           " + String(ESP.getFreeHeap()));
 			response->println("Largest free block:  " + String(ESP.getMaxAllocHeap()));
-	#ifdef BOARD_HAS_PSRAM
+			response->println("DMA free:            " + String(heap_caps_get_free_size(MALLOC_CAP_DMA)));
+			response->println("DMA largest:         " + String(heap_caps_get_largest_free_block(MALLOC_CAP_DMA)));
 			response->println("Free PSRAM heap:     " + String(ESP.getFreePsram()));
 			response->println("Largest PSRAM block: " + String(ESP.getMaxAllocPsram()));
-	#endif
 			response->println("</pre></div><br>");
-			// show tasklist
-			response->println("Tasklist:<div class='text'><pre>");
-			response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
-			char *pbuffer = x_calloc(2048, 1);
-			vTaskList(pbuffer);
-			response->println(pbuffer);
-			response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
-			response->println("Taskname\tRuntime\tPercentage");
-			// show runtime stats
-			vTaskGetRunTimeStats(pbuffer);
-			response->println(pbuffer);
+
+			uint32_t taskCount = uxTaskGetNumberOfTasks();
+			size_t bufferSize = (taskCount + 10) * 80; // Provide safer margin for vTaskList
+			char *pbuffer = (char *) x_calloc(bufferSize, 1);
+			if (pbuffer) {
+				// show tasklist
+				response->println("Tasklist:<div class='text'><pre>");
+				response->println("Taskname\tState\tPrio\tStack\tNum\tCore");
+				vTaskList(pbuffer);
+				response->println(pbuffer);
+				response->println("</pre></div><br><br>Runtime statistics:<div class='text'><pre>");
+				response->println("Taskname\tRuntime\tPercentage");
+				vTaskGetRunTimeStats(pbuffer);
+				response->println(pbuffer);
+				free(pbuffer);
+			}
 			response->println("</pre></div></body></html>");
-			free(pbuffer);
 			// send the response last
 			request->send(response);
 		});
@@ -545,9 +569,10 @@ void webserverStart(void) {
 
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
+				// clean up buffers
+				request->onDisconnect([]() { destroyDoubleBuffer(); });
 				// we are finished with the upload
 				if (!request->_tempObject) {
-					request->onDisconnect([]() { destroyDoubleBuffer(); });
 					request->send(200);
 				}
 			},
@@ -577,6 +602,11 @@ void webserverStart(void) {
 
 		// current cover image
 		wServer.on("/cover", HTTP_GET, handleCoverImageRequest);
+
+		// Bluetooth-Scan and connect
+		wServer.on("/bluetoothscan", HTTP_GET, handleBluetoothScanRequest);
+		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));
 
 		// ESPuino logo
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -944,7 +974,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_SetVolume(new_vol, true);
+			AudioPlayer_SetVolume(new_vol);
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -988,10 +1018,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "general")) {
 		// general settings
 		JsonObject generalObj = obj["general"].to<JsonObject>();
-		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 0));
-		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 0));
-		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 0));
-		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 0));
+		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 3));
+		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
+		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
+		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
@@ -1129,8 +1159,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// default factory settings NOTE: maintain the settings section structure as above to make it easier for clients to use
 		JsonObject defaultsObj = obj["defaults"].to<JsonObject>();
 		JsonObject genSettings = defaultsObj["general"].to<JsonObject>();
-		genSettings["initVolume"].set(3u); // AUDIOPLAYER_VOLUME_INIT
-		genSettings["maxVolumeSp"].set(21u); // AUDIOPLAYER_VOLUME_MAX
+		genSettings["initVolume"].set(AUDIOPLAYER_VOLUME_INIT);
+		genSettings["maxVolumeSp"].set(AUDIOPLAYER_VOLUME_MAX);
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		genSettings["sleepInactivity"].set(10u); // System_MaxInactivityTime
 		genSettings["playMono"].set(false); // PLAY_MONO_SPEAKER
@@ -1142,6 +1172,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
+		genSettings["rfidReaderType"].set(0u); // RFID_READER_TYPE_RUNTIME (auto-detect)
+		genSettings["pn5180Lpcd"].set(false); // PN5180 LPCD disabled
+		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
@@ -1210,6 +1243,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 #endif
 		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));
+		playlistSettings["recDepth"].set(2u);
 #ifdef BATTERY_MEASURE_ENABLE
 		JsonObject batSettings = defaultsObj["battery"].to<JsonObject>();
 	#ifdef MEASURE_BATTERY_VOLTAGE
@@ -1305,10 +1339,8 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject memoryObj = infoObj["memory"].to<JsonObject>();
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-#ifdef BOARD_HAS_PSRAM
 		memoryObj["freePSRam"] = ESP.getFreePsram();
 		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
-#endif
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
@@ -1423,13 +1455,13 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 	JsonObject infoObj = response->getRoot();
 	// task runtime info
-	TaskStatus_t task_status_arr[20];
 	uint32_t pulTotalRunTime;
-	uint32_t taskNum = uxTaskGetNumberOfTasks();
+	uint32_t taskCount = uxTaskGetNumberOfTasks();
+	std::vector<TaskStatus_t> task_status_arr(taskCount + 5);
 
-	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskNum);
+	Log_Printf(LOGLEVEL_DEBUG, "number of tasks: %u", taskCount);
 
-	uxTaskGetSystemState(task_status_arr, 20, &pulTotalRunTime);
+	uint32_t taskNum = uxTaskGetSystemState(task_status_arr.data(), task_status_arr.size(), &pulTotalRunTime);
 
 	JsonObject tasksObj = infoObj["tasks"].to<JsonObject>();
 	tasksObj["taskCount"] = taskNum;
@@ -1464,12 +1496,8 @@ WebsocketCodeType processJsonRequest(char *_serialJson) {
 	if (!_serialJson) {
 		return WebsocketCodeType::Error;
 	}
-#ifdef BOARD_HAS_PSRAM
 	SpiRamAllocator allocator;
 	JsonDocument doc(&allocator);
-#else
-	JsonDocument doc;
-#endif
 
 	DeserializationError error = deserializeJson(doc, _serialJson);
 
@@ -1492,12 +1520,10 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		// we do not have any webclient connected
 		return;
 	}
-#ifdef BOARD_HAS_PSRAM
+
 	SpiRamAllocator allocator;
 	JsonDocument doc(&allocator);
-#else
-	JsonDocument doc;
-#endif
+
 	JsonObject object = doc.to<JsonObject>();
 
 	if (code == WebsocketCodeType::Ok) {
@@ -1541,6 +1567,10 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["time"] = AudioPlayer_GetCurrentTime();
 		entry["duration"] = AudioPlayer_GetFileDuration();
+	} else if (code == WebsocketCodeType::BluetoothScanInProgress) {
+		object["bt_scan"] = "in_progress";
+	} else if (code == WebsocketCodeType::BluetoothScanComplete) {
+		object["bt_scan"] = "complete";
 	};
 
 	if (doc.overflowed()) {
@@ -1621,6 +1651,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 
 	// New File
 	if (!index) {
+		// reset abort flag
+		uploadAborted = false;
+
 		String utf8Folder = "/";
 		String utf8FilePath;
 		if (request->hasParam("path")) {
@@ -1643,6 +1676,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// Create Queue for receiving a signal from the store task as synchronisation
 		if (explorerFileUploadFinished == NULL) {
 			explorerFileUploadFinished = xSemaphoreCreateBinary();
+		} else {
+			// make sure semaphore is empty
+			xSemaphoreTake(explorerFileUploadFinished, 0);
 		}
 
 		// reset buffers
@@ -1673,9 +1709,19 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		});
 	}
 
+	if (uploadAborted) {
+		if (!request->_tempObject) {
+			handleUploadError(request, 500);
+		}
+		return;
+	}
+
 	if (len) {
 		// wait till buffer is ready
 		while (buffer_full[index_buffer_write]) {
+			if (uploadAborted) {
+				return;
+			}
 			vTaskDelay(2u);
 		}
 
@@ -1698,6 +1744,9 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			if (len_to_write < len) {
 				// wait till new buffer is ready
 				while (buffer_full[index_buffer_write]) {
+					if (uploadAborted) {
+						return;
+					}
 					vTaskDelay(2u);
 				}
 				size_t len_left_to_write = len - len_to_write;
@@ -1708,6 +1757,10 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 	}
 
 	if (final) {
+		if (uploadAborted) {
+			handleUploadError(request, 500);
+			return;
+		}
 		// if file not completely done yet, signal that buffer is filled
 		if (size_in_buffer[index_buffer_write] > 0) {
 			buffer_full[index_buffer_write] = true;
@@ -1715,50 +1768,44 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
 		// watit until the storage task is sending the signal to finish
-		xSemaphoreTake(explorerFileUploadFinished, portMAX_DELAY);
+		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
+			// timeout, something went wrong
+			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+			handleUploadError(request, 500);
+			return;
+		}
 	}
-}
-
-// feed the watchdog timer without delay
-void feedTheDog(void) {
-#if defined(SD_MMC_1BIT_MODE) && defined(CONFIG_IDF_TARGET_ESP32) && (ESP_ARDUINO_VERSION_MAJOR < 3)
-	// feed dog 0
-	TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
-	TIMERG0.wdt_feed = 1; // feed dog
-	TIMERG0.wdt_wprotect = 0; // write protect
-	// feed dog 1
-	TIMERG1.wdt_wprotect = TIMG_WDT_WKEY_VALUE; // write enable
-	TIMERG1.wdt_feed = 1; // feed dog
-	TIMERG1.wdt_wprotect = 0; // write protect
-#else
-	// Without delay upload-feature is broken for SD via SPI (for whatever reason...)
-	vTaskDelay(portTICK_PERIOD_MS * 11);
-#endif
 }
 
 // task for writing uploaded data from buffer to SD
 // parameter contains the target file path and must be freed by the task.
-void explorerHandleFileStorageTask(void *parameter) {
+static void explorerHandleFileStorageTask(void *parameter) {
 	const char *filePath = (const char *) parameter;
 	File uploadFile;
 	size_t bytesOk = 0;
-	size_t bytesNok = 0;
 	uint32_t chunkCount = 0;
 	uint32_t transferStartTimestamp = millis();
 	uint32_t lastUpdateTimestamp = millis();
-	uint32_t maxUploadDelay = 20; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
+	uint32_t maxUploadDelay = 30; // After this delay (in seconds) task will be deleted as transfer is considered to be finally broken
 
 	BaseType_t uploadFileNotification;
 	uint32_t uploadFileNotificationValue;
-	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
-	uploadFile.setBufferSize(chunk_size);
 
 	// pause some tasks to get more free CPU time for the upload
-	Audio_TaskPause();
-	Led_TaskPause();
-	Rfid_TaskPause();
+	System_PauseTasksDuringUpload(true);
+
+	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
+	if (uploadFile) {
+		uploadFile.setBufferSize(chunk_size);
+	} else {
+		Log_Printf(LOGLEVEL_ERROR, "Failed to open file %s for writing!", filePath);
+		uploadAborted = true;
+	}
 
 	for (;;) {
+		if (uploadAborted) {
+			break;
+		}
 		// check buffer is full with enough data or all data already sent
 		uploadFileNotification = xTaskNotifyWait(0, 0, &uploadFileNotificationValue, 0);
 		if ((buffer_full[index_buffer_read]) || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 1u)) {
@@ -1766,40 +1813,56 @@ void explorerHandleFileStorageTask(void *parameter) {
 			while (buffer_full[index_buffer_read]) {
 				chunkCount++;
 				size_t item_size = size_in_buffer[index_buffer_read];
-				if (!uploadFile.write(buffer[index_buffer_read], item_size)) {
-					bytesNok += item_size;
-					feedTheDog();
+				size_t written = 0;
+				if (item_size > 0) {
+					const uint8_t maxRetries = 3;
+					for (uint8_t attempt = 0; attempt < maxRetries && written != item_size; attempt++) {
+						if (attempt > 0) {
+							Log_Printf(LOGLEVEL_DEBUG, "Write retry %u for chunk %zu on %s", attempt, chunkCount, filePath);
+							vTaskDelay(pdMS_TO_TICKS(20 * attempt)); // backoff: 20ms, 40ms
+						}
+						written = uploadFile.write(buffer[index_buffer_read], item_size);
+					}
+				}
+
+				if (item_size > 0 && written != item_size) {
+					Log_Printf(LOGLEVEL_ERROR, "Write error during upload of %s! (expected %u, wrote %u after retries)",
+						filePath, item_size, (uint32_t) written);
+					uploadAborted = true;
+					break;
 				} else {
-					bytesOk += item_size;
+					bytesOk += written;
 				}
 				// update handling of buffers
 				size_in_buffer[index_buffer_read] = 0;
 				buffer_full[index_buffer_read] = 0;
 				index_buffer_read = (index_buffer_read + 1) % nr_of_buffers;
+				if (chunkCount % 64 == 0) {
+					uploadFile.flush();
+					System_UpdateActivityTimer();
+				}
 				// update timestamp
 				lastUpdateTimestamp = millis();
 			}
 
 			if (uploadFileNotification == pdPASS) {
-				uploadFile.close();
-				Log_Printf(LOGLEVEL_INFO, fileWritten, filePath, bytesNok + bytesOk, (millis() - transferStartTimestamp), (bytesNok + bytesOk) / (millis() - transferStartTimestamp));
-				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu / [not ok] %zu, Chunks: %zu\n", bytesOk, bytesNok, chunkCount);
+				if (uploadFile) {
+					uploadFile.close();
+				}
+				Log_Printf(LOGLEVEL_INFO, fileWritten, filePath, bytesOk, (millis() - transferStartTimestamp), (bytesOk) / (millis() - transferStartTimestamp));
+				Log_Printf(LOGLEVEL_DEBUG, "Bytes [ok] %zu, Chunks: %zu\n", bytesOk, chunkCount);
 				// done exit loop to terminate
 				break;
 			}
 		} else {
-			if (lastUpdateTimestamp + maxUploadDelay * 1000 < millis() || (uploadFileNotification == pdPASS && uploadFileNotificationValue == 2u)) {
+			if ((lastUpdateTimestamp + (maxUploadDelay * 1000)) < millis() || ((uploadFileNotification == pdPASS) && (uploadFileNotificationValue == 2u))) {
 				Log_Println(webTxCanceled, LOGLEVEL_ERROR);
-				free(parameter);
-				// resume the paused tasks
-				Led_TaskResume();
-				Audio_TaskResume();
-				Rfid_TaskResume();
-				// destroy double buffer memory, since the upload was interrupted
-				destroyDoubleBuffer();
-				// just delete task without signaling (abort)
-				vTaskDelete(NULL);
-				return;
+				if (uploadFile) {
+					uploadFile.close();
+				}
+				uploadAborted = true;
+				xSemaphoreGive(explorerFileUploadFinished);
+				break;
 			}
 			vTaskDelay(portTICK_PERIOD_MS * 2);
 			continue;
@@ -1807,11 +1870,11 @@ void explorerHandleFileStorageTask(void *parameter) {
 	}
 	free(parameter);
 	// resume the paused tasks
-	Led_TaskResume();
-	Audio_TaskResume();
-	Rfid_TaskResume();
+	System_PauseTasksDuringUpload(false);
+	System_UpdateActivityTimer();
 	// send signal to upload function to terminate
 	xSemaphoreGive(explorerFileUploadFinished);
+	fileStorageTaskHandle = NULL;
 	vTaskDelete(NULL);
 }
 
@@ -1964,6 +2027,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
 		const AsyncWebParameter *param;
 		param = request->getParam("path");
+		System_UpdateActivityTimer();
 		const char *filePath = param->value().c_str();
 		if (gFSystem.exists(filePath)) {
 			// stop playback, file to delete might be in use
@@ -1997,6 +2061,7 @@ void explorerHandleDeleteRequest(AsyncWebServerRequest *request) {
 void explorerHandleCreateRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("path")) {
 		const AsyncWebParameter *param;
+		System_UpdateActivityTimer();
 		param = request->getParam("path");
 		const char *filePath = param->value().c_str();
 		if (gFSystem.mkdir(filePath)) {
@@ -2017,6 +2082,7 @@ void explorerHandleRenameRequest(AsyncWebServerRequest *request) {
 	if (request->hasParam("srcpath") && request->hasParam("dstpath")) {
 		const AsyncWebParameter *srcPath;
 		const AsyncWebParameter *dstPath;
+		System_UpdateActivityTimer();
 		srcPath = request->getParam("srcpath");
 		dstPath = request->getParam("dstpath");
 		const char *srcFullFilePath = srcPath->value().c_str();
@@ -2181,20 +2247,24 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 }
 
 static bool tagIdToJSON(const String tagId, JsonObject entry) {
-	String s = gPrefsRfid.getString(tagId.c_str(), "-1"); // Try to lookup rfidId in NVS
-	if (!s.compareTo("-1")) {
+	String s = gPrefsRfid.getString(tagId.c_str(), ""); // Try to lookup rfidId in NVS
+	if (s.length() == 0 || s == "-1") {
 		return false;
 	}
-	char _file[255];
+	char _file[256] = {0};
 	uint32_t _lastPlayPos = 0;
 	uint16_t _trackLastPlayed = 0;
 	uint32_t _mode = 1;
-	char *token;
+
+	char s_buf[512];
+	strncpy(s_buf, s.c_str(), sizeof(s_buf) - 1);
+	s_buf[sizeof(s_buf) - 1] = '\0';
+
+	char *token = strtok(s_buf, stringDelimiter);
 	uint8_t i = 1;
-	token = strtok((char *) s.c_str(), stringDelimiter);
 	while (token != NULL) { // Try to extract data from string after lookup
 		if (i == 1) {
-			strncpy(_file, token, sizeof(_file) / sizeof(_file[0]));
+			strncpy(_file, token, sizeof(_file) - 1);
 		} else if (i == 2) {
 			_lastPlayPos = strtoul(token, NULL, 10);
 		} else if (i == 3) {
@@ -2260,7 +2330,6 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 	bool idsOnly = request->hasParam("ids-only");
 
 	std::vector<String> nvsKeys {};
-	static size_t nvsIndex;
 	nvsKeys.clear();
 	// Dumps all RFID-keys from NVS into key array
 	listNVSKeys("rfidTags", &nvsKeys, DumpNvsToArrayCallback);
@@ -2270,9 +2339,8 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 		return;
 	}
 	// construct chunked repsonse
-	nvsIndex = 0;
 	AsyncWebServerResponse *response = request->beginChunkedResponse("application/json",
-		[nvsKeys = std::move(nvsKeys), idsOnly](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+		[nvsKeys = std::move(nvsKeys), idsOnly, nvsIndex = size_t(0)](uint8_t *buffer, size_t maxLen, size_t index) mutable -> size_t {
 			maxLen = maxLen >> 1; // some sort of bug with actual size available, reduce the len
 			size_t len = 0;
 			String json;
@@ -2449,13 +2517,15 @@ void Web_DumpSdToNvs(const char *_filename) {
 			while (token != NULL) {
 				if (!count) {
 					count = true;
-					memcpy(nvsEntry[0].nvsKey, token, strlen(token));
-					nvsEntry[0].nvsKey[strlen(token)] = '\0';
+					size_t keyLen = std::min(strlen(token), sizeof(nvsEntry[0].nvsKey) - 1);
+					memcpy(nvsEntry[0].nvsKey, token, keyLen);
+					nvsEntry[0].nvsKey[keyLen] = '\0';
 				} else {
 					count = false;
 					if (isUtf8) {
-						memcpy(nvsEntry[0].nvsEntry, token, strlen(token));
-						nvsEntry[0].nvsEntry[strlen(token)] = '\0';
+						size_t entryLen = std::min(strlen(token), sizeof(nvsEntry[0].nvsEntry) - 1);
+						memcpy(nvsEntry[0].nvsEntry, token, entryLen);
+						nvsEntry[0].nvsEntry[entryLen] = '\0';
 					} else {
 						convertAsciiToUtf8(String(token), nvsEntry[0].nvsEntry, sizeof(nvsEntry[0].nvsEntry));
 					}
@@ -2614,4 +2684,66 @@ static void handleCoverImageRequest(AsyncWebServerRequest *request) {
 	});
 	response->addHeader("Cache-Control", "no-cache, must-revalidate");
 	request->send(response);
+}
+
+// Handles Bluetooth scan requests
+static void handleBluetoothScanRequest(AsyncWebServerRequest *request) {
+#ifdef BLUETOOTH_ENABLE
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		request->send(400, "text/plain", "Bluetooth source mode not active.");
+		return;
+	}
+
+	Bluetooth_StartScan();
+	Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanInProgress);
+	request->send(200);
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
+}
+
+// Handles Bluetooth results request
+static void handleBluetoothResultsRequest(AsyncWebServerRequest *request) {
+#ifdef BLUETOOTH_ENABLE
+	std::vector<ScannedBluetoothDevice> devices = Bluetooth_GetScannedDevices();
+
+	JsonDocument doc;
+	JsonArray jsonArray = doc.to<JsonArray>();
+
+	for (const auto &device : devices) {
+		JsonObject obj = jsonArray.add<JsonObject>();
+		obj["name"] = device.name;
+		char addr_str[18];
+		sprintf(addr_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+			device.address[0], device.address[1], device.address[2],
+			device.address[3], device.address[4], device.address[5]);
+		obj["address"] = addr_str;
+		obj["rssi"] = device.rssi;
+	}
+
+	String output;
+	serializeJson(doc, output);
+	request->send(200, "application/json", output);
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
+}
+
+// Handles Bluetooth connect requests
+static void handleBluetoothConnectRequest(AsyncWebServerRequest *request, JsonVariant &json) {
+#ifdef BLUETOOTH_ENABLE
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		request->send(400, "text/plain", "Bluetooth source mode not active.");
+		return;
+	}
+
+	String addressStr = json["address"].as<String>();
+	esp_bd_addr_t address;
+	sscanf(addressStr.c_str(), "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+		&address[0], &address[1], &address[2], &address[3], &address[4], &address[5]);
+	Bluetooth_ConnectToAddress(address);
+	request->send(200, "text/plain", "Connecting to device.");
+#else
+	request->send(400, "text/plain", "Bluetooth is not enabled.");
+#endif
 }

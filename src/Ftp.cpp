@@ -51,6 +51,17 @@ void Ftp_Init(void) {
 	}
 }
 
+void Ftp_Exit(void) {
+#ifdef FTP_ENABLE
+	if (ftpEnableCurrentStatus) {
+		delete ftpSrv;
+		ftpSrv = NULL;
+		ftpEnableCurrentStatus = false;
+		ftpEnableLastStatus = false;
+	}
+#endif
+}
+
 void Ftp_Cyclic(void) {
 #ifdef FTP_ENABLE
 	ftpManager();

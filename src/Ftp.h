@@ -4,5 +4,6 @@ constexpr uint8_t ftpUserLength = 10u; // Length will be published n-1 as maxlen
 constexpr uint8_t ftpPasswordLength = 15u; // Length will be published n-1 as maxlength to GUI
 
 void Ftp_Init(void);
+void Ftp_Exit(void);
 void Ftp_Cyclic(void);
 void Ftp_EnableServer(void);

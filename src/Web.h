@@ -13,8 +13,11 @@ typedef enum class WebsocketCode {
 	Ssid,
 	TrackProgress,
 	OperationMode,
-	NotAllowedInCurrentMode
+	NotAllowedInCurrentMode,
+	BluetoothScanInProgress,
+	BluetoothScanComplete
 } WebsocketCodeType;
 
 void Web_Cyclic(void);
+void Web_Exit(void);
 void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code);
