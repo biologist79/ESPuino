@@ -685,6 +685,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putBool("playLastOnBoot", generalObj["playLastRfidOnReboot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("pauseRfidRem", generalObj["pauseIfRfidRemoved"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("dAccRfidTwice", generalObj["dontAcceptRfidTwice"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putBool("p2pSameRfid", generalObj["resumeOnSameRfid"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("pauseOnMinVol", generalObj["pauseOnMinVol"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("recoverVolBoot", generalObj["recoverVolBoot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("volumeCurve", generalObj["volumeCurve"].as<uint8_t>()) != 0);
@@ -699,6 +700,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();
 		gPlayProperties.pauseOnMinVolume = generalObj["pauseOnMinVol"].as<bool>();
 		gPlayProperties.pauseIfRfidRemoved = generalObj["pauseIfRfidRemoved"].as<bool>();
+		gPlayProperties.resumeOnSameRfid = generalObj["resumeOnSameRfid"].as<bool>();
 		if (gPlayProperties.pauseIfRfidRemoved) {
 			// ignore feature silently if PAUSE_WHEN_RFID_REMOVED is active
 			Log_Println("pauseIfRfidRemoved is enabled -> deactivate dontAcceptRfidTwice", LOGLEVEL_NOTICE);
@@ -1028,6 +1030,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["playLastRfidOnReboot"].set(gPrefsSettings.getBool("playLastOnBoot", false)); // PLAY_LAST_RFID_AFTER_REBOOT
 		generalObj["pauseIfRfidRemoved"].set(gPrefsSettings.getBool("pauseRfidRem", false)); // PAUSE_WHEN_RFID_REMOVED
 		generalObj["dontAcceptRfidTwice"].set(gPrefsSettings.getBool("dAccRfidTwice", false)); // DONT_ACCEPT_SAME_RFID_TWICE
+		generalObj["resumeOnSameRfid"].set(gPrefsSettings.getBool("p2pSameRfid", false)); // RESUME_ON_SAME_RFID (only in combination with DONT_ACCEPT_SAME_RFID_TWICE)
 		generalObj["rfidReaderType"].set(gPrefsRfid.getUChar("rfidReaderType", 0)); // RFID_READER_TYPE_RUNTIME
 		generalObj["pn5180Lpcd"].set(gPrefsRfid.getBool("pn5180Lpcd", false)); // PN5180 LPCD
 		generalObj["mfrc522Gain"].set(gPrefsRfid.getUChar("mfrc522Gain", 7)); // MFRC522_GAIN
@@ -1169,6 +1172,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["playLastRfidOnReboot"].set(false); // PLAY_LAST_RFID_AFTER_REBOOT
 		genSettings["pauseIfRfidRemoved"].set(false); // PAUSE_WHEN_RFID_REMOVED
 		genSettings["dontAcceptRfidTwice"].set(false); // DONT_ACCEPT_SAME_RFID_TWICE
+		genSettings["resumeOnSameRfid"].set(false); // RESUME_ON_SAME_RFID (only in combination with DONT_ACCEPT_SAME_RFID_TWICE)
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
