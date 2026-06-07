@@ -843,6 +843,25 @@
 						<input type="text" class="form-control" id="btPinCode"
 							data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 					</div>
+					<div class="mb-3 col-md-12">
+						<label class="form-label" data-i18n="bt.scan.title"></label>
+						<div class="d-grid gap-2 d-md-block">
+							<button type="button" class="btn btn-outline-primary" id="bt-scan-btn" onclick="startBtScan()"><i class="fas fa-search"></i> <span data-i18n="bt.scan.button"></span></button>
+						</div>
+					</div>
+					<div id="bt-scan-results" class="mt-3 d-none">
+						<table class="table table-sm table-striped table-hover">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Address</th>
+									<th>RSSI</th>
+									<th class="text-end">Action</th>
+								</tr>
+							</thead>
+							<tbody id="bt-scan-list"></tbody>
+						</table>
+					</div>
 					<div class="text-center">
 						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
 					</div>
@@ -1362,7 +1381,7 @@
 						</div>
 					</span>
 					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset"
+						<button type="button" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
 							data-i18n="submit"></button>
 					</div>
@@ -1453,7 +1472,9 @@
 		var lastIdclicked = '';
 		var ActiveTab = 'nav-rfid-tab';
 		var ActiveSubTab = 'rfid-music-tab';
+		var initialSettingsLoaded = false;
 		var host = $(location).attr('hostname');
+		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
 		var localize;
 		/* show active / selected tab */
@@ -2333,6 +2354,7 @@
 					}
 				}
 				if ("opmode" in socketMsg) {
+					currentOpMode = socketMsg.opmode;
 					updateOperationModeIndicator(socketMsg.opmode);
 				}
 				if ("volume" in socketMsg) {
@@ -2375,6 +2397,12 @@
 				if ("settings" in socketMsg) {
 					fillSettings(socketMsg.settings);
 				}
+				if ("bt_scan" in socketMsg) {
+					if (socketMsg.bt_scan === 'complete') {
+						resetBtScanButton();
+						fetchBtResults();
+					}
+				}
 			};
 		}
 
@@ -2401,6 +2429,63 @@
 			}
 		}
 
+		function startBtScan() {
+			if (currentOpMode !== 2) {
+				toaster.error(i18next.t('bt.scan.notAllowed') || "Scan only allowed in Bluetooth Source mode");
+				return;
+			}
+			const btn = $('#bt-scan-btn');
+			btn.prop('disabled', true);
+			btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + i18next.t('bt.scan.inProgress'));
+			fetch('/bluetoothscan');
+		}
+
+		function resetBtScanButton() {
+			const btn = $('#bt-scan-btn');
+			btn.prop('disabled', false);
+			btn.html('<i class="fas fa-search"></i> ' + i18next.t('bt.scan.button'));
+		}
+
+		function fetchBtResults() {
+			fetch('/bluetoothresults')
+				.then(response => response.json())
+				.then(devices => {
+					const list = $('#bt-scan-list');
+					const container = $('#bt-scan-results');
+					list.empty();
+					if (devices.length > 0) {
+						devices.forEach(dev => {
+							const displayName = (dev.name && dev.name !== 'Unknown') ? dev.name : `<i>Device ${dev.address}</i>`;
+							const row = `<tr>
+								<td>${displayName}</td>
+								<td><code>${dev.address}</code></td>
+								<td>${dev.rssi} dBm</td>
+								<td class="text-end">
+									<button class="btn btn-sm btn-success" onclick="saveBtDevice('${dev.name}', '${dev.address}')" title="${i18next.t('bt.scan.save')}"><i class="fas fa-save"></i></button>
+									<button class="btn btn-sm btn-primary" onclick="connectBt('${dev.address}')">${i18next.t('bt.scan.connect')}</button>
+								</td>
+							</tr>`;
+							list.append(row);
+						});
+					} else {
+						list.append('<tr><td colspan="4" class="text-center text-muted"><i>' + i18next.t('bt.scan.noDevices') + '</i></td></tr>');
+					}
+					container.removeClass('d-none');
+				});
+		}
+
+		function saveBtDevice(name, address) {
+			// Prefer name if available, otherwise use address for better reliability
+			const identifier = (name && name !== 'Unknown') ? name : address;
+			document.getElementById('btDeviceName').value = identifier;
+			btSettings('btConfig');
+		}
+
+		function connectBt(address) {
+			postData('/bluetoothconnect', null, JSON.stringify({ address: address }));
+			toaster.info("Connecting to " + address + "...");
+		}
+
 		async function fillSettings(settings) {
 			if (!settings) {
 				return false;
@@ -2410,6 +2495,7 @@
 				...window.settings,
 				...settings
 			};
+
 			// general
 			let genSettings = settings.general;
 			if (genSettings) {
@@ -2427,15 +2513,9 @@
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
-				if (genSettings.rfidReaderType !== undefined) {
-					$('#rfidReaderType').val(genSettings.rfidReaderType);
-				}
-				if (genSettings.pn5180Lpcd !== undefined) {
-					$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
-				}
-				if (genSettings.mfrc522Gain !== undefined) {
-					document.getElementById('mfrc522Gain').value = genSettings.mfrc522Gain;
-				}
+				$('#rfidReaderType').val(genSettings.rfidReaderType);
+				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2596,10 +2676,23 @@
 					});
 				});
 			}
+			// On the very first settings load, restore the previously active tab now that
+			// conditional tabs (bluetooth, ftp, mqtt) are visible.
+			if (!initialSettingsLoaded) {
+				initialSettingsLoaded = true;
+				selectActiveTabFromLocalStorage();
+			}
 		}
 		async function resetSettings() {
-			let obj = await (await fetch("http://" + host + "/settings?section=defaults")).json();
-			fillSettings(obj.defaults);
+			try {
+				const response = await fetch("http://" + host + "/settings?section=defaults");
+				if (!response.ok) throw new Error(response.statusText);
+				const obj = await response.json();
+				const data = obj.defaults ? obj.defaults : obj;
+				await fillSettings(data);
+			} catch (err) {
+				toaster.error(i18next.t("toast.error") + ": " + err.message);
+			}
 		}
 		const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
 		async function rebuildSSIDList(data) {
@@ -3128,7 +3221,9 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 		}
+
 		// disable static input fields on toggle
 		document.getElementById('static_enabled').onchange = function () {
 			let new_style = this.checked ? null : "none";
@@ -3159,6 +3254,7 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 			await rebuildSSIDList();
 		}
 
@@ -3574,6 +3670,21 @@
 
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
+			
+			setTimeout(function() {
+				if (!initialSettingsLoaded) {
+					fetch("http://" + host + "/settings")
+						.then(function(r) { return r.json(); })
+						.then(function(data) { if (data && !initialSettingsLoaded) fillSettings(data); })
+						.catch(function(e) {
+							console.warn("Settings fallback HTTP fetch failed:", e);
+							if (!initialSettingsLoaded) {
+								initialSettingsLoaded = true;
+								selectActiveTabFromLocalStorage();
+							}
+						});
+				}
+			}, 3000);
 		});
 	</script>
 </body>

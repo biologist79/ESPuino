@@ -224,11 +224,8 @@ void loop() {
 	} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 		// bluetooth headset mode
 		Bluetooth_Cyclic();
-		RotaryEncoder_Cyclic();
-	} else {
-		// normal mode
-		RotaryEncoder_Cyclic();
 	}
+	RotaryEncoder_Cyclic();
 	Ftp_Cyclic();
 	AudioPlayer_Cyclic();
 	Battery_Cyclic();

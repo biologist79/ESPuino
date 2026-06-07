@@ -339,6 +339,15 @@
 			"button": "Start in headphone mode",
 			"indicator": "Bluetooth Headphone Mode"
 		},
+		"scan": {
+			"title": "Scan for devices",
+			"button": "Scan",
+			"connect": "Connect",
+			"save": "Save Device",
+			"inProgress": "Scanning for devices...",
+			"noDevices": "No Bluetooth devices found",
+			"notAllowed": "Bluetooth device scan not allowed in current mode. Please switch to Bluetooth headphone mode first."
+		},
 		"device": {
 			"title": "Bluetooth device (headphone)",
 			"placeholder": "e.g. My POGS Wireless Headphone"

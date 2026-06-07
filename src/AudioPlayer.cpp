@@ -28,10 +28,6 @@
 #include <freertos/task.h>
 #include <random>
 
-#define AUDIOPLAYER_VOLUME_MAX	21u
-#define AUDIOPLAYER_VOLUME_MIN	0u
-#define AUDIOPLAYER_VOLUME_INIT 3u
-
 // Allocate gPlayProperties in PSRAM if available
 EXT_RAM_BSS_ATTR playProps gPlayProperties;
 
@@ -62,6 +58,18 @@ static uint32_t AudioPlayer_HeadphoneLastDetectionTimestamp = 0u;
 static uint8_t AudioPlayer_MaxVolumeHeadphone = 11u; // Maximum volume that can be adjusted in headphone-mode (default; can be changed later via GUI)
 #endif
 
+static bool AudioPlayer_IsHeadphoneModeActive() {
+#ifdef HEADPHONE_ADJUST_ENABLE
+	const bool wiredHeadphoneConnected = !Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+#else
+	const bool wiredHeadphoneConnected = false;
+#endif
+
+	const bool bluetoothHeadphoneConnected = (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected();
+
+	return wiredHeadphoneConnected || bluetoothHeadphoneConnected;
+}
+
 // dummy class to allocate audio object in PSRAM if available
 class AudioCustom : public Audio {
 public:
@@ -82,7 +90,9 @@ bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
-bool audio_active = false;
+
+static bool AudioPlayer_UploadActive = false;
+static bool AudioPlayer_WasPausedBeforeUpload = false; // remember pre-upload pause state
 
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
@@ -96,11 +106,27 @@ static void AudioPlayer_ClearCover(void);
 static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
 
-void Audio_TaskPause(void) {
-	// dont't pause // audio_active = false;
+void AudioPlayer_NotifyUploadStart(void) {
+	if (AudioPlayer_UploadActive) {
+		return; // already suspended – ignore nested calls
+	}
+	AudioPlayer_UploadActive = true;
+	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+		AudioPlayer_WasPausedBeforeUpload = false;
+		audio->pauseResume();
+	} else {
+		AudioPlayer_WasPausedBeforeUpload = true; // was already paused / idle
+	}
 }
-void Audio_TaskResume(void) {
-	// dont't pause  // audio_active = true;
+
+void AudioPlayer_NotifyUploadEnd(void) {
+	if (!AudioPlayer_UploadActive) {
+		return;
+	}
+	if (!AudioPlayer_WasPausedBeforeUpload) {
+		audio->pauseResume();
+	}
+	AudioPlayer_UploadActive = false;
 }
 
 void Audio_InfoCallback(Audio::msg_t m) {
@@ -247,12 +273,8 @@ float Audio_GetVolume(float t) {
 
 void AudioPlayer_Init(void) {
 	// create audio object
-#ifdef BOARD_HAS_PSRAM
 	audio = new AudioCustom();
-#else
-	static Audio audioAsStatic; // Don't use heap as it's needed for other stuff :-)
-	audio = &audioAsStatic;
-#endif
+
 	// load playtime total from NVS
 	playTimeSecTotal = gPrefsSettings.getULong("playTimeTotal", 0);
 
@@ -369,8 +391,6 @@ void AudioPlayer_Init(void) {
 
 	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
-
-	audio_active = true;
 }
 
 void AudioPlayer_Exit(void) {
@@ -384,12 +404,14 @@ void AudioPlayer_Exit(void) {
 		// Call the loop explicitely to make sure that PAUSE is set (because this saves the current playpos)
 		AudioPlayer_Loop();
 	}
+	delete audio;
+	audio = nullptr;
 }
 
 static uint32_t lastPlayingTimestamp = 0;
 
 void AudioPlayer_Cyclic(void) {
-	if (!audio_active) {
+	if (AudioPlayer_UploadActive) {
 		return;
 	}
 
@@ -517,7 +539,8 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 	Port_Write(GPIO_HP_EN, true, true);
 	#endif
 #else
-	if (Audio_Detect_Mode_HP(Port_Read(HP_DETECT))) {
+
+	if (!AudioPlayer_IsHeadphoneModeActive()) {
 		AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker; // 1 if headphone is not connected
 	#ifdef GPIO_PA_EN
 		Port_Write(GPIO_PA_EN, true, true);
@@ -543,10 +566,10 @@ void AudioPlayer_SetupVolumeAndAmps(void) {
 
 void AudioPlayer_HeadphoneVolumeManager(void) {
 #ifdef HEADPHONE_ADJUST_ENABLE
-	bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
+	const bool currentHeadPhoneDetectionState = Audio_Detect_Mode_HP(Port_Read(HP_DETECT));
 
 	if (AudioPlayer_HeadphoneLastDetectionState != currentHeadPhoneDetectionState && (millis() - AudioPlayer_HeadphoneLastDetectionTimestamp >= headphoneLastDetectionDebounce)) {
-		if (currentHeadPhoneDetectionState) {
+		if (!AudioPlayer_IsHeadphoneModeActive()) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
 			gPlayProperties.newPlayMono = gPrefsSettings.getBool("playMono", false);
 
@@ -560,7 +583,7 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 			AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeHeadphone;
 			gPlayProperties.newPlayMono = false; // Always stereo for headphones
 			if (AudioPlayer_GetCurrentVolume() > AudioPlayer_MaxVolume) {
-				AudioPlayer_SetVolume(AudioPlayer_MaxVolume, true); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
+				AudioPlayer_SetVolume(AudioPlayer_MaxVolume); // Lower volume for headphone if headphone's maxvolume is exceeded by volume set in speaker-mode
 			}
 
 	#ifdef GPIO_PA_EN
@@ -1148,7 +1171,7 @@ uint8_t AudioPlayer_GetRepeatMode(void) {
 
 // Adds new volume-entry to volume-queue
 // If volume is changed via webgui or MQTT, it's necessary to re-adjust current value of rotary-encoder.
-void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
+void AudioPlayer_SetVolume(const int32_t _newVolume) {
 	uint32_t _volume;
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
 
@@ -1162,9 +1185,6 @@ void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary) {
 	} else {
 		_volume = _newVolume;
 		AudioPlayer_SetCurrentVolume(_volume);
-		if (reAdjustRotary) {
-			RotaryEncoder_Readjust();
-		}
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
 		audio->setVolume(_volume);
@@ -1605,5 +1625,11 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 
 // record audiodata or send via BT
 void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
-	*continueI2S = !Bluetooth_Source_SendAudioData(outBuff, validSamples);
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
+		Bluetooth_Source_SendAudioData(outBuff, validSamples);
+		*continueI2S = false;
+		return;
+	}
+
+	*continueI2S = true;
 }

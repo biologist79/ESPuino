@@ -4,6 +4,7 @@
 #include "RotaryEncoder.h"
 
 #include "AudioPlayer.h"
+#include "Bluetooth.h"
 #include "Log.h"
 #include "System.h"
 
@@ -40,9 +41,6 @@ void RotaryEncoder_Init(void) {
 #endif
 }
 
-void RotaryEncoder_Readjust(void) {
-}
-
 // Handles volume directed by rotary encoder
 void RotaryEncoder_Cyclic(void) {
 #ifdef USEROTARY_ENABLE
@@ -59,8 +57,14 @@ void RotaryEncoder_Cyclic(void) {
 		System_UpdateActivityTimer(); // Set inactivity back if rotary encoder was used
 		// just reset the encoder here, so we get a new delta next time
 		encoder.clearCount();
-		auto currentVol = AudioPlayer_GetCurrentVolume();
-		AudioPlayer_SetVolume(currentVol + (encoderValue / 2), false);
+
+		if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
+			auto newVol = AudioPlayer_GetCurrentVolume() + (encoderValue / 2);
+			AudioPlayer_SetVolume(newVol);
+		} else {
+			auto newVol = Bluetooth_GetCurrentVolume() + (encoderValue / 2);
+			Bluetooth_SetVolume(newVol);
+		}
 		return;
 	}
 #endif

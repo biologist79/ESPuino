@@ -96,15 +96,17 @@ void RfidPn5180_Init(void) {
 	#endif
 	}
 
-	xTaskCreatePinnedToCore(
-		RfidPn5180_Task, /* Function to implement the task */
-		"rfid", /* Name of the task */
-		3072, /* Stack size in words */
-		NULL, /* Task input parameter */
-		2 | portPRIVILEGE_BIT, /* Priority of the task */
-		&rfidTaskHandle, /* Task handle. */
-		0 /* Core where the task should run */
-	);
+	if (rfidTaskHandle == NULL) {
+		xTaskCreatePinnedToCore(
+			RfidPn5180_Task, /* Function to implement the task */
+			"rfid", /* Name of the task */
+			3072, /* Stack size in words */
+			NULL, /* Task input parameter */
+			2 | portPRIVILEGE_BIT, /* Priority of the task */
+			&rfidTaskHandle, /* Task handle. */
+			0 /* Core where the task should run */
+		);
+	}
 }
 
 void RfidPn5180_Cyclic(void) {
@@ -313,13 +315,17 @@ void RfidPn5180_Task(void *parameter) {
 }
 
 void RfidPn5180_Exit(void) {
+	Log_Println("shutdown PN5180..", LOGLEVEL_NOTICE);
 	if (Rfid_Pn5180LpcdEnabled()) {
 		Rfid_SetLpcdShutdownStatus(true);
 		while (Rfid_GetLpcdShutdownStatus()) { // Make sure init of LPCD is complete!
 			vTaskDelay(portTICK_PERIOD_MS * 10u);
 		}
 	}
-	vTaskDelete(rfidTaskHandle);
+	if (rfidTaskHandle != NULL) {
+		vTaskDelete(rfidTaskHandle);
+		rfidTaskHandle = NULL;
+	}
 }
 
 // Handles activation of LPCD (while shutdown is in progress)

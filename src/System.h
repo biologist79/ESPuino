@@ -27,3 +27,4 @@ uint8_t System_GetOperationMode(void);
 uint8_t System_GetOperationModeFromNvs(void);
 void System_esp_print_tasks(void);
 void System_ShowWakeUpReason();
+void System_PauseTasksDuringUpload(bool pause);

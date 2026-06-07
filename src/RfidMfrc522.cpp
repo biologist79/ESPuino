@@ -35,7 +35,7 @@ static MFRC522 mfrc522(RFID_CS, RST_PIN);
 void RfidMfrc522_Init(uint8_t readerType) {
 	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
 	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
-	if (readerType == 1) {
+	if (readerType == RfidReaderType::TYPE_MFRC522_SPI) {
 		SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
 		SPI.setFrequency(1000000);
 		mfrc522.PCD_Init();
@@ -43,7 +43,7 @@ void RfidMfrc522_Init(uint8_t readerType) {
 		// byte firmwareVersion = mfrc522.PCD_ReadRegister(MFRC522::VersionReg);
 		// Log_Printf(LOGLEVEL_DEBUG, "RC522 firmware version=%#lx", firmwareVersion);
 		mfrc522.PCD_SetAntennaGain(rfidGain);
-	} else if (readerType == 2) {
+	} else if (readerType == RfidReaderType::TYPE_MFRC522_I2C) {
 	#if defined(I2C_2_ENABLE)
 		mfrc522I2C.PCD_Init();
 		delay(10);
@@ -59,15 +59,17 @@ void RfidMfrc522_Init(uint8_t readerType) {
 	delay(50);
 	Log_Println(rfidScannerReady, LOGLEVEL_DEBUG);
 
-	xTaskCreatePinnedToCore(
-		RfidMfrc522_Task, /* Function to implement the task */
-		"rfid", /* Name of the task */
-		3072, /* Stack size in words */
-		NULL, /* Task input parameter */
-		2 | portPRIVILEGE_BIT, /* Priority of the task */
-		&rfidTaskHandle, /* Task handle. */
-		0 /* Core where the task should run */
-	);
+	if (rfidTaskHandle == NULL) {
+		xTaskCreatePinnedToCore(
+			RfidMfrc522_Task, /* Function to implement the task */
+			"rfid", /* Name of the task */
+			3072, /* Stack size in words */
+			NULL, /* Task input parameter */
+			2 | portPRIVILEGE_BIT, /* Priority of the task */
+			&rfidTaskHandle, /* Task handle. */
+			0 /* Core where the task should run */
+		);
+	}
 }
 
 void RfidMfrc522_TaskReset(void) {
@@ -206,8 +208,13 @@ void RfidMfrc522_Cyclic(void) {
 }
 
 void RfidMfrc522_Exit(void) {
+	Log_Println("shutdown MFRC522..", LOGLEVEL_NOTICE);
 	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
 		mfrc522.PCD_SoftPowerDown();
+	}
+	if (rfidTaskHandle != NULL) {
+		vTaskDelete(rfidTaskHandle);
+		rfidTaskHandle = NULL;
 	}
 }
 

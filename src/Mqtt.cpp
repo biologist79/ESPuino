@@ -174,6 +174,8 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
 		mqtt_cfg.task.priority = 1; // default is 5, keep it below the audio
+		mqtt_cfg.buffer.size = 2048; //
+		mqtt_cfg.buffer.out_size = 2048; //
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
@@ -232,12 +234,19 @@ const char *Mqtt_GetCommandTopic(const char *topic) {
 
 void Mqtt_Exit(void) {
 #ifdef MQTT_ENABLE
+	if (Mqtt_Enabled == false || mqtt_client == NULL) {
+		return;
+	}
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
 	publishMqtt(topicTrack, "---", false);
+	// Allow some time for messages to be sent before stopping the client
+	vTaskDelay(pdMS_TO_TICKS(10));
+
 	esp_mqtt_client_disconnect(mqtt_client);
 	esp_mqtt_client_stop(mqtt_client);
 	esp_mqtt_client_destroy(mqtt_client);
+	mqtt_client = NULL;
 #endif
 }
 
@@ -459,7 +468,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				return;
 			}
 			unsigned long vol = toNumber<uint32_t>(payload_str);
-			AudioPlayer_SetVolume(vol, true);
+			AudioPlayer_SetVolume(vol);
 		}
 		// Modify sleep-timer?
 		else if (reduced_topic_str == topicSleepTimer) {

@@ -11,11 +11,12 @@
 
 #ifdef IR_CONTROL_ENABLE
 	#include <IRremote.hpp>
+	#include <atomic>
 #endif
 
 // HW-Timer
 #ifdef IR_CONTROL_ENABLE
-uint32_t IrReceiver_LastRcCmdTimestamp = 0u;
+std::atomic<uint32_t> IrReceiver_LastRcCmdTimestamp = 0u;
 #endif
 
 void IrReceiver_Init() {

@@ -8,6 +8,10 @@
 	#define AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT playlistSortMode::STRNATCASECMP
 #endif
 
+#define AUDIOPLAYER_VOLUME_MAX	21u
+#define AUDIOPLAYER_VOLUME_MIN	0u
+#define AUDIOPLAYER_VOLUME_INIT 3u
+
 enum class playlistSortMode : uint8_t {
 	STRCMP = 1,
 	STRNATCMP = 2,
@@ -54,15 +58,15 @@ typedef struct { // Bit field
 
 extern playProps gPlayProperties;
 
-void Audio_TaskPause(void);
-void Audio_TaskResume(void);
+void AudioPlayer_NotifyUploadStart(void);
+void AudioPlayer_NotifyUploadEnd(void);
 
 void AudioPlayer_Init(void);
 void AudioPlayer_Exit(void);
 void AudioPlayer_Cyclic(void);
 void AudioPlayer_Loop(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
-void AudioPlayer_SetVolume(const int32_t _newVolume, bool reAdjustRotary);
+void AudioPlayer_SetVolume(const int32_t _newVolume);
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
