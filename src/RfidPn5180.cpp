@@ -45,6 +45,8 @@ extern TwoWire i2cBusTwo;
 #if defined(RFID_READER_TYPE_RUNTIME)
 static void RfidPn5180_Task(void *parameter);
 uint8_t stateMachine = RFID_PN5180_STATE_INIT;
+static bool rfidTaskResetRequested = false;
+static byte lastValidcardId[cardIdSize];
 
 static bool Rfid_Pn5180LpcdEnabled(void) {
 	return gPrefsRfid.getBool("pn5180Lpcd", false);
@@ -114,7 +116,7 @@ void RfidPn5180_Cyclic(void) {
 }
 
 void RfidPn5180_TaskReset(void) {
-	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+	rfidTaskResetRequested = true;
 }
 
 void RfidPn5180_Task(void *parameter) {
@@ -122,10 +124,11 @@ void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
 	uint32_t lastTimeDetected14443 = 0;
 	uint32_t lastTimeDetected15693 = 0;
-	byte lastValidcardId[cardIdSize];
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
+	static byte pendingCardId[cardIdSize];
+	static uint8_t pendingCardCount = 0;
 	uint8_t uid[10];
 	bool showDisablePrivacyNotification = true;
 
@@ -149,6 +152,17 @@ void RfidPn5180_Task(void *parameter) {
 	}
 
 	for (;;) {
+		if (rfidTaskResetRequested) {
+			memset(lastValidcardId, 0, sizeof(lastValidcardId));
+			memset(lastCardId, 0, sizeof(lastCardId));
+			memset(pendingCardId, 0, sizeof(pendingCardId));
+			pendingCardCount = 0;
+			// Ensure we don't trigger a removal event during reset
+			lastTimeDetected14443 = millis();
+			lastTimeDetected15693 = millis();
+			rfidTaskResetRequested = false;
+			stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+		}
 		vTaskDelay(portTICK_PERIOD_MS * 10u);
 		if (Rfid_Pn5180LpcdEnabled() && Rfid_GetLpcdShutdownStatus()) {
 			Rfid_EnableLpcd();
@@ -188,7 +202,7 @@ void RfidPn5180_Task(void *parameter) {
 				// Reset to dummy-value if no card is there
 				// Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
 				// lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 1000)) {
+				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 2500)) {
 					lastTimeDetected14443 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
@@ -226,7 +240,7 @@ void RfidPn5180_Task(void *parameter) {
 				cardAppliedCurrentRun = true;
 			} else {
 				// lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 400)) {
+				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 2500)) {
 					lastTimeDetected15693 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
@@ -261,6 +275,42 @@ void RfidPn5180_Task(void *parameter) {
 					continue;
 				}
 			}
+
+			// New ID detected - verify it by requiring two consecutive identical reads to filter out ghost reads
+			// Exception: If lastCardId is all zeros (just after a reset), we accept the card immediately if it's not all zeros itself.
+			bool isResetState = true;
+			for (uint8_t i = 0; i < cardIdSize; i++) {
+				if (lastCardId[i] != 0) {
+					isResetState = false;
+					break;
+				}
+			}
+
+			if (isResetState) {
+				// Accept immediately after reset
+			} else if (memcmp((const void *) cardId, (const void *) pendingCardId, sizeof(cardId)) != 0) {
+				memcpy(pendingCardId, cardId, cardIdSize);
+				pendingCardCount = 1;
+				// Reset state machine to check again in next cycle
+				if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
+					stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+				} else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
+					stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+				}
+				continue;
+			} else {
+				if (pendingCardCount < 1) { // Require at least 2 identical reads (first read + 1 verification)
+					pendingCardCount++;
+					if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
+						stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+					} else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
+						stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+					}
+					continue;
+				}
+			}
+			// If we reach here, the card ID is stable
+			pendingCardCount = 0;
 
 			memcpy(lastCardId, cardId, cardIdSize);
 			showDisablePrivacyNotification = true;
@@ -423,7 +473,7 @@ void RfidPn5180_WakeupCheck(void) {
 		// uint8_t[10] -> char[cardIdStringSize]
 		char tagId[cardIdStringSize];
 		size_t pos = 0;
-		for (size_t i = 0; i < 10; i++) {
+		for (size_t i = 0; i < cardIdSize; i++) {
 			pos += snprintf(tagId + pos, cardIdStringSize - pos, "%03d", uid[i]);
 		}
 		tagId[cardIdStringSize - 1] = '\0';

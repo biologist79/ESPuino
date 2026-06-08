@@ -11,6 +11,7 @@
 #include "Log.h"
 #include "Mqtt.h"
 #include "Queues.h"
+#include "Rfid.h"
 #include "System.h"
 #include "Wlan.h"
 
@@ -384,51 +385,61 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_01: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_01, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_02: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_02, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_03: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_03, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_04: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_04, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_05: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_05, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_06: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_06, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_07: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_07, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_08: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_08, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_09: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_09, 0);
 			break;
 		}
 
 		case CMD_VIRTUAL_RFID_CARD_10: {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, VIRTUAL_RFID_CARD_10, 0);
 			break;
 		}

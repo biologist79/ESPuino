@@ -99,7 +99,10 @@ void Rfid_PreferenceLookupHandler(void) {
 }
 
 void Rfid_ResetOldRfid() {
+	Log_Println("RFID: Resetting old card state", LOGLEVEL_INFO);
+	strncpy(gCurrentRfidTagId, "000000000000", cardIdStringSize - 1);
 	strncpy(gOldRfidTagId, "X", cardIdStringSize - 1);
+	Rfid_TaskReset();
 }
 
 #if defined(RFID_READER_TYPE_RUNTIME)

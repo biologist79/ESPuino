@@ -963,9 +963,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
 		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
-		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid(); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
-		}
+		Rfid_ResetOldRfid(); // Reset reader task so it can immediately recognize the tag if it's already present
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
@@ -2158,9 +2156,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playModeString = param->value();
 
 		playMode = atoi(playModeString.c_str());
-		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid();
-		}
+		Rfid_ResetOldRfid();
 		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);

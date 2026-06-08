@@ -25,6 +25,7 @@
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 static void RfidMfrc522_Task(void *parameter);
+static bool mfrcTaskResetRequested = false;
 
 	#if defined(RFID_READER_TYPE_RUNTIME)
 extern TwoWire i2cBusTwo;
@@ -74,13 +75,19 @@ void RfidMfrc522_Init(uint8_t readerType) {
 
 void RfidMfrc522_TaskReset(void) {
 	Rfid_LastRfidCheckTimestamp = millis();
+	mfrcTaskResetRequested = true;
 }
 
 template <typename Reader>
 static void RfidMfrc522_TaskImpl(Reader &reader) {
 	uint8_t control = 0x00;
+	static byte lastValidcardId[cardIdSize];
 
 	for (;;) {
+		if (mfrcTaskResetRequested) {
+			memset(lastValidcardId, 0, sizeof(lastValidcardId));
+			mfrcTaskResetRequested = false;
+		}
 		if (RFID_SCAN_INTERVAL / 2 >= 20) {
 			vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
 		} else {
@@ -88,7 +95,6 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 		}
 		byte cardId[cardIdSize];
 		String cardIdString;
-		byte lastValidcardId[cardIdSize];
 		bool sameCardReapplied = false;
 		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));

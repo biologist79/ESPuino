@@ -1,0 +1,76 @@
+#######################################
+# Syntax Coloring Map For PN5180-Library
+####################################### 
+# Class
+#######################################
+
+PN5180	KEYWORD1
+PN5180ISO15693	KEYWORD1
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+writeRegister	KEYWORD2
+writeRegisterWithOrMask	KEYWORD2
+writeRegisterWithAndMask	KEYWORD2
+readRegister	KEYWORD2
+readEprom	KEYWORD2
+sendData	KEYWORD2
+readData	KEYWORD2
+loadRFConfig	KEYWORD2
+setRF_on	KEYWORD2
+setRF_off	KEYWORD2
+getIRQStatus	KEYWORD2
+getTransceiveState	KEYWORD2
+transceiveCommand	KEYWORD2
+
+issueISO15693Command		KEYWORD2
+getInventory		KEYWORD2
+getInventoryMultiple		KEYWORD2
+getInventoryPoll		KEYWORD2
+readSingleBlock		KEYWORD2
+writeSingleBlock		KEYWORD2
+readMultipleBlock		KEYWORD2
+getSystemInfo		KEYWORD2
+setupRF		KEYWORD2
+
+#######################################
+# Constants
+#######################################
+
+PN5180_NSS	LITERAL1
+PN5180_BUSY	LITERAL1
+PN5180_RST	LITERAL1
+
+PN5180_SPI_SETTINGS	LITERAL1
+
+PN5180TransceiveStat	LITERAL1
+PN5180_TS_Idle		LITERAL1
+PN5180_TS_WaitTransmit		LITERAL1
+PN5180_TS_Transmitting		LITERAL1
+PN5180_TS_WaitReceive		LITERAL1
+PN5180_TS_WaitForData		LITERAL1
+PN5180_TS_Receiving		LITERAL1
+PN5180_TS_LoopBack		LITERAL1
+PN5180_TS_RESERVED		LITERAL1
+
+SYSTEM_CONFIG	LITERAL1
+IRQ_ENABLE	LITERAL1
+IRQ_STATUS	LITERAL1
+IRQ_CLEAR	LITERAL1
+TRANSCEIVE_CONTROL	LITERAL1
+TIMER1_RELOAD	LITERAL1
+TIMER1_CONFIG	LITERAL1
+RX_WAIT_CONFIG	LITERAL1
+CRC_RX_CONFIG	LITERAL1
+RX_STATUS	LITERAL1
+RF_STATUS	LITERAL1
+SYSTEM_STATUS	LITERAL1
+TEMP_CONTROL	LITERAL1
+
+DIE_IDENTIFIER	LITERAL1
+PRODUCT_VERSION	LITERAL1
+FIRMWARE_VERSION	LITERAL1
+EEPROM_VERSION	LITERAL1
+IRQ_PIN_CONFIG	LITERAL1

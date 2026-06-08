@@ -106,6 +106,7 @@ void recoverLastRfidPlayedFromNvs(bool force) {
 		if (!lastRfidPlayed.compareTo("-1")) {
 			Log_Println(unableToRestoreLastRfidFromNVS, LOGLEVEL_INFO);
 		} else {
+			Rfid_ResetOldRfid();
 			xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
 			gPlayLastRfIdWhenWiFiConnected = !force;
 			Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());

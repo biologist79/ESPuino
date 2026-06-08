@@ -292,7 +292,8 @@ void Wlan_Init(void) {
 
 void connectToKnownNetwork(const WiFiSettings &settings, const uint8_t *bssid = nullptr) {
 	// set hostname on connect, because when resetting wifi config elsewhere it could be reset
-	const String hostname = getHostname();
+	static String hostname;
+	hostname = getHostname();
 	if (hostname) {
 		WiFi.setHostname(hostname.c_str());
 	}
