@@ -45,9 +45,14 @@ bool gButtonInitComplete = false;
 #elif (BUTTON_5 >= 100 && BUTTON_5 <= 115)
 	#define EXPANDER_5_ENABLE
 #endif
+#if (BUTTON_6 >= 0 && BUTTON_6 <= MAX_GPIO)
+	#define BUTTON_6_ENABLE
+#elif (BUTTON_6 >= 100 && BUTTON_6 <= 115)
+	#define EXPANDER_6_ENABLE
+#endif
 
 // Allocate gButtons in PSRAM if available
-EXT_RAM_BSS_ATTR t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+EXT_RAM_BSS_ATTR t_button gButtons[8]; // next + prev + pplay + rotEnc + button4 + button5 + button6 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
 uint16_t gLongPressTime = 0;
 
@@ -85,6 +90,8 @@ void Button_Init() {
 	gShutdownButton = 4;
 	#elif (defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)) && (BUTTON_5_LONG == CMD_SLEEPMODE)
 	gShutdownButton = 5;
+	#elif (defined(BUTTON_6_ENABLE) || defined(EXPANDER_6_ENABLE)) && (BUTTON_6_LONG == CMD_SLEEPMODE)
+	gShutdownButton = 6;
 	#endif
 #endif
 
@@ -131,6 +138,13 @@ void Button_Init() {
 		pinMode(BUTTON_5, INPUT_PULLUP);
 	}
 #endif
+#ifdef BUTTON_6_ENABLE
+	if (BUTTON_6_ACTIVE_STATE) {
+		pinMode(BUTTON_6, INPUT);
+	} else {
+		pinMode(BUTTON_6, INPUT_PULLUP);
+	}
+#endif
 
 	// Create 1000Hz-HW-Timer (currently only used for buttons)
 	Button_TimerSemaphore = xSemaphoreCreateBinary();
@@ -165,6 +179,9 @@ static void Button_ReadAllStates(void) {
 #endif
 #if defined(BUTTON_5_ENABLE) || defined(EXPANDER_5_ENABLE)
 	gButtons[5].currentState = Port_Read(BUTTON_5) ^ BUTTON_5_ACTIVE_STATE;
+#endif
+#if defined(BUTTON_6_ENABLE) || defined(EXPANDER_6_ENABLE)
+	gButtons[6].currentState = Port_Read(BUTTON_6) ^ BUTTON_6_ACTIVE_STATE;
 #endif
 }
 
@@ -228,16 +245,22 @@ static const struct {
 	{0, 3, "btnMulti03", BUTTON_MULTI_03},
 	{0, 4, "btnMulti04", BUTTON_MULTI_04},
 	{0, 5, "btnMulti05", BUTTON_MULTI_05},
+	{0, 6, "btnMulti06", BUTTON_MULTI_06},
 	{1, 2, "btnMulti12", BUTTON_MULTI_12},
 	{1, 3, "btnMulti13", BUTTON_MULTI_13},
 	{1, 4, "btnMulti14", BUTTON_MULTI_14},
 	{1, 5, "btnMulti15", BUTTON_MULTI_15},
+	{1, 6, "btnMulti16", BUTTON_MULTI_16},
 	{2, 3, "btnMulti23", BUTTON_MULTI_23},
 	{2, 4, "btnMulti24", BUTTON_MULTI_24},
 	{2, 5, "btnMulti25", BUTTON_MULTI_25},
+	{2, 6, "btnMulti26", BUTTON_MULTI_26},
 	{3, 4, "btnMulti34", BUTTON_MULTI_34},
 	{3, 5, "btnMulti35", BUTTON_MULTI_35},
+	{3, 6, "btnMulti36", BUTTON_MULTI_36},
 	{4, 5, "btnMulti45", BUTTON_MULTI_45},
+	{4, 6, "btnMulti46", BUTTON_MULTI_46},
+	{5, 6, "btnMulti56", BUTTON_MULTI_56},
 };
 
 // Check for multi-button combinations and execute corresponding action
@@ -266,6 +289,7 @@ static const struct {
 	{"btnShort3", "btnLong3", BUTTON_3_SHORT, BUTTON_3_LONG},
 	{"btnShort4", "btnLong4", BUTTON_4_SHORT, BUTTON_4_LONG},
 	{"btnShort5", "btnLong5", BUTTON_5_SHORT, BUTTON_5_LONG},
+	{"btnShort6", "btnLong6", BUTTON_6_SHORT, BUTTON_6_LONG},
 };
 
 // Handle a single button's short/long press action
@@ -318,7 +342,7 @@ void Button_DoButtonActions(void) {
 	}
 
 	unsigned long currentTimestamp = millis();
-	for (uint8_t i = 0; i < 7; i++) {
+	for (uint8_t i = 0; i < 8; i++) {
 		if (gButtons[i].isPressed) {
 			Button_HandleSinglePress(i, currentTimestamp);
 		}

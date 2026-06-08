@@ -68,6 +68,7 @@
 	#define ROTARYENCODER_BUTTON			105		// rotary encoder's button
 	#define BUTTON_4						103		// Button 4: unnamed optional button
 	#define BUTTON_5						104		// Button 5: unnamed optional button
+	#define BUTTON_6						109		// Button 6: unnamed optional button
 
 	//#define BUTTONS_LED                 	109		// Powers the LEDs of the buttons. (ext.7)
 

@@ -94,6 +94,7 @@
 		3: ROTARYENCODER_BUTTON
 		4: BUTTON_4
 		5: BUTTON_5
+		6: BUTTON_6
 
 	Don't forget to enable/configure those buttons you want to use in your develboard-specific config (e.g. settings-custom.h)
 
@@ -118,6 +119,7 @@
 	#define BUTTON_3_SHORT    CMD_MEASUREBATTERY
 	#define BUTTON_4_SHORT    CMD_SEEK_BACKWARDS
 	#define BUTTON_5_SHORT    CMD_SEEK_FORWARDS
+	#define BUTTON_6_SHORT    CMD_NOTHING
 
 	#define BUTTON_0_LONG     CMD_LASTTRACK
 	#define BUTTON_1_LONG     CMD_FIRSTTRACK
@@ -125,22 +127,29 @@
 	#define BUTTON_3_LONG     CMD_SLEEPMODE
 	#define BUTTON_4_LONG     CMD_VOLUMEUP
 	#define BUTTON_5_LONG     CMD_VOLUMEDOWN
+	#define BUTTON_6_LONG     CMD_NOTHING
 
 	#define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
 	#define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
 	#define BUTTON_MULTI_03   CMD_NOTHING
 	#define BUTTON_MULTI_04   CMD_NOTHING
 	#define BUTTON_MULTI_05   CMD_NOTHING
+	#define BUTTON_MULTI_06   CMD_NOTHING
 	#define BUTTON_MULTI_12   CMD_TELL_IP_ADDRESS
 	#define BUTTON_MULTI_13   CMD_NOTHING
 	#define BUTTON_MULTI_14   CMD_NOTHING
 	#define BUTTON_MULTI_15   CMD_NOTHING
+	#define BUTTON_MULTI_16   CMD_NOTHING
 	#define BUTTON_MULTI_23   CMD_NOTHING
 	#define BUTTON_MULTI_24   CMD_NOTHING
 	#define BUTTON_MULTI_25   CMD_NOTHING
+	#define BUTTON_MULTI_26   CMD_NOTHING
 	#define BUTTON_MULTI_34   CMD_NOTHING
 	#define BUTTON_MULTI_35   CMD_NOTHING
+	#define BUTTON_MULTI_36   CMD_NOTHING
 	#define BUTTON_MULTI_45   CMD_NOTHING
+	#define BUTTON_MULTI_46   CMD_NOTHING
+	#define BUTTON_MULTI_56   CMD_NOTHING
 
 	//#################### Various settings ##############################
 
@@ -168,6 +177,7 @@
 	#define BUTTON_3_ACTIVE_STATE 0
 	#define BUTTON_4_ACTIVE_STATE 0
 	#define BUTTON_5_ACTIVE_STATE 0
+	#define BUTTON_6_ACTIVE_STATE 0
 
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 	#define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked

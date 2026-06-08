@@ -61,7 +61,8 @@
 			"button2": "Play/Pause-Taste (Btn2)",
 			"button3": "Drehimpulsgeber-Taste (Btn3)",
 			"button4": "Btn4-Taste",
-			"button5": "Btn5-Taste"
+			"button5": "Btn5-Taste",
+			"button6": "Btn6-Taste"
 		},
 		"multibuttons": {
 			"title": "Multi-Taster Zuordnungen",
@@ -70,16 +71,22 @@
 			"03": "0+3 (Next + Drehimpulsgeber)",
 			"04": "0+4 (Next + Btn4)",
 			"05": "0+5 (Next + Btn5)",
+			"06": "0+6 (Next + Btn6)",
 			"12": "1+2 (Prev + Play/Pause)",
 			"13": "1+3 (Prev + Drehimpulsgeber)",
 			"14": "1+4 (Prev + Btn4)",
 			"15": "1+5 (Prev + Btn5)",
+			"16": "1+6 (Prev + Btn6)",
 			"23": "2+3 (Play/Pause + Drehimpulsgeber)",
 			"24": "2+4 (Play/Pause + Btn4)",
 			"25": "2+5 (Play/Pause + Btn5)",
+			"26": "2+6 (Play/Pause + Btn6)",
 			"34": "3+4 (Drehimpulsgeber + Btn4)",
 			"35": "3+5 (Drehimpulsgeber + Btn5)",
-			"45": "4+5 (Btn4 + Btn5)"
+			"36": "3+6 (Drehimpulsgeber + Btn6)",
+			"45": "4+5 (Btn4 + Btn5)",
+			"46": "4+6 (Btn4 + Btn6)",
+			"56": "5+6 (Btn5 + Btn6)"
 		},
 		"rotary": {
 			"title": "Drehimpulsgeber",

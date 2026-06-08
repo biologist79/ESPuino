@@ -779,27 +779,35 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("btnShort3", buttonsObj["short3"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnShort4", buttonsObj["short4"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnShort5", buttonsObj["short5"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnShort6", buttonsObj["short6"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong0", buttonsObj["long0"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong1", buttonsObj["long1"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong2", buttonsObj["long2"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong3", buttonsObj["long3"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong4", buttonsObj["long4"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong5", buttonsObj["long5"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnLong6", buttonsObj["long6"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti01", buttonsObj["multi01"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti02", buttonsObj["multi02"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti03", buttonsObj["multi03"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti04", buttonsObj["multi04"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti05", buttonsObj["multi05"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti06", buttonsObj["multi06"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti12", buttonsObj["multi12"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti13", buttonsObj["multi13"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti14", buttonsObj["multi14"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti15", buttonsObj["multi15"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti16", buttonsObj["multi16"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti23", buttonsObj["multi23"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti24", buttonsObj["multi24"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti25", buttonsObj["multi25"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti26", buttonsObj["multi26"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti34", buttonsObj["multi34"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti35", buttonsObj["multi35"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti36", buttonsObj["multi36"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti45", buttonsObj["multi45"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti46", buttonsObj["multi46"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("btnMulti56", buttonsObj["multi56"].as<uint8_t>()) != 0);
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "buttons");
@@ -1106,27 +1114,35 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsObj["short3"].set(gPrefsSettings.getUChar("btnShort3", BUTTON_3_SHORT));
 		buttonsObj["short4"].set(gPrefsSettings.getUChar("btnShort4", BUTTON_4_SHORT));
 		buttonsObj["short5"].set(gPrefsSettings.getUChar("btnShort5", BUTTON_5_SHORT));
+		buttonsObj["short6"].set(gPrefsSettings.getUChar("btnShort6", BUTTON_6_SHORT));
 		buttonsObj["long0"].set(gPrefsSettings.getUChar("btnLong0", BUTTON_0_LONG));
 		buttonsObj["long1"].set(gPrefsSettings.getUChar("btnLong1", BUTTON_1_LONG));
 		buttonsObj["long2"].set(gPrefsSettings.getUChar("btnLong2", BUTTON_2_LONG));
 		buttonsObj["long3"].set(gPrefsSettings.getUChar("btnLong3", BUTTON_3_LONG));
 		buttonsObj["long4"].set(gPrefsSettings.getUChar("btnLong4", BUTTON_4_LONG));
 		buttonsObj["long5"].set(gPrefsSettings.getUChar("btnLong5", BUTTON_5_LONG));
+		buttonsObj["long6"].set(gPrefsSettings.getUChar("btnLong6", BUTTON_6_LONG));
 		buttonsObj["multi01"].set(gPrefsSettings.getUChar("btnMulti01", BUTTON_MULTI_01));
 		buttonsObj["multi02"].set(gPrefsSettings.getUChar("btnMulti02", BUTTON_MULTI_02));
 		buttonsObj["multi03"].set(gPrefsSettings.getUChar("btnMulti03", BUTTON_MULTI_03));
 		buttonsObj["multi04"].set(gPrefsSettings.getUChar("btnMulti04", BUTTON_MULTI_04));
 		buttonsObj["multi05"].set(gPrefsSettings.getUChar("btnMulti05", BUTTON_MULTI_05));
+		buttonsObj["multi06"].set(gPrefsSettings.getUChar("btnMulti06", BUTTON_MULTI_06));
 		buttonsObj["multi12"].set(gPrefsSettings.getUChar("btnMulti12", BUTTON_MULTI_12));
 		buttonsObj["multi13"].set(gPrefsSettings.getUChar("btnMulti13", BUTTON_MULTI_13));
 		buttonsObj["multi14"].set(gPrefsSettings.getUChar("btnMulti14", BUTTON_MULTI_14));
 		buttonsObj["multi15"].set(gPrefsSettings.getUChar("btnMulti15", BUTTON_MULTI_15));
+		buttonsObj["multi16"].set(gPrefsSettings.getUChar("btnMulti16", BUTTON_MULTI_16));
 		buttonsObj["multi23"].set(gPrefsSettings.getUChar("btnMulti23", BUTTON_MULTI_23));
 		buttonsObj["multi24"].set(gPrefsSettings.getUChar("btnMulti24", BUTTON_MULTI_24));
 		buttonsObj["multi25"].set(gPrefsSettings.getUChar("btnMulti25", BUTTON_MULTI_25));
+		buttonsObj["multi26"].set(gPrefsSettings.getUChar("btnMulti26", BUTTON_MULTI_26));
 		buttonsObj["multi34"].set(gPrefsSettings.getUChar("btnMulti34", BUTTON_MULTI_34));
 		buttonsObj["multi35"].set(gPrefsSettings.getUChar("btnMulti35", BUTTON_MULTI_35));
+		buttonsObj["multi36"].set(gPrefsSettings.getUChar("btnMulti36", BUTTON_MULTI_36));
 		buttonsObj["multi45"].set(gPrefsSettings.getUChar("btnMulti45", BUTTON_MULTI_45));
+		buttonsObj["multi46"].set(gPrefsSettings.getUChar("btnMulti46", BUTTON_MULTI_46));
+		buttonsObj["multi56"].set(gPrefsSettings.getUChar("btnMulti56", BUTTON_MULTI_56));
 	}
 	if ((section == "") || (section == "rotary")) {
 		// Rotary encoder
@@ -1216,27 +1232,35 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsSettings["short3"].set(BUTTON_3_SHORT);
 		buttonsSettings["short4"].set(BUTTON_4_SHORT);
 		buttonsSettings["short5"].set(BUTTON_5_SHORT);
+		buttonsSettings["short6"].set(BUTTON_6_SHORT);
 		buttonsSettings["long0"].set(BUTTON_0_LONG);
 		buttonsSettings["long1"].set(BUTTON_1_LONG);
 		buttonsSettings["long2"].set(BUTTON_2_LONG);
 		buttonsSettings["long3"].set(BUTTON_3_LONG);
 		buttonsSettings["long4"].set(BUTTON_4_LONG);
 		buttonsSettings["long5"].set(BUTTON_5_LONG);
+		buttonsSettings["long6"].set(BUTTON_6_LONG);
 		buttonsSettings["multi01"].set(BUTTON_MULTI_01);
 		buttonsSettings["multi02"].set(BUTTON_MULTI_02);
 		buttonsSettings["multi03"].set(BUTTON_MULTI_03);
 		buttonsSettings["multi04"].set(BUTTON_MULTI_04);
 		buttonsSettings["multi05"].set(BUTTON_MULTI_05);
+		buttonsSettings["multi06"].set(BUTTON_MULTI_06);
 		buttonsSettings["multi12"].set(BUTTON_MULTI_12);
 		buttonsSettings["multi13"].set(BUTTON_MULTI_13);
 		buttonsSettings["multi14"].set(BUTTON_MULTI_14);
 		buttonsSettings["multi15"].set(BUTTON_MULTI_15);
+		buttonsSettings["multi16"].set(BUTTON_MULTI_16);
 		buttonsSettings["multi23"].set(BUTTON_MULTI_23);
 		buttonsSettings["multi24"].set(BUTTON_MULTI_24);
 		buttonsSettings["multi25"].set(BUTTON_MULTI_25);
+		buttonsSettings["multi26"].set(BUTTON_MULTI_26);
 		buttonsSettings["multi34"].set(BUTTON_MULTI_34);
 		buttonsSettings["multi35"].set(BUTTON_MULTI_35);
+		buttonsSettings["multi36"].set(BUTTON_MULTI_36);
 		buttonsSettings["multi45"].set(BUTTON_MULTI_45);
+		buttonsSettings["multi46"].set(BUTTON_MULTI_46);
+		buttonsSettings["multi56"].set(BUTTON_MULTI_56);
 #ifdef USEROTARY_ENABLE
 		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
 		rotarySettings["reverse"].set(false); // REVERSE_ROTARY
