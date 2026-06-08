@@ -231,10 +231,6 @@ void Button_Cyclic() {
 	Port_Cyclic();
 #endif
 
-	if (System_AreControlsLocked()) {
-		return;
-	}
-
 	Button_ReadAllStates();
 
 	for (uint8_t i = 0; i < sizeof(gButtons) / sizeof(gButtons[0]); i++) {

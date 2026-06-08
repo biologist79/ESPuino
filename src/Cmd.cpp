@@ -32,6 +32,9 @@ static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char 
 }
 
 void Cmd_Action(const uint16_t mod) {
+	if (System_AreControlsLocked() && (mod != CMD_LOCK_BUTTONS_MOD)) {
+		return;
+	}
 	switch (mod) {
 		case CMD_LOCK_BUTTONS_MOD: { // Locks/unlocks all buttons
 			System_ToggleLockControls();
