@@ -215,8 +215,8 @@ static void Button_UpdateState(uint8_t i, t_button &btn, unsigned long currentTi
 			btn.lastReleasedTimestamp = currentTimestamp;
 			btn.firstPressedTimestamp = 0;
 		}
+		btn.lastState = btn.currentState;
 	}
-	btn.lastState = btn.currentState;
 }
 
 // If timer-semaphore is set, read buttons (unless controls are locked)
