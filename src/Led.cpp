@@ -830,7 +830,7 @@ AnimationReturnType Animation_VoltageWarning(const bool startNewAnimation, CRGBS
 AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &leds) {
 	// return values
 	bool animationActive = false;
-	bool refresh = false;
+	bool animationRefresh = false;
 	int32_t animationDelay = 0;
 	// static vars
 	static uint8_t ledPosWebstream = 0;
@@ -852,7 +852,7 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 		}
 		animationDelay = 10;
 		timerProgress = 0; // directly show new animation after pause
-		refresh = true;
+		animationRefresh = true;
 	} else {
 		if (startNewAnimation || timerProgress == 0) {
 			leds = CRGB::Black;
@@ -880,7 +880,7 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 					}
 				}
 			}
-			refresh = true;
+			animationRefresh = true;
 		}
 		timerProgress--;
 		animationDelay = 45;
@@ -888,7 +888,7 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 			animationActive = true;
 		}
 	}
-	return AnimationReturnType(animationActive, animationDelay, refresh);
+	return AnimationReturnType(animationActive, animationDelay, animationRefresh);
 }
 
 // --------------------------------
@@ -897,7 +897,7 @@ AnimationReturnType Animation_Webstream(const bool startNewAnimation, CRGBSet &l
 AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds) {
 	// return values
 	bool animationActive = false;
-	bool refresh = false;
+	bool animationRefresh = false;
 	int32_t animationDelay = 0;
 	// static vars
 	static uint16_t animationIndex = 0;
@@ -910,14 +910,14 @@ AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds
 
 		if (animationIndex < (leds.size())) {
 			leds[Led_Address(leds.size() - 1 - animationIndex)] = CRGB::Black;
-			refresh = true;
+			animationRefresh = true;
 			animationDelay = 30;
 			animationIndex++;
 		} else {
 			animationActive = false;
 		}
 	}
-	return AnimationReturnType(animationActive, animationDelay, refresh);
+	return AnimationReturnType(animationActive, animationDelay, animationRefresh);
 }
 
 // --------------------------------
@@ -925,33 +925,29 @@ AnimationReturnType Animation_Rewind(const bool startNewAnimation, CRGBSet &leds
 // --------------------------------
 AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGBSet &leds) {
 	// return values
-	int32_t animationDelay = 0;
+	int32_t animationDelay = 120;
 	bool animationActive = true;
-	bool refresh = true;
+	bool animationRefresh = true;
+
 	// static vars
-	static int16_t ledIndex = 0;
-	// this can be removed to always continue on the last position in idle
+	static int16_t step = 0;
+
 	if (startNewAnimation) {
-		ledIndex = 0;
+		step = 0;
 	}
 
-	if (ledIndex < leds.size()) {
-		CRGB::HTMLColorCode idleColor = Led_GetIdleColor();
-		leds = CRGB::Black;
-		Led_DrawIdleDots(leds, ledIndex, idleColor);
-		if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
-			// animate a bit faster in BT-Source to distinguish between the bluetooth modes
-			animationDelay = 30 * 10;
-		} else {
-			animationDelay = 50 * 10;
+	CRGB idleColor = (CRGB)Led_GetIdleColor();
+
+	leds.fadeToBlackBy(40);
+	if (leds.size() > 0) {
+		int16_t idx = (leds.size() - 1) - (step % leds.size());
+		if (idx >= 0 && idx < leds.size()) {
+			leds[idx] = idleColor;
 		}
-		ledIndex++;
-	} else {
-		animationActive = false;
-		refresh = false;
-		ledIndex = 0;
+		step = (step + 1) % leds.size();
 	}
-	return AnimationReturnType(animationActive, animationDelay, refresh);
+
+	return AnimationReturnType(animationActive, animationDelay, animationRefresh);
 }
 
 // --------------------------------
@@ -1245,7 +1241,7 @@ AnimationReturnType Animation_PlaylistProgress(const bool startNewAnimation, CRG
 AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, CRGBSet &leds) {
 	// return-values
 	static bool animationActive = false;
-	bool refresh = false;
+	bool animationRefresh = false;
 	int32_t animationDelay = 0;
 	// static variables for animation
 	static float staticBatteryLevel = 0.0f; // variable to store the measured battery-voltage
@@ -1267,7 +1263,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 		filledLedCount = 0;
 		animationActive = true;
 		leds = CRGB::Black;
-		refresh = true;
+		animationRefresh = true;
 	}
 	if (gLedSettings.numIndicatorLeds == 1) {
 		if (staticBatteryLevel < 0.3) {
@@ -1277,7 +1273,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 		} else {
 			leds[0] = CRGB::Green;
 		}
-		refresh = true;
+		animationRefresh = true;
 
 		animationDelay = 20 * 100;
 		animationActive = false;
@@ -1293,7 +1289,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 			} else {
 				leds[Led_Address(filledLedCount)] = CRGB::Green;
 			}
-			refresh = true;
+			animationRefresh = true;
 
 			filledLedCount++;
 			animationDelay = 20;
@@ -1302,7 +1298,7 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 			animationActive = false;
 		}
 	}
-	return AnimationReturnType(animationActive, animationDelay, refresh);
+	return AnimationReturnType(animationActive, animationDelay, animationRefresh);
 }
 #endif
 

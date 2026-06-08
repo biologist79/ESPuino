@@ -1096,9 +1096,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["numControl"].set(numControlLeds);
 		if (numControlLeds > 0) {
 			// get control led colors from NVS
-			std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+			std::vector<uint32_t> controlLedColors = CONTROL_LEDS_COLORS;
 			size_t keySize = gPrefsSettings.getBytesLength("controlColors");
-			if (keySize == (numControlLeds * sizeof(CRGB::HTMLColorCode))) {
+			if (keySize == (numControlLeds * sizeof(uint32_t))) {
 				controlLedColors.resize(numControlLeds);
 				gPrefsSettings.getBytes("controlColors", controlLedColors.data(), keySize);
 			}
@@ -1237,7 +1237,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["offsetStart"].set(0);
 	#endif
 		JsonArray colorArr = ledSettings["controlColors"].to<JsonArray>();
-		std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+		std::vector<uint32_t> controlLedColors = CONTROL_LEDS_COLORS;
 		for (uint8_t controlLed = 0; controlLed < controlLedColors.size(); controlLed++) {
 			colorArr.add(controlLedColors[controlLed]);
 		}

@@ -219,7 +219,7 @@
 		#define CHIPSET					WS2812B     	// type of Neopixel
 		#define COLOR_ORDER				GRB
 		#define NUM_LEDS_IDLE_DOTS		4           	// count of LEDs, which are shown when Idle
-		#define IDLE_COLOR			CRGB::White	// color of the idle dots
+		#define IDLE_COLOR			0xFFFFFF	// color of the idle dots
 		#define OFFSET_PAUSE_LEDS		false		// if true the pause-leds are centered in the mid of the LED-Strip
 		#define PROGRESS_COLOR_START		0x00FF00	// start color of the progress bar
 		#define PROGRESS_COLOR_END		0xFF0000	// end color of the progress bar
