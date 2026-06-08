@@ -309,6 +309,10 @@ void System_ShowWakeUpReason() {
 	}
 }
 
+bool System_IsColdStart() {
+	return (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_UNDEFINED);
+}
+
 void System_esp_print_tasks(void) {
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 	char *pbuffer = x_calloc(2048, 1);

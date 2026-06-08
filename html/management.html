@@ -1063,6 +1063,9 @@
 									data-i18n="[data-bs-content]general.options.volumeCurveExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+							<br>
+							<label for="readyPath" data-i18n="general.options.readypath"></label>
+							<input type="text" class="form-control" id="readyPath" name="readyPath">
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
@@ -2555,6 +2558,9 @@
 				if (genSettings.mfrc522Gain !== undefined) {
 					document.getElementById('mfrc522Gain').value = genSettings.mfrc522Gain;
 				}
+				if (genSettings.readyPath !== undefined) {
+					document.getElementById('readyPath').value = genSettings.readyPath;
+				}
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2971,7 +2977,8 @@
 					rfidReaderType: Number($('#rfidReaderType').val()),
 					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
 					slix2Password: $('#slix2Password').val(),
-					mfrc522Gain: Number($('#mfrc522Gain').val())
+					mfrc522Gain: Number($('#mfrc522Gain').val()),
+					readyPath: document.getElementById('readyPath').value
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),

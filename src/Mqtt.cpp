@@ -456,6 +456,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		// New track to play? Take RFID-ID as input
 		else if (reduced_topic_str == topicRfid) {
 			if (payload_str.size() >= (cardIdStringSize - 1)) {
+				Rfid_ResetOldRfid();
 				xQueueSend(gRfidCardQueue, payload_str.data(), 0);
 			} else {
 				System_IndicateError();

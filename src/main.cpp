@@ -189,6 +189,10 @@ void setup() {
 	System_UpdateActivityTimer(); // initial set after boot
 	Led_Indicate(LedIndicatorType::BootComplete);
 
+	if (System_IsColdStart()) {
+		AudioPlayer_PlayReadyMsg();
+	}
+
 	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", freeHeapAfterSetup, ESP.getFreeHeap());
 	if (psramFound()) {
 		Log_Printf(LOGLEVEL_DEBUG, "PSRAM: %u bytes", ESP.getPsramSize());

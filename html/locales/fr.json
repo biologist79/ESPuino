@@ -412,7 +412,8 @@
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
 			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
 			"volumeCurve": "Des nuances plus fines à faible volume",
-			"volumeCurveExp": "Utilisation du calcul logarithmique du volume. Peut aider si les nuances sont trop grossières dans la plage de volume inférieure."
+			"volumeCurveExp": "Utilisation du calcul logarithmique du volume. Peut aider si les nuances sont trop grossières dans la plage de volume inférieure.",
+			"readypath": "Chemin vers le MP3 de bienvenue"
 		},
 		"neopixel": {
 			"title": "Neopixel (luminosité)",

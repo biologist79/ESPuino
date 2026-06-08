@@ -423,7 +423,8 @@
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
 			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
 			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",
-			"volumeCurveExp": "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
+			"volumeCurveExp": "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind.",
+			"readypath": "Pfad zur Begrüßungs-MP3 (Kaltstart)"
 		},
 		"neopixel": {
 			"title": "Neopixel (Helligkeit)",

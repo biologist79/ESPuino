@@ -71,6 +71,7 @@ void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPas
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);
+void AudioPlayer_PlayReadyMsg(void);
 
 playlistSortMode AudioPlayer_GetPlaylistSortMode(void);
 bool AudioPlayer_SetPlaylistSortMode(playlistSortMode value);

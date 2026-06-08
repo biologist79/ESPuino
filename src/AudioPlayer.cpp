@@ -629,7 +629,6 @@ void AudioPlayer_Loop() {
 		if (newPlayListAvailable) {
 			newPlayListAvailable = false;
 			audio->stopSong();
-			Rfid_ResetOldRfid();
 
 			// destroy the old playlist and assign the new one
 			freePlaylist(gPlayProperties.playlist);
@@ -1229,6 +1228,18 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 			if (oldVolume == AudioPlayer_GetMinVolume() && newVolume > AudioPlayer_GetMinVolume()) {
 				Cmd_Action(CMD_PLAYPAUSE);
 			}
+		}
+	}
+}
+
+void AudioPlayer_PlayReadyMsg(void) {
+	if (audio != nullptr) {
+		String path = gPrefsSettings.getString("readyPath", "/ready.mp3");
+		if (path.length() > 0 && gFSystem.exists(path)) {
+			Log_Printf(LOGLEVEL_INFO, "Audio: Playing ready sound from %s", path.c_str());
+			audio->connecttoFS(gFSystem, path.c_str());
+		} else {
+			Log_Printf(LOGLEVEL_NOTICE, "Audio: Ready sound not found at %s", path.c_str());
 		}
 	}
 }

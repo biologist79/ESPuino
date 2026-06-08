@@ -425,7 +425,8 @@
 			"recoverVolBoot": "Use last volume at restart",
 			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
 			"volumeCurve": "Finer gradations at low volume",
-			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse."
+			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse.",
+			"readypath": "Path to ready MP3 (cold start)"
 		},
 		"neopixel": {
 			"title": "Neopixel (brightness)",
