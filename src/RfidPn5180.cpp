@@ -119,11 +119,19 @@ void RfidPn5180_TaskReset(void) {
 	rfidTaskResetRequested = true;
 }
 
+// Number of consecutive failed read attempts before a card is considered removed.
+// Counting attempts instead of wall-clock time keeps removal detection fast
+// (~200-400 ms at the usual polling rate) while staying immune to single ghost
+// misses and to wall-clock gaps caused by task starvation under load.
+#define RFID_CARD_REMOVAL_MISS_THRESHOLD 10u
+
 void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
 	uint32_t lastTimeDetected14443 = 0;
 	uint32_t lastTimeDetected15693 = 0;
+	uint8_t misses14443 = 0;
+	uint8_t misses15693 = 0;
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
@@ -160,6 +168,8 @@ void RfidPn5180_Task(void *parameter) {
 			// Ensure we don't trigger a removal event during reset
 			lastTimeDetected14443 = millis();
 			lastTimeDetected15693 = millis();
+			misses14443 = 0;
+			misses15693 = 0;
 			rfidTaskResetRequested = false;
 			stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
 		}
@@ -196,14 +206,21 @@ void RfidPn5180_Task(void *parameter) {
 			if (nfc14443.readCardSerial(uid) >= 4) {
 				cardReceived = true;
 				stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
+				if (misses14443 > 0) {
+					// helps tuning RFID_CARD_REMOVAL_MISS_THRESHOLD: how long do phantom dropouts really last?
+					Log_Printf(LOGLEVEL_DEBUG, "ISO-14443: read gap of %lu ms bridged after %u missed reads", millis() - lastTimeDetected14443, misses14443);
+					misses14443 = 0;
+				}
 				lastTimeDetected14443 = millis();
 				cardAppliedCurrentRun = true;
 			} else {
 				// Reset to dummy-value if no card is there
 				// Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
-				// lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 2500)) {
+				// A card is only considered removed after several consecutive failed read attempts,
+				// so single ghost misses don't trigger a removal event.
+				if (!lastTimeDetected14443 || (++misses14443 >= RFID_CARD_REMOVAL_MISS_THRESHOLD)) {
 					lastTimeDetected14443 = 0;
+					misses14443 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
 						lastCardId[i] = 0;
@@ -236,12 +253,19 @@ void RfidPn5180_Task(void *parameter) {
 			if (rc == ISO15693_EC_OK) {
 				cardReceived = true;
 				stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
+				if (misses15693 > 0) {
+					// helps tuning RFID_CARD_REMOVAL_MISS_THRESHOLD: how long do phantom dropouts really last?
+					Log_Printf(LOGLEVEL_DEBUG, "ISO-15693: read gap of %lu ms bridged after %u missed reads", millis() - lastTimeDetected15693, misses15693);
+					misses15693 = 0;
+				}
 				lastTimeDetected15693 = millis();
 				cardAppliedCurrentRun = true;
 			} else {
-				// lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 2500)) {
+				// A card is only considered removed after several consecutive failed read attempts,
+				// so single ghost misses don't trigger a removal event.
+				if (!lastTimeDetected15693 || (++misses15693 >= RFID_CARD_REMOVAL_MISS_THRESHOLD)) {
 					lastTimeDetected15693 = 0;
+					misses15693 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
 						lastCardId[i] = 0;
