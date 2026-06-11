@@ -1605,7 +1605,7 @@
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="ftpStart()"
+						<button type="button" class="btn btn-primary" id="ftpModeBtn" onclick="ftpSetStatus(1)"
 							data-i18n="ftp.start.button"></button>
 					</div>
 				</div>
@@ -3180,6 +3180,9 @@
 					currentOpMode = socketMsg.opmode;
 					updateOperationModeIndicator(socketMsg.opmode);
 				}
+				if ("ftpStatus" in socketMsg) {
+					updateFtpButton(socketMsg.ftpStatus.running);
+				}
 				if ("volume" in socketMsg) {
 					volumeSlider.setValue(parseInt(socketMsg.volume));
 				}
@@ -3880,14 +3883,26 @@
 			toaster.info(i18next.t("toast.saved"));
 		}
 
-		function ftpStart() {
+		function ftpSetStatus(start) {
 			var myObj = {
 				"ftpStatus": {
-					start: 1
+					start: start
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+		}
+
+		/* Turns the FTP start button into a stop button while the server is running */
+		function updateFtpButton(running) {
+			const btn = document.getElementById('ftpModeBtn');
+			btn.setAttribute('data-i18n', running ? 'ftp.start.stopButton' : 'ftp.start.button');
+			btn.onclick = () => ftpSetStatus(running ? 0 : 1);
+			btn.classList.toggle('btn-danger', running);
+			btn.classList.toggle('btn-primary', !running);
+			if (localize) {
+				localize('#ftpModeBtn');
+			}
 		}
 
 		async function mqttSettings(clickedId) {

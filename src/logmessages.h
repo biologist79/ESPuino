@@ -172,6 +172,7 @@ extern const char trackPausedAtPos[];
 extern const char freeHeapWithoutFtp[];
 extern const char freeHeapWithFtp[];
 extern const char ftpServerStarted[];
+extern const char ftpServerStopped[];
 extern const char freeHeapAfterSetup[];
 extern const char tryStaticIpConfig[];
 extern const char staticIPConfigFailed[];

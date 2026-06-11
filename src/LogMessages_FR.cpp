@@ -173,6 +173,7 @@ const char freeHeapWithoutFtp[] = "Espace libre avant l'allocation FTP : %u";
 const char freeHeapWithFtp[] = "Espace libre après l'allocation FTP : %u";
 const char freeHeapAfterSetup[] = "Espace libre après la configuration";
 const char ftpServerStarted[] = "Serveur FTP démarré";
+const char ftpServerStopped[] = "Serveur FTP arrêté";
 const char tryStaticIpConfig[] = "Configuration IP statique en cours...";
 const char staticIPConfigFailed[] = "Échec de la configuration IP statique";
 const char wakeUpRfidNoCard[] = "Réveil causé par la détection de carte à faible puissance. Le champ RF a changé mais aucune carte connu sur le lecteur n'a été trouvée. Je vais donc retourner en mode veille maintenant...";

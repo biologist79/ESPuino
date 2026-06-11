@@ -319,7 +319,8 @@
 		"start": {
 			"title": "Démarrer serveur FTP",
 			"desc": "Active le serveur FTP jusqu'au redémarrage du périphérique.",
-			"button": "Démarrer le serveur FTP"
+			"button": "Démarrer le serveur FTP",
+			"stopButton": "Arrêter le serveur FTP"
 		}
 	},
 	"bt": {

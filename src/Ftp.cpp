@@ -95,6 +95,31 @@ void Ftp_EnableServer(void) {
 	}
 }
 
+void Ftp_DisableServer(void) {
+#ifdef FTP_ENABLE
+	if (ftpEnableLastStatus || ftpEnableCurrentStatus) {
+		if (ftpSrv != NULL) {
+			delete ftpSrv; // also closes the listening socket and all client connections
+			ftpSrv = NULL;
+		}
+		ftpEnableLastStatus = false;
+		ftpEnableCurrentStatus = false;
+		Log_Println(ftpServerStopped, LOGLEVEL_NOTICE);
+		System_IndicateOk();
+	} else {
+		System_IndicateError();
+	}
+#endif
+}
+
+bool Ftp_IsServerRunning(void) {
+#ifdef FTP_ENABLE
+	return ftpEnableLastStatus;
+#else
+	return false;
+#endif
+}
+
 // Creates FTP-instance only when requested
 void ftpManager(void) {
 #ifdef FTP_ENABLE

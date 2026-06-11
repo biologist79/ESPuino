@@ -872,7 +872,10 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		uint8_t _ftpStart = doc["ftpStatus"]["start"].as<uint8_t>();
 		if (_ftpStart == 1) { // ifdef FTP_ENABLE is checked in Ftp_EnableServer()
 			Ftp_EnableServer();
+		} else {
+			Ftp_DisableServer();
 		}
+		Web_SendWebsocketData(0, WebsocketCodeType::FtpStatus); // broadcast new status to all clients
 	}
 	if (doc["mqtt"].is<JsonObject>()) {
 		uint8_t _mqttEnable = doc["mqtt"]["enable"].as<uint8_t>();
@@ -1613,6 +1616,9 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		object["bt_scan"] = "in_progress";
 	} else if (code == WebsocketCodeType::BluetoothScanComplete) {
 		object["bt_scan"] = "complete";
+	} else if (code == WebsocketCodeType::FtpStatus) {
+		JsonObject entry = object["ftpStatus"].to<JsonObject>();
+		entry["running"] = Ftp_IsServerRunning();
 	};
 
 	if (doc.overflowed()) {
@@ -1647,6 +1653,7 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 		Log_Printf(LOGLEVEL_DEBUG, "ws[%s][%u] connect", server->url(), client->id());
 		// Send initial operation mode and RSSI to newly connected client
 		Web_SendWebsocketData(client->id(), WebsocketCodeType::OperationMode);
+		Web_SendWebsocketData(client->id(), WebsocketCodeType::FtpStatus);
 		// client->printf("Hello Client %u :)", client->id());
 		// client->ping();
 	} else if (type == WS_EVT_DISCONNECT) {

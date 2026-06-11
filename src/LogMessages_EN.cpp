@@ -175,6 +175,7 @@ const char freeHeapWithoutFtp[] = "Free heap before FTP-allocation: %u";
 const char freeHeapWithFtp[] = "Free heap after FTP-allocation: %u";
 const char freeHeapAfterSetup[] = "Free heap after setup";
 const char ftpServerStarted[] = "FTP-Server started";
+const char ftpServerStopped[] = "FTP-Server stopped";
 const char tryStaticIpConfig[] = "Performing IP-configuration...";
 const char staticIPConfigFailed[] = "IP-configuration failed";
 const char wakeUpRfidNoCard[] = "Wakeup caused by low power card-detection. RF-field changed but no known card on reader was found. So I'll return back to sleep now...";

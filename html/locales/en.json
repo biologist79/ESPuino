@@ -327,7 +327,8 @@
 		"start": {
 			"title": "Start FTP-server",
 			"desc": "Enables FTP-server until device is restarted.",
-			"button": "Start FTP-server"
+			"button": "Start FTP-server",
+			"stopButton": "Stop FTP server"
 		}
 	},
 	"bt": {

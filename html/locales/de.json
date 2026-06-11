@@ -326,7 +326,8 @@
 		"start": {
 			"title": "FTP-Server starten",
 			"desc": "Aktiviert den FTP-Server bis zum Neustart des Geräts.",
-			"button": "FTP-Server starten"
+			"button": "FTP-Server starten",
+			"stopButton": "FTP-Server stoppen"
 		}
 	},
 	"bt": {

@@ -173,6 +173,7 @@ const char trackPausedAtPos[] = "Titel pausiert bei Position: %u (%u)";
 const char freeHeapWithoutFtp[] = "Freier Heap-Speicher vor FTP-Instanzierung: %u";
 const char freeHeapWithFtp[] = "Freier Heap-Speicher nach FTP-Instanzierung: %u";
 const char ftpServerStarted[] = "FTP-Server gestartet";
+const char ftpServerStopped[] = "FTP-Server gestoppt";
 const char freeHeapAfterSetup[] = "Freier Heap-Speicher nach Setup-Routine";
 const char tryStaticIpConfig[] = "Statische IP-Konfiguration wird durchgeführt...";
 const char staticIPConfigFailed[] = "Statische IP-Konfiguration fehlgeschlagen";

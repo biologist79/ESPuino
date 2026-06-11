@@ -7,3 +7,5 @@ void Ftp_Init(void);
 void Ftp_Exit(void);
 void Ftp_Cyclic(void);
 void Ftp_EnableServer(void);
+void Ftp_DisableServer(void);
+bool Ftp_IsServerRunning(void);
