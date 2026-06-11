@@ -223,6 +223,8 @@
 					"140": "Basculer le haut-parleur Bluetooth",
 					"141": "Basculer le casque Bluetooth",
 					"142": "Basculer le mode (Normal => Haut-parleur BT => Casque Bluetooth)",
+					"143": "Démarrer comme enceinte Bluetooth",
+					"144": "Démarrer en mode casque Bluetooth",
 					"150": "Activer FTP",
 					"151": "Annoncer l'adresse IP",
 					"152": "Annoncer l'heure actuelle",
@@ -321,16 +323,11 @@
 		}
 	},
 	"bt": {
-		"normal": {
-			"title": "Quitter le mode Bluetooth",
-			"desc": "Retourne au mode normal avec fonctionnalité WiFi. La musique de la carte SD et les flux web peuvent être lus.",
-			"button": "Quitter le mode Bluetooth",
-			"indicator": "Mode WiFi (RSSI: {{rssi}} dBm)"
-		},
 		"sink": {
 			"title": "ESPuino en tant que haut-parleur Bluetooth",
 			"desc": "ESPuino est démarré en tant que haut-parleur Bluetooth.",
 			"button": "Démarrer en tant que haut-parleur Bluetooth",
+			"stopButton": "Arrêter l'enceinte Bluetooth",
 			"indicator": "Mode haut-parleur Bluetooth"
 		},
 		"source": {
@@ -338,6 +335,7 @@
 			"title": "Connecter avec un casque Bluetooth",
 			"desc": "Le périphérique se connecte au casque Bluetooth spécifié.",
 			"button": "Démarrer en mode casque",
+			"stopButton": "Arrêter le mode casque",
 			"indicator": "Mode casque Bluetooth"
 		},
 		"scan": {

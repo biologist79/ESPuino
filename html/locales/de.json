@@ -230,6 +230,8 @@
 					"140": "Bluetooth-Lautsprecher aktivieren/deaktivieren",
 					"141": "Bluetooth-Kopfhörer aktivieren/deaktivieren",
 					"142": "Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
+					"143": "Als Bluetooth-Lautsprecher starten",
+					"144": "Bluetooth-Kopfhörer-Modus starten",
 					"150": "Aktiviere FTP",
 					"151": "IP-Adresse ansagen",
 					"152": "Uhrzeit ansagen",
@@ -328,16 +330,11 @@
 		}
 	},
 	"bt": {
-		"normal": {
-			"title": "Bluetooth-Modus verlassen",
-			"desc": "Kehrt zum normalen Modus mit WiFi-Funktionalität zurück. Musik von SD-Karte und Webstreams können abgespielt werden.",
-			"button": "Bluetooth-Modus verlassen",
-			"indicator": "WiFi-Modus (RSSI: {{rssi}} dBm)"
-		},
 		"sink": {
 			"title": "ESPuino als Bluetooth-Lautsprecher",
 			"desc": "ESPuino wird als Bluetooth-Lautsprecher gestartet.",
 			"button": "Als Bluetooth-Lautsprecher starten",
+			"stopButton": "Bluetooth-Lautsprecher stoppen",
 			"indicator": "Bluetooth-Lautsprecher Modus"
 		},
 		"source": {
@@ -345,6 +342,7 @@
 			"title": "Mit Bluetooth-Kopfhörer verbinden",
 			"desc": "Das Gerät verbindet sich mit dem angegebenen Bluetooth-Kopfhörer.",
 			"button": "Im Kopfhörer-Modus starten",
+			"stopButton": "Kopfhörer-Modus stoppen",
 			"indicator": "Bluetooth-Kopfhörer Modus"
 		},
 		"scan": {

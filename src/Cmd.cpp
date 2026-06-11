@@ -243,6 +243,26 @@ void Cmd_Action(const uint16_t mod) {
 			}
 			break;
 		}
+		case CMD_ENTER_BLUETOOTH_SINK_MODE: {
+			// Switches to bluetooth sink (speaker) mode from any mode; switches back to normal mode if already active
+			System_IndicateOk();
+			if (System_GetOperationModeFromNvs() != OPMODE_BLUETOOTH_SINK) {
+				System_SetOperationMode(OPMODE_BLUETOOTH_SINK);
+			} else {
+				System_SetOperationMode(OPMODE_NORMAL);
+			}
+			break;
+		}
+		case CMD_ENTER_BLUETOOTH_SOURCE_MODE: {
+			// Switches to bluetooth source (headphone) mode from any mode; switches back to normal mode if already active
+			System_IndicateOk();
+			if (System_GetOperationModeFromNvs() != OPMODE_BLUETOOTH_SOURCE) {
+				System_SetOperationMode(OPMODE_BLUETOOTH_SOURCE);
+			} else {
+				System_SetOperationMode(OPMODE_NORMAL);
+			}
+			break;
+		}
 #endif
 
 #ifdef FTP_ENABLE

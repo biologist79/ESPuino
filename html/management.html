@@ -1613,18 +1613,6 @@
 		</div>
 		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
-			<div class="container" id="btBackToNormal" style="display: none;">
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
-					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
-					<br>
-					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
-							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
-					</div>
-				</div>
-				<hr>
-			</div>
 			<div class="container" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
@@ -1667,7 +1655,7 @@
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
+						<button type="button" class="btn btn-primary" id="btSourceModeBtn" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
 				</div>
@@ -1679,7 +1667,7 @@
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
 					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
+						<button type="button" class="btn btn-primary" id="btSinkModeBtn" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
@@ -3100,29 +3088,38 @@
 		var volumeSlider = new Slider("#setVolume");
 		document.getElementById('setVolume').remove();
 
+		/* Turns a "start mode X" button into a "stop mode X" button while its mode is active */
+		function updateModeButton(id, active, startKey, stopKey, startMode) {
+			const btn = document.getElementById(id);
+			btn.setAttribute('data-i18n', active ? stopKey : startKey);
+			btn.onclick = () => setOperationMode(active ? 0 : startMode);
+			btn.classList.toggle('btn-danger', active);
+			btn.classList.toggle('btn-primary', !active);
+			if (localize) {
+				localize('#' + id);
+			}
+		}
+
 		function updateOperationModeIndicator(opmode) {
 			const btStartSource = document.getElementById('btStartSource');
 			const btStartSink = document.getElementById('btStartSink');
+
+			updateModeButton('btSinkModeBtn', opmode === 1, 'bt.sink.button', 'bt.sink.stopButton', 1);
+			updateModeButton('btSourceModeBtn', opmode === 2, 'bt.source.button', 'bt.source.stopButton', 2);
 
 			// OPMODE_NORMAL = 0, OPMODE_BLUETOOTH_SINK = 1, OPMODE_BLUETOOTH_SOURCE = 2
 			if (opmode === 0) {
 				// Normal mode - no active panel
 				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
 				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Hide back to normal section
-				document.getElementById('btBackToNormal').style.display = 'none';
 			} else if (opmode === 1) {
 				// Bluetooth Sink - highlight sink panel
 				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
 				btStartSink.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
 			} else if (opmode === 2) {
 				// Bluetooth Source - highlight source panel
 				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
 				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
 			}
 		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
@@ -3518,7 +3515,7 @@
 				document.getElementById('btPinCode').value = btSettings.pinCode;
 				// make BT commands visible in button command selects
 				document.querySelectorAll('[id*=cmdselect_], #modId').forEach(select => {
-					select.querySelectorAll('option[value="140"], option[value="141"], option[value="142"]').forEach(option => {
+					select.querySelectorAll('option[value="140"], option[value="141"], option[value="142"], option[value="143"], option[value="144"]').forEach(option => {
 						option.style.display = '';
 					});
 				});
@@ -4490,10 +4487,10 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
-				if ([140, 141, 142].includes(cmd)) {
+				if ([140, 141, 142, 143, 144].includes(cmd)) {
 					// initially hide bluetooth commands, will be shown when bt is enabled
 					opt.style.display = 'none';
 				}
@@ -4504,10 +4501,10 @@
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
 				const opt = addOption(modElem, mod);
-				if ([140, 141, 142].includes(mod)) {
+				if ([140, 141, 142, 143, 144].includes(mod)) {
 					opt.style.display = 'none';
 				}
 			}
