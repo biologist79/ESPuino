@@ -28,6 +28,7 @@ HTML_DIR = ROOT_DIR / "html"
 BINARY_FILES = [
     Path("management.html"),
     Path("accesspoint.html"),
+    Path("logo.svg"),
     Path("js/i18next.min.js"),
     Path("js/i18nextHttpBackend.min.js"),
     Path("REST_API.yaml"),

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+	<defs>
+		<filter id="g" x="-40%" y="-40%" width="180%" height="180%">
+			<feGaussianBlur stdDeviation="3" result="b"/>
+			<feMerge>
+				<feMergeNode in="b"/>
+				<feMergeNode in="SourceGraphic"/>
+			</feMerge>
+		</filter>
+	</defs>
+	<!-- angular emblem plate with cut corner -->
+	<path d="M10 10 H98 L118 30 V118 H10 Z" fill="#05070d"/>
+	<path d="M10 10 H98 L118 30 V118 H10 Z" fill="none" stroke="#00f0ff" stroke-width="5" filter="url(#g)"/>
+	<path d="M98 10 L118 30" stroke="#ff2a6d" stroke-width="5" filter="url(#g)"/>
+	<!-- L monogram -->
+	<path d="M38 32 V96 H92" fill="none" stroke="#00f0ff" stroke-width="12" filter="url(#g)"/>
+	<!-- AT-1 tick: magenta dash + unit stroke -->
+	<path d="M62 56 H92" stroke="#ff2a6d" stroke-width="8" filter="url(#g)"/>
+	<circle cx="92" cy="56" r="6" fill="#ff2a6d" filter="url(#g)"/>
+</svg>
