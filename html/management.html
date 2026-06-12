@@ -218,6 +218,19 @@
 			text-shadow: 0 0 8px rgba(0, 240, 255, .6);
 		}
 
+		#batteryIndicator {
+			color: var(--cp-green);
+			font-family: "Share Tech Mono", monospace;
+			font-size: .9rem;
+			text-shadow: 0 0 8px rgba(10, 255, 157, .5);
+		}
+
+		#batteryIndicator.battery-low {
+			color: var(--cp-magenta);
+			text-shadow: 0 0 8px rgba(255, 42, 109, .6);
+			animation: cp-flicker 3s linear infinite;
+		}
+
 		/* ---------- dropdown menu ---------- */
 		.dropdown-menu {
 			background: var(--cp-panel);
@@ -1023,6 +1036,9 @@
 				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
 			<div class="collapse navbar-collapse justify-content-end">
+				<span class="navbar-text" id="batteryIndicator" data-visible="false">
+					<i class="fas fa-battery-three-quarters" id="batteryIcon"></i><span id="batteryLevel"></span>
+				</span>
 				<ul class="navbar-nav">
 					<li class="nav-item">
 						<button class="btn dropdown-toggle border-0 text-white" id="menuToggle"
@@ -3193,6 +3209,9 @@
 				if ("ftpStatus" in socketMsg) {
 					updateFtpButton(socketMsg.ftpStatus.running);
 				}
+				if ("battery" in socketMsg) {
+					updateBatteryIndicator(socketMsg.battery);
+				}
 				if ("volume" in socketMsg) {
 					volumeSlider.setValue(parseInt(socketMsg.volume));
 				}
@@ -4260,6 +4279,33 @@
 			}
 			return dDisplay + hDisplay + mDisplay;
 		}
+		var batteryLowWarned = false;
+		function updateBatteryIndicator(battery) {
+			const indicator = document.getElementById('batteryIndicator');
+			const level = Math.round(battery.level);
+			let icon = 'fa-battery-empty';
+			if (level >= 87) {
+				icon = 'fa-battery-full';
+			} else if (level >= 62) {
+				icon = 'fa-battery-three-quarters';
+			} else if (level >= 37) {
+				icon = 'fa-battery-half';
+			} else if (level >= 12) {
+				icon = 'fa-battery-quarter';
+			}
+			document.getElementById('batteryIcon').className = 'fas ' + icon;
+			document.getElementById('batteryLevel').textContent = level + '%';
+			indicator.title = battery.voltage.toFixed(2) + ' V';
+			indicator.classList.toggle('battery-low', battery.low === true);
+			indicator.setAttribute('data-visible', true);
+			if (battery.low && !batteryLowWarned) {
+				batteryLowWarned = true;
+				toaster.warning(i18next.t('toast.batteryLow', { level: level }));
+			} else if (!battery.low) {
+				batteryLowWarned = false;
+			}
+		}
+
 		async function refreshSdCapacity() {
 			try {
 				const info = await (await fetch("http://" + host + "/info?section=sdcard")).json();

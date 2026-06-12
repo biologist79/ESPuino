@@ -1590,8 +1590,12 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	} else if (code == WebsocketCodeType::Pong) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
-		// todo: battery percent + loading status +++
-		// object["battery"] = Battery_GetVoltage();
+#ifdef BATTERY_MEASURE_ENABLE
+		JsonObject batteryObj = object["battery"].to<JsonObject>();
+		batteryObj["voltage"] = Battery_GetVoltage();
+		batteryObj["level"] = Battery_EstimateLevel() * 100;
+		batteryObj["low"] = Battery_IsLow();
+#endif
 	} else if (code == WebsocketCodeType::OperationMode) {
 		object["opmode"] = System_GetOperationMode();
 	} else if (code == WebsocketCodeType::TrackInfo) {

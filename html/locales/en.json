@@ -18,6 +18,7 @@
 	"shutdowninfo": "ESPuino is now switched off...<br>Page reloads automatically when the ESPuino is switched on again.",
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
+		"batteryLow": "Battery low: {{level}} % remaining",
 		"success": "Action performed successfully.",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
 		"dropout": "slow stream, dropouts are possible.",

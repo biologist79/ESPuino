@@ -18,6 +18,7 @@
 	"shutdowninfo": "ESPuino wird jetzt ausgeschaltet...<br>Die Seite lädt sich nach dem Wiedereinschalten automatisch neu.",
 	"toast": {
 		"rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
+		"batteryLow": "Akku schwach: noch {{level}} %",
 		"success": "Aktion erfolgreich ausgeführt.",
 		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
