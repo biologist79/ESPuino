@@ -4484,12 +4484,19 @@
 			}
 			$('#modalInfoContent').html(content);
 		}
+		var liveLogInterval;
 		async function fetchLog() {
 			let logtext = await (await fetch("http://" + host + "/log")).text();
-			$('#modalLogContent').text(logtext);
-			jQuery('#modalLogContent').animate({
-				scrollTop: 999999
-			});
+			const content = document.getElementById('modalLogContent');
+			if (content.textContent === logtext) {
+				return;
+			}
+			// keep the scroll position unless the user is following the end of the log
+			const follow = (content.scrollHeight - content.scrollTop - content.clientHeight) < 40;
+			content.textContent = logtext;
+			if (follow) {
+				content.scrollTop = content.scrollHeight;
+			}
 		}
 
 		function setTitle(newTitle) {
@@ -4542,9 +4549,17 @@
 				fetchLog();
 				$('.modal-title').text(i18next.t("log"));
 				$("#modalLogContent").css("font-family", "monospace");
-				$('#modalLogRefresh').on('click', fetchLog);
 				new bootstrap.Modal(document.getElementById('modalLog')).toggle();
 			})
+			$('#modalLogRefresh').on('click', fetchLog);
+			/* live-update the log while the dialog is open */
+			$('#modalLog').on('shown.bs.modal', function () {
+				clearInterval(liveLogInterval);
+				liveLogInterval = setInterval(fetchLog, 2000);
+			});
+			$('#modalLog').on('hidden.bs.modal', function () {
+				clearInterval(liveLogInterval);
+			});
 			$('#modalLogDownload').on('click', function () {
 				const blob = new Blob([document.getElementById('modalLogContent').textContent], {
 					type: 'text/plain'
