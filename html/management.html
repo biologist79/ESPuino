@@ -884,6 +884,11 @@
 			overflow-y: scroll;
 		}
 
+		.filetree.cp-dropzone {
+			border-color: var(--cp-cyan);
+			box-shadow: inset 0 0 24px rgba(0, 240, 255, .15), 0 0 12px rgba(0, 240, 255, .35);
+		}
+
 		.filetree-size {
 			height: 200px;
 		}
@@ -2718,6 +2723,34 @@
 				}
 			});
 		});
+		/* Drag & drop upload: drop files from the file manager onto the tree to
+		 * upload them into the currently selected folder */
+		(function () {
+			const tree = document.getElementById('explorerTree');
+			['dragenter', 'dragover'].forEach(eventName => tree.addEventListener(eventName, (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				tree.classList.add('cp-dropzone');
+			}));
+			['dragleave', 'drop'].forEach(eventName => tree.addEventListener(eventName, (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				tree.classList.remove('cp-dropzone');
+			}));
+			tree.addEventListener('drop', (e) => {
+				// filter out directories (they appear as files without type and size)
+				const files = Array.from(e.dataTransfer.files).filter(f => f.size > 0 || f.type !== "");
+				if (!files.length) {
+					return;
+				}
+				const dataTransfer = new DataTransfer();
+				files.forEach(f => dataTransfer.items.add(f));
+				const input = document.getElementById('uploaded_file');
+				input.files = dataTransfer.files;
+				document.getElementById('uploaded_file_text').innerHTML = files.map(f => f.name).join(', ');
+				$('#explorerUploadForm').trigger('submit');
+			});
+		})();
 		/* File Upload */
 		$('#explorerUploadForm').submit(function (e) {
 			e.preventDefault();
