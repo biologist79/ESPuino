@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<defs>
+		<filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+			<feGaussianBlur stdDeviation="10" result="b"/>
+			<feMerge>
+				<feMergeNode in="b"/>
+				<feMergeNode in="SourceGraphic"/>
+			</feMerge>
+		</filter>
+		<pattern id="scan" width="6" height="6" patternUnits="userSpaceOnUse">
+			<rect width="6" height="3" fill="#000000" opacity="0.18"/>
+		</pattern>
+	</defs>
+	<!-- full-bleed background so iOS has no transparent margins to fill with white -->
+	<rect width="512" height="512" fill="#05070d"/>
+	<rect width="512" height="512" fill="url(#scan)"/>
+	<!-- inset panel accent with cut corner -->
+	<path d="M32 32 H420 L480 92 V480 H32 Z" fill="none" stroke="#1e2c4a" stroke-width="8"/>
+	<path d="M420 32 L480 92" stroke="#00f0ff" stroke-width="8"/>
+	<!-- neon ring -->
+	<circle cx="256" cy="256" r="150" fill="none" stroke="#00f0ff" stroke-width="14" filter="url(#glow)"/>
+	<!-- play triangle, optically centered -->
+	<path d="M210 176 L350 256 L210 336 Z" fill="#ff2a6d" filter="url(#glow)"/>
+	<!-- corner accents -->
+	<path d="M64 120 V64 H120" fill="none" stroke="#ff2a6d" stroke-width="10"/>
+	<path d="M392 448 H448 V392" fill="none" stroke="#ff2a6d" stroke-width="10"/>
+</svg>

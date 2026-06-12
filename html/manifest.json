@@ -1,0 +1,17 @@
+{
+	"name": "LEO INDUSTRIES AT-1",
+	"short_name": "Leoino",
+	"description": "ESPuino based RFID audio player",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#05070d",
+	"theme_color": "#05070d",
+	"icons": [
+		{
+			"src": "/appicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		}
+	]
+}

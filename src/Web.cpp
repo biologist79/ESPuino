@@ -526,7 +526,8 @@ void webserverStart(void) {
 				return next();
 			}
 			const String &url = request->url();
-			if (url.equals("/login") || url.equals("/logo") || url.equals("/favicon.ico")) {
+			if (url.equals("/login") || url.equals("/logo") || url.equals("/logo.svg") || url.equals("/favicon.ico") || url.equals("/manifest.json") || url.equals("/appicon.svg")) {
+				// manifest/icon: the browser fetches the web-app-manifest without cookies
 				return next();
 			}
 			if (Web_IsAuthenticated(request)) {
