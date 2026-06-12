@@ -71,9 +71,10 @@ struct LedSettings {
 	uint8_t numControlLeds = NUM_CONTROL_LEDS;
 	std::vector<uint32_t> controlLedColors;
 	uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
+	uint32_t idleColor = IDLE_COLOR;
 	bool offsetLedPause = OFFSET_PAUSE_LEDS;
-	int16_t progressHueStart = PROGRESS_HUE_START;
-	int16_t progressHueEnd = PROGRESS_HUE_END;
+	uint32_t progressColorStart = PROGRESS_COLOR_START;
+	uint32_t progressColorEnd = PROGRESS_COLOR_END;
 	int16_t atmoHue = ATMO_HUE;
 	int16_t atmoSaturation = ATMO_SATURATION;
 	uint8_t dimmableStates = DIMMABLE_STATES;

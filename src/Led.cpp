@@ -27,7 +27,7 @@
 	#define LED_VOLUME_INDICATOR_RETURN_DELAY 1000U
 	#define LED_VOLUME_INDICATOR_NUM_CYCLES	  (LED_VOLUME_INDICATOR_RETURN_DELAY / 20)
 
-extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+extern t_button gButtons[8]; // next + prev + pplay + rotEnc + button4 + button5 + button6 + dummy-button
 extern uint8_t gShutdownButton;
 
 static std::atomic<uint32_t> Led_Indicators = 0u;
@@ -108,15 +108,19 @@ bool Led_LoadSettings(LedSettings &settings) {
 		settings.numIdleDots = 4;
 	}
 
+	// Get the idle color from NVS
+	settings.idleColor = gPrefsSettings.getUInt("idleColor", IDLE_COLOR);
+
 	// Get offset LED pause from NVS
 	settings.offsetLedPause = gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS);
 
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
 
-	// get hue start/end from NVS
-	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
-	settings.progressHueEnd = gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END);
+	// get progress colors from NVS
+	settings.progressColorStart = gPrefsSettings.getUInt("progColorStart", PROGRESS_COLOR_START);
+	settings.progressColorEnd = gPrefsSettings.getUInt("progColorEnd", PROGRESS_COLOR_END);
+
 	// get atmo light from NVS
 	settings.atmoHue = gPrefsSettings.getShort("hueAtmo", ATMO_HUE);
 	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", ATMO_SATURATION);
@@ -369,7 +373,7 @@ CRGB::HTMLColorCode Led_GetIdleColor() {
 		} else {
 			idleColor = CRGB::Green;
 			if (Wlan_IsConnected()) {
-				idleColor = CRGB::White;
+				idleColor = (CRGB::HTMLColorCode)gLedSettings.idleColor;
 			}
 		}
 	}
@@ -1037,7 +1041,7 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 		lastPos = gPlayProperties.currentRelPos;
 		leds = CRGB::Black;
 		if (gLedSettings.numIndicatorLeds == 1) {
-			leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+			leds[0] = blend((CRGB)gLedSettings.progressColorStart, (CRGB)gLedSettings.progressColorEnd, (uint8_t)(gPlayProperties.currentRelPos * 255 / 100));
 		} else {
 			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
 			const uint8_t fullLeds = ledValue / gLedSettings.dimmableStates;
@@ -1045,15 +1049,15 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
-				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
-					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
+				} else if (!gPlayProperties.pausePlay) {
+					leds[Led_Address(led)] = blend((CRGB)gLedSettings.progressColorStart, (CRGB)gLedSettings.progressColorEnd, (led * 255) / (leds.size() - 1));
 				}
 			}
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
 				} else {
-					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
+					leds[Led_Address(fullLeds)] = blend((CRGB)gLedSettings.progressColorStart, (CRGB)gLedSettings.progressColorEnd, (fullLeds * 255) / (leds.size() - 1));
 				}
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
 			}

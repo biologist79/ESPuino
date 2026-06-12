@@ -748,9 +748,10 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("numIndicator", ledObj["numIndicator"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("idleColor", ledObj["idleColor"].as<uint32_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
-		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
-		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("progColorStart", ledObj["progColorStart"].as<uint32_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("progColorEnd", ledObj["progColorEnd"].as<uint32_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueAtmo", ledObj["hueAtmo"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("satAtmo", ledObj["satAtmo"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
@@ -1103,9 +1104,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 			}
 		}
 		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS));
+		ledObj["idleColor"].set(gPrefsSettings.getUInt("idleColor", IDLE_COLOR));
 		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS));
-		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START));
-		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END));
+		ledObj["progColorStart"].set(gPrefsSettings.getUInt("progColorStart", PROGRESS_COLOR_START));
+		ledObj["progColorEnd"].set(gPrefsSettings.getUInt("progColorEnd", PROGRESS_COLOR_END));
 		ledObj["hueAtmo"].set(gPrefsSettings.getShort("hueAtmo", ATMO_HUE));
 		ledObj["satAtmo"].set(gPrefsSettings.getShort("satAtmo", ATMO_SATURATION));
 		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES));
@@ -1211,9 +1213,10 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["numIndicator"].set(NUM_INDICATOR_LEDS); // NUM_INDICATOR_LEDS
 		ledSettings["numControl"].set(NUM_CONTROL_LEDS); // NUM_CONTROL_LEDS
 		ledSettings["numIdleDots"].set(NUM_LEDS_IDLE_DOTS); // NUM_LEDS_IDLE_DOTS
+		ledSettings["idleColor"].set(IDLE_COLOR); // IDLE_COLOR
 		ledSettings["offsetPause"].set(OFFSET_PAUSE_LEDS); // OFFSET_PAUSE_LEDS
-		ledSettings["hueStart"].set(PROGRESS_HUE_START); // PROGRESS_HUE_START
-		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
+		ledSettings["progColorStart"].set(PROGRESS_COLOR_START); // PROGRESS_COLOR_START
+		ledSettings["progColorEnd"].set(PROGRESS_COLOR_END); // PROGRESS_COLOR_END
 		ledSettings["hueAtmo"].set(ATMO_HUE);
 		ledSettings["satAtmo"].set(ATMO_SATURATION);
 		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES

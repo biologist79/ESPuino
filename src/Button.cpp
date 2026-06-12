@@ -71,6 +71,7 @@ static void onTimer();
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
+	memset(gButtons, 0, sizeof(gButtons));
 #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
 	if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0)) {
 		Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, WAKEUP_BUTTON);
@@ -342,7 +343,7 @@ void Button_DoButtonActions(void) {
 	}
 
 	unsigned long currentTimestamp = millis();
-	for (uint8_t i = 0; i < 8; i++) {
+	for (uint8_t i = 0; i < sizeof(buttonCmdConfig) / sizeof(buttonCmdConfig[0]); i++) {
 		if (gButtons[i].isPressed) {
 			Button_HandleSinglePress(i, currentTimestamp);
 		}
