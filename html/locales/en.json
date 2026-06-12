@@ -396,8 +396,13 @@
 			},
 			"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically.",
 			"pn5180Lpcd": "Enable PN5180 LPCD",
-			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
+			"pn5180LpcdExp": "Enables Low Power Card Detection for PN5180 RFID reader. Only possible if solder jumpers are set correctly.",
+			"slix2Password": {
+				"title": "SLIX2 Password",
+				"description": "8-digit password in hexadecimal format (e.g. 01020304) for reading SLIX2 tags."
+			},
 			"mfrc522Gain": "MFRC522 Gain",
+
 			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7."
 		},
 		"options": {

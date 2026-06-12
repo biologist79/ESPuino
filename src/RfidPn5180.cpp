@@ -100,7 +100,7 @@ void RfidPn5180_Init(void) {
 		xTaskCreatePinnedToCore(
 			RfidPn5180_Task, /* Function to implement the task */
 			"rfid", /* Name of the task */
-			3072, /* Stack size in words */
+			4096, /* Stack size in words */
 			NULL, /* Task input parameter */
 			2 | portPRIVILEGE_BIT, /* Priority of the task */
 			&rfidTaskHandle, /* Task handle. */
@@ -128,6 +128,19 @@ void RfidPn5180_Task(void *parameter) {
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
 	uint8_t uid[10];
 	bool showDisablePrivacyNotification = true;
+
+	// SLIX2 Password caching
+	uint8_t password[8] = {0x0F, 0x0F, 0x0F, 0x0F, 0x00, 0x00, 0x00, 0x00};
+	uint8_t passwordLength = 4;
+
+	String savedPwd = gPrefsRfid.getString("slix2Pwd", "");
+	if (savedPwd.length() >= 8) {
+		passwordLength = (savedPwd.length() >= 16) ? 8 : 4;
+		for (uint8_t i = 0; i < passwordLength; i++) {
+			char hex[3] = {savedPwd[i * 2], savedPwd[i * 2 + 1], '\0'};
+			password[i] = (uint8_t) strtol(hex, NULL, 16);
+		}
+	}
 
 	// wait until queues are created
 	while (gRfidCardQueue == NULL) {
@@ -193,12 +206,6 @@ void RfidPn5180_Task(void *parameter) {
 			nfc15693.setupRF();
 		} else if (RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE == stateMachine) {
 			// check for ICODE-SLIX2 password protected tag
-			// put your privacy password here, e.g.:
-			// https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
-			//
-			// default factory password for ICODE-SLIX2 is {0x0F, 0x0F, 0x0F, 0x0F}
-			//
-			const uint8_t password[] = {0x0F, 0x0F, 0x0F, 0x0F};
 			ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
 			if (ISO15693_EC_OK == myrc) {
 				if (showDisablePrivacyNotification) {
