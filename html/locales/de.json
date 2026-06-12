@@ -146,6 +146,10 @@
 	"files": {
 		"title": "Dateien",
 		"loading": "Wird geladen...",
+		"storage": {
+			"title": "Speicherplatz",
+			"info": "{{free}} GB frei von {{total}} GB ({{percent}} % belegt)"
+		},
 		"context": {
 			"newFolder": "Neuer Ordner",
 			"play": "Abspielen",
@@ -511,6 +515,7 @@
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Freier Heap: {{freeheap}} Bytes",
+		"sdcard": "SD-Karte: {{free}} GB frei von {{total}} GB",
 		"largestfreeblock": "Größter freier Heap-Block: {{largestfreeblock}} Bytes",
 		"freepsram": "Freier PS-RAM: {{freepsram}} Bytes",
 		"currentip": "Aktuelle IP-Adresse: {{currentip}}",

@@ -147,6 +147,10 @@
 	"files": {
 		"title": "Files",
 		"loading": "Please wait...",
+		"storage": {
+			"title": "Storage",
+			"info": "{{free}} GB free of {{total}} GB ({{percent}} % used)"
+		},
 		"context": {
 			"newFolder": "New Folder",
 			"play": "Play",
@@ -513,6 +517,7 @@
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Free heap: {{freeheap}} Bytes",
+		"sdcard": "SD card: {{free}} GB free of {{total}} GB",
 		"largestfreeblock": "Largest free heap-block: {{largestfreeblock}} Bytes",
 		"freepsram": "Free PS-RAM: {{freepsram}} Bytes",
 		"currentip": "Current IP-Address: {{currentip}}",

@@ -1455,6 +1455,14 @@
 									class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
 								</div>
 							</div>
+							<div id="sdCapacity" class="mt-3" data-visible="false">
+								<small><span data-i18n="files.storage.title"></span>: <span
+										id="sdCapacityText"></span></small>
+								<div class="progress progress-sm">
+									<div id="sdCapacityBar" class="progress-bar" role="progressbar" aria-valuemin="0"
+										aria-valuemax="100"></div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</fieldset>
@@ -2388,6 +2396,7 @@
 		});
 		i18next.on('languageChanged', (lng) => {
 			document.querySelector('#langSel').value = lng;
+			refreshSdCapacity();
 			if (localize) {
 				localize('body');
 				// (re)initialize all popover buttons to get correct translations in the popovers
@@ -2771,6 +2780,7 @@
 						addFileDirectory(sel, data);
 						ref.open_node(sel);
 					});
+					refreshSdCapacity();
 				},
 				error: function (request, status, error) {
 					console.log("Upload ERROR!", request);
@@ -4250,6 +4260,28 @@
 			}
 			return dDisplay + hDisplay + mDisplay;
 		}
+		async function refreshSdCapacity() {
+			try {
+				const info = await (await fetch("http://" + host + "/info?section=sdcard")).json();
+				const sd = info.sdcard;
+				if (!sd || !sd.size) {
+					return;
+				}
+				const usedPercent = Math.round((sd.size - sd.free) * 100 / sd.size);
+				const bar = document.getElementById('sdCapacityBar');
+				bar.style.width = usedPercent + "%";
+				bar.setAttribute('aria-valuenow', usedPercent);
+				document.getElementById('sdCapacityText').textContent = i18next.t("files.storage.info", {
+					free: (sd.free / 1024).toFixed(1),
+					total: (sd.size / 1024).toFixed(1),
+					percent: usedPercent
+				});
+				document.getElementById('sdCapacity').setAttribute('data-visible', true);
+			} catch (e) {
+				console.log("failed to fetch sd capacity", e);
+			}
+		}
+
 		async function fetchInfo() {
 			let info = await (await fetch("http://" + host + "/info")).json();
 			console.log(info);
@@ -4295,6 +4327,12 @@
 			if (info.audio.playtimeSinceStart > 0) {
 				content += i18next.t("systeminfo.audiotimesincestart", {
 					audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)
+				}) + "<br>";
+			}
+			if (info.sdcard && info.sdcard.size) {
+				content += i18next.t("systeminfo.sdcard", {
+					free: (info.sdcard.free / 1024).toFixed(1),
+					total: (info.sdcard.size / 1024).toFixed(1)
 				}) + "<br>";
 			}
 			if (info.battery) {

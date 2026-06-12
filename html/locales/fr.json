@@ -139,6 +139,10 @@
 	"files": {
 		"title": "Fichiers",
 		"loading": "Veuillez patienter...",
+		"storage": {
+			"title": "Stockage",
+			"info": "{{free}} Go libres sur {{total}} Go ({{percent}} % utilisés)"
+		},
 		"context": {
 			"newFolder": "Nouveau dossier",
 			"play": "Lire",
@@ -500,6 +504,7 @@
 		"arduinoversion": "Version Arduino : {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Matériel : {{hwmodel}}, Révision {{hwrevision}}, CPU : {{hwfreq}} MHZ",
 		"freeheap": "Mémoire libre : {{freeheap}} octets",
+		"sdcard": "Carte SD : {{free}} Go libres sur {{total}} Go",
 		"largestfreeblock": "Plus grand bloc de mémoire libre : {{largestfreeblock}} octets",
 		"freepsram": "PS-RAM libre : {{freepsram}} octets",
 		"currentip": "Adresse IP actuelle : {{currentip}}",

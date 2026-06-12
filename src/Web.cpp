@@ -1401,6 +1401,12 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		audioObj["playtimeSinceStart"] = AudioPlayer_GetPlayTimeSinceStart();
 		audioObj["firstStart"] = gPrefsSettings.getULong("firstStart", 0);
 	}
+	// sd card
+	if ((section == "") || (section == "sdcard")) {
+		JsonObject sdObj = infoObj["sdcard"].to<JsonObject>();
+		sdObj["size"] = SdCard_GetSize() / (1024 * 1024); // MiB
+		sdObj["free"] = SdCard_GetFreeSize() / (1024 * 1024); // MiB
+	}
 #ifdef BATTERY_MEASURE_ENABLE
 	// battery
 	if ((section == "") || (section == "battery")) {
