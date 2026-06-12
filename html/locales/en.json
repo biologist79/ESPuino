@@ -6,6 +6,7 @@
 	"title": "ESPuino",
 	"shutdown": "Shutdown",
 	"log": "Log",
+	"logdownload": "Download",
 	"info": "Information",
 	"delete": "Delete",
 	"cancel": "Cancel",

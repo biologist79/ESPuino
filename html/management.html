@@ -1108,8 +1108,10 @@
 				<div class="modal-body" style="white-space: pre; font-size: 80%;" id="modalLogContent">
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="modalLogRefresh" class="btn btn-primary me-auto"><i
+					<button type="button" id="modalLogRefresh" class="btn btn-primary"><i
 							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
+					<button type="button" id="modalLogDownload" class="btn btn-primary me-auto"><i
+							class="fas fa-download"></i><span data-i18n="logdownload"></span></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
 							data-i18n="ok"></span></button>
 				</div>
@@ -4461,6 +4463,16 @@
 				$("#modalLogContent").css("font-family", "monospace");
 				$('#modalLogRefresh').on('click', fetchLog);
 				new bootstrap.Modal(document.getElementById('modalLog')).toggle();
+			})
+			$('#modalLogDownload').on('click', function () {
+				const blob = new Blob([document.getElementById('modalLogContent').textContent], {
+					type: 'text/plain'
+				});
+				const anchor = document.createElement('a');
+				anchor.href = URL.createObjectURL(blob);
+				anchor.download = 'espuino-log_' + new Date().toISOString().replace(/[:T]/g, '-').substring(0, 19) + '.txt';
+				anchor.click();
+				URL.revokeObjectURL(anchor.href);
 			})
 			$('.openPopupRestart').on('click', function () {
 				$('#modalInfoRefresh').hide();
