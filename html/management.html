@@ -1055,6 +1055,9 @@
 										class="fas fa-book menu-icon"></i> <span data-i18n="log"></span></a></li>
 							<li><a class="dropdown-item py-2 openPopupInfo" href="javascript:void(0);"><i
 										class="fas fa-info menu-icon"></i> <span data-i18n="info"></span></a></li>
+							<li id="menuLogout" data-visible="false"><a class="dropdown-item py-2"
+									href="javascript:void(0);"><i class="fas fa-sign-out-alt menu-icon"></i> <span
+										data-i18n="logout"></span></a></li>
 							<li>
 								<label class="dropdown-item py-2 form-check-label" for="lightSwitch"
 									style="cursor: pointer;"><i class="fas fa-adjust menu-icon"></i> <span
@@ -1330,6 +1333,22 @@
 					<legend data-i18n="wifi.savedNetworks"></legend>
 					<ul class="list-group" id="wifiListSavedSSIDs">
 					</ul>
+				</div>
+				<hr>
+				<div>
+					<legend data-i18n="security.title"></legend>
+					<form action="#securityConfig" method="POST" onsubmit="securityConfig(); return false">
+						<div class="mb-3 col-md-12">
+							<label for="wwwPassword" data-i18n="[prepend]security.password.title">:</label>
+							<input type="password" class="form-control" id="wwwPassword" name="wwwPassword"
+								maxlength="64" autocomplete="new-password"
+								data-i18n="[placeholder]security.password.placeholder">
+							<small class="form-text" data-i18n="security.password.desc"></small>
+						</div>
+						<div class="text-center">
+							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						</div>
+					</form>
 				</div>
 			</div>
 			<br />
@@ -4281,6 +4300,34 @@
 			}
 			return dDisplay + hDisplay + mDisplay;
 		}
+		async function refreshSecurityStatus() {
+			try {
+				const status = await (await fetch("http://" + host + "/security")).json();
+				document.getElementById('menuLogout').setAttribute('data-visible', status.enabled === true);
+			} catch (e) {
+				console.log("failed to fetch security status", e);
+			}
+		}
+
+		async function securityConfig() {
+			const response = await fetch("http://" + host + "/security", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					password: document.getElementById('wwwPassword').value
+				})
+			});
+			if (response.ok) {
+				toaster.success(i18next.t("toast.success"));
+				document.getElementById('wwwPassword').value = '';
+				refreshSecurityStatus();
+			} else {
+				toaster.error(response.statusText);
+			}
+		}
+
 		var batteryLowWarned = false;
 		function updateBatteryIndicator(battery) {
 			const indicator = document.getElementById('batteryIndicator');
@@ -4423,6 +4470,7 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			refreshSecurityStatus();
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
 				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
@@ -4474,6 +4522,12 @@
 				anchor.click();
 				URL.revokeObjectURL(anchor.href);
 			})
+			$('#menuLogout').on('click', async function () {
+				await fetch("http://" + host + "/logout", {
+					method: "POST"
+				});
+				location.reload();
+			});
 			$('.openPopupRestart').on('click', function () {
 				$('#modalInfoRefresh').hide();
 				restartDevice();

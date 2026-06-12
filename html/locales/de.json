@@ -7,6 +7,7 @@
 	"shutdown": "Ausschalten",
 	"log": "Log",
 	"logdownload": "Herunterladen",
+	"logout": "Abmelden",
 	"info": "Information",
 	"delete": "Löschen",
 	"cancel": "Abbrechen",
@@ -94,6 +95,14 @@
 		"rotary": {
 			"title": "Drehimpulsgeber",
 			"reverse": "Drehrichtung umkehren"
+		}
+	},
+	"security": {
+		"title": "Webinterface-Passwort",
+		"password": {
+			"title": "Passwort",
+			"placeholder": "Leer lassen, um den Schutz zu deaktivieren",
+			"desc": "Schützt das Webinterface mit einem Passwort. Nach dem Anmelden bleibt man 90 Tage eingeloggt. Im Hotspot-Modus ist der Schutz inaktiv."
 		}
 	},
 	"wifi": {

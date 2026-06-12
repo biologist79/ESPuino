@@ -32,7 +32,9 @@
 #include <Update.h>
 #include <WiFi.h>
 #include <atomic>
+#include <esp_random.h>
 #include <esp_task_wdt.h>
+#include <mbedtls/sha256.h>
 #include <nvs.h>
 
 typedef struct {
@@ -377,6 +379,134 @@ void Web_Exit(void) {
 		webserverStarted = false;
 	}
 }
+// ************************** Webinterface password protection ***************************
+// A single shared password (no username). The session cookie carries a token derived from
+// password + a stored salt, so all devices stay logged in for the cookie's lifetime (90
+// days). Changing or clearing the password rotates the salt and invalidates all sessions.
+static String wwwSessionToken = "";
+static uint8_t wwwFailedLogins = 0;
+static uint32_t wwwLoginLockedUntil = 0;
+
+static const char wwwLoginPage[] PROGMEM = R"login(<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESPuino</title><style>
+:root{--c:#00f0ff;--m:#ff2a6d;--bg:#05070d;--p:#0a101e;--b:#1e2c4a;--t:#c5d4f2}
+body{background:var(--bg);color:var(--t);font-family:"Lucida Console",Monaco,monospace;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+form{background:var(--p);border:1px solid var(--b);padding:40px 30px;max-width:280px;width:100%;text-align:center;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}
+h1{font-size:16px;text-transform:uppercase;letter-spacing:.2em;color:var(--c);text-shadow:0 0 12px rgba(0,240,255,.6)}
+h1::before{content:"// ";color:var(--m)}
+input{width:100%;box-sizing:border-box;height:44px;background:#0e1626;border:1px solid var(--b);color:var(--t);padding:0 12px;font-family:inherit;margin:14px 0}
+input:focus{outline:none;border-color:var(--c);box-shadow:0 0 12px rgba(0,240,255,.25)}
+button{width:100%;height:44px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.55);color:var(--c);cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.08em;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+button:hover{background:var(--c);color:#021019}
+#e{color:var(--m);min-height:1.4em;margin-top:12px;font-size:13px}
+</style></head><body>
+<form id="f"><h1>Access</h1>
+<input type="password" id="p" placeholder="Passwort / Password" autofocus>
+<button type="submit">Login</button><div id="e"></div></form>
+<script>
+document.getElementById('f').onsubmit = async (ev) => {
+	ev.preventDefault();
+	const r = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: document.getElementById('p').value }) });
+	if (r.ok) { location.href = '/'; } else { document.getElementById('e').textContent = (r.status == 429) ? 'Zu viele Versuche / too many attempts' : 'Falsches Passwort / wrong password'; }
+};
+</script></body></html>)login";
+
+static String Web_BuildSessionToken(const String &password, const String &salt) {
+	uint8_t hash[32];
+	String input = password + ":" + salt;
+	mbedtls_sha256((const unsigned char *) input.c_str(), input.length(), hash, 0);
+	String hex;
+	hex.reserve(64);
+	for (uint8_t i = 0; i < sizeof(hash); i++) {
+		char buf[3];
+		snprintf(buf, sizeof(buf), "%02x", hash[i]);
+		hex += buf;
+	}
+	return hex;
+}
+
+static void Web_RefreshSessionToken(void) {
+	String password = gPrefsSettings.getString("wwwPassword", "");
+	if (password.length() == 0) {
+		wwwSessionToken = "";
+		return;
+	}
+	String salt = gPrefsSettings.getString("wwwSalt", "");
+	if (salt.length() == 0) {
+		char saltBuf[17];
+		snprintf(saltBuf, sizeof(saltBuf), "%08lx%08lx", (unsigned long) esp_random(), (unsigned long) esp_random());
+		salt = saltBuf;
+		gPrefsSettings.putString("wwwSalt", salt);
+	}
+	wwwSessionToken = Web_BuildSessionToken(password, salt);
+}
+
+static bool Web_IsAuthenticated(AsyncWebServerRequest *request) {
+	if (wwwSessionToken.length() == 0) {
+		return true;
+	}
+	if (!request->hasHeader("Cookie")) {
+		return false;
+	}
+	const String &cookies = request->header("Cookie");
+	int idx = cookies.indexOf("ESPUINO_SESSION=");
+	if (idx < 0) {
+		return false;
+	}
+	int start = idx + 16; // length of "ESPUINO_SESSION="
+	int end = cookies.indexOf(';', start);
+	String token = (end < 0) ? cookies.substring(start) : cookies.substring(start, end);
+	token.trim();
+	return token.equals(wwwSessionToken);
+}
+
+static void Web_HandlePostLogin(AsyncWebServerRequest *request, JsonVariant &json) {
+	if (wwwLoginLockedUntil && (millis() < wwwLoginLockedUntil)) {
+		request->send(429);
+		return;
+	}
+	wwwLoginLockedUntil = 0;
+	const char *password = json["password"];
+	if ((wwwSessionToken.length() > 0) && password && gPrefsSettings.getString("wwwPassword", "").equals(password)) {
+		wwwFailedLogins = 0;
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"status\":\"ok\"}");
+		response->addHeader("Set-Cookie", "ESPUINO_SESSION=" + wwwSessionToken + "; Max-Age=7776000; Path=/; SameSite=Lax");
+		request->send(response);
+		Log_Println("webinterface login successful", LOGLEVEL_NOTICE);
+	} else {
+		if (++wwwFailedLogins >= 5) { // crude brute-force protection
+			wwwFailedLogins = 0;
+			wwwLoginLockedUntil = millis() + 60000;
+		}
+		Log_Println("webinterface login failed", LOGLEVEL_ERROR);
+		request->send(401);
+	}
+}
+
+static void Web_HandlePostSecurity(AsyncWebServerRequest *request, JsonVariant &json) {
+	String password = json["password"] | "";
+	if (password.length() == 0) {
+		gPrefsSettings.remove("wwwPassword");
+		gPrefsSettings.remove("wwwSalt");
+		wwwSessionToken = "";
+		Log_Println("webinterface password protection disabled", LOGLEVEL_NOTICE);
+		request->send(200, "application/json", "{\"enabled\":false}");
+		return;
+	}
+	gPrefsSettings.putString("wwwPassword", password);
+	// rotate the salt: all existing sessions become invalid
+	char saltBuf[17];
+	snprintf(saltBuf, sizeof(saltBuf), "%08lx%08lx", (unsigned long) esp_random(), (unsigned long) esp_random());
+	gPrefsSettings.putString("wwwSalt", saltBuf);
+	Web_RefreshSessionToken();
+	Log_Println("webinterface password protection enabled", LOGLEVEL_NOTICE);
+	// keep the client that changed the password logged in
+	AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"enabled\":true}");
+	response->addHeader("Set-Cookie", "ESPUINO_SESSION=" + wwwSessionToken + "; Max-Age=7776000; Path=/; SameSite=Lax");
+	request->send(response);
+}
+
 // handle not found
 void notFound(AsyncWebServerRequest *request) {
 	Log_Printf(LOGLEVEL_ERROR, "%s not found, redirect to startpage", request->url().c_str());
@@ -388,6 +518,43 @@ void notFound(AsyncWebServerRequest *request) {
 
 void webserverStart(void) {
 	if (!webserverStarted && (Wlan_IsConnected() || (WiFi.getMode() == WIFI_AP))) {
+		// password protection (no-op when no password is set or in accesspoint-mode)
+		Web_RefreshSessionToken();
+		wServer.addMiddleware([](AsyncWebServerRequest *request, ArMiddlewareNext next) {
+			if ((wwwSessionToken.length() == 0) || (WiFi.getMode() == WIFI_AP)) {
+				return next();
+			}
+			const String &url = request->url();
+			if (url.equals("/login") || url.equals("/logo") || url.equals("/favicon.ico")) {
+				return next();
+			}
+			if (Web_IsAuthenticated(request)) {
+				return next();
+			}
+			if ((request->method() == HTTP_GET) && (url.equals("/") || url.endsWith(".html"))) {
+				request->redirect("/login");
+			} else {
+				request->send(401);
+			}
+		});
+		wServer.on("/login", HTTP_GET, [](AsyncWebServerRequest *request) {
+			if ((wwwSessionToken.length() == 0) || Web_IsAuthenticated(request)) {
+				request->redirect("/");
+				return;
+			}
+			request->send(200, "text/html", wwwLoginPage);
+		});
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/login", Web_HandlePostLogin));
+		wServer.on("/logout", HTTP_POST, [](AsyncWebServerRequest *request) {
+			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"status\":\"ok\"}");
+			response->addHeader("Set-Cookie", "ESPUINO_SESSION=; Max-Age=0; Path=/; SameSite=Lax");
+			request->send(response);
+		});
+		wServer.on("/security", HTTP_GET, [](AsyncWebServerRequest *request) {
+			request->send(200, "application/json", (wwwSessionToken.length() > 0) ? "{\"enabled\":true}" : "{\"enabled\":false}");
+		});
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/security", Web_HandlePostSecurity));
+
 		// attach AsyncWebSocket for Mgmt-Interface
 		ws.onEvent(onWebsocketEvent);
 		wServer.addHandler(&ws);

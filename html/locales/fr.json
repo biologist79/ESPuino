@@ -7,6 +7,7 @@
 	"shutdown": "Éteindre",
 	"log": "Journal",
 	"logdownload": "Télécharger",
+	"logout": "Déconnexion",
 	"info": "Information",
 	"delete": "Supprimer",
 	"cancel": "Annuler",
@@ -87,6 +88,14 @@
 		"rotary": {
 			"title": "Codeur rotatif",
 			"reverse": "Inversion du sens de rotation"
+		}
+	},
+	"security": {
+		"title": "Mot de passe de l'interface web",
+		"password": {
+			"title": "Mot de passe",
+			"placeholder": "Laisser vide pour désactiver la protection",
+			"desc": "Protège l'interface web par un mot de passe. Une fois connecté, vous restez connecté pendant 90 jours. La protection est inactive en mode hotspot."
 		}
 	},
 	"wifi": {
