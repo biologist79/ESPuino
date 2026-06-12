@@ -477,6 +477,23 @@
 		}
 	},
 	"tools": {
+		"backup": {
+			"title": "Backup",
+			"desc": "Exportiert bzw. importiert alle Einstellungen und RFID-Zuweisungen als JSON-Datei.",
+			"export": {
+				"title": "Export",
+				"includeWifi": "WLAN-Zugangsdaten einschließen",
+				"button": "Backup herunterladen"
+			},
+			"import": {
+				"title": "Import",
+				"desc": "Backup-Datei auswählen und importieren. Einige Einstellungen (z. B. MQTT) erfordern danach einen Neustart.",
+				"button": "Importieren",
+				"invalid": "Keine gültige Backup-Datei",
+				"partial": "Import mit {{count}} Fehlern abgeschlossen",
+				"done": "Import abgeschlossen"
+			}
+		},
 		"nvs": {
 			"title": "Gespeicherte RFID-Zuweisungen",
 			"desc": "Die RFID-Zuweisungen werden nicht auf der SD-Karte, sondern im internen, nicht-flüchtigen Speicher (NVS) des ESPuinos gespeichert.",

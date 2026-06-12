@@ -466,6 +466,23 @@
 		}
 	},
 	"tools": {
+		"backup": {
+			"title": "Sauvegarde",
+			"desc": "Exporte ou importe tous les réglages et attributions RFID dans un fichier JSON.",
+			"export": {
+				"title": "Export",
+				"includeWifi": "Inclure les identifiants WiFi",
+				"button": "Télécharger la sauvegarde"
+			},
+			"import": {
+				"title": "Import",
+				"desc": "Sélectionner et importer un fichier de sauvegarde. Certains réglages (p. ex. MQTT) nécessitent ensuite un redémarrage.",
+				"button": "Importer",
+				"invalid": "Fichier de sauvegarde invalide",
+				"partial": "Import terminé avec {{count}} erreurs",
+				"done": "Import terminé"
+			}
+		},
 		"nvs": {
 			"title": "Affectations RFID enregistrées",
 			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",

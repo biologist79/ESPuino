@@ -2320,6 +2320,31 @@
 				</span>
 				<hr>
 			</div>
+			<div class="container" id="backup">
+				<legend data-i18n="tools.backup.title"></legend>
+				<p data-i18n="tools.backup.desc"></p>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.backup.export.title"></p>
+					<div class="d-flex gap-2">
+						<input type="checkbox" id="backupIncludeWifi" value="false">
+						<label for="backupIncludeWifi" data-i18n="tools.backup.export.includeWifi"></label>
+					</div><br>
+					<button type="button" class="btn btn-primary" onclick="exportBackup()"
+						data-i18n="tools.backup.export.button"></button>
+					<br><br>
+				</span>
+				<span class="container" style="padding: 0">
+					<p style="font-weight: bold" data-i18n="tools.backup.import.title"></p>
+					<p data-i18n="tools.backup.import.desc"></p>
+					<input type="file" class="form-control-file btn btn-primary" id="backupUpload" accept=".json">
+					<br><br>
+					<div class="text-center">
+						<button type="button" class="btn btn-primary" onclick="importBackup()"
+							data-i18n="tools.backup.import.button"></button>
+					</div>
+				</span>
+				<hr>
+			</div>
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
@@ -4354,6 +4379,123 @@
 			}
 			return dDisplay + hDisplay + mDisplay;
 		}
+		async function exportBackup() {
+			const backup = {
+				espuinoBackup: 1,
+				created: new Date().toISOString(),
+				settings: await (await fetch("http://" + host + "/settings")).json(),
+				rfid: await (await fetch("http://" + host + "/rfid")).json()
+			};
+			delete backup.settings.ssids; // names only - not usable for a restore
+			if (document.getElementById('backupIncludeWifi').checked) {
+				backup.wifiConfig = await (await fetch("http://" + host + "/wificonfig")).json();
+				backup.wifiNetworks = await (await fetch("http://" + host + "/savedSSIDs?credentials=1")).json();
+			}
+			const blob = new Blob([JSON.stringify(backup, null, "\t")], {
+				type: "application/json"
+			});
+			const anchor = document.createElement('a');
+			anchor.href = URL.createObjectURL(blob);
+			anchor.download = 'espuino-backup_' + new Date().toISOString().substring(0, 10) + '.json';
+			anchor.click();
+			URL.revokeObjectURL(anchor.href);
+		}
+
+		async function importBackup() {
+			const fileInput = document.getElementById('backupUpload');
+			if (!fileInput.files.length) {
+				alert(i18next.t("files.upload.selectFile"));
+				return;
+			}
+			let backup;
+			try {
+				backup = JSON.parse(await fileInput.files[0].text());
+			} catch (e) {
+				toaster.error(i18next.t("tools.backup.import.invalid"));
+				return;
+			}
+			if (backup.espuinoBackup !== 1) {
+				toaster.error(i18next.t("tools.backup.import.invalid"));
+				return;
+			}
+			let errors = 0;
+			// the firmware applies one settings section per request
+			const sections = ['general', 'equalizer', 'led', 'battery', 'playlist', 'buttons', 'rotary', 'ftp', 'mqtt', 'bluetooth'];
+			for (const section of sections) {
+				if (backup.settings && backup.settings[section]) {
+					const response = await fetch("http://" + host + "/settings", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							[section]: backup.settings[section]
+						})
+					});
+					if (!response.ok) {
+						errors++;
+					}
+				}
+			}
+			if (Array.isArray(backup.rfid)) {
+				for (const entry of backup.rfid) {
+					if (!entry.id) {
+						continue;
+					}
+					const response = await fetch("http://" + host + "/rfid", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify(entry)
+					});
+					if (!response.ok) {
+						errors++;
+					}
+				}
+			}
+			if (Array.isArray(backup.wifiNetworks)) {
+				for (const network of backup.wifiNetworks) {
+					if (!network.ssid) {
+						continue;
+					}
+					const response = await fetch("http://" + host + "/savedSSIDs", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify(network)
+					});
+					if (!response.ok) {
+						errors++;
+					}
+				}
+				await rebuildSSIDList();
+			}
+			if (backup.wifiConfig) {
+				const response = await fetch("http://" + host + "/wificonfig", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(backup.wifiConfig)
+				});
+				if (!response.ok) {
+					errors++;
+				}
+			}
+			if (errors) {
+				toaster.warning(i18next.t("tools.backup.import.partial", {
+					count: errors
+				}));
+			} else {
+				toaster.success(i18next.t("tools.backup.import.done"));
+			}
+			// reload the imported settings into the UI
+			socket.send('{"settings":{"settings":"settings"}}');
+			rebuildRFIDList();
+		}
+
 		async function cleanSd() {
 			$('#cleanSdModal').modal('hide');
 			toaster.info(i18next.t("files.clean.running"));

@@ -2417,10 +2417,26 @@ void handleTrackProgressRequest(AsyncWebServerRequest *request) {
 }
 
 void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
+	// optional parameter to include credentials & static-ip config (used for backups)
+	const bool withCredentials = request->hasParam("credentials");
 	AsyncJsonResponse *response = new AsyncJsonResponse(true);
 	JsonArray json_ssids = response->getRoot();
-	Wlan_GetSavedNetworks([json_ssids](const WiFiSettings &network) {
-		json_ssids.add(network.ssid);
+	Wlan_GetSavedNetworks([json_ssids, withCredentials](const WiFiSettings &network) {
+		if (!withCredentials) {
+			json_ssids.add(network.ssid);
+			return;
+		}
+		JsonObject entry = json_ssids.add<JsonObject>();
+		entry["ssid"] = network.ssid;
+		entry["pwd"] = network.password;
+		if (network.staticIp.isValid()) {
+			entry["static"] = true;
+			entry["static_addr"] = network.staticIp.addr.toString();
+			entry["static_subnet"] = network.staticIp.subnet.toString();
+			entry["static_gateway"] = network.staticIp.gateway.toString();
+			entry["static_dns1"] = network.staticIp.dns1.toString();
+			entry["static_dns2"] = network.staticIp.dns2.toString();
+		}
 	});
 
 	response->setLength();

@@ -479,6 +479,23 @@
 		}
 	},
 	"tools": {
+		"backup": {
+			"title": "Backup",
+			"desc": "Exports or imports all settings and RFID assignments as a JSON file.",
+			"export": {
+				"title": "Export",
+				"includeWifi": "Include WiFi credentials",
+				"button": "Download backup"
+			},
+			"import": {
+				"title": "Import",
+				"desc": "Select and import a backup file. Some settings (e.g. MQTT) require a restart afterwards.",
+				"button": "Import",
+				"invalid": "Not a valid backup file",
+				"partial": "Import finished with {{count}} errors",
+				"done": "Import finished"
+			}
+		},
 		"nvs": {
 			"title": "Saved RFID assignments",
 			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
