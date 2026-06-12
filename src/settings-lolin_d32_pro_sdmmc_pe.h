@@ -71,6 +71,7 @@
     #define ROTARYENCODER_BUTTON            103         // Set to 99 to disable the button; connected to port-expander
     #define BUTTON_4                        104         // Button 4: connected to port-expander
     #define BUTTON_5                        105         // Button 5: connected to port-expander
+    #define BUTTON_6                        99          // Button 6: unnamed optional button (99 = disabled)
 
     //#define BUTTONS_LED                   114         // Powers the LEDs of the buttons. Make sure the current consumed by the LEDs can be handled by the used GPIO
 
