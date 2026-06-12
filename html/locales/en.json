@@ -158,6 +158,14 @@
 	"files": {
 		"title": "Files",
 		"loading": "Please wait...",
+		"clean": {
+			"title": "Clean SD card",
+			"prompt": "Removes macOS metadata from the SD card (.DS_Store, ._* files, Spotlight and trash folders). Music files are left untouched. Continue?",
+			"button": "Clean SD card (remove macOS metadata)",
+			"confirm": "Clean",
+			"running": "Cleaning SD card…",
+			"done": "Cleanup finished: removed {{count}} entries"
+		},
 		"storage": {
 			"title": "Storage",
 			"info": "{{free}} GB free of {{total}} GB ({{percent}} % used)"

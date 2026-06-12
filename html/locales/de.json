@@ -157,6 +157,14 @@
 	"files": {
 		"title": "Dateien",
 		"loading": "Wird geladen...",
+		"clean": {
+			"title": "SD-Karte bereinigen",
+			"prompt": "Entfernt macOS-Metadaten von der SD-Karte (.DS_Store, ._*-Dateien, Spotlight- und Papierkorb-Ordner). Musikdateien bleiben unangetastet. Fortfahren?",
+			"button": "SD-Karte bereinigen (macOS-Metadaten löschen)",
+			"confirm": "Bereinigen",
+			"running": "Bereinige SD-Karte…",
+			"done": "Bereinigung abgeschlossen: {{count}} Einträge entfernt"
+		},
 		"storage": {
 			"title": "Speicherplatz",
 			"info": "{{free}} GB frei von {{total}} GB ({{percent}} % belegt)"

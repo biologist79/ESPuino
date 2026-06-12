@@ -71,6 +71,7 @@ static void explorerHandleFileStorageTask(void *parameter);
 static void explorerHandleListRequest(AsyncWebServerRequest *request);
 static void explorerHandleDownloadRequest(AsyncWebServerRequest *request);
 static void explorerHandleDeleteRequest(AsyncWebServerRequest *request);
+static void handleCleanSdRequest(AsyncWebServerRequest *request);
 static void explorerHandleCreateRequest(AsyncWebServerRequest *request);
 static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
@@ -752,6 +753,8 @@ void webserverStart(void) {
 		wServer.on("/explorer", HTTP_PUT, explorerHandleCreateRequest);
 
 		wServer.on("/explorer", HTTP_PATCH, explorerHandleRenameRequest);
+
+		wServer.on("/sdclean", HTTP_POST, handleCleanSdRequest);
 
 		wServer.on("/exploreraudio", HTTP_POST, explorerHandleAudioRequest);
 
@@ -2192,6 +2195,51 @@ bool explorerDeleteDirectory(File dir) {
 	}
 
 	return gFSystem.rmdir(dir);
+}
+
+// macOS metadata junk: Finder/Spotlight droppings that are useless on a music box
+static bool Web_IsMacJunkName(const char *name) {
+	return (strcmp(name, ".DS_Store") == 0) || (strncmp(name, "._", 2) == 0) || (strcmp(name, ".Spotlight-V100") == 0) || (strcmp(name, ".fseventsd") == 0) || (strcmp(name, ".Trashes") == 0) || (strcmp(name, ".TemporaryItems") == 0);
+}
+
+static void Web_CleanDirectory(File dir, uint32_t &deletedCount) {
+	File file = dir.openNextFile();
+	while (file) {
+		const String path = file.path();
+		const bool isDir = file.isDirectory();
+		if (Web_IsMacJunkName(file.name())) {
+			file.close();
+			if (isDir) {
+				File junkDir = gFSystem.open(path);
+				if (junkDir && explorerDeleteDirectory(junkDir)) {
+					deletedCount++;
+				}
+			} else if (gFSystem.remove(path)) {
+				deletedCount++;
+			}
+		} else if (isDir) {
+			Web_CleanDirectory(file, deletedCount);
+			file.close();
+		} else {
+			file.close();
+		}
+		file = dir.openNextFile();
+		esp_task_wdt_reset();
+	}
+}
+
+// Handles the request to remove macOS metadata junk from the SD card
+static void handleCleanSdRequest(AsyncWebServerRequest *request) {
+	uint32_t deletedCount = 0;
+	File root = gFSystem.open("/");
+	if (root && root.isDirectory()) {
+		Web_CleanDirectory(root, deletedCount);
+	}
+	Log_Printf(LOGLEVEL_NOTICE, "SD cleanup: removed %lu entries", (unsigned long) deletedCount);
+	AsyncJsonResponse *response = new AsyncJsonResponse(false);
+	response->getRoot()["deleted"] = deletedCount;
+	response->setLength();
+	request->send(response);
 }
 
 // Handles download request of a file

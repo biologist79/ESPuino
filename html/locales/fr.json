@@ -150,6 +150,14 @@
 	"files": {
 		"title": "Fichiers",
 		"loading": "Veuillez patienter...",
+		"clean": {
+			"title": "Nettoyer la carte SD",
+			"prompt": "Supprime les métadonnées macOS de la carte SD (.DS_Store, fichiers ._*, dossiers Spotlight et corbeille). Les fichiers musicaux ne sont pas touchés. Continuer ?",
+			"button": "Nettoyer la carte SD (supprimer les métadonnées macOS)",
+			"confirm": "Nettoyer",
+			"running": "Nettoyage de la carte SD…",
+			"done": "Nettoyage terminé : {{count}} entrées supprimées"
+		},
 		"storage": {
 			"title": "Stockage",
 			"info": "{{free}} Go libres sur {{total}} Go ({{percent}} % utilisés)"

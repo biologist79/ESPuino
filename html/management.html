@@ -1228,6 +1228,24 @@
 			</div>
 		</div>
 	</div>
+	<!-- Modal dialog for SD card cleanup -->
+	<div class="modal fade" data-bs-backdrop="static" id="cleanSdModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="files.clean.title"></h5>
+				</div>
+				<div class="modal-body">
+					<label data-i18n="files.clean.prompt"></label>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
+					<a class="btn btn-warning btn-ok" data-i18n="files.clean.confirm"
+						href="javascript:cleanSd();"></a>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- Modal dialog for delete NVS RFID assignments -->
 	<div class="modal fade" data-bs-backdrop="static" id="deleteNVSRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
@@ -1461,6 +1479,9 @@
 								style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;"
 								id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
 								onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+							<button id="cleansd" class="btn btn-warning float-end" data-bs-toggle="modal"
+								data-bs-target="#cleanSdModal" data-i18n="[title]files.clean.button"><span
+									class="fas fa-broom"></span></button>
 							<button id="expandfilelist" class="btn btn-primary float-end"
 								onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
 							<button id="shrinkfilelist" class="btn btn-primary float-end"
@@ -4333,6 +4354,24 @@
 			}
 			return dDisplay + hDisplay + mDisplay;
 		}
+		async function cleanSd() {
+			$('#cleanSdModal').modal('hide');
+			toaster.info(i18next.t("files.clean.running"));
+			const response = await fetch("http://" + host + "/sdclean", {
+				method: "POST"
+			});
+			if (response.ok) {
+				const result = await response.json();
+				toaster.success(i18next.t("files.clean.done", {
+					count: result.deleted
+				}));
+				buildFileSystemTree("/");
+				refreshSdCapacity();
+			} else {
+				toaster.error(response.statusText);
+			}
+		}
+
 		async function refreshSecurityStatus() {
 			try {
 				const status = await (await fetch("http://" + host + "/security")).json();
