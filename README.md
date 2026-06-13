@@ -67,6 +67,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | PWA support: web app manifest + app icon, "add to home screen" with proper icon and name | [`a59fe0b`](../../commit/a59fe0b) |
 | Full backup: export/import of all settings + RFID assignments as JSON, WiFi credentials optional | [`7f2e4ae`](../../commit/7f2e4ae) |
 | Equalizer profiles: dropdown presets (Flat / Music / Audiobook-Speech / Deep voices / Custom) on top of the 3-band tone control; speech presets cut bass and lift mids/highs so deep narrator voices stay intelligible, persisted in NVS. Profiles can also be assigned per file or directory (right-click in the file browser) — e.g. set the speech profile for all Bibi Blocksberg episodes at once. The active profile can be cycled with the bindable command **154** (button/RFID modifier) and set/reported via the MQTT topic `equalizer` (`flat`/`music`/`speech`/`voiceBoost`) | [`300b9dd`](../../commit/300b9dd) |
+| Blinking "OK" indicator next to the battery replaces the generic "action successful" toast | [`0870ccc`](../../commit/0870ccc) |
 | SD card cleanup: removes macOS metadata (`.DS_Store`, `._*`, Spotlight/Trashes) with one click | [`5f38a51`](../../commit/5f38a51) |
 | Live log: the log dialog refreshes every 2 s and follows the end of the log | [`d326faa`](../../commit/d326faa) |
 | Drag & drop: upload files by dropping them from the file manager onto the file tree | [`e4972fe`](../../commit/e4972fe) |

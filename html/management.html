@@ -235,6 +235,32 @@
 			animation: cp-flicker 3s linear infinite;
 		}
 
+		/* blinking "OK" confirmation shown next to the battery after an action succeeds */
+		#actionOk {
+			color: var(--cp-green);
+			font-family: "Share Tech Mono", monospace;
+			font-weight: 700;
+			font-size: .9rem;
+			letter-spacing: 1px;
+			text-shadow: 0 0 10px rgba(10, 255, 157, .8);
+			margin-right: 12px;
+			opacity: 0;
+		}
+
+		#actionOk.show {
+			animation: ok-blink 1.6s ease-in-out;
+		}
+
+		@keyframes ok-blink {
+			0% { opacity: 0; }
+			12% { opacity: 1; }
+			28% { opacity: .15; }
+			44% { opacity: 1; }
+			60% { opacity: .15; }
+			76% { opacity: 1; }
+			100% { opacity: 0; }
+		}
+
 		/* ---------- dropdown menu ---------- */
 		.dropdown-menu {
 			background: var(--cp-panel);
@@ -1045,6 +1071,7 @@
 				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
 			<div class="collapse navbar-collapse justify-content-end">
+				<span class="navbar-text" id="actionOk" aria-hidden="true"><i class="fas fa-check"></i> OK</span>
 				<span class="navbar-text" id="batteryIndicator" data-visible="false">
 					<i class="fas fa-battery-three-quarters" id="batteryIcon"></i><span id="batteryLevel"></span>
 				</span>
@@ -2488,6 +2515,18 @@
 			error: msg => toaster.toast(msg, 'text-bg-danger')
 		}
 
+		// Briefly blink an "OK" next to the battery indicator to confirm an action
+		// succeeded -- replaces the noisy generic "action performed successfully" toast.
+		function flashActionOk() {
+			const el = document.getElementById('actionOk');
+			if (!el) return;
+			el.classList.remove('show');
+			// force a reflow so the animation restarts even on rapid consecutive actions
+			void el.offsetWidth;
+			el.classList.add('show');
+			el.addEventListener('animationend', () => el.classList.remove('show'), { once: true });
+		}
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -3333,7 +3372,7 @@
 				}
 				if ("status" in socketMsg) {
 					if (socketMsg.status == "ok") {
-						toaster.success(i18next.t("toast.success"));
+						flashActionOk();
 					}
 					if (socketMsg.status == "dropout") {
 						toaster.warning(i18next.t("toast.dropout"));
@@ -3852,7 +3891,7 @@
 				method: "DELETE"
 			});
 			if (response.ok) {
-				toaster.success(i18next.t("toast.success"));
+				flashActionOk();
 				rebuildRFIDList();
 			} else {
 				toaster.error(response.statusText);
@@ -3866,7 +3905,7 @@
 				method: "POST"
 			});
 			if (response.ok) {
-				toaster.success(i18next.t("toast.success"));
+				flashActionOk();
 				await rebuildRFIDList();
 			} else {
 				toaster.error(response.statusText);
@@ -3885,7 +3924,7 @@
 				body: formData
 			});
 			if (response.ok) {
-				toaster.success(i18next.t("toast.success"));
+				flashActionOk();
 				rebuildRFIDList();
 			} else {
 				toaster.error(response.statusText);
@@ -4615,7 +4654,7 @@
 				})
 			});
 			if (response.ok) {
-				toaster.success(i18next.t("toast.success"));
+				flashActionOk();
 				document.getElementById('wwwPassword').value = '';
 				refreshSecurityStatus();
 			} else {
