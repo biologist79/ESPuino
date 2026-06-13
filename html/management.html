@@ -261,6 +261,25 @@
 			100% { opacity: 0; }
 		}
 
+		/* blinking "connection lost" icon next to the OK indicator (replaces the conlost toast) */
+		#connLost {
+			display: none;
+			color: var(--cp-magenta);
+			font-size: .95rem;
+			margin-right: 12px;
+			text-shadow: 0 0 10px rgba(255, 42, 109, .8);
+		}
+
+		#connLost.show {
+			display: inline;
+			animation: conn-blink 1s steps(1) infinite;
+		}
+
+		@keyframes conn-blink {
+			0%, 49% { opacity: 1; }
+			50%, 100% { opacity: .15; }
+		}
+
 		/* ---------- dropdown menu ---------- */
 		.dropdown-menu {
 			background: var(--cp-panel);
@@ -1148,6 +1167,7 @@
 				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
 			<div class="collapse navbar-collapse justify-content-end">
+				<span class="navbar-text" id="connLost" data-i18n="[title]toast.conlost"><i class="fas fa-link-slash"></i></span>
 				<span class="navbar-text" id="actionOk" aria-hidden="true"><i class="fas fa-check"></i> OK</span>
 				<span class="navbar-text" id="batteryIndicator" data-visible="false">
 					<i class="fas fa-battery-three-quarters" id="batteryIcon"></i><span id="batteryLevel"></span>
@@ -3486,6 +3506,9 @@
 		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
+				// connection (re)established -> hide the "connection lost" indicator
+				var connLostEl = document.getElementById('connLost');
+				if (connLostEl) connLostEl.classList.remove('show');
 				clearInterval(pingInterval);
 				clearInterval(getTrackProgressInterval);
 				pingInterval = setInterval(ping, 3000);
@@ -4115,12 +4138,17 @@
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
 			tm = setTimeout(function () {
-				toaster.warning(i18next.t("toast.conlost"));
+				// no pong within 5s -> show the blinking "connection lost" icon (was a toast)
+				var el = document.getElementById('connLost');
+				if (el) el.classList.add('show');
 			}, 5000);
 		}
 
 		function pong() {
 			clearTimeout(tm);
+			// pong received -> connection is alive again, hide the indicator
+			var el = document.getElementById('connLost');
+			if (el) el.classList.remove('show');
 		}
 		async function getTrackProgress() {
 			if (ActiveTab !== 'nav-control-tab') {
