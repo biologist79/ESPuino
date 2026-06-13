@@ -648,6 +648,83 @@
 			box-shadow: 0 0 30px -10px rgba(0, 240, 255, .45);
 		}
 
+		/* ---------- cyberpunk footer ---------- */
+		#cp-footer {
+			position: relative;
+			margin-top: 48px;
+			padding: 20px 12px 28px;
+			text-align: center;
+			font-family: "Share Tech Mono", monospace;
+			border-top: 1px solid var(--cp-border);
+		}
+
+		#cp-footer::before {
+			content: "";
+			position: absolute;
+			top: -1px;
+			left: 0;
+			right: 0;
+			height: 1px;
+			background: linear-gradient(90deg, transparent, var(--cp-cyan), var(--cp-magenta), transparent);
+			box-shadow: 0 0 12px var(--cp-cyan);
+		}
+
+		.cp-footer-inner {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px 12px;
+			justify-content: center;
+			align-items: center;
+			font-size: .85rem;
+			letter-spacing: 2px;
+		}
+
+		.cp-footer-brand {
+			color: var(--cp-cyan);
+			font-weight: 700;
+			text-shadow: 0 0 8px rgba(0, 240, 255, .6);
+		}
+
+		.cp-footer-div {
+			color: var(--cp-magenta);
+			text-shadow: 0 0 8px rgba(255, 42, 109, .6);
+		}
+
+		.cp-footer-sep {
+			color: var(--cp-dim);
+		}
+
+		.cp-footer-status {
+			color: var(--cp-green);
+			text-shadow: 0 0 8px rgba(10, 255, 157, .6);
+		}
+
+		.cp-footer-status .fa-circle {
+			font-size: .5rem;
+			vertical-align: middle;
+			margin-right: 4px;
+			animation: cp-flicker 2s linear infinite;
+		}
+
+		.cp-footer-link {
+			color: var(--cp-cyan);
+			text-decoration: none;
+			text-shadow: 0 0 8px rgba(0, 240, 255, .5);
+			transition: color .15s, text-shadow .15s;
+		}
+
+		.cp-footer-link:hover {
+			color: var(--cp-magenta);
+			text-shadow: 0 0 10px rgba(255, 42, 109, .7);
+		}
+
+		.cp-footer-copy {
+			margin-top: 10px;
+			color: var(--cp-dim);
+			font-size: .72rem;
+			letter-spacing: 1px;
+		}
+
 		/* ---------- forms ---------- */
 		.form-control,
 		.form-select {
@@ -2434,6 +2511,19 @@
 			</div>
 		</div>
 	</div>
+	<footer id="cp-footer">
+		<div class="cp-footer-inner">
+			<span class="cp-footer-brand">LEO&nbsp;INDUSTRIES</span>
+			<span class="cp-footer-sep">//</span>
+			<span class="cp-footer-div">DIVISION&nbsp;:&nbsp;AUDIO</span>
+			<span class="cp-footer-sep">//</span>
+			<span class="cp-footer-status"><i class="fas fa-circle"></i>UPLINK&nbsp;ONLINE</span>
+			<span class="cp-footer-sep">//</span>
+			<a class="cp-footer-link" href="https://github.com/fhirschmann/leoino" target="_blank"
+				rel="noopener"><i class="fab fa-github"></i>&nbsp;SOURCE</a>
+		</div>
+		<div class="cp-footer-copy">&copy; 2026 LEO INDUSTRIES AT-1 &middot; ALL SIGNALS RESERVED &middot; NEON DREAMS RUN ON ESP32</div>
+	</footer>
 	<script type="text/javascript">
 		var lastIdclicked = '';
 		var ActiveTab = 'nav-rfid-tab';
