@@ -168,7 +168,9 @@
 			"refresh": "Actualiser",
 			"delete": "Supprimer",
 			"rename": "Renommer",
-			"download": "Télécharger"
+			"download": "Télécharger",
+			"eq": "Profil EQ",
+			"eqRemove": "Pas d'EQ (retirer)"
 		},
 		"files": {
 			"title": "Fichiers",
@@ -253,6 +255,7 @@
 					"152": "Annoncer l'heure actuelle",
 					"0": "Supprimer l'affectation",
 					"153": "Basculement de la lumière ambiante",
+					"154": "Changer de profil d'égaliseur",
 					"170": "Basculer Lecture/Pause",
 					"171": "Piste précédente",
 					"172": "Piste suivante",
@@ -395,10 +398,18 @@
 		},
 		"equalizer": {
 			"title": "Égaliseur",
+			"profile": {
+				"title": "Profil",
+				"flat": "Neutre (linéaire)",
+				"music": "Musique (basses renforcées)",
+				"speech": "Livre audio / Voix",
+				"voiceBoost": "Voix graves (clarté maximale)",
+				"custom": "Personnalisé"
+			},
 			"gainLowPass": "Graves (en dB)",
 			"gainBandPass": "Médiums (en dB)",
 			"gainHighPass": "Aigus (en dB)",
-			"info": "Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf."
+			"info": "Les fréquences sont, selon la bibliothèque (ESP32-audioI2S), 500 Hz LowShelf, 3000 Hz PeakEQ et 6000 Hz HighShelf. Les profils « Livre audio / Voix » et « Voix graves » réduisent les basses et rehaussent les médiums/aigus pour que les voix de narrateurs graves restent intelligibles."
 		},
 		"rfid": {
 			"title": "RFID Reader",
@@ -466,6 +477,11 @@
 		}
 	},
 	"tools": {
+		"eqrules": {
+			"title": "Règles EQ (par fichier/dossier)",
+			"desc": "Aperçu des profils d'égaliseur attribués par chemin. Vous pouvez les consulter et les supprimer ici.",
+			"empty": "Aucune règle EQ définie."
+		},
 		"backup": {
 			"title": "Sauvegarde",
 			"desc": "Exporte ou importe tous les réglages et attributions RFID dans un fichier JSON.",

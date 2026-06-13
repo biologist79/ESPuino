@@ -176,7 +176,9 @@
 			"refresh": "Refresh",
 			"delete": "Delete",
 			"rename": "Rename",
-			"download": "Download"
+			"download": "Download",
+			"eq": "EQ profile",
+			"eqRemove": "No EQ (remove)"
 		},
 		"files": {
 			"title": "Files",
@@ -260,6 +262,7 @@
 					"151": "Announce IP-Address",
 					"152": "Announce current time",
 					"153": "Toggle Ambient Light",
+					"154": "Cycle equalizer profile",
 					"0": "Remove assignment",
 					"170": "Toggle Play/Pause",
 					"171": "Previous track",
@@ -403,10 +406,18 @@
 		},
 		"equalizer": {
 			"title": "Equalizer",
+			"profile": {
+				"title": "Profile",
+				"flat": "Flat (neutral)",
+				"music": "Music (fuller bass)",
+				"speech": "Audiobook / Speech",
+				"voiceBoost": "Deep voices (max. clarity)",
+				"custom": "Custom"
+			},
 			"gainLowPass": "Lows (in dB)",
 			"gainBandPass": "Mids (in dB)",
 			"gainHighPass": "Highs (in dB)",
-			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
+			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf. The \"Audiobook / Speech\" and \"Deep voices\" profiles cut the bass and lift mids/highs so deep narrator voices stay intelligible."
 		},
 		"rfid": {
 			"title": "RFID Reader",
@@ -479,6 +490,11 @@
 		}
 	},
 	"tools": {
+		"eqrules": {
+			"title": "EQ rules (per file/folder)",
+			"desc": "Overview of the per-path equalizer profiles. View and delete them here.",
+			"empty": "No EQ rules set."
+		},
 		"backup": {
 			"title": "Backup",
 			"desc": "Exports or imports all settings and RFID assignments as a JSON file.",

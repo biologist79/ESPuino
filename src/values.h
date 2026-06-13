@@ -60,6 +60,7 @@
 #define CMD_TELL_IP_ADDRESS				 151 // Command: ESPuino announces its IP-address via speech
 #define CMD_TELL_CURRENT_TIME			 152 // Command: ESPuino announces current time via speech
 #define CMD_TOGGLE_AMBIENT_LIGHT		 153 // Command: ESPuino announces current time via speech
+#define CMD_TOGGLE_EQUALIZER			 154 // Command: cycle through the predefined equalizer profiles (flat/music/speech/voiceBoost)
 
 #define CMD_PLAYPAUSE	   170 // Command: play/pause
 #define CMD_PREVTRACK	   171 // Command: previous track

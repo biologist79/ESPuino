@@ -96,6 +96,9 @@ static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json
 static void handleGetOperationMode(AsyncWebServerRequest *request);
 static void handlePostOperationMode(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDebugRequest(AsyncWebServerRequest *request);
+static void handleGetEqRules(AsyncWebServerRequest *request);
+static void handleSetEqRule(AsyncWebServerRequest *request);
+static void handleDeleteEqRule(AsyncWebServerRequest *request);
 
 static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 static void settingsToJSON(JsonObject obj, const String section);
@@ -808,6 +811,17 @@ void webserverStart(void) {
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/settings", handlePostSettings));
+		// per-path equalizer rules (directory/file -> EQ profile)
+		wServer.on("/eqrules", HTTP_GET, handleGetEqRules);
+		wServer.on("/eqrule", HTTP_POST, handleSetEqRule);
+		wServer.on("/eqrule", HTTP_DELETE, handleDeleteEqRule);
+		// currently active equalizer gains (may be overridden by a per-path rule for the running track)
+		wServer.on("/activeequalizer", HTTP_GET, [](AsyncWebServerRequest *request) {
+			char buf[96];
+			snprintf(buf, sizeof(buf), "{\"gainLowPass\":%d,\"gainBandPass\":%d,\"gainHighPass\":%d}",
+				gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
+			request->send(200, "application/json", buf);
+		});
 		// operation mode
 		wServer.on("/mode", HTTP_GET, handleGetOperationMode);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/mode", handlePostOperationMode));
@@ -897,13 +911,20 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		int8_t _gainLowPass = doc["equalizer"]["gainLowPass"].as<int8_t>();
 		int8_t _gainBandPass = doc["equalizer"]["gainBandPass"].as<int8_t>();
 		int8_t _gainHighPass = doc["equalizer"]["gainHighPass"].as<int8_t>();
+		// Active profile name (purely informational, drives the UI selection on reload)
+		const char *_profile = doc["equalizer"]["profile"].as<const char *>();
+		String _eqProfile = (_profile != nullptr) ? String(_profile) : String("custom");
 		// equalizer settings
 		if (
-			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 || gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0) {
+			gPrefsSettings.putChar("gainLowPass", _gainLowPass) == 0 || gPrefsSettings.putChar("gainBandPass", _gainBandPass) == 0 || gPrefsSettings.putChar("gainHighPass", _gainHighPass) == 0 || gPrefsSettings.putString("eqProfile", _eqProfile) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "equalizer");
 			return WebsocketCodeType::Error;
 		} else {
 			AudioPlayer_SetEqualizer(_gainLowPass, _gainBandPass, _gainHighPass);
+#ifdef MQTT_ENABLE
+			// Keep the MQTT state in sync when the equalizer profile is changed via the web interface.
+			publishMqtt(topicEqualizer, _eqProfile.c_str(), false);
+#endif
 		}
 	}
 	if (doc["wifi"].is<JsonObject>()) {
@@ -1239,6 +1260,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		equalizerObj["gainLowPass"].set(gPrefsSettings.getChar("gainLowPass", 0));
 		equalizerObj["gainBandPass"].set(gPrefsSettings.getChar("gainBandPass", 0));
 		equalizerObj["gainHighPass"].set(gPrefsSettings.getChar("gainHighPass", 0));
+		equalizerObj["profile"].set(gPrefsSettings.getString("eqProfile", "custom"));
 	}
 	if ((section == "") || (section == "wifi")) {
 		// WiFi settings
@@ -1386,6 +1408,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
 		eqSettings["gainLowPass"].set(0);
+		eqSettings["profile"].set("flat");
 #ifdef NEOPIXEL_ENABLE
 		JsonObject ledSettings = defaultsObj["led"].to<JsonObject>();
 		ledSettings["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
@@ -1632,6 +1655,76 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	}
 	response->setLength();
 	request->send(response);
+}
+
+// Return all per-path equalizer rules as the stored JSON array.
+void handleGetEqRules(AsyncWebServerRequest *request) {
+	request->send(200, "application/json", gPrefsSettings.getString("eqRules", "[]"));
+}
+
+// Add or update a per-path equalizer rule (path + gains + profile name). Stored as a
+// JSON array in NVS under "eqRules" and re-loaded into the audio player.
+void handleSetEqRule(AsyncWebServerRequest *request) {
+	if (!request->hasParam("path")) {
+		request->send(400, "application/json", "{}");
+		return;
+	}
+	const String path = request->getParam("path")->value();
+	const int8_t low = request->hasParam("low") ? (int8_t) request->getParam("low")->value().toInt() : 0;
+	const int8_t band = request->hasParam("band") ? (int8_t) request->getParam("band")->value().toInt() : 0;
+	const int8_t high = request->hasParam("high") ? (int8_t) request->getParam("high")->value().toInt() : 0;
+	const String profile = request->hasParam("profile") ? request->getParam("profile")->value() : String("");
+
+	JsonDocument doc;
+	deserializeJson(doc, gPrefsSettings.getString("eqRules", "[]"));
+	if (!doc.is<JsonArray>()) {
+		doc.to<JsonArray>();
+	}
+	JsonArray arr = doc.as<JsonArray>();
+	for (size_t i = 0; i < arr.size();) {
+		if (arr[i]["p"].as<String>() == path) {
+			arr.remove(i);
+		} else {
+			i++;
+		}
+	}
+	JsonObject o = arr.add<JsonObject>();
+	o["p"] = path;
+	o["l"] = low;
+	o["b"] = band;
+	o["h"] = high;
+	o["pr"] = profile;
+
+	String out;
+	serializeJson(doc, out);
+	gPrefsSettings.putString("eqRules", out);
+	AudioPlayer_ReloadEqRules();
+	request->send(200, "application/json", "{}");
+}
+
+// Delete the per-path equalizer rule for the given path.
+void handleDeleteEqRule(AsyncWebServerRequest *request) {
+	if (!request->hasParam("path")) {
+		request->send(400, "application/json", "{}");
+		return;
+	}
+	const String path = request->getParam("path")->value();
+
+	JsonDocument doc;
+	deserializeJson(doc, gPrefsSettings.getString("eqRules", "[]"));
+	JsonArray arr = doc.as<JsonArray>();
+	for (size_t i = 0; i < arr.size();) {
+		if (arr[i]["p"].as<String>() == path) {
+			arr.remove(i);
+		} else {
+			i++;
+		}
+	}
+	String out;
+	serializeJson(doc, out);
+	gPrefsSettings.putString("eqRules", out);
+	AudioPlayer_ReloadEqRules();
+	request->send(200, "application/json", "{}");
 }
 
 // handle post settings

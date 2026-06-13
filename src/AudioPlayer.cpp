@@ -24,9 +24,11 @@
 #include "main.h"
 #include "strnatcmp.h"
 
+#include <ArduinoJson.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 #include <random>
+#include <vector>
 
 // Allocate gPlayProperties in PSRAM if available
 EXT_RAM_BSS_ATTR playProps gPlayProperties;
@@ -388,6 +390,7 @@ void AudioPlayer_Init(void) {
 		gPrefsSettings.getChar("gainLowPass", 0),
 		gPrefsSettings.getChar("gainBandPass", 0),
 		gPrefsSettings.getChar("gainHighPass", 0));
+	AudioPlayer_ReloadEqRules();
 
 	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
@@ -1005,6 +1008,8 @@ void AudioPlayer_Loop() {
 					gPlayProperties.startAtFilePos = 0;
 				}
 				String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
+				// apply the per-path equalizer (directory/file rule) before starting the track
+				AudioPlayer_ApplyEqualizerForPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 				audioReturnCode
 					= audio->connecttoFS(gFSystem, pathToTrack.c_str(), fileStartTime);
 				// consider track as finished, when audio lib call was not successful
@@ -1210,6 +1215,126 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 // Adds equalizer settings low, band and high pass and readjusts the equalizer
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
 	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
+}
+
+// Predefined equalizer profiles. Values are gains in dB (low / band / high) and must mirror
+// the profiles offered by the web interface (see eqProfiles in management.html).
+struct EqProfile {
+	const char *name;
+	int8_t low;
+	int8_t band;
+	int8_t high;
+};
+static const EqProfile AudioPlayer_EqProfiles[] = {
+	{	  "flat",	 0, 0, 0},
+	{	 "music",  3, 0, 1},
+	{	 "speech", -2, 4, 3},
+	{"voiceBoost", -4, 5, 4},
+};
+
+// Apply a predefined equalizer profile by name, persist it to NVS and publish the new state.
+// Returns false if the profile name is unknown.
+bool AudioPlayer_SetEqualizerProfile(const char *profile) {
+	if (profile == nullptr) {
+		return false;
+	}
+	for (const EqProfile &p : AudioPlayer_EqProfiles) {
+		if (strcmp(profile, p.name) == 0) {
+			gPrefsSettings.putChar("gainLowPass", p.low);
+			gPrefsSettings.putChar("gainBandPass", p.band);
+			gPrefsSettings.putChar("gainHighPass", p.high);
+			gPrefsSettings.putString("eqProfile", p.name);
+			gPlayProperties.gainLowPass = p.low;
+			gPlayProperties.gainBandPass = p.band;
+			gPlayProperties.gainHighPass = p.high;
+			AudioPlayer_SetEqualizer(p.low, p.band, p.high);
+			Log_Printf(LOGLEVEL_NOTICE, "Equalizer profile: %s", p.name);
+#ifdef MQTT_ENABLE
+			publishMqtt(topicEqualizer, p.name, false);
+#endif
+			return true;
+		}
+	}
+	return false;
+}
+
+// Cycle to the next predefined equalizer profile (wraps around). If the currently stored profile
+// is unknown (e.g. "custom"), start at the first profile.
+void AudioPlayer_CycleEqualizerProfile(void) {
+	const String current = gPrefsSettings.getString("eqProfile", "flat");
+	const size_t count = sizeof(AudioPlayer_EqProfiles) / sizeof(AudioPlayer_EqProfiles[0]);
+	size_t idx = 0;
+	bool found = false;
+	for (size_t i = 0; i < count; i++) {
+		if (current == AudioPlayer_EqProfiles[i].name) {
+			idx = i;
+			found = true;
+			break;
+		}
+	}
+	const char *next = found ? AudioPlayer_EqProfiles[(idx + 1) % count].name : AudioPlayer_EqProfiles[0].name;
+	AudioPlayer_SetEqualizerProfile(next);
+}
+
+// Returns the name of the currently stored equalizer profile.
+String AudioPlayer_GetEqualizerProfile(void) {
+	return gPrefsSettings.getString("eqProfile", "flat");
+}
+
+// Per-path equalizer rules: a file or directory path is mapped to a set of EQ gains.
+// Rules are stored as a compact JSON array in NVS (key "eqRules") and cached here.
+struct EqRule {
+	String path;
+	int8_t low;
+	int8_t band;
+	int8_t high;
+};
+static std::vector<EqRule> AudioPlayer_EqRules;
+
+// (Re)load the per-path equalizer rules from NVS into the in-memory cache.
+void AudioPlayer_ReloadEqRules(void) {
+	AudioPlayer_EqRules.clear();
+	String json = gPrefsSettings.getString("eqRules", "[]");
+	JsonDocument doc;
+	if (deserializeJson(doc, json) != DeserializationError::Ok || !doc.is<JsonArray>()) {
+		return;
+	}
+	for (JsonObject o : doc.as<JsonArray>()) {
+		EqRule r;
+		r.path = o["p"].as<String>();
+		r.low = o["l"] | 0;
+		r.band = o["b"] | 0;
+		r.high = o["h"] | 0;
+		if (r.path.length() > 0) {
+			AudioPlayer_EqRules.push_back(r);
+		}
+	}
+}
+
+// Apply the equalizer for the given track path: use the longest matching per-path rule
+// (exact file or directory prefix), otherwise fall back to the global equalizer from NVS.
+void AudioPlayer_ApplyEqualizerForPath(const char *trackPath) {
+	int8_t low = gPrefsSettings.getChar("gainLowPass", 0);
+	int8_t band = gPrefsSettings.getChar("gainBandPass", 0);
+	int8_t high = gPrefsSettings.getChar("gainHighPass", 0);
+	if (trackPath != nullptr) {
+		const String tp = trackPath;
+		size_t bestLen = 0;
+		for (const EqRule &r : AudioPlayer_EqRules) {
+			const bool isMatch = (tp == r.path)
+				|| (tp.length() > r.path.length() && tp.startsWith(r.path) && tp.charAt(r.path.length()) == '/');
+			if (isMatch && r.path.length() > bestLen) {
+				bestLen = r.path.length();
+				low = r.low;
+				band = r.band;
+				high = r.high;
+			}
+		}
+	}
+	gPlayProperties.gainLowPass = low;
+	gPlayProperties.gainBandPass = band;
+	gPlayProperties.gainHighPass = high;
+	audio->setTone(low, band, high);
 }
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)

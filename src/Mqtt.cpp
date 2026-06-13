@@ -351,6 +351,9 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			// LED-brightness
 			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLedBrightness), qos);
 
+			// Equalizer-profile
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicEqualizer), qos);
+
 			// Publish current state
 			publishMqtt(topicState, "Online", false);
 			publishMqtt(topicTrack, gPlayProperties.title, false);
@@ -371,6 +374,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicLedBrightness, static_cast<uint32_t>(Led_GetBrightness()), false);
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
 			publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
+			publishMqtt(topicEqualizer, AudioPlayer_GetEqualizerProfile().c_str(), false);
 
 			char revBuf[16];
 			strncpy(revBuf, softwareRevision + 19, sizeof(revBuf) - 1);
@@ -621,6 +625,18 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		// Check if LEDs should be dimmed
 		else if (reduced_topic_str == topicLedBrightness) {
 			Led_SetBrightness(toNumber<uint8_t>(payload_str));
+		}
+
+		// Set equalizer profile (flat/music/speech/voiceBoost)
+		else if (reduced_topic_str == topicEqualizer) {
+			if (AudioPlayer_SetEqualizerProfile(payload_str.c_str())) {
+				// new state is published by AudioPlayer_SetEqualizerProfile()
+				System_IndicateOk();
+			} else {
+				Log_Printf(LOGLEVEL_ERROR, "Unknown equalizer profile: %s", payload_str.c_str());
+				publishMqtt(topicEqualizer, AudioPlayer_GetEqualizerProfile().c_str(), false);
+				System_IndicateError();
+			}
 		}
 
 		// Requested something that isn't specified?

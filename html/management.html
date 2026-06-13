@@ -1138,6 +1138,17 @@
 					<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
 				</div>
 				<div class="modal-body row" id="modalEqualizerContent">
+					<label class="w-100" for="eqProfile" data-i18n="[prepend]general.equalizer.profile.title">:</label>
+					<div class="col-12 mb-2">
+						<select id="eqProfile" name="eqProfile" class="form-select">
+							<option value="flat" data-i18n="general.equalizer.profile.flat"></option>
+							<option value="music" data-i18n="general.equalizer.profile.music"></option>
+							<option value="speech" data-i18n="general.equalizer.profile.speech"></option>
+							<option value="voiceBoost" data-i18n="general.equalizer.profile.voiceBoost"></option>
+							<option value="custom" data-i18n="general.equalizer.profile.custom"></option>
+						</select>
+					</div>
+					<hr>
 					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
 					<div class="slider-container">
 						<div class="float-end" style="padding-left: 30px">
@@ -2324,6 +2335,17 @@
 				</span>
 				<hr>
 			</div>
+			<div class="container" id="eqRulesSection">
+				<legend data-i18n="tools.eqrules.title"></legend>
+				<p data-i18n="tools.eqrules.desc"></p>
+				<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+					data-bs-target="#eqRulesListContainer" aria-expanded="false"
+					aria-controls="eqRulesListContainer" data-i18n="showhide"></button>
+				<span class="collapse" id="eqRulesListContainer"><br><br>
+					<ul class="list-group" id="eqRulesList"></ul>
+				</span>
+				<hr>
+			</div>
 			<div class="container" id="backup">
 				<legend data-i18n="tools.backup.title"></legend>
 				<p data-i18n="tools.backup.desc"></p>
@@ -3123,6 +3145,25 @@
 								postData("http://" + host + "/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
+						/* EQ profile for this file/folder (per-path equalizer) */
+						var eqSubmenu = {};
+						Object.keys(eqProfiles).forEach(function (key) {
+							eqSubmenu[key] = {
+								label: () => i18next.t("general.equalizer.profile." + key),
+								action: function () { setEqRule(node.data.path, key); }
+							};
+						});
+						eqSubmenu.remove = {
+							label: () => i18next.t("files.context.eqRemove"),
+							icon: "fas fa-times",
+							separator_before: true,
+							action: function () { deleteEqRule(node.data.path); }
+						};
+						items.eq = {
+							label: () => i18next.t("files.context.eq"),
+							icon: "fas fa-sliders-h",
+							submenu: eqSubmenu
+						};
 						/* Refresh */
 						items.refresh = {
 							label: () => i18next.t("files.context.refresh"),
@@ -3496,13 +3537,9 @@
 			}
 			let eqSettings = settings.equalizer;
 			if (eqSettings) {
-				$("#gainLowPass").bootstrapSlider('setValue', eqSettings.gainLowPass);
-				$("#gainBandPass").bootstrapSlider('setValue', eqSettings.gainBandPass);
-				$("#gainHighPass").bootstrapSlider('setValue', eqSettings.gainHighPass);
 				// If there is any better way to overwrite the bootstrap slider tooltip - please change this abdomination!
-				formatDBTooltip($('#gainLowPass')[0].previousSibling, eqSettings.gainLowPass);
-				formatDBTooltip($('#gainBandPass')[0].previousSibling, eqSettings.gainBandPass)
-				formatDBTooltip($('#gainHighPass')[0].previousSibling, eqSettings.gainHighPass);
+				setEqSliders(eqSettings);
+				document.getElementById("eqProfile").value = eqSettings.profile || "custom";
 			}
 			// wifi
 			let wifiSettings = settings.wifi;
@@ -3718,6 +3755,46 @@
 			});
 			await rebuildSSIDList();
 		}
+		// Render the list of per-path EQ rules in the tools tab (similar to the RFID assignments list).
+		async function rebuildEqRulesList() {
+			const list = document.getElementById("eqRulesList");
+			if (!list) return;
+			let rules = [];
+			try { rules = await (await fetch("http://" + host + "/eqrules")).json(); } catch (e) { rules = []; }
+			list.innerHTML = "";
+			if (!Array.isArray(rules) || rules.length === 0) {
+				let empty = document.createElement("li");
+				empty.classList.add("list-group-item");
+				empty.textContent = i18next.t("tools.eqrules.empty");
+				list.appendChild(empty);
+				return;
+			}
+			for (let r of rules) {
+				if (!r || !r.p) continue;
+				let li = document.createElement("li");
+				li.classList.add("list-group-item");
+				let label = document.createElement("strong");
+				label.textContent = r.pr ? i18next.t("general.equalizer.profile." + r.pr) : (r.l + " / " + r.b + " / " + r.h + " dB");
+				li.appendChild(label);
+				li.appendChild(document.createElement("br"));
+				li.appendChild(document.createTextNode(r.p));
+				let delSpan = document.createElement("span");
+				delSpan.classList.add("float-end");
+				let delBtn = document.createElement("button");
+				delBtn.classList.add("btn", "btn-danger", "fa", "fa-trash");
+				delBtn.addEventListener("click", function () {
+					deleteData("http://" + host + "/eqrule?path=" + encodeURIComponent(r.p), rebuildEqRulesList);
+				});
+				delSpan.appendChild(delBtn);
+				li.appendChild(delSpan);
+				list.appendChild(li);
+			}
+		}
+		// refresh the EQ rules list whenever its panel is opened
+		document.addEventListener("DOMContentLoaded", function () {
+			const c = document.getElementById("eqRulesListContainer");
+			if (c) c.addEventListener("shown.bs.collapse", rebuildEqRulesList);
+		});
 		const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");
 		async function rebuildRFIDList() {
 			var rfidList = await (await fetch("http://" + host + "/rfid")).json();
@@ -4150,7 +4227,7 @@
 			device = device.replace(/<MAC>/gi, macAddress);
 
 			// Static list of known topics (mirrors firmware settings.h)
-			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness', 'ambient_light'];
+			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness', 'ambient_light', 'equalizer'];
 			var stateTopics = ['track', 'cover_changed', 'state', 'ipv4', 'pauseplay', 'playmode', 'wifi_rssi', 'software_revision', 'battery_voltage', 'battery_soc'];
 
 			// Combine command and state topics
@@ -4692,6 +4769,50 @@
 		function formatDBTooltip(target, value) {
 			target.querySelector('.tooltip-main .tooltip-inner').innerHTML = `${value}`;
 		}
+		// Predefined equalizer profiles. Values are gains in dB (low / band / high), range -6..+6.
+		// "speech" and "voiceBoost" cut muddy bass and lift mids/highs so deep narrator voices
+		// stay intelligible; "music" keeps a fuller bass. "custom" is whatever the sliders show.
+		const eqProfiles = {
+			flat: { gainLowPass: 0, gainBandPass: 0, gainHighPass: 0 },
+			music: { gainLowPass: 3, gainBandPass: 0, gainHighPass: 1 },
+			speech: { gainLowPass: -2, gainBandPass: 4, gainHighPass: 3 },
+			voiceBoost: { gainLowPass: -4, gainBandPass: 5, gainHighPass: 4 }
+		};
+		// Assign an EQ profile to a file/folder path (per-path equalizer rule).
+		function setEqRule(path, profileKey) {
+			const g = eqProfiles[profileKey];
+			if (!g) return;
+			postData("http://" + host + "/eqrule?path=" + encodeURIComponent(path)
+				+ "&low=" + g.gainLowPass + "&band=" + g.gainBandPass + "&high=" + g.gainHighPass
+				+ "&profile=" + encodeURIComponent(profileKey));
+		}
+		// Remove the per-path EQ rule for a file/folder path.
+		function deleteEqRule(path) {
+			deleteData("http://" + host + "/eqrule?path=" + encodeURIComponent(path));
+		}
+		// Apply gain values to the three sliders and refresh their tooltips.
+		function setEqSliders(gains) {
+			$("#gainLowPass").bootstrapSlider('setValue', gains.gainLowPass);
+			$("#gainBandPass").bootstrapSlider('setValue', gains.gainBandPass);
+			$("#gainHighPass").bootstrapSlider('setValue', gains.gainHighPass);
+			formatDBTooltip($('#gainLowPass')[0].previousSibling, gains.gainLowPass);
+			formatDBTooltip($('#gainBandPass')[0].previousSibling, gains.gainBandPass);
+			formatDBTooltip($('#gainHighPass')[0].previousSibling, gains.gainHighPass);
+		}
+		// Read the current slider values as a gains object.
+		function currentEqGains() {
+			return {
+				gainLowPass: Number(document.getElementById("gainLowPass").value),
+				gainBandPass: Number(document.getElementById("gainBandPass").value),
+				gainHighPass: Number(document.getElementById("gainHighPass").value)
+			};
+		}
+		// Persist the current equalizer state (gains + active profile) via the websocket.
+		function sendEqualizer(profile) {
+			let myObj = { "equalizer": { ...currentEqGains(), profile: profile } };
+			window.settings = { ...window.settings, ...myObj };
+			socket.send(JSON.stringify(myObj));
+		}
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
@@ -4771,7 +4892,29 @@
 			});
 			$('.openPopupEqualizer').on('click', () => {
 				$('#modalEqualizer .modal-title').text(i18next.t("general.equalizer.title"));
+				// reflect the EQ that is actually active right now (a per-path rule may override the global one)
+				getData("http://" + host + "/activeequalizer", function (eq) {
+					if (eq && eq.gainLowPass != null) {
+						setEqSliders(eq);
+						let key = 'custom';
+						Object.keys(eqProfiles).forEach(function (k) {
+							const g = eqProfiles[k];
+							if (g.gainLowPass === eq.gainLowPass && g.gainBandPass === eq.gainBandPass && g.gainHighPass === eq.gainHighPass) {
+								key = k;
+							}
+						});
+						document.getElementById('eqProfile').value = key;
+					}
+				});
 				new bootstrap.Modal(document.getElementById('modalEqualizer')).toggle();
+			});
+			// Selecting a profile applies its preset gains and stores it.
+			$('#eqProfile').on('change', function () {
+				let profile = this.value;
+				if (eqProfiles[profile]) {
+					setEqSliders(eqProfiles[profile]);
+				}
+				sendEqualizer(profile);
 			});
 			// sending equalizer settings to API for
 			$('#modalEqualizer .slider').on('slideStop', function ({
@@ -4779,20 +4922,9 @@
 				value
 			}) {
 				formatDBTooltip(target, value);
-				let myObj = {
-					"equalizer": {
-						gainLowPass: Number(document.getElementById("gainLowPass").value),
-						gainBandPass: Number(document.getElementById("gainBandPass").value),
-						gainHighPass: Number(document.getElementById("gainHighPass").value)
-					}
-				};
-				var myJSON = JSON.stringify(myObj);
-				// update global settings
-				window.settings = {
-					...window.settings,
-					...myObj
-				};
-				socket.send(myJSON);
+				// Manually moving a slider switches the active profile to "custom".
+				document.getElementById("eqProfile").value = "custom";
+				sendEqualizer("custom");
 			});
 			$('#modalEqualizer .slider').on('slide', function ({
 				target,
@@ -4885,7 +5017,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 154, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
 				if ([140, 141, 142, 143, 144].includes(cmd)) {
@@ -4899,7 +5031,7 @@
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 154, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
 				const opt = addOption(modElem, mod);
 				if ([140, 141, 142, 143, 144].includes(mod)) {

@@ -283,6 +283,7 @@
 		constexpr const char topicRepeatMode[] = "repeatmode"; // Cmnd/State: set repeat mode (0=no,1=track,2=playlist,3=both)
 		constexpr const char topicLedBrightness[] = "led_brightness"; // Cmnd/State: set LED brightness 0..255
 		constexpr const char topicAmbientLight[] = "ambient_light"; // Cmnd/State: set ambient light (ON/OFF)
+		constexpr const char topicEqualizer[] = "equalizer"; // Cmnd/State: set / report equalizer profile (flat/music/speech/voiceBoost)
 
 		// Topics (state only)
 		constexpr const char topicTrack[] = "track";          // State: current track info (e.g. "(2/10) /mp3/.../file.mp3")
