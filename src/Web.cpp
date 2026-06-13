@@ -949,6 +949,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("idleColor", ledObj["idleColor"].as<uint32_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("idleAnim", ledObj["idleAnimation"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUInt("progColorStart", ledObj["progColorStart"].as<uint32_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("progColorEnd", ledObj["progColorEnd"].as<uint32_t>()) != 0);
@@ -1308,6 +1309,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		}
 		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS));
 		ledObj["idleColor"].set(gPrefsSettings.getUInt("idleColor", IDLE_COLOR));
+		ledObj["idleAnimation"].set(gPrefsSettings.getUChar("idleAnim", 0));
 		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS));
 		ledObj["progColorStart"].set(gPrefsSettings.getUInt("progColorStart", PROGRESS_COLOR_START));
 		ledObj["progColorEnd"].set(gPrefsSettings.getUInt("progColorEnd", PROGRESS_COLOR_END));
@@ -1418,6 +1420,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["numControl"].set(NUM_CONTROL_LEDS); // NUM_CONTROL_LEDS
 		ledSettings["numIdleDots"].set(NUM_LEDS_IDLE_DOTS); // NUM_LEDS_IDLE_DOTS
 		ledSettings["idleColor"].set(IDLE_COLOR); // IDLE_COLOR
+		ledSettings["idleAnimation"].set(0u); // standard idle animation
 		ledSettings["offsetPause"].set(OFFSET_PAUSE_LEDS); // OFFSET_PAUSE_LEDS
 		ledSettings["progColorStart"].set(PROGRESS_COLOR_START); // PROGRESS_COLOR_START
 		ledSettings["progColorEnd"].set(PROGRESS_COLOR_END); // PROGRESS_COLOR_END

@@ -46,6 +46,11 @@
 			"controlled": "Control-LED",
 			"numidledots": "Number of LEDs in idle state",
 			"idlecolor": "Color of the idle dots",
+			"idleanimation": "Idle animation",
+			"idleanim": {
+				"standard": "Standard",
+				"cyberpunk": "Cyberpunk (Data Drop)"
+			},
 			"progcolorstart": "Start color of progress bar",
 			"progcolorend": "End color of progress bar",
 			"offsetpause": "Center pause LEDs",

@@ -99,6 +99,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | Configurable idle LED and progress bar colors | [`bdc54e5`](../../commit/bdc54e5) |
 | Ready sound on cold start | [`c051c40`](../../commit/c051c40) |
 | Cyberpunk "Data Drop" idle LED animation | [`f20b111`](../../commit/f20b111) |
+| Selectable idle animation (standard idle dots or cyberpunk "Data Drop") in the LED settings; defaults to standard | [`7174669`](../../commit/7174669) |
 | Improved button responsiveness and track navigation seek options | [`76e1535`](../../commit/76e1535) |
 | Unlocking controls via button press while locked | [`d83e15f`](../../commit/d83e15f) |
 | Support for a 6th button | [`b116151`](../../commit/b116151) |

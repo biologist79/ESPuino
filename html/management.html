@@ -2246,6 +2246,11 @@
 									max="128"><br>
 								<label for="led_idleColor" data-i18n="settingsex.led.idlecolor"></label>: <br>
 								<input type="color" class="form-control" id="led_idleColor" name="led_idleColor"><br>
+								<label for="led_idleAnimation" data-i18n="settingsex.led.idleanimation"></label>: <br>
+								<select class="form-control form-select" id="led_idleAnimation" name="led_idleAnimation">
+									<option value="0" data-i18n="settingsex.led.idleanim.standard"></option>
+									<option value="1" data-i18n="settingsex.led.idleanim.cyberpunk"></option>
+								</select><br>
 								<label for="led_progColorStart" data-i18n="settingsex.led.progcolorstart"></label>: <br>
 								<input type="color" class="form-control" id="led_progColorStart" name="led_progColorStart"><br>
 								<label for="led_progColorEnd" data-i18n="settingsex.led.progcolorend"></label>: <br>
@@ -3755,6 +3760,7 @@
 				listControlColors(ledSettings.numControl, ledSettings.controlColors);
 				document.getElementById('led_idleDots').value = ledSettings.numIdleDots;
 				document.getElementById('led_idleColor').value = getHexColor(ledSettings.idleColor);
+				document.getElementById('led_idleAnimation').value = ledSettings.idleAnimation != null ? ledSettings.idleAnimation : 0;
 				document.getElementById('led_progColorStart').value = getHexColor(ledSettings.progColorStart);
 				document.getElementById('led_progColorEnd').value = getHexColor(ledSettings.progColorEnd);
 				$('#led_hueAtmo').bootstrapSlider('setValue', ledSettings.hueAtmo);
@@ -4181,6 +4187,7 @@
 					controlColors: [],
 					numIdleDots: Number(document.getElementById("led_idleDots").value),
 					idleColor: hexColorToInt(document.getElementById("led_idleColor").value),
+					idleAnimation: Number(document.getElementById("led_idleAnimation").value),
 					progColorStart: hexColorToInt(document.getElementById("led_progColorStart").value),
 					progColorEnd: hexColorToInt(document.getElementById("led_progColorEnd").value),
 					hueAtmo: Number($('#led_hueAtmo').val()),

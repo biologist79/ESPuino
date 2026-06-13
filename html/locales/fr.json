@@ -46,6 +46,11 @@
 			"controlled": "LED de contrôle",
 			"numidledots": "Nombre de LED en état de veille",
 			"idlecolor": "Couleur des LED en veille",
+			"idleanimation": "Animation de veille",
+			"idleanim": {
+				"standard": "Standard",
+				"cyberpunk": "Cyberpunk (Data Drop)"
+			},
 			"progcolorstart": "Couleur de début du progrès",
 			"progcolorend": "Couleur de fin du progrès",
 			"offsetpause": "LED pause centre",

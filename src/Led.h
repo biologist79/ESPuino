@@ -47,40 +47,41 @@ typedef struct {
 
 	#include <FastLED.h>
 
-	enum class LedPlaylistProgressStates : uint8_t {
-		FillBar = 0,
-		Wait,
-		EmptyBar,
-		EmptyBarToTarget,
-		Done
-	};
+enum class LedPlaylistProgressStates : uint8_t {
+	FillBar = 0,
+	Wait,
+	EmptyBar,
+	EmptyBarToTarget,
+	Done
+};
 
-	struct LedSettings {
-		uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
-		uint8_t numControlLeds = NUM_CONTROL_LEDS;
-		std::vector<uint32_t> controlLedColors;
-		uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
-		uint32_t idleColor = IDLE_COLOR;
-		bool offsetLedPause = OFFSET_PAUSE_LEDS;
-		uint32_t progressColorStart = PROGRESS_COLOR_START;
-		uint32_t progressColorEnd = PROGRESS_COLOR_END;
-		int16_t atmoHue = ATMO_HUE;
-		int16_t atmoSaturation = ATMO_SATURATION;
-		uint8_t dimmableStates = DIMMABLE_STATES;
-		bool neopixelReverseRotation;
-		uint8_t ledOffset;
-		bool Led_Pause;
+struct LedSettings {
+	uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
+	uint8_t numControlLeds = NUM_CONTROL_LEDS;
+	std::vector<uint32_t> controlLedColors;
+	uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
+	uint32_t idleColor = IDLE_COLOR;
+	uint8_t idleAnimation = 0; // 0 = standard idle dots, 1 = cyberpunk "Data Drop"
+	bool offsetLedPause = OFFSET_PAUSE_LEDS;
+	uint32_t progressColorStart = PROGRESS_COLOR_START;
+	uint32_t progressColorEnd = PROGRESS_COLOR_END;
+	int16_t atmoHue = ATMO_HUE;
+	int16_t atmoSaturation = ATMO_SATURATION;
+	uint8_t dimmableStates = DIMMABLE_STATES;
+	bool neopixelReverseRotation;
+	uint8_t ledOffset;
+	bool Led_Pause;
 
-		bool Led_NightMode = false;
-		bool Led_AmbientLight = false;
-		uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
-		uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
-		uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
-		uint8_t Led_AmbientBrightness = LED_INITIAL_BRIGHTNESS;
-	};
+	bool Led_NightMode = false;
+	bool Led_AmbientLight = false;
+	uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
+	uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
+	uint8_t Led_NightBrightness = LED_INITIAL_NIGHT_BRIGHTNESS;
+	uint8_t Led_AmbientBrightness = LED_INITIAL_BRIGHTNESS;
+};
 
-	bool Led_GetNightmode();
-	bool Led_GetAmbientLight();
+bool Led_GetNightmode();
+bool Led_GetAmbientLight();
 #endif
 
 void Led_Init(void);

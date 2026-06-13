@@ -46,6 +46,11 @@
 			"controlled": "Kontroll-LED",
 			"numidledots": "Anzahl LEDs im Leerlauf",
 			"idlecolor": "Farbe der Leerlauf-LEDs",
+			"idleanimation": "Leerlauf-Animation",
+			"idleanim": {
+				"standard": "Standard",
+				"cyberpunk": "Cyberpunk (Data Drop)"
+			},
 			"progcolorstart": "Startfarbe Fortschrittsanzeige",
 			"progcolorend": "Endfarbe Fortschrittsanzeige",
 			"offsetpause": "Pausen-LEDs zentrieren",
