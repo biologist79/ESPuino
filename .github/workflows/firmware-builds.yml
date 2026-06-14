@@ -27,9 +27,6 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          # - ttgo_t8 # disabled for now.
-          - lolin_d32_pro
-          - lolin_d32_pro_sdmmc_pe
           - complete
 
     steps:
