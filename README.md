@@ -58,62 +58,62 @@ All changes compared to upstream/`dev`, each with a reference to its commit.
 The management and access point pages were completely rebuilt in a cyberpunk style — neon
 palette, scanlines, `Orbitron`/`Rajdhani`/`Share Tech Mono` typography, a custom login page, the
 upstream Bluetooth scan UI restyled to match, the device branding in the navbar and an embedded
-neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
+neon logo that doubles as the SVG favicon ([`7be5254`](../../commit/7be5254)):
 
 <div align="center"><img src="docs/img/feat-navbar.png" width="430" alt="Navbar branding"></div>
 
 | Change | Commit |
 | --- | --- |
-| PWA support: web app manifest + app icon, "add to home screen" with proper icon and name | [`a59fe0b`](../../commit/a59fe0b) |
-| PWA offline fallback: a service worker serves a cyberpunk "ESPuino Offline" page (with auto-reconnect) instead of a black screen when the home-screen app is launched while the player is powered off | [`ceb1c23`](../../commit/ceb1c23) |
-| Full backup: export/import of all settings + RFID assignments as JSON, WiFi credentials optional | [`7f2e4ae`](../../commit/7f2e4ae) |
-| One-click OTA update: GitHub Actions publishes a rolling `latest` release (`firmware.bin`); a Tools-tab button makes the device pull that firmware from GitHub over HTTPS and flash it via OTA, then reboot. Also triggerable via the bindable command **186** (button/RFID modifier) and the MQTT command-topic `firmware_update` (`ON`/`update`); the state-topic reports `idle`/`updating`/`up_to_date`/`failed` | [`06ac13d`](../../commit/06ac13d) |
-| Equalizer profiles: dropdown presets (Flat / Music / Audiobook-Speech / Deep voices / Custom) on top of the 3-band tone control; speech presets cut bass and lift mids/highs so deep narrator voices stay intelligible, persisted in NVS. Profiles can also be assigned per file or directory (right-click in the file browser) — e.g. set the speech profile for all Bibi Blocksberg episodes at once; the RFID tab shows the active profile for the highlighted file (or "No EQ set"). The active profile can be cycled with the bindable command **154** (button/RFID modifier) and set/reported via the MQTT topic `equalizer` (`flat`/`music`/`speech`/`voiceBoost`) | [`300b9dd`](../../commit/300b9dd) |
-| Blinking "OK" indicator next to the battery replaces the generic "action successful" toast | [`0870ccc`](../../commit/0870ccc) |
-| Blinking "connection lost" icon in the navbar replaces the connection-lost toast | [`c45402b`](../../commit/c45402b) |
-| WiFi signal-strength indicator in the navbar (RSSI %, color-coded), next to the battery | [`e4ac7e7`](../../commit/e4ac7e7) |
-| Play/pause button in the RFID tab plays the highlighted file/folder (and pauses running playback) | [`8d3d196`](../../commit/8d3d196) |
-| File browser tab renamed to "Files" (folder icon) and the file tree view height doubled for easier navigation | [`9d2a8ae`](../../commit/9d2a8ae) |
-| Cyberpunk footer below the interface (neon "LEO INDUSTRIES // DIVISION: AUDIO" branding) | [`c21f8bf`](../../commit/c21f8bf) |
-| SD card cleanup: removes macOS metadata (`.DS_Store`, `._*`, Spotlight/Trashes) with one click | [`5f38a51`](../../commit/5f38a51) |
-| Live log: the log dialog refreshes every 2 s and follows the end of the log | [`d326faa`](../../commit/d326faa) |
-| Drag & drop: upload files by dropping them from the file manager onto the file tree | [`e4972fe`](../../commit/e4972fe) |
-| Password protection: single password (no username), 90-day session cookie, logout menu entry, brute-force lockout; inactive in hotspot mode | [`6e14646`](../../commit/6e14646) |
-| Log download as a text file | [`c5ece03`](../../commit/c5ece03) |
-| Battery indicator in the navbar with a low-battery warning toast | [`3b519ae`](../../commit/3b519ae) |
-| SD card capacity gauge in the files tab and the info dialog | [`a2b9f2b`](../../commit/a2b9f2b) |
-| FTP server can be stopped from the web interface (start button turns into a stop button) | [`f0906b4`](../../commit/f0906b4) |
-| Bluetooth modes can be stopped from the web interface; commands 143/144 switch modes directly via buttons | [`0c3edd0`](../../commit/0c3edd0) |
-| Button lock (Kindersicherung) toggle directly in the control tab of the web interface with visual lock status indicator | [`ae83116`](../../commit/ae83116) |
-| Control buttons (single-track Repeat toggle, Sleep-Timer with dropdown and live remaining countdown, Night Mode/Dimming) directly in the control tab of the web interface | [`6918d36`](../../commit/6918d36) |
-| Bluetooth-mode dropdown in the control tab (Normal / Speaker / Headphones), mirroring the sleep-timer dropdown; selecting a mode restarts the device into it and the button highlights the active BT mode | [`b9f1e5c`](../../commit/b9f1e5c) |
-| Mobile-optimized control tab: the hard-to-drag volume slider is replaced by full-width louder/quieter (+ EQ) buttons on phones, and the control header stacks so the legend stays on one line with the action buttons below | [`f10bc93`](../../commit/f10bc93) |
-| System-information dialog rendered as a clean property/value table (instead of preformatted text) and extended with the PN5180 RFID-reader firmware version (read once from the reader's EEPROM at init and exposed via `/info`) | [`56f5fda`](../../commit/56f5fda) |
+| PWA support: web app manifest + app icon, "add to home screen" with proper icon and name | [`b4287b9`](../../commit/b4287b9) |
+| PWA offline fallback: a service worker serves a cyberpunk "ESPuino Offline" page (with auto-reconnect) instead of a black screen when the home-screen app is launched while the player is powered off | [`bd07a7c`](../../commit/bd07a7c) |
+| Full backup: export/import of all settings + RFID assignments as JSON, WiFi credentials optional | [`4c90ff4`](../../commit/4c90ff4) |
+| One-click OTA update: GitHub Actions publishes a rolling `latest` release (`firmware.bin`); a Tools-tab button makes the device pull that firmware from GitHub over HTTPS and flash it via OTA, then reboot. Also triggerable via the bindable command **186** (button/RFID modifier) and the MQTT command-topic `firmware_update` (`ON`/`update`); the state-topic reports `idle`/`updating`/`up_to_date`/`failed` | [`8527f5e`](../../commit/8527f5e) |
+| Equalizer profiles: dropdown presets (Flat / Music / Audiobook-Speech / Deep voices / Custom) on top of the 3-band tone control; speech presets cut bass and lift mids/highs so deep narrator voices stay intelligible, persisted in NVS. Profiles can also be assigned per file or directory (right-click in the file browser) — e.g. set the speech profile for all Bibi Blocksberg episodes at once; the RFID tab shows the active profile for the highlighted file (or "No EQ set"). The active profile can be cycled with the bindable command **154** (button/RFID modifier) and set/reported via the MQTT topic `equalizer` (`flat`/`music`/`speech`/`voiceBoost`) | [`11ade33`](../../commit/11ade33) |
+| Blinking "OK" indicator next to the battery replaces the generic "action successful" toast | [`f41bb72`](../../commit/f41bb72) |
+| Blinking "connection lost" icon in the navbar replaces the connection-lost toast | [`be13308`](../../commit/be13308) |
+| WiFi signal-strength indicator in the navbar (RSSI %, color-coded), next to the battery | [`26e8cf8`](../../commit/26e8cf8) |
+| Play/pause button in the RFID tab plays the highlighted file/folder (and pauses running playback) | [`3870bb7`](../../commit/3870bb7) |
+| File browser tab renamed to "Files" (folder icon) and the file tree view height doubled for easier navigation | [`3af1fc2`](../../commit/3af1fc2) |
+| Cyberpunk footer below the interface (neon "LEO INDUSTRIES // DIVISION: AUDIO" branding) | [`b49f131`](../../commit/b49f131) |
+| SD card cleanup: removes macOS metadata (`.DS_Store`, `._*`, Spotlight/Trashes) with one click | [`4e68541`](../../commit/4e68541) |
+| Live log: the log dialog refreshes every 2 s and follows the end of the log | [`5183e78`](../../commit/5183e78) |
+| Drag & drop: upload files by dropping them from the file manager onto the file tree | [`f8b477b`](../../commit/f8b477b) |
+| Password protection: single password (no username), 90-day session cookie, logout menu entry, brute-force lockout; inactive in hotspot mode | [`e74e712`](../../commit/e74e712) |
+| Log download as a text file | [`5d9d591`](../../commit/5d9d591) |
+| Battery indicator in the navbar with a low-battery warning toast | [`4566ae0`](../../commit/4566ae0) |
+| SD card capacity gauge in the files tab and the info dialog | [`45b340a`](../../commit/45b340a) |
+| FTP server can be stopped from the web interface (start button turns into a stop button) | [`6ea4020`](../../commit/6ea4020) |
+| Bluetooth modes can be stopped from the web interface; commands 143/144 switch modes directly via buttons | [`f16030f`](../../commit/f16030f) |
+| Button lock (Kindersicherung) toggle directly in the control tab of the web interface with visual lock status indicator | [`520815a`](../../commit/520815a) |
+| Control buttons (single-track Repeat toggle, Sleep-Timer with dropdown and live remaining countdown, Night Mode/Dimming) directly in the control tab of the web interface | [`88a742c`](../../commit/88a742c) |
+| Bluetooth-mode dropdown in the control tab (Normal / Speaker / Headphones), mirroring the sleep-timer dropdown; selecting a mode restarts the device into it and the button highlights the active BT mode | [`d57f24a`](../../commit/d57f24a) |
+| Mobile-optimized control tab: the hard-to-drag volume slider is replaced by full-width louder/quieter (+ EQ) buttons on phones, and the control header stacks so the legend stays on one line with the action buttons below | [`aef1765`](../../commit/aef1765) |
+| System-information dialog rendered as a clean property/value table (instead of preformatted text) and extended with the PN5180 RFID-reader firmware version (read once from the reader's EEPROM at init and exposed via `/info`) | [`715d867`](../../commit/715d867) |
 
 #### Feature highlights
 
 | | |
 | --- | --- |
-| <img src="docs/img/feat-sdcapacity.png" width="320" alt="SD capacity gauge"> | **SD capacity gauge** — free / total space below the file browser ([`a2b9f2b`](../../commit/a2b9f2b)) |
-| <img src="docs/img/feat-battery.png" width="90" alt="Battery indicator"> | **Battery indicator** — live charge level in the navbar ([`3b519ae`](../../commit/3b519ae)) |
-| <img src="docs/img/feat-cleansd.png" width="90" alt="SD clean button"> | **SD cleanup** — one click removes macOS metadata junk ([`5f38a51`](../../commit/5f38a51)) |
+| <img src="docs/img/feat-sdcapacity.png" width="320" alt="SD capacity gauge"> | **SD capacity gauge** — free / total space below the file browser ([`45b340a`](../../commit/45b340a)) |
+| <img src="docs/img/feat-battery.png" width="90" alt="Battery indicator"> | **Battery indicator** — live charge level in the navbar ([`4566ae0`](../../commit/4566ae0)) |
+| <img src="docs/img/feat-cleansd.png" width="90" alt="SD clean button"> | **SD cleanup** — one click removes macOS metadata junk ([`4e68541`](../../commit/4e68541)) |
 | <img src="docs/img/feat-slix2.png" width="320" alt="SLIX2 password field"> | **SLIX2 password** — read protected ICODE-SLIX2 tags ([`d3cc69c`](../../commit/d3cc69c)) |
 
 ### RFID & audio
 
 | Change | Commit |
 | --- | --- |
-| Tag removal detected via consecutive-miss counter instead of a wall-clock timeout: pause after ~0.5 s, immune to phantom dropouts and task starvation | [`7e851fb`](../../commit/7e851fb) |
+| Tag removal detected via consecutive-miss counter instead of a wall-clock timeout: pause after ~0.5 s, immune to phantom dropouts and task starvation | [`1fad9cd`](../../commit/1fad9cd) |
 | Vendored PN5180 library with fast no-card detection: read attempts on an empty field take ~25 ms instead of ~230 ms (no more 200 ms timeout) | [`8762784`](../../commit/8762784) |
 | SLIX2 password support for protected ICODE-SLIX2 tags | [`d3cc69c`](../../commit/d3cc69c) |
 | Configurable idle LED and progress bar colors | [`bdc54e5`](../../commit/bdc54e5) |
 | Ready sound on cold start | [`c051c40`](../../commit/c051c40) |
 | Cyberpunk "Data Drop" idle LED animation | [`f20b111`](../../commit/f20b111) |
-| Selectable idle animation (standard idle dots or cyberpunk "Data Drop") in the LED settings; defaults to standard | [`7174669`](../../commit/7174669) |
+| Selectable idle animation (standard idle dots or cyberpunk "Data Drop") in the LED settings; defaults to standard | [`f6c3f4e`](../../commit/f6c3f4e) |
 | Improved button responsiveness and track navigation seek options | [`76e1535`](../../commit/76e1535) |
 | Unlocking controls via button press while locked | [`d83e15f`](../../commit/d83e15f) |
 | Support for a 6th button | [`b116151`](../../commit/b116151) |
-| OLED display support (SH1106/SSD1306 128×64 over I2C): boot splash, idle screen with IP + READY, now-playing title (up to 3 lines, scrolling) with battery/time/wifi status bar, and a volume bar | [`607a0f3`](../../commit/607a0f3) |
+| OLED display support (SH1106/SSD1306 128×64 over I2C): boot splash, idle screen with IP + READY, now-playing title (up to 3 lines, scrolling) with battery/time/wifi status bar, and a volume bar | [`8ce8104`](../../commit/8ce8104) |
 
 ## // Flashing
 
