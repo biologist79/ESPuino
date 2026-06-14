@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="theme-color" content="#05070d">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<title>LEOINO // OFFLINE</title>
+	<style>
+		:root {
+			--cp-bg: #05070d;
+			--cp-cyan: #00f0ff;
+			--cp-magenta: #ff2a6d;
+			--cp-dim: #6b7a99;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			margin: 0;
+			height: 100%;
+		}
+
+		body {
+			background: radial-gradient(circle at 50% 30%, #0b1022 0%, var(--cp-bg) 70%);
+			color: #cfe9ff;
+			font-family: "Rajdhani", "Segoe UI", system-ui, -apple-system, sans-serif;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+			padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+			min-height: 100vh;
+			overflow: hidden;
+		}
+
+		.glyph {
+			width: 96px;
+			height: 96px;
+			margin-bottom: 28px;
+			color: var(--cp-magenta);
+			filter: drop-shadow(0 0 14px rgba(255, 42, 109, .55));
+			animation: pulse 2.2s ease-in-out infinite;
+		}
+
+		@keyframes pulse {
+
+			0%,
+			100% {
+				opacity: .55;
+				transform: scale(1);
+			}
+
+			50% {
+				opacity: 1;
+				transform: scale(1.04);
+			}
+		}
+
+		h1 {
+			font-family: "Orbitron", "Rajdhani", sans-serif;
+			letter-spacing: .18em;
+			text-transform: uppercase;
+			font-size: 1.5rem;
+			margin: 0 0 10px;
+			color: var(--cp-cyan);
+			text-shadow: 0 0 12px rgba(0, 240, 255, .6);
+		}
+
+		p {
+			max-width: 360px;
+			line-height: 1.5;
+			color: var(--cp-dim);
+			margin: 0 0 28px;
+			font-size: 1rem;
+		}
+
+		.status {
+			font-family: "Share Tech Mono", monospace;
+			letter-spacing: .15em;
+			text-transform: uppercase;
+			font-size: .8rem;
+			color: var(--cp-magenta);
+			margin-bottom: 6px;
+		}
+
+		button {
+			font-family: "Rajdhani", sans-serif;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: .12em;
+			font-size: 1rem;
+			color: var(--cp-cyan);
+			background: rgba(0, 240, 255, .06);
+			border: 1px solid rgba(0, 240, 255, .5);
+			border-radius: 6px;
+			padding: 12px 28px;
+			cursor: pointer;
+			transition: all .25s ease;
+			min-width: 200px;
+		}
+
+		button:hover,
+		button:active {
+			color: #021019;
+			background: var(--cp-cyan);
+			box-shadow: 0 0 18px rgba(0, 240, 255, .6);
+		}
+
+		button:disabled {
+			opacity: .5;
+			pointer-events: none;
+		}
+
+		.foot {
+			position: fixed;
+			bottom: max(14px, env(safe-area-inset-bottom));
+			left: 0;
+			right: 0;
+			font-family: "Share Tech Mono", monospace;
+			font-size: .7rem;
+			letter-spacing: .12em;
+			color: rgba(107, 122, 153, .7);
+		}
+	</style>
+</head>
+
+<body>
+	<svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+		stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+		<path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+		<line x1="12" y1="2" x2="12" y2="12" />
+	</svg>
+	<div class="status" id="status">// signal lost</div>
+	<h1>ESPuino Offline</h1>
+	<p>The player is powered down or out of reach. This screen stays available so the app never goes dark. It will
+		reconnect automatically once the device is back online.</p>
+	<button id="retry" type="button">Reconnect</button>
+	<div class="foot">LEO INDUSTRIES // AT-1 &nbsp;·&nbsp; NEON DREAMS RUN ON ESP32</div>
+
+	<script>
+		(function () {
+			var btn = document.getElementById('retry');
+			var status = document.getElementById('status');
+
+			// Probe a small, auth-exempt endpoint. On success the device is back -> load the app.
+			function probe() {
+				return fetch('/manifest.json', { method: 'GET', cache: 'no-store' })
+					.then(function (r) { return r && r.ok; })
+					.catch(function () { return false; });
+			}
+
+			function attempt(manual) {
+				if (manual) {
+					btn.disabled = true;
+					status.textContent = '// reconnecting…';
+				}
+				probe().then(function (online) {
+					if (online) {
+						status.textContent = '// link restored';
+						location.replace('/');
+					} else if (manual) {
+						btn.disabled = false;
+						status.textContent = '// still offline';
+					}
+				});
+			}
+
+			btn.addEventListener('click', function () { attempt(true); });
+			// silent auto-retry every 5s
+			setInterval(function () { attempt(false); }, 5000);
+			// also retry as soon as the OS reports connectivity is back
+			window.addEventListener('online', function () { attempt(false); });
+		})();
+	</script>
+</body>
+
+</html>

@@ -645,8 +645,9 @@ void webserverStart(void) {
 				return next();
 			}
 			const String &url = request->url();
-			if (url.equals("/login") || url.equals("/logo") || url.equals("/logo.svg") || url.equals("/favicon.ico") || url.equals("/manifest.json") || url.equals("/appicon.svg")) {
+			if (url.equals("/login") || url.equals("/logo") || url.equals("/logo.svg") || url.equals("/favicon.ico") || url.equals("/manifest.json") || url.equals("/appicon.svg") || url.equals("/sw.js") || url.equals("/offline.html")) {
 				// manifest/icon: the browser fetches the web-app-manifest without cookies
+				// sw.js/offline.html: needed by the PWA so a powered-off device shows an offline page instead of a black screen
 				return next();
 			}
 			if (Web_IsAuthenticated(request)) {

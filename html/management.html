@@ -12,6 +12,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#05070d">
 	<link rel="manifest" href="/manifest.json">
+	<script>
+		// Register the offline service worker so the home-screen PWA shows an
+		// offline page instead of a black screen when the player is powered off.
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function () {
+				navigator.serviceWorker.register('/sw.js').catch(function () { });
+			});
+		}
+	</script>
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
