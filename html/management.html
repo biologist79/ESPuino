@@ -1056,6 +1056,25 @@
 			font-family: "Share Tech Mono", monospace;
 		}
 
+		/* system information table */
+		.cp-info-table th {
+			white-space: nowrap;
+			width: 1%;
+			padding-right: 18px;
+			color: var(--cp-cyan);
+			font-weight: 600;
+		}
+
+		.cp-info-table td {
+			word-break: break-word;
+			color: var(--cp-text, #cfe9ff);
+		}
+
+		.cp-info-table tr+tr th,
+		.cp-info-table tr+tr td {
+			border-top: 1px solid var(--cp-border);
+		}
+
 		/* ---------- toasts ---------- */
 		.toast {
 			background: var(--cp-panel);
@@ -1441,7 +1460,7 @@
 				<div class="modal-header">
 					<h5 class="modal-title" data-i18n="infos"></h5>
 				</div>
-				<div class="modal-body" style="white-space: pre" id="modalInfoContent">
+				<div class="modal-body" id="modalInfoContent">
 				</div>
 				<div class="modal-footer">
 					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
@@ -5442,76 +5461,38 @@
 		async function fetchInfo() {
 			let info = await (await fetch("http://" + host + "/info")).json();
 			console.log(info);
-			let content = i18next.t("systeminfo.softwareversion", {
-				softwareversion: info.software.version
-			}) + "<br>";
-			content += i18next.t("systeminfo.gitversion", {
-				gitversion: info.software.git
-			}) + "<br>";
-			content += i18next.t("systeminfo.arduinoversion", {
-				arduinoversion: info.software.arduino,
-				idfversion: info.software.idf
-			}) + "<br>";
-			content += i18next.t("systeminfo.hardware", {
-				hwmodel: info.hardware.model,
-				hwrevision: info.hardware.revision,
-				hwfreq: info.hardware.freq
-			}) + "<br>";
-			content += i18next.t("systeminfo.freeheap", {
-				freeheap: info.memory.freeHeap
-			}) + "<br>";
-			content += i18next.t("systeminfo.largestfreeblock", {
-				largestfreeblock: info.memory.largestFreeBlock
-			}) + "<br>";
-			if (info.memory.freePSRam) {
-				content += i18next.t("systeminfo.freepsram", {
-					freepsram: info.memory.freePSRam
-				}) + "<br>";
-			}
-			content += i18next.t("systeminfo.currentip", {
-				currentip: info.wifi.ip
-			}) + "<br>";
-			content += i18next.t("systeminfo.macAddress", {
-				macAddress: info.wifi.macAddress
-			}) + "<br>";
-			content += i18next.t("systeminfo.rssi", {
-				rssi: info.wifi.rssi
-			}) + "<br>";
-			content += i18next.t("systeminfo.audiotimetotal", {
-				firststart: secondsToDate(info.audio.firstStart),
-				audiotimetotal: timestampToDuration(info.audio.playtimeTotal, false)
-			}) + "<br>";
-			if (info.audio.playtimeSinceStart > 0) {
-				content += i18next.t("systeminfo.audiotimesincestart", {
-					audiotimesincestart: timestampToDuration(info.audio.playtimeSinceStart, true)
-				}) + "<br>";
-			}
-			if (info.sdcard && info.sdcard.size) {
-				content += i18next.t("systeminfo.sdcard", {
-					free: (info.sdcard.free / 1024).toFixed(1),
-					total: (info.sdcard.size / 1024).toFixed(1)
-				}) + "<br>";
-			}
+			const esc = (typeof escapeHtml === 'function') ? escapeHtml : function (x) { return x; };
+			const num = function (n) { return Number(n).toLocaleString(); };
+			const rows = [];
+			const add = function (labelKey, value) {
+				if (value === undefined || value === null || value === '') return;
+				rows.push('<tr><th scope="row">' + i18next.t(labelKey) + '</th><td>' + esc(String(value)) + '</td></tr>');
+			};
+
+			add('systeminfo.lblSoftware', info.software.version);
+			add('systeminfo.lblGit', info.software.git);
+			add('systeminfo.lblEnv', info.software.arduino + ' / ' + info.software.idf);
+			add('systeminfo.lblChip', info.hardware.model + ' (rev ' + info.hardware.revision + ')');
+			add('systeminfo.lblCpu', info.hardware.freq + ' MHz');
+			if (info.hardware.readerFirmware) add('systeminfo.lblReader', 'PN5180 ' + info.hardware.readerFirmware);
+			add('systeminfo.lblHeap', num(info.memory.freeHeap) + ' B');
+			add('systeminfo.lblHeapBlock', num(info.memory.largestFreeBlock) + ' B');
+			if (info.memory.freePSRam) add('systeminfo.lblPsram', num(info.memory.freePSRam) + ' B');
+			add('systeminfo.lblIp', info.wifi.ip);
+			add('systeminfo.lblMac', info.wifi.macAddress);
+			add('systeminfo.lblRssi', info.wifi.rssi + ' dBm');
+			add('systeminfo.lblSince', secondsToDate(info.audio.firstStart));
+			add('systeminfo.lblPlayTotal', timestampToDuration(info.audio.playtimeTotal, false));
+			if (info.audio.playtimeSinceStart > 0) add('systeminfo.lblPlaySince', timestampToDuration(info.audio.playtimeSinceStart, true));
+			if (info.sdcard && info.sdcard.size) add('systeminfo.lblSd', (info.sdcard.free / 1024).toFixed(1) + ' / ' + (info.sdcard.size / 1024).toFixed(1) + ' GB');
 			if (info.battery) {
-				content += i18next.t("systeminfo.currvoltage", {
-					currvoltage: info.battery.currVoltage.toFixed(2)
-				}) + "<br>";
-				if (info.battery.chargelevel) {
-					content += i18next.t("systeminfo.chargelevel", {
-						chargelevel: info.battery.chargeLevel.toFixed(1)
-					}) + "<br>";
-				}
+				add('systeminfo.lblVoltage', info.battery.currVoltage.toFixed(2) + ' V');
+				if (info.battery.chargeLevel) add('systeminfo.lblCharge', info.battery.chargeLevel.toFixed(1) + ' %');
 			}
-			if (info.hallsensor) {
-				content += i18next.t("systeminfo.hallsensor", {
-					hsnullfieldvalue: info.hallsensor.nullFieldValue,
-					hsactual: info.hallsensor.actual,
-					hsdiff: info.hallsensor.diff,
-					hslastwaitforstate: info.hallsensor.lastWaitState,
-					hswaited: info.hallsensor.lastWaitMS
-				}) + "<br>";
-			}
-			$('#modalInfoContent').html(content);
+			if (info.hallsensor) add('systeminfo.lblHall', 'null ' + info.hallsensor.nullFieldValue + ', actual ' + info.hallsensor.actual + ', diff ' + info.hallsensor.diff);
+
+			const html = '<table class="table table-sm table-borderless cp-info-table mb-0"><tbody>' + rows.join('') + '</tbody></table>';
+			$('#modalInfoContent').html(html);
 		}
 		var liveLogInterval;
 		async function fetchLog() {

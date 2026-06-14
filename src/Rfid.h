@@ -14,3 +14,4 @@ void Rfid_TaskResume(void);
 void Rfid_TaskReset(void);
 void Rfid_WakeupCheck(void);
 void Rfid_PreferenceLookupHandler(void);
+const char *Rfid_GetReaderFirmwareVersion(void); // PN5180 reader firmware version (RFID_READER_TYPE_RUNTIME builds only)

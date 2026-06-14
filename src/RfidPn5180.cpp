@@ -47,6 +47,7 @@ static void RfidPn5180_Task(void *parameter);
 uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 static bool rfidTaskResetRequested = false;
 static byte lastValidcardId[cardIdSize];
+static char Rfid_ReaderFwVersion[12] = ""; // cached PN5180 firmware version (e.g. "4.0"), read once at init
 
 static bool Rfid_Pn5180LpcdEnabled(void) {
 	return gPrefsRfid.getBool("pn5180Lpcd", false);
@@ -188,10 +189,17 @@ void RfidPn5180_Task(void *parameter) {
 		if (RFID_PN5180_STATE_INIT == stateMachine) {
 			nfc14443.begin();
 			nfc14443.reset();
-			// show PN5180 reader version
-			// uint8_t firmwareVersion[2];
-			// nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			// Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
+			// read and cache the PN5180 reader firmware version once (for the info dialog).
+			// Only cache a plausible value: if no (or a non-PN5180) reader is connected the
+			// EEPROM read yields garbage (0x00/0xFF), which we reject so /info omits the field.
+			if (Rfid_ReaderFwVersion[0] == '\0') {
+				uint8_t firmwareVersion[2] = {0, 0};
+				if (nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion))
+					&& firmwareVersion[1] != 0x00 && firmwareVersion[1] != 0xFF) {
+					snprintf(Rfid_ReaderFwVersion, sizeof(Rfid_ReaderFwVersion), "%d.%d", firmwareVersion[1], firmwareVersion[0]);
+					Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%s", Rfid_ReaderFwVersion);
+				}
+			}
 
 			// activate RF field
 			delay(4u);
@@ -536,5 +544,10 @@ void RfidPn5180_WakeupCheck(void) {
 		}
 	}
 	nfc14443.end();
+}
+
+// Returns the cached PN5180 reader firmware version (e.g. "4.0"), or "" if not yet read.
+const char *Rfid_GetReaderFirmwareVersion(void) {
+	return Rfid_ReaderFwVersion;
 }
 #endif

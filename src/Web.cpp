@@ -1712,6 +1712,13 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		hardwareObj["model"] = String(ESP.getChipModel());
 		hardwareObj["revision"] = ESP.getChipRevision();
 		hardwareObj["freq"] = ESP.getCpuFreqMHz();
+#if defined(RFID_READER_TYPE_RUNTIME)
+		// PN5180 reader firmware version (empty until the reader has been initialised once)
+		const char *readerFw = Rfid_GetReaderFirmwareVersion();
+		if (readerFw && readerFw[0] != '\0') {
+			hardwareObj["readerFirmware"] = String(readerFw);
+		}
+#endif
 	}
 	// memory
 	if ((section == "") || (section == "memory")) {
