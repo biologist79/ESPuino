@@ -229,6 +229,28 @@
 			text-shadow: 0 0 8px rgba(10, 255, 157, .5);
 		}
 
+		#wifiIndicator {
+			margin-right: 12px;
+			font-family: "Share Tech Mono", monospace;
+			font-size: .9rem;
+			color: var(--cp-cyan);
+			text-shadow: 0 0 8px rgba(0, 240, 255, .5);
+		}
+
+		#wifiIndicator #wifiLevel {
+			margin-left: 3px;
+		}
+
+		#wifiIndicator.wifi-good {
+			color: var(--cp-green);
+			text-shadow: 0 0 8px rgba(10, 255, 157, .5);
+		}
+
+		#wifiIndicator.wifi-weak {
+			color: var(--cp-magenta);
+			text-shadow: 0 0 8px rgba(255, 42, 109, .6);
+		}
+
 		#batteryIndicator.battery-low {
 			color: var(--cp-magenta);
 			text-shadow: 0 0 8px rgba(255, 42, 109, .6);
@@ -1197,6 +1219,9 @@
 			<div class="collapse navbar-collapse justify-content-end">
 				<span class="navbar-text" id="connLost" data-i18n="[title]toast.conlost"><i class="fas fa-link-slash"></i></span>
 				<span class="navbar-text" id="actionOk" aria-hidden="true"><i class="fas fa-check"></i> OK</span>
+				<span class="navbar-text" id="wifiIndicator" data-visible="false" data-i18n="[title]nav.wifi">
+					<i class="fas fa-wifi" id="wifiIcon"></i><span id="wifiLevel"></span>
+				</span>
 				<span class="navbar-text" id="batteryIndicator" data-visible="false">
 					<i class="fas fa-battery-three-quarters" id="batteryIcon"></i><span id="batteryLevel"></span>
 				</span>
@@ -3605,6 +3630,9 @@
 				if ("battery" in socketMsg) {
 					updateBatteryIndicator(socketMsg.battery);
 				}
+				if ("rssi" in socketMsg) {
+					updateWifiIndicator(socketMsg.rssi);
+				}
 				if ("volume" in socketMsg) {
 					volumeSlider.setValue(parseInt(socketMsg.volume));
 				}
@@ -4881,6 +4909,18 @@
 			}
 		}
 
+		// Update the navbar WiFi indicator from the RSSI (dBm) reported by the device.
+		function updateWifiIndicator(rssi) {
+			const indicator = document.getElementById('wifiIndicator');
+			if (!indicator || rssi == null) return;
+			// same quality mapping as the firmware WiFi scan (0..100 %)
+			let quality = rssi <= -100 ? 0 : rssi >= -50 ? 100 : 2 * (rssi + 100);
+			document.getElementById('wifiLevel').textContent = quality + '%';
+			indicator.title = rssi + ' dBm';
+			indicator.classList.toggle('wifi-good', quality >= 60);
+			indicator.classList.toggle('wifi-weak', quality < 30);
+			indicator.setAttribute('data-visible', true);
+		}
 		var batteryLowWarned = false;
 		function updateBatteryIndicator(battery) {
 			const indicator = document.getElementById('batteryIndicator');
