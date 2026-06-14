@@ -28,7 +28,7 @@
 	},
 	"nav": {
 		"control": "Control",
-		"rfid": "RFID",
+		"rfid": "Files",
 		"wifi": "WiFi",
 		"mqtt": "MQTT",
 		"ftp": "FTP",

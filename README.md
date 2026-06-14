@@ -73,6 +73,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | Blinking "connection lost" icon in the navbar replaces the connection-lost toast | [`c45402b`](../../commit/c45402b) |
 | WiFi signal-strength indicator in the navbar (RSSI %, color-coded), next to the battery | [`e4ac7e7`](../../commit/e4ac7e7) |
 | Play/pause button in the RFID tab plays the highlighted file/folder (and pauses running playback) | [`8d3d196`](../../commit/8d3d196) |
+| File browser tab renamed to "Files" (folder icon) and the file tree view height doubled for easier navigation | [`9d2a8ae`](../../commit/9d2a8ae) |
 | Cyberpunk footer below the interface (neon "LEO INDUSTRIES // DIVISION: AUDIO" branding) | [`c21f8bf`](../../commit/c21f8bf) |
 | SD card cleanup: removes macOS metadata (`.DS_Store`, `._*`, Spotlight/Trashes) with one click | [`5f38a51`](../../commit/5f38a51) |
 | Live log: the log dialog refreshes every 2 s and follows the end of the log | [`d326faa`](../../commit/d326faa) |
