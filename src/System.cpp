@@ -6,6 +6,7 @@
 #include "Audio.h"
 #include "AudioPlayer.h"
 #include "Bluetooth.h"
+#include "Display.h"
 #include "Ftp.h"
 #include "Led.h"
 #include "Log.h"
@@ -227,6 +228,9 @@ void System_PreparePowerDown(void) {
 	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
 		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
 	}
+#ifdef OLED_ENABLE
+	Display_Exit(); // sends display-off command before power rail drops; prevents SDA glitch
+#endif
 	SdCard_Exit();
 
 	Serial.flush();

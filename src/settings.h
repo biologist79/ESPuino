@@ -34,6 +34,7 @@
 	//########################## MODULES #################################
 	//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
 	//#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
+	#define OLED_ENABLE                     // Enables SH1106/SSD1306 128x64 OLED display via I2C (uses i2cBusTwo)
 	#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
 	#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
 	#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
@@ -255,8 +256,12 @@
 	#endif
 
 	// enable I2C if necessary
-	#if defined(RFID_READER_TYPE_RUNTIME) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+	#if defined(RFID_READER_TYPE_RUNTIME) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055) || defined(OLED_ENABLE)
 		#define I2C_2_ENABLE
+	#endif
+
+	#ifdef OLED_ENABLE
+		constexpr uint8_t oledI2cAddress = 0x3C; // I2C address of the OLED (SH1106/SSD1306: 0x3C or 0x3D)
 	#endif
 
 	// (optinal) Headphone-detection (leave unchanged if in doubts...)

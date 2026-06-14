@@ -106,6 +106,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | Improved button responsiveness and track navigation seek options | [`76e1535`](../../commit/76e1535) |
 | Unlocking controls via button press while locked | [`d83e15f`](../../commit/d83e15f) |
 | Support for a 6th button | [`b116151`](../../commit/b116151) |
+| OLED display support (SH1106/SSD1306 128×64 over I2C): boot splash, idle screen with IP + READY, now-playing title (up to 3 lines, scrolling) with battery/time/wifi status bar, and a volume bar | [`607a0f3`](../../commit/607a0f3) |
 
 ## // Flashing
 

@@ -10,6 +10,7 @@
 #include "Button.h"
 #include "Cmd.h"
 #include "Common.h"
+#include "Display.h"
 #include "Ftp.h"
 #include "HallEffectSensor.h"
 #include "IrReceiver.h"
@@ -158,6 +159,12 @@ void setup() {
 	// Needs power first
 	SdCard_Init();
 
+	// OLED on the ext-I2C bus (i2cBusTwo). Initialised after SdCard_Init so the SD comes up first
+	// (ext-I2C shares pins with the SD-MMC D1/D3 lines).
+#ifdef OLED_ENABLE
+	Display_Init();
+#endif
+
 	// welcome message
 	Serial.print(logo);
 
@@ -236,6 +243,9 @@ void loop() {
 	Battery_Cyclic();
 	Button_Cyclic();
 	System_Cyclic();
+#ifdef OLED_ENABLE
+	Display_Cyclic();
+#endif
 	Rfid_PreferenceLookupHandler();
 
 	bool playLastRfidAfterReboot;
