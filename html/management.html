@@ -1752,6 +1752,18 @@
 								<span id="ico-night-mode" class="fas fa-moon"></span>
 								<span id="lbl-night-mode" class="d-none d-sm-inline" data-i18n="control.nightOff">Night Off</span>
 							</button>
+							<!-- Bluetooth Mode Dropdown -->
+							<div class="dropdown d-inline-flex align-items-center">
+								<button type="button" class="btn btn-sm cp-control-button dropdown-toggle" id="btn-bt-mode" data-bs-toggle="dropdown" aria-expanded="false">
+									<span class="fab fa-bluetooth-b"></span>
+									<span id="lbl-bt-mode" class="d-none d-sm-inline" data-i18n="control.btMode">Bluetooth</span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="btn-bt-mode" style="border: 1px solid var(--cp-border); background: var(--cp-panel); margin-top: 5px;">
+									<li><a class="dropdown-item" href="#" onclick="setOperationMode(0)" data-i18n="control.btNormal">Normal</a></li>
+									<li><a class="dropdown-item" href="#" onclick="setOperationMode(1)" data-i18n="control.btSpeaker">Speaker</a></li>
+									<li><a class="dropdown-item" href="#" onclick="setOperationMode(2)" data-i18n="control.btHeadphones">Headphones</a></li>
+								</ul>
+							</div>
 							<!-- Key Lock Button -->
 							<button type="button" class="btn btn-sm cp-lock-button unlocked" id="btn-lock-controls" onclick="sendControl(100)">
 								<span id="ico-lock-controls" class="fas fa-lock-open"></span>
@@ -3824,6 +3836,25 @@
 			const btTab = document.getElementById('nav-bt-tab');
 			if (btTab) {
 				btTab.classList.toggle('bt-active', opmode === 1 || opmode === 2);
+			}
+
+			// Control-tab Bluetooth-mode dropdown button
+			const btBtn = document.getElementById('btn-bt-mode');
+			const btLbl = document.getElementById('lbl-bt-mode');
+			if (btBtn && btLbl) {
+				if (opmode === 1) {
+					btBtn.className = "btn btn-sm cp-control-button active-magenta dropdown-toggle";
+					btLbl.setAttribute('data-i18n', 'control.btSpeaker');
+					btLbl.innerHTML = i18next.t("control.btSpeaker", "Speaker");
+				} else if (opmode === 2) {
+					btBtn.className = "btn btn-sm cp-control-button active-magenta dropdown-toggle";
+					btLbl.setAttribute('data-i18n', 'control.btHeadphones');
+					btLbl.innerHTML = i18next.t("control.btHeadphones", "Headphones");
+				} else {
+					btBtn.className = "btn btn-sm cp-control-button dropdown-toggle";
+					btLbl.setAttribute('data-i18n', 'control.btMode');
+					btLbl.innerHTML = i18next.t("control.btMode", "Bluetooth");
+				}
 			}
 		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");

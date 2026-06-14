@@ -86,6 +86,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | Bluetooth modes can be stopped from the web interface; commands 143/144 switch modes directly via buttons | [`0c3edd0`](../../commit/0c3edd0) |
 | Button lock (Kindersicherung) toggle directly in the control tab of the web interface with visual lock status indicator | [`ae83116`](../../commit/ae83116) |
 | Control buttons (single-track Repeat toggle, Sleep-Timer with dropdown and live remaining countdown, Night Mode/Dimming) directly in the control tab of the web interface | [`6918d36`](../../commit/6918d36) |
+| Bluetooth-mode dropdown in the control tab (Normal / Speaker / Headphones), mirroring the sleep-timer dropdown; selecting a mode restarts the device into it and the button highlights the active BT mode | [`b9f1e5c`](../../commit/b9f1e5c) |
 
 #### Feature highlights
 
