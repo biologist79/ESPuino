@@ -4736,21 +4736,13 @@
 			const lbl = document.getElementById('lbl-repeat-mode');
 			if (!btn || !ico || !lbl) return;
 
-			if (repeatMode === 1) {
+			// The web UI only controls single-track looping (CMD 111). The track
+			// loop is active whenever the track-repeat bit is set (mode 1 or 3).
+			if (repeatMode === 1 || repeatMode === 3) {
 				btn.className = "btn btn-sm cp-control-button active-cyan";
 				ico.className = "fas fa-redo-alt";
 				lbl.setAttribute('data-i18n', 'control.repeatTrack');
 				lbl.innerHTML = i18next.t("control.repeatTrack", "Loop Track");
-			} else if (repeatMode === 2) {
-				btn.className = "btn btn-sm cp-control-button active-green";
-				ico.className = "fas fa-redo";
-				lbl.setAttribute('data-i18n', 'control.repeatPlaylist');
-				lbl.innerHTML = i18next.t("control.repeatPlaylist", "Loop Playlist");
-			} else if (repeatMode === 3) {
-				btn.className = "btn btn-sm cp-control-button active-green";
-				ico.className = "fas fa-sync";
-				lbl.setAttribute('data-i18n', 'control.repeatBoth');
-				lbl.innerHTML = i18next.t("control.repeatBoth", "Loop Both");
 			} else {
 				btn.className = "btn btn-sm cp-control-button";
 				ico.className = "fas fa-redo";
@@ -4826,17 +4818,8 @@
 		}
 
 		function toggleRepeatMode() {
-			if (currentRepeatMode === 0) {
-				sendControl(111);
-			} else if (currentRepeatMode === 1) {
-				sendControl(110);
-				sendControl(111);
-			} else if (currentRepeatMode === 2) {
-				sendControl(111);
-			} else if (currentRepeatMode === 3) {
-				sendControl(110);
-				sendControl(111);
-			}
+			// Web UI controls single-track looping only (CMD_REPEAT_TRACK = 111).
+			sendControl(111);
 		}
 
 		async function mqttSettings(clickedId) {
