@@ -119,11 +119,11 @@ void RfidPn5180_TaskReset(void) {
 	rfidTaskResetRequested = true;
 }
 
-// Number of consecutive failed read attempts before a card is considered removed.
-// Counting attempts instead of wall-clock time keeps removal detection fast
-// (~200-400 ms at the usual polling rate) while staying immune to single ghost
-// misses and to wall-clock gaps caused by task starvation under load.
-#define RFID_CARD_REMOVAL_MISS_THRESHOLD 10u
+	// Number of consecutive failed read attempts before a card is considered removed.
+	// Counting attempts instead of wall-clock time keeps removal detection fast
+	// (~200-400 ms at the usual polling rate) while staying immune to single ghost
+	// misses and to wall-clock gaps caused by task starvation under load.
+	#define RFID_CARD_REMOVAL_MISS_THRESHOLD 10u
 
 void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
