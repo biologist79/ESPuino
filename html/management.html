@@ -1823,19 +1823,6 @@
 					</div>
 					<div id="playtime"> </div>
 				</div>
-				<hr>
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="control.command"></legend>
-					<div class="tab-pane" id="commandExecution" role="tabpanel">
-						<label for="commandId" data-i18n="files.rfid.mod.title"></label>
-						<select class="form-control form-select" id="commandId" name="commandId"></select>
-					</div>
-					<br>
-					<div class="text-center">
-						<button type="button" class="btn btn-primary" onclick="executeCommand()"
-							data-i18n="execute"></button>
-					</div>
-				</div>
 			</div>
 		</div>
 		<!-- ### Tab RFID ### -->
@@ -2666,6 +2653,19 @@
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
 			aria-labelledby="nav-tools-tab">
+			<div class="container" id="commandExecutionTool">
+				<legend data-i18n="control.command"></legend>
+				<div class="tab-pane" id="commandExecution" role="tabpanel">
+					<label for="commandId" data-i18n="files.rfid.mod.title"></label>
+					<select class="form-control form-select" id="commandId" name="commandId"></select>
+				</div>
+				<br>
+				<div class="text-center">
+					<button type="button" class="btn btn-primary" onclick="executeCommand()"
+						data-i18n="execute"></button>
+				</div>
+			</div>
+			<hr>
 			<div class="container" id="savedAssignments">
 				<legend data-i18n="tools.nvs.title"></legend>
 				<p data-i18n="tools.nvs.desc"></p>
