@@ -157,7 +157,9 @@
 		"voldown": "Leiser",
 		"volup": "Lauter",
 		"current": "Aktueller Titel",
-		"command": "Modifikation ausführen"
+		"command": "Modifikation ausführen",
+		"locked": "Gesperrt",
+		"unlocked": "Entsperrt"
 	},
 	"files": {
 		"title": "Dateien",

@@ -661,6 +661,45 @@
 			box-shadow: 0 0 24px -4px rgba(255, 42, 109, .9);
 		}
 
+		.cp-lock-button {
+			font-family: "Rajdhani", sans-serif;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: .1em;
+			padding: 4px 10px;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			transition: all 0.3s ease;
+		}
+
+		.cp-lock-button.unlocked {
+			color: var(--cp-cyan);
+			border: 1px solid rgba(0, 240, 255, .4);
+			background: rgba(0, 240, 255, .05);
+			box-shadow: 0 0 8px rgba(0, 240, 255, .1);
+		}
+
+		.cp-lock-button.unlocked:hover {
+			color: #021019;
+			background: var(--cp-cyan);
+			border-color: var(--cp-cyan);
+			box-shadow: 0 0 12px rgba(0, 240, 255, .6);
+		}
+
+		.cp-lock-button.locked {
+			color: var(--cp-magenta);
+			border: 1px solid rgba(255, 42, 109, .4);
+			background: rgba(255, 42, 109, .05);
+			box-shadow: 0 0 8px rgba(255, 42, 109, .1);
+		}
+
+		.cp-lock-button.locked:hover {
+			color: #021019;
+			background: var(--cp-magenta);
+			border-color: var(--cp-magenta);
+			box-shadow: 0 0 12px rgba(255, 42, 109, .6);
+		}
+
 		.volume-button {
 			width: 60px;
 		}
@@ -1573,7 +1612,13 @@
 			aria-labelledby="nav-control-tab">
 			<div class="container" id="navControl">
 				<div class="col-md-12">
-					<legend data-i18n="control.title"></legend>
+					<div class="d-flex justify-content-between align-items-center mb-1 pb-1" style="border-bottom: 1px solid var(--cp-border);">
+						<legend data-i18n="control.title" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;"></legend>
+						<button type="button" class="btn btn-sm cp-lock-button unlocked" id="btn-lock-controls" onclick="sendControl(100)" style="margin-bottom: 4px;">
+							<span id="ico-lock-controls" class="fas fa-lock-open me-1"></span>
+							<span id="lbl-lock-controls" data-i18n="control.unlocked">Unlocked</span>
+						</button>
+					</div>
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
 					</div>
@@ -3689,6 +3734,9 @@
 					if (socketMsg.pong == 'pong') {
 						pong();
 					}
+					if ("controlsLocked" in socketMsg) {
+						updateLockControlsState(socketMsg.controlsLocked);
+					}
 				}
 				if ("opmode" in socketMsg) {
 					currentOpMode = socketMsg.opmode;
@@ -3709,6 +3757,9 @@
 				if ("trackinfo" in socketMsg) {
 					document.getElementById('track').innerHTML = socketMsg.trackinfo.name;
 					setTrackProgress(socketMsg.trackinfo);
+					if ("controlsLocked" in socketMsg.trackinfo) {
+						updateLockControlsState(socketMsg.trackinfo.controlsLocked);
+					}
 					var btnTrackPlayPause = document.getElementById('nav-btn-play');
 					if (socketMsg.trackinfo.pausePlay) {
 						btnTrackPlayPause.innerHTML = '<i id="ico-play-pause" class="fas fa-lg fa-play"></i>';
@@ -4468,6 +4519,25 @@
 			btn.classList.toggle('btn-primary', !running);
 			if (localize) {
 				localize('#ftpModeBtn');
+			}
+		}
+
+		function updateLockControlsState(locked) {
+			const btn = document.getElementById('btn-lock-controls');
+			const ico = document.getElementById('ico-lock-controls');
+			const lbl = document.getElementById('lbl-lock-controls');
+			if (!btn || !ico || !lbl) return;
+
+			if (locked) {
+				btn.className = "btn btn-sm cp-lock-button locked";
+				ico.className = "fas fa-lock me-1";
+				lbl.setAttribute('data-i18n', 'control.locked');
+				lbl.innerHTML = i18next.t("control.locked");
+			} else {
+				btn.className = "btn btn-sm cp-lock-button unlocked";
+				ico.className = "fas fa-lock-open me-1";
+				lbl.setAttribute('data-i18n', 'control.unlocked');
+				lbl.innerHTML = i18next.t("control.unlocked");
 			}
 		}
 

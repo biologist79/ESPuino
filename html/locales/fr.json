@@ -150,7 +150,9 @@
 		"voldown": "Diminuer le volume",
 		"volup": "Augmenter le volume",
 		"current": "Piste actuelle",
-		"command": "Exécuter la modification"
+		"command": "Exécuter la modification",
+		"locked": "Verrouillé",
+		"unlocked": "Déverrouillé"
 	},
 	"files": {
 		"title": "Fichiers",

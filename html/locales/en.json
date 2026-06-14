@@ -158,7 +158,9 @@
 		"voldown": "Volume Down",
 		"volup": "Volume Up",
 		"current": "Current track",
-		"command": "Execute Modification"
+		"command": "Execute Modification",
+		"locked": "Locked",
+		"unlocked": "Unlocked"
 	},
 	"files": {
 		"title": "Files",

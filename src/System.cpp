@@ -137,11 +137,15 @@ uint8_t System_GetSleepTimer(void) {
 }
 
 void System_SetLockControls(bool value) {
-	System_LockControls = value;
+	if (System_LockControls != value) {
+		System_LockControls = value;
+		Web_SendWebsocketData(0, WebsocketCodeType::Pong);
+	}
 }
 
 void System_ToggleLockControls(void) {
 	System_LockControls = !System_LockControls;
+	Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 }
 
 bool System_AreControlsLocked(void) {

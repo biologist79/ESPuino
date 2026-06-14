@@ -1989,6 +1989,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 	} else if (code == WebsocketCodeType::Pong) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
+		object["controlsLocked"] = System_AreControlsLocked();
 #ifdef BATTERY_MEASURE_ENABLE
 		JsonObject batteryObj = object["battery"].to<JsonObject>();
 		batteryObj["voltage"] = Battery_GetVoltage();
@@ -2006,6 +2007,7 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["name"] = gPlayProperties.title;
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["playMode"] = gPlayProperties.playMode;
+		entry["controlsLocked"] = System_AreControlsLocked();
 	} else if (code == WebsocketCodeType::CoverImg) {
 		object["coverimg"] = "coverimg";
 	} else if (code == WebsocketCodeType::Volume) {
