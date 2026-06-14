@@ -417,7 +417,8 @@
 				"music": "Music (fuller bass)",
 				"speech": "Audiobook / Speech",
 				"voiceBoost": "Deep voices (max. clarity)",
-				"custom": "Custom"
+				"custom": "Custom",
+				"none": "No EQ set"
 			},
 			"gainLowPass": "Lows (in dB)",
 			"gainBandPass": "Mids (in dB)",

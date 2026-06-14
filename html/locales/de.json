@@ -416,7 +416,8 @@
 				"music": "Musik (kräftiger Bass)",
 				"speech": "Hörbuch / Sprache",
 				"voiceBoost": "Tiefe Stimmen (max. Verständlichkeit)",
-				"custom": "Benutzerdefiniert"
+				"custom": "Benutzerdefiniert",
+				"none": "Kein EQ gesetzt"
 			},
 			"gainLowPass": "Tiefen (in dB)",
 			"gainBandPass": "Mitten (in dB)",

@@ -409,7 +409,8 @@
 				"music": "Musique (basses renforcées)",
 				"speech": "Livre audio / Voix",
 				"voiceBoost": "Voix graves (clarté maximale)",
-				"custom": "Personnalisé"
+				"custom": "Personnalisé",
+				"none": "Aucun EQ défini"
 			},
 			"gainLowPass": "Graves (en dB)",
 			"gainBandPass": "Médiums (en dB)",

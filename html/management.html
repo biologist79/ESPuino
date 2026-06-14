@@ -655,6 +655,34 @@
 			color: var(--cp-dim);
 		}
 
+		/* shows the EQ profile that applies to the highlighted file/folder in the RFID tab */
+		.eq-profile-indicator {
+			flex: 1 1 140px;
+			min-width: 0;
+			text-align: center;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			font-family: "Share Tech Mono", monospace;
+			font-size: .85rem;
+			letter-spacing: 1px;
+			color: var(--cp-cyan);
+			text-shadow: 0 0 8px rgba(0, 240, 255, .4);
+		}
+
+		.eq-profile-indicator .fa-sliders-h {
+			margin-right: 4px;
+		}
+
+		#eqProfileValue {
+			color: var(--cp-green);
+		}
+
+		#eqProfileValue.eq-none {
+			color: var(--cp-dim);
+			text-shadow: none;
+		}
+
 		.coverimage-container {
 			object-fit: cover;
 			max-width: 100%;
@@ -1610,23 +1638,28 @@
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
 						</div>
-						<div class="container" style="padding: 0">
-							<span class="input-group-text float-start"
-								style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i
-									class="fas fa-search"></i></span>
-							<input type="search" class="form-control border-start-0 float-start"
-								style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;"
-								id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
-								onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
-							<button id="rfidPlayBtn" class="btn btn-primary float-end" onclick="playSelectedNode()"
+						<div class="container d-flex align-items-center flex-wrap" style="padding: 0; gap: 6px;">
+							<div class="d-flex align-items-center">
+								<span class="input-group-text"
+									style="height:38px; width: 40px; border-bottom-right-radius: 0; border-top-right-radius: 0;"><i
+										class="fas fa-search"></i></span>
+								<input type="search" class="form-control border-start-0"
+									style="height:38px; width: 200px; border-bottom-left-radius: 0; border-top-left-radius: 0;"
+									id="filetreesearch" data-i18n="[placeholder]files.search.placeholder"
+									onsearch="searchFiles($(this).val())" onkeyup="searchFiles($(this).val())">
+							</div>
+							<div id="eqProfileIndicator" class="eq-profile-indicator">
+								<i class="fas fa-sliders-h"></i> <span data-i18n="[prepend]general.equalizer.title">: </span><span id="eqProfileValue">—</span>
+							</div>
+							<button id="rfidPlayBtn" class="btn btn-primary" onclick="playSelectedNode()"
 								disabled data-i18n="[title]files.context.play"><span id="rfidPlayIcon"
 									class="fas fa-play"></span></button>
-							<button id="cleansd" class="btn btn-warning float-end" data-bs-toggle="modal"
+							<button id="cleansd" class="btn btn-warning" data-bs-toggle="modal"
 								data-bs-target="#cleanSdModal" data-i18n="[title]files.clean.button"><span
 									class="fas fa-broom"></span></button>
-							<button id="expandfilelist" class="btn btn-primary float-end"
+							<button id="expandfilelist" class="btn btn-primary"
 								onclick="resizeFileList(true)"><span class="fas fa-expand-alt"></span></button>
-							<button id="shrinkfilelist" class="btn btn-primary float-end"
+							<button id="shrinkfilelist" class="btn btn-primary"
 								onclick="resizeFileList(false)" style="display: none;"><span
 									class="fas fa-compress-alt"></span></button>
 						</div>
@@ -2796,6 +2829,7 @@
 				rfidSelectedNode = null;
 			}
 			updateRfidPlayButton();
+			updateEqIndicator();
 			if (lastSelectedNodePath != data.node.data.path) {
 				if (data.node.data.directory) {
 					var ref = $('#explorerTree').jstree(true),
@@ -5002,17 +5036,56 @@
 			speech: { gainLowPass: -2, gainBandPass: 4, gainHighPass: 3 },
 			voiceBoost: { gainLowPass: -4, gainBandPass: 5, gainHighPass: 4 }
 		};
+		// Cache of per-path EQ rules (loaded from the device).
+		window.eqRules = window.eqRules || [];
+		// Load the per-path EQ rules from the device into the cache.
+		function loadEqRules(cb) {
+			getData("http://" + host + "/eqrules", function (data) {
+				window.eqRules = Array.isArray(data) ? data : [];
+				if (cb) cb();
+			});
+		}
+		// Find the EQ rule that applies to a path (longest matching file/directory prefix).
+		function eqProfileForPath(path) {
+			let best = null, bestLen = -1;
+			(window.eqRules || []).forEach(function (r) {
+				if (!r || !r.p) return;
+				if (path === r.p || (path.length > r.p.length && path.startsWith(r.p + "/"))) {
+					if (r.p.length > bestLen) { bestLen = r.p.length; best = r; }
+				}
+			});
+			return best;
+		}
+		// Update the RFID-tab indicator that shows the EQ profile of the highlighted node.
+		function updateEqIndicator() {
+			const el = document.getElementById('eqProfileValue');
+			if (!el) return;
+			if (!rfidSelectedNode) {
+				el.textContent = "—";
+				el.classList.add('eq-none');
+				return;
+			}
+			const rule = eqProfileForPath(rfidSelectedNode.path);
+			if (rule) {
+				el.textContent = rule.pr ? i18next.t("general.equalizer.profile." + rule.pr)
+					: (rule.l + " / " + rule.b + " / " + rule.h + " dB");
+				el.classList.remove('eq-none');
+			} else {
+				el.textContent = i18next.t("general.equalizer.profile.none");
+				el.classList.add('eq-none');
+			}
+		}
 		// Assign an EQ profile to a file/folder path (per-path equalizer rule).
 		function setEqRule(path, profileKey) {
 			const g = eqProfiles[profileKey];
 			if (!g) return;
 			postData("http://" + host + "/eqrule?path=" + encodeURIComponent(path)
 				+ "&low=" + g.gainLowPass + "&band=" + g.gainBandPass + "&high=" + g.gainHighPass
-				+ "&profile=" + encodeURIComponent(profileKey));
+				+ "&profile=" + encodeURIComponent(profileKey), function () { loadEqRules(updateEqIndicator); });
 		}
 		// Remove the per-path EQ rule for a file/folder path.
 		function deleteEqRule(path) {
-			deleteData("http://" + host + "/eqrule?path=" + encodeURIComponent(path));
+			deleteData("http://" + host + "/eqrule?path=" + encodeURIComponent(path), function () { loadEqRules(updateEqIndicator); });
 		}
 		// Apply gain values to the three sliders and refresh their tooltips.
 		function setEqSliders(gains) {
@@ -5041,6 +5114,7 @@
 			connect();
 			buildFileSystemTree("/");
 			refreshSecurityStatus();
+			loadEqRules(updateEqIndicator);
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
 				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
