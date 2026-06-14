@@ -35,6 +35,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pio-
 
+      - name: Cache Build State
+        uses: actions/cache@v4
+        with:
+          path: .pio
+          key: ${{ runner.os }}-pio-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-pio-build-
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"

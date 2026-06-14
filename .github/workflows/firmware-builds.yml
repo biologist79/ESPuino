@@ -28,6 +28,10 @@ jobs:
       matrix:
         variant:
           - complete
+        language:
+          - DE
+          - EN
+          - FR
 
     steps:
       - uses: actions/checkout@v5
@@ -44,7 +48,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini', '**/dependencies.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Cache Build State
+        uses: actions/cache@v4
+        with:
+          path: .pio
+          key: ${{ runner.os }}-pio-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-pio-build-
 
       - name: Setup Python 3.13
         uses: actions/setup-python@v5
@@ -58,31 +72,16 @@ jobs:
           pio pkg update --global
           mkdir binaries
 
-      # --- Build 1: Language DE (Default) ---
-      - name: Build ${{ matrix.variant }} (DE)
+      - name: Build ${{ matrix.variant }} (${{ matrix.language }})
         run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE DE/' src/settings.h
+          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE ${{ matrix.language }}/' src/settings.h
           platformio run -e ${{ matrix.variant }}
-          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-DE.bin
-
-      # --- Build 2: Language EN ---
-      - name: Build ${{ matrix.variant }} (EN)
-        run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE EN/' src/settings.h
-          platformio run -e ${{ matrix.variant }}
-          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-EN.bin
-
-      # --- Build 3: Language FR ---
-      - name: Build ${{ matrix.variant }} (FR)
-        run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE FR/' src/settings.h
-          platformio run -e ${{ matrix.variant }}
-          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-FR.bin
+          cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-${{ matrix.language }}.bin
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.variant }}
+          name: ${{ matrix.variant }}-${{ matrix.language }}
           path: binaries/
 
   commit:
@@ -102,6 +101,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: target-repo/Firmwares/${{ github.ref_name }}
+          merge-multiple: true
 
       - name: Commit and push changes
         run: |
