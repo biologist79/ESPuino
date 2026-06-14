@@ -5579,6 +5579,32 @@
 			window.settings = { ...window.settings, ...myObj };
 			socket.send(JSON.stringify(myObj));
 		}
+		function selectActiveTabFromLocalStorage() {
+			/* Load last selected tab from local storage and set it as active*/
+			ActiveTab = localStorage.getItem("active-tab");
+			if (ActiveTab == null) {
+				ActiveTab = "nav-rfid-tab";
+			}
+			console.log("ActiveTab: " + ActiveTab);
+			document.querySelectorAll('.main-tab-item').forEach((element) => {
+				element.classList.remove('active');
+				element.setAttribute("aria-selected", false);
+				if (ActiveTab == element.id) {
+					element.classList.add('active');
+					element.setAttribute("aria-selected", true);
+				}
+			});
+			document.querySelectorAll('.main-tab-pane').forEach((element) => {
+				console.log("element id:", element.id);
+				element.classList.remove('active');
+				element.classList.remove('show');
+				if (ActiveTab.replace("-tab", "") == element.id) {
+					element.classList.add('active');
+					element.classList.add('show');
+				}
+			});
+		}
+
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
@@ -5735,32 +5761,6 @@
 				lightSwitch.prop('checked', (localStorage.getItem('lightSwitch') || 'dark') == 'dark');
 				onSwitchDarkMode();
 				lightSwitch.change(onSwitchDarkMode);
-			}
-
-			function selectActiveTabFromLocalStorage() {
-				/* Load last selected tab from local storage and set it as active*/
-				ActiveTab = localStorage.getItem("active-tab");
-				if (ActiveTab == null) {
-					ActiveTab = "nav-rfid-tab";
-				}
-				console.log("ActiveTab: " + ActiveTab);
-				document.querySelectorAll('.main-tab-item').forEach((element) => {
-					element.classList.remove('active');
-					element.setAttribute("aria-selected", false);
-					if (ActiveTab == element.id) {
-						element.classList.add('active');
-						element.setAttribute("aria-selected", true);
-					}
-				});
-				document.querySelectorAll('.main-tab-pane').forEach((element) => {
-					console.log("element id:", element.id);
-					element.classList.remove('active');
-					element.classList.remove('show');
-					if (ActiveTab.replace("-tab", "") == element.id) {
-						element.classList.add('active');
-						element.classList.add('show');
-					}
-				});
 			}
 
 			function addOption(selectelement, value) {
