@@ -163,6 +163,7 @@ void Cmd_Action(const uint16_t mod) {
 				publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
+				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 			}
 			break;
 		}
@@ -182,6 +183,7 @@ void Cmd_Action(const uint16_t mod) {
 				publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 #endif
 				System_IndicateOk();
+				Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 			}
 			break;
 		}

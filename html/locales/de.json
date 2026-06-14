@@ -159,7 +159,17 @@
 		"current": "Aktueller Titel",
 		"command": "Modifikation ausführen",
 		"locked": "Gesperrt",
-		"unlocked": "Entsperrt"
+		"unlocked": "Entsperrt",
+		"nightOn": "Nacht An",
+		"nightOff": "Nacht Aus",
+		"repeatOff": "Aus",
+		"repeatPlaylist": "Playlist",
+		"repeatTrack": "Titel",
+		"repeatBoth": "Alle",
+		"sleepOff": "Timer Aus",
+		"sleepEOT": "Nach Track",
+		"sleepEOP": "Nach Playlist",
+		"sleepDisable": "Timer beenden"
 	},
 	"files": {
 		"title": "Dateien",

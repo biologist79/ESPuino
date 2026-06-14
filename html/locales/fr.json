@@ -152,7 +152,17 @@
 		"current": "Piste actuelle",
 		"command": "Exécuter la modification",
 		"locked": "Verrouillé",
-		"unlocked": "Déverrouillé"
+		"unlocked": "Déverrouillé",
+		"nightOn": "Nuit On",
+		"nightOff": "Nuit Off",
+		"repeatOff": "Off",
+		"repeatPlaylist": "Playlist",
+		"repeatTrack": "Piste",
+		"repeatBoth": "Les deux",
+		"sleepOff": "Minuterie Off",
+		"sleepEOT": "Après Piste",
+		"sleepEOP": "Après Playlist",
+		"sleepDisable": "Désactiver minuterie"
 	},
 	"files": {
 		"title": "Fichiers",

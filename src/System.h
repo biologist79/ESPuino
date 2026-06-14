@@ -16,6 +16,7 @@ bool System_IsSleepTimerEnabled(void);
 uint32_t System_GetSleepTimerTimeStamp(void);
 bool System_IsSleepPending(void);
 uint8_t System_GetSleepTimer(void);
+uint32_t System_GetSleepTimerRemainingSeconds(void);
 void System_SetLockControls(bool value);
 void System_ToggleLockControls(void);
 bool System_AreControlsLocked(void);

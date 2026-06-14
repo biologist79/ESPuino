@@ -83,6 +83,7 @@ neon logo that doubles as the SVG favicon ([`8d9725c`](../../commit/8d9725c)):
 | FTP server can be stopped from the web interface (start button turns into a stop button) | [`f0906b4`](../../commit/f0906b4) |
 | Bluetooth modes can be stopped from the web interface; commands 143/144 switch modes directly via buttons | [`0c3edd0`](../../commit/0c3edd0) |
 | Button lock (Kindersicherung) toggle directly in the control tab of the web interface with visual lock status indicator | [`ae83116`](../../commit/ae83116) |
+| Control buttons (Repeat mode, Sleep-Timer with dropdown and live remaining countdown, Night Mode/Dimming) directly in the control tab of the web interface | [`6918d36`](../../commit/6918d36) |
 
 #### Feature highlights
 

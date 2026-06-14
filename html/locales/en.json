@@ -160,7 +160,17 @@
 		"current": "Current track",
 		"command": "Execute Modification",
 		"locked": "Locked",
-		"unlocked": "Unlocked"
+		"unlocked": "Unlocked",
+		"nightOn": "Night On",
+		"nightOff": "Night Off",
+		"repeatOff": "Off",
+		"repeatPlaylist": "Playlist",
+		"repeatTrack": "Track",
+		"repeatBoth": "Both",
+		"sleepOff": "Sleep Off",
+		"sleepEOT": "After Track",
+		"sleepEOP": "After Playlist",
+		"sleepDisable": "Disable Timer"
 	},
 	"files": {
 		"title": "Files",

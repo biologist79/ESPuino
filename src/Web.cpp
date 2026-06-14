@@ -1330,6 +1330,10 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
 			Cmd_Action(cmd);
 		}
+		if (controlsObj["sleep_timer"].is<uint8_t>()) {
+			uint8_t minutes = controlsObj["sleep_timer"].as<uint8_t>();
+			System_SetSleepTimer(minutes);
+		}
 	} else if (doc["trackinfo"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
 	} else if (doc["coverimg"].is<JsonObject>()) {
@@ -1990,6 +1994,12 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		object["pong"] = "pong";
 		object["rssi"] = Wlan_GetRssi();
 		object["controlsLocked"] = System_AreControlsLocked();
+		object["nightMode"] = Led_GetNightmode();
+		object["repeatMode"] = AudioPlayer_GetRepeatMode();
+		object["sleepTimerDuration"] = System_GetSleepTimer();
+		object["sleepTimerRemaining"] = System_GetSleepTimerRemainingSeconds();
+		object["sleepAfterTrack"] = gPlayProperties.sleepAfterCurrentTrack;
+		object["sleepAfterPlaylist"] = gPlayProperties.sleepAfterPlaylist;
 #ifdef BATTERY_MEASURE_ENABLE
 		JsonObject batteryObj = object["battery"].to<JsonObject>();
 		batteryObj["voltage"] = Battery_GetVoltage();
@@ -2008,6 +2018,12 @@ void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code) {
 		entry["posPercent"] = gPlayProperties.currentRelPos;
 		entry["playMode"] = gPlayProperties.playMode;
 		entry["controlsLocked"] = System_AreControlsLocked();
+		entry["nightMode"] = Led_GetNightmode();
+		entry["repeatMode"] = AudioPlayer_GetRepeatMode();
+		entry["sleepTimerDuration"] = System_GetSleepTimer();
+		entry["sleepTimerRemaining"] = System_GetSleepTimerRemainingSeconds();
+		entry["sleepAfterTrack"] = gPlayProperties.sleepAfterCurrentTrack;
+		entry["sleepAfterPlaylist"] = gPlayProperties.sleepAfterPlaylist;
 	} else if (code == WebsocketCodeType::CoverImg) {
 		object["coverimg"] = "coverimg";
 	} else if (code == WebsocketCodeType::Volume) {

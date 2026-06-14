@@ -366,6 +366,33 @@
 			text-shadow: 0 0 10px rgba(0, 240, 255, .7);
 		}
 
+		/* Active mode state tabs styling (FTP and Bluetooth) */
+		.nav-tabs .nav-link.ftp-active {
+			color: var(--cp-yellow) !important;
+			text-shadow: 0 0 8px rgba(252, 238, 10, .6);
+		}
+
+		.nav-tabs .nav-link.ftp-active.active {
+			color: var(--cp-yellow) !important;
+			background: linear-gradient(180deg, rgba(252, 238, 10, .12), transparent) !important;
+			border-color: var(--cp-border) !important;
+			border-bottom: 2px solid var(--cp-yellow) !important;
+			text-shadow: 0 0 10px rgba(252, 238, 10, .7) !important;
+		}
+
+		.nav-tabs .nav-link.bt-active {
+			color: var(--cp-magenta) !important;
+			text-shadow: 0 0 8px rgba(255, 42, 109, .6);
+		}
+
+		.nav-tabs .nav-link.bt-active.active {
+			color: var(--cp-magenta) !important;
+			background: linear-gradient(180deg, rgba(255, 42, 109, .12), transparent) !important;
+			border-color: var(--cp-border) !important;
+			border-bottom: 2px solid var(--cp-magenta) !important;
+			text-shadow: 0 0 10px rgba(255, 42, 109, .7) !important;
+		}
+
 		/* ---------- content panels ---------- */
 		.main-tab-pane.active>.container {
 			animation: cp-boot .35s ease-out both;
@@ -661,15 +688,23 @@
 			box-shadow: 0 0 24px -4px rgba(255, 42, 109, .9);
 		}
 
+		.cp-control-button,
 		.cp-lock-button {
 			font-family: "Rajdhani", sans-serif;
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: .1em;
-			padding: 4px 10px;
 			border-radius: 4px;
 			font-size: 0.8rem;
 			transition: all 0.3s ease;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			height: 32px;
+			padding: 0 10px;
+			white-space: nowrap;
+			gap: 6px;
+			box-sizing: border-box;
 		}
 
 		.cp-lock-button.unlocked {
@@ -698,6 +733,72 @@
 			background: var(--cp-magenta);
 			border-color: var(--cp-magenta);
 			box-shadow: 0 0 12px rgba(255, 42, 109, .6);
+		}
+
+		.cp-control-button {
+			color: var(--cp-dim);
+			border: 1px solid var(--cp-border);
+			background: rgba(22, 33, 60, .2);
+			box-shadow: 0 0 6px rgba(0, 0, 0, .2);
+		}
+
+		.cp-control-button:hover {
+			color: #021019;
+			background: var(--cp-cyan);
+			border-color: var(--cp-cyan);
+			box-shadow: 0 0 12px rgba(0, 240, 255, .6);
+		}
+
+		.cp-control-button.active-cyan {
+			color: var(--cp-cyan);
+			border: 1px solid rgba(0, 240, 255, .4);
+			background: rgba(0, 240, 255, .05);
+			box-shadow: 0 0 8px rgba(0, 240, 255, .1);
+		}
+		.cp-control-button.active-cyan:hover {
+			color: #021019;
+			background: var(--cp-cyan);
+			border-color: var(--cp-cyan);
+			box-shadow: 0 0 12px rgba(0, 240, 255, .6);
+		}
+
+		.cp-control-button.active-magenta {
+			color: var(--cp-magenta);
+			border: 1px solid rgba(255, 42, 109, .4);
+			background: rgba(255, 42, 109, .05);
+			box-shadow: 0 0 8px rgba(255, 42, 109, .1);
+		}
+		.cp-control-button.active-magenta:hover {
+			color: #021019;
+			background: var(--cp-magenta);
+			border-color: var(--cp-magenta);
+			box-shadow: 0 0 12px rgba(255, 42, 109, .6);
+		}
+
+		.cp-control-button.active-yellow {
+			color: var(--cp-yellow);
+			border: 1px solid rgba(252, 238, 10, .4);
+			background: rgba(252, 238, 10, .05);
+			box-shadow: 0 0 8px rgba(252, 238, 10, .1);
+		}
+		.cp-control-button.active-yellow:hover {
+			color: #021019;
+			background: var(--cp-yellow);
+			border-color: var(--cp-yellow);
+			box-shadow: 0 0 12px rgba(252, 238, 10, .6);
+		}
+
+		.cp-control-button.active-green {
+			color: var(--cp-green);
+			border: 1px solid rgba(10, 255, 157, .4);
+			background: rgba(10, 255, 157, .05);
+			box-shadow: 0 0 8px rgba(10, 255, 157, .1);
+		}
+		.cp-control-button.active-green:hover {
+			color: #021019;
+			background: var(--cp-green);
+			border-color: var(--cp-green);
+			box-shadow: 0 0 12px rgba(10, 255, 157, .6);
 		}
 
 		.volume-button {
@@ -1614,10 +1715,40 @@
 				<div class="col-md-12">
 					<div class="d-flex justify-content-between align-items-center mb-1 pb-1" style="border-bottom: 1px solid var(--cp-border);">
 						<legend data-i18n="control.title" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;"></legend>
-						<button type="button" class="btn btn-sm cp-lock-button unlocked" id="btn-lock-controls" onclick="sendControl(100)" style="margin-bottom: 4px;">
-							<span id="ico-lock-controls" class="fas fa-lock-open me-1"></span>
-							<span id="lbl-lock-controls" data-i18n="control.unlocked">Unlocked</span>
-						</button>
+						<div class="d-flex align-items-center gap-2" style="margin-bottom: 4px;">
+							<!-- Repeat Button -->
+							<button type="button" class="btn btn-sm cp-control-button" id="btn-repeat-mode" onclick="toggleRepeatMode()">
+								<span id="ico-repeat-mode" class="fas fa-redo"></span>
+								<span id="lbl-repeat-mode" class="d-none d-sm-inline" data-i18n="control.repeatOff">Off</span>
+							</button>
+							<!-- Sleep Timer Dropdown -->
+							<div class="dropdown d-inline-flex align-items-center">
+								<button type="button" class="btn btn-sm cp-control-button dropdown-toggle" id="btn-sleep-timer" data-bs-toggle="dropdown" aria-expanded="false">
+									<span class="fas fa-clock"></span>
+									<span id="lbl-sleep-timer" class="d-none d-sm-inline" data-i18n="control.sleepOff">Sleep Off</span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="btn-sleep-timer" style="border: 1px solid var(--cp-border); background: var(--cp-panel); margin-top: 5px;">
+									<li><a class="dropdown-item" href="#" onclick="setSleepTimer(15)">15 Min</a></li>
+									<li><a class="dropdown-item" href="#" onclick="setSleepTimer(30)">30 Min</a></li>
+									<li><a class="dropdown-item" href="#" onclick="setSleepTimer(60)">60 Min</a></li>
+									<li><a class="dropdown-item" href="#" onclick="setSleepTimer(120)">120 Min</a></li>
+									<li><a class="dropdown-item" href="#" onclick="sendControl(105)" data-i18n="control.sleepEOT">After Track</a></li>
+									<li><a class="dropdown-item" href="#" onclick="sendControl(106)" data-i18n="control.sleepEOP">After Playlist</a></li>
+									<li><hr class="dropdown-divider" style="border-color: var(--cp-border);"></li>
+									<li><a class="dropdown-item text-danger" href="#" onclick="setSleepTimer(0)" data-i18n="control.sleepDisable">Disable Timer</a></li>
+								</ul>
+							</div>
+							<!-- Night Mode Button -->
+							<button type="button" class="btn btn-sm cp-control-button" id="btn-night-mode" onclick="sendControl(120)">
+								<span id="ico-night-mode" class="fas fa-moon"></span>
+								<span id="lbl-night-mode" class="d-none d-sm-inline" data-i18n="control.nightOff">Night Off</span>
+							</button>
+							<!-- Key Lock Button -->
+							<button type="button" class="btn btn-sm cp-lock-button unlocked" id="btn-lock-controls" onclick="sendControl(100)">
+								<span id="ico-lock-controls" class="fas fa-lock-open"></span>
+								<span id="lbl-lock-controls" class="d-none d-sm-inline" data-i18n="control.unlocked">Unlocked</span>
+							</button>
+						</div>
 					</div>
 					<div class="mb-3 col-md-12">
 						<img src="/cover" class="coverimage-container" id="coverimg" alt="">
@@ -2674,6 +2805,9 @@
 		var initialSettingsLoaded = false;
 		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
+		var currentRepeatMode = 0;
+		var sleepTimerRemaining = 0;
+		var sleepTimerRemainingInterval = null;
 		var language = navigator.language || navigator.userLanguage;
 		var localize;
 		/* show active / selected tab */
@@ -3677,6 +3811,11 @@
 				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
 				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
 			}
+
+			const btTab = document.getElementById('nav-bt-tab');
+			if (btTab) {
+				btTab.classList.toggle('bt-active', opmode === 1 || opmode === 2);
+			}
 		} function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
@@ -3737,6 +3876,15 @@
 					if ("controlsLocked" in socketMsg) {
 						updateLockControlsState(socketMsg.controlsLocked);
 					}
+					if ("nightMode" in socketMsg) {
+						updateNightModeState(socketMsg.nightMode);
+					}
+					if ("repeatMode" in socketMsg) {
+						updateRepeatModeState(socketMsg.repeatMode);
+					}
+					if ("sleepTimerDuration" in socketMsg) {
+						updateSleepTimerState(socketMsg);
+					}
 				}
 				if ("opmode" in socketMsg) {
 					currentOpMode = socketMsg.opmode;
@@ -3759,6 +3907,15 @@
 					setTrackProgress(socketMsg.trackinfo);
 					if ("controlsLocked" in socketMsg.trackinfo) {
 						updateLockControlsState(socketMsg.trackinfo.controlsLocked);
+					}
+					if ("nightMode" in socketMsg.trackinfo) {
+						updateNightModeState(socketMsg.trackinfo.nightMode);
+					}
+					if ("repeatMode" in socketMsg.trackinfo) {
+						updateRepeatModeState(socketMsg.trackinfo.repeatMode);
+					}
+					if ("sleepTimerDuration" in socketMsg.trackinfo) {
+						updateSleepTimerState(socketMsg.trackinfo);
 					}
 					var btnTrackPlayPause = document.getElementById('nav-btn-play');
 					if (socketMsg.trackinfo.pausePlay) {
@@ -4513,12 +4670,18 @@
 		/* Turns the FTP start button into a stop button while the server is running */
 		function updateFtpButton(running) {
 			const btn = document.getElementById('ftpModeBtn');
-			btn.setAttribute('data-i18n', running ? 'ftp.start.stopButton' : 'ftp.start.button');
-			btn.onclick = () => ftpSetStatus(running ? 0 : 1);
-			btn.classList.toggle('btn-danger', running);
-			btn.classList.toggle('btn-primary', !running);
-			if (localize) {
-				localize('#ftpModeBtn');
+			if (btn) {
+				btn.setAttribute('data-i18n', running ? 'ftp.start.stopButton' : 'ftp.start.button');
+				btn.onclick = () => ftpSetStatus(running ? 0 : 1);
+				btn.classList.toggle('btn-danger', running);
+				btn.classList.toggle('btn-primary', !running);
+				if (localize) {
+					localize('#ftpModeBtn');
+				}
+			}
+			const ftpTab = document.getElementById('nav-ftp-tab');
+			if (ftpTab) {
+				ftpTab.classList.toggle('ftp-active', running);
 			}
 		}
 
@@ -4530,14 +4693,140 @@
 
 			if (locked) {
 				btn.className = "btn btn-sm cp-lock-button locked";
-				ico.className = "fas fa-lock me-1";
+				ico.className = "fas fa-lock";
 				lbl.setAttribute('data-i18n', 'control.locked');
 				lbl.innerHTML = i18next.t("control.locked");
 			} else {
 				btn.className = "btn btn-sm cp-lock-button unlocked";
-				ico.className = "fas fa-lock-open me-1";
+				ico.className = "fas fa-lock-open";
 				lbl.setAttribute('data-i18n', 'control.unlocked');
 				lbl.innerHTML = i18next.t("control.unlocked");
+			}
+		}
+
+		function updateNightModeState(nightMode) {
+			const btn = document.getElementById('btn-night-mode');
+			const lbl = document.getElementById('lbl-night-mode');
+			if (!btn || !lbl) return;
+
+			if (nightMode) {
+				btn.className = "btn btn-sm cp-control-button active-yellow";
+				lbl.setAttribute('data-i18n', 'control.nightOn');
+				lbl.innerHTML = i18next.t("control.nightOn", "Night On");
+			} else {
+				btn.className = "btn btn-sm cp-control-button";
+				lbl.setAttribute('data-i18n', 'control.nightOff');
+				lbl.innerHTML = i18next.t("control.nightOff", "Night Off");
+			}
+		}
+
+		function updateRepeatModeState(repeatMode) {
+			currentRepeatMode = repeatMode;
+			const btn = document.getElementById('btn-repeat-mode');
+			const ico = document.getElementById('ico-repeat-mode');
+			const lbl = document.getElementById('lbl-repeat-mode');
+			if (!btn || !ico || !lbl) return;
+
+			if (repeatMode === 1) {
+				btn.className = "btn btn-sm cp-control-button active-cyan";
+				ico.className = "fas fa-redo-alt";
+				lbl.setAttribute('data-i18n', 'control.repeatTrack');
+				lbl.innerHTML = i18next.t("control.repeatTrack", "Loop Track");
+			} else if (repeatMode === 2) {
+				btn.className = "btn btn-sm cp-control-button active-green";
+				ico.className = "fas fa-redo";
+				lbl.setAttribute('data-i18n', 'control.repeatPlaylist');
+				lbl.innerHTML = i18next.t("control.repeatPlaylist", "Loop Playlist");
+			} else if (repeatMode === 3) {
+				btn.className = "btn btn-sm cp-control-button active-green";
+				ico.className = "fas fa-sync";
+				lbl.setAttribute('data-i18n', 'control.repeatBoth');
+				lbl.innerHTML = i18next.t("control.repeatBoth", "Loop Both");
+			} else {
+				btn.className = "btn btn-sm cp-control-button";
+				ico.className = "fas fa-redo";
+				lbl.setAttribute('data-i18n', 'control.repeatOff');
+				lbl.innerHTML = i18next.t("control.repeatOff", "Off");
+			}
+		}
+
+		function updateSleepTimerState(data) {
+			const btn = document.getElementById('btn-sleep-timer');
+			const lbl = document.getElementById('lbl-sleep-timer');
+			if (!btn || !lbl) return;
+
+			if (data.sleepAfterTrack) {
+				btn.className = "btn btn-sm cp-control-button active-magenta dropdown-toggle";
+				lbl.setAttribute('data-i18n', 'control.sleepEOT');
+				lbl.innerHTML = i18next.t("control.sleepEOT", "After Track");
+				clearInterval(sleepTimerRemainingInterval);
+				return;
+			}
+			if (data.sleepAfterPlaylist) {
+				btn.className = "btn btn-sm cp-control-button active-magenta dropdown-toggle";
+				lbl.setAttribute('data-i18n', 'control.sleepEOP');
+				lbl.innerHTML = i18next.t("control.sleepEOP", "After Playlist");
+				clearInterval(sleepTimerRemainingInterval);
+				return;
+			}
+
+			const duration = data.sleepTimerDuration || 0;
+			const remaining = data.sleepTimerRemaining || 0;
+
+			if (duration > 0 && remaining > 0) {
+				btn.className = "btn btn-sm cp-control-button active-magenta dropdown-toggle";
+				sleepTimerRemaining = remaining;
+				
+				clearInterval(sleepTimerRemainingInterval);
+				updateSleepTimerLabel();
+				sleepTimerRemainingInterval = setInterval(function() {
+					if (sleepTimerRemaining > 0) {
+						sleepTimerRemaining--;
+						updateSleepTimerLabel();
+					} else {
+						clearInterval(sleepTimerRemainingInterval);
+					}
+				}, 1000);
+			} else {
+				btn.className = "btn btn-sm cp-control-button dropdown-toggle";
+				lbl.setAttribute('data-i18n', 'control.sleepOff');
+				lbl.innerHTML = i18next.t("control.sleepOff", "Sleep Off");
+				clearInterval(sleepTimerRemainingInterval);
+			}
+		}
+
+		function updateSleepTimerLabel() {
+			const lbl = document.getElementById('lbl-sleep-timer');
+			if (!lbl) return;
+			
+			const mins = Math.floor(sleepTimerRemaining / 60);
+			const secs = sleepTimerRemaining % 60;
+			const timeStr = mins + ":" + (secs < 10 ? "0" : "") + secs;
+			lbl.removeAttribute('data-i18n');
+			lbl.innerHTML = timeStr;
+		}
+
+		function setSleepTimer(mins) {
+			var myObj = {
+				"controls": {
+					sleep_timer: mins
+				}
+			};
+			var myJSON = JSON.stringify(myObj);
+			socket.send(myJSON);
+		}
+
+		function toggleRepeatMode() {
+			if (currentRepeatMode === 0) {
+				sendControl(111);
+			} else if (currentRepeatMode === 1) {
+				sendControl(110);
+				sendControl(111);
+			} else if (currentRepeatMode === 2) {
+				sendControl(111);
+			} else if (currentRepeatMode === 3) {
+				sendControl(110);
+				sendControl(111);
 			}
 		}
 

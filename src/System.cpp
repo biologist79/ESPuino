@@ -112,12 +112,15 @@ bool System_SetSleepTimer(uint8_t minutes) {
 	publishMqtt(topicSleepTimer, static_cast<uint32_t>(System_GetSleepTimer()), false);
 #endif
 
+	Web_SendWebsocketData(0, WebsocketCodeType::Pong);
+
 	return sleepTimerEnabled;
 }
 
 void System_DisableSleepTimer(void) {
 	System_SleepTimerStartTimestamp.store(0u);
 	Led_SetNightmode(false);
+	Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 }
 
 bool System_IsSleepTimerEnabled(void) {
@@ -134,6 +137,20 @@ bool System_IsSleepPending(void) {
 
 uint8_t System_GetSleepTimer(void) {
 	return System_SleepTimer;
+}
+
+uint32_t System_GetSleepTimerRemainingSeconds(void) {
+	uint32_t start = System_SleepTimerStartTimestamp.load();
+	if (start == 0u) {
+		return 0u;
+	}
+	uint32_t m = millis();
+	uint32_t totalMs = (uint32_t) System_SleepTimer * 60000u;
+	if (m >= start) {
+		uint32_t elapsedMs = m - start;
+		return (totalMs > elapsedMs) ? (totalMs - elapsedMs) / 1000u : 0u;
+	}
+	return 0u;
 }
 
 void System_SetLockControls(bool value) {

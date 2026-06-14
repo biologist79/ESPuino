@@ -12,6 +12,7 @@
 #include "Port.h"
 #include "Queues.h"
 #include "System.h"
+#include "Web.h"
 #include "Wlan.h"
 
 #include <WiFi.h>
@@ -272,6 +273,7 @@ void Led_SetNightmode(bool enabled) {
 	gLedSettings.Led_NightMode = enabled;
 	Led_SetBrightness(newValue);
 	Log_Println(msg, LOGLEVEL_INFO);
+	Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 #endif
 }
 
