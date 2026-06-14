@@ -22,3 +22,5 @@ typedef enum class WebsocketCode {
 void Web_Cyclic(void);
 void Web_Exit(void);
 void Web_SendWebsocketData(uint32_t client, WebsocketCodeType code);
+void Web_TriggerGithubOta(void);
+const char *Web_GetGithubOtaStatusText(void);

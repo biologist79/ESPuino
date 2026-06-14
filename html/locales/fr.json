@@ -261,6 +261,7 @@
 					"0": "Supprimer l'affectation",
 					"153": "Basculement de la lumière ambiante",
 					"154": "Changer de profil d'égaliseur",
+					"186": "Mettre à jour le firmware (GitHub)",
 					"170": "Basculer Lecture/Pause",
 					"171": "Piste précédente",
 					"172": "Piste suivante",
@@ -532,7 +533,18 @@
 		},
 		"fwupdate": {
 			"title": "Mise à jour du micrologiciel",
-			"desc": "La mise à jour du micrologiciel peut être effectuée ici."
+			"desc": "La mise à jour du micrologiciel peut être effectuée ici.",
+			"manual": "Ou téléverser un firmware.bin manuellement :",
+			"github": {
+				"desc": "L'appareil télécharge le dernier micrologiciel directement depuis GitHub (HTTPS) et l'installe lui-même.",
+				"apply": "Mettre à jour depuis GitHub",
+				"confirm": "Télécharger et installer le dernier micrologiciel depuis GitHub ? L'appareil redémarrera ensuite.",
+				"checking": "Vérification de la version…",
+				"uptodate": "Déjà à jour – aucune mise à jour nécessaire.",
+				"flashing": "Téléchargement et installation…",
+				"started": "L'appareil installe le micrologiciel et va redémarrer – la page se rechargera sous peu…",
+				"error": "Échec de la mise à jour (voir la console/le journal)."
+			}
 		}
 	},
 	"help": {

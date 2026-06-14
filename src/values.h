@@ -62,22 +62,23 @@
 #define CMD_TOGGLE_AMBIENT_LIGHT		 153 // Command: ESPuino announces current time via speech
 #define CMD_TOGGLE_EQUALIZER			 154 // Command: cycle through the predefined equalizer profiles (flat/music/speech/voiceBoost)
 
-#define CMD_PLAYPAUSE	   170 // Command: play/pause
-#define CMD_PREVTRACK	   171 // Command: previous track
-#define CMD_NEXTTRACK	   172 // Command: next track
-#define CMD_FIRSTTRACK	   173 // Command: first track
-#define CMD_LASTTRACK	   174 // Command: last track
-#define CMD_VOLUMEINIT	   175 // Command: set volume to initial value
-#define CMD_VOLUMEUP	   176 // Command: increase volume by 1
-#define CMD_VOLUMEDOWN	   177 // Command: lower volume by 1
-#define CMD_MEASUREBATTERY 178 // Command: Measure battery-voltage
-#define CMD_SLEEPMODE	   179 // Command: Go to deepsleep
-#define CMD_SEEK_FORWARDS  180 // Command: jump forwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
-#define CMD_SEEK_BACKWARDS 181 // Command: jump backwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
-#define CMD_STOP		   182 // Command: stops playback
-#define CMD_RESTARTSYSTEM  183 // Command: restart System
-#define CMD_NEXTFOLDER	   184 // Command: jump forwards to next folder (only applicable for recursive playmodes)
-#define CMD_PREVFOLDER	   185 // Command: jump forwards to previous folder (only applicable for recursive playmodes)
+#define CMD_PLAYPAUSE		170 // Command: play/pause
+#define CMD_PREVTRACK		171 // Command: previous track
+#define CMD_NEXTTRACK		172 // Command: next track
+#define CMD_FIRSTTRACK		173 // Command: first track
+#define CMD_LASTTRACK		174 // Command: last track
+#define CMD_VOLUMEINIT		175 // Command: set volume to initial value
+#define CMD_VOLUMEUP		176 // Command: increase volume by 1
+#define CMD_VOLUMEDOWN		177 // Command: lower volume by 1
+#define CMD_MEASUREBATTERY	178 // Command: Measure battery-voltage
+#define CMD_SLEEPMODE		179 // Command: Go to deepsleep
+#define CMD_SEEK_FORWARDS	180 // Command: jump forwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
+#define CMD_SEEK_BACKWARDS	181 // Command: jump backwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
+#define CMD_STOP			182 // Command: stops playback
+#define CMD_RESTARTSYSTEM	183 // Command: restart System
+#define CMD_NEXTFOLDER		184 // Command: jump forwards to next folder (only applicable for recursive playmodes)
+#define CMD_PREVFOLDER		185 // Command: jump forwards to previous folder (only applicable for recursive playmodes)
+#define CMD_FIRMWARE_UPDATE 186 // Command: pull the latest firmware from GitHub and OTA-flash it
 
 #define CMD_VIRTUAL_RFID_CARD_01 241 // Command: Virtual RFID-Card 900000000001
 #define CMD_VIRTUAL_RFID_CARD_02 242 // Command: Virtual RFID-Card 900000000002

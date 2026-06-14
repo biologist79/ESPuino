@@ -2563,6 +2563,21 @@
 			</div>
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
+				<div id="githubUpdate" class="mb-3">
+					<p data-i18n="tools.fwupdate.github.desc"></p>
+					<button type="button" class="btn btn-primary" id="applyUpdateBtn"
+						onclick="applyGithubUpdate()" data-i18n="tools.fwupdate.github.apply"></button>
+					<span id="updateStatus" class="ms-2" style="font-family: 'Share Tech Mono', monospace;"></span>
+					<div id="githubUpdateProgress" class="progress upload-progress-bar position-relative mt-2"
+						style="display: none;">
+						<div class="progress-bar" role="progressbar"></div>
+						<div
+							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
+						</div>
+					</div>
+				</div>
+				<hr>
+				<p data-i18n="tools.fwupdate.manual"></p>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
@@ -2979,6 +2994,61 @@
 				tryRedirect();
 			}, 2000);
 		} /* restart */
+		/* GitHub firmware update — the device pulls the latest release over HTTPS itself
+		   (browser-side download is blocked by CORS on GitHub release assets). The browser
+		   triggers it and then polls the device for progress/result. */
+		async function applyGithubUpdate() {
+			const status = document.getElementById('updateStatus');
+			const btn = document.getElementById('applyUpdateBtn');
+			const prog = $('#githubUpdateProgress');
+			if (!confirm(i18next.t("tools.fwupdate.github.confirm"))) return;
+			btn.disabled = true;
+			prog.hide();
+			status.textContent = i18next.t("tools.fwupdate.github.checking");
+			try {
+				const resp = await fetch("http://" + host + "/githubupdate", { method: "POST" });
+				if (!resp.ok) throw new Error("HTTP " + resp.status);
+			} catch (e) {
+				console.error("github update trigger failed", e);
+				status.textContent = i18next.t("tools.fwupdate.github.error");
+				btn.disabled = false;
+				return;
+			}
+			let sawProgress = false;
+			const poll = async function () {
+				let st;
+				try {
+					st = await (await fetch("http://" + host + "/githubupdate", { cache: "no-store" })).json();
+				} catch (e) {
+					// connection lost while downloading -> device is rebooting after a successful flash
+					if (sawProgress) {
+						status.textContent = i18next.t("tools.fwupdate.github.started");
+						setTimeout(function () { location.reload(); }, 30000);
+						return;
+					}
+					setTimeout(poll, 2000);
+					return;
+				}
+				if (st.status === 1) { // running / downloading
+					sawProgress = true;
+					prog.show();
+					$(".progress-bar", prog).css('width', (st.progress || 0) + "%");
+					$(".label", prog).text(i18next.t("tools.fwupdate.github.flashing") + " " + (st.progress || 0) + "%");
+					setTimeout(poll, 1000);
+				} else if (st.status === 2) { // already up to date
+					prog.hide();
+					status.textContent = i18next.t("tools.fwupdate.github.uptodate");
+					btn.disabled = false;
+				} else if (st.status === 3) { // failed
+					prog.hide();
+					status.textContent = i18next.t("tools.fwupdate.github.error") + (st.message ? " (" + st.message + ")" : "");
+					btn.disabled = false;
+				} else {
+					setTimeout(poll, 1500);
+				}
+			};
+			setTimeout(poll, 1000);
+		}
 		/* Firmware Upload (OTA) */
 		$('#firmwareUploadForm').submit(function (e) {
 			e.preventDefault();
@@ -4513,7 +4583,7 @@
 			device = device.replace(/<MAC>/gi, macAddress);
 
 			// Static list of known topics (mirrors firmware settings.h)
-			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness', 'ambient_light', 'equalizer'];
+			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness', 'ambient_light', 'equalizer', 'firmware_update'];
 			var stateTopics = ['track', 'cover_changed', 'state', 'ipv4', 'pauseplay', 'playmode', 'wifi_rssi', 'software_revision', 'battery_voltage', 'battery_soc'];
 
 			// Combine command and state topics
@@ -5355,7 +5425,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 154, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 186, 199, 130, 140, 141, 142, 143, 144, 150, 151, 152, 153, 154, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
 				if ([140, 141, 142, 143, 144].includes(cmd)) {

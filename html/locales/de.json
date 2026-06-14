@@ -267,6 +267,7 @@
 					"152": "Uhrzeit ansagen",
 					"153": "Ambient Light umschalten",
 					"154": "Equalizer-Profil durchschalten",
+					"186": "Firmware aktualisieren (GitHub)",
 					"0": "Lösche Zuordnung",
 					"170": "Play/Pause",
 					"171": "Vorheriger Titel",
@@ -543,7 +544,18 @@
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
-			"desc": "Hier kann ein Firmware-Update durchgeführt werden."
+			"desc": "Hier kann ein Firmware-Update durchgeführt werden.",
+			"manual": "Oder eine firmware.bin manuell hochladen:",
+			"github": {
+				"desc": "Das Gerät lädt die neueste Firmware direkt von GitHub (HTTPS) und installiert sie selbst.",
+				"apply": "Von GitHub aktualisieren",
+				"confirm": "Neueste Firmware von GitHub laden und installieren? Das Gerät startet danach automatisch neu.",
+				"checking": "Prüfe Version…",
+				"uptodate": "Bereits aktuell – kein Update nötig.",
+				"flashing": "Lade & installiere…",
+				"started": "Gerät installiert die Firmware und startet neu – die Seite lädt gleich automatisch neu…",
+				"error": "Update fehlgeschlagen (siehe Konsole/Log)."
+			}
 		}
 	},
 	"help": {

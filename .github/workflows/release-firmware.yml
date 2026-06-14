@@ -1,0 +1,70 @@
+name: release-firmware
+run-name: Build & publish rolling firmware release
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "src/**"
+      - "html/**"
+      - "**.ini"
+      - "**.py"
+      - "**.csv"
+      - ".github/workflows/release-firmware.yml"
+
+# needed so the workflow can create/update the rolling GitHub Release
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build complete firmware and publish "latest" release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history + tags so `git describe` matches the on-device revision
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini', '**/dependencies.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install PlatformIO Core
+        run: pip install -U platformio
+
+      - name: Build complete firmware
+        run: platformio run -e complete
+
+      - name: Stage release assets
+        run: |
+          mkdir -p release
+          cp .pio/build/complete/firmware.bin release/firmware.bin
+          # `describe` must match what the firmware embeds (gitVersion.py uses the same command),
+          # so the device can tell whether it already runs this build.
+          DESCRIBE="$(git describe --always --dirty)"
+          printf '{"version":"%s","short":"%s","describe":"%s","date":"%s","ref":"%s"}\n' \
+            "$GITHUB_SHA" "${GITHUB_SHA:0:7}" "$DESCRIBE" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GITHUB_REF_NAME" \
+            > release/version.json
+          cat release/version.json
+
+      - name: Publish / refresh rolling "latest" release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # create the rolling release once, then keep replacing its assets
+          gh release view latest >/dev/null 2>&1 || \
+            gh release create latest \
+              --title "Latest firmware (rolling)" \
+              --prerelease \
+              --notes "Rolling 'complete' firmware build from master. See version.json for the exact commit."
+          gh release upload latest release/firmware.bin release/version.json --clobber

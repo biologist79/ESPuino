@@ -29,8 +29,11 @@
 #include "soc/timer_group_reg.h"
 #include "soc/timer_group_struct.h"
 
+#include <HTTPClient.h>
+#include <HTTPUpdate.h>
 #include <Update.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <atomic>
 #include <esp_random.h>
 #include <esp_task_wdt.h>
@@ -520,6 +523,119 @@ void notFound(AsyncWebServerRequest *request) {
 	request->send(200, "text/html", html);
 }
 
+// Rolling "complete" firmware + version manifest published by the GitHub Actions release workflow.
+static const char *githubFirmwareUrl = "https://github.com/fhirschmann/leoino/releases/download/latest/firmware.bin";
+static const char *githubVersionUrl = "https://github.com/fhirschmann/leoino/releases/download/latest/version.json";
+
+// State of the GitHub OTA, polled by the web interface via GET /githubupdate.
+// 0 = idle, 1 = running/downloading, 2 = already up to date, 3 = failed
+static volatile uint8_t gGithubOtaStatus = 0;
+static volatile uint8_t gGithubOtaProgress = 0; // download progress in percent
+static char gGithubOtaMsg[96] = "";
+
+// Returns true if the latest release (its "describe" field) matches the running firmware revision.
+static bool githubOtaIsUpToDate() {
+	WiFiClientSecure client;
+	client.setInsecure();
+	HTTPClient http;
+	http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+	http.setConnectTimeout(8000);
+	bool upToDate = false;
+	if (http.begin(client, githubVersionUrl)) {
+		if (http.GET() == 200) {
+			JsonDocument doc;
+			if (deserializeJson(doc, http.getString()) == DeserializationError::Ok) {
+				String latest = doc["describe"].as<String>();
+				// gitRevShort is the quoted `git describe` output, e.g. "\"abc1234\""
+				String current = String(gitRevShort);
+				current.replace("\"", "");
+				if (latest.length() > 0 && latest == current) {
+					upToDate = true;
+				}
+			}
+		}
+		http.end();
+	}
+	return upToDate;
+}
+
+// Background task: pull the latest firmware from GitHub over HTTPS and flash it via OTA.
+// Runs in its own task because the download/flash blocks for a while; the async webserver must not block.
+static void githubOtaTask(void *parameter) {
+	gGithubOtaProgress = 0;
+	gGithubOtaMsg[0] = '\0';
+
+	// Skip the (pointless and error-prone) re-flash if we already run the latest build.
+	if (githubOtaIsUpToDate()) {
+		Log_Println("GitHub OTA: already up to date", LOGLEVEL_NOTICE);
+		gGithubOtaStatus = 2;
+		vTaskDelete(NULL);
+		return;
+	}
+
+	Log_Println("GitHub OTA: downloading latest firmware...", LOGLEVEL_NOTICE);
+	System_PauseTasksDuringUpload(true);
+
+	WiFiClientSecure *secureClient = new WiFiClientSecure;
+	if (secureClient != nullptr) {
+		secureClient->setInsecure(); // GitHub uses valid certs, but we don't bundle a CA store
+		httpUpdate.rebootOnUpdate(true);
+		httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // github.com -> release-assets.githubusercontent.com
+		httpUpdate.onProgress([](int cur, int total) {
+			gGithubOtaProgress = (total > 0) ? (uint8_t) ((cur * 100) / total) : 0;
+		});
+		t_httpUpdate_return ret = httpUpdate.update(*secureClient, githubFirmwareUrl);
+		if (ret == HTTP_UPDATE_FAILED) {
+			snprintf(gGithubOtaMsg, sizeof(gGithubOtaMsg), "%d: %s", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+			Log_Printf(LOGLEVEL_ERROR, "GitHub OTA failed (%s)", gGithubOtaMsg);
+			gGithubOtaStatus = 3;
+		} else if (ret == HTTP_UPDATE_NO_UPDATES) {
+			gGithubOtaStatus = 2;
+		}
+		// on HTTP_UPDATE_OK the device reboots inside httpUpdate.update()
+		delete secureClient;
+	} else {
+		gGithubOtaStatus = 3;
+	}
+
+	System_PauseTasksDuringUpload(false);
+#ifdef MQTT_ENABLE
+	// On success the device reboots inside httpUpdate.update() and re-announces itself; only the
+	// terminal "no update needed"/"failed" states need to be reported back to MQTT here.
+	publishMqtt(topicFirmwareUpdate, Web_GetGithubOtaStatusText(), false);
+#endif
+	vTaskDelete(NULL);
+}
+
+// Returns the current GitHub-OTA state as a short, MQTT/UI-friendly string.
+const char *Web_GetGithubOtaStatusText(void) {
+	switch (gGithubOtaStatus) {
+		case 1:
+			return "updating";
+		case 2:
+			return "up_to_date";
+		case 3:
+			return "failed";
+		default:
+			return "idle";
+	}
+}
+
+// Start the GitHub OTA in the background (no-op if it is already running or the board lacks OTA support).
+// Shared by the web endpoint, the CMD_FIRMWARE_UPDATE command and the MQTT firmware_update topic.
+void Web_TriggerGithubOta(void) {
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+	if (gGithubOtaStatus != 1) {
+		gGithubOtaStatus = 1;
+		gGithubOtaProgress = 0;
+		gGithubOtaMsg[0] = '\0';
+		xTaskCreatePinnedToCore(githubOtaTask, "githubOta", 16384, NULL, 1, NULL, 1);
+	}
+#else
+	Log_Println(otaNotSupported, LOGLEVEL_ERROR);
+#endif
+}
+
 void webserverStart(void) {
 	if (!webserverStarted && (Wlan_IsConnected() || (WiFi.getMode() == WIFI_AP))) {
 		// password protection (no-op when no password is set or in accesspoint-mode)
@@ -660,6 +776,22 @@ void webserverStart(void) {
 					// ESP.restart(); // restart is done via webpage javascript
 				}
 			});
+
+		// pull the latest firmware from GitHub and OTA-flash it (download runs in a background task)
+		wServer.on("/githubupdate", HTTP_POST, [](AsyncWebServerRequest *request) {
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+			Web_TriggerGithubOta();
+			request->send(200, "text/plain", "started");
+#else
+				request->send(500, "text/html", otaNotSupportedWebsite);
+#endif
+		});
+		// progress/result of the GitHub OTA, polled by the web interface
+		wServer.on("/githubupdate", HTTP_GET, [](AsyncWebServerRequest *request) {
+			char buf[160];
+			snprintf(buf, sizeof(buf), "{\"status\":%u,\"progress\":%u,\"message\":\"%s\"}", gGithubOtaStatus, gGithubOtaProgress, gGithubOtaMsg);
+			request->send(200, "application/json", buf);
+		});
 
 		// ESP-restart
 		wServer.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request) {

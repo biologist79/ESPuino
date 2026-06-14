@@ -284,6 +284,7 @@
 		constexpr const char topicLedBrightness[] = "led_brightness"; // Cmnd/State: set LED brightness 0..255
 		constexpr const char topicAmbientLight[] = "ambient_light"; // Cmnd/State: set ambient light (ON/OFF)
 		constexpr const char topicEqualizer[] = "equalizer"; // Cmnd/State: set / report equalizer profile (flat/music/speech/voiceBoost)
+		constexpr const char topicFirmwareUpdate[] = "firmware_update"; // Cmnd: trigger GitHub OTA (ON/1/update/check); State: idle/updating/up_to_date/failed
 
 		// Topics (state only)
 		constexpr const char topicTrack[] = "track";          // State: current track info (e.g. "(2/10) /mp3/.../file.mp3")

@@ -13,6 +13,7 @@
 #include "Queues.h"
 #include "Rfid.h"
 #include "System.h"
+#include "Web.h"
 #include "Wlan.h"
 
 static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char *enMqttMsg) {
@@ -395,6 +396,12 @@ void Cmd_Action(const uint16_t mod) {
 
 		case CMD_RESTARTSYSTEM: {
 			System_Restart();
+			break;
+		}
+
+		case CMD_FIRMWARE_UPDATE: {
+			Web_TriggerGithubOta();
+			System_IndicateOk();
 			break;
 		}
 

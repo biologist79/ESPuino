@@ -9,6 +9,7 @@
 #include "MemX.h"
 #include "Queues.h"
 #include "System.h"
+#include "Web.h"
 #include "Wlan.h"
 #include "mqtt_client.h"
 #include "revision.h"
@@ -354,6 +355,9 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			// Equalizer-profile
 			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicEqualizer), qos);
 
+			// Firmware-update (GitHub OTA)
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicFirmwareUpdate), qos);
+
 			// Publish current state
 			publishMqtt(topicState, "Online", false);
 			publishMqtt(topicTrack, gPlayProperties.title, false);
@@ -375,6 +379,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicCurrentIPv4IP, Wlan_GetIpAddress().c_str(), false);
 			publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 			publishMqtt(topicEqualizer, AudioPlayer_GetEqualizerProfile().c_str(), false);
+			publishMqtt(topicFirmwareUpdate, Web_GetGithubOtaStatusText(), false);
 
 			char revBuf[16];
 			strncpy(revBuf, softwareRevision + 19, sizeof(revBuf) - 1);
@@ -636,6 +641,15 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				Log_Printf(LOGLEVEL_ERROR, "Unknown equalizer profile: %s", payload_str.c_str());
 				publishMqtt(topicEqualizer, AudioPlayer_GetEqualizerProfile().c_str(), false);
 				System_IndicateError();
+			}
+		}
+
+		// Trigger GitHub firmware-update (OTA)
+		else if (reduced_topic_str == topicFirmwareUpdate) {
+			if (payload_str == "ON" || payload_str == "1" || payload_str == "update" || payload_str == "check") {
+				Web_TriggerGithubOta();
+				publishMqtt(topicFirmwareUpdate, Web_GetGithubOtaStatusText(), false);
+				System_IndicateOk();
 			}
 		}
 
