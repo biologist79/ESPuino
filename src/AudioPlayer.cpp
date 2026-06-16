@@ -377,7 +377,7 @@ void AudioPlayer_Init(void) {
 	audio->settings.DMA_DESC_NUM = 32;
 	audio->settings.DMA_FRAME_NUM = 256; // not too high, so safe SRAM
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
-		audio->setOutput44K1Hz(true);
+		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);
 	}
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
