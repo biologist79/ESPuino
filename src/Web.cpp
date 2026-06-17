@@ -32,6 +32,7 @@
 #include <Update.h>
 #include <WiFi.h>
 #include <atomic>
+#include <cstring>
 #include <esp_task_wdt.h>
 #include <nvs.h>
 
@@ -110,6 +111,23 @@ bool canConvertFromJson(JsonVariantConst src, const IPAddress &) {
 	}
 	IPAddress dst;
 	return dst.fromString(src.as<const char *>());
+}
+
+static bool parseOptionalIPAddress(JsonVariantConst src, IPAddress &dst) {
+	dst = INADDR_NONE;
+	if (src.isNull()) {
+		return true;
+	}
+	if (!src.is<const char *>()) {
+		return false;
+	}
+
+	const char *value = src.as<const char *>();
+	if (value == nullptr || value[0] == '\0') {
+		return true;
+	}
+
+	return dst.fromString(value);
 }
 
 // If PSRAM is available use it allocate memory for JSON-objects
@@ -722,12 +740,19 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	}
 	if (doc["wifi"].is<JsonObject>()) {
 		// WiFi settings
-		String hostName = doc["wifi"]["hostname"];
+		JsonObject wifiObj = doc["wifi"];
+		if (!wifiObj["hostname"].is<const char *>()) {
+			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
+			return WebsocketCodeType::Error;
+		}
+
+		String hostName = wifiObj["hostname"].as<const char *>();
 		if (!Wlan_ValidateHostname(hostName)) {
 			Log_Println("Invalid hostname", LOGLEVEL_ERROR);
 			return WebsocketCodeType::Error;
 		}
-		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", doc["wifi"]["scanOnStart"].as<bool>()) == 0)) {
+		const bool scanOnStart = wifiObj["scanOnStart"].is<bool>() ? wifiObj["scanOnStart"].as<bool>() : false;
+		if (((!Wlan_SetHostname(hostName)) || gPrefsSettings.putBool("ScanWiFiOnStart", scanOnStart) == 0)) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "wifi");
 			return WebsocketCodeType::Error;
 		}
@@ -735,38 +760,61 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (doc["led"].is<JsonObject>()) {
 		// Neopixel settings
 		JsonObject ledObj = doc["led"];
+		JsonArray colorArr = ledObj["controlColors"].as<JsonArray>();
+		const uint8_t numIndicator = ledObj["numIndicator"].as<uint8_t>();
+		const uint8_t numControl = ledObj["numControl"].as<uint8_t>();
+		const uint8_t numIdleDots = ledObj["numIdleDots"].as<uint8_t>();
+		const uint8_t ledOffset = ledObj["offsetStart"].as<uint8_t>();
+		const uint8_t dimmableStates = ledObj["dimStates"].as<uint8_t>();
+
+		if (numIndicator == 0
+			|| numIdleDots == 0
+			|| dimmableStates == 0
+			|| ledOffset >= numIndicator
+			|| static_cast<uint16_t>(numIndicator) + numControl > UINT8_MAX
+			|| colorArr.size() != numControl) {
+			Log_Println("Invalid LED settings", LOGLEVEL_ERROR);
+			return WebsocketCodeType::Error;
+		}
+
+		std::vector<uint32_t> controlLedColors;
+		for (uint8_t controlLed = 0; controlLed < colorArr.size(); controlLed++) {
+			if (!colorArr[controlLed].is<uint32_t>()) {
+				Log_Println("Invalid control LED color", LOGLEVEL_ERROR);
+				return WebsocketCodeType::Error;
+			}
+			controlLedColors.push_back(colorArr[controlLed].as<uint32_t>());
+		}
+
 		bool success = (gPrefsSettings.putUChar("iLedBrightness", ledObj["initBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("nLedBrightness", ledObj["nightBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("aLedBrightness", ledObj["atmoBrightness"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUChar("numIndicator", ledObj["numIndicator"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("numIndicator", numIndicator) != 0);
+		success = success && (gPrefsSettings.putUChar("numIdleDots", numIdleDots) != 0);
 		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueAtmo", ledObj["hueAtmo"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("satAtmo", ledObj["satAtmo"].as<int16_t>()) != 0);
-		success = success && (gPrefsSettings.putUChar("dimStates", ledObj["dimStates"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("dimStates", dimmableStates) != 0);
 		success = success && (gPrefsSettings.putBool("ledReverseRot", ledObj["reverseRot"].as<bool>()) != 0);
-		success = success && (gPrefsSettings.putUChar("ledOffset", ledObj["offsetStart"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUChar("ledOffset", ledOffset) != 0);
+
+		// Write control colors before numControl. This keeps NVS boot-safe even if power drops during the save.
+		if (numControl == 0) {
+			success = success && (gPrefsSettings.putUChar("numControl", 0) != 0);
+			if (success && gPrefsSettings.isKey("controlColors")) {
+				gPrefsSettings.remove("controlColors");
+			}
+		} else {
+			const size_t controlColorsSize = controlLedColors.size() * sizeof(uint32_t);
+			success = success && (gPrefsSettings.putBytes("controlColors", controlLedColors.data(), controlColorsSize) == controlColorsSize);
+			success = success && (gPrefsSettings.putUChar("numControl", numControl) != 0);
+		}
 
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "led");
 			return WebsocketCodeType::Error;
-		}
-		// write led control color array to NVS.
-		JsonArray colorArr = ledObj["controlColors"].as<JsonArray>();
-		if (colorArr.size() == 0) {
-			if (gPrefsSettings.isKey("controlColors")) {
-				gPrefsSettings.remove("controlColors");
-			}
-			gPrefsSettings.putUChar("numControl", 0);
-		} else {
-			std::vector<uint32_t> controlLedColors;
-			for (uint8_t controlLed = 0; controlLed < colorArr.size(); controlLed++) {
-				controlLedColors.push_back(colorArr[controlLed].as<uint32_t>());
-			}
-			gPrefsSettings.putBytes("controlColors", controlLedColors.data(), controlLedColors.size() * sizeof(uint32_t));
 		}
 		Led_Init();
 	}
@@ -1414,7 +1462,7 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 
 // handle post settings
 void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	JsonObject jsonObj = json.as<JsonObject>();
 	WebsocketCodeType res = JSONToSettings(jsonObj);
 	if (res != WebsocketCodeType::Error) {
 		if (res != WebsocketCodeType::Ok) {
@@ -1437,7 +1485,7 @@ void handleGetOperationMode(AsyncWebServerRequest *request) {
 
 // handle post operation mode
 void handlePostOperationMode(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	JsonObject jsonObj = json.as<JsonObject>();
 	if (jsonObj["mode"].is<uint8_t>()) {
 		uint8_t mode = jsonObj["mode"].as<uint8_t>();
 		System_SetOperationMode(mode);
@@ -2156,17 +2204,49 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
+	if (!json.is<JsonObject>()) {
+		request->send(400, "text/plain; charset=utf-8", "invalid network payload");
+		return;
+	}
+
+	JsonObject jsonObj = json.as<JsonObject>();
+	if (!jsonObj["ssid"].is<const char *>()) {
+		request->send(400, "text/plain; charset=utf-8", "missing or invalid ssid");
+		return;
+	}
+
+	const char *ssid = jsonObj["ssid"].as<const char *>();
+	const char *password = jsonObj["pwd"].is<const char *>() ? jsonObj["pwd"].as<const char *>() : "";
+	if (ssid == nullptr || password == nullptr || strlen(ssid) == 0 || strlen(ssid) > WiFiSettings::maxSsidLength
+		|| strlen(password) > WiFiSettings::maxPasswordLength) {
+		request->send(400, "text/plain; charset=utf-8", "invalid network credentials");
+		return;
+	}
+
 	WiFiSettings networkSettings;
+	networkSettings.ssid = ssid;
+	networkSettings.password = password;
 
-	networkSettings.ssid = json["ssid"].as<const char *>();
-	networkSettings.password = json["pwd"].as<const char *>();
+	if (jsonObj["static"].is<bool>() && jsonObj["static"].as<bool>()) {
+		IPAddress staticAddr;
+		IPAddress staticSubnet;
+		IPAddress staticGateway;
+		IPAddress staticDns1;
+		IPAddress staticDns2;
 
-	if (json["static"].as<bool>()) {
-		networkSettings.staticIp.addr = json["static_addr"].as<IPAddress>();
-		networkSettings.staticIp.subnet = json["static_subnet"].as<IPAddress>();
-		networkSettings.staticIp.gateway = json["static_gateway"].as<IPAddress>();
-		networkSettings.staticIp.dns1 = json["static_dns1"].as<IPAddress>();
-		networkSettings.staticIp.dns2 = json["static_dns2"].as<IPAddress>();
+		if (!parseOptionalIPAddress(jsonObj["static_addr"], staticAddr)
+			|| !parseOptionalIPAddress(jsonObj["static_subnet"], staticSubnet)
+			|| !parseOptionalIPAddress(jsonObj["static_gateway"], staticGateway)
+			|| !parseOptionalIPAddress(jsonObj["static_dns1"], staticDns1)
+			|| !parseOptionalIPAddress(jsonObj["static_dns2"], staticDns2)
+			|| staticAddr == INADDR_NONE
+			|| staticSubnet == INADDR_NONE) {
+			request->send(400, "text/plain; charset=utf-8", "invalid static ip configuration");
+			return;
+		}
+
+		networkSettings.staticIp = WiFiSettings::StaticIp(
+			staticAddr, staticSubnet, staticGateway, staticDns1, staticDns2);
 	}
 
 	if (!networkSettings.isValid()) {
@@ -2222,27 +2302,35 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 }
 
 void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	if (!json.is<JsonObject>()) {
+		request->send(400, "text/plain; charset=utf-8", "invalid wifi configuration");
+		return;
+	}
 
-	// always perform perform a WiFi scan on startup?
-	bool alwaysScan = jsonObj["scanOnStart"];
-	gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan);
+	JsonObject jsonObj = json.as<JsonObject>();
+	if (!jsonObj["hostname"].is<const char *>()) {
+		Log_Println("hostname validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
+		return;
+	}
 
 	// hostname
-	String strHostname = jsonObj["hostname"];
+	String strHostname = jsonObj["hostname"].as<const char *>();
 	if (!Wlan_ValidateHostname(strHostname)) {
 		Log_Println("hostname validation failed", LOGLEVEL_ERROR);
 		request->send(400, "text/plain; charset=utf-8", "hostname validation failed");
 		return;
 	}
 
-	bool succ = Wlan_SetHostname(strHostname);
+	// always perform perform a WiFi scan on startup?
+	const bool alwaysScan = jsonObj["scanOnStart"].is<bool>() ? jsonObj["scanOnStart"].as<bool>() : false;
+	const bool succ = Wlan_SetHostname(strHostname) && (gPrefsSettings.putBool("ScanWiFiOnStart", alwaysScan) != 0);
 	if (succ) {
 		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
 		request->send(200, "text/plain; charset=utf-8", strHostname);
 	} else {
-		Log_Println("error setting hostname", LOGLEVEL_ERROR);
-		request->send(500, "text/plain; charset=utf-8", "error setting hostname");
+		Log_Println("error setting wifi configuration", LOGLEVEL_ERROR);
+		request->send(500, "text/plain; charset=utf-8", "error setting wifi configuration");
 	}
 }
 
@@ -2375,7 +2463,7 @@ static void handleGetRFIDRequest(AsyncWebServerRequest *request) {
 }
 
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json) {
-	const JsonObject &jsonObj = json.as<JsonObject>();
+	JsonObject jsonObj = json.as<JsonObject>();
 
 	String tagId = jsonObj["id"];
 	if (tagId.isEmpty()) {

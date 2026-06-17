@@ -47,7 +47,7 @@ static void RfidPn5180_Task(void *parameter);
 uint8_t stateMachine = RFID_PN5180_STATE_INIT;
 
 static bool Rfid_Pn5180LpcdEnabled(void) {
-	return gPrefsRfid.getBool("pn5180Lpcd", false);
+	return System_RfidPrefsAvailable() ? gPrefsRfid.getBool("pn5180Lpcd", false) : false;
 }
 
 void Rfid_EnableLpcd(void);
@@ -275,11 +275,12 @@ void RfidPn5180_Task(void *parameter) {
 			Log_Printf(LOGLEVEL_NOTICE, rfidTagDetected, hexString.c_str());
 			Log_Printf(LOGLEVEL_NOTICE, "Card type: %s", (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) ? "ISO-14443" : "ISO-15693");
 
-			for (uint8_t i = 0u; i < cardIdSize; i++) {
-				char num[4];
-				snprintf(num, sizeof(num), "%03d", cardId[i]);
-				cardIdString += num;
+			char cardIdBuffer[cardIdStringSize];
+			if (!Rfid_FormatCardId(cardId, cardIdSize, cardIdBuffer, sizeof(cardIdBuffer))) {
+				Log_Println("RFID: failed to format card id", LOGLEVEL_ERROR);
+				continue;
 			}
+			cardIdString = cardIdBuffer;
 
 			if (gPlayProperties.pauseIfRfidRemoved) {
 	#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
@@ -413,16 +414,13 @@ void RfidPn5180_WakeupCheck(void) {
 
 	// check for card id in NVS
 	if (isCardPresent) {
-		// uint8_t[10] -> char[cardIdStringSize]
-		char tagId[cardIdStringSize];
-		size_t pos = 0;
-		for (size_t i = 0; i < 10; i++) {
-			pos += snprintf(tagId + pos, cardIdStringSize - pos, "%03d", uid[i]);
-		}
-		tagId[cardIdStringSize - 1] = '\0';
+		uint8_t cardId[cardIdSize];
+		memcpy(cardId, uid, cardIdSize);
 
-		// Try to lookup tagId in NVS
-		if (gPrefsRfid.isKey(tagId)) {
+		char tagId[cardIdStringSize];
+		if (!Rfid_FormatCardId(cardId, cardIdSize, tagId, sizeof(tagId))) {
+			Log_Println("RFID: failed to format LPCD card id", LOGLEVEL_ERROR);
+		} else if (System_RfidPrefsAvailable() && gPrefsRfid.isKey(tagId)) {
 			cardInNVS = gPrefsRfid.getString(tagId, "-1").compareTo("-1");
 		}
 	}

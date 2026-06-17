@@ -1,10 +1,12 @@
 #pragma once
 
 #include <WString.h>
+#include <cstddef>
 #include <functional>
 #include <optional>
+#include <vector>
 
-// be very careful changing this struct, as it is used for NVS storage and will corrupt existing entries
+// Be careful changing the serialized format; existing WiFi entries are stored in NVS.
 struct WiFiSettings {
 	struct StaticIp {
 		static constexpr size_t numFields = 5;
@@ -16,7 +18,11 @@ struct WiFiSettings {
 		IPAddress dns2 {INADDR_NONE};
 
 		StaticIp() = default;
-		StaticIp(const IPAddress &addr, const IPAddress &subnet, const IPAddress &gateway = INADDR_NONE, const IPAddress &dns1 = INADDR_NONE, const IPAddress &dns2 = INADDR_NONE)
+		StaticIp(const IPAddress &addr,
+			const IPAddress &subnet,
+			const IPAddress &gateway = INADDR_NONE,
+			const IPAddress &dns1 = INADDR_NONE,
+			const IPAddress &dns2 = INADDR_NONE)
 			: addr {addr}
 			, subnet {subnet}
 			, gateway {gateway}
@@ -47,14 +53,18 @@ struct WiFiSettings {
 		}
 	};
 
+	static constexpr size_t maxSsidLength = 32;
+	static constexpr size_t maxPasswordLength = 64;
+
 	String ssid {String()};
 	String password {String()};
 	StaticIp staticIp;
+	bool hasDeserializeError {false};
 
 	WiFiSettings() = default;
 	WiFiSettings(const std::vector<uint8_t> &buffer) { deserialize(buffer); }
 
-	bool isValid() const { return !ssid.isEmpty() && ssid.length() < 33 && password.length() < 65; }
+	bool isValid() const { return !hasDeserializeError && !ssid.isEmpty() && ssid.length() <= maxSsidLength && password.length() <= maxPasswordLength; }
 
 	/**
 	 * @brief Serialize the fields of this instance
@@ -85,7 +95,7 @@ protected:
 	 * @brief Deserialize a String from a binary buffer
 	 * @see serializeString for further information
 	 */
-	void deserializeString(std::vector<uint8_t>::const_iterator &it, String &s);
+	bool deserializeString(std::vector<uint8_t>::const_iterator &it, std::vector<uint8_t>::const_iterator end, String &s, size_t maxLen);
 
 	/**
 	 * @brief Serialize a String into a binary buffer. Format: [bool:u8] + <numFields * u32>
@@ -104,7 +114,7 @@ protected:
 	 * @brief Deserialize a static IP confgiuration from a binary buffer
 	 * @see serializeStaticIp for further information
 	 */
-	void deserializeStaticIp(std::vector<uint8_t>::const_iterator &it, StaticIp &ip);
+	bool deserializeStaticIp(std::vector<uint8_t>::const_iterator &it, std::vector<uint8_t>::const_iterator end, StaticIp &ip);
 };
 
 void Wlan_Init(void);

@@ -28,6 +28,8 @@ constexpr const char prefsSettingsNamespace[] = "settings"; // Namespace used fo
 
 Preferences gPrefsRfid;
 Preferences gPrefsSettings;
+static bool gPrefsRfidAvailable = false;
+static bool gPrefsSettingsAvailable = false;
 
 std::atomic<uint32_t> System_LastTimeActiveTimestamp {0u}; // Timestamp of last user-interaction
 std::atomic<uint32_t> System_SleepTimerStartTimestamp {0u}; // Flag if sleep-timer is active
@@ -45,15 +47,29 @@ void System_SleepHandler(void);
 void System_DeepSleepManager(void);
 void System_RebootHandler(void);
 
+static bool System_OpenPreferences(Preferences &prefs, const char *nameSpace) {
+	if (prefs.begin(nameSpace)) {
+		return true;
+	}
+
+	Log_Printf(LOGLEVEL_ERROR, "NVS namespace open failed: %s", nameSpace);
+	return false;
+}
+
 // Init only NVS required for LPCD
 void System_Init_Rfid_Prefs(void) {
-	gPrefsRfid.begin(prefsRfidNamespace);
+	gPrefsRfidAvailable = System_OpenPreferences(gPrefsRfid, prefsRfidNamespace);
 }
 
 void System_Init(void) {
 	srand(esp_random());
 
-	gPrefsSettings.begin(prefsSettingsNamespace);
+	gPrefsSettingsAvailable = System_OpenPreferences(gPrefsSettings, prefsSettingsNamespace);
+	if (!gPrefsSettingsAvailable) {
+		System_OperationMode = OPMODE_NORMAL;
+		Log_Println("Settings NVS namespace is not available; using volatile defaults", LOGLEVEL_ERROR);
+		return;
+	}
 
 	// Get maximum inactivity-time from NVS
 	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", System_MaxInactivityTime);
@@ -66,6 +82,14 @@ void System_Init(void) {
 	}
 
 	System_OperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
+}
+
+bool System_RfidPrefsAvailable(void) {
+	return gPrefsRfidAvailable;
+}
+
+bool System_SettingsPrefsAvailable(void) {
+	return gPrefsSettingsAvailable;
 }
 
 void System_Cyclic(void) {
@@ -157,6 +181,11 @@ void System_IndicateOk(void) {
 
 // Writes to NVS, if bluetooth or "normal" mode is desired
 void System_SetOperationMode(uint8_t opMode) {
+	if (!System_SettingsPrefsAvailable()) {
+		System_OperationMode = opMode;
+		return;
+	}
+
 	uint8_t currentOperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
 	if (currentOperationMode != opMode) {
 		if (gPrefsSettings.putUChar("operationMode", opMode)) {
@@ -176,7 +205,7 @@ uint8_t System_GetOperationMode(void) {
 
 // Reads from NVS, if bluetooth or "normal" mode is desired
 uint8_t System_GetOperationModeFromNvs(void) {
-	return gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
+	return System_SettingsPrefsAvailable() ? gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL) : OPMODE_NORMAL;
 }
 
 // Sets deep-sleep-flag if max. inactivity-time is reached
@@ -224,7 +253,7 @@ void System_PreparePowerDown(void) {
 	Led_Exit();
 	Bluetooth_Exit();
 
-	if (gPrefsSettings.getBool("recoverVolBoot", false)) {
+	if (System_SettingsPrefsAvailable() && gPrefsSettings.getBool("recoverVolBoot", false)) {
 		gPrefsSettings.putUInt("previousVolume", AudioPlayer_GetCurrentVolume());
 	}
 	SdCard_Exit();

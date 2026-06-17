@@ -33,7 +33,7 @@ static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
 void RfidMfrc522_Init(uint8_t readerType) {
-	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
+	uint8_t rfidGain = System_RfidPrefsAvailable() ? gPrefsRfid.getUChar("mfrc522Gain", 7u) : 7u; // default to maximum gain
 	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
 	if (readerType == RfidReaderType::TYPE_MFRC522_SPI) {
 		SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_CS);
@@ -128,11 +128,12 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 			}
 			Log_Printf(LOGLEVEL_NOTICE, rfidTagDetected, hexString.c_str());
 
-			for (uint8_t i = 0u; i < cardIdSize; i++) {
-				char num[4];
-				snprintf(num, sizeof(num), "%03d", cardId[i]);
-				cardIdString += num;
+			char cardIdBuffer[cardIdStringSize];
+			if (!Rfid_FormatCardId(cardId, cardIdSize, cardIdBuffer, sizeof(cardIdBuffer))) {
+				Log_Println("RFID: failed to format card id", LOGLEVEL_ERROR);
+				continue;
 			}
+			cardIdString = cardIdBuffer;
 
 			if (gPlayProperties.pauseIfRfidRemoved) {
 	#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END

@@ -60,6 +60,45 @@ AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds
 
 #ifdef NEOPIXEL_ENABLE
 bool Led_LoadSettings(LedSettings &settings) {
+	#ifdef NEOPIXEL_REVERSE_ROTATION
+	const bool defReverseRotation = true;
+	#else
+	const bool defReverseRotation = false;
+	#endif
+	#ifdef LED_OFFSET
+	const uint8_t defLedOffset = LED_OFFSET;
+	#else
+	const uint8_t defLedOffset = 0;
+	#endif
+	settings.neopixelReverseRotation = defReverseRotation;
+	settings.ledOffset = defLedOffset;
+	settings.controlLedColors = CONTROL_LEDS_COLORS;
+
+	if (!System_SettingsPrefsAvailable()) {
+		Log_Println("Settings NVS namespace is not available; using volatile LED defaults", LOGLEVEL_ERROR);
+		if (settings.numIndicatorLeds == 0) {
+			settings.numIndicatorLeds = (NUM_INDICATOR_LEDS > 0) ? NUM_INDICATOR_LEDS : 1;
+		}
+		if (settings.numIdleDots == 0) {
+			settings.numIdleDots = (NUM_LEDS_IDLE_DOTS > 0) ? NUM_LEDS_IDLE_DOTS : 1;
+		}
+		if (settings.dimmableStates == 0) {
+			settings.dimmableStates = (DIMMABLE_STATES > 0) ? DIMMABLE_STATES : 1;
+		}
+		if (settings.ledOffset >= settings.numIndicatorLeds) {
+			settings.ledOffset = 0;
+		}
+		if (static_cast<uint16_t>(settings.numIndicatorLeds) + settings.numControlLeds > UINT8_MAX) {
+			settings.numControlLeds = UINT8_MAX - settings.numIndicatorLeds;
+		}
+		if (settings.controlLedColors.size() < settings.numControlLeds) {
+			settings.numControlLeds = 0;
+		} else if (settings.controlLedColors.size() > settings.numControlLeds) {
+			settings.controlLedColors.resize(settings.numControlLeds);
+		}
+		return true;
+	}
+
 	// Get some stuff from NVS...
 	// Get initial LED-brightness from NVS
 	uint8_t nvsILedBrightness = gPrefsSettings.getUChar("iLedBrightness", 0);
@@ -97,15 +136,26 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// Get the number of indicator LEDs from NVS
 	settings.numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS);
+	if (settings.numIndicatorLeds == 0) {
+		Log_Println("Invalid numIndicator in NVS; using default value", LOGLEVEL_ERROR);
+		settings.numIndicatorLeds = (NUM_INDICATOR_LEDS > 0) ? NUM_INDICATOR_LEDS : 1;
+		gPrefsSettings.putUChar("numIndicator", settings.numIndicatorLeds);
+	}
 
 	// Get the number of control LEDs from NVS
 	settings.numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
+	if (static_cast<uint16_t>(settings.numIndicatorLeds) + settings.numControlLeds > UINT8_MAX) {
+		Log_Println("Invalid numControl in NVS; reducing control LED count", LOGLEVEL_ERROR);
+		settings.numControlLeds = UINT8_MAX - settings.numIndicatorLeds;
+		gPrefsSettings.putUChar("numControl", settings.numControlLeds);
+	}
 
 	// Get the number of Led idle dots from NVS
 	settings.numIdleDots = gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS);
 	if (settings.numIdleDots == 0) {
 		// avoid division by zero
-		settings.numIdleDots = 4;
+		settings.numIdleDots = (NUM_LEDS_IDLE_DOTS > 0) ? NUM_LEDS_IDLE_DOTS : 1;
+		gPrefsSettings.putUChar("numIdleDots", settings.numIdleDots);
 	}
 
 	// Get offset LED pause from NVS
@@ -113,6 +163,11 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+	if (settings.dimmableStates == 0) {
+		// avoid division by zero in Led_DimColor()
+		settings.dimmableStates = (DIMMABLE_STATES > 0) ? DIMMABLE_STATES : 1;
+		gPrefsSettings.putUChar("dimStates", settings.dimmableStates);
+	}
 
 	// get hue start/end from NVS
 	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
@@ -122,23 +177,14 @@ bool Led_LoadSettings(LedSettings &settings) {
 	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", ATMO_SATURATION);
 
 	// get reverse rotation from NVS
-	#ifdef NEOPIXEL_REVERSE_ROTATION
-	const bool defReverseRotation = true;
-	#else
-	const bool defReverseRotation = false;
-	#endif
-	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", defReverseRotation);
+	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", settings.neopixelReverseRotation);
 
 	// get LED offset from NVS
-	#ifdef LED_OFFSET
-	const uint8_t defLedOffset = LED_OFFSET;
-	#else
-	const uint8_t defLedOffset = 0;
-	#endif
-	settings.ledOffset = gPrefsSettings.getUChar("ledOffset", defLedOffset);
+	settings.ledOffset = gPrefsSettings.getUChar("ledOffset", settings.ledOffset);
 	if (settings.ledOffset >= settings.numIndicatorLeds) {
-		Log_Println("ledOffset must be between 0 and numIndicatorLeds-1", LOGLEVEL_ERROR);
-		return false;
+		Log_Println("Invalid ledOffset in NVS; using 0", LOGLEVEL_ERROR);
+		settings.ledOffset = 0;
+		gPrefsSettings.putUChar("ledOffset", settings.ledOffset);
 	}
 	// load control colors from NVS
 	settings.controlLedColors = CONTROL_LEDS_COLORS;
@@ -146,8 +192,26 @@ bool Led_LoadSettings(LedSettings &settings) {
 		size_t keySize = gPrefsSettings.getBytesLength("controlColors");
 		if (keySize == (settings.numControlLeds * sizeof(uint32_t))) {
 			settings.controlLedColors.resize(settings.numControlLeds);
-			gPrefsSettings.getBytes("controlColors", settings.controlLedColors.data(), keySize);
+			const size_t bytesRead = gPrefsSettings.getBytes("controlColors", settings.controlLedColors.data(), keySize);
+			if (bytesRead != keySize) {
+				Log_Println("Could not read controlColors from NVS", LOGLEVEL_ERROR);
+				settings.controlLedColors = CONTROL_LEDS_COLORS;
+				gPrefsSettings.remove("controlColors");
+			}
+		} else {
+			Log_Println("Invalid controlColors in NVS", LOGLEVEL_ERROR);
+			gPrefsSettings.remove("controlColors");
 		}
+	}
+	if (settings.controlLedColors.size() < settings.numControlLeds) {
+		Log_Println("Invalid control LED configuration in NVS; disabling control LEDs", LOGLEVEL_ERROR);
+		settings.numControlLeds = 0;
+		gPrefsSettings.putUChar("numControl", settings.numControlLeds);
+		if (gPrefsSettings.isKey("controlColors")) {
+			gPrefsSettings.remove("controlColors");
+		}
+	} else if (settings.controlLedColors.size() > settings.numControlLeds) {
+		settings.controlLedColors.resize(settings.numControlLeds);
 	}
 	return true;
 }

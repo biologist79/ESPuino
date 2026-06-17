@@ -6,6 +6,8 @@ extern Preferences gPrefsSettings;
 
 void System_Init_Rfid_Prefs(void);
 void System_Init(void);
+bool System_RfidPrefsAvailable(void);
+bool System_SettingsPrefsAvailable(void);
 void System_Cyclic(void);
 void System_UpdateActivityTimer(void);
 void System_RequestSleep(void);

@@ -67,6 +67,10 @@ TwoWire i2cBusTwo = TwoWire(1);
 // At start of a boot, bootCount is incremented by one and after 30s decremented because
 // uptime of 30s is considered as "successful boot".
 void recoverBootCountFromNvs(void) {
+	if (!System_SettingsPrefsAvailable()) {
+		return;
+	}
+
 	if (recoverBootCount) {
 		recoverBootCount = false;
 		resetBootCount = true;
@@ -96,6 +100,11 @@ void recoverBootCountFromNvs(void) {
 
 // Get last RFID-tag applied from NVS
 void recoverLastRfidPlayedFromNvs(bool force) {
+	if (!System_SettingsPrefsAvailable()) {
+		recoverLastRfid = false;
+		return;
+	}
+
 	if (recoverLastRfid || force) {
 		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) { // Don't recover if BT-mode is desired
 			recoverLastRfid = false;
@@ -121,7 +130,7 @@ void setup() {
 	Button_Init(); // To preseed internal button-storage with values
 
 	System_Init_Rfid_Prefs();
-	const bool pn5180LpcdEnabled = gPrefsRfid.getBool("pn5180Lpcd", false);
+	const bool pn5180LpcdEnabled = System_RfidPrefsAvailable() ? gPrefsRfid.getBool("pn5180Lpcd", false) : false;
 	if (pn5180LpcdEnabled) {
 		Rfid_Init();
 	}
@@ -233,12 +242,14 @@ void loop() {
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
-	bool playLastRfidAfterReboot;
+	bool playLastRfidAfterReboot = false;
+	if (System_SettingsPrefsAvailable()) {
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", true);
+		playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", true);
 #else
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", false);
+		playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", false);
 #endif
+	}
 
 	if (playLastRfidAfterReboot) {
 		recoverBootCountFromNvs();
