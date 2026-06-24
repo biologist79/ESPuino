@@ -74,6 +74,18 @@ RfidReaderType RfidConfig_AutoDetectReader(void) {
 	return RfidReaderType::TYPE_AUTO_DETECT; // No reader detected
 }
 
+bool IsValidMfrc522Version(byte version) {
+	return (
+		(version == 0x82) || // Fudan Semiconductor FM17522 clone
+		(version == 0x88) || // Fudan Semiconductor FM17522 clone
+		(version == 0x90) || // version 0.0
+		(version == 0x91) || // version 1.0
+		(version == 0x92) || // version 2.0
+		(version == 0xB2) || // some clones may report this
+		(version == 0x12) // some clones may report this
+	);
+}
+
 // Check if a specific reader type is available
 bool RfidConfig_IsReaderAvailable(RfidReaderType readerType) {
 	switch (readerType) {
@@ -88,16 +100,7 @@ bool RfidConfig_IsReaderAvailable(RfidReaderType readerType) {
 				SPI.end();
 				Log_Printf(LOGLEVEL_DEBUG, "RFID: MFRC522 (SPI) version=0x%02X", version);
 
-				// Check if version is valid for MFRC522 (0x91, 0x92, 0x88, 0xB2, 0x12.)
-				return (
-					(version == 0x82) || // Fudan Semiconductor FM17522 clone
-					(version == 0x88) || // Fudan Semiconductor FM17522 clone
-					(version == 0x90) || // version 0.0
-					(version == 0x91) || // version 1.0
-					(version == 0x92) || // version 2.0
-					(version == 0xB2) || // some clones may report this
-					(version == 0x12) // some clones may report this
-				);
+				return (IsValidMfrc522Version(version));
 			}
 
 		case RfidReaderType::TYPE_MFRC522_I2C: // MFRC522 (I2C)
@@ -111,16 +114,7 @@ bool RfidConfig_IsReaderAvailable(RfidReaderType readerType) {
 				Wire.end();
 				Log_Printf(LOGLEVEL_DEBUG, "RFID: MFRC522 (I2C) version=0x%02X", version);
 
-				// Check if version is valid for MFRC522 (0x91, 0x92, 0x88, 0xB2, 0x12.)
-				return (
-					(version == 0x82) || // Fudan Semiconductor FM17522 clone
-					(version == 0x88) || // Fudan Semiconductor FM17522 clone
-					(version == 0x90) || // version 0.0
-					(version == 0x91) || // version 1.0
-					(version == 0x92) || // version 2.0
-					(version == 0xB2) || // some clones may report this
-					(version == 0x12) // some clones may report this
-				);
+				return (IsValidMfrc522Version(version));
 			}
 
 		case RfidReaderType::TYPE_PN5180: // PN5180
