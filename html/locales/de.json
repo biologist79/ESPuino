@@ -84,6 +84,12 @@
 		"rotary": {
 			"title": "Drehimpulsgeber",
 			"reverse": "Drehrichtung umkehren"
+		},
+		"seek": {
+			"title": "Spulen (Drehimpulsgeber)",
+			"enable": "Spulen über Drehimpulsgeber aktivieren",
+			"delay": "Zeitverzug bis zum Sprung (Sek.)",
+			"turns": "Drehimpulsgeber-Umdrehungen pro Titel"
 		}
 	},
 	"wifi": {
@@ -253,7 +259,8 @@
 					"247": "Spiele virtuelle RFID-Karte 07",
 					"248": "Spiele virtuelle RFID-Karte 08",
 					"249": "Spiele virtuelle RFID-Karte 09",
-					"250": "Spiele virtuelle RFID-Karte 10"
+					"250": "Spiele virtuelle RFID-Karte 10",
+					"186": "Spulen (Drehimpulsgeber)"
 				}
 			}
 		}

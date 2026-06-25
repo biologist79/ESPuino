@@ -1245,6 +1245,17 @@
 								<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
 							</fieldset>
 						</div>
+						<div class="col-md-12 mb-4" id="seekPreviewConfig" style="display:none"> <!-- Eigene Änderung für Spulen -->
+							<fieldset> <!-- Eigene Änderung für Spulen -->
+								<legend class="w-auto" data-i18n="settingsex.seek.title"></legend><br> <!-- Eigene Änderung für Spulen -->
+								<label for="seekDelay" data-i18n="settingsex.seek.delay"></label>: <br> <!-- Eigene Änderung für Spulen -->
+								<input id="seekDelay" data-provide="slider" type="number" data-slider-min="0" data-slider-max="3"
+									data-slider-step="0.5" class="form-control" name="seekDelay" data-slider-value="2" value="2"><br> <!-- Eigene Änderung für Spulen -->
+								<label for="seekTurns" data-i18n="settingsex.seek.turns"></label>: <br> <!-- Eigene Änderung für Spulen -->
+								<input id="seekTurns" data-provide="slider" type="number" data-slider-min="1" data-slider-max="5"
+									data-slider-step="1" class="form-control" name="seekTurns" data-slider-value="2" value="2"><br> <!-- Eigene Änderung für Spulen -->
+							</fieldset> <!-- Eigene Änderung für Spulen -->
+						</div> <!-- Eigene Änderung für Spulen -->
 						<div class="col-md-12 mb-4" id="settingsExConfig">
 							<fieldset>
 								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
@@ -2587,6 +2598,13 @@
 				document.getElementById("rotaryConfig").style.display = null;
 				$('#rotaryReverse').prop('checked', rotarySettings.reverse);
 			}
+			// seek preview (spooling) via rotary encoder
+			let seekSettings = settings.seek;
+			if (seekSettings) {
+				document.getElementById("seekPreviewConfig").style.display = null;
+				$('#seekDelay').bootstrapSlider('setValue', seekSettings.delay);
+				$('#seekTurns').bootstrapSlider('setValue', seekSettings.turns);
+			}
 			// buttons
 			let buttonSettings = settings.buttons;
 			if (buttonSettings) {
@@ -2993,6 +3011,10 @@
 				},
 				"rotary": {
 					reverse: $('#rotaryReverse').prop('checked')
+				},
+				"seek": {
+					delay: Number($('#seekDelay').val()),
+					turns: Number($('#seekTurns').val())
 				}
 			};
 			// fill LED control colors
@@ -3667,7 +3689,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 186, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
 				if ([140, 141, 142].includes(cmd)) {
@@ -3679,9 +3701,16 @@
 			/* fill settingsex button commands */
 			document.querySelectorAll('[id*=cmdselect_]').forEach(e => replaceCommandSelect(e, cmdElem));
 
+			/* hide long-only commands (e.g. seek preview) in short-press selectors */
+			document.querySelectorAll('[id*=cmdselect_short_]').forEach(select => {
+				select.querySelectorAll('option[value="186"]').forEach(option => {
+					option.style.display = 'none';
+				});
+			});
+
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 186, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
 				const opt = addOption(modElem, mod);
 				if ([140, 141, 142].includes(mod)) {

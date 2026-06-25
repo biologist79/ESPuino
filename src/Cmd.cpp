@@ -378,6 +378,15 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_SEEK_PREVIEW: {
+			if (AudioPlayer_SeekPreviewIsActive()) {
+				AudioPlayer_SeekPreviewExit();
+			} else {
+				AudioPlayer_SeekPreviewEnter();
+			}
+			break;
+		}
+
 		case CMD_STOP: {
 			AudioPlayer_SetTrackControl(STOP);
 			break;

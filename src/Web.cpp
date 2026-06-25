@@ -816,6 +816,29 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		}
 		RotaryEncoder_Init();
 	}
+	if (doc["seek"].is<JsonObject>()) {
+		JsonObject seekObj = doc["seek"];
+		float delaySec = seekObj["delay"].as<float>();
+		uint8_t turns = seekObj["turns"].as<uint8_t>();
+		if (delaySec < 0.0f) {
+			delaySec = 0.0f;
+		}
+		if (delaySec > 3.0f) {
+			delaySec = 3.0f;
+		}
+		if (turns < 1) {
+			turns = 1;
+		}
+		if (turns > 5) {
+			turns = 5;
+		}
+		bool success = (gPrefsSettings.putFloat("seekDelay", delaySec) != 0);
+		success = success && (gPrefsSettings.putUChar("seekTurns", turns) != 0);
+		if (!success) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "seek");
+			return WebsocketCodeType::Error;
+		}
+	}
 	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
 		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
@@ -1135,6 +1158,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// Rotary encoder
 		JsonObject rotaryObj = obj["rotary"].to<JsonObject>();
 		rotaryObj["reverse"].set(gPrefsSettings.getBool("rotaryReverse", false));
+	}
+	if ((section == "") || (section == "seek")) {
+		JsonObject seekObj = obj["seek"].to<JsonObject>();
+		seekObj["delay"].set(gPrefsSettings.getFloat("seekDelay", 2.0f));
+		seekObj["turns"].set(gPrefsSettings.getUChar("seekTurns", 2));
 	}
 	// playlist
 	if ((section == "") || (section == "playlist")) {

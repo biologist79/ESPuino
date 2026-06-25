@@ -55,14 +55,17 @@ void RotaryEncoder_Cyclic(void) {
 	// Only if initial run or value has changed. And only after "full step" of rotary encoder
 	if ((encoderValue != 0) && (encoderValue % 2 == 0)) {
 		System_UpdateActivityTimer(); // Set inactivity back if rotary encoder was used
-		// just reset the encoder here, so we get a new delta next time
+		const int32_t deltaImpulses = (encoderValue / 2);
 		encoder.clearCount();
-
+		if (AudioPlayer_SeekPreviewIsActive()) {
+			AudioPlayer_SeekPreviewAdjustByImpulses(deltaImpulses);
+			return;
+		}
 		if ((OPMODE_NORMAL == System_GetOperationMode()) || (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode())) {
-			auto newVol = AudioPlayer_GetCurrentVolume() + (encoderValue / 2);
+			auto newVol = AudioPlayer_GetCurrentVolume() + deltaImpulses;
 			AudioPlayer_SetVolume(newVol);
 		} else {
-			auto newVol = Bluetooth_GetCurrentVolume() + (encoderValue / 2);
+			auto newVol = Bluetooth_GetCurrentVolume() + deltaImpulses;
 			Bluetooth_SetVolume(newVol);
 		}
 		return;

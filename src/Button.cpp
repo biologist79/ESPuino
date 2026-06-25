@@ -3,6 +3,7 @@
 
 #include "Button.h"
 
+#include "AudioPlayer.h"
 #include "Cmd.h"
 #include "Log.h"
 #include "Port.h"
@@ -50,6 +51,9 @@ bool gButtonInitComplete = false;
 EXT_RAM_BSS_ATTR t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number of shutdown-button
 uint16_t gLongPressTime = 0;
+
+// Long-press seek preview (spooling) bookkeeping per button
+static bool s_seekPreviewTriggered[7] = {false, false, false, false, false, false, false};
 
 #ifdef PORT_EXPANDER_ENABLE
 extern bool Port_AllowReadFromPortExpander;
@@ -242,13 +246,43 @@ static const struct {
 
 // Check for multi-button combinations and execute corresponding action
 static bool Button_HandleMultiButtonPress(void) {
+	static bool s_multiSeekActive = false;
+	static uint8_t s_multiSeekBtn1 = 0xFF;
+	static uint8_t s_multiSeekBtn2 = 0xFF;
+	auto physPressed = [](uint8_t idx) -> bool {
+		return !gButtons[idx].currentState;
+	};
+	if (s_multiSeekActive) {
+		if (!(physPressed(s_multiSeekBtn1) && physPressed(s_multiSeekBtn2))) {
+			AudioPlayer_SeekPreviewExit();
+			s_multiSeekActive = false;
+			s_multiSeekBtn1 = 0xFF;
+			s_multiSeekBtn2 = 0xFF;
+		}
+		return true;
+	}
 	for (const auto &combo : multiButtonCombos) {
-		if (gButtons[combo.btn1].isPressed && gButtons[combo.btn2].isPressed) {
-			gButtons[combo.btn1].isPressed = false;
-			gButtons[combo.btn2].isPressed = false;
-			Cmd_Action(gPrefsSettings.getUChar(combo.prefsKey, combo.defaultCmd));
+		const bool bothPressed = physPressed(combo.btn1) && physPressed(combo.btn2);
+		const bool justPressed = gButtons[combo.btn1].isPressed || gButtons[combo.btn2].isPressed;
+		if (!bothPressed || !justPressed) {
+			continue;
+		}
+		uint8_t const cmd = gPrefsSettings.getUChar(combo.prefsKey, combo.defaultCmd);
+		if (cmd == CMD_SEEK_PREVIEW) {
+			AudioPlayer_SeekPreviewEnter();
+			s_multiSeekActive = AudioPlayer_SeekPreviewIsActive();
+			if (s_multiSeekActive) {
+				s_multiSeekBtn1 = combo.btn1;
+				s_multiSeekBtn2 = combo.btn2;
+				gButtons[combo.btn1].isPressed = false;
+				gButtons[combo.btn2].isPressed = false;
+			}
 			return true;
 		}
+		gButtons[combo.btn1].isPressed = false;
+		gButtons[combo.btn2].isPressed = false;
+		Cmd_Action(cmd);
+		return true;
 	}
 	return false;
 }
@@ -282,12 +316,27 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 
 		if (wasShortPress) {
 			Cmd_Action(Cmd_Short);
-		} else if (Cmd_Long == CMD_SLEEPMODE) {
-			// Sleep-mode only triggers on release to prevent immediate wake-up
-			Cmd_Action(Cmd_Long);
+		} else {
+			if (Cmd_Long == CMD_SLEEPMODE) {
+				Cmd_Action(Cmd_Long);
+			} else if (Cmd_Long == CMD_SEEK_PREVIEW) {
+				AudioPlayer_SeekPreviewExit();
+				s_seekPreviewTriggered[i] = false;
+			}
 		}
-
 		gButtons[i].isPressed = false;
+		return;
+	}
+
+	// Seek preview (spooling): enter after long-press threshold and stay active while button is held
+	if (Cmd_Long == CMD_SEEK_PREVIEW) {
+		if (pressDuration <= intervalToLongPress) {
+			return;
+		}
+		if (!s_seekPreviewTriggered[i]) {
+			AudioPlayer_SeekPreviewEnter();
+			s_seekPreviewTriggered[i] = true;
+		}
 		return;
 	}
 

@@ -84,6 +84,12 @@
 		"rotary": {
 			"title": "Codeur rotatif",
 			"reverse": "Inversion du sens de rotation"
+		},
+		"seek": {
+			"title": "Avance/retour (encodeur)",
+			"enable": "Activer l’avance/retour via l’encodeur",
+			"delay": "Délai avant le saut (s)",
+			"turns": "Tours d’encodeur par piste"
 		}
 	},
 	"wifi": {
@@ -253,7 +259,8 @@
 					"247": "Lire la carte RFID virtuelle 07",
 					"248": "Lire la carte RFID virtuelle 08",
 					"249": "Lire la carte RFID virtuelle 09",
-					"250": "Lire la carte RFID virtuelle 10"
+					"250": "Lire la carte RFID virtuelle 10",
+					"186": "Avance/retour (encodeur)"
 				}
 			}
 		}

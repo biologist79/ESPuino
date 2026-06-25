@@ -24,12 +24,124 @@
 #include "main.h"
 #include "strnatcmp.h"
 
+#include <algorithm>
+#include <cmath>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 #include <random>
 
 // Allocate gPlayProperties in PSRAM if available
 EXT_RAM_BSS_ATTR playProps gPlayProperties;
+
+// ---------------------------------------------------------------------
+// Seek preview (spooling) mode
+// ---------------------------------------------------------------------
+// Requirements:
+// - only for local music files (no webstream)
+// - enter via long-press on configurable button (handled in Button.cpp)
+// - while active: rotary encoder selects a target position
+// - if no rotary movement for configured delay: jump to target position
+// - scaling: configurable turns from start to end
+//
+// Note: rotary encoder driver reports steps as "impulses" (see RotaryEncoder.cpp: encoderValue / 2).
+static bool s_seekPreviewActive = false;
+static double s_seekPreviewTargetRelPos = 0.0; // 0..100
+static uint32_t s_seekPreviewLastInputMs = 0;
+static bool s_seekPreviewPendingJump = false;
+
+static constexpr int32_t SEEKPREVIEW_IMPULSES_PER_TURN = 20;
+
+// Config from NVS (advanced settings, web UI)
+// - delay: 0..3 s in 0.5 s steps (stored as float seconds)
+// - turns: 1..5 turns for full range (start..end)
+static inline uint32_t SeekPreview_GetJumpDelayMs(void) {
+	float s = gPrefsSettings.getFloat("seekDelay", 2.0f);
+	if (s < 0.0f) {
+		s = 0.0f;
+	}
+	if (s > 3.0f) {
+		s = 3.0f;
+	}
+	const int32_t halfSeconds = (int32_t) lroundf(s * 2.0f);
+	return (uint32_t) halfSeconds * 500u;
+}
+
+static inline int32_t SeekPreview_GetTotalImpulses(void) {
+	uint8_t turns = gPrefsSettings.getUChar("seekTurns", 2);
+	if (turns < 1) {
+		turns = 1;
+	}
+	if (turns > 5) {
+		turns = 5;
+	}
+	return (int32_t) SEEKPREVIEW_IMPULSES_PER_TURN * (int32_t) turns;
+}
+
+bool AudioPlayer_SeekPreviewIsActive(void) {
+	return s_seekPreviewActive;
+}
+
+double AudioPlayer_SeekPreviewGetTargetRelPos(void) {
+	return s_seekPreviewTargetRelPos;
+}
+
+void AudioPlayer_SeekPreviewEnter(void) {
+	if (gPlayProperties.playMode == NO_PLAYLIST || gPlayProperties.playMode == BUSY) {
+		System_IndicateError();
+		return;
+	}
+	if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) {
+		System_IndicateError();
+		return;
+	}
+	if (gPlayProperties.isWebstream || gPlayProperties.audioFileDuration == 0 || gPlayProperties.playlistFinished) {
+		System_IndicateError();
+		return;
+	}
+	s_seekPreviewActive = true;
+	s_seekPreviewTargetRelPos = std::clamp<double>(gPlayProperties.currentRelPos, 0.0, 100.0);
+	s_seekPreviewLastInputMs = millis();
+	s_seekPreviewPendingJump = false;
+}
+
+void AudioPlayer_SeekPreviewExit(void) {
+	s_seekPreviewActive = false;
+	s_seekPreviewPendingJump = false;
+}
+
+void AudioPlayer_SeekPreviewAdjustByImpulses(int32_t deltaImpulses) {
+	if (!s_seekPreviewActive) {
+		return;
+	}
+	if (gPlayProperties.isWebstream || gPlayProperties.audioFileDuration == 0) {
+		return;
+	}
+	const int32_t totalImpulses = SeekPreview_GetTotalImpulses();
+	if (totalImpulses <= 0) {
+		return;
+	}
+	const double percentPerImpulse = 100.0 / (double) totalImpulses;
+	s_seekPreviewTargetRelPos = std::clamp<double>(s_seekPreviewTargetRelPos + (double) deltaImpulses * percentPerImpulse, 0.0, 100.0);
+	s_seekPreviewLastInputMs = millis();
+	s_seekPreviewPendingJump = true;
+}
+
+static void AudioPlayer_SeekPreviewProcess(void) {
+	if (!s_seekPreviewActive || !s_seekPreviewPendingJump) {
+		return;
+	}
+	if (gPlayProperties.isWebstream || gPlayProperties.audioFileDuration == 0) {
+		s_seekPreviewPendingJump = false;
+		return;
+	}
+	if (millis() - s_seekPreviewLastInputMs < SeekPreview_GetJumpDelayMs()) {
+		return;
+	}
+	gPlayProperties.currentRelPos = s_seekPreviewTargetRelPos;
+	gPlayProperties.seekmode = SEEK_POS_PERCENT;
+	s_seekPreviewPendingJump = false;
+	s_seekPreviewLastInputMs = millis();
+}
 
 // Playlist
 static playlistSortMode AudioPlayer_PlaylistSortMode = AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT;
@@ -426,6 +538,9 @@ void AudioPlayer_Cyclic(void) {
 		lastPlayingTimestamp = millis();
 		playTimeSecSinceStart += 1;
 	}
+
+	// Seek preview (spooling) delayed jump
+	AudioPlayer_SeekPreviewProcess();
 
 	// Actual loop stuff
 	AudioPlayer_Loop();

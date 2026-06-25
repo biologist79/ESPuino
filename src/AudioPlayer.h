@@ -94,3 +94,10 @@ time_t AudioPlayer_GetPlayTimeAllTime(void);
 uint32_t AudioPlayer_GetCurrentTime(void);
 uint32_t AudioPlayer_GetFileDuration(void);
 String AudioPlayer_GetStationLogoUrl(void);
+
+// Seek preview (spooling) mode: hold configured button + use rotary encoder to pick a new position
+bool AudioPlayer_SeekPreviewIsActive(void);
+double AudioPlayer_SeekPreviewGetTargetRelPos(void); // 0..100
+void AudioPlayer_SeekPreviewEnter(void);
+void AudioPlayer_SeekPreviewExit(void);
+void AudioPlayer_SeekPreviewAdjustByImpulses(int32_t deltaImpulses); // encoder impulses (+/-)

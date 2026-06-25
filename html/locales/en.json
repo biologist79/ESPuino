@@ -84,6 +84,12 @@
 		"rotary": {
 			"title": "Rotary encoder",
 			"reverse": "Reverse direction of rotation"
+		},
+		"seek": {
+			"title": "Seek (rotary encoder)",
+			"enable": "Enable seeking via rotary encoder",
+			"delay": "Delay before jumping (s)",
+			"turns": "Encoder turns per track"
 		}
 	},
 	"wifi": {
@@ -253,7 +259,8 @@
 					"247": "Play virtual RFID-card 07",
 					"248": "Play virtual RFID-card 08",
 					"249": "Play virtual RFID-card 09",
-					"250": "Play virtual RFID-card 10"
+					"250": "Play virtual RFID-card 10",
+					"186": "Seek (rotary encoder)"
 				}
 			}
 		}
