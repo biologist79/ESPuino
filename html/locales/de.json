@@ -87,7 +87,6 @@
 		},
 		"seek": {
 			"title": "Spulen (Drehimpulsgeber)",
-			"enable": "Spulen über Drehimpulsgeber aktivieren",
 			"delay": "Zeitverzug bis zum Sprung (Sek.)",
 			"turns": "Drehimpulsgeber-Umdrehungen pro Titel"
 		}

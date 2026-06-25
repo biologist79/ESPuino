@@ -87,7 +87,6 @@
 		},
 		"seek": {
 			"title": "Seek (rotary encoder)",
-			"enable": "Enable seeking via rotary encoder",
 			"delay": "Delay before jumping (s)",
 			"turns": "Encoder turns per track"
 		}

@@ -87,7 +87,6 @@
 		},
 		"seek": {
 			"title": "Avance/retour (encodeur)",
-			"enable": "Activer l’avance/retour via l’encodeur",
 			"delay": "Délai avant le saut (s)",
 			"turns": "Tours d’encodeur par piste"
 		}
