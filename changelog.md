@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 25.06.2026: update some libaries and platform (#411), thanks to @Joe91
 * 19.06.2026: Feature: ResumeOnSameRFID (#398), thanks to @joker-mik
 * 07.06.2026: Memory and stability improvements and more (#407), thanks to @Joe91
 * 25.05.2026: Fix broken BT, FTP, support special chars in filesystem (#405), thanks to @Joe91
