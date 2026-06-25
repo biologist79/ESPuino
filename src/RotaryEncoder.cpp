@@ -56,6 +56,7 @@ void RotaryEncoder_Cyclic(void) {
 	if ((encoderValue != 0) && (encoderValue % 2 == 0)) {
 		System_UpdateActivityTimer(); // Set inactivity back if rotary encoder was used
 		const int32_t deltaImpulses = (encoderValue / 2);
+		// just reset the encoder here, so we get a new delta next time
 		encoder.clearCount();
 		if (AudioPlayer_SeekPreviewIsActive()) {
 			AudioPlayer_SeekPreviewAdjustByImpulses(deltaImpulses);
