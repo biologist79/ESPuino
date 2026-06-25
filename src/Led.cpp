@@ -1046,7 +1046,7 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			if (seekPreviewActive) {
 				leds[0] = CRGB::Yellow;
 			} else {
-			leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+				leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
 			}
 		} else {
 			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
@@ -1059,7 +1059,7 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 					if (seekPreviewActive) {
 						leds[Led_Address(led)] = CRGB::Yellow;
 					} else {
-					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
+						leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
 					}
 				}
 			}
@@ -1070,7 +1070,7 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 					if (seekPreviewActive) {
 						leds[Led_Address(fullLeds)] = CRGB::Yellow;
 					} else {
-					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
+						leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
 					}
 				}
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
