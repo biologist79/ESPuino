@@ -339,7 +339,10 @@ void handleWifiStateConnectLast() {
 		return;
 	}
 
-	if (connectStartTimestamp > 0 && millis() - connectStartTimestamp < 3000) {
+	// Allow enough time for association AND DHCP: on VLAN'd/mesh networks
+	// (e.g. UniFi IoT SSIDs) the lease can take well over 5s to arrive, and
+	// tearing the connection down before it lands means never getting an IP.
+	if (connectStartTimestamp > 0 && millis() - connectStartTimestamp < 15000) {
 		return;
 	}
 
@@ -403,7 +406,9 @@ void handleWifiStateScanConnect() {
 			Log_Printf(LOGLEVEL_NOTICE, wifiScanResult, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i), WiFi.BSSIDstr(i).c_str());
 		}
 	} else {
-		if (millis() - connectStartTimestamp < 5000) {
+		// 15s, not 5s: association + DHCP on VLAN'd/mesh networks (UniFi IoT
+		// SSIDs etc.) regularly needs >5s; see matching window above.
+		if (millis() - connectStartTimestamp < 15000) {
 			return;
 		}
 	}
