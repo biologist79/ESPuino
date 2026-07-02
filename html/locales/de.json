@@ -151,6 +151,12 @@
 			"copy": "Adresse kopieren",
 			"copied": "Adresse kopiert!",
 			"copyFailed": "Kopieren nicht möglich - bitte Adresse oben manuell markieren und kopieren."
+		},
+		"fail": {
+			"wrong_password": "Verbindung mit \"{{ssid}}\" fehlgeschlagen — vermutlich ist das Passwort falsch (Code {{code}}). Bitte prüfen und erneut eingeben.",
+			"not_found": "Das Netzwerk \"{{ssid}}\" wurde nicht gefunden (Code {{code}}). Ist es in Reichweite und auf 2,4 GHz?",
+			"rejected": "Der Router hat die Verbindung mit \"{{ssid}}\" abgelehnt (Code {{code}}). MAC-Filter, Client-Limits oder Sicherheitseinstellungen prüfen (WPA2 erforderlich).",
+			"other": "Verbindung mit \"{{ssid}}\" fehlgeschlagen (Code {{code}})."
 		}
 	},
 	"control": {

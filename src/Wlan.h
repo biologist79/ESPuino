@@ -131,3 +131,5 @@ void Wlan_ToggleEnable(void);
 String Wlan_GetIpAddress(void);
 int8_t Wlan_GetRssi(void);
 bool Wlan_ConnectionTryInProgress(void);
+const char *Wlan_GetConnectState(void);
+bool Wlan_GetLastFailure(String &ssid, uint8_t &reason);
