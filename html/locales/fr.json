@@ -173,7 +173,12 @@
 			"wrong_password": "Impossible de rejoindre « {{ssid}} » — le mot de passe est probablement incorrect (code {{code}}). Veuillez le vérifier et réessayer.",
 			"not_found": "Le réseau « {{ssid}} » est introuvable (code {{code}}). Est-il à portée et en 2,4 GHz ?",
 			"rejected": "Le routeur a refusé la connexion à « {{ssid}} » (code {{code}}). Vérifiez les filtres MAC, les limites de clients ou les paramètres de sécurité (WPA2 requis).",
-			"other": "Échec de la connexion à « {{ssid}} » (code {{code}})."
+			"other": "Échec de la connexion à « {{ssid}} » (code {{code}}).",
+			"timeout": "Connecté à « {{ssid}} », mais aucune adresse IP reçue (code {{code}}). Vérifiez les paramètres DHCP du routeur."
+		},
+		"test": {
+			"connecting": "Connexion à « {{ssid}} » …",
+			"success": "Connecté ! La box a reçu l'adresse IP {{ip}} et quitte maintenant le mode configuration. Reconnectez votre téléphone à votre WiFi habituel et accédez à la box via http://{{ip}}"
 		}
 	},
 	"control": {

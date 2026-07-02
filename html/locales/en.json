@@ -173,7 +173,12 @@
 			"wrong_password": "Could not join \"{{ssid}}\" — the password is probably wrong (code {{code}}). Please check it and try again.",
 			"not_found": "Network \"{{ssid}}\" was not found (code {{code}}). Is it in range and on 2.4 GHz?",
 			"rejected": "The router refused the connection to \"{{ssid}}\" (code {{code}}). Check MAC filters, client limits or security settings (WPA2 required).",
-			"other": "Connecting to \"{{ssid}}\" failed (code {{code}})."
+			"other": "Connecting to \"{{ssid}}\" failed (code {{code}}).",
+			"timeout": "Joined \"{{ssid}}\", but no IP address was received (code {{code}}). Check the router's DHCP settings."
+		},
+		"test": {
+			"connecting": "Trying to connect to \"{{ssid}}\" …",
+			"success": "Connected! The box got IP {{ip}}. It will now leave setup mode — reconnect your phone to your normal WiFi and reach the box at http://{{ip}}"
 		}
 	},
 	"control": {
