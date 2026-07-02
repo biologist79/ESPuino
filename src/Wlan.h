@@ -133,3 +133,7 @@ int8_t Wlan_GetRssi(void);
 bool Wlan_ConnectionTryInProgress(void);
 const char *Wlan_GetConnectState(void);
 bool Wlan_GetLastFailure(String &ssid, uint8_t &reason);
+bool Wlan_StartConnectionTest(const String &ssid);
+const char *Wlan_GetTestPhase(void);
+uint8_t Wlan_GetTestReason(void);
+const String Wlan_GetTestSsid(void);

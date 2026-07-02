@@ -63,6 +63,27 @@ static String lastAttemptSsid;
 static constexpr const char *nvsFailSsidKey = "wifiFailSsid";
 static constexpr const char *nvsFailReasonKey = "wifiFailReason";
 
+// Live connection test, runnable while the setup AP stays up (WIFI_AP_STA):
+// the accesspoint page saves credentials, POSTs /wifitest and then polls
+// /wifistatus — so the user gets immediate feedback (wrong password, no IP,
+// success + IP) instead of the old save → reboot → hope flow.
+enum class WifiTestPhase : uint8_t {
+	Idle = 0,
+	Pending, // requested by the web handler, not yet started
+	Connecting,
+	Success,
+	Failed
+};
+static volatile WifiTestPhase testPhase = WifiTestPhase::Idle;
+static WiFiSettings testSettings;
+static uint8_t testFailReason = 0;
+static uint32_t testStartTimestamp = 0;
+static uint32_t testSuccessTimestamp = 0;
+// how long a test attempt may take before it is declared failed (assoc + DHCP)
+static constexpr uint32_t testTimeout = 25000;
+// how long the result stays visible on the AP before switching to normal mode
+static constexpr uint32_t testSuccessLinger = 15000;
+
 // state for persistent settings
 static constexpr const char *nvsWiFiNamespace = "wifi-settings";
 static constexpr const char *nvsWiFiKey = "wifi-";
@@ -627,6 +648,57 @@ void handleWifiStateAP() {
 		return;
 	}
 
+	switch (testPhase) {
+		case WifiTestPhase::Pending:
+			// bring the station interface up next to the AP and try the
+			// credentials. The AP may hop to the target network's channel,
+			// briefly interrupting the portal client — the page just keeps
+			// polling.
+			wifiAPStartedTimestamp = millis(); // user is mid-setup: keep AP alive
+			WiFi.mode(WIFI_AP_STA);
+			connectToKnownNetwork(testSettings);
+			testStartTimestamp = millis();
+			testPhase = WifiTestPhase::Connecting;
+			break;
+		case WifiTestPhase::Connecting:
+			wifiAPStartedTimestamp = millis();
+			if (WiFi.status() == WL_CONNECTED) {
+				testSuccessTimestamp = millis();
+				testPhase = WifiTestPhase::Success;
+				// the credentials work — drop any stale failure diagnostics
+				if (gPrefsSettings.isKey(nvsFailReasonKey)) {
+					gPrefsSettings.remove(nvsFailReasonKey);
+					gPrefsSettings.remove(nvsFailSsidKey);
+				}
+				Log_Printf(LOGLEVEL_NOTICE, "WiFi-test: connected to %s, IP: %s", testSettings.ssid.c_str(), WiFi.localIP().toString().c_str());
+			} else if (millis() - testStartTimestamp > testTimeout) {
+				// reason stays 0 when association worked but no IP arrived
+				testFailReason = lastDisconnectReason;
+				testPhase = WifiTestPhase::Failed;
+				gPrefsSettings.putString(nvsFailSsidKey, testSettings.ssid);
+				gPrefsSettings.putUChar(nvsFailReasonKey, testFailReason);
+				Log_Printf(LOGLEVEL_ERROR, "WiFi-test: failed for %s (reason %u)", testSettings.ssid.c_str(), testFailReason);
+				WiFi.disconnect(true, true);
+				WiFi.mode(WIFI_AP);
+			}
+			break;
+		case WifiTestPhase::Success:
+			wifiAPStartedTimestamp = millis();
+			// leave the result on screen for a moment, then close the AP and
+			// continue as a normally connected station
+			if (millis() - testSuccessTimestamp > testSuccessLinger) {
+				testPhase = WifiTestPhase::Idle;
+				WiFi.softAPdisconnect(false);
+				WiFi.mode(WIFI_STA);
+				wifiState = WIFI_STATE_CONN_SUCCESS;
+				return;
+			}
+			break;
+		default:
+			// Idle: nothing to do; Failed: wait for the user to retry
+			break;
+	}
+
 	dnsServer->processNextRequest();
 }
 
@@ -819,6 +891,48 @@ const char *Wlan_GetConnectState(void) {
 		default:
 			return "connecting";
 	}
+}
+
+// Start a live connection test for a saved network while the setup AP is up.
+// Returns false when not in AP mode, a test is already running, or the SSID
+// has no saved settings.
+bool Wlan_StartConnectionTest(const String &ssid) {
+	if (wifiState != WIFI_STATE_AP) {
+		return false;
+	}
+	if (testPhase == WifiTestPhase::Pending || testPhase == WifiTestPhase::Connecting) {
+		return false;
+	}
+	const auto entry = getNvsWifiSettings(ssid);
+	if (!entry) {
+		return false;
+	}
+	testSettings = entry->value;
+	testFailReason = 0;
+	testPhase = WifiTestPhase::Pending; // picked up by handleWifiStateAP()
+	return true;
+}
+
+const char *Wlan_GetTestPhase(void) {
+	switch (testPhase) {
+		case WifiTestPhase::Pending:
+		case WifiTestPhase::Connecting:
+			return "connecting";
+		case WifiTestPhase::Success:
+			return "success";
+		case WifiTestPhase::Failed:
+			return "failed";
+		default:
+			return "idle";
+	}
+}
+
+uint8_t Wlan_GetTestReason(void) {
+	return testFailReason;
+}
+
+const String Wlan_GetTestSsid(void) {
+	return testSettings.ssid;
 }
 
 // Diagnostics of the last failed connection attempt (cleared on success)

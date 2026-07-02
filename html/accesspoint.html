@@ -91,6 +91,7 @@
 		</div>
 		<h1 data-i18n="wifi.title"></h1>
 		<div id="connstatus" style="display:none;background:#f8d7da;color:#721c24;border-radius:4px;padding:10px;margin:10px 0;text-align:left"></div>
+		<div id="teststatus" style="display:none;border-radius:4px;padding:10px;margin:10px 0;text-align:left"></div>
 		<div id="WiFiList"></div>
 		<label for="ssid" data-i18n="wifi.ssid.title"></label>: <br>
 		<input type="text" id="ssid" name="ssid" placeholder="SSID" required>
@@ -227,10 +228,48 @@
 			let new_style = this.checked ? null : "none";
 			document.getElementById("wifi_static_div").style.display = new_style;
 		};
+		// live connection test: kicked off after saving, result shown in-page
+		const testStatusColors = {
+			progress: ["#cce5ff", "#004085"],
+			success: ["#d4edda", "#155724"],
+			failed: ["#f8d7da", "#721c24"]
+		};
+		let lastTestState = null;
+		function showTestStatus(kind, text) {
+			lastTestState = { kind: kind, text: text };
+			const box = document.getElementById("teststatus");
+			box.style.background = testStatusColors[kind][0];
+			box.style.color = testStatusColors[kind][1];
+			box.innerText = text;
+			box.style.display = "block";
+		}
+		async function pollTestStatus() {
+			try {
+				const data = await (await fetch("/wifistatus")).json();
+				if (data.test) {
+					const t = data.test;
+					if (t.phase === "success") {
+						showTestStatus("success", i18next.t("wifi.test.success", { ssid: t.ssid, ip: t.ip }));
+						return;
+					}
+					if (t.phase === "failed") {
+						const cls = ["wrong_password", "not_found", "rejected", "timeout"].includes(t.class) ? t.class : "other";
+						showTestStatus("failed", i18next.t("wifi.fail." + cls, { ssid: t.ssid, code: t.reason }));
+						return;
+					}
+					showTestStatus("progress", i18next.t("wifi.test.connecting", { ssid: t.ssid }));
+				}
+			} catch (error) {
+				// expected while the AP hops to the target network's channel
+				console.log(error);
+			}
+			setTimeout(pollTestStatus, 1500);
+		}
 		async function wifiConfig() {
 			let static = document.getElementById('static_enabled').checked;
+			const ssid = document.getElementById('ssid').value;
 			var myObj = {
-				ssid: document.getElementById('ssid').value,
+				ssid: ssid,
 				pwd: document.getElementById('pwd').value,
 				static: static
 			};
@@ -262,6 +301,21 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			// try the credentials right away, while the AP stays up
+			document.getElementById("connstatus").style.display = "none";
+			const response = await fetch("/wifitest", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ ssid: ssid })
+			});
+			if (response.ok) {
+				showTestStatus("progress", i18next.t("wifi.test.connecting", { ssid: ssid }));
+				setTimeout(pollTestStatus, 1000);
+			} else {
+				showTestStatus("failed", i18next.t("wifi.fail.other", { ssid: ssid, code: 0 }));
+			}
 		}
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
