@@ -168,6 +168,12 @@
 			"copy": "Copy address",
 			"copied": "Address copied!",
 			"copyFailed": "Could not copy - please select and copy the address above manually."
+		},
+		"fail": {
+			"wrong_password": "Could not join \"{{ssid}}\" — the password is probably wrong (code {{code}}). Please check it and try again.",
+			"not_found": "Network \"{{ssid}}\" was not found (code {{code}}). Is it in range and on 2.4 GHz?",
+			"rejected": "The router refused the connection to \"{{ssid}}\" (code {{code}}). Check MAC filters, client limits or security settings (WPA2 required).",
+			"other": "Connecting to \"{{ssid}}\" failed (code {{code}})."
 		}
 	},
 	"control": {

@@ -90,6 +90,7 @@
 			</select>
 		</div>
 		<h1 data-i18n="wifi.title"></h1>
+		<div id="connstatus" style="display:none;background:#f8d7da;color:#721c24;border-radius:4px;padding:10px;margin:10px 0;text-align:left"></div>
 		<div id="WiFiList"></div>
 		<label for="ssid" data-i18n="wifi.ssid.title"></label>: <br>
 		<input type="text" id="ssid" name="ssid" placeholder="SSID" required>
@@ -165,6 +166,9 @@
 			if (typeof localize === "function") {
 				localize('body');
 			}
+			// the failure banner is built with i18next.t(), so it has to be
+			// re-rendered whenever the language changes
+			renderWifiStatus();
 		});
 		document.querySelector('#langSel').addEventListener('change', (event) => {
 			const lang = event.target.value;
@@ -174,6 +178,26 @@
 			}
 		});
 
+		let wifiStatusData = null;
+		function renderWifiStatus() {
+			const box = document.getElementById("connstatus");
+			const failure = wifiStatusData && wifiStatusData.last_failure;
+			if (!failure || !i18next.isInitialized) {
+				box.style.display = "none";
+				return;
+			}
+			const cls = ["wrong_password", "not_found", "rejected"].includes(failure.class) ? failure.class : "other";
+			box.innerText = i18next.t("wifi.fail." + cls, { ssid: failure.ssid, code: failure.reason });
+			box.style.display = "block";
+		}
+		async function getWifiStatus() {
+			try {
+				wifiStatusData = await (await fetch("/wifistatus")).json();
+				renderWifiStatus();
+			} catch (error) {
+				console.log(error);
+			}
+		}
 		function selectWiFi(ssid) {
 			document.getElementById("ssid").value = ssid;
 			document.getElementById("pwd").focus();
@@ -245,6 +269,7 @@
 			getWiFiList();
 			updateWifiFields();
 			setupFullInterfaceLink();
+			getWifiStatus();
 		});
 
 		// Show the full management interface's URL and offer a "copy to clipboard" button. Uses the
