@@ -82,6 +82,13 @@
 
 <body>
 	<form id="settings" action="#wifiConfig" class="box" method="POST" onsubmit="wifiConfig(); return false">
+		<div style="text-align:right">
+			<select id="langSel" style="width:auto;height:28px;margin:0;padding:0 5px;font-size:13px">
+				<option value="de">Deutsch</option>
+				<option value="en">English</option>
+				<option value="fr">Français</option>
+			</select>
+		</div>
 		<h1 data-i18n="wifi.title"></h1>
 		<div id="WiFiList"></div>
 		<label for="ssid" data-i18n="wifi.ssid.title"></label>: <br>
@@ -142,10 +149,29 @@
 				loadPath: "/locales/{{lng}}.json"
 			},
 			debug: true,
-			fallbackLng: 'de',
+			load: 'languageOnly',
+			fallbackLng: 'en',
 		}, (err, t) => {
 			localize = locI18next.init(i18next);
-			localize('body');
+			// same language resolution as management.html: explicit choice from
+			// localStorage first, browser language otherwise
+			const lang = localStorage.getItem("language");
+			i18next.changeLanguage(lang !== null ? lang : navigator.language.split("-")[0]);
+		});
+		i18next.on('languageChanged', (lng) => {
+			document.querySelector('#langSel').value = lng;
+			document.documentElement.lang = lng;
+			document.title = i18next.t('wifi.title');
+			if (typeof localize === "function") {
+				localize('body');
+			}
+		});
+		document.querySelector('#langSel').addEventListener('change', (event) => {
+			const lang = event.target.value;
+			if (lang !== i18next.language) {
+				localStorage.setItem("language", lang);
+				i18next.changeLanguage(lang);
+			}
 		});
 
 		function selectWiFi(ssid) {
