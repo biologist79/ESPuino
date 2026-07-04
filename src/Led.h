@@ -62,7 +62,13 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
-	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	// FastLED's clockless-SPI WS2812 driver claims the FSPI host, which on
+	// ESP32-S3 collides with the SD-card SPI bus -> ESP_ERR_TIMEOUT in
+	// strip_spi.cpp waitDone and a boot loop. The S3 has RMT5 (needs no SPI
+	// host), so let it use that; classic ESP32 keeps the long-standing SPI path.
+	#if !defined(CONFIG_IDF_TARGET_ESP32S3)
+		#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	#endif
 
 	#include <FastLED.h>
 
