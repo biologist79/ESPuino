@@ -45,6 +45,12 @@ void RotaryEncoder_Init(void) {
 	} else {
 		encoder.attachHalfQuad(ROTARYENCODER_CLK, ROTARYENCODER_DT);
 	}
+	// ESP32Encoder 0.11.6 does not apply the internal pull resistors on the
+	// ESP32-S3 / IDF5 PCNT path, so with the encoder common tied to 3V3 the
+	// channels float HIGH at a detent and never produce clean transitions.
+	// Force the pull-downs explicitly so the open-contact state resolves LOW.
+	pinMode(ROTARYENCODER_CLK, INPUT_PULLDOWN);
+	pinMode(ROTARYENCODER_DT, INPUT_PULLDOWN);
 	encoder.clearCount();
 #endif
 }
