@@ -209,9 +209,10 @@ static LedStrip *ledStrip = nullptr;
 // (Re-)initialize the LED output driver for the given total number of leds
 static void Led_InitStrip(CRGB *leds, uint16_t count) {
 	#ifdef LED_USE_NEOPIXELBUS
-	delete ledStrip; // the dtor releases the RMT channel, so a re-init doesn't leak it
+	delete ledStrip; // the dtor releases the peripheral, so a re-init doesn't leak it
 	ledStrip = new LedStrip(count, LED_PIN);
 	ledStrip->Begin();
+	Log_Printf(LOGLEVEL_NOTICE, "LED: NeoPixelBus strip initialized (%u leds on GPIO %u)", count, LED_PIN);
 	#else
 	FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, count).setCorrection(TypicalSMD5050);
 	#endif
