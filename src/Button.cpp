@@ -10,6 +10,10 @@
 
 #include <atomic>
 
+#ifdef WAKEUP_BUTTON_EXT1_MASK
+	#include <driver/rtc_io.h>
+#endif
+
 bool gButtonInitComplete = false;
 
 // Only enable those buttons that are not disabled (99 or >115)
@@ -65,6 +69,23 @@ void Button_Init() {
 #if (WAKEUP_BUTTON >= 0 && WAKEUP_BUTTON <= MAX_GPIO)
 	if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext0_wakeup((gpio_num_t) WAKEUP_BUTTON, 0)) {
 		Log_Printf(LOGLEVEL_ERROR, wrongWakeUpGpio, WAKEUP_BUTTON);
+	}
+#endif
+
+#ifdef WAKEUP_BUTTON_EXT1_MASK
+	// Multiple wake buttons via ext1 (RTC-capable GPIOs only). The digital
+	// pullups from INPUT_PULLUP power down in deepsleep, so pins without an
+	// external resistor need the RTC pullup and a powered RTC-IO domain or
+	// they float and wake is unreliable.
+	for (int pin = 0; pin <= 21; pin++) {
+		if (WAKEUP_BUTTON_EXT1_MASK & (1ULL << pin)) {
+			rtc_gpio_pullup_en((gpio_num_t) pin);
+			rtc_gpio_pulldown_dis((gpio_num_t) pin);
+		}
+	}
+	esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+	if (ESP_ERR_INVALID_ARG == esp_sleep_enable_ext1_wakeup(WAKEUP_BUTTON_EXT1_MASK, ESP_EXT1_WAKEUP_ANY_LOW)) {
+		Log_Println("ext1 wakeup mask contains a non-RTC GPIO", LOGLEVEL_ERROR);
 	}
 #endif
 
