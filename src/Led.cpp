@@ -152,6 +152,12 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+	if (settings.dimmableStates == 0) {
+		// the progress and volume animations divide by this — a stored 0 (e.g.
+		// saved by a build with NEOPIXEL_ENABLE off) panics with
+		// IntegerDivideByZero as soon as playback starts
+		settings.dimmableStates = DIMMABLE_STATES;
+	}
 
 	// get hue start/end from NVS
 	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
