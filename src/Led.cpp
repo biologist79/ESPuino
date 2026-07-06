@@ -1480,3 +1480,35 @@ void Led_ShowOtaProgress(uint8_t percent) {
 	FastLED.show();
 #endif
 }
+
+// Blink the whole ring red synchronously, for a fatal boot-time error (e.g. SD
+// mount failure) where the async LED task isn't drawing yet. Suspends the LED
+// task so it can't fight for the strip, (re)initializes the strip clean, then
+// blinks red in-place. Caller typically reboots afterwards.
+void Led_ShowError(uint8_t blinks) {
+#ifdef NEOPIXEL_ENABLE
+	if (Led_TaskHandle) {
+		vTaskSuspend(Led_TaskHandle);
+	}
+	#ifdef LED_USE_NEOPIXELBUS
+	delete ledStrip; // drop any (possibly half-initialized) strip, start clean
+	ledStrip = new LedStrip(gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds, LED_PIN);
+	ledStrip->Begin();
+	for (uint8_t i = 0; i < blinks; i++) {
+		ledStrip->ClearTo(RgbColor(40, 0, 0)); // dim red (~16%)
+		ledStrip->Show();
+		delay(250);
+		ledStrip->ClearTo(RgbColor(0, 0, 0));
+		ledStrip->Show();
+		delay(250);
+	}
+	#else
+	for (uint8_t i = 0; i < blinks; i++) {
+		FastLED.showColor(CRGB(40, 0, 0));
+		delay(250);
+		FastLED.showColor(CRGB::Black);
+		delay(250);
+	}
+	#endif
+#endif
+}

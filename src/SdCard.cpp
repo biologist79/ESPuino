@@ -22,12 +22,42 @@ SanitizedFS gFSystem(HARDWARE_FS);
 
 uint8_t maxRecursionDepth;
 
+// --- SD-mount watchdog ---------------------------------------------------
+// A wedged SPI bus (bad/unpowered SD module, shorted MISO) makes SD.begin()
+// block forever, hanging setup() with no output and dark LEDs -- the box just
+// looks dead. This independent task reboots the box (after a red LED flash) if
+// the mount hasn't completed within the timeout. Armed at the top of
+// SdCard_Init, stood down (sdMountDone) once the card mounts. Runs on core 1 so
+// a blocking SD.begin() on the setup core can't starve it.
+static volatile bool sdMountDone = false;
+
+static void SdCard_MountWatchdog(void *param) {
+	const uint32_t timeoutMs = 12000;
+	uint32_t waited = 0;
+	while (waited < timeoutMs) {
+		if (sdMountDone) {
+			vTaskDelete(NULL); // mounted OK -> stand down
+		}
+		vTaskDelay(pdMS_TO_TICKS(100));
+		waited += 100;
+	}
+	Log_Println("SD-mount watchdog: SdCard_Init stalled (blocking bus / bad module?) -> red LED + reboot", LOGLEVEL_ERROR);
+	Led_ShowError(6);
+	ESP.restart();
+}
+
 void SdCard_Init(void) {
 #ifdef NO_SDCARD
 	// Initialize without any SD card, e.g. for webplayer only
 	Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
 	return;
 #endif
+
+	// Arm the mount watchdog before the (potentially blocking) SD.begin() below.
+	// Single mechanism: on timeout it blinks the ring red and reboots, covering
+	// both a card that returns "no mount" and one that wedges the SPI bus.
+	sdMountDone = false;
+	xTaskCreatePinnedToCore(SdCard_MountWatchdog, "sdMountWdt", 3072, NULL, 5, NULL, tskNO_AFFINITY);
 
 #ifndef SINGLE_SPI_ENABLE
 	#ifdef SD_MMC_1BIT_MODE
@@ -58,6 +88,7 @@ void SdCard_Init(void) {
 		}
 #endif
 	}
+	sdMountDone = true; // SD mounted -> stand down the mount watchdog
 
 	// Used when building recursive playlists
 	maxRecursionDepth = gPrefsSettings.getUInt("nvsRecDepth", 255);

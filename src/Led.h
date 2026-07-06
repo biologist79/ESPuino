@@ -108,6 +108,7 @@ void Led_SetBrightness(uint8_t value);
 void Led_TaskPause(void);
 void Led_TaskResume(void);
 void Led_ShowOtaProgress(uint8_t percent);
+void Led_ShowError(uint8_t blinks);
 
 void Led_SetNightmode(bool enabled);
 bool Led_GetNightmode();
