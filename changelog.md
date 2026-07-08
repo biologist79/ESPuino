@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 08.07.2026: Fix DONT_ACCEPT_SAME_RFID_TWICE / PLAY_LAST_RFID_AFTER_REBOOT in combination with WiFi not yet available
 * 25.06.2026: update some libaries and platform (#411), thanks to @Joe91
 * 19.06.2026: Feature: ResumeOnSameRFID (#398), thanks to @joker-mik
 * 07.06.2026: Memory and stability improvements and more (#407), thanks to @Joe91

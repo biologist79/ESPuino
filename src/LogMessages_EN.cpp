@@ -160,6 +160,8 @@ const char batteryLowFromNVS[] = "Restored low battery level from NVS: %.2f %%";
 const char batteryCriticalFromNVS[] = "Restored critical battery level from NVS: %.2f %%";
 const char unableToRestoreLastRfidFromNVS[] = "Unable to restore last RFID from NVS";
 const char restoredLastRfidFromNVS[] = "Restored last RFID from NVS: %s";
+const char retryRfidAfterWifiConnect[] = "WiFi connected - retrying webstream-RFID applied at boot: %s";
+const char retryRfidQueueFull[] = "Unable to retry webstream-RFID after WiFi connect: RFID-queue was full";
 const char fileWritten[] = "File written: %s => %zu bytes in %lu ms (%lu kiB/s)";
 const char writingFile[] = "Writing file: %s";
 const char listingDirectory[] = "Listing directory";

@@ -158,6 +158,8 @@ const char batteryLowFromNVS[] = "Niveau de batterie faible restauré depuis NVS
 const char batteryCriticalFromNVS[] = "Niveau de batterie critique restauré depuis NVS : %.2f %%";
 const char unableToRestoreLastRfidFromNVS[] = "Impossible de restaurer le dernier RFID depuis NVS";
 const char restoredLastRfidFromNVS[] = "Dernier RFID restauré depuis NVS : %s";
+const char retryRfidAfterWifiConnect[] = "Wi-Fi connecté - nouvelle tentative du tag RFID webstream appliqué au démarrage : %s";
+const char retryRfidQueueFull[] = "Impossible de réessayer le tag RFID webstream après la connexion Wi-Fi : la file RFID était pleine";
 const char fileWritten[] = "Fichier écrit : %s => %zu octets en %lu ms (%lu kiB/s)";
 const char writingFile[] = "Écriture du fichier : %s";
 const char listingDirectory[] = "Liste des répertoires";

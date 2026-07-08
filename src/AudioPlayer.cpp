@@ -93,6 +93,25 @@ bool newPlayListAvailable = false;
 
 static bool AudioPlayer_UploadActive = false;
 static bool AudioPlayer_WasPausedBeforeUpload = false; // remember pre-upload pause state
+static bool gResetOldRfidOnIdle = false; // release the "don't accept same rfid twice"-lock on next idle-state
+
+// Remember an RFID-tag whose webstream could not be started because WiFi is not (yet) connected, so it can
+// be re-injected into the RFID-queue once WiFi is up (see handleWifiStateConnectionSuccess() in Wlan.cpp).
+static void AudioPlayer_RememberRfidForWifiRetry(const char *rfidTagId) {
+	strncpy(gRetryRfidTagId, rfidTagId, cardIdStringSize - 1);
+	gRetryRfidTagId[cardIdStringSize - 1] = '\0';
+	gRetryRfidOnWifiConnect = true;
+}
+
+// "Arm" the release of the DONT_ACCEPT_SAME_RFID_TWICE-lock: called by the RFID-handler the moment a new
+// tag is accepted, it records that this playback-attempt happened. The lock is then actually released the
+// next time the player becomes idle (see AudioPlayer_Cyclic()), which re-allows the same tag to be applied
+// again. Arming on acceptance - rather than on playback becoming active - is deliberate: it ensures the
+// release still fires even if the very first track fails immediately (e.g. a webstream applied before WiFi
+// is connected), which would otherwise leave the tag locked forever.
+void AudioPlayer_ArmRfidResetOnIdle(void) {
+	gResetOldRfidOnIdle = true;
+}
 
 static void AudioPlayer_HeadphoneVolumeManager(void);
 static std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_webUrl);
@@ -984,7 +1003,6 @@ void AudioPlayer_Loop() {
 		if (gPlayProperties.playMode == WEBSTREAM || (gPlayProperties.playMode == LOCAL_M3U && gPlayProperties.isWebstream)) { // Webstream
 			audioReturnCode = audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 			gPlayProperties.playlistFinished = false;
-			gTriedToConnectToHost = true;
 		} else if (gPlayProperties.playMode != WEBSTREAM && !gPlayProperties.isWebstream) {
 			// Files from SD
 			if (!gFSystem.exists(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber))) { // Check first if file/folder exists
@@ -1007,6 +1025,11 @@ void AudioPlayer_Loop() {
 
 		if (!audioReturnCode) {
 			System_IndicateError();
+			// If a webstream (e.g. from an m3u-playlist) failed because WiFi is not (yet) connected,
+			// remember the tag and retry it once WiFi is up.
+			if (gPlayProperties.isWebstream && !Wlan_IsConnected()) {
+				AudioPlayer_RememberRfidForWifiRetry(gPlayProperties.playRfidTag);
+			}
 			gPlayProperties.trackFinished = true;
 			return;
 		} else {
@@ -1149,14 +1172,15 @@ void AudioPlayer_Loop() {
 	}
 
 	if (gPlayProperties.dontAcceptRfidTwice) {
-		static uint8_t resetOnNextIdle = false;
+		// Release the lock once playback is idle again, so the same tag can be applied anew. The lock is
+		// armed when a tag is accepted (see Rfid_PreferenceLookupHandler()), independent of whether playback
+		// actually started - otherwise a tag whose first track fails immediately (e.g. a webstream without
+		// WiFi) would stay locked forever and could never be retried.
 		if (gPlayProperties.playlistFinished || gPlayProperties.playMode == NO_PLAYLIST) {
-			if (resetOnNextIdle) {
+			if (gResetOldRfidOnIdle) {
 				Rfid_ResetOldRfid();
-				resetOnNextIdle = false;
+				gResetOldRfidOnIdle = false;
 			}
-		} else {
-			resetOnNextIdle = true;
 		}
 	}
 }
@@ -1399,6 +1423,8 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 			Log_Println(modeWebstream, LOGLEVEL_NOTICE);
 			if (!Wlan_IsConnected()) {
 				Log_Println(webstreamNotAvailable, LOGLEVEL_ERROR);
+				// Remember this tag and retry automatically once WiFi is connected (e.g. webradio-tag applied at boot)
+				AudioPlayer_RememberRfidForWifiRetry(gCurrentRfidTagId);
 				error = true;
 			}
 			break;

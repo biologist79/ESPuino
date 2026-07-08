@@ -158,6 +158,8 @@ extern const char batteryLowFromNVS[];
 extern const char batteryCriticalFromNVS[];
 extern const char unableToRestoreLastRfidFromNVS[];
 extern const char restoredLastRfidFromNVS[];
+extern const char retryRfidAfterWifiConnect[];
+extern const char retryRfidQueueFull[];
 extern const char fileWritten[];
 extern const char writingFile[];
 extern const char listingDirectory[];
