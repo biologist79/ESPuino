@@ -31,8 +31,8 @@
 
 #include <Wire.h>
 
-bool gPlayLastRfIdWhenWiFiConnected = false;
-bool gTriedToConnectToHost = false;
+bool gRetryRfidOnWifiConnect = false;
+char gRetryRfidTagId[cardIdStringSize] = "";
 
 static constexpr const char *logo = R"literal(
  _____   ____    ____            _
@@ -107,7 +107,6 @@ void recoverLastRfidPlayedFromNvs(bool force) {
 			Log_Println(unableToRestoreLastRfidFromNVS, LOGLEVEL_INFO);
 		} else {
 			xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
-			gPlayLastRfIdWhenWiFiConnected = !force;
 			Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());
 		}
 	}

@@ -71,6 +71,10 @@ void AudioPlayer_SetVolume(const int32_t _newVolume);
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
+// Arm the "don't accept same RFID twice"-lock to be released on the next idle-state. Called when a tag is
+// accepted, independent of whether playback actually starts, so a tag whose first track fails immediately
+// (e.g. a webstream without WiFi) does not stay locked forever.
+void AudioPlayer_ArmRfidResetOnIdle(void);
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume);
 
 playlistSortMode AudioPlayer_GetPlaylistSortMode(void);

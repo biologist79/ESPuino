@@ -84,6 +84,9 @@ void Rfid_PreferenceLookupHandler(void) {
 						return;
 					} else {
 						strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+						// Arm the lock-reset now that a new tag was accepted. This must not depend on playback
+						// actually starting, otherwise a tag whose first track fails immediately stays locked forever.
+						AudioPlayer_ArmRfidResetOnIdle();
 					}
 				}
 	#ifdef MQTT_ENABLE

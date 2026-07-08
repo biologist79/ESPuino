@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "MemX.h"
 #include "Mqtt.h"
+#include "Queues.h"
 #include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
@@ -494,16 +495,19 @@ void handleWifiStateConnectionSuccess() {
 	delete dnsServer;
 	dnsServer = nullptr;
 
-	bool playLastRfidAfterReboot;
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", true);
-#else
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", false);
-#endif
-
-	if (playLastRfidAfterReboot && gPlayLastRfIdWhenWiFiConnected && gTriedToConnectToHost) {
-		gPlayLastRfIdWhenWiFiConnected = false;
-		recoverLastRfidPlayedFromNvs(true);
+	// A webstream-tag applied while WiFi was not yet connected (e.g. right after boot, or restored via
+	// PLAY_LAST_RFID_AFTER_REBOOT) could not be started. Now that WiFi is up, re-inject that tag into the
+	// RFID-queue so playback starts. Only do so if nothing else is playing meanwhile - the user may have
+	// applied another tag in the meantime, which must not be overridden.
+	if (gRetryRfidOnWifiConnect) {
+		gRetryRfidOnWifiConnect = false;
+		if (gPlayProperties.playMode == NO_PLAYLIST && strlen(gRetryRfidTagId) > 0) {
+			if (xQueueSend(gRfidCardQueue, gRetryRfidTagId, 0) == pdPASS) {
+				Log_Printf(LOGLEVEL_NOTICE, retryRfidAfterWifiConnect, gRetryRfidTagId);
+			} else {
+				Log_Println(retryRfidQueueFull, LOGLEVEL_ERROR);
+			}
+		}
 	}
 
 	wifiState = WIFI_STATE_CONNECTED;

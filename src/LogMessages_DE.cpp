@@ -159,6 +159,8 @@ const char batteryLowFromNVS[] = "Batterieladestand fuer Niedrig-Warnung via Neo
 const char batteryCriticalFromNVS[] = "Batterieladestand fuer Kritisch-Warnung via Neopixel aus NVS geladen: %.2f %%";
 const char unableToRestoreLastRfidFromNVS[] = "Letzte RFID konnte nicht aus NVS geladen werden";
 const char restoredLastRfidFromNVS[] = "Letzte RFID wurde aus NVS geladen: %s";
+const char retryRfidAfterWifiConnect[] = "WLAN verbunden - beim Start aufgelegte Webstream-RFID wird erneut versucht: %s";
+const char retryRfidQueueFull[] = "Webstream-RFID konnte nach WLAN-Verbindung nicht erneut versucht werden: RFID-Queue war belegt";
 const char fileWritten[] = "Datei geschrieben: %s => %zu bytes in %lu ms (%lu kiB/s)";
 const char writingFile[] = "Schreibe Datei: %s";
 const char listingDirectory[] = "Verzeichnisinhalt anzeigen";
