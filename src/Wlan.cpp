@@ -574,8 +574,7 @@ void handleWifiStateConnectionFailed() {
 }
 
 void handleWifiStateAP() {
-	// good candidate for a user setting
-	constexpr uint32_t closeWifiAPTimeout = 300000;
+	const uint32_t closeWifiAPTimeout = Wlan_GetApTimeoutMinutes() * 60000u;
 
 	// close the AP after the desired time has passed; set to 0 to keep on forever
 	if (closeWifiAPTimeout != 0 && millis() - wifiAPStartedTimestamp > closeWifiAPTimeout) {
@@ -681,6 +680,15 @@ const String Wlan_GetApPassword() {
 
 bool Wlan_SetApPassword(String newPassword) {
 	return gPrefsSettings.putString("ApPassword", newPassword) == newPassword.length();
+}
+
+// Minutes the AP stays open before auto-closing; 0 means "never close automatically".
+uint32_t Wlan_GetApTimeoutMinutes() {
+	return gPrefsSettings.getUInt("ApTimeout", 5);
+}
+
+bool Wlan_SetApTimeoutMinutes(uint32_t minutes) {
+	return gPrefsSettings.putUInt("ApTimeout", minutes) != 0;
 }
 
 bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {

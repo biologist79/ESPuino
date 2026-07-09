@@ -480,7 +480,11 @@
 							<label for="apPassword" data-i18n="[prepend]wifi.apPassword.title">:</label>
 							<input type="password" class="form-control" id="apPassword"
 								data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
-								autocomplete="off" minlength="8" maxlength="63">
+								autocomplete="off" minlength="8" maxlength="63"><br>
+							<label for="apTimeout" data-i18n="[prepend]wifi.apTimeout.title">:</label>
+							<input type="number" class="form-control" id="apTimeout" name="apTimeout" value="5"
+								min="0" step="1">
+							<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
 						</div>
 						<div class="text-center">
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
@@ -2555,6 +2559,7 @@
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 				document.getElementById("apSSID").value = wifiSettings.apSSID;
 				document.getElementById("apPassword").value = wifiSettings.apPassword;
+				document.getElementById("apTimeout").value = wifiSettings.apTimeout;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
 			}
@@ -3228,11 +3233,13 @@
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
 			let apSSID = document.getElementById("apSSID").value;
 			let apPassword = document.getElementById("apPassword").value;
+			let apTimeout = parseInt(document.getElementById("apTimeout").value, 10);
 			var myObj = {
 				hostname: hostname,
 				scanOnStart: scanWifi,
 				apSSID: apSSID,
-				apPassword: apPassword
+				apPassword: apPassword,
+				apTimeout: apTimeout
 			};
 			// set title to hostname
 			setTitle(hostname);

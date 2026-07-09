@@ -124,6 +124,8 @@ bool Wlan_SetApSSID(String);
 const String Wlan_GetApPassword(void);
 bool Wlan_ValidateApPassword(String);
 bool Wlan_SetApPassword(String);
+uint32_t Wlan_GetApTimeoutMinutes(void);
+bool Wlan_SetApTimeoutMinutes(uint32_t);
 bool Wlan_IsConnected(void);
 void Wlan_ToggleEnable(void);
 String Wlan_GetIpAddress(void);

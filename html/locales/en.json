@@ -113,6 +113,10 @@
 			"title": "ESPuino access point password",
 			"placeholder": "Password"
 		},
+		"apTimeout": {
+			"title": "Access point closes after (minutes)",
+			"hint": "0 = access point never closes automatically (security risk!)"
+		},
 		"static": {
 			"addr": "Static IP-Address",
 			"enabled": "Static IP-Configuration",

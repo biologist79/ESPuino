@@ -1096,6 +1096,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
 		wifiObj["apSSID"] = Wlan_GetApSSID();
 		wifiObj["apPassword"] = Wlan_GetApPassword();
+		wifiObj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 	}
 	if (section == "ssids") {
 		// saved SSID's
@@ -2268,6 +2269,7 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 	obj["scanOnStart"].set(scanWifiOnStart);
 	obj["apSSID"] = Wlan_GetApSSID();
 	obj["apPassword"] = Wlan_GetApPassword();
+	obj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 
 	response->setLength();
 	request->send(response);
@@ -2301,10 +2303,13 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 		request->send(400, "text/plain; charset=utf-8", "AP password validation failed");
 		return;
 	}
+	// minutes the AP stays open before auto-closing; 0 = never close automatically
+	uint32_t apTimeoutMinutes = jsonObj["apTimeout"] | 5;
 
 	bool succ = Wlan_SetHostname(strHostname);
 	succ = succ && Wlan_SetApSSID(strApSSID);
 	succ = succ && Wlan_SetApPassword(strApPassword);
+	succ = succ && Wlan_SetApTimeoutMinutes(apTimeoutMinutes);
 	if (succ) {
 		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
 		request->send(200, "text/plain; charset=utf-8", strHostname);
