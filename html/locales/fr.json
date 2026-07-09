@@ -120,7 +120,14 @@
 			"title": "Supprimer WiFi",
 			"prompt": "Supprimer le WiFi enregistré \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Prêt à partir?"
+		"restartPrompt": "Prêt à partir?",
+		"fullInterface": {
+			"title": "Vous voulez juste l'interface web ?",
+			"hint": "Si vous ne voulez pas configurer le WiFi mais juste accéder à l'interface (par ex. en déplacement sans WiFi connu) : fermez cette fenêtre, ouvrez votre navigateur habituel et accédez à cette adresse.",
+			"copy": "Copier l'adresse",
+			"copied": "Adresse copiée !",
+			"copyFailed": "Impossible de copier - veuillez sélectionner et copier l'adresse ci-dessus manuellement."
+		}
 	},
 	"control": {
 		"title": "Contrôle",

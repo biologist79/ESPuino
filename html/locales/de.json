@@ -120,7 +120,14 @@
 			"title": "Netzwerk entfernen",
 			"prompt": "Gespeichertes Netzwerk \"{{ssid}}\" wirklich entfernen?"
 		},
-		"restartPrompt": "Fertig?"
+		"restartPrompt": "Fertig?",
+		"fullInterface": {
+			"title": "Nur das Webinterface nutzen?",
+			"hint": "Falls du kein WLAN einrichten, sondern nur auf die Bedienoberfläche zugreifen möchtest (z. B. unterwegs ohne bekanntes WLAN): Schließe dieses Fenster, öffne deinen normalen Browser und rufe diese Adresse auf.",
+			"copy": "Adresse kopieren",
+			"copied": "Adresse kopiert!",
+			"copyFailed": "Kopieren nicht möglich - bitte Adresse oben manuell markieren und kopieren."
+		}
 	},
 	"control": {
 		"title": "Steuerung",

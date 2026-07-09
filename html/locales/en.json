@@ -120,7 +120,14 @@
 			"title": "Delete WiFi",
 			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Ready to go?"
+		"restartPrompt": "Ready to go?",
+		"fullInterface": {
+			"title": "Just want the web interface?",
+			"hint": "If you don't want to set up WiFi but just access the interface (e.g. away from home with no known WiFi): close this window, open your regular browser and go to this address.",
+			"copy": "Copy address",
+			"copied": "Address copied!",
+			"copyFailed": "Could not copy - please select and copy the address above manually."
+		}
 	},
 	"control": {
 		"title": "Control",

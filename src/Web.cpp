@@ -403,11 +403,18 @@ void webserverStart(void) {
 			AsyncWebServerResponse *response;
 
 			// ETag is tied to the firmware build (gitRevShort), so it must only gate the firmware-embedded
-			// management_html_BIN/accesspoint_html_BIN responses below - never the user-provided SD-card index.htm,
-			// whose content can change independently of the firmware (a stale 304 would then serve an
-			// outdated cached copy of the user's own custom page).
+			// management_html_BIN response below - never the user-provided SD-card index.htm, whose content
+			// can change independently of the firmware (a stale 304 would then serve an outdated cached
+			// copy of the user's own custom page).
 			const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
 
+			// management.html's frontend libraries are embedded rather than loaded from a CDN (see
+			// html/vendor/), so it no longer *needs* internet access - but AP-mode is typically reached
+			// through the OS's captive-portal mini-browser (e.g. iOS's Captive Network Assistant), which
+			// is a constrained sandbox: fixed small viewport, often no/partial WebSocket support, and a
+			// load-time budget the heavy Bootstrap/jQuery/jstree/WebSocket app can exceed - causing the OS
+			// to report the connection attempt as failed. So AP-mode keeps serving the minimal,
+			// framework-free accesspoint.html, which is known to work reliably in that sandbox.
 			if (WiFi.getMode() == WIFI_STA) {
 				// serve management.html in station-mode
 #ifdef NO_SDCARD
