@@ -466,22 +466,37 @@
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="text" class="form-control" id="hostname"
 								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
 								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
 								value="false">&nbsp; <label for="scan_wifi_on_start"
 								data-i18n="wifi.scan.enabled"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<br><br>
 							<label for="apSSID" data-i18n="[prepend]wifi.apSSID.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="text" class="form-control" id="apSSID"
 								data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
 								maxlength="32" required><br>
 							<label for="apPassword" data-i18n="[prepend]wifi.apPassword.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="password" class="form-control" id="apPassword"
 								data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
 								autocomplete="off" minlength="8" maxlength="63"><br>
 							<label for="apTimeout" data-i18n="[prepend]wifi.apTimeout.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="number" class="form-control" id="apTimeout" name="apTimeout" value="5"
 								min="0" step="1">
 							<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
@@ -498,14 +513,23 @@
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="text" class="form-control" id="ssid"
 								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="password" class="form-control" id="pwd" name="pwd"
 								data-i18n="[placeholder]wifi.password.placeholder" required><br>
 							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
 								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
 								<input type="text" class="form-control" id="static_addr" name="static_addr">

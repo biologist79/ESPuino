@@ -93,29 +93,35 @@
 		"ssid": {
 			"title": "WLAN-Name (SSID)",
 			"placeholder": "SSID",
-			"validation": "Bitte SSID des WLANs eintragen"
+			"validation": "Bitte SSID des WLANs eintragen",
+			"explanation": "Name des WLANs, dem ESPuino beitreten soll."
 		},
 		"password": {
 			"title": "Passwort",
 			"placeholder": "Passwort",
-			"validation": "Bitte Passwort des WLANs eintragen"
+			"validation": "Bitte Passwort des WLANs eintragen",
+			"explanation": "Passwort des WLANs, dem ESPuino beitreten soll."
 		},
 		"hostname": {
 			"title": "ESPuino-Name (Hostname)",
 			"placeholder": "espuino",
-			"validation": "Trage einen validen Hostnamen ein"
+			"validation": "Trage einen validen Hostnamen ein",
+			"explanation": "Das ist der Name deines ESPuinos, wie er in deinem Netzwerk erscheint."
 		},
 		"apSSID": {
 			"title": "ESPuino-Accesspoint-Name",
-			"placeholder": "ESPuino"
+			"placeholder": "ESPuino",
+			"explanation": "Name des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
 		},
 		"apPassword": {
 			"title": "ESPuino-Accesspoint-Passwort",
-			"placeholder": "Passwort"
+			"placeholder": "Passwort",
+			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
 		},
 		"apTimeout": {
 			"title": "Accesspoint schließt nach (Minuten)",
-			"hint": "0 = Accesspoint schließt nie automatisch (Sicherheitslücke!)"
+			"hint": "0 = Accesspoint schließt nie automatisch (Sicherheitslücke!)",
+			"explanation": "Dauer in Minuten, wie lange das WLAN, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist, geöffnet bleibt."
 		},
 		"static": {
 			"addr": "Statische IP-Adresse",
@@ -123,10 +129,12 @@
 			"gateway": "Gateway für statische IP-Konfiguration",
 			"subnet": "Subnetzmaske für statische IP-Konfiguration",
 			"dns1": " DNS 1 für statische IP-Konfiguration",
-			"dns2": "DNS 2 für statische IP-Konfiguration"
+			"dns2": "DNS 2 für statische IP-Konfiguration",
+			"explanation": "Die IP-Konfiguration erfolgt manuell statt über einen DHCP-Server. Achtung: Du solltest wissen, was hier einzutragen ist, sonst ist dein ESPuino per Netzwerk möglicherweise nicht mehr erreichbar."
 		},
 		"scan": {
-			"enabled": "Start mit bestem WLAN"
+			"enabled": "Start mit bestem WLAN",
+			"explanation": "Sind mehrere WLANs in ESPuino konfiguriert oder betreibst du ein Mesh-WLAN, so tritt ESPuino nicht dem ersten konfigurierten WLAN bei, das es beim Scannen findet. Es scannt stattdessen alle WLANs und tritt dem stärksten bei. Vorteil: Höherer Datendurchsatz. Nachteil: Dauert etwas länger."
 		},
 		"delete": {
 			"title": "Netzwerk entfernen",
