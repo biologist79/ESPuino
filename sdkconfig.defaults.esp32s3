@@ -1,0 +1,28 @@
+# Per-target sdkconfig additions for ESP32-S3 (IDF merges this after
+# sdkconfig.defaults when building for esp32s3; never touches classic-ESP32 envs).
+#
+# THE load-bearing PSRAM option: N16R8 modules have OCTAL PSRAM. The S3 default
+# SPIRAM mode is quad, under which an octal chip fails PSRAM ID readout and
+# psramFound() returns false — silently degrading ESPuino's audio/web/BT buffers.
+# Ground truth is the boot log: PSRAM should report ~8MB.
+CONFIG_SPIRAM_MODE_OCT=y
+
+# Upstream's sdkconfig.defaults disables SPIRAM_BOOT_INIT (classic-ESP32 habit;
+# Arduino's psramInit() does the init later). On S3 that boot-loops with a
+# Double exception before the first log line: ESPuino places gButtons and
+# gPlayProperties in PSRAM .ext_ram.bss (EXT_RAM_BSS_ATTR), and that section is
+# only mapped/zeroed correctly when the IDF startup code initializes PSRAM
+# itself. The hardware-proven prebuilt Arduino qio_opi config also sets this.
+CONFIG_SPIRAM_BOOT_INIT=y
+
+# CONFIRMED FIX (2026-07-06): this N16R8 clone's octal PSRAM is marginal at 80MHz
+# -> persistent boot hang inside Led_Init (memory ops during LED task creation),
+# which ALSO masqueraded as "SD won't mount" (boot never reached SdCard_Init).
+# Forcing 40MHz makes boot reliable; verified full boot + audio playback.
+# Small PSRAM-bandwidth cost, fine for audio. See wiring.md.
+CONFIG_SPIRAM_SPEED_40M=y
+
+# TEMP (wifi debugging): upstream defaults limit IDF logging to errors; INFO
+# exposes the wifi driver's state machine + 802.11 disconnect reason codes.
+# Remove together with -DCORE_DEBUG_LEVEL=3 in platformio-override.ini.
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
