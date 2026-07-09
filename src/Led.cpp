@@ -18,27 +18,30 @@
 #include <atomic>
 #include <esp_task_wdt.h>
 
-#if defined(NEOPIXEL_ENABLE) && defined(CONFIG_IDF_TARGET_ESP32S3)
-	// On ESP32-S3 with Arduino 3.x / ESP-IDF 5.x none of FastLED's WS2812
-	// backends work (clockless-SPI claims the FSPI host, RMT5 fails in
-	// led_strip_new_rmt_device/rmt_transmit, legacy RMT4 conflicts with the
-	// driver_ng the core installs). FastLED is kept for the CRGB/CHSV math and
-	// the animation buffer only; the actual output goes through NeoPixelBus's
-	// S3 LCD/GDMA method. (NeoPixelBus's RMT method is also unusable here: as
-	// of 2.8.4 it is built on the legacy RMT driver, which aborts at boot with
-	// "CONFLICT! driver_ng is not allowed to be used with the legacy driver".)
+#ifdef NEOPIXEL_ENABLE
+	// FastLED's WS2812 backends don't work on this Arduino 3.x / ESP-IDF 5.x stack:
+	// on the S3 the clockless-SPI backend claims the FSPI host and RMT5 fails; on the
+	// classic ESP32 the SPI-DMA backend aborts (ESP_ERROR_CHECK in SpiStripWs2812::
+	// waitDone) once SD + RFID already own both SPI hosts. So the strip is driven
+	// through NeoPixelBus instead — FastLED is kept only for the CRGB/CHSV math and
+	// the animation buffer. NeoPixelBus's RMT method is unusable here too (2.8.4 uses
+	// the legacy RMT driver, which aborts under the core's driver_ng), so the output
+	// method is target-specific (see Led_InitStrip): S3 -> LCD/GDMA, classic ESP32 ->
+	// the I2S peripheral 1 method (I2S0 is left for the audio path).
 	#define LED_USE_NEOPIXELBUS 1
 
-	#include <esp_idf_version.h>
-	#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
-		// IDF 5.5 removed gpio_hal_iomux_func_sel(), but NeoPixelBus (<= 2.8.4)
-		// still calls it from the S3 LCD-method header used below.
-		// PIN_FUNC_SELECT is the operation that function wrapped.
-		#include <soc/io_mux_reg.h>
+	#if defined(CONFIG_IDF_TARGET_ESP32S3)
+		#include <esp_idf_version.h>
+		#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 5, 0)
+			// IDF 5.5 removed gpio_hal_iomux_func_sel(), but NeoPixelBus (<= 2.8.4)
+			// still calls it from the S3 LCD-method header. PIN_FUNC_SELECT is the
+			// operation that function wrapped.
+			#include <soc/io_mux_reg.h>
 inline void gpio_hal_iomux_func_sel(uint32_t pin_name, uint32_t func) {
 	PIN_FUNC_SELECT(pin_name, func);
 }
-	#endif
+		#endif
+	#endif // CONFIG_IDF_TARGET_ESP32S3
 
 	#include <NeoPixelBus.h>
 #endif
@@ -214,7 +217,12 @@ struct NeoFeatureFor<GRB> {
 	using type = NeoGrbFeature;
 };
 
-using LedStrip = NeoPixelBus<NeoFeatureFor<COLOR_ORDER>::type, NeoEsp32LcdX8Ws2812xMethod>;
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+using LedStripMethod = NeoEsp32LcdX8Ws2812xMethod; // S3: LCD/GDMA (RMT unusable; no free SPI host)
+#else
+using LedStripMethod = NeoEsp32I2s1Ws2812xMethod; // classic ESP32: I2S peripheral 1 (I2S0 = audio)
+#endif
+using LedStrip = NeoPixelBus<NeoFeatureFor<COLOR_ORDER>::type, LedStripMethod>;
 static LedStrip *ledStrip = nullptr;
 	#endif
 
