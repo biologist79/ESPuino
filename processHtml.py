@@ -62,6 +62,10 @@ BINARY_FILES = [
     Path("vendor/i18next/i18nextHttpBackend.min.js"),
     Path("vendor/i18next/loc-i18next.min.js"),
     Path("vendor/natsort/natcompare.js"),
+    # Default branding (logo/favicon), previously served via an external redirect to espuino.de - embedded
+    # so the management interface works fully offline too (e.g. AP-mode, no internet available).
+    Path("vendor/branding/logo.webp"),
+    Path("vendor/branding/favicon.ico"),
 ]
 
 # mimetypes.types_map doesn't reliably know these on every Python version.
@@ -71,6 +75,8 @@ EXTRA_MIME_TYPES = {
     ".ttf": "font/ttf",
     ".png": "image/png",
     ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
 }
 
 # Suffixes that are text and safe to decode/minify as UTF-8; everything else (fonts, images, ...)

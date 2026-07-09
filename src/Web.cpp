@@ -632,7 +632,9 @@ void webserverStart(void) {
 		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));
 
-		// ESPuino logo
+		// ESPuino logo: user-provided SD override takes precedence, otherwise fall back to the default
+		// logo embedded in the firmware (previously an external redirect to espuino.de, which failed
+		// without internet access, e.g. in AP-mode).
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			Log_Println("logo request", LOGLEVEL_DEBUG);
@@ -645,17 +647,35 @@ void webserverStart(void) {
 				return;
 			};
 #endif
-			request->redirect("https://www.espuino.de/Espuino.webp");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/webp", (const uint8_t *) vendor_branding_logo_webp_BIN, sizeof(vendor_branding_logo_webp_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
-		// ESPuino favicon
+		// ESPuino favicon: same SD-override-then-embedded-default pattern as /logo above.
 		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			if (gFSystem.exists("/.html/favicon.ico")) {
-				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
+				request->send(gFSystem, "/.html/favicon.ico", "image/x-icon");
 				return;
 			};
 #endif
-			request->redirect("https://espuino.de/espuino/favicon.ico");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/x-icon", (const uint8_t *) vendor_branding_favicon_ico_BIN, sizeof(vendor_branding_favicon_ico_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
