@@ -105,6 +105,14 @@
 			"placeholder": "espuino",
 			"validation": "Enter a valid hostname"
 		},
+		"apSSID": {
+			"title": "ESPuino access point name",
+			"placeholder": "ESPuino"
+		},
+		"apPassword": {
+			"title": "ESPuino access point password",
+			"placeholder": "Password"
+		},
 		"static": {
 			"addr": "Static IP-Address",
 			"enabled": "Static IP-Configuration",

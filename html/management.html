@@ -472,6 +472,15 @@
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
 								value="false">&nbsp; <label for="scan_wifi_on_start"
 								data-i18n="wifi.scan.enabled"></label>
+							<br><br>
+							<label for="apSSID" data-i18n="[prepend]wifi.apSSID.title">:</label>
+							<input type="text" class="form-control" id="apSSID"
+								data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
+								maxlength="32" required><br>
+							<label for="apPassword" data-i18n="[prepend]wifi.apPassword.title">:</label>
+							<input type="password" class="form-control" id="apPassword"
+								data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
+								autocomplete="off" minlength="8" maxlength="63">
 						</div>
 						<div class="text-center">
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
@@ -2544,6 +2553,8 @@
 			if (wifiSettings) {
 				document.getElementById("hostname").value = wifiSettings.hostname;
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+				document.getElementById("apSSID").value = wifiSettings.apSSID;
+				document.getElementById("apPassword").value = wifiSettings.apPassword;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
 			}
@@ -3215,9 +3226,13 @@
 			lastIdclicked = clickedId;
 			let hostname = document.getElementById("hostname").value;
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+			let apSSID = document.getElementById("apSSID").value;
+			let apPassword = document.getElementById("apPassword").value;
 			var myObj = {
 				hostname: hostname,
-				scanOnStart: scanWifi
+				scanOnStart: scanWifi,
+				apSSID: apSSID,
+				apPassword: apPassword
 			};
 			// set title to hostname
 			setTitle(hostname);

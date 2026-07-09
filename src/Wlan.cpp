@@ -560,7 +560,7 @@ void handleWifiStateConnectionFailed() {
 
 	if (initialStart) {
 		initialStart = false;
-		accessPointStart(accessPointNetworkSSID, accessPointNetworkPassword, apIP, apNetmask);
+		accessPointStart(Wlan_GetApSSID().c_str(), Wlan_GetApPassword().c_str(), apIP, apNetmask);
 		wifiAPStartedTimestamp = millis();
 		wifiState = WIFI_STATE_AP;
 		return;
@@ -653,6 +653,34 @@ bool Wlan_ValidateHostname(String newHostname) {
 bool Wlan_SetHostname(String newHostname) {
 	// check if the correct lenght was written to nvs
 	return gPrefsSettings.putString("Hostname", newHostname) == newHostname.length();
+}
+
+// WiFi SSIDs are 1-32 bytes
+bool Wlan_ValidateApSSID(String newSSID) {
+	const size_t len = newSSID.length();
+	return (len >= 1 && len <= 32);
+}
+
+const String Wlan_GetApSSID() {
+	return gPrefsSettings.getString("ApSSID", "ESPuino");
+}
+
+bool Wlan_SetApSSID(String newSSID) {
+	return gPrefsSettings.putString("ApSSID", newSSID) == newSSID.length();
+}
+
+// Empty (open network) or a WPA2-PSK-compatible ASCII passphrase (8-63 chars)
+bool Wlan_ValidateApPassword(String newPassword) {
+	const size_t len = newPassword.length();
+	return (len == 0) || (len >= 8 && len <= 63);
+}
+
+const String Wlan_GetApPassword() {
+	return gPrefsSettings.getString("ApPassword", "");
+}
+
+bool Wlan_SetApPassword(String newPassword) {
+	return gPrefsSettings.putString("ApPassword", newPassword) == newPassword.length();
 }
 
 bool Wlan_AddNetworkSettings(const WiFiSettings &settings) {

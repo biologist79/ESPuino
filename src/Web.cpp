@@ -1094,6 +1094,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject wifiObj = obj["wifi"].to<JsonObject>();
 		wifiObj["hostname"] = Wlan_GetHostname();
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
+		wifiObj["apSSID"] = Wlan_GetApSSID();
+		wifiObj["apPassword"] = Wlan_GetApPassword();
 	}
 	if (section == "ssids") {
 		// saved SSID's
@@ -2264,6 +2266,8 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 
 	obj["hostname"] = Wlan_GetHostname();
 	obj["scanOnStart"].set(scanWifiOnStart);
+	obj["apSSID"] = Wlan_GetApSSID();
+	obj["apPassword"] = Wlan_GetApPassword();
 
 	response->setLength();
 	request->send(response);
@@ -2284,7 +2288,23 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 		return;
 	}
 
+	// ESPuino's own access-point (used as fallback when no known WiFi is available)
+	String strApSSID = jsonObj["apSSID"];
+	if (!Wlan_ValidateApSSID(strApSSID)) {
+		Log_Println("AP SSID validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP SSID validation failed");
+		return;
+	}
+	String strApPassword = jsonObj["apPassword"];
+	if (!Wlan_ValidateApPassword(strApPassword)) {
+		Log_Println("AP password validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP password validation failed");
+		return;
+	}
+
 	bool succ = Wlan_SetHostname(strHostname);
+	succ = succ && Wlan_SetApSSID(strApSSID);
+	succ = succ && Wlan_SetApPassword(strApPassword);
 	if (succ) {
 		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
 		request->send(200, "text/plain; charset=utf-8", strHostname);
