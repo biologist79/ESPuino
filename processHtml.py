@@ -36,8 +36,46 @@ BINARY_FILES = [
     Path("js/loc_i18next.min.js"),
     Path("locales/de.json"),
     Path("locales/en.json"),
-    Path("locales/fr.json")
+    Path("locales/fr.json"),
+    # Vendored frontend libraries for the management interface (previously loaded from CDN).
+    # Self-hosted so the management interface no longer depends on internet access.
+    Path("vendor/bootstrap/bootstrap.min.css"),
+    Path("vendor/bootstrap/bootstrap.bundle.min.js"),
+    Path("vendor/jquery/jquery.min.js"),
+    Path("vendor/jqueryui/jquery-ui.min.js"),
+    Path("vendor/jstree/jstree.min.js"),
+    Path("vendor/jstree/light/style.min.css"),
+    Path("vendor/jstree/light/32px.png"),
+    Path("vendor/jstree/light/40px.png"),
+    Path("vendor/jstree/light/throbber.gif"),
+    Path("vendor/jstree/dark/style.min.css"),
+    Path("vendor/jstree/dark/32px.png"),
+    Path("vendor/jstree/dark/40px.png"),
+    Path("vendor/jstree/dark/throbber.gif"),
+    Path("vendor/fontawesome/css/all.min.css"),
+    Path("vendor/fontawesome/webfonts/fa-solid-900.woff2"),
+    Path("vendor/fontawesome/webfonts/fa-regular-400.woff2"),
+    Path("vendor/fontawesome/webfonts/fa-brands-400.woff2"),
+    Path("vendor/bootstrap-slider/bootstrap-slider.min.css"),
+    Path("vendor/bootstrap-slider/bootstrap-slider.min.js"),
+    Path("vendor/i18next/i18next.min.js"),
+    Path("vendor/i18next/i18nextHttpBackend.min.js"),
+    Path("vendor/i18next/loc-i18next.min.js"),
+    Path("vendor/natsort/natcompare.js"),
 ]
+
+# mimetypes.types_map doesn't reliably know these on every Python version.
+EXTRA_MIME_TYPES = {
+    ".woff2": "font/woff2",
+    ".woff": "font/woff",
+    ".ttf": "font/ttf",
+    ".png": "image/png",
+    ".gif": "image/gif",
+}
+
+# Suffixes that are text and safe to decode/minify as UTF-8; everything else (fonts, images, ...)
+# is treated as opaque binary data and passed through unmodified.
+TEXT_SUFFIXES = {".htm", ".html", ".js", ".css", ".yaml", ".yml"}
 
 class HtmlHeaderProcessor:
     @staticmethod
@@ -56,20 +94,34 @@ class HtmlHeaderProcessor:
         if binary_path.suffix == ".json":
             with binary_path.open(mode="r", encoding="utf-8") as f:
                 content = json.dumps(json.load(f), separators=(',', ':'))
+            raw = content.encode()
         elif binary_path.suffix in [".htm", ".html", ".js", ".css"]:
             with open(binary_path, 'r', encoding="utf-8") as f:
                 content = f.read()
                 if ".min" not in str(binary_path):
                     content = cls._safe_minify(content, binary_path.suffix)
-        else:
+            raw = content.encode()
+        elif binary_path.suffix in TEXT_SUFFIXES:
             with binary_path.open(mode="r", encoding="utf-8") as f:
-                content = f.read()
+                raw = f.read().encode()
+        else:
+            # Opaque binary asset (webfont, image, ...): pass through unmodified, no text decoding.
+            with binary_path.open(mode="rb") as f:
+                raw = f.read()
 
         stinfo = os.stat(binary_path)
-        data = gzip.compress(content.encode(), mtime=stinfo.st_mtime)
+        data = gzip.compress(raw, mtime=stinfo.st_mtime)
 
         with header_path.open(mode="a", encoding="utf-8") as header_file:
-            varName = re.sub(r'[^a-zA-Z0-9]', '_', binary_path.name.split('.')[0])
+            # Derive a unique, valid C identifier from the full path relative to HTML_DIR, extension
+            # included (not just the filename stem) so files sharing a basename in different directories
+            # (e.g. "32px.png" for both the light and dark jstree theme) don't collide, and so files that
+            # only differ by extension (e.g. "bootstrap-slider.min.css" vs "...min.js") stay distinct.
+            # Names never start with a digit (invalid C identifier).
+            rel_full = binary_path.relative_to(HTML_DIR).as_posix()
+            varName = re.sub(r'[^a-zA-Z0-9]', '_', rel_full)
+            if varName[0].isdigit():
+                varName = "_" + varName
             header_file.write(f"static const uint8_t {varName}_BIN[] = {{\n    ")
  
             size = 0
@@ -105,7 +157,10 @@ class HtmlHeaderProcessor:
             print(f"  Encoding: {binary_file.as_posix()}")
             info = {
                 "uri": "/" + binary_file.as_posix(),
-                "mimeType": mimetypes.types_map.get(file_path.suffix, "application/octet-stream")
+                "mimeType": EXTRA_MIME_TYPES.get(
+                    file_path.suffix,
+                    mimetypes.types_map.get(file_path.suffix, "application/octet-stream")
+                )
             }
             if file_path.suffix in [".yaml", ".yml"]:
                 info["mimeType"] = "application/yaml"

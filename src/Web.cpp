@@ -182,16 +182,19 @@ static void serveProgmemFiles(const String &uri, const String &contentType, cons
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
-		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-		const bool etag = false;
+		const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
 		if (etag) {
 			response = request->beginResponse(304);
 		} else {
 			response = request->beginResponse(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
-		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		// no-cache (not "no-store"): browser may keep a local copy, but must always revalidate via ETag
+		// before using it. That way repeat loads cost only a small conditional request (304 if unchanged),
+		// while a firmware update (new gitRevShort) is picked up immediately instead of serving a stale
+		// cached copy for the "immutable"/long-max-age duration.
+		response->addHeader("Cache-Control", "no-cache");
+		response->addHeader("ETag", gitRevShort); // use git revision as digest
 		request->send(response);
 	});
 }
@@ -399,32 +402,46 @@ void webserverStart(void) {
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			AsyncWebServerResponse *response;
 
-			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-			const bool etag = false;
-			if (etag) {
-				response = request->beginResponse(304);
-			} else {
-				if (WiFi.getMode() == WIFI_STA) {
-					// serve management.html in station-mode
+			// ETag is tied to the firmware build (gitRevShort), so it must only gate the firmware-embedded
+			// management_html_BIN/accesspoint_html_BIN responses below - never the user-provided SD-card index.htm,
+			// whose content can change independently of the firmware (a stale 304 would then serve an
+			// outdated cached copy of the user's own custom page).
+			const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
+
+			if (WiFi.getMode() == WIFI_STA) {
+				// serve management.html in station-mode
 #ifdef NO_SDCARD
-					response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-					response->addHeader("Content-Encoding", "gzip");
-#else
-					if (gFSystem.exists("/.html/index.htm")) {
-						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
-					} else {
-						response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-						response->addHeader("Content-Encoding", "gzip");
-					}
-#endif
+				if (etag) {
+					response = request->beginResponse(304);
 				} else {
-					// serve accesspoint.html in AP-mode
-					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
 					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#else
+				if (gFSystem.exists("/.html/index.htm")) {
+					response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
+				} else if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#endif
+			} else {
+				// serve accesspoint.html in AP-mode
+				if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_html_BIN, sizeof(accesspoint_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
 				}
 			}
-			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 			request->send(response);
 		});
 
