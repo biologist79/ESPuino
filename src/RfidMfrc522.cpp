@@ -31,8 +31,10 @@ static void RfidMfrc522_Task(void *parameter);
 static uint16_t rfidScanInterval = 100;
 
 	#if defined(RFID_READER_TYPE_RUNTIME)
+		#if defined(I2C_2_ENABLE)
 extern TwoWire i2cBusTwo;
 static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
+		#endif
 static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
