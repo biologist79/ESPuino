@@ -119,6 +119,7 @@ bool Wlan_DeleteNetwork(String);
 bool Wlan_ValidateHostname(String);
 bool Wlan_SetHostname(String);
 bool Wlan_IsConnected(void);
+void Wlan_SetPowerSave(bool enabled);
 void Wlan_ToggleEnable(void);
 String Wlan_GetIpAddress(void);
 int8_t Wlan_GetRssi(void);
