@@ -1015,7 +1015,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			lastPongTimestamp = millis();
 			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
-		return WebsocketCodeType::Error;
+		return WebsocketCodeType::Silent;
 	} else if (doc["controls"].is<JsonObject>()) {
 		// Prevent website control over volume and player actions in Bluetooth-Speaker mode
 		// we could still allow sone special commands, but it's cleaner this way
@@ -1026,7 +1026,12 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_SetVolume(new_vol);
+			AudioPlayer_SetVolume(new_vol); // already broadcasts its own Volume update
+			if (!controlsObj["action"].is<uint8_t>()) {
+				// pure volume-slider drag (no button action alongside it) - don't also send
+				// back an Ok ack, or dragging the slider spams a "success" toast per tick
+				return WebsocketCodeType::Silent;
+			}
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -1034,14 +1039,19 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		}
 	} else if (doc["trackinfo"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
+		return WebsocketCodeType::Silent;
 	} else if (doc["coverimg"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+		return WebsocketCodeType::Silent;
 	} else if (doc["volume"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
+		return WebsocketCodeType::Silent;
 	} else if (doc["settings"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Settings);
+		return WebsocketCodeType::Silent;
 	} else if (doc["ssids"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
+		return WebsocketCodeType::Silent;
 	} else if (doc["trackProgress"].is<JsonObject>()) {
 		// Prevent seeking in Bluetooth mode
 		if (!System_IsWebControlAllowed()) {
@@ -1054,6 +1064,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			gPlayProperties.currentRelPos = trackObj["posPercent"].as<uint8_t>();
 		}
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
+		return WebsocketCodeType::Silent;
 	}
 
 	return WebsocketCodeType::Ok;
@@ -1482,7 +1493,7 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject &jsonObj = json.as<JsonObject>();
 	WebsocketCodeType res = JSONToSettings(jsonObj);
 	if (res != WebsocketCodeType::Error) {
-		if (res != WebsocketCodeType::Ok) {
+		if (res != WebsocketCodeType::Ok && res != WebsocketCodeType::Silent) {
 			Web_SendWebsocketData(0, res);
 		}
 		request->send(200);
@@ -1689,10 +1700,8 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
 			WebsocketCodeType result = processJsonRequest((char *) data);
-			if (result != WebsocketCodeType::Error) {
-				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
-					Web_SendWebsocketData(client->id(), result);
-				}
+			if (result != WebsocketCodeType::Error && result != WebsocketCodeType::Silent) {
+				Web_SendWebsocketData(client->id(), result);
 			}
 
 			if (info->opcode == WS_TEXT) {

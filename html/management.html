@@ -208,6 +208,38 @@
 			/* Make sure the jstree context menu is most top */
 			z-index: 99999;
 		}
+
+		@keyframes heartbeat-pulse {
+			0% {
+				transform: scale(1);
+			}
+
+			30% {
+				transform: scale(1.5);
+			}
+
+			100% {
+				transform: scale(1);
+			}
+		}
+
+		#connectionStatusIndicator {
+			font-size: 1.4em;
+		}
+
+		#connectionStatusIndicator.heartbeat-pulse {
+			display: inline-block;
+			animation: heartbeat-pulse 0.3s ease-out;
+		}
+
+		/* text-success/text-danger are too dark/muted against the navbar's blue background */
+		#connectionStatusIndicator.connection-ok {
+			color: #4ade80;
+		}
+
+		#connectionStatusIndicator.connection-lost {
+			color: #ff6b6b;
+		}
 	</style>
 </head>
 
@@ -227,7 +259,10 @@
 				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
 			<div class="collapse navbar-collapse justify-content-end">
-				<ul class="navbar-nav">
+				<ul class="navbar-nav align-items-center">
+					<li class="nav-item me-3">
+						<i class="fas fa-heartbeat" id="connectionStatusIndicator" title=""></i>
+					</li>
 					<li class="nav-item">
 						<button class="btn dropdown-toggle border-0 text-white" id="menuToggle"
 							data-bs-toggle="dropdown" aria-expanded="false">
@@ -1636,6 +1671,7 @@
 			error: msg => toaster.toast(msg, 'text-bg-danger')
 		}
 
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -2546,6 +2582,9 @@
 				clearInterval(getTrackProgressInterval);
 				pingInterval = setInterval(ping, 3000);
 				setTrackProgressInterval = setInterval(getTrackProgress, 1000);
+				// arm the watchdog now too, so a connection that dies before its first pong
+				// arrives is still caught (not just ones that were alive at some point)
+				armConnectionWatchdog();
 				// clear old socket messages
 				socket.sendBuffer = [];
 				socket.send('{"settings":{"settings":"settings"}}'); // request settings
@@ -2556,6 +2595,13 @@
 			socket.onclose = function (e) {
 				console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
 				socket = null;
+				// stop ping()/getTrackProgress() - otherwise they keep firing against a null
+				// socket (or a dead server) until the reconnect below succeeds and re-arms them
+				clearInterval(pingInterval);
+				clearInterval(getTrackProgressInterval);
+				// a definitive close is known for certain - mark it right away instead of
+				// waiting for the watchdog timeout below
+				setConnectionStatus(false);
 				setTimeout(function () {
 					connect();
 				}, 5000);
@@ -3104,6 +3150,9 @@
 		toolsTabObserver.observe(toolsTab, config);
 
 		async function ping() {
+			if (!socket) {
+				return;
+			}
 			var myObj = {
 				"ping": {
 					ping: 'ping'
@@ -3111,13 +3160,35 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+			// sending doesn't confirm the connection is alive - only a received pong does
+		}
+
+		function setConnectionStatus(connected) {
+			const icon = $('#connectionStatusIndicator');
+			icon.toggleClass('connection-ok', connected).toggleClass('connection-lost', !connected);
+			icon.attr('title', i18next.t(connected ? "status.connected" : "status.disconnected"));
+		}
+
+		function armConnectionWatchdog() {
+			// called on a positive confirmation (a pong, or having just connected) - the
+			// connection is known good right now, so mark it OK and give it a fresh window
+			// before considering it stale again
+			setConnectionStatus(true);
+			clearTimeout(tm);
 			tm = setTimeout(function () {
-				toaster.warning(i18next.t("toast.conlost"));
+				setConnectionStatus(false);
 			}, 5000);
 		}
 
 		function pong() {
-			clearTimeout(tm);
+			armConnectionWatchdog();
+			// brief pulse on the heartbeat icon to show a pong actually just came in - remove
+			// the class first and force a reflow so the animation restarts even if the previous
+			// pulse (3s ago) already finished and left the class in place
+			const icon = document.getElementById('connectionStatusIndicator');
+			icon.classList.remove('heartbeat-pulse');
+			void icon.offsetWidth;
+			icon.classList.add('heartbeat-pulse');
 		}
 		async function getTrackProgress() {
 			if (ActiveTab !== 'nav-control-tab') {

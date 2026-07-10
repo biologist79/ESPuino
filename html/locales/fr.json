@@ -19,10 +19,13 @@
 	"toast": {
 		"rfidDetect": "Étiquette RFID {{rfidId}} détectée.",
 		"success": "Action effectuée avec succès.",
-		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
 		"dropout": "flux lent, des interruptions sont possibles.",
 		"saved": "Paramètres enregistrés.",
 		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement."
+	},
+	"status": {
+		"connected": "Connexion à l'ESPuino : OK",
+		"disconnected": "Connexion à l'ESPuino perdue - tentative de reconnexion..."
 	},
 	"nav": {
 		"control": "Contrôle",
@@ -412,9 +415,9 @@
 				"auto": "Auto-detect",
 				"mfrc522_spi": "MFRC522 (SPI)",
 				"mfrc522_i2c": "MFRC522 (I2C)",
-				"pn5180": "PN5180"
+				"pn5180": "PN5180",
+				"description": "Sélectionnez le type de lecteur RFID connecté à votre ESPuino. La détection automatique tentera de déterminer le type de lecteur connecté automatiquement."
 			},
-			"description": "Sélectionnez le type de lecteur RFID connecté à votre ESPuino. La détection automatique tentera de déterminer le type de lecteur connecté automatiquement.",
 			"pn5180Lpcd": "Activer PN5180 LPCD",
 			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées.",
 			"mfrc522Gain": "MFRC522 Gain",
