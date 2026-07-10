@@ -19,10 +19,13 @@
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
-		"conlost": "Connection to ESPuino broken! Please reload website.",
 		"dropout": "slow stream, dropouts are possible.",
 		"saved": "Settings saved.",
 		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it."
+	},
+	"status": {
+		"connected": "Connection to ESPuino: OK",
+		"disconnected": "Connection to ESPuino lost - trying to reconnect..."
 	},
 	"nav": {
 		"control": "Control",
@@ -412,9 +415,9 @@
 				"auto": "Auto-detect",
 				"mfrc522_spi": "MFRC522 (SPI)",
 				"mfrc522_i2c": "MFRC522 (I2C)",
-				"pn5180": "PN5180"
+				"pn5180": "PN5180",
+				"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically."
 			},
-			"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically.",
 			"pn5180Lpcd": "Enable PN5180 LPCD",
 			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
 			"mfrc522Gain": "MFRC522 Gain",
