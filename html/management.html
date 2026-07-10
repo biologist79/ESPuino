@@ -423,6 +423,22 @@
 			</div>
 		</div>
 	</div>
+	<!-- Modal dialog for GitHub firmware build list -->
+	<div class="modal fade" data-bs-backdrop="static" id="githubBuildListModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.fwupdate.github.title"></h5>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group" id="githubBuildList"></ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="ok"></button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<nav class="mb-4">
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control"
@@ -1496,6 +1512,30 @@
 					</div>
 				</form>
 			</div>
+			<div class="container" id="githubUpdate">
+				<legend id="legendfwupdategithub" data-i18n="tools.fwupdate.github.title"></legend>
+				<p data-i18n="tools.fwupdate.github.desc"></p>
+				<p id="githubUpdateUnavailableText" class="text-warning" style="display:none;"></p>
+				<div id="githubUpdateAvailable" style="display:none;">
+					<div class="mb-3 d-flex align-items-center flex-wrap gap-2">
+						<label for="githubBranchSel" class="me-1" data-i18n="tools.fwupdate.github.branch"></label>
+						<select class="form-control form-select" id="githubBranchSel" style="width: auto;">
+							<!-- Do not translate those texts! -->
+							<option value="dev">dev</option>
+							<option value="master">master</option>
+						</select>
+						<button type="button" class="btn btn-primary" id="githubCheckButton"
+							data-i18n="tools.fwupdate.github.checkButton"></button>
+					</div>
+					<div id="githubUpdateProgress"
+						class="progress upload-progress-bar position-relative" style="display:none;">
+						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdategithub"></div>
+						<div
+							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 		<!-- ### Tab Help ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
@@ -1514,6 +1554,9 @@
 		var ActiveTab = 'nav-rfid-tab';
 		var ActiveSubTab = 'rfid-music-tab';
 		var initialSettingsLoaded = false;
+		// last known-saved led count, to detect a change on save (device restarts to apply it)
+		var lastNumIndicatorLeds = null;
+		var lastNumControlLeds = null;
 		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
@@ -1899,6 +1942,163 @@
 				}
 			});
 		});
+		/* Firmware Update via GitHub (biologist79/ESPuino-Firmware) */
+		const GITHUB_FW_REPO = "biologist79/ESPuino-Firmware";
+		let githubFirmwareInitialized = false;
+		let githubPlatform = '';
+
+		function showGithubUpdateUnavailable(text) {
+			$('#githubUpdateUnavailableText').text(text).show();
+		}
+
+		async function initGithubFirmwareUpdate() {
+			if (githubFirmwareInitialized) {
+				return;
+			}
+			githubFirmwareInitialized = true;
+			try {
+				let info = await (await fetch("http://" + host + "/info?section=software")).json();
+				const sw = info.software;
+				if (!sw.otaSupported) {
+					showGithubUpdateUnavailable(i18next.t("tools.fwupdate.github.notAvailableOta"));
+					return;
+				}
+				if (sw.customBuild) {
+					showGithubUpdateUnavailable(i18next.t("tools.fwupdate.github.notAvailableCustomBuild"));
+					return;
+				}
+				githubPlatform = sw.platform;
+				$('#githubUpdateAvailable').show();
+				$('#githubCheckButton').on('click', function () {
+					checkGithubFirmwareBuilds();
+				});
+			} catch (e) {
+				console.log("Could not fetch software info for github firmware update", e);
+			}
+		}
+
+		async function checkGithubFirmwareBuilds() {
+			const branch = $('#githubBranchSel').val();
+			// firmware repo languages are DE/EN/FR, matching i18next's 2-letter codes
+			const lang = (i18next.language || 'en').toUpperCase();
+			const path = `Firmwares/${branch}/${githubPlatform}/firmware-${lang}.bin`;
+			const list = $('#githubBuildList');
+			list.empty().append($('<li class="list-group-item"></li>').text(i18next.t("tools.fwupdate.github.searching")));
+			new bootstrap.Modal(document.getElementById('githubBuildListModal')).show();
+			try {
+				const resp = await fetch(`https://api.github.com/repos/${GITHUB_FW_REPO}/commits?path=${encodeURIComponent(path)}&per_page=5&sha=main`);
+				if (!resp.ok) {
+					throw new Error(resp.statusText);
+				}
+				const commits = await resp.json();
+				list.empty();
+				if (!commits.length) {
+					list.append($('<li class="list-group-item"></li>').text(i18next.t("tools.fwupdate.github.noBuilds")));
+					return;
+				}
+				commits.forEach(function (c) {
+					const date = new Date(c.commit.author.date).toLocaleString();
+					// commit message looks like "Firmware built from commit biologist79/ESPuino@<sha>" -
+					// that sha is the original ESPuino commit, not this (firmware repo's own) commit
+					const match = /ESPuino@([0-9a-f]{7,40})/.exec(c.commit.message);
+					const fullSha = match ? match[1] : null;
+					const commitShort = (fullSha || c.sha).substring(0, 10);
+					const label = i18next.t("tools.fwupdate.github.buildEntry", { date: date });
+					const li = $('<li class="list-group-item d-flex justify-content-between align-items-center"></li>');
+					const textSpan = $('<span></span>').append(document.createTextNode(label + " "));
+					if (fullSha) {
+						textSpan.append($('<a target="_blank" rel="noopener noreferrer"></a>')
+							.attr('href', `https://github.com/biologist79/ESPuino/commit/${fullSha}`)
+							.text(commitShort));
+					} else {
+						textSpan.append(document.createTextNode(commitShort));
+					}
+					li.append(textSpan);
+					const btn = $('<button type="button" class="btn btn-sm btn-primary"></button>').text(i18next.t("tools.fwupdate.github.installButton"));
+					btn.on('click', function () {
+						const prompt = i18next.t("tools.fwupdate.github.installPrompt", { date: date, commit: commitShort, platform: githubPlatform, branch: branch, language: lang });
+						if (confirm(prompt)) {
+							installGithubFirmware(c.sha, path);
+						}
+					});
+					li.append(btn);
+					list.append(li);
+				});
+			} catch (e) {
+				list.empty().append($('<li class="list-group-item text-danger"></li>').text(i18next.t("tools.fwupdate.github.fetchError")));
+				console.log("Error fetching github firmware builds", e);
+			}
+		}
+
+		async function installGithubFirmware(sha, path) {
+			const rawUrl = `https://raw.githubusercontent.com/${GITHUB_FW_REPO}/${sha}/${path}`;
+			const gup = $('#githubUpdateProgress');
+			gup.show().addClass('bg-primary bg-opacity-75');
+			$('.progress-bar', gup).removeClass('bg-danger').css('width', '0%');
+			$(".label", gup).text(i18next.t("files.upload.timeCalc"));
+			let blob;
+			try {
+				const blobResp = await fetch(rawUrl);
+				if (!blobResp.ok) {
+					throw new Error(blobResp.statusText);
+				}
+				blob = await blobResp.blob();
+			} catch (e) {
+				gup.removeClass('bg-primary bg-opacity-75');
+				$('.progress-bar', gup).addClass('bg-danger');
+				$(".label", gup).text(i18next.t("tools.fwupdate.github.fetchError"));
+				toaster.error(i18next.t("tools.fwupdate.github.fetchError"));
+				console.log("Error downloading github firmware", e);
+				return;
+			}
+			const data = new FormData();
+			data.append('firmwareUpload', blob, 'firmware.bin');
+			const startTime = new Date().getTime();
+			$.ajax({
+				url: '/update',
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData: false,
+				xhr: function () {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener("progress", function (evt) {
+						if (evt.lengthComputable) {
+							const now = new Date().getTime();
+							const percent = parseInt(evt.loaded * 100 / evt.total);
+							const elapsed = (now - startTime) / 1000;
+							let progressText = i18next.t("files.upload.timeCalc");
+							if (elapsed) {
+								const bps = evt.loaded / elapsed;
+								const kbps = bps / 1024;
+								const remaining = Math.round((evt.total - evt.loaded) / bps);
+								progressText = i18next.t("files.upload.progress", {
+									percent: percent,
+									remaining: {
+										unit: (remaining > 60) ? i18next.t("files.upload.minutes", { count: Math.round(remaining / 60) }) : i18next.t("files.upload.seconds"),
+										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+									},
+									speed: kbps.toFixed(2)
+								});
+							}
+							$(".progress-bar", gup).css('width', percent + "%");
+							$(".label", gup).text(progressText);
+						}
+					}, false);
+					return xhr;
+				},
+				success: function () {
+					$(".label", gup).text(i18next.t("files.upload.success", { elapsed: "00:00", speed: "0,00" }));
+					restartDevice();
+				},
+				error: function (request) {
+					gup.removeClass('bg-primary bg-opacity-75');
+					$('.progress-bar', gup).addClass('bg-danger');
+					$(".label", gup).text(i18next.t("files.upload.error") + ": " + request.statusText);
+					toaster.error(i18next.t("files.upload.error") + ': ' + request.statusText);
+				}
+			});
+		}
 		/* File Upload */
 		$('#explorerUploadForm').submit(function (e) {
 			e.preventDefault();
@@ -2601,6 +2801,8 @@
 				$('#atmoBrightness').bootstrapSlider('setValue', ledSettings.atmoBrightness);
 				document.getElementById('led_numIndicator').value = ledSettings.numIndicator;
 				document.getElementById('led_numControl').value = ledSettings.numControl;
+				lastNumIndicatorLeds = ledSettings.numIndicator;
+				lastNumControlLeds = ledSettings.numControl;
 				listControlColors(ledSettings.numControl, ledSettings.controlColors);
 				document.getElementById('led_idleDots').value = ledSettings.numIdleDots;
 				$('#led_hueStart').bootstrapSlider('setValue', ledSettings.hueStart);
@@ -2884,6 +3086,7 @@
 		function onToolsTabOpened() {
 			console.log("tools tab opened!");
 			rebuildRFIDList();
+			initGithubFirmwareUpdate();
 		}
 		const config = {
 			attributes: true
@@ -2951,6 +3154,13 @@
 
 		async function genSettings(clickedId) {
 			lastIdclicked = clickedId;
+			const newNumIndicatorLeds = Number(document.getElementById("led_numIndicator").value);
+			const newNumControlLeds = Number(document.getElementById("led_numControl").value);
+			if ((lastNumIndicatorLeds !== null) && ((newNumIndicatorLeds !== lastNumIndicatorLeds) || (newNumControlLeds !== lastNumControlLeds))) {
+				toaster.warning(i18next.t("toast.ledCountRestart"));
+			}
+			lastNumIndicatorLeds = newNumIndicatorLeds;
+			lastNumControlLeds = newNumControlLeds;
 			var myObj = {
 				"general": {
 					initVolume: Number($('#initialVolume').val()),
@@ -3441,6 +3651,9 @@
 			}) + "<br>";
 			content += i18next.t("systeminfo.gitversion", {
 				gitversion: info.software.git
+			}) + "<br>";
+			content += i18next.t("systeminfo.branch", {
+				branch: info.software.branch
 			}) + "<br>";
 			content += i18next.t("systeminfo.arduinoversion", {
 				arduinoversion: info.software.arduino,

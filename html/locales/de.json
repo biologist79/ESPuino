@@ -21,7 +21,8 @@
 		"success": "Aktion erfolgreich ausgeführt.",
 		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
-		"saved": "Einstellungen gespeichert."
+		"saved": "Einstellungen gespeichert.",
+		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen."
 	},
 	"nav": {
 		"control": "Steuerung",
@@ -498,7 +499,22 @@
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
-			"desc": "Hier kann ein Firmware-Update durchgeführt werden."
+			"desc": "Hier kann ein Firmware-Update durchgeführt werden.",
+			"github": {
+				"title": "Firmware von GitHub laden",
+				"desc": "Lädt eine fertig gebaute Firmware direkt aus dem ESPuino-Firmware-Repository und installiert sie – ohne manuellen Download.",
+				"branch": "Branch",
+				"checkButton": "Nach Updates suchen",
+				"searching": "Suche läuft…",
+				"noBuilds": "Für diese Auswahl wurden keine Builds gefunden.",
+				"notAvailablePlatform": "Für diese Plattform ({{platform}}) werden im Repository keine fertigen Firmwares bereitgestellt. Bitte die Firmware manuell hochladen.",
+				"notAvailableCustomBuild": "Dieses Board wurde mit individuellen Einstellungen (settings-override.h / platformio-override.ini) gebaut. Die offizielle Firmware enthält diese Anpassungen nicht – bitte selbst bauen und wie gewohnt manuell hochladen.",
+				"notAvailableOta": "Dieses Board unterstützt kein Firmware-Update über das Webinterface. Bitte die Firmware seriell flashen.",
+				"buildEntry": "{{date}} – Commit:",
+				"installButton": "Installieren",
+				"installPrompt": "Firmware vom {{date}} (Commit {{commit}}) jetzt installieren?\n\nPlattform: {{platform}}\nBranch: {{branch}}\nSprache: {{language}}\n\nDie neue Firmware wird nun auf deinem ESPuino installiert. Dies dauert ungefähr eine Minute - sofern ein Neopixel mit mehreren LEDs angeschlossen ist, wird währenddessen eine Fortschritts-Animation angezeigt (blau). Ist es nur eine LED, so blinkt diese blau.",
+				"fetchError": "Firmware-Liste konnte nicht abgerufen werden."
+			}
 		}
 	},
 	"help": {
@@ -525,6 +541,7 @@
 		"title": "Information",
 		"softwareversion": "ESPuino {{softwareversion}}",
 		"gitversion": "ESPuino {{gitversion}}",
+		"branch": "Branch: {{branch}}",
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Freier Heap: {{freeheap}} Bytes",
