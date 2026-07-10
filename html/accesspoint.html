@@ -129,6 +129,13 @@
 		<h1 data-i18n="wifi.restartPrompt"></h1>
 		<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot"></button>
 	</form>
+	<div class="box">
+		<h1 data-i18n="wifi.fullInterface.title"></h1>
+		<p data-i18n="wifi.fullInterface.hint" style="font-size:13px;"></p>
+		<input type="text" id="full-interface-url" readonly onclick="this.select(); this.setSelectionRange(0, 99999);">
+		<button type="button" class="btn" id="copy-url-button" data-i18n="wifi.fullInterface.copy"></button>
+		<div id="copy-url-status" style="min-height:20px; font-size:13px; color:#3498db;"></div>
+	</div>
 	<script>
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
@@ -211,7 +218,38 @@
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
 			updateWifiFields();
+			setupFullInterfaceLink();
 		});
+
+		// Show the full management interface's URL and offer a "copy to clipboard" button. Uses the
+		// legacy execCommand('copy') rather than navigator.clipboard.writeText(), since the latter
+		// requires a secure (HTTPS) context and ESPuino only serves plain HTTP. Whether this works inside
+		// the OS's captive-portal sandbox (vs. a regular browser) is untested - so the URL always stays
+		// visible/selectable as a reliable fallback regardless of whether the copy itself succeeds.
+		//
+		// Deliberately hardcoded rather than derived from location.host: while in the captive-portal flow,
+		// the browser's address bar (and location.host) shows whatever probe hostname the OS resolved
+		// through ESPuino's catch-all DNS (e.g. macOS/iOS use "captive.apple.com"), not the device's actual
+		// IP. Copying a URL built from that would produce a link that resolves to the real apple.com (or
+		// whichever host) once opened outside the captive session - not back to ESPuino. The AP's IP is a
+		// fixed constant (see apIP in Wlan.cpp), so hardcoding it here is the robust choice.
+		function setupFullInterfaceLink() {
+			const urlField = document.getElementById("full-interface-url");
+			urlField.value = "http://192.168.4.1/management.html";
+
+			document.getElementById("copy-url-button").addEventListener("click", () => {
+				const status = document.getElementById("copy-url-status");
+				urlField.select();
+				urlField.setSelectionRange(0, 99999);
+				let copied = false;
+				try {
+					copied = document.execCommand("copy");
+				} catch (error) {
+					copied = false;
+				}
+				status.textContent = i18next.t(copied ? "wifi.fullInterface.copied" : "wifi.fullInterface.copyFailed");
+			});
+		}
 		async function updateWifiFields() {
 			let hostnameElem = document.getElementById("hostname");
 			let scanWifiElem = document.getElementById("scan_wifi_on_start");

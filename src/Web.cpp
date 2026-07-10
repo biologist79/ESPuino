@@ -182,16 +182,19 @@ static void serveProgmemFiles(const String &uri, const String &contentType, cons
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
-		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-		const bool etag = false;
+		const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
 		if (etag) {
 			response = request->beginResponse(304);
 		} else {
 			response = request->beginResponse(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
-		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		// no-cache (not "no-store"): browser may keep a local copy, but must always revalidate via ETag
+		// before using it. That way repeat loads cost only a small conditional request (304 if unchanged),
+		// while a firmware update (new gitRevShort) is picked up immediately instead of serving a stale
+		// cached copy for the "immutable"/long-max-age duration.
+		response->addHeader("Cache-Control", "no-cache");
+		response->addHeader("ETag", gitRevShort); // use git revision as digest
 		request->send(response);
 	});
 }
@@ -399,32 +402,53 @@ void webserverStart(void) {
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			AsyncWebServerResponse *response;
 
-			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-			const bool etag = false;
-			if (etag) {
-				response = request->beginResponse(304);
-			} else {
-				if (WiFi.getMode() == WIFI_STA) {
-					// serve management.html in station-mode
+			// ETag is tied to the firmware build (gitRevShort), so it must only gate the firmware-embedded
+			// management_html_BIN response below - never the user-provided SD-card index.htm, whose content
+			// can change independently of the firmware (a stale 304 would then serve an outdated cached
+			// copy of the user's own custom page).
+			const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
+
+			// management.html's frontend libraries are embedded rather than loaded from a CDN (see
+			// html/vendor/), so it no longer *needs* internet access - but AP-mode is typically reached
+			// through the OS's captive-portal mini-browser (e.g. iOS's Captive Network Assistant), which
+			// is a constrained sandbox: fixed small viewport, often no/partial WebSocket support, and a
+			// load-time budget the heavy Bootstrap/jQuery/jstree/WebSocket app can exceed - causing the OS
+			// to report the connection attempt as failed. So AP-mode keeps serving the minimal,
+			// framework-free accesspoint.html, which is known to work reliably in that sandbox.
+			if (WiFi.getMode() == WIFI_STA) {
+				// serve management.html in station-mode
 #ifdef NO_SDCARD
-					response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-					response->addHeader("Content-Encoding", "gzip");
-#else
-					if (gFSystem.exists("/.html/index.htm")) {
-						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
-					} else {
-						response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-						response->addHeader("Content-Encoding", "gzip");
-					}
-#endif
+				if (etag) {
+					response = request->beginResponse(304);
 				} else {
-					// serve accesspoint.html in AP-mode
-					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
 					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#else
+				if (gFSystem.exists("/.html/index.htm")) {
+					response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
+				} else if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#endif
+			} else {
+				// serve accesspoint.html in AP-mode
+				if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_html_BIN, sizeof(accesspoint_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
 				}
 			}
-			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 			request->send(response);
 		});
 
@@ -608,7 +632,9 @@ void webserverStart(void) {
 		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));
 
-		// ESPuino logo
+		// ESPuino logo: user-provided SD override takes precedence, otherwise fall back to the default
+		// logo embedded in the firmware (previously an external redirect to espuino.de, which failed
+		// without internet access, e.g. in AP-mode).
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			Log_Println("logo request", LOGLEVEL_DEBUG);
@@ -621,17 +647,35 @@ void webserverStart(void) {
 				return;
 			};
 #endif
-			request->redirect("https://www.espuino.de/Espuino.webp");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/webp", (const uint8_t *) vendor_branding_logo_webp_BIN, sizeof(vendor_branding_logo_webp_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
-		// ESPuino favicon
+		// ESPuino favicon: same SD-override-then-embedded-default pattern as /logo above.
 		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			if (gFSystem.exists("/.html/favicon.ico")) {
-				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
+				request->send(gFSystem, "/.html/favicon.ico", "image/x-icon");
 				return;
 			};
 #endif
-			request->redirect("https://espuino.de/espuino/favicon.ico");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/x-icon", (const uint8_t *) vendor_branding_favicon_ico_BIN, sizeof(vendor_branding_favicon_ico_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
@@ -1050,6 +1094,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject wifiObj = obj["wifi"].to<JsonObject>();
 		wifiObj["hostname"] = Wlan_GetHostname();
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
+		wifiObj["apSSID"] = Wlan_GetApSSID();
+		wifiObj["apPassword"] = Wlan_GetApPassword();
+		wifiObj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 	}
 	if (section == "ssids") {
 		// saved SSID's
@@ -2220,6 +2267,9 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 
 	obj["hostname"] = Wlan_GetHostname();
 	obj["scanOnStart"].set(scanWifiOnStart);
+	obj["apSSID"] = Wlan_GetApSSID();
+	obj["apPassword"] = Wlan_GetApPassword();
+	obj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 
 	response->setLength();
 	request->send(response);
@@ -2240,7 +2290,26 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 		return;
 	}
 
+	// ESPuino's own access-point (used as fallback when no known WiFi is available)
+	String strApSSID = jsonObj["apSSID"];
+	if (!Wlan_ValidateApSSID(strApSSID)) {
+		Log_Println("AP SSID validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP SSID validation failed");
+		return;
+	}
+	String strApPassword = jsonObj["apPassword"];
+	if (!Wlan_ValidateApPassword(strApPassword)) {
+		Log_Println("AP password validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP password validation failed");
+		return;
+	}
+	// minutes the AP stays open before auto-closing; 0 = never close automatically
+	uint32_t apTimeoutMinutes = jsonObj["apTimeout"] | 5;
+
 	bool succ = Wlan_SetHostname(strHostname);
+	succ = succ && Wlan_SetApSSID(strApSSID);
+	succ = succ && Wlan_SetApPassword(strApPassword);
+	succ = succ && Wlan_SetApTimeoutMinutes(apTimeoutMinutes);
 	if (succ) {
 		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
 		request->send(200, "text/plain; charset=utf-8", strHostname);

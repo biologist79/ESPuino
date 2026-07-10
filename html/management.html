@@ -10,25 +10,22 @@
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="apple-touch-icon" href="/logo">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
-	<link rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-	<link rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
+	<link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+	<link rel="stylesheet" href="/vendor/jstree/light/style.min.css" />
+	<link rel="stylesheet" href="/vendor/jstree/dark/style.min.css" />
+	<link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
+	<link rel="stylesheet" href="/vendor/bootstrap-slider/bootstrap-slider.min.css" />
+	<script src="/vendor/jquery/jquery.min.js"></script>
+	<script src="/vendor/jqueryui/jquery-ui.min.js"></script>
+	<script src="/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+	<script src="/vendor/jstree/jstree.min.js"></script>
+	<script src="/vendor/bootstrap-slider/bootstrap-slider.min.js"></script>
+	<script src="/vendor/i18next/i18next.min.js"></script>
+	<script src="/vendor/i18next/i18nextHttpBackend.min.js"></script>
+	<script src="/vendor/i18next/loc-i18next.min.js"></script>
+	<script src="/vendor/natsort/natcompare.js"></script>
 	<style type="text/css">
 		body {
 			/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
@@ -469,12 +466,40 @@
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="text" class="form-control" id="hostname"
 								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
 								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
 							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
 								value="false">&nbsp; <label for="scan_wifi_on_start"
 								data-i18n="wifi.scan.enabled"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+							<br><br>
+							<label for="apSSID" data-i18n="[prepend]wifi.apSSID.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+							<input type="text" class="form-control" id="apSSID"
+								data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
+								maxlength="32" required><br>
+							<label for="apPassword" data-i18n="[prepend]wifi.apPassword.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+							<input type="password" class="form-control" id="apPassword"
+								data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
+								autocomplete="off" minlength="8" maxlength="63"><br>
+							<label for="apTimeout" data-i18n="[prepend]wifi.apTimeout.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+							<input type="number" class="form-control" id="apTimeout" name="apTimeout" value="5"
+								min="0" step="1">
+							<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
 						</div>
 						<div class="text-center">
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
@@ -488,14 +513,23 @@
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="text" class="form-control" id="ssid"
 								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
 							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
 							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<input type="password" class="form-control" id="pwd" name="pwd"
 								data-i18n="[placeholder]wifi.password.placeholder" required><br>
 							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
 								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div id="wifi_static_div" style="display:none">
 								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
 								<input type="text" class="form-control" id="static_addr" name="static_addr">
@@ -2547,6 +2581,9 @@
 			if (wifiSettings) {
 				document.getElementById("hostname").value = wifiSettings.hostname;
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+				document.getElementById("apSSID").value = wifiSettings.apSSID;
+				document.getElementById("apPassword").value = wifiSettings.apPassword;
+				document.getElementById("apTimeout").value = wifiSettings.apTimeout;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
 			}
@@ -3218,9 +3255,15 @@
 			lastIdclicked = clickedId;
 			let hostname = document.getElementById("hostname").value;
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+			let apSSID = document.getElementById("apSSID").value;
+			let apPassword = document.getElementById("apPassword").value;
+			let apTimeout = parseInt(document.getElementById("apTimeout").value, 10);
 			var myObj = {
 				hostname: hostname,
-				scanOnStart: scanWifi
+				scanOnStart: scanWifi,
+				apSSID: apSSID,
+				apPassword: apPassword,
+				apTimeout: apTimeout
 			};
 			// set title to hostname
 			setTitle(hostname);

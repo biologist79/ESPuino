@@ -93,17 +93,35 @@
 		"ssid": {
 			"title": "WiFi-name (SSID)",
 			"placeholder": "SSID",
-			"validation": "Enter WiFi's SSID"
+			"validation": "Enter WiFi's SSID",
+			"explanation": "Name of the WiFi network ESPuino should join."
 		},
 		"password": {
 			"title": "Password",
 			"placeholder": "Password",
-			"validation": "Enter the WiFi's password"
+			"validation": "Enter the WiFi's password",
+			"explanation": "Password of the WiFi network ESPuino should join."
 		},
 		"hostname": {
 			"title": "ESPuino's name (hostname)",
 			"placeholder": "espuino",
-			"validation": "Enter a valid hostname"
+			"validation": "Enter a valid hostname",
+			"explanation": "This is the name of your ESPuino as it appears in your network."
+		},
+		"apSSID": {
+			"title": "ESPuino access point name",
+			"placeholder": "ESPuino",
+			"explanation": "Name of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range."
+		},
+		"apPassword": {
+			"title": "ESPuino access point password",
+			"placeholder": "Password",
+			"explanation": "Password of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range."
+		},
+		"apTimeout": {
+			"title": "Access point closes after (minutes)",
+			"hint": "0 = access point never closes automatically (security risk!)",
+			"explanation": "Duration in minutes for which the WiFi network ESPuino opens (when either no WiFi has been configured yet, or no configured WiFi is in range) stays open."
 		},
 		"static": {
 			"addr": "Static IP-Address",
@@ -111,16 +129,25 @@
 			"gateway": "Gateway for static IP-Configuration",
 			"subnet": "Subnet-mask for static IP-Configuration",
 			"dns1": "DNS 1 for static IP-Configuration",
-			"dns2": "DNS 2 for static IP-Configuration"
+			"dns2": "DNS 2 for static IP-Configuration",
+			"explanation": "IP configuration happens manually instead of via a DHCP server. Caution: you should know what to enter here, otherwise your ESPuino may no longer be reachable over the network."
 		},
 		"scan": {
-			"enabled": "Start with strongest WiFi"
+			"enabled": "Start with strongest WiFi",
+			"explanation": "If multiple WiFi networks are configured in ESPuino, or you're running a mesh WiFi, ESPuino won't just join the first configured network it finds while scanning. Instead, it scans all networks and joins the strongest one. Advantage: higher throughput. Disadvantage: takes a bit longer."
 		},
 		"delete": {
 			"title": "Delete WiFi",
 			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Ready to go?"
+		"restartPrompt": "Ready to go?",
+		"fullInterface": {
+			"title": "Just want the web interface?",
+			"hint": "If you don't want to set up WiFi but just access the interface (e.g. away from home with no known WiFi): close this window, open your regular browser and go to this address.",
+			"copy": "Copy address",
+			"copied": "Address copied!",
+			"copyFailed": "Could not copy - please select and copy the address above manually."
+		}
 	},
 	"control": {
 		"title": "Control",

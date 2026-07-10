@@ -93,17 +93,35 @@
 		"ssid": {
 			"title": "Nom du WiFi (SSID)",
 			"placeholder": "SSID",
-			"validation": "Entrez le SSID du WiFi"
+			"validation": "Entrez le SSID du WiFi",
+			"explanation": "Nom du réseau WiFi auquel ESPuino doit se connecter."
 		},
 		"password": {
 			"title": "Mot de passe",
 			"placeholder": "Mot de passe",
-			"validation": "Entrez le mot de passe du WiFi"
+			"validation": "Entrez le mot de passe du WiFi",
+			"explanation": "Mot de passe du réseau WiFi auquel ESPuino doit se connecter."
 		},
 		"hostname": {
 			"title": "Nom de l'ESPuino (nom d'hôte)",
 			"placeholder": "espuino",
-			"validation": "Entrez un nom d'hôte valide"
+			"validation": "Entrez un nom d'hôte valide",
+			"explanation": "C'est le nom de votre ESPuino tel qu'il apparaît dans votre réseau."
+		},
+		"apSSID": {
+			"title": "Nom du point d'accès ESPuino",
+			"placeholder": "ESPuino",
+			"explanation": "Nom du réseau WiFi qu'ESPuino ouvre lorsqu'aucun WiFi n'a encore été configuré, ou qu'aucun WiFi configuré n'est à portée."
+		},
+		"apPassword": {
+			"title": "Mot de passe du point d'accès ESPuino",
+			"placeholder": "Mot de passe",
+			"explanation": "Mot de passe du réseau WiFi qu'ESPuino ouvre lorsqu'aucun WiFi n'a encore été configuré, ou qu'aucun WiFi configuré n'est à portée."
+		},
+		"apTimeout": {
+			"title": "Le point d'accès se ferme après (minutes)",
+			"hint": "0 = le point d'accès ne se ferme jamais automatiquement (faille de sécurité !)",
+			"explanation": "Durée en minutes pendant laquelle le réseau WiFi qu'ESPuino ouvre (lorsqu'aucun WiFi n'a encore été configuré, ou qu'aucun WiFi configuré n'est à portée) reste ouvert."
 		},
 		"static": {
 			"addr": "Adresse IP statique",
@@ -111,16 +129,25 @@
 			"gateway": "Passerelle pour la configuration IP statique",
 			"subnet": "Masque de sous-réseau pour la configuration IP statique",
 			"dns1": "DNS 1 pour la configuration IP statique",
-			"dns2": "DNS 2 pour la configuration IP statique"
+			"dns2": "DNS 2 pour la configuration IP statique",
+			"explanation": "La configuration IP se fait manuellement au lieu de passer par un serveur DHCP. Attention : vous devez savoir ce qu'il faut saisir ici, sinon votre ESPuino risque de ne plus être accessible sur le réseau."
 		},
 		"scan": {
-			"enabled": "Démarrer avec le WiFi le plus puissant"
+			"enabled": "Démarrer avec le WiFi le plus puissant",
+			"explanation": "Si plusieurs réseaux WiFi sont configurés dans ESPuino, ou si vous exploitez un réseau WiFi maillé (mesh), ESPuino ne rejoint pas simplement le premier réseau configuré qu'il trouve lors du scan. Il scanne plutôt tous les réseaux et rejoint le plus puissant. Avantage : débit plus élevé. Inconvénient : cela prend un peu plus de temps."
 		},
 		"delete": {
 			"title": "Supprimer WiFi",
 			"prompt": "Supprimer le WiFi enregistré \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Prêt à partir?"
+		"restartPrompt": "Prêt à partir?",
+		"fullInterface": {
+			"title": "Vous voulez juste l'interface web ?",
+			"hint": "Si vous ne voulez pas configurer le WiFi mais juste accéder à l'interface (par ex. en déplacement sans WiFi connu) : fermez cette fenêtre, ouvrez votre navigateur habituel et accédez à cette adresse.",
+			"copy": "Copier l'adresse",
+			"copied": "Adresse copiée !",
+			"copyFailed": "Impossible de copier - veuillez sélectionner et copier l'adresse ci-dessus manuellement."
+		}
 	},
 	"control": {
 		"title": "Contrôle",
