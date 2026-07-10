@@ -397,7 +397,9 @@ void AudioPlayer_Init(void) {
 
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	// DMA-settings must be adjusted before setting the pinout
-	audio->setOutput16Bit(true); // to save dma-buffer and because we just don't need more than 16 bit
+	// Do NOT enable setOutput16Bit() on classic ESP32: the v3.4.6 16-bit output path
+	// garbles MP3 playback on WROVER (A/B-verified on a LOLIN D32 Pro). 32-bit output
+	// is clean. Re-enable once the upstream 16-bit path is fixed.
 	audio->settings.DMA_DESC_NUM = 32;
 	audio->settings.DMA_FRAME_NUM = 256; // not too high, so safe SRAM
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
