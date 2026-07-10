@@ -62,7 +62,14 @@ bool Rfid_GetLpcdShutdownStatus(void) {
 	return enabledLpcdShutdown;
 }
 
-void RfidPn5180_Init(void) {
+// Handles a possible deep-sleep wakeup via card-detection and releases GPIO pin holds left
+// over from a previous LPCD-armed deep-sleep. Must run early (before other peripherals are
+// powered), since a wakeup without a known card can send the device straight back to sleep
+// via RfidPn5180_WakeupCheck(). Does NOT start the scanning task: RfidPn5180_Task performing
+// SPI traffic concurrently with the rest of setup()'s peripheral init (Power_PeripheralOn(),
+// Led_Init(), SdCard_Init(), ...) was found to cause an intermittent full boot-hang, so task
+// creation is deferred to RfidPn5180_StartTask(), called once peripherals are up.
+void RfidPn5180_WakeupHandling(void) {
 	if (Rfid_Pn5180LpcdEnabled()) {
 		// Check if wakeup-reason was card-detection (PN5180 only)
 		// This only works if RFID.IRQ is connected to a GPIO and not to a port-expander
@@ -95,7 +102,9 @@ void RfidPn5180_Init(void) {
 		pinMode(RFID_IRQ, INPUT); // Not necessary for port-expander as for pca9555 all pins are configured as input per default
 	#endif
 	}
+}
 
+void RfidPn5180_StartTask(void) {
 	if (rfidTaskHandle == NULL) {
 		xTaskCreatePinnedToCore(
 			RfidPn5180_Task, /* Function to implement the task */
@@ -107,6 +116,11 @@ void RfidPn5180_Init(void) {
 			0 /* Core where the task should run */
 		);
 	}
+}
+
+void RfidPn5180_Init(void) {
+	RfidPn5180_WakeupHandling();
+	RfidPn5180_StartTask();
 }
 
 void RfidPn5180_Cyclic(void) {

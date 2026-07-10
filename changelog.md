@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 10.07.2026: Fix intermittent boot-hang with PN5180-LPCD enabled by deferring RFID-task start until after peripheral init
 * 09.07.2026: Remove unmaintained MAX17055 fuel-gauge support (MEASURE_BATTERY_MAX17055). Voltage-based battery measurement (MEASURE_BATTERY_VOLTAGE) is unaffected.
 * 08.07.2026: Fix DONT_ACCEPT_SAME_RFID_TWICE / PLAY_LAST_RFID_AFTER_REBOOT in combination with WiFi not yet available
 * 25.06.2026: update some libaries and platform (#411), thanks to @Joe91

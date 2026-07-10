@@ -122,7 +122,10 @@ void setup() {
 	System_Init_Rfid_Prefs();
 	const bool pn5180LpcdEnabled = gPrefsRfid.getBool("pn5180Lpcd", false);
 	if (pn5180LpcdEnabled) {
-		Rfid_Init();
+		// Only handle a possible deep-sleep wakeup here; starting the RFID scanning task
+		// this early raced with the peripheral init below and could hang the boot (see
+		// Rfid_StartTask() call further down).
+		Rfid_WakeupHandling();
 	}
 	System_Init();
 
@@ -173,6 +176,9 @@ void setup() {
 	Ftp_Init();
 	if (!pn5180LpcdEnabled) {
 		Rfid_Init();
+	} else {
+		// Peripherals are up now, safe to start the scanning task deferred above.
+		Rfid_StartTask();
 	}
 	RotaryEncoder_Init();
 	Bluetooth_Init();
