@@ -7,6 +7,8 @@ extern char gCurrentRfidTagId[cardIdStringSize];
 
 void Rfid_ResetOldRfid(void);
 void Rfid_Init(void);
+void Rfid_WakeupHandling(void);
+void Rfid_StartTask(void);
 void Rfid_Cyclic(void);
 void Rfid_Exit(void);
 void Rfid_TaskPause(void);
