@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+## Version 2.8 (10.06.2026)
+
 * 10.07.2026: Fix stack buffer overflow in RfidPn5180_WakeupCheck() when formatting the card UID for NVS lookup (#421)
 * 10.07.2026: Fix intermittent boot-hang with PN5180-LPCD enabled by deferring RFID-task start until after peripheral init (#420)
 * 09.07.2026: Remove unmaintained MAX17055 fuel-gauge support (MEASURE_BATTERY_MAX17055). Voltage-based battery measurement (MEASURE_BATTERY_VOLTAGE) is unaffected. (#419)
