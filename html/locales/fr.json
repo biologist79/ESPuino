@@ -178,6 +178,7 @@
 		},
 		"test": {
 			"connecting": "Connexion à « {{ssid}} » …",
+			"connectingBtn": "Connexion …",
 			"success": "Connecté ! La box a reçu l'adresse IP {{ip}} et quitte maintenant le mode configuration. Reconnectez votre téléphone à votre WiFi habituel et accédez à la box via http://{{ip}}"
 		}
 	},

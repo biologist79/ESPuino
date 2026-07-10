@@ -91,7 +91,6 @@
 		</div>
 		<h1 data-i18n="wifi.title"></h1>
 		<div id="connstatus" style="display:none;background:#f8d7da;color:#721c24;border-radius:4px;padding:10px;margin:10px 0;text-align:left"></div>
-		<div id="teststatus" style="display:none;border-radius:4px;padding:10px;margin:10px 0;text-align:left"></div>
 		<div id="WiFiList"></div>
 		<label for="ssid" data-i18n="wifi.ssid.title"></label>: <br>
 		<input type="text" id="ssid" name="ssid" placeholder="SSID" required>
@@ -134,7 +133,8 @@
 		</div>
 		<button type="submit" class="btn" id="save-button" data-i18n="wifi.saveButton"></button>
 	</form>
-	<form action="/restart" method="POST" class="box">
+	<div id="teststatus" style="display:none;border-radius:4px;padding:10px;margin:0 auto 20px;max-width:500px;text-align:left"></div>
+	<form id="restartform" action="/restart" method="POST" class="box">
 		<h1 data-i18n="wifi.restartPrompt"></h1>
 		<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot"></button>
 	</form>
@@ -245,16 +245,31 @@
 			box.innerText = text;
 			box.style.display = "block";
 		}
+		// Disable the form and turn the Connect button into a "Connecting …"
+		// indicator while a live test is in flight, so it's obvious the box is
+		// working (the button is where the eye already is). Re-enabled on failure
+		// so the user can fix the credentials and retry.
+		function setFormBusy(busy) {
+			const form = document.getElementById("settings");
+			for (const el of form.elements) {
+				el.disabled = busy;
+			}
+			const btn = document.getElementById("save-button");
+			btn.innerText = busy ? i18next.t("wifi.test.connectingBtn") : i18next.t("wifi.saveButton");
+		}
 		async function pollTestStatus() {
 			try {
 				const data = await (await fetch("/wifistatus")).json();
 				if (data.test) {
 					const t = data.test;
 					if (t.phase === "success") {
+						document.getElementById("settings").style.display = "none";
+						document.getElementById("restartform").style.display = "none";
 						showTestStatus("success", i18next.t("wifi.test.success", { ssid: t.ssid, ip: t.ip }));
 						return;
 					}
 					if (t.phase === "failed") {
+						setFormBusy(false);
 						const cls = ["wrong_password", "not_found", "rejected", "timeout"].includes(t.class) ? t.class : "other";
 						showTestStatus("failed", i18next.t("wifi.fail." + cls, { ssid: t.ssid, code: t.reason }));
 						return;
@@ -268,6 +283,7 @@
 			setTimeout(pollTestStatus, 1500);
 		}
 		async function wifiConfig() {
+			setFormBusy(true);
 			let static = document.getElementById('static_enabled').checked;
 			const ssid = document.getElementById('ssid').value;
 			var myObj = {
@@ -316,6 +332,7 @@
 				showTestStatus("progress", i18next.t("wifi.test.connecting", { ssid: ssid }));
 				setTimeout(pollTestStatus, 1000);
 			} else {
+				setFormBusy(false);
 				showTestStatus("failed", i18next.t("wifi.fail.other", { ssid: ssid, code: 0 }));
 			}
 		}
