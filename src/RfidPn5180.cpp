@@ -427,11 +427,20 @@ void RfidPn5180_WakeupCheck(void) {
 
 	// check for card id in NVS
 	if (isCardPresent) {
-		// uint8_t[10] -> char[cardIdStringSize]
+		// Only the first cardIdSize bytes of the UID are used, matching the same ID scheme used for
+		// NVS lookups everywhere else (see RfidPn5180_Task below, memcpy(cardId, uid, cardIdSize)).
+		// Formatting all 10 raw UID bytes here previously overflowed this cardIdStringSize-sized
+		// stack buffer (cardIdStringSize is sized for exactly cardIdSize formatted bytes): once the
+		// write position exceeded the buffer, "cardIdStringSize - pos" (both size_t/unsigned) wrapped
+		// to a huge value, so snprintf kept writing well past the end of tagId.
 		char tagId[cardIdStringSize];
 		size_t pos = 0;
-		for (size_t i = 0; i < 10; i++) {
-			pos += snprintf(tagId + pos, cardIdStringSize - pos, "%03d", uid[i]);
+		for (size_t i = 0; i < cardIdSize; i++) {
+			const int written = snprintf(tagId + pos, cardIdStringSize - pos, "%03d", uid[i]);
+			if (written < 0 || static_cast<size_t>(written) >= cardIdStringSize - pos) {
+				break;
+			}
+			pos += written;
 		}
 		tagId[cardIdStringSize - 1] = '\0';
 
