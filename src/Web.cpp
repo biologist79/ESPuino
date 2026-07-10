@@ -1386,11 +1386,11 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		softwareObj["idf"] = String(ESP.getSdkVersion());
 		softwareObj["platform"] = (String) espuinoPlatform;
 		softwareObj["customBuild"] = espuinoCustomBuild;
-	#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
 		softwareObj["otaSupported"] = true;
-	#else
+#else
 		softwareObj["otaSupported"] = false;
-	#endif
+#endif
 	}
 	// hardware
 	if ((section == "") || (section == "hardware")) {
