@@ -1,5 +1,4 @@
 {
-	"submit": "Soumettre",
 	"restart": "Redémarrer",
 	"reset": "Réinitialiser",
 	"execute": "Exécuter",
@@ -11,7 +10,6 @@
 	"cancel": "Annuler",
 	"refresh": "Actualiser",
 	"ok": "OK",
-	"showhide": "Afficher/Masquer",
 	"infos": "Informations",
 	"darkmode": "Mode sombre",
 	"restartinfo": "ESPuino est en cours de redémarrage...<br>La page se recharge automatiquement après la fin du redémarrage.",
@@ -35,11 +33,11 @@
 		"ftp": "FTP",
 		"bluetooth": "Bluetooth",
 		"general": "Général",
+		"updates": "Mises à jour",
 		"tools": "Outils",
 		"help": "Aide"
 	},
 	"settingsex": {
-		"title": "Paramètres avancés",
 		"led": {
 			"title": "Réglages des LED",
 			"numindicator": "Nombre d'indicateurs LED",
@@ -92,6 +90,8 @@
 	},
 	"wifi": {
 		"title": "Configuration WiFi",
+		"saveButton": "Enregistrer les paramètres WiFi",
+		"addNetworkButton": "Ajouter le réseau",
 		"networks": "Réseaux",
 		"savedNetworks": "Réseaux enregistrés",
 		"ssid": {
@@ -204,6 +204,7 @@
 		},
 		"rfid": {
 			"title": "Affectations RFID",
+			"saveButton": "Enregistrer l'affectation",
 			"idNumber": "Numéro RFID (12 chiffres) ou <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuelle</a>",
 			"music": "Musique",
 			"modification": "Modification",
@@ -215,22 +216,22 @@
 				"title": "Mode de lecture",
 				"placeholder": "Sélectionnez le mode",
 				"mode": {
-					"1": "Piste unique",
-					"2": "Piste unique (boucle)",
-					"12": "Piste unique d'un répertoire (aléatoire). Suivi par un mode veille.",
-					"3": "Livre audio",
-					"16": "Livre audio avec sous-répertoires (récursif)",
-					"4": "Livre audio (boucle)",
-					"5": "Toutes les pistes d'un répertoire (triées)",
-					"15": "Tous les titres d'un répertoire + sous-répertoires (triées, récursif)",
-					"6": "Toutes les pistes d'un répertoire (aléatoire)",
-					"17": "Tous les titres d'un répertoire + sous-répertoires (aléatoire, récursif)",
-					"7": "Toutes les pistes d'un répertoire (triées, boucle)",
-					"9": "Toutes les pistes d'un répertoire (aléatoire, boucle)",
-					"13": "Toutes les pistes d'un sous-répertoire aléatoire (triées)",
-					"14": "Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
-					"8": "Webradio",
-					"11": "Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
+					"1": "🎵 Piste unique",
+					"2": "🎵🔁 Piste unique (boucle)",
+					"12": "🎲💤 Piste unique d'un répertoire (aléatoire). Suivi par un mode veille.",
+					"3": "📖 Livre audio",
+					"16": "📚 Livre audio avec sous-répertoires (récursif)",
+					"4": "📖🔁 Livre audio (boucle)",
+					"5": "📁 Toutes les pistes d'un répertoire (triées)",
+					"15": "🌳 Tous les titres d'un répertoire + sous-répertoires (triées, récursif)",
+					"6": "📁🔀 Toutes les pistes d'un répertoire (aléatoire)",
+					"17": "🌳🔀 Tous les titres d'un répertoire + sous-répertoires (aléatoire, récursif)",
+					"7": "📁🔁 Toutes les pistes d'un répertoire (triées, boucle)",
+					"9": "📁🔀🔁 Toutes les pistes d'un répertoire (aléatoire, boucle)",
+					"13": "🎲📁 Toutes les pistes d'un sous-répertoire aléatoire (triées)",
+					"14": "🎲📁🔀 Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
+					"8": "📻 Webradio",
+					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
 				},
 				"error": "Mode de lecture invalide"
 			},
@@ -238,59 +239,60 @@
 				"title": "Modification",
 				"placeholder": "Sélectionnez la modification",
 				"cmd": {
-					"100": "Verrouillage des touches",
-					"101": "Mise en veille après 15 minutes",
-					"102": "Mise en veille après 30 minutes",
-					"103": "Mise en veille après 1 heure",
-					"104": "Mise en veille après 2 heures",
-					"105": "Mise en veille après la fin de la piste",
-					"106": "Mise en veille après la fin de la liste de lecture",
-					"107": "Mise en veille après la fin de cinq pistes",
-					"110": "Boucler la liste de lecture",
-					"111": "Boucler la piste",
-					"120": "Diminuer la luminosité des LED (mode nuit)",
-					"130": "Basculer le WiFi",
-					"140": "Basculer le haut-parleur Bluetooth",
-					"141": "Basculer le casque Bluetooth",
-					"142": "Basculer le mode (Normal => Haut-parleur BT => Casque Bluetooth)",
-					"150": "Activer FTP",
-					"151": "Annoncer l'adresse IP",
-					"152": "Annoncer l'heure actuelle",
-					"0": "Supprimer l'affectation",
-					"153": "Basculement de la lumière ambiante",
-					"170": "Basculer Lecture/Pause",
-					"171": "Piste précédente",
-					"172": "Piste suivante",
-					"173": "Première piste",
-					"174": "Dernière piste",
-					"175": "Volume initial",
-					"176": "Augmenter le volume",
-					"177": "Baisser le volume",
-					"178": "Afficher la tension de la batterie",
-					"179": "Mise en veille immédiate",
-					"180": "Avancer de n secondes",
-					"181": "Reculer de n secondes",
-					"182": "Stop",
-					"183": "Redémarrer",
-					"184": "Passer au dossier suivant",
-					"185": "Passer au dossier précédent",
-					"199": "Affichage de la charge de travail (console)",
-					"241": "Lire la carte RFID virtuelle 01",
-					"242": "Lire la carte RFID virtuelle 02",
-					"243": "Lire la carte RFID virtuelle 03",
-					"244": "Lire la carte RFID virtuelle 04",
-					"245": "Lire la carte RFID virtuelle 05",
-					"246": "Lire la carte RFID virtuelle 06",
-					"247": "Lire la carte RFID virtuelle 07",
-					"248": "Lire la carte RFID virtuelle 08",
-					"249": "Lire la carte RFID virtuelle 09",
-					"250": "Lire la carte RFID virtuelle 10"
+					"100": "🔒 Verrouillage des touches",
+					"101": "💤 Mise en veille après 15 minutes",
+					"102": "💤 Mise en veille après 30 minutes",
+					"103": "💤 Mise en veille après 1 heure",
+					"104": "💤 Mise en veille après 2 heures",
+					"105": "💤 Mise en veille après la fin de la piste",
+					"106": "💤 Mise en veille après la fin de la liste de lecture",
+					"107": "💤 Mise en veille après la fin de cinq pistes",
+					"110": "🔁 Boucler la liste de lecture",
+					"111": "🔂 Boucler la piste",
+					"120": "🌙 Diminuer la luminosité des LED (mode nuit)",
+					"130": "📶 Basculer le WiFi",
+					"140": "🔊 Basculer le haut-parleur Bluetooth",
+					"141": "🎧 Basculer le casque Bluetooth",
+					"142": "🔀 Basculer le mode (Normal => Haut-parleur BT => Casque Bluetooth)",
+					"150": "📁 Activer FTP",
+					"151": "🌐 Annoncer l'adresse IP",
+					"152": "🕒 Annoncer l'heure actuelle",
+					"0": "🗑 Supprimer l'affectation",
+					"153": "💡 Basculement de la lumière ambiante",
+					"170": "⏯ Basculer Lecture/Pause",
+					"171": "⏮ Piste précédente",
+					"172": "⏭ Piste suivante",
+					"173": "⏪ Première piste",
+					"174": "⏩ Dernière piste",
+					"175": "🔈 Volume initial",
+					"176": "🔊 Augmenter le volume",
+					"177": "🔉 Baisser le volume",
+					"178": "🔋 Afficher la tension de la batterie",
+					"179": "💤 Mise en veille immédiate",
+					"180": "» Avancer de n secondes",
+					"181": "« Reculer de n secondes",
+					"182": "⏹ Stop",
+					"183": "🔄 Redémarrer",
+					"184": "📁 Passer au dossier suivant",
+					"185": "📁 Passer au dossier précédent",
+					"199": "📊 Affichage de la charge de travail (console)",
+					"241": "🏷 Lire la carte RFID virtuelle 01",
+					"242": "🏷 Lire la carte RFID virtuelle 02",
+					"243": "🏷 Lire la carte RFID virtuelle 03",
+					"244": "🏷 Lire la carte RFID virtuelle 04",
+					"245": "🏷 Lire la carte RFID virtuelle 05",
+					"246": "🏷 Lire la carte RFID virtuelle 06",
+					"247": "🏷 Lire la carte RFID virtuelle 07",
+					"248": "🏷 Lire la carte RFID virtuelle 08",
+					"249": "🏷 Lire la carte RFID virtuelle 09",
+					"250": "🏷 Lire la carte RFID virtuelle 10"
 				}
 			}
 		}
 	},
 	"mqtt": {
 		"title": "Paramètres MQTT",
+		"saveButton": "Enregistrer les paramètres MQTT",
 		"enable": "Activer MQTT",
 		"clientId": {
 			"title": "Identifiant client MQTT",
@@ -336,6 +338,7 @@
 	},
 	"ftp": {
 		"title": "Paramètres FTP",
+		"saveButton": "Enregistrer les paramètres FTP",
 		"user": {
 			"title": "Nom d'utilisateur FTP",
 			"placeholder": "nom d'utilisateur"
@@ -351,6 +354,7 @@
 		}
 	},
 	"bt": {
+		"saveButton": "Enregistrer les paramètres Bluetooth",
 		"normal": {
 			"title": "Quitter le mode Bluetooth",
 			"desc": "Retourne au mode normal avec fonctionnalité WiFi. La musique de la carte SD et les flux web peuvent être lus.",
@@ -394,6 +398,7 @@
 		}
 	},
 	"general": {
+		"saveButton": "Enregistrer les paramètres",
 		"language": "Langue",
 		"volume": {
 			"title": "Volume",
@@ -472,6 +477,13 @@
 			"strnatcmp": "Naturel: sensible à la casse",
 			"strnatcasecmp": "Naturel: insensible à la casse",
 			"recDepth": "Profondeur de récursion maximale lors de la génération de playlists récursives"
+		},
+		"tabs": {
+			"playback": "Lecture",
+			"rfidReader": "Lecteur RFID",
+			"encoderButtons": "Codeur rotatif et boutons",
+			"led": "LED",
+			"power": "Énergie"
 		}
 	},
 	"tools": {
@@ -479,7 +491,8 @@
 			"title": "Affectations RFID enregistrées",
 			"desc": "Les affectations RFID ne sont pas stockées sur la carte SD, mais sur la mémoire interne non volatile (NVS) de l'ESPuino.",
 			"list": {
-				"title": "Liste de toutes les affectations RFID enregistrées"
+				"title": "Liste de toutes les affectations RFID enregistrées",
+				"show": "Afficher les affectations"
 			},
 			"erase": {
 				"title": "Supprimer toutes les affectations RFID",
@@ -493,15 +506,18 @@
 			},
 			"import": {
 				"title": "Importer",
-				"desc": "Le fichier de sauvegarde peut être téléversé ici pour importer les affectations RFID."
+				"desc": "Le fichier de sauvegarde peut être téléversé ici pour importer les affectations RFID.",
+				"button": "Importer les affectations"
 			},
 			"export": {
 				"title": "Exporter",
-				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les affectations RFID."
+				"desc": "Un fichier de sauvegarde peut être téléchargé ici afin d'exporter les affectations RFID.",
+				"button": "Exporter les affectations"
 			}
 		},
 		"fwupdate": {
 			"title": "Mise à jour du micrologiciel",
+			"button": "Télécharger le micrologiciel",
 			"desc": "La mise à jour du micrologiciel peut être effectuée ici.",
 			"github": {
 				"title": "Charger le micrologiciel depuis GitHub",

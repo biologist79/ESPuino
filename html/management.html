@@ -458,6 +458,22 @@
 			</div>
 		</div>
 	</div>
+	<!-- Modal dialog for the list of saved RFID assignments -->
+	<div class="modal fade" data-bs-backdrop="static" id="rfidListSavedAssignmentsModal" role="dialog">
+		<div class="modal-dialog modal-dialog-scrollable" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.nvs.list.title"></h5>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group" id="rfidListSavedAssignments"></ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="ok"></button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- Modal dialog for GitHub firmware build list -->
 	<div class="modal fade" data-bs-backdrop="static" id="githubBuildListModal" role="dialog">
 		<div class="modal-dialog" role="document">
@@ -498,6 +514,9 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general"
 				data-bs-target="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i
 					class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-updates-tab" data-bs-toggle="tab" href="#nav-updates"
+				data-bs-target="#nav-updates" role="tab" aria-controls="nav-updates" aria-selected="false"><i
+					class="fas fa-cloud-upload-alt"></i><span data-i18n="nav.updates"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools"
 				data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i
 					class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
@@ -516,45 +535,67 @@
 					<form action="#globalWifiConfig" method="POST"
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
-							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="text" class="form-control" id="hostname"
-								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
-								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
-								value="false">&nbsp; <label for="scan_wifi_on_start"
-								data-i18n="wifi.scan.enabled"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<br><br>
-							<label for="apSSID" data-i18n="[prepend]wifi.apSSID.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="text" class="form-control" id="apSSID"
-								data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
-								maxlength="32" required><br>
-							<label for="apPassword" data-i18n="[prepend]wifi.apPassword.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="password" class="form-control" id="apPassword"
-								data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
-								autocomplete="off" minlength="8" maxlength="63"><br>
-							<label for="apTimeout" data-i18n="[prepend]wifi.apTimeout.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="number" class="form-control" id="apTimeout" name="apTimeout" value="5"
-								min="0" step="1">
-							<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
+							<div class="d-flex gap-2 mb-2">
+								<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
+								<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="hostname" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.hostname.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="text" class="form-control" id="hostname"
+										data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
+										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="apSSID" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.apSSID.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="text" class="form-control" id="apSSID"
+										data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
+										maxlength="32" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="apPassword" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.apPassword.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="password" class="form-control" id="apPassword"
+										data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
+										autocomplete="off" minlength="8" maxlength="63">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="apTimeout" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.apTimeout.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="number" class="form-control" id="apTimeout" name="apTimeout"
+										value="5" min="0" step="1">
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
+								</div>
+							</div>
 						</div>
-						<div class="text-center">
+						<div>
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+								type="submit" class="btn btn-primary" data-i18n="wifi.saveButton"></button>
 						</div>
 					</form>
 				</div>
@@ -563,39 +604,80 @@
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
-							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="text" class="form-control" id="ssid"
-								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
-							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
-							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<input type="password" class="form-control" id="pwd" name="pwd"
-								data-i18n="[placeholder]wifi.password.placeholder" required><br>
-							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
-								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
+							<div class="row mb-2 align-items-center">
+								<label for="ssid" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.ssid.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="text" class="form-control" id="ssid"
+										data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="pwd" class="col-sm-4 col-form-label"
+									data-i18n="[prepend]wifi.password.title">:</label>
+								<div class="col-sm-8 d-flex align-items-center gap-2">
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+									<input type="password" class="form-control" id="pwd" name="pwd"
+										data-i18n="[placeholder]wifi.password.placeholder" required>
+								</div>
+							</div>
+							<div class="d-flex gap-2 mb-2">
+								<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
+								<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div id="wifi_static_div" style="display:none">
-								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-								<input type="text" class="form-control" id="static_addr" name="static_addr">
-								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-								<input type="text" class="form-control" id="static_gateway" name="static_gateway">
-								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-								<input type="text" class="form-control" id="static_subnet" name="static_subnet">
-								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-								<input type="text" class="form-control" id="static_dns1" name="static_dns1">
-								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-								<input type="text" class="form-control" id="static_dns2" name="static_dns2">
+								<div class="row mb-2 align-items-center">
+									<label for="static_addr" class="col-sm-4 col-form-label"
+										data-i18n="[prepend]wifi.static.addr">:</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_addr" name="static_addr">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<label for="static_gateway" class="col-sm-4 col-form-label"
+										data-i18n="[prepend]wifi.static.gateway">:</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_gateway"
+											name="static_gateway">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<label for="static_subnet" class="col-sm-4 col-form-label"
+										data-i18n="[prepend]wifi.static.subnet">:</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_subnet"
+											name="static_subnet">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<label for="static_dns1" class="col-sm-4 col-form-label"
+										data-i18n="[prepend]wifi.static.dns1">:</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_dns1" name="static_dns1">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<label for="static_dns2" class="col-sm-4 col-form-label"
+										data-i18n="[prepend]wifi.static.dns2">:</label>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_dns2" name="static_dns2">
+									</div>
+								</div>
 							</div>
 						</div>
-						<div class="text-center">
-							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<div>
+							<button type="submit" class="btn btn-primary" data-i18n="wifi.addNetworkButton"></button>
 						</div>
 					</form>
 				</div>
@@ -686,7 +768,7 @@
 						<select class="form-control form-select" id="commandId" name="commandId"></select>
 					</div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="executeCommand()"
 							data-i18n="execute"></button>
 					</div>
@@ -821,9 +903,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="text-center">
+						<div>
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+								type="submit" class="btn btn-primary" data-i18n="files.rfid.saveButton"></button>
 						</div>
 					</form>
 				</fieldset>
@@ -842,31 +924,66 @@
 							data-i18n="mqtt.enable"></label>
 					</div>
 					<div class="mb-3 my-2 col-md-12">
-						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
-							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
-						<label for="mqttBaseTopic" data-i18n="[prepend]mqtt.baseTopic.title">:</label>
-						<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
-							data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
-						<label for="mqttDeviceId" data-i18n="[prepend]mqtt.deviceId.title">:</label>
-						<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
-							data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
-						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-						<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
-							data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
-						<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-						<input type="text" class="form-control" id="mqttUser" maxlength=""
-							data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
-						<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-						<input type="password" class="form-control" id="mqttPwd" maxlength=""
-							data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
-						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
-						<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
-							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttClientId" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.clientId.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
+									data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttBaseTopic" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
+									data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttDeviceId" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.deviceId.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
+									data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttServer" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.server.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
+									data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttUser" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.user.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttUser" maxlength=""
+									data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttPwd" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.pwd.title">:</label>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" id="mqttPwd" maxlength=""
+									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="mqttPort" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]mqtt.port.title">:</label>
+							<div class="col-sm-8">
+								<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
+									data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+							</div>
+						</div>
 					</div>
-					<div class="text-center">
+					<div id="mqttFormButtons">
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							type="submit" class="btn btn-primary" data-i18n="mqtt.saveButton"></button>
 					</div>
 				</form>
 			</div>
@@ -877,16 +994,25 @@
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
-						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-						<input type="text" class="form-control" id="ftpUser" maxlength="0"
-							data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
-						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-						<input type="password" class="form-control" id="ftpPwd" maxlength="0"
-							data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+						<div class="row mb-2 align-items-center">
+							<label for="ftpUser" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]ftp.user.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="ftpUser" maxlength="0"
+									data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="pwd" class="col-sm-4 col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" id="ftpPwd" maxlength="0"
+									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+							</div>
+						</div>
 					</div>
-					<div class="text-center">
+					<div>
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							type="submit" class="btn btn-primary" data-i18n="ftp.saveButton"></button>
 					</div>
 				</form>
 				<hr>
@@ -896,7 +1022,7 @@
 					<legend data-i18n="ftp.start.title"></legend>
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="ftpStart()"
 							data-i18n="ftp.start.button"></button>
 					</div>
@@ -910,7 +1036,7 @@
 					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
 					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
 							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
 					</div>
@@ -921,17 +1047,31 @@
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
-						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
-						<input type="text" class="form-control" id="btDeviceName"
-							data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
-						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
-						<input type="text" class="form-control" id="btPinCode"
-							data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+						<div class="row mb-2 align-items-center">
+							<label for="btDeviceName" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]bt.device.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="btDeviceName"
+									data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<label for="btPinCode" class="col-sm-4 col-form-label"
+								data-i18n="[prepend]bt.pincode.title">:</label>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="btPinCode"
+									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+							</div>
+						</div>
 					</div>
 					<div class="mb-3 col-md-12">
-						<label class="form-label" data-i18n="bt.scan.title"></label>
-						<div class="d-grid gap-2 d-md-block">
-							<button type="button" class="btn btn-outline-primary" id="bt-scan-btn" onclick="startBtScan()"><i class="fas fa-search"></i> <span data-i18n="bt.scan.button"></span></button>
+						<div class="row mb-2 align-items-center">
+							<label class="col-sm-4 col-form-label" data-i18n="bt.scan.title"></label>
+							<div class="col-sm-8">
+								<button type="button" class="btn btn-outline-primary" id="bt-scan-btn"
+									onclick="startBtScan()"><i class="fas fa-search"></i> <span
+										data-i18n="bt.scan.button"></span></button>
+							</div>
 						</div>
 					</div>
 					<div id="bt-scan-results" class="mt-3 d-none">
@@ -947,8 +1087,8 @@
 							<tbody id="bt-scan-list"></tbody>
 						</table>
 					</div>
-					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					<div>
+						<button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button>
 					</div>
 				</form>
 				<hr>
@@ -958,7 +1098,7 @@
 					<legend data-i18n="bt.source.title"></legend>
 					<div data-i18n="bt.source.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
@@ -970,18 +1110,35 @@
 					<legend data-i18n="bt.sink.title"></legend>
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
 			</div>
 		</div>
-		<!-- ### Tab General ### -->
-		<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
-			aria-labelledby="nav-general-tab">
-			<div class="container" id="generalConfig">
-				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+			<!-- ### Tab General ### -->
+			<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
+				aria-labelledby="nav-general-tab">
+				<div class="container" id="generalConfig">
+					<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+					<div class="nav nav-tabs" id="GeneralSubTab" role="tablist">
+						<a class="nav-item nav-link active" id="general-playback-tab" data-bs-toggle="tab"
+							href="#general-playback" role="tab"><i class="fas fa-volume-up"></i><span
+								data-i18n="general.tabs.playback"></span></a>
+						<a class="nav-item nav-link" id="general-rfidreader-tab" data-bs-toggle="tab"
+							href="#general-rfidreader" role="tab"><i class="fas fa-microchip"></i><span
+								data-i18n="general.tabs.rfidReader"></span></a>
+						<a class="nav-item nav-link" id="general-encoder-tab" data-bs-toggle="tab"
+							href="#general-encoder" role="tab"><i class="fas fa-toggle-on"></i><span
+								data-i18n="general.tabs.encoderButtons"></span></a>
+						<a class="nav-item nav-link" id="general-led-tab" data-bs-toggle="tab" href="#general-led"
+							role="tab"><i class="fas fa-lightbulb"></i><span data-i18n="general.tabs.led"></span></a>
+						<a class="nav-item nav-link" id="general-power-tab" data-bs-toggle="tab" href="#general-power"
+							role="tab"><i class="fas fa-battery-full"></i><span data-i18n="general.tabs.power"></span></a>
+					</div>
+						<div class="tab-content mt-3" id="GeneralSubTabContent">
+						<div class="tab-pane fade show active" id="general-playback" role="tabpanel">
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
@@ -1029,39 +1186,7 @@
 							</div>
 						</fieldset>
 					</div>
-					<div class="col-md-12 mb-4" id="rfidConfig">
-						<fieldset>
-							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
-							<div class="mb-3">
-								<label for="rfidReaderType" data-i18n="general.rfid.readerType.title"></label>
-								<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
-									<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
-									<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
-									<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
-									<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
-								</select>
-								<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
-							</div>
-							<div class="mb-3">
-								<label for="mfrc522Gain" data-i18n="general.rfid.mfrc522Gain"></label>
-								<div class="input-group">
-									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain" min="0" max="7">
-									<span class="input-group-text bg-transparent border-0">
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
-											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
-											<i class="fas fa-circle-question"></i></a>
-									</span>
-								</div>
-							</div>
-							<div class="d-flex gap-2">
-								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
-								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
-							</div>
-						</fieldset>
-					</div>
+					<hr>
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
@@ -1145,6 +1270,214 @@
 							</div>
 						</fieldset>
 					</div>
+					<hr>
+					<div class="col-md-12 mb-4" id="playlistConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
+							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
+							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
+								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
+								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
+								<option value="1" data-i18n="general.playlist.strcmp"></option>
+							</select>
+						</fieldset>
+						<fieldset>
+							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
+							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
+								<option value="4">4</option>
+								<option value="3">3</option>
+								<option value="2">2</option>
+								<option value="1">1</option>
+							</select>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-rfidreader" role="tabpanel">
+					<div class="col-md-12 mb-4" id="rfidConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
+								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="rfidReaderType" class="col-sm-4 col-form-label"
+									data-i18n="general.rfid.readerType.title"></label>
+								<div class="col-sm-8">
+									<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
+										<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
+										<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
+										<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
+										<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
+									</select>
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mfrc522Gain" class="col-form-label"
+										data-i18n="general.rfid.mfrc522Gain"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain"
+										min="0" max="7">
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-encoder" role="tabpanel">
+					<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
+							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
+							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
+						</fieldset>
+					</div>
+					<hr>
+					<div class="col-md-12 mb-4" id="buttonsConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.buttons.title"></legend><br>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle">
+									<thead>
+										<tr>
+											<th></th>
+											<th data-i18n="settingsex.buttons.short"></th>
+											<th data-i18n="settingsex.buttons.long"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td data-i18n="settingsex.buttons.button0"></td>
+											<td><select id="cmdselect_short_0" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_0" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button1"></td>
+											<td><select id="cmdselect_short_1" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_1" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button2"></td>
+											<td><select id="cmdselect_short_2" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_2" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button3"></td>
+											<td><select id="cmdselect_short_3" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_3" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button4"></td>
+											<td><select id="cmdselect_short_4" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_4" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button5"></td>
+											<td><select id="cmdselect_short_5" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_5" class="form-control form-select"></select></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</fieldset>
+						<hr>
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle">
+									<tbody>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.01"></td>
+											<td><select id="cmdselect_multi_01" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.02"></td>
+											<td><select id="cmdselect_multi_02" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.03"></td>
+											<td><select id="cmdselect_multi_03" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.04"></td>
+											<td><select id="cmdselect_multi_04" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.05"></td>
+											<td><select id="cmdselect_multi_05" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.12"></td>
+											<td><select id="cmdselect_multi_12" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.13"></td>
+											<td><select id="cmdselect_multi_13" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.14"></td>
+											<td><select id="cmdselect_multi_14" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.15"></td>
+											<td><select id="cmdselect_multi_15" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.23"></td>
+											<td><select id="cmdselect_multi_23" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.24"></td>
+											<td><select id="cmdselect_multi_24" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.25"></td>
+											<td><select id="cmdselect_multi_25" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.34"></td>
+											<td><select id="cmdselect_multi_34" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.35"></td>
+											<td><select id="cmdselect_multi_35" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.45"></td>
+											<td><select id="cmdselect_multi_45" class="form-control form-select"></select></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-led" role="tabpanel">
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
@@ -1194,6 +1527,68 @@
 							</div>
 						</fieldset>
 					</div>
+					<hr>
+							<div class="col-md-12 mb-4" id="ledSettingsConfig">
+							<fieldset>
+								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
+								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>: <br>
+								<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator"
+									min="0" max="128"><br>
+								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
+								<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
+									min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
+								<div id="controlColorList" class="mb-2 d-none"></div>
+								<div id="controlColorTemp" class="pb-2 d-none">
+									<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
+										class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
+								</div>
+								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
+								<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0"
+									max="128"><br>
+								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
+								<div class="hue-slider">
+									<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
+										data-slider-max="255" min="-1" max="255" class="form-control"
+										name="led_hueStart" data-slider-value="-1" value="-1">
+								</div>
+								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
+								<div class="hue-slider">
+									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
+										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
+										data-slider-value="-1" value="-1">
+								</div>
+								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>: <br>
+								<div class="hue-slider">
+									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
+										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
+										data-slider-value="-1" value="-1">
+								</div>
+								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>: <br>
+								<div class="sat-slider">
+									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
+										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
+										data-slider-value="-1" value="-1">
+								</div>
+								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
+								<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
+								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
+								<input type="number" class="form-control" id="led_offsetStart"
+									name="led_offsetStart"><br>
+								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
+								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label><br>
+								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation"
+									value="false">&nbsp;
+								<label for="led_reverseRotation"
+									data-i18n="settingsex.led.reverserotation"></label><br><br>
+							</fieldset>
+							</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-power" role="tabpanel">
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
@@ -1213,6 +1608,7 @@
 							</div>
 						</fieldset>
 					</div>
+					<hr>
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
@@ -1298,188 +1694,16 @@
 							</div>
 						</fieldset>
 					</div>
-					<div class="col-md-12 mb-4" id="playlistConfig">
-						<fieldset>
-							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
-							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
-								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
-								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
-								<option value="1" data-i18n="general.playlist.strcmp"></option>
-							</select>
-						</fieldset>
-						<fieldset>
-							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
-							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
-								<option value="4">4</option>
-								<option value="3">3</option>
-								<option value="2">2</option>
-								<option value="1">1</option>
-							</select>
-						</fieldset>
-					</div>
-					<p data-i18n="settingsex.title"></p>
-					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-						data-bs-target="#settingsExConfigContainer" aria-expanded="false"
-						aria-controls="settingsExConfigContainer" data-i18n="showhide"></button><br><br>
-					<span class="collapse" id="settingsExConfigContainer">
-						<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
-								<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
-								<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
-							</fieldset>
-						</div>
-						<div class="col-md-12 mb-4" id="settingsExConfig">
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
-								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>: <br>
-								<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator"
-									min="0" max="128"><br>
-								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
-								<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
-									min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
-								<div id="controlColorList" class="mb-2 d-none"></div>
-								<div id="controlColorTemp" class="pb-2 d-none">
-									<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
-										class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
-								</div>
-								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
-								<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0"
-									max="128"><br>
-								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control"
-										name="led_hueStart" data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>: <br>
-								<div class="sat-slider">
-									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
-								<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
-								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
-								<input type="number" class="form-control" id="led_offsetStart"
-									name="led_offsetStart"><br>
-								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
-								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label><br>
-								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation"
-									value="false">&nbsp;
-								<label for="led_reverseRotation"
-									data-i18n="settingsex.led.reverserotation"></label><br><br>
-							</fieldset>
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.buttons.title"></legend><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button0"></legend>
-								<label for="cmdselect_short_0"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_0"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_0" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_0" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button1"></legend>
-								<label for="cmdselect_short_1"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_1"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_1" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_1" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button2"></legend>
-								<label for="cmdselect_short_2"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_2"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_2" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_2" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button3"></legend>
-								<label for="cmdselect_short_3"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_3"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_3" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_3" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button4"></legend>
-								<label for="cmdselect_short_4"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_4"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_4" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_4" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button5"></legend>
-								<label for="cmdselect_short_5"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_5"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_5" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_5" class="form-control form-select"></select><br><br>
-							</fieldset>
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
-								<label for="cmdselect_multi_01"
-									data-i18n="settingsex.multibuttons.01"></label>:&nbsp;<select
-									id="cmdselect_multi_01" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_02"
-									data-i18n="settingsex.multibuttons.02"></label>:&nbsp;<select
-									id="cmdselect_multi_02" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_03"
-									data-i18n="settingsex.multibuttons.03"></label>:&nbsp;<select
-									id="cmdselect_multi_03" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_04"
-									data-i18n="settingsex.multibuttons.04"></label>:&nbsp;<select
-									id="cmdselect_multi_04" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_05"
-									data-i18n="settingsex.multibuttons.05"></label>:&nbsp;<select
-									id="cmdselect_multi_05" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_12"
-									data-i18n="settingsex.multibuttons.12"></label>:&nbsp;<select
-									id="cmdselect_multi_12" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_13"
-									data-i18n="settingsex.multibuttons.13"></label>:&nbsp;<select
-									id="cmdselect_multi_13" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_14"
-									data-i18n="settingsex.multibuttons.14"></label>:&nbsp;<select
-									id="cmdselect_multi_14" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_15"
-									data-i18n="settingsex.multibuttons.15"></label>:&nbsp;<select
-									id="cmdselect_multi_15" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_23"
-									data-i18n="settingsex.multibuttons.23"></label>:&nbsp;<select
-									id="cmdselect_multi_23" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_24"
-									data-i18n="settingsex.multibuttons.24"></label>:&nbsp;<select
-									id="cmdselect_multi_24" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_25"
-									data-i18n="settingsex.multibuttons.25"></label>:&nbsp;<select
-									id="cmdselect_multi_25" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_34"
-									data-i18n="settingsex.multibuttons.34"></label>:&nbsp;<select
-									id="cmdselect_multi_34" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_35"
-									data-i18n="settingsex.multibuttons.35"></label>:&nbsp;<select
-									id="cmdselect_multi_35" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_45"
-									data-i18n="settingsex.multibuttons.45"></label>:&nbsp;<select
-									id="cmdselect_multi_45" class="form-control form-select"></select><br>
-							</fieldset>
-						</div>
-					</span>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
-							data-i18n="submit"></button>
+							data-i18n="general.saveButton"></button>
 					</div>
-				</form>
+						</div>
+						</div>
+					</form>
+				</div>
 			</div>
-		</div>
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
 			aria-labelledby="nav-tools-tab">
@@ -1488,64 +1712,64 @@
 				<p data-i18n="tools.nvs.desc"></p>
 				<span class="container" style="padding: 0" id="listNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
-					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-						data-bs-target="#rfidListSavedAssignmentsContainer" aria-expanded="false"
-						aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
-					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
-						<ul class="list-group" id="rfidListSavedAssignments"></ul>
-					</span><br><br>
+					<button class="btn btn-primary" type="button" data-bs-toggle="modal"
+						data-bs-target="#rfidListSavedAssignmentsModal" data-i18n="tools.nvs.list.show"></button>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0" id="exportNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
 					<p data-i18n="tools.nvs.export.desc"></p>
-					<a type="submit" class="btn btn-primary" data-i18n="submit"
+					<a type="submit" class="btn btn-primary" data-i18n="tools.nvs.export.button"
 						href="/explorerdownload?path=/backup.txt" target="_blank"></a>
-					<br><br>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0">
 					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
 					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
 						onsubmit="uploadNVSRFID('nvsUpload'); return false">
 						<div class="mb-3">
 							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload"
-								accept=".txt">
-							<br><br>
-							<div class="text-center">
-								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<div class="d-flex gap-2">
+								<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
+									name="nvsUpload" accept=".txt">
+								<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
 							</div>
 						</div>
 					</form>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0" id="eraseNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
 					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
-					<div class="text-center">
-						<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
-							data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
-					</div>
+					<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
+						data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
 				</span>
 				<hr>
 			</div>
+		</div>
+		<!-- ### Tab Updates ### -->
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-updates" role="tabpanel"
+			aria-labelledby="nav-updates-tab">
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
-							name="firmwareUpload" accept=".bin">
+						<div class="d-flex gap-2">
+							<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
+								name="firmwareUpload" accept=".bin">
+							<button type="submit" class="btn btn-primary" data-i18n="tools.fwupdate.button"></button>
+						</div>
 					</div>
-					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative">
+					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative"
+						style="display:none;">
 						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
 						<div
 							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
 						</div>
 					</div>
-					<br>
-					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-					</div>
 				</form>
+				<hr>
 			</div>
 			<div class="container" id="githubUpdate">
 				<legend id="legendfwupdategithub" data-i18n="tools.fwupdate.github.title"></legend>
@@ -1785,6 +2009,15 @@
 				lastSelectedNodePath = data.node.data.path;
 			}
 		});
+		/* Webradio (mode 8) needs a URL, not a file/folder path - prefill "http://" when switching
+		   to it, and restore the file browser's current selection when switching away again */
+		$('#playMode').on('change', function () {
+			if (this.value === '8') {
+				$('#fileOrUrl').val('http://');
+			} else {
+				$('#fileOrUrl').val(lastSelectedNodePath || '/');
+			}
+		});
 
 		function doRest(path, callback, obj) {
 			obj.url = path;
@@ -1904,6 +2137,7 @@
 			const startTime = new Date().getTime();
 			let bytesTotal = 0;
 			const fup = $('#firmwareUploadProgress');
+			fup.show();
 			$.ajax({
 				url: '/update',
 				type: 'POST',
@@ -2804,6 +3038,7 @@
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
 				$('#rfidReaderType').val(genSettings.rfidReaderType);
 				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				$('#pn5180Lpcd').prop('disabled', genSettings.rfidReaderType == 1 || genSettings.rfidReaderType == 2);
 				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
 			}
 			// current values
@@ -3132,7 +3367,6 @@
 		function onToolsTabOpened() {
 			console.log("tools tab opened!");
 			rebuildRFIDList();
-			initGithubFirmwareUpdate();
 		}
 		const config = {
 			attributes: true
@@ -3148,6 +3382,18 @@
 			}
 		})
 		toolsTabObserver.observe(toolsTab, config);
+
+		const updatesTab = document.getElementById("nav-updates-tab");
+		var updatesTabActive = false;
+		const updatesTabObserver = new MutationObserver((mutationList, observer) => {
+			if (!updatesTabActive && updatesTab.classList.contains("active")) {
+				updatesTabActive = true;
+				initGithubFirmwareUpdate();
+			} else {
+				updatesTabActive = false;
+			}
+		})
+		updatesTabObserver.observe(updatesTab, config);
 
 		async function ping() {
 			if (!socket) {
@@ -3806,8 +4052,8 @@
 			buildFileSystemTree("/");
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
-				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
-				$('#mqttConfig form .text-center').first().before(preview);
+				var preview = $('<fieldset class="mt-4 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
+				$('#mqttFormButtons').after(preview);
 			}
 			// Bind live update when relevant mqtt fields change
 			$('#mqttBaseTopic, #mqttDeviceId, #mqttClientId').off('input.mqttPreview').on('input.mqttPreview', function () {
@@ -3829,6 +4075,13 @@
 					rfid: rfid
 				}));
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
+			})
+			// Bootstrap only shows one modal at a time, so opening the delete-confirmation modal
+			// from within the RFID assignments list modal implicitly closes the list modal - reopen
+			// it once the confirmation is dismissed (cancelled or confirmed) so it doesn't feel like
+			// deleting an entry closes the whole list.
+			$('#deleteRFIDModal').on('hidden.bs.modal', function () {
+				new bootstrap.Modal(document.getElementById('rfidListSavedAssignmentsModal')).show();
 			})
 			$('.openPopupInfo').on('click', function () {
 				// Reset modal buttons when modal is closed
@@ -3898,6 +4151,16 @@
 				} else {
 					dontAcceptRfidTwice.prop('disabled', false);
 					resumeOnSameRfid.prop('disabled', !dontAcceptRfidTwice.prop('checked'));
+				}
+			});
+
+			/* PN5180 LPCD only applies to the PN5180 reader - disable it (and clear it) for MFRC522. */
+			$('#rfidReaderType').on('change', function () {
+				const pn5180Lpcd = $('#pn5180Lpcd');
+				if (this.value === '1' || this.value === '2') {
+					pn5180Lpcd.prop('checked', false).prop('disabled', true);
+				} else {
+					pn5180Lpcd.prop('disabled', false);
 				}
 			});
 

@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 11.07.2026: Restructure web UI settings tabs: split "General" into focused sub-tabs (Playback, RFID-Reader, Rotary encoder & buttons, LED, Power), add a new "Updates" tab, consistent row layout and left-aligned buttons across WiFi/MQTT/FTP/Bluetooth/RFID-reader, compact button-assignment tables, scrollable RFID assignments modal, and various smaller UX fixes
 * 10.07.2026: Automatically derive Software-revision from the Git commit date at build time instead of maintaining it by hand in src/revision.h
 * 10.07.2026: Fix connection watchdog false-positive and spurious "action performed successfully" toasts (#426)
 * 10.07.2026: Add firmware update from GitHub: list and install the last 5 builds from biologist79/ESPuino-Firmware directly in the web UI, with OTA progress shown on the LED ring

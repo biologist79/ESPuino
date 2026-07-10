@@ -1,5 +1,4 @@
 {
-	"submit": "Submit",
 	"restart": "Restart",
 	"reset": "Reset",
 	"execute": "Execute",
@@ -11,7 +10,6 @@
 	"cancel": "Cancel",
 	"refresh": "Refresh",
 	"ok": "OK",
-	"showhide": "Show/Hide",
 	"infos": "Information",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
@@ -35,11 +33,11 @@
 		"ftp": "FTP",
 		"bluetooth": "Bluetooth",
 		"general": "General",
+		"updates": "Updates",
 		"tools": "Tools",
 		"help": "Help"
 	},
 	"settingsex": {
-		"title": "Advanced settings",
 		"led": {
 			"title": "LED settings",
 			"numindicator": "Number of indicator LEDs",
@@ -92,6 +90,8 @@
 	},
 	"wifi": {
 		"title": "WiFi-configuration",
+		"saveButton": "Save WiFi settings",
+		"addNetworkButton": "Add network",
 		"networks": "Networks",
 		"savedNetworks": "Saved Networks",
 		"ssid": {
@@ -204,6 +204,7 @@
 		},
 		"rfid": {
 			"title": "RFID Assignments",
+			"saveButton": "Save assignment",
 			"idNumber": "RFID-number (12 digits) or <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtual</a>",
 			"music": "Music",
 			"modification": "Modification",
@@ -215,22 +216,22 @@
 				"title": "Playmode",
 				"placeholder": "Select mode",
 				"mode": {
-					"1": "Single track",
-					"2": "Single track (loop)",
-					"12": "Single track of a directory (random). Followed by sleep.",
-					"3": "Audiobook",
-					"16": "Audiobook with subdirectories (recursive)",
-					"4": "Audiobook (loop)",
-					"5": "All tracks of a directory (sorted)",
-					"15": "All tracks of a directory + subdirectories (sorted, recursive)",
-					"6": "All tracks of a directory (random)",
-					"17": "All tracks of a directory + subdirectories (random, recursive)",
-					"7": "All tracks of a directory (sorted, loop)",
-					"9": "All tracks of a directory (random, loop)",
-					"13": "All tracks of a random subdirectory (sorted)",
-					"14": "All tracks of a random subdirectory (random)",
-					"8": "Webradio",
-					"11": "List (files from SD and/or webstreams) from local .m3u-File"
+					"1": "🎵 Single track",
+					"2": "🎵🔁 Single track (loop)",
+					"12": "🎲💤 Single track of a directory (random). Followed by sleep.",
+					"3": "📖 Audiobook",
+					"16": "📚 Audiobook with subdirectories (recursive)",
+					"4": "📖🔁 Audiobook (loop)",
+					"5": "📁 All tracks of a directory (sorted)",
+					"15": "🌳 All tracks of a directory + subdirectories (sorted, recursive)",
+					"6": "📁🔀 All tracks of a directory (random)",
+					"17": "🌳🔀 All tracks of a directory + subdirectories (random, recursive)",
+					"7": "📁🔁 All tracks of a directory (sorted, loop)",
+					"9": "📁🔀🔁 All tracks of a directory (random, loop)",
+					"13": "🎲📁 All tracks of a random subdirectory (sorted)",
+					"14": "🎲📁🔀 All tracks of a random subdirectory (random)",
+					"8": "📻 Webradio",
+					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File"
 				},
 				"error": "Invalid playmode"
 			},
@@ -238,59 +239,60 @@
 				"title": "Modification",
 				"placeholder": "Select a modification",
 				"cmd": {
-					"100": "Keylock",
-					"101": "Sleep after 15 minutes",
-					"102": "Sleep after 30 minutes",
-					"103": "Sleep after 1 hour",
-					"104": "Sleep after 2 hours",
-					"105": "Sleep after end of track",
-					"106": "Sleep after end of playlist",
-					"107": "Sleep after end of five tracks",
-					"110": "Loop playlist",
-					"111": "Loop track",
-					"120": "Dimm LEDs (nightmode)",
-					"130": "Toggle WiFi",
-					"140": "Toggle Bluetooth Speaker",
-					"141": "Toggle Bluetooth Headphones",
-					"142": "Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
-					"150": "Enable FTP",
-					"151": "Announce IP-Address",
-					"152": "Announce current time",
-					"153": "Toggle Ambient Light",
-					"0": "Remove assignment",
-					"170": "Toggle Play/Pause",
-					"171": "Previous track",
-					"172": "Next track",
-					"173": "First track",
-					"174": "Last track",
-					"175": "Initial volume",
-					"176": "Volume up",
-					"177": "Volume down",
-					"178": "Show battery voltage",
-					"179": "Sleep immediately",
-					"180": "Seek forwards (n seconds)",
-					"181": "Seek backwards (n seconds)",
-					"182": "Stop",
-					"183": "Restart",
-					"184": "Jump to next folder",
-					"185": "Jump to previous folder",
-					"199": "Display task load (console)",
-					"241": "Play virtual RFID-card 01",
-					"242": "Play virtual RFID-card 02",
-					"243": "Play virtual RFID-card 03",
-					"244": "Play virtual RFID-card 04",
-					"245": "Play virtual RFID-card 05",
-					"246": "Play virtual RFID-card 06",
-					"247": "Play virtual RFID-card 07",
-					"248": "Play virtual RFID-card 08",
-					"249": "Play virtual RFID-card 09",
-					"250": "Play virtual RFID-card 10"
+					"100": "🔒 Keylock",
+					"101": "💤 Sleep after 15 minutes",
+					"102": "💤 Sleep after 30 minutes",
+					"103": "💤 Sleep after 1 hour",
+					"104": "💤 Sleep after 2 hours",
+					"105": "💤 Sleep after end of track",
+					"106": "💤 Sleep after end of playlist",
+					"107": "💤 Sleep after end of five tracks",
+					"110": "🔁 Loop playlist",
+					"111": "🔂 Loop track",
+					"120": "🌙 Dimm LEDs (nightmode)",
+					"130": "📶 Toggle WiFi",
+					"140": "🔊 Toggle Bluetooth Speaker",
+					"141": "🎧 Toggle Bluetooth Headphones",
+					"142": "🔀 Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
+					"150": "📁 Enable FTP",
+					"151": "🌐 Announce IP-Address",
+					"152": "🕒 Announce current time",
+					"153": "💡 Toggle Ambient Light",
+					"0": "🗑 Remove assignment",
+					"170": "⏯ Toggle Play/Pause",
+					"171": "⏮ Previous track",
+					"172": "⏭ Next track",
+					"173": "⏪ First track",
+					"174": "⏩ Last track",
+					"175": "🔈 Initial volume",
+					"176": "🔊 Volume up",
+					"177": "🔉 Volume down",
+					"178": "🔋 Show battery voltage",
+					"179": "💤 Sleep immediately",
+					"180": "» Seek forwards (n seconds)",
+					"181": "« Seek backwards (n seconds)",
+					"182": "⏹ Stop",
+					"183": "🔄 Restart",
+					"184": "📁 Jump to next folder",
+					"185": "📁 Jump to previous folder",
+					"199": "📊 Display task load (console)",
+					"241": "🏷 Play virtual RFID-card 01",
+					"242": "🏷 Play virtual RFID-card 02",
+					"243": "🏷 Play virtual RFID-card 03",
+					"244": "🏷 Play virtual RFID-card 04",
+					"245": "🏷 Play virtual RFID-card 05",
+					"246": "🏷 Play virtual RFID-card 06",
+					"247": "🏷 Play virtual RFID-card 07",
+					"248": "🏷 Play virtual RFID-card 08",
+					"249": "🏷 Play virtual RFID-card 09",
+					"250": "🏷 Play virtual RFID-card 10"
 				}
 			}
 		}
 	},
 	"mqtt": {
 		"title": "MQTT-settings",
+		"saveButton": "Save MQTT settings",
 		"enable": "Enable MQTT",
 		"clientId": {
 			"title": "MQTT-ClientId",
@@ -336,6 +338,7 @@
 	},
 	"ftp": {
 		"title": "FTP-settings",
+		"saveButton": "Save FTP settings",
 		"user": {
 			"title": "FTP-Username",
 			"placeholder": "username"
@@ -351,6 +354,7 @@
 		}
 	},
 	"bt": {
+		"saveButton": "Save Bluetooth settings",
 		"normal": {
 			"title": "Exit Bluetooth Mode",
 			"desc": "Returns to normal mode with WiFi functionality. Music from SD card and web streams can be played.",
@@ -394,6 +398,7 @@
 		}
 	},
 	"general": {
+		"saveButton": "Save settings",
 		"language": "Language",
 		"volume": {
 			"title": "Volume",
@@ -472,6 +477,13 @@
 			"strnatcmp": "Natural: case-sensitive",
 			"strnatcasecmp": "Natural: case-insensitive",
 			"recDepth": "Maximum recursion depth at generation of recursive playlists"
+		},
+		"tabs": {
+			"playback": "Playback",
+			"rfidReader": "RFID Reader",
+			"encoderButtons": "Rotary Encoder & Buttons",
+			"led": "LED",
+			"power": "Power"
 		}
 	},
 	"tools": {
@@ -479,7 +491,8 @@
 			"title": "Saved RFID assignments",
 			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
 			"list": {
-				"title": "List of all stored RFID assignments"
+				"title": "List of all stored RFID assignments",
+				"show": "Show assignments"
 			},
 			"erase": {
 				"title": "Erase all RFID assignments",
@@ -493,15 +506,18 @@
 			},
 			"import": {
 				"title": "Import",
-				"desc": "A backup file can be uploaded here in order to import RFID assignments."
+				"desc": "A backup file can be uploaded here in order to import RFID assignments.",
+				"button": "Import assignments"
 			},
 			"export": {
 				"title": "Export",
-				"desc": "A backup file can be downloaded here in order to export the RFID assignments."
+				"desc": "A backup file can be downloaded here in order to export the RFID assignments.",
+				"button": "Export assignments"
 			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
+			"button": "Upload firmware",
 			"desc": "Firmware can be updated right here.",
 			"github": {
 				"title": "Load firmware from GitHub",

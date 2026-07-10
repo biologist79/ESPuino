@@ -1,5 +1,4 @@
 {
-	"submit": "Absenden",
 	"restart": "Neustart",
 	"reset": "Reset",
 	"execute": "Ausführen",
@@ -11,7 +10,6 @@
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
 	"ok": "OK",
-	"showhide": "Ein-/Ausblenden",
 	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",
 	"restartinfo": "ESPuino wird jetzt neu gestartet...<br>Die Seite lädt sich nach dem Neustart automatisch neu.",
@@ -35,11 +33,11 @@
 		"ftp": "FTP",
 		"bluetooth": "Bluetooth",
 		"general": "Allgemein",
+		"updates": "Updates",
 		"tools": "Tools",
 		"help": "Hilfe"
 	},
 	"settingsex": {
-		"title": "Erweiterte Einstellungen",
 		"led": {
 			"title": "LED-Einstellungen",
 			"numindicator": "Anzahl Anzeige-LEDs",
@@ -92,6 +90,8 @@
 	},
 	"wifi": {
 		"title": "WLAN-Einstellungen",
+		"saveButton": "WLAN-Einstellungen speichern",
+		"addNetworkButton": "Netzwerk hinzufügen",
 		"networks": "Netzwerke",
 		"savedNetworks": "Gespeicherte Netzwerke",
 		"ssid": {
@@ -204,6 +204,7 @@
 		},
 		"rfid": {
 			"title": "RFID-Zuweisungen",
+			"saveButton": "Zuweisung speichern",
 			"idNumber": "RFID-Chip-Nummer (12-stellig) oder <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuell</a>",
 			"music": "Musik",
 			"modification": "Modifikation",
@@ -215,22 +216,22 @@
 				"title": "Abspielmodus",
 				"placeholder": "Modus auswählen",
 				"mode": {
-					"1": "Einzelner Titel",
-					"2": "Einzelner Titel (Endlosschleife)",
-					"12": "Einzelner Titel eines Verzeichnisses (zufällig). Danach schlafen.",
-					"3": "Hörbuch",
-					"16": "Hörbuch mit Unterverzeichnissen (rekursiv)",
-					"4": "Hörbuch (Endlosschleife)",
-					"5": "Alle Titel eines Verzeichnisses (sortiert)",
-					"15": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, sortiert)",
-					"6": "Alle Titel eines Verzeichnisses (zufällig)",
-					"17": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, zufällig)",
-					"7": "Alle Titel eines Verzeichnisses (sortiert, Endlosschleife)",
-					"9": "Alle Titel eines Verzeichnisses (zufällig, Endlosschleife)",
-					"13": "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
-					"14": "Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
-					"8": "Webradio",
-					"11": "Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+					"1": "🎵 Einzelner Titel",
+					"2": "🎵🔁 Einzelner Titel (Endlosschleife)",
+					"12": "🎲💤 Einzelner Titel eines Verzeichnisses (zufällig). Danach schlafen.",
+					"3": "📖 Hörbuch",
+					"16": "📚 Hörbuch mit Unterverzeichnissen (rekursiv)",
+					"4": "📖🔁 Hörbuch (Endlosschleife)",
+					"5": "📁 Alle Titel eines Verzeichnisses (sortiert)",
+					"15": "🌳 Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, sortiert)",
+					"6": "📁🔀 Alle Titel eines Verzeichnisses (zufällig)",
+					"17": "🌳🔀 Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, zufällig)",
+					"7": "📁🔁 Alle Titel eines Verzeichnisses (sortiert, Endlosschleife)",
+					"9": "📁🔀🔁 Alle Titel eines Verzeichnisses (zufällig, Endlosschleife)",
+					"13": "🎲📁 Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
+					"14": "🎲📁🔀 Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
+					"8": "📻 Webradio",
+					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
 				},
 				"error": "Kein gültiger Abspielmodus"
 			},
@@ -238,59 +239,60 @@
 				"title": "Modifikation",
 				"placeholder": "Modifikation auswählen",
 				"cmd": {
-					"100": "Tastensperre",
-					"101": "Schlafen nach 15 Minuten",
-					"102": "Schlafen nach 30 Minuten",
-					"103": "Schlafen nach 1 Stunde",
-					"104": "Schlafen nach 2 Stunden",
-					"105": "Schlafen nach Ende des Titels",
-					"106": "Schlafen nach Ende der Playlist",
-					"107": "Schlafen nach fünf Titeln",
-					"110": "Wiederhole Playlist (endlos)",
-					"111": "Wiederhole Titel (endlos)",
-					"120": "Dimme LEDs (Nachtmodus)",
-					"130": "Aktiviere/deaktiviere WLAN",
-					"140": "Bluetooth-Lautsprecher aktivieren/deaktivieren",
-					"141": "Bluetooth-Kopfhörer aktivieren/deaktivieren",
-					"142": "Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
-					"150": "Aktiviere FTP",
-					"151": "IP-Adresse ansagen",
-					"152": "Uhrzeit ansagen",
-					"153": "Ambient Light umschalten",
-					"0": "Lösche Zuordnung",
-					"170": "Play/Pause",
-					"171": "Vorheriger Titel",
-					"172": "Nächster Titel",
-					"173": "Erster Titel",
-					"174": "Letzter Titel",
-					"175": "Initiale Lautstärke",
-					"176": "Lauter",
-					"177": "Leiser",
-					"178": "Batteriespannung anzeigen",
-					"179": "Schlafe sofort",
-					"180": "Springe vorwärts (n Sekunden)",
-					"181": "Springe rückwärts (n Sekunden)",
-					"182": "Stop",
-					"183": "Neustart",
-					"184": "Springe zum nächsten Ordner",
-					"185": "Springe zum vorherigen Ordner",
-					"199": "Taskauslastung anzeigen (Konsole)",
-					"241": "Spiele virtuelle RFID-Karte 01",
-					"242": "Spiele virtuelle RFID-Karte 02",
-					"243": "Spiele virtuelle RFID-Karte 03",
-					"244": "Spiele virtuelle RFID-Karte 04",
-					"245": "Spiele virtuelle RFID-Karte 05",
-					"246": "Spiele virtuelle RFID-Karte 06",
-					"247": "Spiele virtuelle RFID-Karte 07",
-					"248": "Spiele virtuelle RFID-Karte 08",
-					"249": "Spiele virtuelle RFID-Karte 09",
-					"250": "Spiele virtuelle RFID-Karte 10"
+					"100": "🔒 Tastensperre",
+					"101": "💤 Schlafen nach 15 Minuten",
+					"102": "💤 Schlafen nach 30 Minuten",
+					"103": "💤 Schlafen nach 1 Stunde",
+					"104": "💤 Schlafen nach 2 Stunden",
+					"105": "💤 Schlafen nach Ende des Titels",
+					"106": "💤 Schlafen nach Ende der Playlist",
+					"107": "💤 Schlafen nach fünf Titeln",
+					"110": "🔁 Wiederhole Playlist (endlos)",
+					"111": "🔂 Wiederhole Titel (endlos)",
+					"120": "🌙 Dimme LEDs (Nachtmodus)",
+					"130": "📶 Aktiviere/deaktiviere WLAN",
+					"140": "🔊 Bluetooth-Lautsprecher aktivieren/deaktivieren",
+					"141": "🎧 Bluetooth-Kopfhörer aktivieren/deaktivieren",
+					"142": "🔀 Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
+					"150": "📁 Aktiviere FTP",
+					"151": "🌐 IP-Adresse ansagen",
+					"152": "🕒 Uhrzeit ansagen",
+					"153": "💡 Ambient Light umschalten",
+					"0": "🗑 Lösche Zuordnung",
+					"170": "⏯ Play/Pause",
+					"171": "⏮ Vorheriger Titel",
+					"172": "⏭ Nächster Titel",
+					"173": "⏪ Erster Titel",
+					"174": "⏩ Letzter Titel",
+					"175": "🔈 Initiale Lautstärke",
+					"176": "🔊 Lauter",
+					"177": "🔉 Leiser",
+					"178": "🔋 Batteriespannung anzeigen",
+					"179": "💤 Schlafe sofort",
+					"180": "» Springe vorwärts (n Sekunden)",
+					"181": "« Springe rückwärts (n Sekunden)",
+					"182": "⏹ Stop",
+					"183": "🔄 Neustart",
+					"184": "📁 Springe zum nächsten Ordner",
+					"185": "📁 Springe zum vorherigen Ordner",
+					"199": "📊 Taskauslastung anzeigen (Konsole)",
+					"241": "🏷 Spiele virtuelle RFID-Karte 01",
+					"242": "🏷 Spiele virtuelle RFID-Karte 02",
+					"243": "🏷 Spiele virtuelle RFID-Karte 03",
+					"244": "🏷 Spiele virtuelle RFID-Karte 04",
+					"245": "🏷 Spiele virtuelle RFID-Karte 05",
+					"246": "🏷 Spiele virtuelle RFID-Karte 06",
+					"247": "🏷 Spiele virtuelle RFID-Karte 07",
+					"248": "🏷 Spiele virtuelle RFID-Karte 08",
+					"249": "🏷 Spiele virtuelle RFID-Karte 09",
+					"250": "🏷 Spiele virtuelle RFID-Karte 10"
 				}
 			}
 		}
 	},
 	"mqtt": {
 		"title": "MQTT-Einstellungen",
+		"saveButton": "MQTT-Einstellungen speichern",
 		"enable": "MQTT aktivieren",
 		"clientId": {
 			"title": "MQTT-ClientId",
@@ -336,6 +338,7 @@
 	},
 	"ftp": {
 		"title": "FTP-Einstellungen",
+		"saveButton": "FTP-Einstellungen speichern",
 		"user": {
 			"title": "FTP-Benutzername",
 			"placeholder": "Benutzername"
@@ -351,6 +354,7 @@
 		}
 	},
 	"bt": {
+		"saveButton": "Bluetooth-Einstellungen speichern",
 		"normal": {
 			"title": "Bluetooth-Modus verlassen",
 			"desc": "Kehrt zum normalen Modus mit WiFi-Funktionalität zurück. Musik von SD-Karte und Webstreams können abgespielt werden.",
@@ -394,6 +398,7 @@
 		}
 	},
 	"general": {
+		"saveButton": "Einstellungen speichern",
 		"language": "Sprache",
 		"volume": {
 			"title": "Lautstärke",
@@ -411,7 +416,7 @@
 		"rfid": {
 			"title": "RFID Reader",
 			"readerType": {
-				"title": "Reader Type",
+				"title": "Reader-Typ",
 				"auto": "Auto-detect",
 				"mfrc522_spi": "MFRC522 (SPI)",
 				"mfrc522_i2c": "MFRC522 (I2C)",
@@ -472,6 +477,13 @@
 			"strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
 			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren",
 			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists"
+		},
+		"tabs": {
+			"playback": "Wiedergabe",
+			"rfidReader": "RFID-Reader",
+			"encoderButtons": "Drehencoder & Taster",
+			"led": "LED",
+			"power": "Energie"
 		}
 	},
 	"tools": {
@@ -479,7 +491,8 @@
 			"title": "Gespeicherte RFID-Zuweisungen",
 			"desc": "Die RFID-Zuweisungen werden nicht auf der SD-Karte, sondern im internen, nicht-flüchtigen Speicher (NVS) des ESPuinos gespeichert.",
 			"list": {
-				"title": "Liste aller gespeicherten RFID-Zuweisungen"
+				"title": "Liste aller gespeicherten RFID-Zuweisungen",
+				"show": "Zuweisungen anzeigen"
 			},
 			"erase": {
 				"title": "Alle RFID-Zuweisungen löschen",
@@ -493,15 +506,18 @@
 			},
 			"import": {
 				"title": "Import",
-				"desc": "Hier kann eine Backup-Datei hochgeladen werden, um RFID-Zuweisungen zu importieren."
+				"desc": "Hier kann eine Backup-Datei hochgeladen werden, um RFID-Zuweisungen zu importieren.",
+				"button": "Zuweisungen importieren"
 			},
 			"export": {
 				"title": "Export",
-				"desc": "Hier kann eine Backup-Datei heruntergeladen werden, um RFID-Zuweisungen zu exportieren."
+				"desc": "Hier kann eine Backup-Datei heruntergeladen werden, um RFID-Zuweisungen zu exportieren.",
+				"button": "Zuweisungen exportieren"
 			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
+			"button": "Firmware hochladen",
 			"desc": "Hier kann ein Firmware-Update durchgeführt werden.",
 			"github": {
 				"title": "Firmware von GitHub laden",
