@@ -161,6 +161,7 @@
 		},
 		"test": {
 			"connecting": "Trying to connect to \"{{ssid}}\" …",
+			"connectingBtn": "Connecting …",
 			"success": "Connected! The box got IP {{ip}}. It will now leave setup mode — reconnect your phone to your normal WiFi and reach the box at http://{{ip}}"
 		}
 	},
