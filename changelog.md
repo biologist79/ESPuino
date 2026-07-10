@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 10.07.2026: Automatically derive Software-revision from the Git commit date at build time instead of maintaining it by hand in src/revision.h
+* 10.07.2026: Fix connection watchdog false-positive and spurious "action performed successfully" toasts (#426)
 * 10.07.2026: Add firmware update from GitHub: list and install the last 5 builds from biologist79/ESPuino-Firmware directly in the web UI, with OTA progress shown on the LED ring
 * 10.07.2026: Self-host management webinterface locally (no more CDN dependency) & make AP SSID/password/timeout configurable via the web UI (#417)
 

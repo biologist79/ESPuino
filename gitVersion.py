@@ -24,6 +24,8 @@ TEMPLATE = """
     constexpr const char gitRevision[] = "Git-revision: {git_revision}";
     constexpr const char gitRevShort[] = "\\"{git_revision}\\"";
     constexpr const char gitBranch[] = "{git_branch}";
+    constexpr const char softwareRevisionShort[] = "{software_revision}";
+    constexpr const char softwareRevision[] = "Software-revision: {software_revision}";
 #endif
 """
 
@@ -56,15 +58,32 @@ def git_branch():
         return "unknown"
 
 
+def git_commit_date():
+    """Returns the commit date (YYYYMMDD) of HEAD, or None if unavailable
+       (e.g. no .git directory, such as in a GitHub zip download)."""
+    try:
+        return subprocess.check_output(
+            ["git", "log", "-1", "--format=%cd", "--date=format:%Y%m%d"],
+            text=True,
+            stderr=subprocess.PIPE,
+        ).strip()
+    except (subprocess.CalledProcessError, OSError):
+        return None
+
+
 def generate():
     """Generates header file."""
     print("GENERATING GIT REVISION HEADER FILE")
     gitrev = git_revision()
     gitbranch = git_branch()
-    print(f'  "{gitrev}" (branch "{gitbranch}") -> {OUTPUT_PATH}')
+    commit_date = git_commit_date()
+    swrev = f"{commit_date}-DEV" if commit_date else "unknown"
+    print(f'  "{gitrev}" (branch "{gitbranch}", revision "{swrev}") -> {OUTPUT_PATH}')
     OUTPUT_PATH.parent.mkdir(exist_ok=True, parents=True)
     with OUTPUT_PATH.open("w") as output_file:
-        output_file.write(TEMPLATE.format(git_revision=gitrev, git_branch=gitbranch))
+        output_file.write(
+            TEMPLATE.format(git_revision=gitrev, git_branch=gitbranch, software_revision=swrev)
+        )
 
 
 generate()

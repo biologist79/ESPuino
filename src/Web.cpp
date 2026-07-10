@@ -25,8 +25,8 @@
 #include "System.h"
 #include "Wlan.h"
 #include "freertos/ringbuf.h"
+#include "gitrevision.h"
 #include "platforminfo.h"
-#include "revision.h"
 #include "soc/timer_group_reg.h"
 #include "soc/timer_group_struct.h"
 
