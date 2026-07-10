@@ -25,6 +25,7 @@
 #include "System.h"
 #include "Wlan.h"
 #include "freertos/ringbuf.h"
+#include "platforminfo.h"
 #include "revision.h"
 #include "soc/timer_group_reg.h"
 #include "soc/timer_group_struct.h"
@@ -499,6 +500,11 @@ void webserverStart(void) {
 
 				Update.write(data, len);
 				Log_Print(".", LOGLEVEL_NOTICE, false);
+
+				const size_t contentLength = request->contentLength();
+				if (contentLength > 0) {
+					Led_ShowOtaProgress((uint8_t) (((index + len) * 100) / contentLength));
+				}
 
 				if (final) {
 					Update.end(true);
@@ -1375,8 +1381,16 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject softwareObj = infoObj["software"].to<JsonObject>();
 		softwareObj["version"] = (String) softwareRevision;
 		softwareObj["git"] = (String) gitRevision;
+		softwareObj["branch"] = (String) gitBranch;
 		softwareObj["arduino"] = String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH);
 		softwareObj["idf"] = String(ESP.getSdkVersion());
+		softwareObj["platform"] = (String) espuinoPlatform;
+		softwareObj["customBuild"] = espuinoCustomBuild;
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+		softwareObj["otaSupported"] = true;
+#else
+		softwareObj["otaSupported"] = false;
+#endif
 	}
 	// hardware
 	if ((section == "") || (section == "hardware")) {

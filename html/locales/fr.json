@@ -21,7 +21,8 @@
 		"success": "Action effectuée avec succès.",
 		"conlost": "Connexion à l'ESPuino perdue! Veuillez recharger la page.",
 		"dropout": "flux lent, des interruptions sont possibles.",
-		"saved": "Paramètres enregistrés."
+		"saved": "Paramètres enregistrés.",
+		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement."
 	},
 	"nav": {
 		"control": "Contrôle",
@@ -498,7 +499,22 @@
 		},
 		"fwupdate": {
 			"title": "Mise à jour du micrologiciel",
-			"desc": "La mise à jour du micrologiciel peut être effectuée ici."
+			"desc": "La mise à jour du micrologiciel peut être effectuée ici.",
+			"github": {
+				"title": "Charger le micrologiciel depuis GitHub",
+				"desc": "Télécharge un micrologiciel prêt à l'emploi directement depuis le dépôt ESPuino-Firmware et l'installe – sans téléchargement manuel.",
+				"branch": "Branche",
+				"checkButton": "Rechercher des mises à jour",
+				"searching": "Recherche en cours…",
+				"noBuilds": "Aucune version trouvée pour cette sélection.",
+				"notAvailablePlatform": "Aucun micrologiciel prêt à l'emploi n'est fourni dans le dépôt pour cette plateforme ({{platform}}). Veuillez télécharger le micrologiciel manuellement.",
+				"notAvailableCustomBuild": "Cette carte a été compilée avec des paramètres personnalisés (settings-override.h / platformio-override.ini). Le micrologiciel officiel ne contient pas ces personnalisations – veuillez le compiler vous-même et le télécharger manuellement comme d'habitude.",
+				"notAvailableOta": "Cette carte ne prend pas en charge la mise à jour du micrologiciel via l'interface web. Veuillez flasher le micrologiciel via le port série.",
+				"buildEntry": "{{date}} – commit :",
+				"installButton": "Installer",
+				"installPrompt": "Installer le micrologiciel du {{date}} (commit {{commit}}) maintenant ?\n\nPlateforme : {{platform}}\nBranche : {{branch}}\nLangue : {{language}}\n\nLe nouveau micrologiciel va maintenant être installé sur votre ESPuino. Cela prend environ une minute - si un ruban Neopixel avec plusieurs LEDs est connecté, une animation de progression (bleue) sera affichée pendant ce temps. S'il n'y a qu'une seule LED, elle clignotera en bleu.",
+				"fetchError": "Impossible de récupérer la liste des micrologiciels."
+			}
 		}
 	},
 	"help": {
@@ -525,6 +541,7 @@
 		"title": "Informations",
 		"softwareversion": "ESPuino {{softwareversion}}",
 		"gitversion": "ESPuino {{gitversion}}",
+		"branch": "Branche : {{branch}}",
 		"arduinoversion": "Version Arduino : {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Matériel : {{hwmodel}}, Révision {{hwrevision}}, CPU : {{hwfreq}} MHZ",
 		"freeheap": "Mémoire libre : {{freeheap}} octets",

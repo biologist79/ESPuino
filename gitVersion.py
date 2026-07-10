@@ -23,6 +23,7 @@ TEMPLATE = """
     #define __GIT_REVISION_H__
     constexpr const char gitRevision[] = "Git-revision: {git_revision}";
     constexpr const char gitRevShort[] = "\\"{git_revision}\\"";
+    constexpr const char gitBranch[] = "{git_branch}";
 #endif
 """
 
@@ -42,14 +43,28 @@ def git_revision():
         return "unknown"
 
 
+def git_branch():
+    """Returns the current Git branch name or unknown (e.g. detached HEAD in CI checkouts)."""
+    try:
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            text=True,
+            stderr=subprocess.PIPE,
+        ).strip()
+        return branch if branch != "HEAD" else "unknown"
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
+
+
 def generate():
     """Generates header file."""
     print("GENERATING GIT REVISION HEADER FILE")
     gitrev = git_revision()
-    print(f'  "{gitrev}" -> {OUTPUT_PATH}')
+    gitbranch = git_branch()
+    print(f'  "{gitrev}" (branch "{gitbranch}") -> {OUTPUT_PATH}')
     OUTPUT_PATH.parent.mkdir(exist_ok=True, parents=True)
     with OUTPUT_PATH.open("w") as output_file:
-        output_file.write(TEMPLATE.format(git_revision=gitrev))
+        output_file.write(TEMPLATE.format(git_revision=gitrev, git_branch=gitbranch))
 
 
 generate()

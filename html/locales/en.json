@@ -21,7 +21,8 @@
 		"success": "Action performed successfully.",
 		"conlost": "Connection to ESPuino broken! Please reload website.",
 		"dropout": "slow stream, dropouts are possible.",
-		"saved": "Settings saved."
+		"saved": "Settings saved.",
+		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it."
 	},
 	"nav": {
 		"control": "Control",
@@ -498,7 +499,22 @@
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
-			"desc": "Firmware can be updated right here."
+			"desc": "Firmware can be updated right here.",
+			"github": {
+				"title": "Load firmware from GitHub",
+				"desc": "Downloads a ready-built firmware directly from the ESPuino-Firmware repository and installs it – no manual download needed.",
+				"branch": "Branch",
+				"checkButton": "Check for updates",
+				"searching": "Searching…",
+				"noBuilds": "No builds found for this selection.",
+				"notAvailablePlatform": "No prebuilt firmwares are provided in the repository for this platform ({{platform}}). Please upload the firmware manually.",
+				"notAvailableCustomBuild": "This board was built with custom settings (settings-override.h / platformio-override.ini). The official firmware does not include these customizations – please build it yourself and upload it manually as usual.",
+				"notAvailableOta": "This board does not support firmware updates via the web interface. Please flash the firmware over serial.",
+				"buildEntry": "{{date}} – commit:",
+				"installButton": "Install",
+				"installPrompt": "Install the firmware from {{date}} (commit {{commit}}) now?\n\nPlatform: {{platform}}\nBranch: {{branch}}\nLanguage: {{language}}\n\nThe new firmware will now be installed on your ESPuino. This takes about a minute - if a Neopixel strip with multiple LEDs is connected, a progress animation (blue) will be shown during this time. With just a single LED, it will blink blue instead.",
+				"fetchError": "Could not fetch the firmware list."
+			}
 		}
 	},
 	"help": {
@@ -525,6 +541,7 @@
 		"title": "Information",
 		"softwareversion": "ESPuino {{softwareversion}}",
 		"gitversion": "ESPuino {{gitversion}}",
+		"branch": "Branch: {{branch}}",
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Free heap: {{freeheap}} Bytes",

@@ -36,6 +36,11 @@ static uint8_t Led_savedBrightness;
 // global led settings
 static LedSettings gLedSettings;
 
+// the strip buffer bound to FastLED via addLeds(); file-scope (rather than local to Led_Task)
+// so Led_ShowOtaProgress() can draw into it directly while Led_Task is suspended during an
+// OTA upload (see System_PauseTasksDuringUpload())
+static CRGB *leds = nullptr;
+
 TaskHandle_t Led_TaskHandle;
 static void Led_Task(void *parameter);
 static uint8_t Led_Address(uint8_t number);
@@ -396,7 +401,6 @@ bool CheckForPowerButtonAnimation() {
 #ifdef NEOPIXEL_ENABLE
 static void Led_Task(void *parameter) {
 	static uint8_t lastLedBrightness = gLedSettings.Led_Brightness;
-	static CRGB *leds = nullptr;
 	static CRGBSet *indicator = nullptr;
 
 	uint8_t numIndicatorLeds = gLedSettings.numIndicatorLeds;
@@ -423,14 +427,17 @@ static void Led_Task(void *parameter) {
 			Led_LoadSettings(gLedSettings);
 			// number of indicator/control leds changed
 			if (((gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds) != (numIndicatorLeds + numControlLeds)) || (gLedSettings.numControlLeds != numControlLeds)) {
-				FastLED.clear(true);
-				numIndicatorLeds = gLedSettings.numIndicatorLeds;
-				numControlLeds = gLedSettings.numControlLeds;
-				delete[] leds;
-				delete indicator;
-				leds = new CRGB[numIndicatorLeds + numControlLeds];
-				indicator = new CRGBSet(leds, numIndicatorLeds);
-				FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
+				// FastLED's SPI/RMT WS2812 driver lazily creates its internal strip object,
+				// sized for whatever pixel count was in effect on the very first show() call,
+				// and never resizes it afterwards. Calling addLeds() again with a different
+				// count here doesn't reset that internal state, so every following show()
+				// call hits a hard FASTLED_ASSERT (mLedStrip->numPixels() != pixels.size()).
+				// Request a clean restart instead of trying to hot-reallocate the strip, and
+				// stop touching leds/indicator/FastLED until then (their sizes no longer
+				// match gLedSettings).
+				Log_Println("Number of LEDs changed, restarting to apply..", LOGLEVEL_NOTICE);
+				System_Restart();
+				vTaskDelay(portMAX_DELAY);
 			}
 		}
 
@@ -1316,5 +1323,38 @@ void Led_TaskResume(void) {
 	if (Led_TaskHandle != NULL) {
 		vTaskResume(Led_TaskHandle);
 	}
+#endif
+}
+
+// Shows OTA-update progress on the indicator LEDs while Led_Task is suspended (see
+// Led_TaskPause(), called from System_PauseTasksDuringUpload()). No-op if Neopixel is
+// disabled or the strip hasn't been initialized yet. With a single indicator LED (which
+// can't show a fill level), blinks it instead, matching how other animations handle that case.
+void Led_ShowOtaProgress(uint8_t percent) {
+#ifdef NEOPIXEL_ENABLE
+	if ((leds == nullptr) || (gLedSettings.numIndicatorLeds == 0)) {
+		return;
+	}
+	if (percent > 100) {
+		percent = 100;
+	}
+	if (gLedSettings.numIndicatorLeds == 1) {
+		// a single LED can't show a fill level; blink it instead, like other single-LED animations
+		static uint32_t lastToggle = 0;
+		static bool blinkOn = false;
+		const uint32_t now = millis();
+		if (now - lastToggle >= 250) {
+			lastToggle = now;
+			blinkOn = !blinkOn;
+		}
+		leds[0] = blinkOn ? CRGB::Blue : CRGB::Black;
+		FastLED.show();
+		return;
+	}
+	const uint8_t litCount = (uint8_t) (((uint16_t) percent * gLedSettings.numIndicatorLeds) / 100);
+	for (uint8_t i = 0; i < gLedSettings.numIndicatorLeds; i++) {
+		leds[i] = (i < litCount) ? CRGB::Blue : CRGB::Black;
+	}
+	FastLED.show();
 #endif
 }

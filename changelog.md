@@ -2,6 +2,9 @@
 
 ## DEV-branch
 
+* 10.07.2026: Add firmware update from GitHub: list and install the last 5 builds from biologist79/ESPuino-Firmware directly in the web UI, with OTA progress shown on the LED ring
+* 10.07.2026: Self-host management webinterface locally (no more CDN dependency) & make AP SSID/password/timeout configurable via the web UI (#417)
+
 ## Version 2.8 (10.07.2026)
 
 * 10.07.2026: Fix stack buffer overflow in RfidPn5180_WakeupCheck() when formatting the card UID for NVS lookup (#421)
