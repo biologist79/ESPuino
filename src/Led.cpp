@@ -224,6 +224,11 @@ using LedStripMethod = NeoEsp32I2s1Ws2812xMethod; // classic ESP32: I2S peripher
 #endif
 using LedStrip = NeoPixelBus<NeoFeatureFor<COLOR_ORDER>::type, LedStripMethod>;
 static LedStrip *ledStrip = nullptr;
+// Perceptual dimming: WS2812 output is ~linear in its 8-bit value but the eye is ~logarithmic,
+// so a plain linear brightness scale barely dims until the very bottom of the range. Gamma-correct
+// the (already brightness-scaled) colour in Led_ShowStrip so perceived brightness tracks the
+// setting — a wide, smooth dimming range instead of "bright until it snaps off".
+static NeoGamma<NeoGammaCieLabEquationMethod> ledGamma;
 	#endif
 
 // (Re-)initialize the LED output driver for the given total number of leds
@@ -248,7 +253,8 @@ static void Led_ShowStrip(CRGB *leds, uint16_t count) {
 	const uint8_t scaleG = scale8(0xB0, b);
 	const uint8_t scaleB = scale8(0xF0, b);
 	for (uint16_t i = 0; i < count; i++) {
-		ledStrip->SetPixelColor(i, RgbColor(scale8(leds[i].r, scaleR), scale8(leds[i].g, scaleG), scale8(leds[i].b, scaleB)));
+		const RgbColor c(scale8(leds[i].r, scaleR), scale8(leds[i].g, scaleG), scale8(leds[i].b, scaleB));
+		ledStrip->SetPixelColor(i, ledGamma.Correct(c));
 	}
 	ledStrip->Show();
 	#else
@@ -1463,13 +1469,13 @@ void Led_ShowOtaProgress(uint8_t percent) {
 			blinkOn = !blinkOn;
 		}
 		leds[0] = blinkOn ? CRGB::Blue : CRGB::Black;
-		FastLED.show();
+		Led_ShowStrip(leds, gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds);
 		return;
 	}
 	const uint8_t litCount = (uint8_t) (((uint16_t) percent * gLedSettings.numIndicatorLeds) / 100);
 	for (uint8_t i = 0; i < gLedSettings.numIndicatorLeds; i++) {
 		leds[i] = (i < litCount) ? CRGB::Blue : CRGB::Black;
 	}
-	FastLED.show();
+	Led_ShowStrip(leds, gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds);
 #endif
 }
