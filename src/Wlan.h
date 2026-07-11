@@ -127,6 +127,7 @@ bool Wlan_SetApPassword(String);
 uint32_t Wlan_GetApTimeoutMinutes(void);
 bool Wlan_SetApTimeoutMinutes(uint32_t);
 bool Wlan_IsConnected(void);
+void Wlan_SetPowerSave(bool enabled);
 void Wlan_ToggleEnable(void);
 String Wlan_GetIpAddress(void);
 int8_t Wlan_GetRssi(void);

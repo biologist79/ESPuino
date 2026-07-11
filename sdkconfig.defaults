@@ -244,6 +244,14 @@ CONFIG_LWIP_IPV6_AUTOCONFIG=y
 CONFIG_LWIP_TCP_SYNMAXRTX=6
 CONFIG_LWIP_TCP_MSS=1436
 CONFIG_LWIP_TCP_RTO_TIME=3000
+# Enlarge the TCP window (default 5760 = 4*MSS) to lift the web-upload throughput ceiling. On upload the
+# ESP is the receiver, so throughput is bound by window/RTT - effective once WiFi modem-sleep is disabled
+# during uploads (see System_PauseTasksDuringUpload), which keeps the RTT low. 16*MSS is where the gain
+# materializes; the extra ~11KB of buffered data per socket is more than offset by reducing the upload
+# double-buffer from 3 to 2 buffers (see nr_of_buffers in Web.cpp). Kept below 64KB so no window-scaling.
+CONFIG_LWIP_TCP_WND_DEFAULT=22976
+CONFIG_LWIP_TCP_SND_BUF_DEFAULT=22976
+CONFIG_LWIP_TCP_RECVMBOX_SIZE=16
 # end of TCP
 
 CONFIG_LWIP_TCPIP_TASK_STACK_SIZE=2560

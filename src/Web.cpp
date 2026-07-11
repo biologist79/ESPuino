@@ -48,7 +48,7 @@ AsyncEventSource events("/events");
 static bool webserverStarted = false;
 
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
-static constexpr uint32_t nr_of_buffers = 3; // at least two buffers. No speed improvement yet with more than two.
+static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two. Kept at 2 to save ~16KB heap during uploads.
 
 static constexpr size_t retry_count = 3; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
 

@@ -827,6 +827,14 @@ bool Wlan_IsConnected(void) {
 	return (wifiState == WIFI_STATE_CONNECTED);
 }
 
+// Enable/disable WiFi modem power-save. Power-save (WIFI_PS_MIN_MODEM, the Arduino default) saves power
+// when idle but inflates latency and cripples TCP throughput - so it is temporarily disabled during
+// bulk transfers (e.g. web-uploads, see System_PauseTasksDuringUpload()) and re-enabled afterwards.
+void Wlan_SetPowerSave(bool enabled) {
+	WiFi.setSleep(enabled);
+	Log_Printf(LOGLEVEL_DEBUG, "WiFi power-save %s", enabled ? "on" : "off");
+}
+
 std::optional<std::vector<uint8_t>> WiFiSettings::serialize() const {
 	if (!isValid()) {
 		// we refuse to serialize a corrupted data set
