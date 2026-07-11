@@ -1336,6 +1336,19 @@
 										min="0" max="7">
 								</div>
 							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="pn5180Debounce" class="col-form-label"
+										data-i18n="general.rfid.pn5180Debounce"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="pn5180Debounce" name="pn5180Debounce"
+										min="0" max="2000" step="10">
+								</div>
+							</div>
 						</fieldset>
 					</div>
 					<div>
@@ -3040,6 +3053,7 @@
 				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
 				$('#pn5180Lpcd').prop('disabled', genSettings.rfidReaderType == 1 || genSettings.rfidReaderType == 2);
 				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
+				$('#pn5180Debounce').val(genSettings.pn5180Debounce);
 			}
 			// current values
 			let currSettings = settings.current;
@@ -3496,7 +3510,8 @@
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
 					rfidReaderType: Number($('#rfidReaderType').val()),
 					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
-					mfrc522Gain: Number($('#mfrc522Gain').val())
+					mfrc522Gain: Number($('#mfrc522Gain').val()),
+					pn5180Debounce: Number($('#pn5180Debounce').val())
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),
@@ -4172,7 +4187,11 @@
 					resumeOnSameRfid.prop('disabled', true);
 					return;
 				}
-				resumeOnSameRfid.prop('disabled', !$(this).prop('checked'));
+				const enabled = $(this).prop('checked');
+				if (!enabled) {
+					resumeOnSameRfid.prop('checked', false);
+				}
+				resumeOnSameRfid.prop('disabled', !enabled);
 			});
 
 			const lightSwitch = $('#lightSwitch');
