@@ -426,7 +426,9 @@
 			"pn5180Lpcd": "Enable PN5180 LPCD",
 			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
 			"mfrc522Gain": "MFRC522 Gain",
-			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7."
+			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7.",
+			"pn5180Debounce": "PN5180 debounce",
+			"pn5180DebounceExp": "Time in milliseconds a card must go undetected before it's considered removed. Prevents brief read dropouts (e.g. with a larger gap between card and reader) from being mistaken for card removal. A restart is required for a change to take effect. Default is 500ms."
 		},
 		"options": {
 			"title": "Options",

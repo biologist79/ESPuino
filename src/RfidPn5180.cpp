@@ -136,6 +136,7 @@ void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
 	uint32_t lastTimeDetected14443 = 0;
 	uint32_t lastTimeDetected15693 = 0;
+	const uint16_t debounceMs = gPrefsRfid.getUShort("pn5180Debounce", 500);
 	byte lastValidcardId[cardIdSize];
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
@@ -165,6 +166,11 @@ void RfidPn5180_Task(void *parameter) {
 		if (RFID_PN5180_STATE_INIT == stateMachine) {
 			nfc14443.begin();
 			nfc14443.reset();
+			// Lower than the library default (500ms): transceiveCommand()'s BUSY-pin wait loops
+			// should normally resolve in well under this, so fail/retry faster if the chip is
+			// genuinely unresponsive instead of stalling the polling loop for half a second.
+			nfc14443.commandTimeout = 100;
+			nfc15693.commandTimeout = 100;
 			// show PN5180 reader version
 			// uint8_t firmwareVersion[2];
 			// nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
@@ -189,7 +195,7 @@ void RfidPn5180_Task(void *parameter) {
 				// Reset to dummy-value if no card is there
 				// Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
 				// lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= 1000)) {
+				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= debounceMs)) {
 					lastTimeDetected14443 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
@@ -224,6 +230,12 @@ void RfidPn5180_Task(void *parameter) {
 				}
 			}
 		} else if ((RFID_PN5180_NFC15693_STATE_GETINVENTORY == stateMachine) || (RFID_PN5180_NFC15693_STATE_GETINVENTORY_PRIVACY == stateMachine)) {
+			// Unlike the ISO14443 path, PN5180ISO15693::issueISO15693Command() (called by
+			// getInventory()) never clears the chip's IRQ-status register before checking for a
+			// fresh response. Without this, a stale RX-IRQ flag left over from an earlier
+			// successful read could make the next poll immediately look like "new data arrived"
+			// and return leftover buffer content as a phantom card - even with no tag present.
+			nfc15693.clearIRQStatus(0xffffffff);
 			// try to read ISO15693 inventory
 			ISO15693ErrorCode rc = nfc15693.getInventory(uid);
 			if (rc == ISO15693_EC_OK) {
@@ -233,7 +245,7 @@ void RfidPn5180_Task(void *parameter) {
 				cardAppliedCurrentRun = true;
 			} else {
 				// lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
-				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= 400)) {
+				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= debounceMs)) {
 					lastTimeDetected15693 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
@@ -259,12 +271,15 @@ void RfidPn5180_Task(void *parameter) {
 
 			// check for different card id
 			if (memcmp((const void *) cardId, (const void *) lastCardId, sizeof(cardId)) == 0) {
-				// reset state machine
+				// Same card as last poll (the common case while a tag sits continuously on the
+				// reader): skip the "new card" processing below (logging/queueing) and poll again
+				// directly, without a RESET in between - see the comment on the ACTIVE-bypass at
+				// the end of this loop for why avoiding the hardware reset here matters.
 				if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
-					stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+					stateMachine = RFID_PN5180_NFC14443_STATE_READCARD;
 					continue;
 				} else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
-					stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+					stateMachine = RFID_PN5180_NFC15693_STATE_GETINVENTORY;
 					continue;
 				}
 			}
@@ -315,10 +330,19 @@ void RfidPn5180_Task(void *parameter) {
 			}
 		}
 
-		if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) { // If 14443 is active, bypass 15693 as next check (performance)
-			stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
-		} else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) { // If 15693 is active, bypass 14443 as next check (performance)
-			stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+		if (RFID_PN5180_NFC14443_STATE_ACTIVE == stateMachine) {
+			// Poll again directly, without a RESET in between: nfc14443.reset() is a full hardware
+			// reset of the PN5180 (RST-pin toggle + reboot wait) that collapses the RF field, and
+			// readCardSerial() re-establishes the field on every call anyway. Cycling a hard reset
+			// on every ~20ms poll while a card is already confirmed present forces marginally-coupled
+			// tags (e.g. a case with a larger antenna-to-card gap) to fully re-power from scratch each
+			// time, which is a plausible cause of intermittent "card not recognized" blips while a tag
+			// sits untouched on the reader. A RESET is still done for the initial scan (state machine
+			// starts at RESET) and after the tag is confirmed gone (see debounce below).
+			stateMachine = RFID_PN5180_NFC14443_STATE_READCARD;
+		} else if (RFID_PN5180_NFC15693_STATE_ACTIVE == stateMachine) {
+			// Same reasoning as above, for ISO15693.
+			stateMachine = RFID_PN5180_NFC15693_STATE_GETINVENTORY;
 		} else {
 			stateMachine++;
 			if (stateMachine > RFID_PN5180_NFC15693_STATE_GETINVENTORY_PRIVACY) {
