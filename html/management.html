@@ -2269,7 +2269,7 @@
 			list.empty().append($('<li class="list-group-item"></li>').text(i18next.t("tools.fwupdate.github.searching")));
 			new bootstrap.Modal(document.getElementById('githubBuildListModal')).show();
 			try {
-				const resp = await fetch(`https://api.github.com/repos/${GITHUB_FW_REPO}/commits?path=${encodeURIComponent(path)}&per_page=5&sha=main`);
+				const resp = await fetch(`https://api.github.com/repos/${GITHUB_FW_REPO}/commits?path=${encodeURIComponent(path)}&per_page=10&sha=main`);
 				if (!resp.ok) {
 					throw new Error(resp.statusText);
 				}
@@ -2290,9 +2290,21 @@
 					const li = $('<li class="list-group-item d-flex justify-content-between align-items-center"></li>');
 					const textSpan = $('<span></span>').append(document.createTextNode(label + " "));
 					if (fullSha) {
-						textSpan.append($('<a target="_blank" rel="noopener noreferrer"></a>')
+						const commitLink = $('<a target="_blank" rel="noopener noreferrer"></a>')
 							.attr('href', `https://github.com/biologist79/ESPuino/commit/${fullSha}`)
-							.text(commitShort));
+							.text(commitShort);
+						textSpan.append(commitLink);
+						// Fetch the ESPuino commit's own message to show as a hover tooltip. Fire and
+						// forget - don't block rendering the list on it, and silently skip on failure
+						// (e.g. GitHub API rate-limit) since the tooltip is a nice-to-have, not essential.
+						fetch(`https://api.github.com/repos/biologist79/ESPuino/commits/${fullSha}`)
+							.then(r => r.ok ? r.json() : null)
+							.then(data => {
+								if (data && data.commit && data.commit.message) {
+									commitLink.attr('title', data.commit.message);
+								}
+							})
+							.catch(() => { });
 					} else {
 						textSpan.append(document.createTextNode(commitShort));
 					}
