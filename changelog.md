@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 12.07.2026: Add missing help tooltips across the web UI settings (WiFi, MQTT, FTP, Bluetooth, volume/playlist, LED, sleep/battery) and align tooltip placement next to the field label consistently
 * 12.07.2026: GitHub firmware update list: show 10 builds instead of 5, and show the ESPuino commit's description as a hover tooltip on the commit link
 * 11.07.2026: Fix intermittent false "card removed" events with PN5180: avoid an unnecessary hardware reset on every poll while a tag is being tracked, clear stale IRQ flags before each ISO15693 inventory poll, switch to a PN5180-Library fork with shorter RF-field/transceive timeouts, and make the removal-debounce configurable in the web UI (General -> RFID-Reader) (#428)
 * 11.07.2026: Improve web-upload throughput: disable WiFi power-save and enlarge the TCP receive window during uploads/OTA (~360-400 -> ~430-464 kiB/s measured), restored again afterwards to keep idle power draw low (#416)

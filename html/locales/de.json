@@ -51,7 +51,18 @@
 			"satatmo": "Sättigung-Atmolight",
 			"dimmablestates": "Dimmbare Stufen",
 			"reverserotation": "Drehrichtung umkehren",
-			"offset": "Offset Start-LED"
+			"offset": "Offset Start-LED",
+			"numindicatorExp": "Anzahl der LEDs, die für Status-/Fortschrittsanzeigen verwendet werden (z.B. Lautstärke, Abspielfortschritt). Ein Neustart ist nötig, damit die Änderung wirksam wird.",
+			"numcontrolExp": "Anzahl zusätzlicher LEDs am Ende der Kette, denen jeweils eine eigene, frei wählbare Farbe zugewiesen werden kann. Ein Neustart ist nötig, damit die Änderung wirksam wird.",
+			"numidledotsExp": "Anzahl der Punkte/LEDs, die im Ruhezustand (keine Wiedergabe) angezeigt werden.",
+			"huestartExp": "Farbton (Hue, 0-255) am Anfang der Fortschrittsanzeige. -1 = Standardfarbe verwenden.",
+			"hueendExp": "Farbton (Hue, 0-255) am Ende der Fortschrittsanzeige. -1 = Standardfarbe verwenden.",
+			"hueatmoExp": "Farbton (Hue, 0-255) im Ambient-Light-Modus. -1 = Standardfarbe verwenden.",
+			"satatmoExp": "Farbsättigung (0-255) im Ambient-Light-Modus. -1 = Standardwert verwenden.",
+			"dimmablestatesExp": "Anzahl der Zwischenschritte pro LED, mit denen Übergänge (z.B. Lautstärke- oder Fortschrittsanzeige) feiner/weicher dargestellt werden.",
+			"offsetExp": "Verschiebt die erste LED der Anzeige um die angegebene Anzahl Positionen - nützlich, wenn der LED-Ring nicht bei Position 0 beginnen soll.",
+			"offsetpauseExp": "Versetzt die Pause-Anzeige um einen halben LED-Abstand gegenüber der normalen Ruhezustand-Anzeige, damit Pause optisch von Idle unterscheidbar ist.",
+			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind."
 		},
 		"buttons": {
 			"title": "Taster-Zuordnungen",
@@ -85,7 +96,8 @@
 		},
 		"rotary": {
 			"title": "Drehimpulsgeber",
-			"reverse": "Drehrichtung umkehren"
+			"reverse": "Drehrichtung umkehren",
+			"reverseExp": "Kehrt die Zähl-/Drehrichtung des Drehimpulsgebers um, z.B. falls Lauter/Leiser vertauscht ist."
 		}
 	},
 	"wifi": {
@@ -134,7 +146,12 @@
 			"subnet": "Subnetzmaske für statische IP-Konfiguration",
 			"dns1": " DNS 1 für statische IP-Konfiguration",
 			"dns2": "DNS 2 für statische IP-Konfiguration",
-			"explanation": "Die IP-Konfiguration erfolgt manuell statt über einen DHCP-Server. Achtung: Du solltest wissen, was hier einzutragen ist, sonst ist dein ESPuino per Netzwerk möglicherweise nicht mehr erreichbar."
+			"explanation": "Die IP-Konfiguration erfolgt manuell statt über einen DHCP-Server. Achtung: Du solltest wissen, was hier einzutragen ist, sonst ist dein ESPuino per Netzwerk möglicherweise nicht mehr erreichbar.",
+			"addrExp": "Feste IPv4-Adresse für ESPuino im WLAN (nur wirksam, wenn 'Statische IP-Konfiguration' aktiviert ist).",
+			"gatewayExp": "IP-Adresse des Gateways/Routers für die statische IP-Konfiguration.",
+			"subnetExp": "Subnetzmaske für die statische IP-Konfiguration, z.B. 255.255.255.0.",
+			"dns1Exp": "Bevorzugter DNS-Server für die statische IP-Konfiguration.",
+			"dns2Exp": "Alternativer DNS-Server für die statische IP-Konfiguration (wird verwendet, falls der erste nicht erreichbar ist)."
 		},
 		"scan": {
 			"enabled": "Start mit bestem WLAN",
@@ -297,22 +314,26 @@
 		"clientId": {
 			"title": "MQTT-ClientId",
 			"placeholder": "z.B. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Eindeutige Kennung, mit der sich ESPuino beim MQTT-Broker anmeldet - muss im Netzwerk eindeutig sein. Der Platzhalter &lt;MAC&gt; wird durch die MAC-Adresse ersetzt."
 		},
 		"server": {
 			"title": "MQTT-Server",
 			"placeholder": "f.e. 192.168.2.89",
-			"validation": ""
+			"validation": "",
+			"explanation": "Hostname oder IP-Adresse des MQTT-Brokers."
 		},
 		"baseTopic": {
 			"title": "Basis-Topic (optional)",
 			"placeholder": "z.B. home/espuino",
-			"validation": ""
+			"validation": "",
+			"explanation": "Basis-Pfad, unter dem alle MQTT-Topics von ESPuino veröffentlicht werden, z.B. 'espuino/wohnzimmer/...'."
 		},
 		"deviceId": {
 			"title": "Geräte-ID",
 			"placeholder": "z.B. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Geräte-Bezeichner, der Teil des MQTT-Topic-Pfads ist - nützlich, um mehrere ESPuinos am selben Broker zu unterscheiden. Der Platzhalter &lt;MAC&gt; wird durch die MAC-Adresse ersetzt."
 		},
 		"topicsPreview": "Vollständige Topics (Vorschau)",
 		"restartNote": "Hinweis: MQTT-Änderungen werden erst nach einem Neustart des Geräts wirksam.",
@@ -323,29 +344,35 @@
 		"user": {
 			"title": "MQTT-Benutzername (optional)",
 			"placeholder": "Benutzername",
-			"validation": ""
+			"validation": "",
+			"explanation": "Benutzername für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
 		},
 		"pwd": {
 			"title": "MQTT-Passwort (optional)",
 			"placeholder": "Passwort",
-			"validation": ""
+			"validation": "",
+			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
 		},
 		"port": {
 			"title": "MQTT-Port",
 			"placeholder": "z.B. 1883",
-			"validation": ""
-		}
+			"validation": "",
+			"explanation": "TCP-Port des MQTT-Brokers (Standard: 1883 für unverschlüsselte Verbindungen)."
+		},
+		"enableExp": "Aktiviert die Verbindung zu einem MQTT-Broker. Ein Neustart ist nötig, damit die Änderung wirksam wird."
 	},
 	"ftp": {
 		"title": "FTP-Einstellungen",
 		"saveButton": "FTP-Einstellungen speichern",
 		"user": {
 			"title": "FTP-Benutzername",
-			"placeholder": "Benutzername"
+			"placeholder": "Benutzername",
+			"explanation": "Benutzername für den Zugriff auf ESPuino per FTP."
 		},
 		"pwd": {
 			"title": "FTP-Passwort",
-			"placeholder": "Passwort"
+			"placeholder": "Passwort",
+			"explanation": "Passwort für den Zugriff auf ESPuino per FTP."
 		},
 		"start": {
 			"title": "FTP-Server starten",
@@ -385,11 +412,13 @@
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
-			"placeholder": "z.B. My POGS Wireless Headphone"
+			"placeholder": "z.B. My POGS Wireless Headphone",
+			"explanation": "Name, unter dem ESPuino beim Bluetooth-Pairing angezeigt wird bzw. mit dem es sich als Bluetooth-Kopfhörer verbindet."
 		},
 		"pincode": {
 			"title": "Pairing PIN-Code",
-			"placeholder": "z.B. 0000"
+			"placeholder": "z.B. 0000",
+			"explanation": "PIN-Code für die Bluetooth-Kopplung (nur nötig, falls das Zielgerät danach fragt)."
 		},
 		"switchmode": {
 			"title": "Wechsel zu WiFi-Modus",
@@ -404,7 +433,10 @@
 			"title": "Lautstärke",
 			"restart": "Nach dem Einschalten",
 			"speakerMax": "Maximal (Lautsprecher)",
-			"headphoneMax": "Maximal (Kopfhörer)"
+			"headphoneMax": "Maximal (Kopfhörer)",
+			"restartExp": "Lautstärke, mit der ESPuino nach dem Einschalten startet (sofern 'Letzte Lautstärke merken' nicht aktiviert ist).",
+			"speakerMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über den Lautsprecher.",
+			"headphoneMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über Kopfhörer."
 		},
 		"equalizer": {
 			"title": "Equalizer",
@@ -457,11 +489,15 @@
 			"title": "Neopixel (Helligkeit)",
 			"restart": "Nach dem Einschalten",
 			"nightmode": "Im Nachtmodus",
-			"atmomode": "Im Atmolight-Modus"
+			"atmomode": "Im Atmolight-Modus",
+			"restartExp": "LED-Helligkeit direkt nach dem Einschalten.",
+			"nightmodeExp": "Reduzierte LED-Helligkeit im Nachtmodus.",
+			"atmomodeExp": "LED-Helligkeit im Ambient-Light-Modus (Atmolight)."
 		},
 		"sleep": {
 			"title": "Deep Sleep",
-			"inactivity": "Inaktivität nach (in Minuten)"
+			"inactivity": "Inaktivität nach (in Minuten)",
+			"inactivityExp": "Zeit in Minuten ohne Bedienung, nach der ESPuino automatisch in den Ruhezustand (Deep Sleep) wechselt."
 		},
 		"battery": {
 			"title": "Batterie",
@@ -470,7 +506,12 @@
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
-			"measureInterval": "Zeitabstand der Messung (in Minuten)"
+			"measureInterval": "Zeitabstand der Messung (in Minuten)",
+			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
+			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
+			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
+			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
+			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",
@@ -478,7 +519,9 @@
 			"strcmp": "Standardsortierung",
 			"strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
 			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren",
-			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists"
+			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists",
+			"sortModeExp": "Legt fest, wie Dateien und Playlists sortiert werden: Alphabetische Standardsortierung (z.B. '10' vor '2') oder natürliche Sortierung, die Zahlen im Namen korrekt einordnet (z.B. '2' vor '10'), wahlweise unter Beachtung der Groß-/Kleinschreibung.",
+			"recDepthExp": "Maximale Verzeichnistiefe, bis zu der beim Erstellen rekursiver Playlists in Unterordnern gesucht wird."
 		},
 		"tabs": {
 			"playback": "Wiedergabe",

@@ -51,7 +51,18 @@
 			"satatmo": "Saturation d'ambiance",
 			"dimmablestates": "Étapes à gradation",
 			"reverserotation": "Inversion du sens de rotation",
-			"offset": "Début de l'offset LED"
+			"offset": "Début de l'offset LED",
+			"numindicatorExp": "Nombre de LED utilisées pour l'indication d'état/de progression (par ex. volume, progression de lecture). Un redémarrage est nécessaire pour que la modification prenne effet.",
+			"numcontrolExp": "Nombre de LED supplémentaires en bout de chaîne, pouvant chacune se voir attribuer une couleur propre et librement choisie. Un redémarrage est nécessaire pour que la modification prenne effet.",
+			"numidledotsExp": "Nombre de points/LED affichés au repos (aucune lecture en cours).",
+			"huestartExp": "Teinte (0-255) au début de l'indicateur de progression. -1 = utiliser la couleur par défaut.",
+			"hueendExp": "Teinte (0-255) à la fin de l'indicateur de progression. -1 = utiliser la couleur par défaut.",
+			"hueatmoExp": "Teinte (0-255) en mode lumière d'ambiance. -1 = utiliser la couleur par défaut.",
+			"satatmoExp": "Saturation (0-255) en mode lumière d'ambiance. -1 = utiliser la valeur par défaut.",
+			"dimmablestatesExp": "Nombre d'étapes intermédiaires par LED, utilisées pour rendre les transitions (par ex. volume ou progression) plus douces/fines.",
+			"offsetExp": "Décale la première LED de l'indicateur de ce nombre de positions - utile si l'anneau LED ne doit pas commencer à la position 0.",
+			"offsetpauseExp": "Décale l'indicateur de pause d'un demi-espacement de LED par rapport à l'indicateur de repos normal, afin de distinguer visuellement la pause du repos.",
+			"reverserotationExp": "Inverse le sens de défilement de l'indicateur LED, par ex. pour les anneaux montés dans le sens antihoraire au lieu du sens horaire."
 		},
 		"buttons": {
 			"title": "Attribution des boutons",
@@ -85,7 +96,8 @@
 		},
 		"rotary": {
 			"title": "Codeur rotatif",
-			"reverse": "Inversion du sens de rotation"
+			"reverse": "Inversion du sens de rotation",
+			"reverseExp": "Inverse le sens de comptage/rotation du codeur rotatif, par ex. si volume haut/bas est inversé."
 		}
 	},
 	"wifi": {
@@ -134,7 +146,12 @@
 			"subnet": "Masque de sous-réseau pour la configuration IP statique",
 			"dns1": "DNS 1 pour la configuration IP statique",
 			"dns2": "DNS 2 pour la configuration IP statique",
-			"explanation": "La configuration IP se fait manuellement au lieu de passer par un serveur DHCP. Attention : vous devez savoir ce qu'il faut saisir ici, sinon votre ESPuino risque de ne plus être accessible sur le réseau."
+			"explanation": "La configuration IP se fait manuellement au lieu de passer par un serveur DHCP. Attention : vous devez savoir ce qu'il faut saisir ici, sinon votre ESPuino risque de ne plus être accessible sur le réseau.",
+			"addrExp": "Adresse IPv4 fixe pour ESPuino sur le réseau WiFi (effective uniquement si la configuration IP statique est activée).",
+			"gatewayExp": "Adresse IP de la passerelle/du routeur pour la configuration IP statique.",
+			"subnetExp": "Masque de sous-réseau pour la configuration IP statique, par ex. 255.255.255.0.",
+			"dns1Exp": "Serveur DNS préféré pour la configuration IP statique.",
+			"dns2Exp": "Serveur DNS alternatif pour la configuration IP statique (utilisé si le premier est injoignable)."
 		},
 		"scan": {
 			"enabled": "Démarrer avec le WiFi le plus puissant",
@@ -297,22 +314,26 @@
 		"clientId": {
 			"title": "Identifiant client MQTT",
 			"placeholder": "par exemple ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Identifiant unique utilisé par ESPuino pour se connecter au broker MQTT - doit être unique sur le réseau. Le paramètre substituable &lt;MAC&gt; est remplacé par l'adresse MAC."
 		},
 		"server": {
 			"title": "Serveur MQTT",
 			"placeholder": "par exemple 192.168.2.89",
-			"validation": ""
+			"validation": "",
+			"explanation": "Nom d'hôte ou adresse IP du broker MQTT."
 		},
 		"baseTopic": {
 			"title": "Topic de base (optionnel)",
 			"placeholder": "p.ex. home/espuino",
-			"validation": ""
+			"validation": "",
+			"explanation": "Chemin de base sous lequel tous les topics MQTT d'ESPuino sont publiés, par ex. 'espuino/salon/...'."
 		},
 		"deviceId": {
 			"title": "Identifiant de l'appareil",
 			"placeholder": "p.ex. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Identifiant de l'appareil, qui fait partie du chemin des topics MQTT - utile pour distinguer plusieurs ESPuino sur le même broker. Le paramètre substituable &lt;MAC&gt; est remplacé par l'adresse MAC."
 		},
 		"topicsPreview": "Sujets complets (aperçu)",
 		"restartNote": "Remarque : les modifications MQTT ne prennent effet qu'après le redémarrage de l'appareil.",
@@ -323,29 +344,35 @@
 		"user": {
 			"title": "Nom d'utilisateur MQTT (facultatif)",
 			"placeholder": "nom d'utilisateur",
-			"validation": ""
+			"validation": "",
+			"explanation": "Nom d'utilisateur pour la connexion au broker MQTT (si celui-ci requiert une authentification)."
 		},
 		"pwd": {
 			"title": "Mot de passe MQTT (facultatif)",
 			"placeholder": "mot de passe",
-			"validation": ""
+			"validation": "",
+			"explanation": "Mot de passe pour la connexion au broker MQTT (si celui-ci requiert une authentification)."
 		},
 		"port": {
 			"title": "Port MQTT",
 			"placeholder": "par exemple 1883",
-			"validation": ""
-		}
+			"validation": "",
+			"explanation": "Port TCP du broker MQTT (par défaut : 1883 pour les connexions non chiffrées)."
+		},
+		"enableExp": "Active la connexion à un broker MQTT. Un redémarrage est nécessaire pour que la modification prenne effet."
 	},
 	"ftp": {
 		"title": "Paramètres FTP",
 		"saveButton": "Enregistrer les paramètres FTP",
 		"user": {
 			"title": "Nom d'utilisateur FTP",
-			"placeholder": "nom d'utilisateur"
+			"placeholder": "nom d'utilisateur",
+			"explanation": "Nom d'utilisateur pour accéder à ESPuino via FTP."
 		},
 		"pwd": {
 			"title": "Mot de passe FTP",
-			"placeholder": "mot de passe"
+			"placeholder": "mot de passe",
+			"explanation": "Mot de passe pour accéder à ESPuino via FTP."
 		},
 		"start": {
 			"title": "Démarrer serveur FTP",
@@ -385,11 +412,13 @@
 		},
 		"device": {
 			"title": "Périphérique Bluetooth (casque)",
-			"placeholder": "par exemple Mon casque sans fil POGS"
+			"placeholder": "par exemple Mon casque sans fil POGS",
+			"explanation": "Nom sous lequel ESPuino apparaît lors de l'appairage Bluetooth, ou qu'il utilise en se connectant comme casque Bluetooth."
 		},
 		"pincode": {
 			"title": "Code PIN de couplage",
-			"placeholder": "par exemple 0000"
+			"placeholder": "par exemple 0000",
+			"explanation": "Code PIN pour l'appairage Bluetooth (nécessaire uniquement si l'appareil cible le demande)."
 		},
 		"switchmode": {
 			"title": "Basculer vers le mode WiFi",
@@ -404,7 +433,10 @@
 			"title": "Volume",
 			"restart": "Après le redémarrage",
 			"speakerMax": "Volume maximal (haut-parleur)",
-			"headphoneMax": "Volume maximal (écouteurs)"
+			"headphoneMax": "Volume maximal (écouteurs)",
+			"restartExp": "Volume avec lequel ESPuino démarre après la mise sous tension (sauf si 'Mémoriser le dernier volume' est activé).",
+			"speakerMaxExp": "Volume maximal autorisé lors de la lecture via le haut-parleur.",
+			"headphoneMaxExp": "Volume maximal autorisé lors de la lecture via un casque."
 		},
 		"equalizer": {
 			"title": "Égaliseur",
@@ -457,11 +489,15 @@
 			"title": "Neopixel (luminosité)",
 			"restart": "Après le redémarrage",
 			"nightmode": "Pour le mode nuit",
-			"atmomode": "Pour le mode ambiance"
+			"atmomode": "Pour le mode ambiance",
+			"restartExp": "Luminosité des LED juste après la mise sous tension.",
+			"nightmodeExp": "Luminosité réduite des LED en mode nuit.",
+			"atmomodeExp": "Luminosité des LED en mode lumière d'ambiance (Atmolight)."
 		},
 		"sleep": {
 			"title": "Veille profonde",
-			"inactivity": "Après n minutes d'inactivité"
+			"inactivity": "Après n minutes d'inactivité",
+			"inactivityExp": "Durée en minutes sans interaction après laquelle ESPuino passe automatiquement en veille profonde."
 		},
 		"battery": {
 			"title": "Batterie",
@@ -470,7 +506,12 @@
 			"lowCritical": "Tension la plus basse (en volt), indiquée par une LED",
 			"criticalShutoff": "En dessous de cette tension (en volt), ESPuino s'éteint",
 			"high": "Tension indiquée par toutes les LED (en volt)",
-			"measureInterval": "Intervalle entre les mesures (en minutes)"
+			"measureInterval": "Intervalle entre les mesures (en minutes)",
+			"lowWarningExp": "Tension en dessous de laquelle un avertissement visuel (LED) de batterie faible est déclenché.",
+			"lowCriticalExp": "Tension considérée comme 0% de charge de la batterie (batterie vide).",
+			"highExp": "Tension considérée comme 100% de charge de la batterie (batterie pleine).",
+			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
+			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée."
 		},
 		"playlist": {
 			"title": "Playlist",
@@ -478,7 +519,9 @@
 			"strcmp": "Tri standard",
 			"strnatcmp": "Naturel: sensible à la casse",
 			"strnatcasecmp": "Naturel: insensible à la casse",
-			"recDepth": "Profondeur de récursion maximale lors de la génération de playlists récursives"
+			"recDepth": "Profondeur de récursion maximale lors de la génération de playlists récursives",
+			"sortModeExp": "Définit comment les fichiers et playlists sont triés : tri alphabétique standard (par ex. '10' avant '2') ou tri naturel, qui ordonne correctement les nombres dans les noms (par ex. '2' avant '10'), avec ou sans distinction majuscules/minuscules.",
+			"recDepthExp": "Profondeur maximale de répertoire explorée lors de la génération de playlists récursives à partir de sous-dossiers."
 		},
 		"tabs": {
 			"playback": "Lecture",

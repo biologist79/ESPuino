@@ -543,48 +543,56 @@
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="row mb-2 align-items-center">
-								<label for="hostname" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.hostname.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="hostname" class="col-form-label"
+										data-i18n="[prepend]wifi.hostname.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="text" class="form-control" id="hostname"
 										data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
 										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
-								<label for="apSSID" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.apSSID.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apSSID" class="col-form-label"
+										data-i18n="[prepend]wifi.apSSID.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="text" class="form-control" id="apSSID"
 										data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
 										maxlength="32" required>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
-								<label for="apPassword" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.apPassword.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apPassword" class="col-form-label"
+										data-i18n="[prepend]wifi.apPassword.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="password" class="form-control" id="apPassword"
 										data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
 										autocomplete="off" minlength="8" maxlength="63">
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
-								<label for="apTimeout" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.apTimeout.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apTimeout" class="col-form-label"
+										data-i18n="[prepend]wifi.apTimeout.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="number" class="form-control" id="apTimeout" name="apTimeout"
 										value="5" min="0" step="1">
 								</div>
@@ -605,12 +613,14 @@
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
 							<div class="row mb-2 align-items-center">
-								<label for="ssid" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.ssid.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="ssid" class="col-form-label"
+										data-i18n="[prepend]wifi.ssid.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="text" class="form-control" id="ssid"
 										data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
 								</div>
@@ -619,12 +629,14 @@
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
-								<label for="pwd" class="col-sm-4 col-form-label"
-									data-i18n="[prepend]wifi.password.title">:</label>
-								<div class="col-sm-8 d-flex align-items-center gap-2">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="pwd" class="col-form-label"
+										data-i18n="[prepend]wifi.password.title">:</label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
 									<input type="password" class="form-control" id="pwd" name="pwd"
 										data-i18n="[placeholder]wifi.password.placeholder" required>
 								</div>
@@ -638,38 +650,63 @@
 							</div>
 							<div id="wifi_static_div" style="display:none">
 								<div class="row mb-2 align-items-center">
-									<label for="static_addr" class="col-sm-4 col-form-label"
-										data-i18n="[prepend]wifi.static.addr">:</label>
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_addr" class="col-form-label"
+											data-i18n="[prepend]wifi.static.addr">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.addrExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
 									<div class="col-sm-8">
 										<input type="text" class="form-control" id="static_addr" name="static_addr">
 									</div>
 								</div>
 								<div class="row mb-2 align-items-center">
-									<label for="static_gateway" class="col-sm-4 col-form-label"
-										data-i18n="[prepend]wifi.static.gateway">:</label>
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_gateway" class="col-form-label"
+											data-i18n="[prepend]wifi.static.gateway">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.gatewayExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
 									<div class="col-sm-8">
 										<input type="text" class="form-control" id="static_gateway"
 											name="static_gateway">
 									</div>
 								</div>
 								<div class="row mb-2 align-items-center">
-									<label for="static_subnet" class="col-sm-4 col-form-label"
-										data-i18n="[prepend]wifi.static.subnet">:</label>
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_subnet" class="col-form-label"
+											data-i18n="[prepend]wifi.static.subnet">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.subnetExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
 									<div class="col-sm-8">
 										<input type="text" class="form-control" id="static_subnet"
 											name="static_subnet">
 									</div>
 								</div>
 								<div class="row mb-2 align-items-center">
-									<label for="static_dns1" class="col-sm-4 col-form-label"
-										data-i18n="[prepend]wifi.static.dns1">:</label>
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_dns1" class="col-form-label"
+											data-i18n="[prepend]wifi.static.dns1">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.dns1Exp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
 									<div class="col-sm-8">
 										<input type="text" class="form-control" id="static_dns1" name="static_dns1">
 									</div>
 								</div>
 								<div class="row mb-2 align-items-center">
-									<label for="static_dns2" class="col-sm-4 col-form-label"
-										data-i18n="[prepend]wifi.static.dns2">:</label>
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_dns2" class="col-form-label"
+											data-i18n="[prepend]wifi.static.dns2">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.dns2Exp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
 									<div class="col-sm-8">
 										<input type="text" class="form-control" id="static_dns2" name="static_dns2">
 									</div>
@@ -918,63 +955,100 @@
 					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
 					<div class="mb-2"><small class="text-muted" data-i18n="mqtt.restartNote"></small></div>
-					<div class="form-check col-md-12">
-						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
-							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
-							data-i18n="mqtt.enable"></label>
+					<div class="form-check col-md-12 d-flex align-items-center gap-2">
+						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
+						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
+						<a href="#" class="link-secondary" data-bs-toggle="popover"
+							data-i18n="[data-bs-content]mqtt.enableExp" tabindex="0"><i
+								class="fas fa-circle-question"></i></a>
 					</div>
 					<div class="mb-3 my-2 col-md-12">
 						<div class="row mb-2 align-items-center">
-							<label for="mqttClientId" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.clientId.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttClientId" class="col-form-label"
+									data-i18n="[prepend]mqtt.clientId.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.clientId.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
 									data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttBaseTopic" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttBaseTopic" class="col-form-label"
+									data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.baseTopic.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
 									data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttDeviceId" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.deviceId.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttDeviceId" class="col-form-label"
+									data-i18n="[prepend]mqtt.deviceId.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.deviceId.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
 									data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttServer" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.server.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttServer" class="col-form-label"
+									data-i18n="[prepend]mqtt.server.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.server.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
 									data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttUser" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.user.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttUser" class="col-form-label"
+									data-i18n="[prepend]mqtt.user.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.user.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="mqttUser" maxlength=""
 									data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttPwd" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.pwd.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttPwd" class="col-form-label"
+									data-i18n="[prepend]mqtt.pwd.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.pwd.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="mqttPwd" maxlength=""
 									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="mqttPort" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]mqtt.port.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttPort" class="col-form-label"
+									data-i18n="[prepend]mqtt.port.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.port.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
 									data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
@@ -995,15 +1069,25 @@
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
 						<div class="row mb-2 align-items-center">
-							<label for="ftpUser" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]ftp.user.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="ftpUser" class="col-form-label"
+									data-i18n="[prepend]ftp.user.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]ftp.user.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="ftpUser" maxlength="0"
 									data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="pwd" class="col-sm-4 col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="pwd" class="col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]ftp.pwd.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="ftpPwd" maxlength="0"
 									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
@@ -1048,16 +1132,26 @@
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<div class="row mb-2 align-items-center">
-							<label for="btDeviceName" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]bt.device.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="btDeviceName" class="col-form-label"
+									data-i18n="[prepend]bt.device.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="btDeviceName"
 									data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
-							<label for="btPinCode" class="col-sm-4 col-form-label"
-								data-i18n="[prepend]bt.pincode.title">:</label>
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="btPinCode" class="col-form-label"
+									data-i18n="[prepend]bt.pincode.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="col-sm-8">
 								<input type="text" class="form-control" id="btPinCode"
 									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
@@ -1143,6 +1237,9 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
 							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
@@ -1157,6 +1254,9 @@
 							</div>
 							</div>
 							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
@@ -1171,6 +1271,9 @@
 							</div>
 							</div>
 							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
@@ -1275,6 +1378,9 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
 							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
 								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
 								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
@@ -1283,6 +1389,9 @@
 						</fieldset>
 						<fieldset>
 							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
 								<option value="4">4</option>
 								<option value="3">3</option>
@@ -1363,6 +1472,9 @@
 							<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
 							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
 							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]settingsex.rotary.reverseExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 						</fieldset>
 					</div>
 					<hr>
@@ -1495,6 +1607,9 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
 							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="far fa-sun fa-2x .icon-pos"></i>
@@ -1510,6 +1625,9 @@
 							</div>
 							<br>
 							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="far fa-sun fa-2x .icon-pos"></i>
@@ -1525,6 +1643,9 @@
 							</div>
 							<br>
 							<label for="atmoBrightness" data-i18n="[prepend]general.neopixel.atmomode">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="far fa-sun fa-2x .icon-pos"></i>
@@ -1544,10 +1665,16 @@
 							<div class="col-md-12 mb-4" id="ledSettingsConfig">
 							<fieldset>
 								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
-								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>: <br>
+								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator"
 									min="0" max="128"><br>
-								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
+								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
 									min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
 								<div id="controlColorList" class="mb-2 d-none"></div>
@@ -1555,44 +1682,71 @@
 									<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
 										class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
 								</div>
-								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
+								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0"
 									max="128"><br>
-								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
+								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<div class="hue-slider">
 									<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
 										data-slider-max="255" min="-1" max="255" class="form-control"
 										name="led_hueStart" data-slider-value="-1" value="-1">
 								</div>
-								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
+								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<div class="hue-slider">
 									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
 										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
 										data-slider-value="-1" value="-1">
 								</div>
-								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>: <br>
+								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<div class="hue-slider">
 									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
 										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
 										data-slider-value="-1" value="-1">
 								</div>
-								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>: <br>
+								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<div class="sat-slider">
 									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
 										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
 										data-slider-value="-1" value="-1">
 								</div>
-								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
+								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
-								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
+								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>: <br>
 								<input type="number" class="form-control" id="led_offsetStart"
 									name="led_offsetStart"><br>
 								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
-								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label><br>
+								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a><br>
 								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation"
 									value="false">&nbsp;
 								<label for="led_reverseRotation"
-									data-i18n="settingsex.led.reverserotation"></label><br><br>
+									data-i18n="settingsex.led.reverserotation"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a><br><br>
 							</fieldset>
 							</div>
 					<div>
@@ -1606,6 +1760,9 @@
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
 							<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
@@ -1628,6 +1785,9 @@
 							<div data-i18n="general.battery.desc"></div>
 							<br>
 							<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
@@ -1643,6 +1803,9 @@
 								</div>
 							</div>
 							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
@@ -1658,6 +1821,9 @@
 								</div>
 							</div>
 							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
@@ -1675,6 +1841,9 @@
 							<div id="criticalVoltageSection" data-visible="false">
 								<label for="criticalVoltage"
 									data-i18n="[prepend]general.battery.criticalShutoff">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
 								<div class="slider-container">
 									<div class="float-end" style="padding-left: 30px">
 										<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
@@ -1692,6 +1861,9 @@
 							</div>
 							<label for="voltageCheckInterval"
 								data-i18n="[prepend]general.battery.measureInterval">:</label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
 							<div class="slider-container">
 								<div class="float-end" style="padding-left: 30px">
 									<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>

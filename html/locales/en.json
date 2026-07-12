@@ -51,7 +51,18 @@
 			"satatmo": "Saturation-Atmolight",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
-			"offset": "Offset start LED"
+			"offset": "Offset start LED",
+			"numindicatorExp": "Number of LEDs used for status/progress indication (e.g. volume, playback progress). A restart is required for the change to take effect.",
+			"numcontrolExp": "Number of extra LEDs at the end of the chain that can each be assigned their own freely chosen color. A restart is required for the change to take effect.",
+			"numidledotsExp": "Number of dots/LEDs shown while idle (no playback active).",
+			"huestartExp": "Hue (0-255) at the start of the progress indicator. -1 = use the default color.",
+			"hueendExp": "Hue (0-255) at the end of the progress indicator. -1 = use the default color.",
+			"hueatmoExp": "Hue (0-255) in ambient light mode. -1 = use the default color.",
+			"satatmoExp": "Saturation (0-255) in ambient light mode. -1 = use the default value.",
+			"dimmablestatesExp": "Number of intermediate steps per LED, used to make transitions (e.g. volume or progress indicator) smoother/finer.",
+			"offsetExp": "Shifts the first LED of the indicator by this many positions - useful if the LED ring shouldn't start at position 0.",
+			"offsetpauseExp": "Offsets the pause indicator by half an LED spacing compared to the normal idle indicator, so pause is visually distinguishable from idle.",
+			"reverserotationExp": "Reverses the direction the LED indicator runs in, e.g. for rings mounted counter-clockwise instead of clockwise."
 		},
 		"buttons": {
 			"title": "Button assignments",
@@ -85,7 +96,8 @@
 		},
 		"rotary": {
 			"title": "Rotary encoder",
-			"reverse": "Reverse direction of rotation"
+			"reverse": "Reverse direction of rotation",
+			"reverseExp": "Reverses the rotary encoder's counting/turning direction, e.g. if volume up/down is swapped."
 		}
 	},
 	"wifi": {
@@ -134,7 +146,12 @@
 			"subnet": "Subnet-mask for static IP-Configuration",
 			"dns1": "DNS 1 for static IP-Configuration",
 			"dns2": "DNS 2 for static IP-Configuration",
-			"explanation": "IP configuration happens manually instead of via a DHCP server. Caution: you should know what to enter here, otherwise your ESPuino may no longer be reachable over the network."
+			"explanation": "IP configuration happens manually instead of via a DHCP server. Caution: you should know what to enter here, otherwise your ESPuino may no longer be reachable over the network.",
+			"addrExp": "Fixed IPv4 address for ESPuino on the WiFi network (only effective if 'Static IP configuration' is enabled).",
+			"gatewayExp": "IP address of the gateway/router for the static IP configuration.",
+			"subnetExp": "Subnet mask for the static IP configuration, e.g. 255.255.255.0.",
+			"dns1Exp": "Preferred DNS server for the static IP configuration.",
+			"dns2Exp": "Alternative DNS server for the static IP configuration (used if the first one is unreachable)."
 		},
 		"scan": {
 			"enabled": "Start with strongest WiFi",
@@ -297,22 +314,26 @@
 		"clientId": {
 			"title": "MQTT-ClientId",
 			"placeholder": "f.e. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Unique identifier ESPuino uses to log in to the MQTT broker - must be unique on the network. The placeholder &lt;MAC&gt; is replaced with the MAC address."
 		},
 		"server": {
 			"title": "MQTT-server",
 			"placeholder": "f.e. 192.168.2.89",
-			"validation": ""
+			"validation": "",
+			"explanation": "Hostname or IP address of the MQTT broker."
 		},
 		"baseTopic": {
 			"title": "Base topic (optional)",
 			"placeholder": "f.e. home/espuino",
-			"validation": ""
+			"validation": "",
+			"explanation": "Base path under which all of ESPuino's MQTT topics are published, e.g. 'espuino/livingroom/...'."
 		},
 		"deviceId": {
 			"title": "Device Id",
 			"placeholder": "f.e. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Device identifier that is part of the MQTT topic path - useful to tell multiple ESPuinos on the same broker apart. The placeholder &lt;MAC&gt; is replaced with the MAC address."
 		},
 		"topicsPreview": "Full topics (preview)",
 		"restartNote": "Note: MQTT settings only take effect after restarting the device.",
@@ -323,29 +344,35 @@
 		"user": {
 			"title": "MQTT-username (optional)",
 			"placeholder": "username",
-			"validation": ""
+			"validation": "",
+			"explanation": "Username for logging in to the MQTT broker (if it requires authentication)."
 		},
 		"pwd": {
 			"title": "MQTT-password (optional)",
 			"placeholder": "password",
-			"validation": ""
+			"validation": "",
+			"explanation": "Password for logging in to the MQTT broker (if it requires authentication)."
 		},
 		"port": {
 			"title": "MQTT-port",
 			"placeholder": "f.e. 1883",
-			"validation": ""
-		}
+			"validation": "",
+			"explanation": "TCP port of the MQTT broker (default: 1883 for unencrypted connections)."
+		},
+		"enableExp": "Enables the connection to an MQTT broker. A restart is required for the change to take effect."
 	},
 	"ftp": {
 		"title": "FTP-settings",
 		"saveButton": "Save FTP settings",
 		"user": {
 			"title": "FTP-Username",
-			"placeholder": "username"
+			"placeholder": "username",
+			"explanation": "Username for accessing ESPuino via FTP."
 		},
 		"pwd": {
 			"title": "FTP-password",
-			"placeholder": "password"
+			"placeholder": "password",
+			"explanation": "Password for accessing ESPuino via FTP."
 		},
 		"start": {
 			"title": "Start FTP-server",
@@ -385,11 +412,13 @@
 		},
 		"device": {
 			"title": "Bluetooth device (headphone)",
-			"placeholder": "e.g. My POGS Wireless Headphone"
+			"placeholder": "e.g. My POGS Wireless Headphone",
+			"explanation": "Name ESPuino shows during Bluetooth pairing, or uses when connecting as a Bluetooth headphone."
 		},
 		"pincode": {
 			"title": "Pairing PIN-Code",
-			"placeholder": "e.g. 0000"
+			"placeholder": "e.g. 0000",
+			"explanation": "PIN code for Bluetooth pairing (only needed if the target device asks for it)."
 		},
 		"switchmode": {
 			"title": "Bluetooth Mode Active",
@@ -404,7 +433,10 @@
 			"title": "Volume",
 			"restart": "After restart",
 			"speakerMax": "Max. volume (speaker)",
-			"headphoneMax": "Max. volume (headphones)"
+			"headphoneMax": "Max. volume (headphones)",
+			"restartExp": "Volume ESPuino starts with after power-up (unless 'Remember last volume' is enabled).",
+			"speakerMaxExp": "Maximum volume allowed when playing back through the speaker.",
+			"headphoneMaxExp": "Maximum volume allowed when playing back through headphones."
 		},
 		"equalizer": {
 			"title": "Equalizer",
@@ -457,11 +489,15 @@
 			"title": "Neopixel (brightness)",
 			"restart": "After restart",
 			"nightmode": "For nightmode",
-			"atmomode": "For Atmolight-mode"
+			"atmomode": "For Atmolight-mode",
+			"restartExp": "LED brightness right after power-up.",
+			"nightmodeExp": "Reduced LED brightness in night mode.",
+			"atmomodeExp": "LED brightness in ambient light mode (Atmolight)."
 		},
 		"sleep": {
 			"title": "Deep Sleep",
-			"inactivity": "After n minutes inactivity"
+			"inactivity": "After n minutes inactivity",
+			"inactivityExp": "Time in minutes without any interaction after which ESPuino automatically goes to sleep (deep sleep)."
 		},
 		"battery": {
 			"title": "Battery",
@@ -470,7 +506,12 @@
 			"lowCritical": "Lowest voltage (in volt), that is indicated by one LED",
 			"criticalShutoff": "Below this voltage (in volt), ESPuino turns off",
 			"high": "Voltage (in volt), that is indicated by all LEDs",
-			"measureInterval": "Interval between measurements (in minutes)"
+			"measureInterval": "Interval between measurements (in minutes)",
+			"lowWarningExp": "Voltage below which a visual (LED) low-battery warning is triggered.",
+			"lowCriticalExp": "Voltage that is shown as 0% battery charge (empty battery).",
+			"highExp": "Voltage that is shown as 100% battery charge (full battery).",
+			"criticalShutoffExp": "Voltage at which ESPuino automatically shuts down to protect the battery from deep discharge.",
+			"measureIntervalExp": "Time interval in minutes at which the battery voltage is measured."
 		},
 		"playlist": {
 			"title": "Playlist",
@@ -478,7 +519,9 @@
 			"strcmp": "Standard sorting",
 			"strnatcmp": "Natural: case-sensitive",
 			"strnatcasecmp": "Natural: case-insensitive",
-			"recDepth": "Maximum recursion depth at generation of recursive playlists"
+			"recDepth": "Maximum recursion depth at generation of recursive playlists",
+			"sortModeExp": "Determines how files and playlists are sorted: standard alphabetical sorting (e.g. '10' before '2') or natural sorting, which orders numbers in names correctly (e.g. '2' before '10'), optionally case-sensitive.",
+			"recDepthExp": "Maximum directory depth to search when generating recursive playlists from subfolders."
 		},
 		"tabs": {
 			"playback": "Playback",
