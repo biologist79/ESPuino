@@ -67,6 +67,9 @@ jobs:
           sed -i 's/^#define LANGUAGE .*/#define LANGUAGE DE/' src/settings.h
           platformio run -e ${{ matrix.variant }}
           cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-DE.bin
+          # bootloader and partition table are language-independent, so copy them once (here, at the DE build)
+          cp .pio/build/${{ matrix.variant }}/bootloader.bin binaries/bootloader.bin
+          cp .pio/build/${{ matrix.variant }}/partitions.bin binaries/partitions.bin
 
       # --- Build 2: Language EN ---
       - name: Build ${{ matrix.variant }} (EN)
