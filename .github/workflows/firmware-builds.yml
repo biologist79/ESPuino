@@ -64,7 +64,7 @@ jobs:
       # --- Build 1: Language DE (Default) ---
       - name: Build ${{ matrix.variant }} (DE)
         run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE DE/' src/settings.h
+          sed -i -E 's/^[[:space:]]*#define LANGUAGE .*/\t#define LANGUAGE DE/' src/settings.h
           platformio run -e ${{ matrix.variant }}
           cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-DE.bin
           # bootloader and partition table are language-independent, so copy them once (here, at the DE build)
@@ -74,14 +74,14 @@ jobs:
       # --- Build 2: Language EN ---
       - name: Build ${{ matrix.variant }} (EN)
         run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE EN/' src/settings.h
+          sed -i -E 's/^[[:space:]]*#define LANGUAGE .*/\t#define LANGUAGE EN/' src/settings.h
           platformio run -e ${{ matrix.variant }}
           cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-EN.bin
 
       # --- Build 3: Language FR ---
       - name: Build ${{ matrix.variant }} (FR)
         run: |
-          sed -i 's/^#define LANGUAGE .*/#define LANGUAGE FR/' src/settings.h
+          sed -i -E 's/^[[:space:]]*#define LANGUAGE .*/\t#define LANGUAGE FR/' src/settings.h
           platformio run -e ${{ matrix.variant }}
           cp .pio/build/${{ matrix.variant }}/firmware.bin binaries/firmware-FR.bin
 
