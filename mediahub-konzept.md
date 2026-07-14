@@ -70,7 +70,7 @@ mediahub://<host:port>
 - Ein **eigenes Schema** ist nötig, weil der AudioPlayer einen Pfad, der mit `http` beginnt, als **Webradio** interpretiert (`strncmp("http", …, 4)` in `AudioPlayer.cpp`). `mediahub://` kollidiert damit nicht.
 - Die Basis-Adresse ist für **alle** Karten identisch → „Karte einschreiben" heißt einfach: Pfad-Feld auf die Hub-Basis setzen (vom Hub aus bulk-verteilbar).
 - `<espId>` (Hostname/MAC) kennt das Gerät selbst, `<cardId>` ist der NVS-Schlüssel → ESPuino baut daraus die konkrete Manifest-URL.
-- Der `playMode`-Token im NVS bleibt erhalten, wird zur Laufzeit aber vom Manifest überschrieben (siehe §8). Er dient nur als **Fallback** beim allerersten Auflegen ohne Manifest.
+- Der `playMode`-Token im NVS wird auf den **neuen Wert `MEDIAHUB`** gesetzt (siehe §8). Er ist damit zugleich der **eindeutige Marker**, dass es sich um eine MediaHub-Karte handelt; der *tatsächliche* playMode für die Wiedergabe kommt aus dem Manifest.
 - **Aktivierung rein zur Laufzeit — kein Compile-Flag.** Der MediaHub-Code ist immer im Firmware-Image, wird aber nur aktiv, wenn eine Karte eine `mediahub://`-Adresse trägt. Wer das Feature nicht nutzt, zahlt keine Laufzeitkosten. (Die schweren Abhängigkeiten — HTTP-Client, SHA, JSON — sind ohnehin für OTA/Webradio/Web-UI im Image.)
 
 ### 5.1 Registrierte Medienserver (Komfort im Web-UI)
@@ -84,6 +84,47 @@ Die Karten-ID lässt sich nur mit einem Kartenleser ermitteln — das Zuweisen p
 
 Das ist reine Enrollment-Ergonomie; der Laufzeit-Ablauf (§11) bleibt unberührt.
 
+### 5.2 Assignment-Sync (Zuweisungen ins NVS bringen)
+
+Damit eine Karte überhaupt bekannt ist (Voraussetzung für den Offline-Fall), muss im NVS ein Eintrag `cardId → mediahub://host:port` liegen. Dieser Eintrag ist **uniform** — die inhaltlichen Details stehen im Manifest, nicht im NVS. „Assignments syncen" heißt daher nur: *sicherstellen, dass für jede vom Hub verwaltete Karte ein solcher Eintrag existiert.*
+
+**Quelle:** der bereits definierte **Index-Endpoint** (`/<espId>/index.json`, §7.2). Er treibt damit beides — Assignment-Sync **und** Änderungserkennung.
+
+**Zwei Wege ins NVS:**
+
+- **Manuell (§5.1):** Karte am ESPuino auflegen, Server wählen, speichern. Reicht für Mechanismus (a) ohne jeden Bulk-Sync.
+- **Bulk-Sync vom Hub:** Index holen → fehlende Einträge schreiben. Das ist der eigentliche „zentrale Admin"-Nutzen und Teil von **Mechanismus (b)**.
+
+**Wann läuft der Bulk-Sync:** immer **im Hintergrund, nie blockierend** — beim **Boot** (sobald WLAN steht und der Hub erreichbar ist), **manuell** per „Jetzt synchronisieren"-Button im Web-UI, *optional* **periodisch** im Heim-WLAN. **Inkrementell**: geschrieben wird nur, was neu ist oder wegfällt (schont NVS-Flash).
+
+**Reconcile-Regeln:**
+
+1. **Neu:** Karte im Index, aber nicht im NVS → uniformen Eintrag schreiben.
+2. **Koexistenz (harte Regel):** Nicht-`mediahub://`-Einträge (lokale SD-Pfade, Webradio, Modifikationen) werden **nie** angefasst.
+3. **Konflikt:** Bei `mediahub://`-Einträgen gewinnt der Hub; eine echte lokale Zuweisung bleibt unter Regel 2 unangetastet.
+4. **Entfernen (konfigurierbar, Default: an):** Verschwindet eine Karte aus dem Index, wird ihr `mediahub://`-Eintrag aus dem NVS entfernt. Über eine Einstellung abschaltbar — manche möchten zentral gelöschte Karten evtl. lokal behalten.
+
+**Offline-Klarstellung:** Assignment-Sync macht eine Karte *bekannt*, aber noch nicht *abspielbar*. Dafür müssen zusätzlich das gecachte Manifest **und** die Mediendateien lokal liegen — durch einmaliges Auflegen zu Hause (a) oder einen vollständigen Sync-Lauf (b), der die Dateien vorab zieht.
+
+### 5.3 Registrierung der Karte beim Hub (beim Auflegen)
+
+Die Karten-ID entsteht zwangsläufig zuerst am ESPuino (er ist der Leser) und muss von dort zum Hub. Dieser Push passiert **beim Auflegen der Karte**, nicht beim Anlernen im Web-UI:
+
+- Das **Anlernen (§5.1)** schreibt nur den NVS-Eintrag (`mediahub://…`, `MEDIAHUB`) — **kein** Hub-Kontakt.
+- Beim **Auflegen** fragt der ESPuino das Manifest beim Hub an. Kennt der Hub die Karte noch nicht, **registriert er sie dabei** (legt sie als noch-nicht-zugewiesen an, damit der Admin sie im Hub-UI sieht) und antwortet negativ. Der ESPuino zeigt einen **Fehler** — dem Bediener ist klar, dass die Karte neu ist.
+- Danach weist der Admin am Hub-Web-UI Inhalt zu; beim nächsten Auflegen kommt das Manifest, und die Karte spielt (nach Download).
+
+**Warum beim Auflegen statt beim Anlernen:** So ist der Zeitpunkt des ID-Pushs frei wählbar — einfach Karte auflegen. Käme die Registrierung beim Anlernen, müsste man zum erneuten Pushen (z. B. nach einem Hub-Reset) die Karte neu anlernen. Durch die Kopplung ans Auflegen genügt ein erneutes Auflegen.
+
+Einrichtungs-Ablauf end-to-end:
+
+```
+1. Web-UI: Karte auflegen, Hub-Server wählen, Speichern  → NVS: cardId → mediahub://…, MEDIAHUB (kein Hub-Kontakt)
+2. Karte zum Abspielen auflegen                          → Hub-Anfrage; Hub kennt sie nicht → registriert + Fehler
+3. Am Hub-Web-UI Inhalt zuweisen                         → Manifest existiert
+4. Karte erneut auflegen                                 → Manifest → Download → spielen
+```
+
 ## 6. Endpunkte
 
 ```
@@ -91,6 +132,8 @@ Manifest (pro Karte)   GET  http://<host:port>/<espId>/card/<cardId>/manifest.js
 Index (für Job b)      GET  http://<host:port>/<espId>/index.json
 Mediendateien          GET  <filesBaseUrl>/<files[].path>
 ```
+
+Ein Manifest-Request beim Auflegen dient zugleich der **Registrierung** (§5.3): Kennt der Hub die Karte noch nicht, legt er sie als noch-nicht-zugewiesen an und antwortet negativ. Ein separater Register-Endpoint ist damit nicht nötig.
 
 ## 7. Manifest-Format
 
@@ -164,11 +207,13 @@ Trägt eine Karte einen Webradio-Sender, gibt es **keine Dateien** herunterzulad
 
 Gemischte `LOCAL_M3U`-Listen (SD-Dateien und Webstreams gemischt) sind bewusst eine spätere Ausbaustufe (§15).
 
-## 8. playMode: Manifest vor NVS
+## 8. playMode: `MEDIAHUB`-Marker im NVS, echter Modus aus dem Manifest
 
-Für MediaHub-Karten ist der `playMode` aus dem **Manifest** maßgeblich; der NVS-Token wird zur Laufzeit ignoriert (bleibt aber als Fallback bestehen). Vorteil: Eine zentrale Änderung (z. B. „Einzeltitel" → „Hörbuch") propagiert über den normalen Manifest-Refresh, ohne das NVS anzufassen.
+MediaHub bekommt einen **neuen playMode-Wert `MEDIAHUB`** (zusätzlicher Eintrag in `values.h`, nächster freier Wert, z. B. 18). Im NVS steht für eine MediaHub-Karte immer `playMode = MEDIAHUB`. Das ist zugleich der **eindeutige Marker** für die Dispatch-Logik in `RfidCommon.cpp`: Erkennt sie `MEDIAHUB`, übergibt sie an MediaHub (Manifest auflösen), **bevor** die normale AudioPlayer-Logik greift (insbesondere die `http`→Webradio-Erkennung).
 
-*Offen / optional (niedrige Priorität):* Rückpropagierung des geänderten `playMode` ins NVS (lazy write-back). Bewusst zurückgestellt wegen zusätzlichem Flash-Schreibvorgang bei geringem Nutzen.
+Der **tatsächliche** playMode für die Wiedergabe (Hörbuch, Einzeltitel, Webstream …) kommt aus dem **Manifest**. Vorteil: Eine zentrale Änderung (z. B. „Einzeltitel" → „Hörbuch") propagiert über den normalen Manifest-Refresh, ohne das NVS anzufassen.
+
+Ein „Fallback-playMode" im NVS entfällt damit: `MEDIAHUB` allein ist nicht abspielbar — ohne Manifest weiß der ESPuino nicht, *was* zu spielen ist. Das entspricht genau dem gewünschten Verhalten (das erste Auflegen braucht das Manifest).
 
 ## 9. Integrität, Änderungserkennung, Force Refresh
 
@@ -225,8 +270,11 @@ flowchart TD
     E --> F{Cache<br/>vorhanden?}
     F -- nein --> H{Hub<br/>erreichbar?}
     H -- nein --> ERR[Kurze Fehler-Anzeige<br/>NICHT blockieren]
-    H -- ja --> I[Manifest laden + cachen]
-    I --> G
+    H -- ja --> I[Manifest beim Hub anfragen]
+    I --> M{Antwort?}
+    M -->|"unbekannt / nicht zugewiesen"| ERR3[Fehler-Anzeige<br/>Hub registriert Karte<br/>für spätere Zuweisung]
+    M -->|OK| IC[cachen]
+    IC --> G
     F -- ja --> G[Manifest ausgewertet]
     G --> S{Webradio?<br/>playMode = WEBSTREAM}
     S -- ja --> STR[[Stream-URL direkt abspielen<br/>braucht Netz]]
@@ -260,17 +308,27 @@ Der Download-Fortschritt wird auf dem Neopixel-Ring angezeigt. **Wichtig:** Nich
 - Abbruch/Fehler (Netzwerk weg, Hub-Fehler, SD-Fehler) → `.tmp` entfernen, klare Fehlermeldung, kein Zombie-File.
 - Kurze Connect-Timeouts (schnelles Scheitern), damit ein unerreichbarer Hub nie hängt.
 
-## 14. Offline-Verhalten (Unterwegs)
+## 14. Offline- & Fehlerverhalten
+
+**Offline / Hub nicht erreichbar (transient):**
 
 - `mediahub://`-Karte, Inhalt lokal vollständig → **spielt normal**, kein Netzwerkzugriff nötig.
 - Inhalt fehlt/unvollständig und Hub nicht erreichbar → **kurze Fehleranzeige**, kein Timeout, kein Hängen.
 - Der Manifest-Cache auf der SD (`/.mediahub/<cardId>.json`) macht `playMode`, `target` und die erwarteten Größen offline verfügbar.
 - **Webradio-Zuweisungen** brauchen prinzipbedingt Netz und sind offline nicht abspielbar (kurze Fehleranzeige).
 
+**Hub erreichbar, aber Karte (noch) nicht zugewiesen:**
+
+- Der Hub registriert die Karte (§5.3) und antwortet negativ → **Fehleranzeige**. Für den Bediener bedeutet das „neue / noch nicht eingerichtete Karte".
+- **Kein Löschen bei Einzel-Fehler:** Ein einzelner Negativ-/404-Response löscht **nie** lokale Dateien oder den NVS-Eintrag. Autoritativ fürs Entfernen ist allein der Index-Reconcile (§5.2), und nur bei aktivierter Entfernen-Config. (Gilt auch für den Hintergrund-`version`-Check.)
+
+**Während eines laufenden Downloads:**
+
+- Der Vordergrund-Download ist blockierend. Wird währenddessen eine **weitere Karte** aufgelegt, wird das mit einem **Fehler quittiert** und ignoriert — der ESPuino ist „busy".
+
 ## 15. Offene Punkte / später
 
-- **Mechanismus (b)** — Sync-Job über alle Karten (Trigger, Zeitpunkt, Fortschritt) — bewusst zurückgestellt, Architektur ist aber vorbereitet.
-- **Zeitpunkt des Manifest-/Assignment-Sync** — wann werden Zuweisungen ins NVS geschrieben (Ersteinrichtung)? Voraussetzung für den Offline-Fall.
+- **Detail-Design von Mechanismus (b)** — vollständiger Sync-Job über alle Karten inkl. **Vorab-Download der Mediendateien** und Fortschrittsanzeige. Prinzipien und Reconcile-Regeln stehen bereits in §5.2; die konkrete Job-Mechanik ist zurückgestellt.
 - **`playMode`-Rückpropagierung ins NVS** — optional, niedrige Priorität.
 - **Gemischte `LOCAL_M3U`-Listen** (SD-Dateien und Webstreams gemischt) — komplexer, spätere Ausbaustufe. Einfaches Webradio ist bereits im Scope (§7.3).
 - **Authentifizierung / Absicherung** des Hub-Zugriffs — noch offen.
@@ -287,9 +345,15 @@ Der Download-Fortschritt wird auf dem Neopixel-Ring angezeigt. **Wichtig:** Nich
 | 5 | `version` = Hub-seitiger Content-Hash (ESP32 vergleicht nur). |
 | 6 | Lokale Integrität über Größe; SHA-256 nur inkrementell beim Download. |
 | 7 | Force Refresh als Escape-Hatch (pro Karte / alle). |
-| 8 | `playMode` aus dem Manifest maßgeblich; NVS-Token nur Fallback. |
+| 8 | Neuer playMode-Wert `MEDIAHUB` als NVS-Marker (zugleich Diskriminator in `RfidCommon.cpp`); echter Modus kommt aus dem Manifest, kein Fallback-playMode. |
 | 9 | Erst-Download blockiert die Wiedergabe (mit Fortschrittsbalken); Änderungserkennung läuft im Hintergrund. |
 | 10 | Eigene, nicht-suspendierende LED-Download-Animation statt `Led_ShowOtaProgress()`. |
 | 11 | Kein `#ifdef` — MediaHub ist rein laufzeit-gesteuert, aktiv nur bei `mediahub://`-Karten. |
 | 12 | Webradio unterstützt: Stream-Manifest (`playMode` WEBSTREAM) ohne Download; gemischte m3u später. |
 | 13 | Medienserver im ESPuino-Web-UI registrierbar (Name + Basis-URL, eigener Settings-Eintrag); Dropdown füllt das `mediahub://`-Feld beim Zuweisen. |
+| 14 | Assignment-Sync ist index-getrieben & inkrementell; läuft im Hintergrund (Boot / manuell / optional periodisch). |
+| 15 | Sync fasst nur `mediahub://`-Einträge an; lokale Zuweisungen bleiben unangetastet (Hub gewinnt nur bei `mediahub://`). |
+| 16 | Entfernen zentral gelöschter Karten aus dem NVS ist **konfigurierbar** (Default: an). |
+| 17 | Registrierung der Karten-ID erfolgt **beim Auflegen** (nicht beim Anlernen); der Manifest-Request ist zugleich die Registrierung. Zeitpunkt frei wählbar. |
+| 18 | Unbekannte / nicht zugewiesene Karte → **Fehleranzeige** (akzeptiert; Bediener erkennt neue Karte). Kein Löschen lokaler Daten bei Einzel-Fehler. |
+| 19 | Während eines laufenden (blockierenden) Downloads wird das Auflegen weiterer Karten mit Fehler quittiert („busy"). |
