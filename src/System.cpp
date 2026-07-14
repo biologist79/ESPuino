@@ -123,7 +123,16 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 void System_DisableSleepTimer(void) {
 	System_SleepTimerStartTimestamp.store(0u);
+	gPlayProperties.playUntilTrackNumber = 0; // Drop a pending "sleep after N tracks" as well
 	Led_SetNightmode(false);
+}
+
+// How many more tracks to play when CMD_SLEEP_AFTER_N_TRACKS is triggered. Read on use, so a change
+// in the GUI takes effect without a restart. 0 would mean "sleep immediately", which is never what
+// the user wants from this command, so fall back to the default.
+uint8_t System_GetSleepTracks(void) {
+	const uint8_t tracks = gPrefsSettings.getUChar("sleepTracks", System_SleepTracksDefault);
+	return tracks ? tracks : System_SleepTracksDefault;
 }
 
 bool System_IsSleepTimerEnabled(void) {

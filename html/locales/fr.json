@@ -290,7 +290,7 @@
 					"104": "💤 Mise en veille après 2 heures",
 					"105": "💤 Mise en veille après la fin de la piste",
 					"106": "💤 Mise en veille après la fin de la liste de lecture",
-					"107": "💤 Mise en veille après la fin de cinq pistes",
+					"107": "💤 Mise en veille après n pistes supplémentaires",
 					"110": "🔁 Boucler la liste de lecture",
 					"111": "🔂 Boucler la piste",
 					"120": "🌙 Diminuer la luminosité des LED (mode nuit)",
@@ -534,7 +534,9 @@
 		"sleep": {
 			"title": "Veille profonde",
 			"inactivity": "Après n minutes d'inactivité",
-			"inactivityExp": "Durée en minutes sans interaction après laquelle ESPuino passe automatiquement en veille profonde."
+			"inactivityExp": "Durée en minutes sans interaction après laquelle ESPuino passe automatiquement en veille profonde.",
+			"tracks": "Après n pistes (minuteur d'arrêt)",
+			"tracksExp": "Nombre de pistes supplémentaires que la commande « mise en veille après n pistes » lit avant que l'ESPuino ne se mette en veille. Utilisé par la carte de modification RFID / la commande de bouton, et par MQTT « EO5T »."
 		},
 		"battery": {
 			"title": "Batterie",

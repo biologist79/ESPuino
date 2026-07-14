@@ -7,6 +7,7 @@ const char sleepTimerEOP[] = "Minuteur d'arrêt : après la dernière piste de l
 const char sleepTimerEOT[] = "Minuteur d'arrêt : après la fin de la piste en cours.";
 const char sleepTimerStop[] = "Le minuteur d'arrêt a été désactivé.";
 const char sleepTimerEO5[] = "Minuteur d'arrêt : après cinq pistes ou la fin de la liste de lecture - selon ce qui est atteint en premier.";
+const char sleepTimerEON[] = "Minuteur d'arrêt : après %u piste(s) supplémentaire(s) ou la fin de la liste de lecture - selon ce qui est atteint en premier.";
 const char sleepTimerAlreadyStopped[] = "Le minuteur d'arrêt est déjà désactivé.";
 const char sleepTimerSetTo[] = "Minuteur d'arrêt réglé sur %u minute(s)";
 const char allowButtons[] = "Déverrouillage de toutes les touches.";

@@ -4,6 +4,7 @@ extern const char sleepTimerEOP[];
 extern const char sleepTimerEOT[];
 extern const char sleepTimerStop[];
 extern const char sleepTimerEO5[];
+extern const char sleepTimerEON[];
 extern const char sleepTimerAlreadyStopped[];
 extern const char sleepTimerSetTo[];
 extern const char allowButtons[];

@@ -16,10 +16,13 @@
 
 #include <algorithm>
 
+// enLogMsg may be nullptr when the caller has already logged something more specific.
 static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char *enMqttMsg) {
 	Led_SetNightmode(enable);
 	if (enable) {
-		Log_Println(enLogMsg, LOGLEVEL_INFO);
+		if (enLogMsg != nullptr) {
+			Log_Println(enLogMsg, LOGLEVEL_INFO);
+		}
 #ifdef MQTT_ENABLE
 		publishMqtt(topicSleepTimer, enMqttMsg, false);
 #endif
@@ -122,25 +125,36 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
-		case CMD_SLEEP_AFTER_5_TRACKS: {
+		case CMD_SLEEP_AFTER_N_TRACKS: {
 			if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
 				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
 				System_IndicateError();
 				return;
 			}
 
+			if (gPlayProperties.playUntilTrackNumber > 0) { // Already armed -> toggle off
+				Cmd_HandleSleepAction(false, nullptr, "EO5T"); // System_DisableSleepTimer() clears playUntilTrackNumber
+				System_IndicateOk();
+				break;
+			}
+
 			gPlayProperties.sleepAfterCurrentTrack = false;
 			gPlayProperties.sleepAfterPlaylist = false;
-			gPlayProperties.sleepAfter5Tracks = !gPlayProperties.sleepAfter5Tracks;
 
-			if (gPlayProperties.sleepAfter5Tracks) {
-				if (gPlayProperties.currentTrackNumber + 5 > gPlayProperties.playlist->size()) {
-					// execute a sleep after end of playlist
-					Cmd_Action(CMD_SLEEP_AFTER_END_OF_PLAYLIST);
-					break;
-				}
+			const uint16_t targetTrack = gPlayProperties.currentTrackNumber + System_GetSleepTracks();
+			if (targetTrack >= gPlayProperties.playlist->size()) {
+				// Fewer tracks left than requested: sleep at the end of the playlist instead
+				Cmd_Action(CMD_SLEEP_AFTER_END_OF_PLAYLIST);
+				break;
 			}
-			Cmd_HandleSleepAction(gPlayProperties.sleepAfter5Tracks, sleepTimerEO5, "EO5T");
+
+			// The player compares this against currentTrackNumber on every track change, so setting it is what
+			// actually arms the stop. Commit 724ead4 dropped this line while unifying the sleep actions, which
+			// left the command dimming the LEDs and nothing else. Note the armed state is *this* field, not a
+			// separate bool -- keeping the two in sync is what went wrong the first time.
+			gPlayProperties.playUntilTrackNumber = targetTrack;
+			Log_Printf(LOGLEVEL_NOTICE, sleepTimerEON, System_GetSleepTracks());
+			Cmd_HandleSleepAction(true, nullptr, "EO5T");
 			System_IndicateOk();
 			break;
 		}

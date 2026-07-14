@@ -290,7 +290,7 @@
 					"104": "💤 Sleep after 2 hours",
 					"105": "💤 Sleep after end of track",
 					"106": "💤 Sleep after end of playlist",
-					"107": "💤 Sleep after end of five tracks",
+					"107": "💤 Sleep after n more tracks",
 					"110": "🔁 Loop playlist",
 					"111": "🔂 Loop track",
 					"120": "🌙 Dimm LEDs (nightmode)",
@@ -534,7 +534,9 @@
 		"sleep": {
 			"title": "Deep Sleep",
 			"inactivity": "After n minutes inactivity",
-			"inactivityExp": "Time in minutes without any interaction after which ESPuino automatically goes to sleep (deep sleep)."
+			"inactivityExp": "Time in minutes without any interaction after which ESPuino automatically goes to sleep (deep sleep).",
+			"tracks": "After n tracks (sleep timer)",
+			"tracksExp": "How many more tracks the 'sleep after n tracks' command plays before ESPuino goes to sleep. Used by the RFID modification-card / button command, and by MQTT 'EO5T'."
 		},
 		"battery": {
 			"title": "Battery",

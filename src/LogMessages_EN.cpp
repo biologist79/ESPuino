@@ -8,6 +8,7 @@ const char sleepTimerEOP[] = "Sleep-timer: after last track of playlist.";
 const char sleepTimerEOT[] = "Sleep-timer: after end of current track.";
 const char sleepTimerStop[] = "Sleep-timer has been disabled.";
 const char sleepTimerEO5[] = "Sleep-timer: after five track or end of playlist - whatever is reached first";
+const char sleepTimerEON[] = "Sleep-timer: after %u more track(s) or end of playlist - whatever is reached first";
 const char sleepTimerAlreadyStopped[] = "sleep-timer is already disabled.";
 const char sleepTimerSetTo[] = "sleep-timer adjusted to %u minute(s)";
 const char allowButtons[] = "Unlocking all keys.";

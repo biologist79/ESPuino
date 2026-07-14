@@ -8,6 +8,7 @@ const char sleepTimerEOP[] = "Sleep-Timer: Nach dem letzten Track der Playlist."
 const char sleepTimerEOT[] = "Sleep-Timer: Nach dem Ende des laufenden Tracks.";
 const char sleepTimerStop[] = "Sleep-Timer wurde deaktiviert.";
 const char sleepTimerEO5[] = "Sleep Timer: Nach Ende des Titels oder, wenn früher, Ende der Playlist";
+const char sleepTimerEON[] = "Sleep Timer: Nach %u weiteren Titel(n) oder, wenn früher, Ende der Playlist";
 const char sleepTimerAlreadyStopped[] = "Sleep-Timer ist bereits deaktiviert.";
 const char sleepTimerSetTo[] = "Sleep-Timer gesetzt auf %u Minute(n)";
 const char allowButtons[] = "Alle Tasten werden freigegeben.";

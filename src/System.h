@@ -16,6 +16,8 @@ bool System_IsSleepTimerEnabled(void);
 uint32_t System_GetSleepTimerTimeStamp(void);
 bool System_IsSleepPending(void);
 uint8_t System_GetSleepTimer(void);
+uint8_t System_GetSleepTracks(void);
+constexpr uint8_t System_SleepTracksDefault = 5u; // Tracks to play before sleeping, when not configured otherwise
 void System_SetLockControls(bool value);
 void System_ToggleLockControls(void);
 bool System_AreControlsLocked(void);

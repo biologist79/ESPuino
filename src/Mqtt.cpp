@@ -498,12 +498,13 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 					System_IndicateError();
 					return;
 				}
-				if ((gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
-					gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
+				const uint16_t targetTrack = gPlayProperties.currentTrackNumber + System_GetSleepTracks();
+				if (targetTrack < gPlayProperties.playlist->size()) {
+					gPlayProperties.playUntilTrackNumber = targetTrack;
 				} else {
-					gPlayProperties.sleepAfterPlaylist = true; // If +5 tracks is > than active playlist, take end of current playlist
+					gPlayProperties.sleepAfterPlaylist = true; // Fewer tracks left than requested: take end of current playlist
 				}
-				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
+				Log_Printf(LOGLEVEL_NOTICE, sleepTimerEON, System_GetSleepTracks());
 				publishMqtt(topicSleepTimer, "EO5T", false);
 				Led_SetNightmode(true);
 				System_IndicateOk();

@@ -290,7 +290,7 @@
 					"104": "💤 Schlafen nach 2 Stunden",
 					"105": "💤 Schlafen nach Ende des Titels",
 					"106": "💤 Schlafen nach Ende der Playlist",
-					"107": "💤 Schlafen nach fünf Titeln",
+					"107": "💤 Schlafen nach n weiteren Titeln",
 					"110": "🔁 Wiederhole Playlist (endlos)",
 					"111": "🔂 Wiederhole Titel (endlos)",
 					"120": "🌙 Dimme LEDs (Nachtmodus)",
@@ -534,7 +534,9 @@
 		"sleep": {
 			"title": "Deep Sleep",
 			"inactivity": "Inaktivität nach (in Minuten)",
-			"inactivityExp": "Zeit in Minuten ohne Bedienung, nach der ESPuino automatisch in den Ruhezustand (Deep Sleep) wechselt."
+			"inactivityExp": "Zeit in Minuten ohne Bedienung, nach der ESPuino automatisch in den Ruhezustand (Deep Sleep) wechselt.",
+			"tracks": "Nach n Titeln (Sleep-Timer)",
+			"tracksExp": "Wie viele weitere Titel der Befehl 'Schlafen nach n Titeln' abspielt, bevor der ESPuino einschläft. Wird von der RFID-Modifikationskarte / dem Tastenbefehl und von MQTT 'EO5T' verwendet."
 		},
 		"battery": {
 			"title": "Batterie",

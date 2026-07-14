@@ -46,7 +46,8 @@
 #define CMD_SLEEP_TIMER_MOD_120			 104 // Puts uC into deepsleep after 120 minutes + LED-DIMM
 #define CMD_SLEEP_AFTER_END_OF_TRACK	 105 // Puts uC into deepsleep after track is finished + LED-DIMM
 #define CMD_SLEEP_AFTER_END_OF_PLAYLIST	 106 // Puts uC into deepsleep after playlist is finished + LED-DIMM
-#define CMD_SLEEP_AFTER_5_TRACKS		 107 // Puts uC into deepsleep after five tracks + LED-DIMM
+#define CMD_SLEEP_AFTER_N_TRACKS		 107 // Puts uC into deepsleep after N more tracks (N configurable, default 5) + LED-DIMM
+#define CMD_SLEEP_AFTER_5_TRACKS		 CMD_SLEEP_AFTER_N_TRACKS // Deprecated alias, N used to be hardcoded to 5
 #define CMD_REPEAT_PLAYLIST				 110 // Changes active playmode to endless-loop (for a playlist)
 #define CMD_REPEAT_TRACK				 111 // Changes active playmode to endless-loop (for a single track)
 #define CMD_DIMM_LEDS_NIGHTMODE			 120 // Changes LED-brightness
