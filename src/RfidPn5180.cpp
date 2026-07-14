@@ -137,7 +137,7 @@ void RfidPn5180_Task(void *parameter) {
 	uint32_t lastTimeDetected14443 = 0;
 	uint32_t lastTimeDetected15693 = 0;
 	const uint16_t debounceMs = gPrefsRfid.getUShort("pn5180Debounce", 500);
-	byte lastValidcardId[cardIdSize];
+	byte lastValidcardId[cardIdSize] = {0}; // "same card reapplied" is decided by comparing against it
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
@@ -152,6 +152,11 @@ void RfidPn5180_Task(void *parameter) {
 
 	for (;;) {
 		vTaskDelay(portTICK_PERIOD_MS * 10u);
+		if (Rfid_ConsumeLastTagReset()) {
+			// An assignment changed (or the web UI started playback): the card on/near the reader may now
+			// mean something else, so it must not be treated as "same card re-applied" any more.
+			memset(lastValidcardId, 0, sizeof(lastValidcardId));
+		}
 		if (Rfid_Pn5180LpcdEnabled() && Rfid_GetLpcdShutdownStatus()) {
 			Rfid_EnableLpcd();
 			Rfid_SetLpcdShutdownStatus(false); // give feedback that execution is complete

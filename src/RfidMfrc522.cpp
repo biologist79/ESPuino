@@ -113,6 +113,12 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 		} else {
 			vTaskDelay(portTICK_PERIOD_MS * 20);
 		}
+		if (Rfid_ConsumeLastTagReset()) {
+			// An assignment changed (or the web UI started playback): the card on/near the reader may now
+			// mean something else, so it must not be treated as "same card re-applied" any more.
+			memset(lastValidcardId, 0, sizeof(lastValidcardId));
+		}
+
 		byte cardId[cardIdSize];
 		String cardIdString;
 		bool sameCardReapplied = false;
