@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include "settings.h"
 
-#include <atomic>
-
 #include "AudioPlayer.h"
 
 #include "Audio.h"
@@ -26,6 +24,7 @@
 #include "main.h"
 #include "strnatcmp.h"
 
+#include <atomic>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 #include <random>
