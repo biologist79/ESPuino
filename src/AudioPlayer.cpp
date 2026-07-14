@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "settings.h"
 
+#include <atomic>
+
 #include "AudioPlayer.h"
 
 #include "Audio.h"
@@ -30,6 +32,13 @@
 
 // Allocate gPlayProperties in PSRAM if available
 EXT_RAM_BSS_ATTR playProps gPlayProperties;
+
+// Pending relative seek in seconds, written from the button/rotary/web tasks and drained by the audio loop.
+static std::atomic<int16_t> AudioPlayer_PendingSeekSeconds {0};
+
+void AudioPlayer_AddSeekOffset(const int16_t seconds) {
+	AudioPlayer_PendingSeekSeconds.fetch_add(seconds, std::memory_order_relaxed);
+}
 
 // Playlist
 static playlistSortMode AudioPlayer_PlaylistSortMode = AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT;
@@ -1054,21 +1063,19 @@ void AudioPlayer_Loop() {
 		}
 	}
 
+	// Relative seek. Accumulated in an atomic so that firing CMD_SEEK_* once per rotary detent scrubs
+	// proportionally instead of collapsing into a single jump (seekmode was a single overwrite-able enum
+	// consumed once per iteration, so rapid repeats were lost).
+	const int16_t seekOffset = AudioPlayer_PendingSeekSeconds.exchange(0, std::memory_order_relaxed);
+	if (seekOffset != 0) {
+		if (audio->setTimeOffset(seekOffset)) {
+			Log_Printf(LOGLEVEL_NOTICE, (seekOffset > 0) ? secondsJumpForward : secondsJumpBackward, abs(seekOffset));
+		}
+	}
+
 	// Handle seekmodes
 	if (gPlayProperties.seekmode != SEEK_NORMAL) {
-		if (gPlayProperties.seekmode == SEEK_FORWARDS) {
-			if (audio->setTimeOffset(jumpOffset)) {
-				Log_Printf(LOGLEVEL_NOTICE, secondsJumpForward, jumpOffset);
-			} else {
-				System_IndicateError();
-			}
-		} else if (gPlayProperties.seekmode == SEEK_BACKWARDS) {
-			if (audio->setTimeOffset(-(jumpOffset))) {
-				Log_Printf(LOGLEVEL_NOTICE, secondsJumpBackward, jumpOffset);
-			} else {
-				System_IndicateError();
-			}
-		} else if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
+		if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
 			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
 			if (audio->setAudioPlayTime(newFileTime)) {
 				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());
@@ -1208,14 +1215,18 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 	int32_t _volumeBuf = AudioPlayer_GetCurrentVolume();
 
 	Led_Indicate(LedIndicatorType::VolumeChange);
-	if (_newVolume < AudioPlayer_GetMinVolume()) {
+	// Clamp rather than reject: a fast rotary spin can ask for several steps at once, and rejecting the whole
+	// change meant that near the rails (e.g. 20 -> 23 with max 21) nothing happened at all instead of pinning.
+	int32_t clampedVolume = _newVolume;
+	if (clampedVolume < AudioPlayer_GetMinVolume()) {
+		clampedVolume = AudioPlayer_GetMinVolume();
 		Log_Println(minLoudnessReached, LOGLEVEL_INFO);
-		return;
-	} else if (_newVolume > AudioPlayer_GetMaxVolume()) {
+	} else if (clampedVolume > AudioPlayer_GetMaxVolume()) {
+		clampedVolume = AudioPlayer_GetMaxVolume();
 		Log_Println(maxLoudnessReached, LOGLEVEL_INFO);
-		return;
-	} else {
-		_volume = _newVolume;
+	}
+	{
+		_volume = clampedVolume;
 		AudioPlayer_SetCurrentVolume(_volume);
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
@@ -1224,7 +1235,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 #ifdef MQTT_ENABLE
 		publishMqtt(topicLoudness, static_cast<uint32_t>(_volume), false);
 #endif
-		AudioPlayer_PauseOnMinVolume(_volumeBuf, _newVolume);
+		AudioPlayer_PauseOnMinVolume(_volumeBuf, clampedVolume);
 	}
 }
 
