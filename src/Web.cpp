@@ -75,6 +75,7 @@ static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
 static void handleTrackProgressRequest(AsyncWebServerRequest *request);
 static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
+static void handleGetWifiStatus(AsyncWebServerRequest *request);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetActiveSSID(AsyncWebServerRequest *request);
@@ -626,6 +627,7 @@ void webserverStart(void) {
 		wServer.addRewrite(new OneParamRewrite("/savedSSIDs/{ssid}", "/savedSSIDs?ssid={ssid}"));
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
+		wServer.on("/wifistatus", HTTP_GET, handleGetWifiStatus);
 
 		wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
@@ -2227,6 +2229,61 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 	Wlan_GetSavedNetworks([json_ssids](const WiFiSettings &network) {
 		json_ssids.add(network.ssid);
 	});
+
+	response->setLength();
+	request->send(response);
+}
+
+// Map an 802.11 disconnect reason code onto a coarse, user-explainable class.
+// The page translates the class into a localized message; the raw code is
+// reported alongside for the curious/for support.
+static const char *classifyDisconnectReason(uint8_t reason) {
+	switch (reason) {
+		case WIFI_REASON_AUTH_EXPIRE:
+		case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+		case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
+		case WIFI_REASON_IE_IN_4WAY_DIFFERS:
+		case WIFI_REASON_AUTH_FAIL:
+		case WIFI_REASON_HANDSHAKE_TIMEOUT:
+			return "wrong_password";
+		case WIFI_REASON_NO_AP_FOUND:
+		case 210: // NO_AP_FOUND_IN_RSSI_THRESHOLD (IDF >= 5.3)
+		case 211: // NO_AP_FOUND_IN_AUTHMODE_THRESHOLD
+		case 212: // NO_AP_FOUND_IN_BAND
+		case 213: // NO_AP_FOUND_W_COMPATIBLE_SECURITY
+			return "not_found";
+		case WIFI_REASON_ASSOC_TOOMANY:
+		case WIFI_REASON_802_1X_AUTH_FAILED:
+		case WIFI_REASON_CIPHER_SUITE_REJECTED:
+		case WIFI_REASON_ASSOC_FAIL:
+		case WIFI_REASON_CONNECTION_FAIL:
+			return "rejected";
+		default:
+			return "other";
+	}
+}
+
+// Current WiFi state plus diagnostics of the last failed connection attempt.
+// Used by the accesspoint page to tell the user why their credentials didn't
+// work instead of silently falling back to the setup AP.
+void handleGetWifiStatus(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse();
+	JsonObject obj = response->getRoot();
+
+	obj["state"] = Wlan_GetConnectState();
+	if (Wlan_IsConnected()) {
+		obj["ssid"] = Wlan_GetCurrentSSID();
+		obj["ip"] = Wlan_GetIpAddress();
+	}
+
+	String failSsid;
+	uint8_t failReason;
+	if (Wlan_GetLastFailure(failSsid, failReason)) {
+		JsonObject fail = obj["last_failure"].to<JsonObject>();
+		fail["ssid"] = failSsid;
+		fail["reason"] = failReason;
+		fail["class"] = classifyDisconnectReason(failReason);
+	}
 
 	response->setLength();
 	request->send(response);

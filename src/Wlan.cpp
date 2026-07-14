@@ -52,6 +52,17 @@ static uint8_t connectionAttemptCounter = 0;
 static unsigned long connectStartTimestamp = 0;
 static uint32_t connectionFailedTimestamp = 0;
 
+// diagnostics of the running/last connection attempt. The state machine only
+// polls WiFi.status(), which never surfaces WHY an attempt failed — the 802.11
+// reason code (wrong password vs. network not found vs. AP refused) only
+// arrives via the disconnect event. Captured here and persisted to NVS on
+// failure so the accesspoint page can show it to the user, even after the
+// reboot that sits between entering credentials and reading the result.
+static volatile uint8_t lastDisconnectReason = 0;
+static String lastAttemptSsid;
+static constexpr const char *nvsFailSsidKey = "wifiFailSsid";
+static constexpr const char *nvsFailReasonKey = "wifiFailReason";
+
 // state for persistent settings
 static constexpr const char *nvsWiFiNamespace = "wifi-settings";
 static constexpr const char *nvsWiFiKey = "wifi-";
@@ -287,6 +298,20 @@ void Wlan_Init(void) {
 	// for Arduino 2.0.9 this does not seem to bring any advantage just more memory use, so leave it outcommented
 	// WiFi.useStaticBuffers(true);
 
+	// capture the reason code of station disconnects (see lastDisconnectReason)
+	WiFi.onEvent([](WiFiEvent_t event, arduino_event_info_t info) {
+		const uint8_t reason = info.wifi_sta_disconnected.reason;
+		// The connect state machine tears down its own attempts (WiFi.disconnect()
+		// before every retry), which raises ASSOC_LEAVE/AUTH_LEAVE. Recording those
+		// would overwrite the reason we actually want — the one the AP gave when the
+		// attempt failed — so keep the last meaningful code instead.
+		if (reason == WIFI_REASON_ASSOC_LEAVE || reason == WIFI_REASON_AUTH_LEAVE) {
+			return;
+		}
+		lastDisconnectReason = reason;
+	},
+		WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
 	wifiState = WIFI_STATE_INIT;
 	handleWifiStateInit();
 }
@@ -307,6 +332,8 @@ void connectToKnownNetwork(const WiFiSettings &settings, const uint8_t *bssid = 
 
 	Log_Printf(LOGLEVEL_NOTICE, wifiConnectionInProgress, settings.ssid.c_str());
 
+	lastAttemptSsid = settings.ssid;
+	lastDisconnectReason = 0;
 	WiFi.begin(settings.ssid, settings.password, 0, bssid);
 }
 
@@ -515,6 +542,12 @@ void handleWifiStateConnectionSuccess() {
 		}
 	}
 
+	// a successful connection invalidates the stored failure diagnostics
+	if (gPrefsSettings.isKey(nvsFailReasonKey)) {
+		gPrefsSettings.remove(nvsFailReasonKey);
+		gPrefsSettings.remove(nvsFailSsidKey);
+	}
+
 	wifiState = WIFI_STATE_CONNECTED;
 	Mqtt_OnWifiConnected();
 }
@@ -561,6 +594,20 @@ void handleWifiStateConnectionFailed() {
 	if (connectionFailedTimestamp == 0) {
 		Log_Println(cantConnectToWifi, LOGLEVEL_INFO);
 		connectionFailedTimestamp = millis();
+
+		// persist the failure diagnostics for the accesspoint page. If no
+		// connect was even attempted, none of the saved networks was in the
+		// scan results — report that as NO_AP_FOUND for the last known SSID.
+		if (lastAttemptSsid.length() && lastDisconnectReason != 0) {
+			gPrefsSettings.putString(nvsFailSsidKey, lastAttemptSsid);
+			gPrefsSettings.putUChar(nvsFailReasonKey, lastDisconnectReason);
+		} else if (!lastAttemptSsid.length()) {
+			const String lastSSID = gPrefsSettings.getString("LAST_SSID");
+			if (lastSSID.length()) {
+				gPrefsSettings.putString(nvsFailSsidKey, lastSSID);
+				gPrefsSettings.putUChar(nvsFailReasonKey, WIFI_REASON_NO_AP_FOUND);
+			}
+		}
 	}
 
 	if (initialStart) {
@@ -764,6 +811,32 @@ bool Wlan_DeleteNetwork(String ssid) {
 
 bool Wlan_ConnectionTryInProgress(void) {
 	return wifiState == WIFI_STATE_SCAN_CONN;
+}
+
+// Coarse connection state for the web API (/wifistatus)
+const char *Wlan_GetConnectState(void) {
+	switch (wifiState) {
+		case WIFI_STATE_CONNECTED:
+			return "connected";
+		case WIFI_STATE_CONN_FAILED:
+			return "failed";
+		case WIFI_STATE_AP:
+			return "ap";
+		case WIFI_STATE_END:
+			return "off";
+		default:
+			return "connecting";
+	}
+}
+
+// Diagnostics of the last failed connection attempt (cleared on success)
+bool Wlan_GetLastFailure(String &ssid, uint8_t &reason) {
+	if (!gPrefsSettings.isKey(nvsFailReasonKey)) {
+		return false;
+	}
+	ssid = gPrefsSettings.getString(nvsFailSsidKey);
+	reason = gPrefsSettings.getUChar(nvsFailReasonKey);
+	return true;
 }
 
 String Wlan_GetIpAddress(void) {
