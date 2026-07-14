@@ -179,7 +179,9 @@
 		"test": {
 			"connecting": "Trying to connect to \"{{ssid}}\" …",
 			"connectingBtn": "Connecting …",
-			"success": "Connected! The box got IP {{ip}}. It will now leave setup mode — reconnect your phone to your normal WiFi and reach the box at http://{{ip}}"
+			"success": "Connected! The box got IP {{ip}}. It will now leave setup mode — reconnect your phone to your normal WiFi and reach the box at http://{{ip}}",
+			"reachTitle": "Reach your ESPuino",
+			"reachHint": "Your ESPuino is now on your WiFi at this address. Copy it or save it as a bookmark — the setup network is closing."
 		}
 	},
 	"control": {

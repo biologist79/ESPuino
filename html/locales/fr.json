@@ -179,7 +179,9 @@
 		"test": {
 			"connecting": "Connexion à « {{ssid}} » …",
 			"connectingBtn": "Connexion …",
-			"success": "Connecté ! La box a reçu l'adresse IP {{ip}} et quitte maintenant le mode configuration. Reconnectez votre téléphone à votre WiFi habituel et accédez à la box via http://{{ip}}"
+			"success": "Connecté ! La box a reçu l'adresse IP {{ip}} et quitte maintenant le mode configuration. Reconnectez votre téléphone à votre WiFi habituel et accédez à la box via http://{{ip}}",
+			"reachTitle": "Accéder à votre ESPuino",
+			"reachHint": "Votre ESPuino est maintenant accessible à cette adresse sur votre WiFi. Copiez-la ou enregistrez-la dans vos favoris — le réseau de configuration va se fermer."
 		}
 	},
 	"control": {

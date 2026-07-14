@@ -179,7 +179,9 @@
 		"test": {
 			"connecting": "Verbinde mit \"{{ssid}}\" …",
 			"connectingBtn": "Verbinde …",
-			"success": "Verbunden! Die Box hat die IP {{ip}} erhalten und verlässt jetzt den Einrichtungsmodus. Verbinde dein Telefon wieder mit deinem normalen WLAN und erreiche die Box unter http://{{ip}}"
+			"success": "Verbunden! Die Box hat die IP {{ip}} erhalten und verlässt jetzt den Einrichtungsmodus. Verbinde dein Telefon wieder mit deinem normalen WLAN und erreiche die Box unter http://{{ip}}",
+			"reachTitle": "ESPuino erreichen",
+			"reachHint": "Dein ESPuino ist jetzt unter dieser Adresse in deinem WLAN erreichbar. Kopiere sie oder speichere sie als Lesezeichen — das Einrichtungs-WLAN wird geschlossen."
 		}
 	},
 	"control": {
