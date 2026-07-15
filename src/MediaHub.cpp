@@ -89,10 +89,12 @@ static String MediaHub_StaleMarkerPath(const char *cardId) {
 	return "/.mediahub/manifests/" + String(cardId) + ".stale";
 }
 
+// True if the stale marker exists.
 static bool MediaHub_IsStale(const char *cardId) {
 	return gFSystem.exists(MediaHub_StaleMarkerPath(cardId));
 }
 
+// Creates the stale marker.
 static void MediaHub_MarkStale(const char *cardId) {
 	File f = gFSystem.open(MediaHub_StaleMarkerPath(cardId), FILE_WRITE, true);
 	if (f) {
@@ -100,6 +102,7 @@ static void MediaHub_MarkStale(const char *cardId) {
 	}
 }
 
+// Removes the stale marker.
 static void MediaHub_ClearStale(const char *cardId) {
 	gFSystem.remove(MediaHub_StaleMarkerPath(cardId));
 }
@@ -129,6 +132,7 @@ static bool MediaHub_FileFullySynced(const String &mediaDir, JsonVariantConst fi
 	return sizeMatches;
 }
 
+// True only if every file in `files` passes MediaHub_FileFullySynced().
 static bool MediaHub_AllFilesSynced(const String &mediaDir, JsonArrayConst files) {
 	if (files.size() == 0) {
 		return false; // nothing to play
@@ -141,15 +145,82 @@ static bool MediaHub_AllFilesSynced(const String &mediaDir, JsonArrayConst files
 	return true;
 }
 
-// SINGLE_TRACK/SINGLE_TRACK_LOOP point at one specific file; every other mode
-// points at the whole media folder and leaves scanning/sorting/recursion to
-// SdCard_ReturnPlaylist() (same reasoning as in AudioPlayer_SetPlaylist()).
+// Directory portion of a manifest path, or "" if it sits at the library root.
+static String MediaHub_DirOf(const String &path) {
+	const int slash = path.lastIndexOf('/');
+	if (slash < 0) {
+		return "";
+	}
+	return path.substring(0, slash);
+}
+
+// Splits a path into its '/'-separated segments.
+static std::vector<String> MediaHub_SplitPath(const String &path) {
+	std::vector<String> segments;
+	int start = 0;
+	while (start <= (int) path.length()) {
+		int slash = path.indexOf('/', start);
+		if (slash < 0) {
+			segments.push_back(path.substring(start));
+			break;
+		}
+		segments.push_back(path.substring(start, slash));
+		start = slash + 1;
+	}
+	return segments;
+}
+
+// Longest common leading path-segments across every file's directory.
+// Non-single-file manifests are always built from one selected folder on the
+// hub, optionally scanned recursively (concept §5.4) - this reliably yields
+// exactly that folder back, regardless of how deep individual files end up
+// nested under it (which AudioPlayer_SetPlaylist()'s own recursion, keyed
+// off the real playMode, then handles from there). Returns "" if the files
+// sit directly at the library root, i.e. mediaDir is already the right item.
+static String MediaHub_CommonDirectory(JsonArrayConst files) {
+	std::vector<String> common;
+	bool first = true;
+	for (JsonVariantConst f : files) {
+		const char *path = f["path"] | "";
+		const String dir = MediaHub_DirOf(String(path));
+		std::vector<String> segments = dir.length() > 0 ? MediaHub_SplitPath(dir) : std::vector<String>();
+		if (first) {
+			common = segments;
+			first = false;
+			continue;
+		}
+		size_t matched = 0;
+		while (matched < common.size() && matched < segments.size() && common[matched] == segments[matched]) {
+			matched++;
+		}
+		common.resize(matched);
+	}
+	String result;
+	for (size_t i = 0; i < common.size(); i++) {
+		if (i > 0) {
+			result += "/";
+		}
+		result += common[i];
+	}
+	return result;
+}
+
+// SINGLE_TRACK/SINGLE_TRACK_LOOP point at one specific file. Every other mode
+// points at the folder the files actually share (see MediaHub_CommonDirectory())
+// and leaves scanning/sorting/recursion from there to SdCard_ReturnPlaylist()
+// (same reasoning as in AudioPlayer_SetPlaylist()) - pointing at mediaDir
+// itself would be wrong whenever files[].path carries subdirectories
+// (recursive selections, or any folder that isn't the media library root).
 static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files) {
 	if (MediaHub_IsSingleFilePlayMode(playMode)) {
 		const char *singleFilePath = files[0]["path"] | "";
 		return mediaDir + "/" + singleFilePath;
 	}
-	return mediaDir;
+	const String commonDir = MediaHub_CommonDirectory(files);
+	if (commonDir.length() == 0) {
+		return mediaDir;
+	}
+	return mediaDir + "/" + commonDir;
 }
 
 // Mirrors explorerDeleteDirectory() in Web.cpp: recurse via File objects only,
@@ -187,6 +258,7 @@ static uint64_t MediaHub_DirSizeRecursive(File dir) {
 	return total;
 }
 
+// Total size of an existing directory's contents, 0 if it doesn't exist.
 static uint64_t MediaHub_DirSize(const String &path) {
 	File dir = gFSystem.open(path);
 	if (!dir || !dir.isDirectory()) {
@@ -689,6 +761,7 @@ static void MediaHub_VersionCheckTask(void *pvParameters) {
 	vTaskDelete(NULL);
 }
 
+// Spawns MediaHub_VersionCheckTask() and returns immediately.
 static void MediaHub_StartBackgroundVersionCheck(const char *cardId, const String &hostPort) {
 	auto *args = new MediaHub_VersionCheckArgs {String(cardId), hostPort};
 	xTaskCreatePinnedToCore(MediaHub_VersionCheckTask, "MediaHubVerChk", 4096, args, 1, NULL, 1);
@@ -744,6 +817,8 @@ String MediaHub_GetEspId() {
 	return mac;
 }
 
+// Dispatch entry point - see MediaHub.h for the contract. Order: local-cache
+// fast path, then stale re-sync, then a live manifest fetch.
 void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
 	if (MediaHub_DownloadBusy) {
 		Log_Println(mediaHubBusy, LOGLEVEL_NOTICE);
@@ -940,6 +1015,7 @@ std::vector<MediaHubServer> MediaHub_GetServers() {
 	return servers;
 }
 
+// Writes the full list back as one JSON blob (see MediaHub_ServersNvsKey).
 static bool MediaHub_SaveServers(const std::vector<MediaHubServer> &servers) {
 	JsonDocument doc;
 	JsonArray arr = doc.to<JsonArray>();
