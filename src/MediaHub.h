@@ -7,6 +7,10 @@
 // path field then holds "mediahub://<host:port>" instead of an SD path,
 // and the actual playMode/content comes from a per-card manifest fetched
 // from that host at tap-time (never from NVS).
+//
+// Phase 1 (current): only webradio manifests (playMode WEBSTREAM) are
+// handed off to playback. File-based manifests are recognized but not yet
+// downloaded/played (later phases).
 
 // Prefix identifying a MediaHub base-address in the NVS path field.
 extern const char *const MediaHub_PathPrefix; // "mediahub://"
@@ -14,9 +18,15 @@ extern const char *const MediaHub_PathPrefix; // "mediahub://"
 // True if path starts with MediaHub_PathPrefix.
 bool MediaHub_IsMediaHubPath(const char *path);
 
+// Stable per-device identifier sent to the hub as <espId> (concept §6):
+// the WiFi MAC address without colons, uppercase (e.g. "AABBCCDDEEFF").
+// Unlike the configurable hostname (defaults to "ESPuino" for every
+// device), this needs no setup and can't collide between devices.
+String MediaHub_GetEspId();
+
 // Dispatch entry point for a card whose NVS playMode is MEDIAHUB (called
 // from RfidCommon.cpp before the normal AudioPlayer dispatch). lastPlayPos
 // and trackLastPlayed are the values already parsed from NVS by the
-// caller, to be passed through to AudioPlayer_SetPlaylist() once manifest
-// resolution and playback are implemented (§8.1, §11) — unused for now.
+// caller, to be passed through to AudioPlayer_SetPlaylist() once
+// file-based manifest playback is implemented (§8.1, §11) — unused for now.
 void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t lastPlayPos, uint16_t trackLastPlayed);

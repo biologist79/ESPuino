@@ -238,4 +238,13 @@ const char wifiSetLastSSID[] = "Write last successful SSID to NVS for WiFi fast-
 const char mDNSStarted[] = "mDNS started: http://%s.local";
 const char mDNSFailed[] = "mDNS failure, hostname: %s";
 const char restartAfterOperationModeChange[] = "Operation Mode changed. Restart ESPuino now...";
+
+// MediaHub
+const char mediaHubNotReachable[] = "MediaHub not reachable.";
+const char mediaHubInvalidPath[] = "MediaHub: invalid hub address in NVS.";
+const char mediaHubCardPending[] = "MediaHub: card is not assigned yet.";
+const char mediaHubUnexpectedStatus[] = "MediaHub: unexpected status code %d.";
+const char mediaHubInvalidManifest[] = "MediaHub: manifest invalid or incomplete.";
+const char mediaHubFileModeNotYetSupported[] = "MediaHub: file playback is not implemented yet.";
+const char mediaHubWebstreamFromManifest[] = "MediaHub: starting webstream from manifest.";
 #endif
