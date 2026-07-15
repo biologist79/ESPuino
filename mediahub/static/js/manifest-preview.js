@@ -5,8 +5,8 @@
 
 	document.addEventListener("DOMContentLoaded", function () {
 		document.querySelectorAll(".mh-manifest-btn").forEach(function (btn) {
-			var cardId = btn.dataset.cardId;
-			var row = document.querySelector('.mh-manifest-row[data-card-id="' + cardId + '"]');
+			var key = btn.dataset.key;
+			var row = document.querySelector('.mh-manifest-row[data-key="' + key + '"]');
 			if (!row) {
 				return;
 			}

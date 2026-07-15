@@ -16,20 +16,35 @@
 			<thead>
 				<tr>
 					<th>{{ _('Device ID') }}</th>
+					<th>{{ _('Alias') }}</th>
 					<th>{{ _('IP address') }}</th>
 					<th>{{ _('Last seen') }}</th>
 					<th>{{ _('First seen') }}</th>
 					<th>{{ _('Last card') }}</th>
+					<th>{{ _('Cards') }}</th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				{% for esp_id, dev in devices %}
+				{% for esp_id, dev, card_count, delete_confirm in devices %}
 				<tr>
 					<td><code>{{ esp_id }}</code></td>
+					<td>
+						<form class="alias-form" method="post" action="{{ url_for('set_device_alias', esp_id=esp_id) }}">
+							<input type="text" name="alias" value="{{ dev.alias or '' }}" placeholder="{{ _('e.g. Kids room') }}" maxlength="60">
+							<button class="btn btn-small btn-secondary" type="submit">{{ _('Save') }}</button>
+						</form>
+					</td>
 					<td>{{ dev.ip }}</td>
 					<td>{{ dev.last_seen }}</td>
 					<td>{{ dev.first_seen }}</td>
 					<td><code>{{ dev.last_card_id }}</code></td>
+					<td>{{ card_count }}</td>
+					<td>
+						<form class="confirm-form" method="post" action="{{ url_for('delete_device', esp_id=esp_id) }}" data-confirm="{{ delete_confirm }}">
+							<button class="btn btn-small btn-danger" type="submit">{{ _('Delete') }}</button>
+						</form>
+					</td>
 				</tr>
 				{% endfor %}
 			</tbody>

@@ -27,12 +27,23 @@
 		</div>
 	</div>
 	{% if not only_pending %}
-	<form class="add-card-form" method="post" action="{{ url_for('add_card') }}">
-		<input type="text" name="card_id" inputmode="numeric" pattern="\d{12}" maxlength="12"
-			placeholder="{{ _('12-digit card ID') }}" required>
-		<button class="btn btn-secondary" type="submit">{{ _('Add card') }}</button>
-		<span class="muted add-card-hint">{{ _("You'll find the card ID on the ESPuino's own web UI when you tap the card there.") }}</span>
-	</form>
+		{% if not devices %}
+		<p class="empty-state">{{ _('No ESPuino has checked in yet — a device needs to contact the hub at least once (e.g. tapping an unknown card) before you can add a card assignment for it.') }}</p>
+		{% else %}
+		<form class="add-card-form" method="post" action="{{ url_for('add_card') }}">
+			<select name="esp_id" required>
+				<option value="" disabled selected>{{ _('ESPuino') }}</option>
+				{% for esp_id, dev in devices.items() %}
+				<option value="{{ esp_id }}">{{ dev.alias or esp_id }}</option>
+				{% endfor %}
+			</select>
+			<input type="text" name="card_id" inputmode="numeric" pattern="\d{12}" maxlength="12"
+				placeholder="{{ _('12-digit card ID') }}" required
+				oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+			<button class="btn btn-secondary" type="submit">{{ _('Add card') }}</button>
+			<span class="muted add-card-hint">{{ _("You'll find the card ID on the ESPuino's own web UI when you tap the card there.") }}</span>
+		</form>
+		{% endif %}
 	{% endif %}
 </section>
 
@@ -46,6 +57,7 @@
 			<thead>
 				<tr>
 					<th>{{ _('Card ID') }}</th>
+					<th>{{ _('Device') }}</th>
 					<th>{{ _('Name') }}</th>
 					<th>{{ _('Status') }}</th>
 					<th>{{ _('Content') }}</th>
@@ -54,9 +66,11 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for card_id, card, content_label in cards %}
+				{% for card, content_label, device_label in cards %}
+				{% set row_key = card.esp_id ~ "/" ~ card.card_id %}
 				<tr>
-					<td><code>{{ card_id }}</code></td>
+					<td><code>{{ card.card_id }}</code></td>
+					<td>{{ device_label }}</td>
 					<td>{{ card.name or "—" }}</td>
 					<td>
 						{% if card.status == "assigned" %}
@@ -68,25 +82,25 @@
 					<td>{{ content_label }}</td>
 					<td>{{ card.last_seen }}</td>
 					<td class="table-actions">
-						<a class="btn btn-small" href="{{ url_for('assign_card', card_id=card_id) }}">
+						<a class="btn btn-small" href="{{ url_for('assign_card', esp_id=card.esp_id, card_id=card.card_id) }}">
 							{{ _('Assign') if card.status != "assigned" else _('Edit') }}
 						</a>
 						{% if card.status == "assigned" %}
-						<form method="post" action="{{ url_for('force_refresh_card', card_id=card_id) }}">
+						<form method="post" action="{{ url_for('force_refresh_card', esp_id=card.esp_id, card_id=card.card_id) }}">
 							<button class="btn btn-small btn-secondary" type="submit">{{ _('Force refresh') }}</button>
 						</form>
 						<button type="button" class="btn btn-small btn-secondary mh-manifest-btn"
-							data-card-id="{{ card_id }}" data-url="{{ url_for('manifest_preview', card_id=card_id) }}"
+							data-key="{{ row_key }}" data-url="{{ url_for('manifest_preview', esp_id=card.esp_id, card_id=card.card_id) }}"
 							data-error="{{ _('Could not load the manifest.') }}">{{ _('Manifest') }}</button>
 						{% endif %}
-						<form method="post" action="{{ url_for('delete_card', card_id=card_id) }}" onsubmit="return confirm('{{ _('Really delete card %(id)s?', id=card_id) }}');">
+						<form method="post" action="{{ url_for('delete_card', esp_id=card.esp_id, card_id=card.card_id) }}" onsubmit="return confirm('{{ _('Really delete card %(id)s?', id=card.card_id) }}');">
 							<button class="btn btn-small btn-danger" type="submit">{{ _('Delete') }}</button>
 						</form>
 					</td>
 				</tr>
 				{% if card.status == "assigned" %}
-				<tr class="mh-manifest-row" data-card-id="{{ card_id }}" hidden>
-					<td colspan="6"><pre class="mh-manifest-json"></pre></td>
+				<tr class="mh-manifest-row" data-key="{{ row_key }}" hidden>
+					<td colspan="7"><pre class="mh-manifest-json"></pre></td>
 				</tr>
 				{% endif %}
 				{% endfor %}
