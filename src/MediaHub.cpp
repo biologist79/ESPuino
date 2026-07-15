@@ -68,6 +68,19 @@ static String MediaHub_MediaDir(const char *cardId) {
 	return "/.mediahub/media/" + String(cardId);
 }
 
+// The NVS path field's "hostPort" part may itself already carry a scheme
+// (e.g. "https://myhub:8443", written there via the Web-UI's http/https
+// dropdown, concept §5.1) - use it as-is if so, otherwise default to plain
+// http:// for the common case. HTTPClient::begin() already handles either
+// scheme transparently (falling back to an unverified/insecure TLS
+// connection for https - fine for a local, trusted hub, concept #19).
+static String MediaHub_BuildBaseUrl(const String &hostPort) {
+	if (hostPort.startsWith("http://") || hostPort.startsWith("https://")) {
+		return hostPort;
+	}
+	return "http://" + hostPort;
+}
+
 // "stale"/"needs resync" (concept §9/§13) share one marker and one recovery
 // path: both mean "the next tap should wipe and fully re-download". A
 // re-sync that fails partway simply never clears the marker, which is
@@ -545,7 +558,7 @@ static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t
 // Only clears "stale" on full success.
 static bool MediaHub_TryReSync(const char *cardId, const String &hostPort) {
 	String espId = MediaHub_GetEspId();
-	String url = "http://" + hostPort + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
+	String url = MediaHub_BuildBaseUrl(hostPort) + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
 
 	HTTPClient http;
 	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
@@ -649,7 +662,7 @@ static void MediaHub_VersionCheckTask(void *pvParameters) {
 
 	if (cachedVersion.length() > 0) {
 		String espId = MediaHub_GetEspId();
-		String url = "http://" + args->hostPort + "/" + espId + "/card/" + args->cardId + "/manifest.json";
+		String url = MediaHub_BuildBaseUrl(args->hostPort) + "/" + espId + "/card/" + args->cardId + "/manifest.json";
 
 		HTTPClient http;
 		http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
@@ -777,7 +790,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 	}
 
 	String espId = MediaHub_GetEspId();
-	String url = "http://" + hostPort + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
+	String url = MediaHub_BuildBaseUrl(hostPort) + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
 
 	HTTPClient http;
 	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
@@ -919,6 +932,7 @@ std::vector<MediaHubServer> MediaHub_GetServers() {
 		MediaHubServer s;
 		s.name = entry["name"] | "";
 		s.hostPort = entry["hostPort"] | "";
+		s.https = entry["https"] | false; // absent (servers registered before https support) -> http
 		if (s.name.length() > 0 && s.hostPort.length() > 0) {
 			servers.push_back(s);
 		}
@@ -933,13 +947,14 @@ static bool MediaHub_SaveServers(const std::vector<MediaHubServer> &servers) {
 		JsonObject o = arr.add<JsonObject>();
 		o["name"] = s.name;
 		o["hostPort"] = s.hostPort;
+		o["https"] = s.https;
 	}
 	String json;
 	serializeJson(doc, json);
 	return gPrefsSettings.putString(MediaHub_ServersNvsKey, json) == json.length();
 }
 
-bool MediaHub_SaveServer(const String &name, const String &hostPort) {
+bool MediaHub_SaveServer(const String &name, const String &hostPort, bool https) {
 	if (name.length() == 0 || hostPort.length() == 0) {
 		return false;
 	}
@@ -947,13 +962,14 @@ bool MediaHub_SaveServer(const String &name, const String &hostPort) {
 	for (auto &s : servers) {
 		if (s.name == name) {
 			s.hostPort = hostPort;
+			s.https = https;
 			return MediaHub_SaveServers(servers);
 		}
 	}
 	if (servers.size() >= MediaHub_MaxServers) {
 		return false;
 	}
-	servers.push_back({name, hostPort});
+	servers.push_back({name, hostPort, https});
 	return MediaHub_SaveServers(servers);
 }
 

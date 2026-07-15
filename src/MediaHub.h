@@ -55,15 +55,19 @@ bool MediaHub_ForceRefreshAll();
 bool MediaHub_DeleteCard(const char *cardId);
 
 // Registered media servers (concept §5.1): a small device-local list of
-// known hubs (display name + "host:port"), purely enrollment convenience for
-// the Web-UI's RFID-assignment dropdown. Stored as its own settings entry,
-// not in the RFID NVS format, and never read by the runtime playback flow.
+// known hubs (display name + "host:port" + http/https), purely enrollment
+// convenience for the Web-UI's RFID-assignment dropdown, which combines
+// scheme+hostPort into the value written to the NVS path field. Stored as
+// its own settings entry, not in the RFID NVS format, and never read by the
+// runtime playback flow - the scheme that ends up mattering at tap-time is
+// whatever's embedded in that one NVS field (see MediaHub_BuildBaseUrl()).
 struct MediaHubServer {
 	String name;
 	String hostPort;
+	bool https = false;
 };
 
 std::vector<MediaHubServer> MediaHub_GetServers();
-// Adds a new server, or updates the hostPort of an existing one with the same name.
-bool MediaHub_SaveServer(const String &name, const String &hostPort);
+// Adds a new server, or updates the hostPort/https of an existing one with the same name.
+bool MediaHub_SaveServer(const String &name, const String &hostPort, bool https);
 bool MediaHub_DeleteServer(const String &name);
