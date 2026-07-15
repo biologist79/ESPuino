@@ -75,15 +75,27 @@
 						<form method="post" action="{{ url_for('force_refresh_card', card_id=card_id) }}">
 							<button class="btn btn-small btn-secondary" type="submit">{{ _('Force refresh') }}</button>
 						</form>
+						<button type="button" class="btn btn-small btn-secondary mh-manifest-btn"
+							data-card-id="{{ card_id }}" data-url="{{ url_for('manifest_preview', card_id=card_id) }}"
+							data-error="{{ _('Could not load the manifest.') }}">{{ _('Manifest') }}</button>
 						{% endif %}
 						<form method="post" action="{{ url_for('delete_card', card_id=card_id) }}" onsubmit="return confirm('{{ _('Really delete card %(id)s?', id=card_id) }}');">
 							<button class="btn btn-small btn-danger" type="submit">{{ _('Delete') }}</button>
 						</form>
 					</td>
 				</tr>
+				{% if card.status == "assigned" %}
+				<tr class="mh-manifest-row" data-card-id="{{ card_id }}" hidden>
+					<td colspan="6"><pre class="mh-manifest-json"></pre></td>
+				</tr>
+				{% endif %}
 				{% endfor %}
 			</tbody>
 		</table>
 	</div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/manifest-preview.js') }}" defer></script>
 {% endblock %}

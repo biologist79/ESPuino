@@ -16,6 +16,12 @@ from flask_babel import gettext as _
 
 WEBSTREAM_PLAY_MODE = 8
 
+# SINGLE_TRACK / SINGLE_TRACK_LOOP (values.h) play back exactly one file —
+# unlike e.g. SINGLE_TRACK_OF_DIR_RANDOM, which needs a whole folder as the
+# pool to pick from. The card assignment UI and its server-side validation
+# both use this to cap selection to a single file for these two modes.
+SINGLE_FILE_PLAY_MODES = {1, 2}
+
 # The ESPuino always builds a card ID from exactly 4 UID bytes formatted as
 # "%03d" each (see cardIdSize/cardIdStringSize in src/Rfid.h) — always 12
 # decimal digits, never hex.

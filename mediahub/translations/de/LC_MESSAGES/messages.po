@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 14:53+0200\n"
+"POT-Creation-Date: 2026-07-15 15:05+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: de\n"
@@ -46,7 +46,9 @@ msgstr "Die Karten-ID muss genau 12 Ziffern haben."
 #: app.py:191
 #, python-format
 msgid "Card %(id)s already exists and is assigned — opening it for editing."
-msgstr "Karte %(id)s existiert bereits und ist zugewiesen — wird zum Bearbeiten geöffnet."
+msgstr ""
+"Karte %(id)s existiert bereits und ist zugewiesen — wird zum Bearbeiten "
+"geöffnet."
 
 #: app.py:215
 msgid "A stream URL is required for webradio."
@@ -69,22 +71,28 @@ msgstr ""
 msgid "At least one audio file is required."
 msgstr "Mindestens eine Audiodatei wird benötigt."
 
-#: app.py:258
+#: app.py:256
+msgid "This play mode only supports a single file — please select just one."
+msgstr ""
+"Dieser Abspielmodus unterstützt nur eine einzelne Datei — bitte nur eine "
+"auswählen."
+
+#: app.py:262
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Karte %(id)s zugewiesen."
 
-#: app.py:273
+#: app.py:278
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Force Refresh für Karte %(id)s ausgelöst."
 
-#: app.py:280
+#: app.py:285
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Force Refresh für alle %(num)s Karten ausgelöst."
 
-#: app.py:298
+#: app.py:303
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -93,88 +101,88 @@ msgstr ""
 "Secure Delete: Der ESPuino (%(esp_id)s) hat das Löschen nicht bestätigt. "
 "Die Karte wurde beibehalten, bitte erneut versuchen."
 
-#: app.py:300
+#: app.py:305
 msgid "unknown"
 msgstr "unbekannt"
 
-#: app.py:311
+#: app.py:316
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Karte %(id)s gelöscht (%(mode)s)."
 
-#: app.py:350
+#: app.py:367
 msgid "Settings saved."
 msgstr "Einstellungen gespeichert."
 
-#: app.py:360
+#: app.py:377
 msgid "Please enter a password."
 msgstr "Bitte ein Passwort eingeben."
 
-#: app.py:362
+#: app.py:379
 msgid "Passwords do not match."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: app.py:365
+#: app.py:382
 msgid "Hub password set."
 msgstr "Hub-Passwort gesetzt."
 
-#: app.py:373
+#: app.py:390
 msgid "Hub password removed."
 msgstr "Hub-Passwort entfernt."
 
-#: manifest.py:66
+#: manifest.py:72
 msgid "Single track"
 msgstr "Einzeltitel"
 
-#: manifest.py:67
+#: manifest.py:73
 msgid "Single track (loop)"
 msgstr "Einzeltitel (Endlosschleife)"
 
-#: manifest.py:68
+#: manifest.py:74
 msgid "Audiobook (remembers position)"
 msgstr "Hörbuch (merkt sich Position)"
 
-#: manifest.py:69
+#: manifest.py:75
 msgid "Audiobook (loop)"
 msgstr "Hörbuch (Endlosschleife)"
 
-#: manifest.py:70
+#: manifest.py:76
 msgid "Audiobook, recursive (remembers position)"
 msgstr "Hörbuch, rekursiv (merkt sich Position)"
 
-#: manifest.py:71
+#: manifest.py:77
 msgid "All tracks of a folder (sorted)"
 msgstr "Alle Titel eines Ordners (sortiert)"
 
-#: manifest.py:72
+#: manifest.py:78
 msgid "All tracks of a folder (shuffled)"
 msgstr "Alle Titel eines Ordners (zufällig)"
 
-#: manifest.py:73
+#: manifest.py:79
 msgid "All tracks of a folder (sorted, loop)"
 msgstr "Alle Titel eines Ordners (sortiert, Endlosschleife)"
 
-#: manifest.py:74
+#: manifest.py:80
 msgid "All tracks of a folder (shuffled, loop)"
 msgstr "Alle Titel eines Ordners (zufällig, Endlosschleife)"
 
-#: manifest.py:75
+#: manifest.py:81
 msgid "All tracks, recursive (shuffled)"
 msgstr "Alle Titel, rekursiv (zufällig)"
 
-#: manifest.py:76
+#: manifest.py:82
 msgid "All tracks, recursive (sorted)"
 msgstr "Alle Titel, rekursiv (sortiert)"
 
-#: manifest.py:77
+#: manifest.py:83
 msgid "Single random track of a folder"
 msgstr "Einzeltitel eines Ordners (zufällig)"
 
-#: manifest.py:78
+#: manifest.py:84
 msgid "Random subfolder (sorted)"
 msgstr "Zufälliger Unterordner (sortiert)"
 
-#: manifest.py:79
+#: manifest.py:85
 msgid "Random subfolder (shuffled)"
 msgstr "Zufälliger Unterordner (zufällig)"
 
@@ -266,31 +274,39 @@ msgstr ""
 "Dateien kommen aus der unter /media eingebundenen Bibliothek — MediaHub "
 "legt keine eigenen Kopien an."
 
-#: templates/card_form.html:56
+#: templates/card_form.html:57
 msgid "Use folder"
 msgstr "Ordner verwenden"
 
-#: templates/card_form.html:56
+#: templates/card_form.html:58
 msgid "No audio files here."
 msgstr "Keine Audiodateien hier."
 
-#: templates/card_form.html:56
+#: templates/card_form.html:59
 msgid "Remove"
 msgstr "Entfernen"
 
-#: templates/card_form.html:56
+#: templates/card_form.html:60
 msgid "Could not list this folder (permission denied?)."
 msgstr "Ordner konnte nicht gelistet werden (Zugriff verweigert?)."
 
 #: templates/card_form.html:62
+msgid ""
+"This play mode only supports one file — pick a different mode to select "
+"more."
+msgstr ""
+"Dieser Abspielmodus unterstützt nur eine Datei — für mehrere einen "
+"anderen Modus wählen."
+
+#: templates/card_form.html:69
 msgid "Stream URL"
 msgstr "Stream-URL"
 
-#: templates/card_form.html:68 templates/settings.html:33
+#: templates/card_form.html:75 templates/settings.html:33
 msgid "Save"
 msgstr "Speichern"
 
-#: templates/card_form.html:69
+#: templates/card_form.html:76
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -394,12 +410,20 @@ msgstr "Bearbeiten"
 msgid "Force refresh"
 msgstr "Force Refresh"
 
-#: templates/cards.html:79
+#: templates/cards.html:80
+msgid "Could not load the manifest."
+msgstr "Manifest konnte nicht geladen werden."
+
+#: templates/cards.html:80
+msgid "Manifest"
+msgstr "Manifest"
+
+#: templates/cards.html:82
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr "Karte %(id)s wirklich löschen?"
 
-#: templates/cards.html:80
+#: templates/cards.html:83
 msgid "Delete"
 msgstr "Löschen"
 

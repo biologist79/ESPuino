@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 14:53+0200\n"
+"POT-Creation-Date: 2026-07-15 15:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,110 +67,114 @@ msgstr ""
 msgid "At least one audio file is required."
 msgstr ""
 
-#: app.py:258
+#: app.py:256
+msgid "This play mode only supports a single file — please select just one."
+msgstr ""
+
+#: app.py:262
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr ""
 
-#: app.py:273
+#: app.py:278
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr ""
 
-#: app.py:280
+#: app.py:285
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr ""
 
-#: app.py:298
+#: app.py:303
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
 "was kept, please retry."
 msgstr ""
 
-#: app.py:300
+#: app.py:305
 msgid "unknown"
 msgstr ""
 
-#: app.py:311
+#: app.py:316
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr ""
 
-#: app.py:350
+#: app.py:367
 msgid "Settings saved."
 msgstr ""
 
-#: app.py:360
+#: app.py:377
 msgid "Please enter a password."
 msgstr ""
 
-#: app.py:362
+#: app.py:379
 msgid "Passwords do not match."
 msgstr ""
 
-#: app.py:365
+#: app.py:382
 msgid "Hub password set."
 msgstr ""
 
-#: app.py:373
+#: app.py:390
 msgid "Hub password removed."
 msgstr ""
 
-#: manifest.py:66
+#: manifest.py:72
 msgid "Single track"
 msgstr ""
 
-#: manifest.py:67
+#: manifest.py:73
 msgid "Single track (loop)"
 msgstr ""
 
-#: manifest.py:68
+#: manifest.py:74
 msgid "Audiobook (remembers position)"
 msgstr ""
 
-#: manifest.py:69
+#: manifest.py:75
 msgid "Audiobook (loop)"
 msgstr ""
 
-#: manifest.py:70
+#: manifest.py:76
 msgid "Audiobook, recursive (remembers position)"
 msgstr ""
 
-#: manifest.py:71
+#: manifest.py:77
 msgid "All tracks of a folder (sorted)"
 msgstr ""
 
-#: manifest.py:72
+#: manifest.py:78
 msgid "All tracks of a folder (shuffled)"
 msgstr ""
 
-#: manifest.py:73
+#: manifest.py:79
 msgid "All tracks of a folder (sorted, loop)"
 msgstr ""
 
-#: manifest.py:74
+#: manifest.py:80
 msgid "All tracks of a folder (shuffled, loop)"
 msgstr ""
 
-#: manifest.py:75
+#: manifest.py:81
 msgid "All tracks, recursive (shuffled)"
 msgstr ""
 
-#: manifest.py:76
+#: manifest.py:82
 msgid "All tracks, recursive (sorted)"
 msgstr ""
 
-#: manifest.py:77
+#: manifest.py:83
 msgid "Single random track of a folder"
 msgstr ""
 
-#: manifest.py:78
+#: manifest.py:84
 msgid "Random subfolder (sorted)"
 msgstr ""
 
-#: manifest.py:79
+#: manifest.py:85
 msgid "Random subfolder (shuffled)"
 msgstr ""
 
@@ -258,31 +262,37 @@ msgid ""
 "its own copies."
 msgstr ""
 
-#: templates/card_form.html:56
+#: templates/card_form.html:57
 msgid "Use folder"
 msgstr ""
 
-#: templates/card_form.html:56
+#: templates/card_form.html:58
 msgid "No audio files here."
 msgstr ""
 
-#: templates/card_form.html:56
+#: templates/card_form.html:59
 msgid "Remove"
 msgstr ""
 
-#: templates/card_form.html:56
+#: templates/card_form.html:60
 msgid "Could not list this folder (permission denied?)."
 msgstr ""
 
 #: templates/card_form.html:62
-msgid "Stream URL"
-msgstr ""
-
-#: templates/card_form.html:68 templates/settings.html:33
-msgid "Save"
+msgid ""
+"This play mode only supports one file — pick a different mode to select "
+"more."
 msgstr ""
 
 #: templates/card_form.html:69
+msgid "Stream URL"
+msgstr ""
+
+#: templates/card_form.html:75 templates/settings.html:33
+msgid "Save"
+msgstr ""
+
+#: templates/card_form.html:76
 msgid "Cancel"
 msgstr ""
 
@@ -378,12 +388,20 @@ msgstr ""
 msgid "Force refresh"
 msgstr ""
 
-#: templates/cards.html:79
+#: templates/cards.html:80
+msgid "Could not load the manifest."
+msgstr ""
+
+#: templates/cards.html:80
+msgid "Manifest"
+msgstr ""
+
+#: templates/cards.html:82
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr ""
 
-#: templates/cards.html:80
+#: templates/cards.html:83
 msgid "Delete"
 msgstr ""
 

@@ -50,10 +50,17 @@
 			<div id="media-tree" class="media-tree" data-list-url="{{ url_for('media_browse') }}"></div>
 		</div>
 
-		<input type="hidden" name="selected_paths_json" id="selected-paths-json"
-			value="{{ card.files | map(attribute='path') | list | tojson }}">
+		<input type="hidden" name="selected_paths_json" id="selected-paths-json" value="[]">
 		<script type="application/json" id="media-tree-labels">
-			{{ {"useFolder": _("Use folder"), "emptyFolder": _("No audio files here."), "remove": _("Remove"), "listError": _("Could not list this folder (permission denied?).")} | tojson }}
+			{{ {
+				"useFolder": _("Use folder"),
+				"emptyFolder": _("No audio files here."),
+				"remove": _("Remove"),
+				"listError": _("Could not list this folder (permission denied?)."),
+				"singleFileModes": single_file_play_modes,
+				"singleFileOnly": _("This play mode only supports one file — pick a different mode to select more."),
+				"initialSelection": card.files | map(attribute='path') | list
+			} | tojson }}
 		</script>
 	</div>
 

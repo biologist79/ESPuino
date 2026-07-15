@@ -8,11 +8,28 @@
 	function initMediaBrowser(root) {
 		var listUrl = root.dataset.listUrl;
 		var labels = JSON.parse(document.getElementById("media-tree-labels").textContent);
-		var selection = JSON.parse(document.getElementById("selected-paths-json").value || "[]");
+		// Read from the JSON <script> block, not an HTML attribute: a raw
+		// tojson'd path containing a `"` would otherwise terminate the
+		// value="..." attribute early and truncate/corrupt it.
+		var selection = (labels.initialSelection || []).slice();
+		var singleFileModes = (labels.singleFileModes || []).map(String);
+		var playModeSelect = document.getElementById("play_mode");
 
 		var selectedListEl = document.getElementById("selected-files");
 		var selectedEmptyEl = document.getElementById("selected-files-empty");
 		var hiddenInput = document.getElementById("selected-paths-json");
+
+		function isSingleFileMode() {
+			return !!playModeSelect && singleFileModes.indexOf(playModeSelect.value) !== -1;
+		}
+
+		function updateUseFolderButtons() {
+			var disabled = isSingleFileMode();
+			root.querySelectorAll(".mt-use-btn").forEach(function (btn) {
+				btn.disabled = disabled;
+				btn.title = disabled ? labels.singleFileOnly : "";
+			});
+		}
 
 		function saveSelection() {
 			hiddenInput.value = JSON.stringify(selection);
@@ -53,6 +70,13 @@
 		}
 
 		function addPaths(paths) {
+			if (isSingleFileMode()) {
+				// Acts like a radio group in this mode: picking a new file replaces
+				// whatever was selected before instead of adding to it.
+				selection = paths.slice(-1);
+				saveSelection();
+				return;
+			}
 			paths.forEach(function (path) {
 				if (selection.indexOf(path) === -1) {
 					selection.push(path);
@@ -107,6 +131,8 @@
 			useBtn.type = "button";
 			useBtn.className = "mt-use-btn";
 			useBtn.textContent = labels.useFolder;
+			useBtn.disabled = isSingleFileMode();
+			useBtn.title = useBtn.disabled ? labels.singleFileOnly : "";
 
 			var children = document.createElement("ul");
 			children.className = "mt-children";
@@ -216,6 +242,7 @@
 
 		fetchListing("").then(function (data) {
 			renderChildren(tree, data);
+			updateUseFolderButtons();
 		}).catch(function () {
 			var error = document.createElement("li");
 			error.className = "mt-empty mt-error";
@@ -223,7 +250,24 @@
 			tree.appendChild(error);
 		});
 
-		renderSelectedList();
+		if (playModeSelect) {
+			playModeSelect.addEventListener("change", function () {
+				if (isSingleFileMode() && selection.length > 1) {
+					selection = selection.slice(0, 1);
+					saveSelection();
+				}
+				updateUseFolderButtons();
+			});
+		}
+
+		if (isSingleFileMode() && selection.length > 1) {
+			selection = selection.slice(0, 1);
+		}
+
+		// Sync the hidden field with the pre-filled selection right away —
+		// otherwise clicking Save without touching the tree would submit the
+		// "[]" placeholder and wipe an existing card's files.
+		saveSelection();
 	}
 
 	document.addEventListener("DOMContentLoaded", function () {
