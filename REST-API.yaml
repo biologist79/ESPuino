@@ -42,24 +42,23 @@ paths:
                         True if item is a directory. This parameter is omitted
                         for a file.
     post:
-      summary: Upload a file to a directory.
-      description: Upload a file to the specified directory.
+      summary: Upload a file.
+      description: >-
+        Uploads a single file, given as a raw binary body (not multipart/
+        form-data). To upload several files, send one request per file.
       parameters:
         - in: query
           name: path
           schema:
             type: string
-          description: Directory path to upload the file.
+          description: Full target path, including the filename, to upload the file to.
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/octet-stream:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
+              type: string
+              format: binary
       responses:
         "200":
           description: File successfully uploaded.

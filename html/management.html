@@ -2567,11 +2567,10 @@
 			});
 		}
 		/* File Upload */
-		// EXPERIMENTAL (feature-mediahub): raw-body PUT per file instead of one
-		// multipart/form-data POST for the whole batch, to test whether skipping
-		// MIME boundary parsing on the ESPuino side measurably improves upload
-		// throughput. Server side: explorerHandleRawUpload() in Web.cpp. Promote
-		// to its own branch/PR if this pans out, revert otherwise.
+		// Each selected file is sent as its own raw (application/octet-stream)
+		// POST instead of bundling the whole batch into one multipart/form-data
+		// request - server side (explorerHandleFileUpload() in Web.cpp) never has
+		// to parse MIME boundaries, which measurably improved throughput.
 		$('#explorerUploadForm').submit(function (e) {
 			e.preventDefault();
 			console.log("Upload!");
@@ -2682,7 +2681,7 @@
 				const file = files[idx];
 				const targetPath = (path.endsWith('/') ? path : path + '/') + file.name;
 				const xhr = new XMLHttpRequest();
-				xhr.open('PUT', '/explorerraw?path=' + encodeURIComponent(targetPath));
+				xhr.open('POST', '/explorer?path=' + encodeURIComponent(targetPath));
 				xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 				xhr.upload.addEventListener('progress', function (evt) {
 					if (evt.lengthComputable) {
