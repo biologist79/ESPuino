@@ -245,6 +245,11 @@ const char mediaHubInvalidPath[] = "MediaHub: ungültige Hub-Adresse im NVS.";
 const char mediaHubCardPending[] = "MediaHub: Karte ist (noch) nicht zugewiesen.";
 const char mediaHubUnexpectedStatus[] = "MediaHub: unerwarteter Status-Code %d.";
 const char mediaHubInvalidManifest[] = "MediaHub: Manifest ungültig oder unvollständig.";
-const char mediaHubFileModeNotYetSupported[] = "MediaHub: Datei-Wiedergabe ist noch nicht implementiert.";
 const char mediaHubWebstreamFromManifest[] = "MediaHub: Starte Webstream aus Manifest.";
+const char mediaHubBusy[] = "MediaHub: Download läuft bereits, Karte wird ignoriert.";
+const char mediaHubSdFull[] = "MediaHub: nicht genug freier SD-Speicherplatz für Download.";
+const char mediaHubDownloadingFile[] = "MediaHub: lade %s herunter.";
+const char mediaHubDownloadFailed[] = "MediaHub: Download von %s fehlgeschlagen.";
+const char mediaHubVerifyFailed[] = "MediaHub: SHA-256-Prüfung von %s fehlgeschlagen.";
+const char mediaHubPlayingAfterSync[] = "MediaHub: Synchronisierung abgeschlossen, starte Wiedergabe.";
 #endif
