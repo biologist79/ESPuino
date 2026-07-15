@@ -2,6 +2,13 @@
 
 ## DEV-branch
 
+* 16.07.2026: Explorer file upload: send each file as its own raw (application/octet-stream) request instead of bundling the whole batch into one multipart/form-data POST - no MIME boundary parsing on the ESPuino side, ~450 -> ~650 kiB/s measured (#434)
+* 15.07.2026: Wlan/Web/accesspoint: test WiFi credentials live from the setup page - after saving, the box tries them on the station interface while the setup AP stays up, and shows connecting/failed/success right there instead of save -> reboot -> hope (#433), thanks to @mgoodfellow
+* 15.07.2026: Bt: small memory tweaks (#427), thanks to @Joe91
+* 14.07.2026: Wlan/Web/accesspoint: tell the user WHY a WiFi connection attempt failed (wrong password / network not found / rejected / associated but no IP) instead of a silent retry-then-fallback (#432), thanks to @mgoodfellow
+* 14.07.2026: accesspoint: honor browser language and add a language selector, instead of always defaulting to German (#431), thanks to @mgoodfellow
+* 14.07.2026: accesspoint: fix the blank save button caused by a locale key renamed during the settings-tabs restructure (#429), thanks to @mgoodfellow
+* 13.07.2026: CI: also publish bootloader.bin and partitions.bin per board alongside firmware.bin
 * 12.07.2026: Add missing help tooltips across the web UI settings (WiFi, MQTT, FTP, Bluetooth, volume/playlist, LED, sleep/battery) and align tooltip placement next to the field label consistently
 * 12.07.2026: GitHub firmware update list: show 10 builds instead of 5, and show the ESPuino commit's description as a hover tooltip on the commit link
 * 11.07.2026: Fix intermittent false "card removed" events with PN5180: avoid an unnecessary hardware reset on every poll while a tag is being tracked, clear stale IRQ flags before each ISO15693 inventory poll, switch to a PN5180-Library fork with shorter RF-field/transceive timeouts, and make the removal-debounce configurable in the web UI (General -> RFID-Reader) (#428)
