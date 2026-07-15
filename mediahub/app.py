@@ -207,8 +207,13 @@ def delete_device(esp_id):
 def _content_label(card):
     if card["kind"] == "webradio":
         return "📻 " + _("Webradio")
-    n = len(card.get("files", []))
-    return "📁 " + ngettext("%(num)s file", "%(num)s files", n) % {"num": n}
+    files = card.get("files", [])
+    n = len(files)
+    label = "📁 " + ngettext("%(num)s file", "%(num)s files", n) % {"num": n}
+    if n:
+        size_mb = round(sum(f["size"] for f in files) / 1048576, 1)
+        label += f" ({size_mb} MB)"
+    return label
 
 
 def _content_detail(card):
