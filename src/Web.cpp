@@ -2729,6 +2729,7 @@ static void handleGetMediaHubServers(AsyncWebServerRequest *request) {
 		JsonObject obj = arr.add<JsonObject>();
 		obj["name"] = server.name;
 		obj["hostPort"] = server.hostPort;
+		obj["https"] = server.https;
 	}
 	response->setLength();
 	request->send(response);
@@ -2737,11 +2738,12 @@ static void handleGetMediaHubServers(AsyncWebServerRequest *request) {
 static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVariant &json) {
 	const char *name = json["name"].as<const char *>();
 	const char *hostPort = json["hostPort"].as<const char *>();
+	const bool https = json["https"] | false;
 	if (!name || !hostPort || strlen(name) == 0 || strlen(hostPort) == 0) {
 		request->send(400, "text/plain; charset=utf-8", "error adding media server");
 		return;
 	}
-	if (MediaHub_SaveServer(name, hostPort)) {
+	if (MediaHub_SaveServer(name, hostPort, https)) {
 		request->send(200, "text/plain; charset=utf-8", name);
 	} else {
 		request->send(500, "text/plain; charset=utf-8", "error adding media server");

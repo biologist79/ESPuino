@@ -1007,10 +1007,17 @@
 										tabindex="0"><i class="fas fa-circle-question"></i></a>
 								</div>
 								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mediaHubServerHostPort"
-										name="mediaHubServerHostPort"
-										data-i18n="[placeholder]files.rfid.mediahub.hostPort.placeholder" maxlength="64"
-										required>
+									<div class="input-group">
+										<select class="form-select flex-grow-0 w-auto" id="mediaHubServerScheme"
+											name="mediaHubServerScheme">
+											<option value="http">http://</option>
+											<option value="https">https://</option>
+										</select>
+										<input type="text" class="form-control" id="mediaHubServerHostPort"
+											name="mediaHubServerHostPort"
+											data-i18n="[placeholder]files.rfid.mediahub.hostPort.placeholder"
+											maxlength="64" required>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -2729,8 +2736,9 @@
 			}
 		});
 		function updateFileOrUrlFromMediaHubServer() {
-			let hostPort = $('#mediaHubServerSelect').val();
-			$('#fileOrUrl').val(hostPort ? ('mediahub://' + hostPort) : '');
+			// the option's value is already "scheme://host:port" (see rebuildMediaHubServerList)
+			let base = $('#mediaHubServerSelect').val();
+			$('#fileOrUrl').val(base ? ('mediahub://' + base) : '');
 		}
 		$('#mediaHubServerSelect').on('change', updateFileOrUrlFromMediaHubServer);
 
@@ -4169,14 +4177,18 @@
 
 			mediaHubServerSelect.innerHTML = "";
 			for (let server of servers) {
+				// the option's value is the full "scheme://host:port" base: at
+				// assignment time that's exactly what fills the fileOrUrl field
+				// (via mediahub://<value>), the runtime never sees this server list.
+				let base = (server.https ? "https://" : "http://") + server.hostPort;
 				let opt = document.createElement("option");
-				opt.value = server.hostPort;
-				opt.textContent = server.name + " (" + server.hostPort + ")";
+				opt.value = base;
+				opt.textContent = server.name + " (" + base + ")";
 				mediaHubServerSelect.appendChild(opt);
 			}
 			if (servers.length === 1) {
 				// only one known hub -> preselect it (concept §5.1)
-				mediaHubServerSelect.value = servers[0].hostPort;
+				mediaHubServerSelect.selectedIndex = 0;
 			}
 			if ($('#playMode').val() === '18') {
 				updateFileOrUrlFromMediaHubServer();
@@ -4184,9 +4196,10 @@
 
 			mediaHubServerListManaged.innerHTML = "";
 			for (let server of servers) {
+				let base = (server.https ? "https://" : "http://") + server.hostPort;
 				let elem = document.createElement("li");
 				elem.classList.add("list-group-item");
-				elem.appendChild(document.createTextNode(server.name + " (" + server.hostPort + ")"));
+				elem.appendChild(document.createTextNode(server.name + " (" + base + ")"));
 				let deleteSpan = document.createElement("span");
 				deleteSpan.classList.add("float-end");
 				deleteSpan.classList.add("button-group");
@@ -4212,7 +4225,8 @@
 			lastIdclicked = clickedId;
 			var myObj = {
 				name: document.getElementById('mediaHubServerName').value,
-				hostPort: document.getElementById('mediaHubServerHostPort').value
+				hostPort: document.getElementById('mediaHubServerHostPort').value,
+				https: document.getElementById('mediaHubServerScheme').value === 'https'
 			};
 			await fetch("http://" + host + "/mediahubservers", {
 				method: "POST",
