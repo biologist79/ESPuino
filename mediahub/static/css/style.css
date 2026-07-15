@@ -14,8 +14,9 @@
 	--radius: 12px;
 }
 
+/* Dark-Tokens — folgen der OS-Einstellung, außer eine explizite Hell-Umschaltung greift */
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not([data-theme="light"]) {
 		--bg: #0f1419;
 		--surface: #1a2029;
 		--text: #e6e9ee;
@@ -24,6 +25,17 @@
 		--shadow: none;
 		--shadow-lg: 0 8px 24px rgba(0, 0, 0, .45);
 	}
+}
+
+/* Explizite Theme-Umschaltung gewinnt in beide Richtungen */
+:root[data-theme="dark"] {
+	--bg: #0f1419;
+	--surface: #1a2029;
+	--text: #e6e9ee;
+	--muted: #9aa4b2;
+	--border: #262f3a;
+	--shadow: none;
+	--shadow-lg: 0 8px 24px rgba(0, 0, 0, .45);
 }
 
 * { box-sizing: border-box; }
