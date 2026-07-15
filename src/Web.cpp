@@ -66,6 +66,11 @@ static std::atomic<bool> uploadAborted = false;
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
 static void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+// EXPERIMENTAL, feature-mediahub only (see commit message): raw-body upload,
+// tested against the multipart path above to see whether skipping MIME
+// boundary parsing measurably helps throughput. Promote to its own
+// branch/PR if it does, drop otherwise.
+static void explorerHandleRawUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 static void explorerHandleFileStorageTask(void *parameter);
 static void explorerHandleListRequest(AsyncWebServerRequest *request);
 static void explorerHandleDownloadRequest(AsyncWebServerRequest *request);
@@ -609,6 +614,17 @@ void webserverStart(void) {
 				}
 			},
 			explorerHandleFileUpload);
+
+		// EXPERIMENTAL (feature-mediahub): raw-body upload path, see the
+		// declaration comment above explorerHandleRawUpload().
+		wServer.on(
+			"/explorerraw", HTTP_PUT, [](AsyncWebServerRequest *request) {
+				request->onDisconnect([]() { destroyDoubleBuffer(); });
+				if (!request->_tempObject) {
+					request->send(200);
+				}
+			},
+			NULL, explorerHandleRawUpload);
 
 		wServer.on("/explorerdownload", HTTP_GET, explorerHandleDownloadRequest);
 
@@ -1849,6 +1865,134 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
 		// watit until the storage task is sending the signal to finish
+		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
+			// timeout, something went wrong
+			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+			handleUploadError(request, 500);
+			return;
+		}
+	}
+}
+
+// EXPERIMENTAL (feature-mediahub): same double-buffer/writer-task machinery
+// as explorerHandleFileUpload() above, fed from a raw (non-multipart) PUT
+// body instead - no MIME boundary parsing on the way in. One request per
+// file (the full target path, filename included, travels in the "path"
+// query param since a raw body carries no per-part filename); the client
+// is responsible for looping over multiple files sequentially. Kept as a
+// separate function rather than refactored to share code with
+// explorerHandleFileUpload() so the existing, proven multipart path can't
+// be affected by this experiment.
+static void explorerHandleRawUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+	System_UpdateActivityTimer();
+
+	if (index == 0) {
+		uploadAborted = false;
+
+		String filePath = "/";
+		if (request->hasParam("path")) {
+			filePath = request->getParam("path")->value();
+		}
+
+		Log_Printf(LOGLEVEL_INFO, writingFile, filePath.c_str());
+
+		if (!allocateDoubleBuffer()) {
+			// we failed to allocate enough memory
+			Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
+			handleUploadError(request, 500);
+			return;
+		}
+
+		if (explorerFileUploadFinished == NULL) {
+			explorerFileUploadFinished = xSemaphoreCreateBinary();
+		} else {
+			// make sure semaphore is empty
+			xSemaphoreTake(explorerFileUploadFinished, 0);
+		}
+
+		// reset buffers
+		index_buffer_write = 0;
+		index_buffer_read = 0;
+		for (uint32_t i = 0; i < nr_of_buffers; i++) {
+			size_in_buffer[i] = 0;
+			buffer_full[i] = false;
+		}
+
+		const char *filePathCopy = x_strdup(filePath.c_str());
+		xTaskCreatePinnedToCore(
+			explorerHandleFileStorageTask, /* Function to implement the task */
+			"fileStorageTask", /* Name of the task */
+			4000, /* Stack size in words */
+			(void *) filePathCopy, /* Task input parameter */
+			2 | portPRIVILEGE_BIT, /* Priority of the task */
+			&fileStorageTaskHandle, /* Task handle. */
+			1 /* Core where the task should run */
+		);
+
+		request->onDisconnect([]() {
+			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+		});
+	}
+
+	if (uploadAborted) {
+		if (!request->_tempObject) {
+			handleUploadError(request, 500);
+		}
+		return;
+	}
+
+	if (len) {
+		// wait till buffer is ready
+		while (buffer_full[index_buffer_write]) {
+			if (uploadAborted) {
+				return;
+			}
+			vTaskDelay(2u);
+		}
+
+		size_t len_to_write = len;
+		size_t space_left = chunk_size - size_in_buffer[index_buffer_write];
+		if (space_left < len_to_write) {
+			len_to_write = space_left;
+		}
+		// write content to buffer
+		memcpy(buffer[index_buffer_write] + size_in_buffer[index_buffer_write], data, len_to_write);
+		size_in_buffer[index_buffer_write] = size_in_buffer[index_buffer_write] + len_to_write;
+
+		// check if buffer is filled. If full, signal that ready and change buffers
+		if (size_in_buffer[index_buffer_write] == chunk_size) {
+			// signal, that buffer is ready. Increment index
+			buffer_full[index_buffer_write] = true;
+			index_buffer_write = (index_buffer_write + 1) % nr_of_buffers;
+
+			// if still content left, put it into next buffer
+			if (len_to_write < len) {
+				// wait till new buffer is ready
+				while (buffer_full[index_buffer_write]) {
+					if (uploadAborted) {
+						return;
+					}
+					vTaskDelay(2u);
+				}
+				size_t len_left_to_write = len - len_to_write;
+				memcpy(buffer[index_buffer_write], data + len_to_write, len_left_to_write);
+				size_in_buffer[index_buffer_write] = len_left_to_write;
+			}
+		}
+	}
+
+	if (index + len >= total) {
+		if (uploadAborted) {
+			handleUploadError(request, 500);
+			return;
+		}
+		// if file not completely done yet, signal that buffer is filled
+		if (size_in_buffer[index_buffer_write] > 0) {
+			buffer_full[index_buffer_write] = true;
+		}
+		// notify storage task that last data was stored on the ring buffer
+		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
+		// wait until the storage task is sending the signal to finish
 		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
 			// timeout, something went wrong
 			Log_Println(webTxCanceled, LOGLEVEL_ERROR);

@@ -2567,10 +2567,14 @@
 			});
 		}
 		/* File Upload */
+		// EXPERIMENTAL (feature-mediahub): raw-body PUT per file instead of one
+		// multipart/form-data POST for the whole batch, to test whether skipping
+		// MIME boundary parsing on the ESPuino side measurably improves upload
+		// throughput. Server side: explorerHandleRawUpload() in Web.cpp. Promote
+		// to its own branch/PR if this pans out, revert otherwise.
 		$('#explorerUploadForm').submit(function (e) {
 			e.preventDefault();
 			console.log("Upload!");
-			var data = new FormData(this);
 			var ref = $('#explorerTree').jstree(true),
 				sel = ref.get_selected(),
 				path = "/";
@@ -2578,7 +2582,8 @@
 				alert(i18next.t("files.upload.selectFolder"));
 				return false;
 			}
-			if (!document.getElementById('uploaded_file').files.length > 0) {
+			const fileInput = document.getElementById('uploaded_file');
+			if (!(fileInput.files.length > 0)) {
 				alert(i18next.t("files.upload.selectFile"));
 				return false;
 			}
@@ -2593,87 +2598,111 @@
 				path = parentNode.data.path;
 				console.log("Parent path: " + path);
 			}
+
+			const files = Array.from(fileInput.files);
+			const bytesTotal = files.reduce((sum, f) => sum + f.size, 0);
 			const startTime = new Date().getTime();
-			let bytesTotal = 0;
 			const eup = $("#explorerUploadProgress");
-			$.ajax({
-				url: '/explorer?path=' + encodeURIComponent(path),
-				type: 'POST',
-				data: data,
-				contentType: false,
-				processData: false,
-				xhr: function () {
-					var xhr = new window.XMLHttpRequest();
-					xhr.upload.addEventListener("progress", function (evt) {
-						if (evt.lengthComputable) {
-							const now = new Date().getTime();
-							const percent = parseInt(evt.loaded * 100 / evt.total);
-							const elapsed = (now - startTime) / 1000;
-							bytesTotal = evt.total;
-							let progressText = i18next.t("files.upload.timeCalc");
-							if (elapsed) {
-								const bps = evt.loaded / elapsed;
-								const kbps = bps / 1024;
-								const remaining = Math.round((evt.total - evt.loaded) / bps);
-								const data = {
-									percent: percent,
-									remaining: {
-										unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
-											count: Math.round(remaining / 60)
-										}) : i18next.t("files.upload.seconds"),
-										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
-									},
-									speed: kbps.toFixed(2)
-								}
-								progressText = i18next.t("files.upload.progress", data);
-								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
-							}
-							$('.progress-bar', eup).css('width', percent + "%");
-							$('.label', eup).text(progressText);
-						}
-					}, false);
-					eup.addClass('bg-primary bg-opacity-75');
-					$('.progress-bar', eup).removeClass('bg-danger');
-					return xhr;
-				},
-				success: function (data, textStatus, jqXHR) {
-					const now = new Date().getTime();
-					const elapsed = (now - startTime) / 1000;
-					let transData = {
-						elapsed: "00:00",
-						speed: "0,00"
-					};
-					if (elapsed) {
-						const bps = bytesTotal / elapsed;
-						const kbps = bps / 1024;
-						const date = new Date(null);
-						date.setSeconds(elapsed);
-						const timeText = date.toISOString().substr(11, 8);
-						transData = {
-							elapsed: timeText,
-							speed: kbps.toFixed(2)
-						};
+			eup.addClass('bg-primary bg-opacity-75');
+			$('.progress-bar', eup).removeClass('bg-danger');
+			let bytesDoneBefore = 0;
+
+			function showProgress(loaded) {
+				const now = new Date().getTime();
+				const percent = bytesTotal ? parseInt(loaded * 100 / bytesTotal) : 100;
+				const elapsed = (now - startTime) / 1000;
+				let progressText = i18next.t("files.upload.timeCalc");
+				if (elapsed && loaded) {
+					const bps = loaded / elapsed;
+					const kbps = bps / 1024;
+					const remaining = Math.round((bytesTotal - loaded) / bps);
+					const data = {
+						percent: percent,
+						remaining: {
+							unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
+								count: Math.round(remaining / 60)
+							}) : i18next.t("files.upload.seconds"),
+							value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+						},
+						speed: kbps.toFixed(2)
 					}
-					console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
-					const progressText = i18next.t("files.upload.success", transData);
-					$('.label', eup).text(progressText);
-					document.getElementById('uploaded_file').value = '';
-					document.getElementById('uploaded_file_text').innerHTML = '';
-					getData("http://" + host + "/explorer?path=" + path, function (data) {
-						/* We now have data! */
-						deleteChildrenNodes(sel);
-						addFileDirectory(sel, data);
-						ref.open_node(sel);
-					});
-				},
-				error: function (request, status, error) {
-					console.log("Upload ERROR!", request);
-					eup.removeClass('bg-primary bg-opacity-75');
-					$('.progress-bar', eup).addClass('bg-danger');
-					$('.label', eup).text(i18next.t("files.upload.error") + ": " + request.statusText);
-					toaster.error(i18next.t("files.upload.error") + ": " + request.statusText);
+					progressText = i18next.t("files.upload.progress", data);
 				}
-			});
+				$('.progress-bar', eup).css('width', percent + "%");
+				$('.label', eup).text(progressText);
+			}
+
+			function uploadFailed(statusText) {
+				console.log("Upload ERROR!", statusText);
+				eup.removeClass('bg-primary bg-opacity-75');
+				$('.progress-bar', eup).addClass('bg-danger');
+				$('.label', eup).text(i18next.t("files.upload.error") + ": " + statusText);
+				toaster.error(i18next.t("files.upload.error") + ": " + statusText);
+			}
+
+			function uploadDone() {
+				const now = new Date().getTime();
+				const elapsed = (now - startTime) / 1000;
+				let transData = {
+					elapsed: "00:00",
+					speed: "0,00"
+				};
+				if (elapsed) {
+					const bps = bytesTotal / elapsed;
+					const kbps = bps / 1024;
+					const date = new Date(null);
+					date.setSeconds(elapsed);
+					const timeText = date.toISOString().substr(11, 8);
+					transData = {
+						elapsed: timeText,
+						speed: kbps.toFixed(2)
+					};
+				}
+				console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s)");
+				$('.label', eup).text(i18next.t("files.upload.success", transData));
+				fileInput.value = '';
+				document.getElementById('uploaded_file_text').innerHTML = '';
+				getData("http://" + host + "/explorer?path=" + path, function (data) {
+					/* We now have data! */
+					deleteChildrenNodes(sel);
+					addFileDirectory(sel, data);
+					ref.open_node(sel);
+				});
+			}
+
+			// Files upload one at a time (the shared double-buffer/writer-task
+			// on the ESPuino only supports one active upload at a time) - each as
+			// its own raw PUT, with the target path (folder + filename) passed as
+			// a query param since a raw body carries no per-part filename.
+			function uploadNext(idx) {
+				if (idx >= files.length) {
+					uploadDone();
+					return;
+				}
+				const file = files[idx];
+				const targetPath = (path.endsWith('/') ? path : path + '/') + file.name;
+				const xhr = new XMLHttpRequest();
+				xhr.open('PUT', '/explorerraw?path=' + encodeURIComponent(targetPath));
+				xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+				xhr.upload.addEventListener('progress', function (evt) {
+					if (evt.lengthComputable) {
+						showProgress(bytesDoneBefore + evt.loaded);
+					}
+				}, false);
+				xhr.onload = function () {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						bytesDoneBefore += file.size;
+						uploadNext(idx + 1);
+					} else {
+						uploadFailed(xhr.statusText || ("HTTP " + xhr.status));
+					}
+				};
+				xhr.onerror = function () {
+					uploadFailed(i18next.t("files.upload.error"));
+				};
+				xhr.send(file);
+			}
+			uploadNext(0);
 		});
 		/* File Delete */
 		function handleDeleteData(nodeId) {
