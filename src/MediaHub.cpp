@@ -15,6 +15,8 @@
 #include <HTTPClient.h>
 #include <algorithm>
 #include <esp_task_wdt.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <mbedtls/sha256.h>
 
 const char *const MediaHub_PathPrefix = "mediahub://";
@@ -52,6 +54,29 @@ static String MediaHub_ManifestCachePath(const char *cardId) {
 
 static String MediaHub_MediaDir(const char *cardId) {
 	return "/.mediahub/media/" + String(cardId);
+}
+
+// "stale"/"needs resync" (concept §9/§13) share one marker and one recovery
+// path: both mean "the next tap should wipe and fully re-download". A
+// re-sync that fails partway simply never clears the marker, which is
+// exactly the "needs resync" behavior the concept describes.
+static String MediaHub_StaleMarkerPath(const char *cardId) {
+	return "/.mediahub/manifests/" + String(cardId) + ".stale";
+}
+
+static bool MediaHub_IsStale(const char *cardId) {
+	return gFSystem.exists(MediaHub_StaleMarkerPath(cardId));
+}
+
+static void MediaHub_MarkStale(const char *cardId) {
+	File f = gFSystem.open(MediaHub_StaleMarkerPath(cardId), FILE_WRITE, true);
+	if (f) {
+		f.close();
+	}
+}
+
+static void MediaHub_ClearStale(const char *cardId) {
+	gFSystem.remove(MediaHub_StaleMarkerPath(cardId));
 }
 
 // SINGLE_TRACK/SINGLE_TRACK_LOOP name one specific file, not a folder to
@@ -118,6 +143,31 @@ static bool MediaHub_DeleteDirRecursive(File dir) {
 		esp_task_wdt_reset();
 	}
 	return gFSystem.rmdir(dir) && ok;
+}
+
+// Same File-object-based recursion as MediaHub_DeleteDirRecursive(), for the
+// same reason: avoids re-sanitizing an already-sanitized on-disk path.
+static uint64_t MediaHub_DirSizeRecursive(File dir) {
+	uint64_t total = 0;
+	File entry = dir.openNextFile();
+	while (entry) {
+		if (entry.isDirectory()) {
+			total += MediaHub_DirSizeRecursive(entry);
+		} else {
+			total += entry.size();
+		}
+		entry = dir.openNextFile();
+		esp_task_wdt_reset();
+	}
+	return total;
+}
+
+static uint64_t MediaHub_DirSize(const String &path) {
+	File dir = gFSystem.open(path);
+	if (!dir || !dir.isDirectory()) {
+		return 0;
+	}
+	return MediaHub_DirSizeRecursive(dir);
 }
 
 static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
@@ -310,6 +360,152 @@ static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t
 	return true;
 }
 
+// Re-sync flow for a card already marked "stale" (concept §11/§13): fetches
+// the fresh manifest live, then wipes the media folder and re-downloads
+// everything. Returns false for anything that leaves the OLD, still-complete
+// local copy as the better fallback (hub unreachable, bad manifest, SD too
+// full for the new version) — the caller then plays that old copy instead,
+// and the card stays marked "stale" for the next attempt. Only clears
+// "stale" on full success.
+static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	String espId = MediaHub_GetEspId();
+	String url = "http://" + hostPort + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
+
+	HTTPClient http;
+	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
+	http.setTimeout(MediaHub_ReadTimeoutMs);
+	if (!http.begin(url)) {
+		return false;
+	}
+	const int httpCode = http.GET();
+	if (httpCode != HTTP_CODE_OK) {
+		http.end();
+		return false;
+	}
+	const String body = http.getString();
+	http.end();
+
+	JsonDocument doc;
+	if (deserializeJson(doc, body)) {
+		return false;
+	}
+	const char *manifestCardId = doc["cardId"] | "";
+	if (strcmp(manifestCardId, cardId) != 0) {
+		return false;
+	}
+
+	Log_Println(mediaHubResyncing, LOGLEVEL_NOTICE);
+
+	const uint32_t manifestPlayMode = doc["playMode"] | 0;
+	if (manifestPlayMode == WEBSTREAM) {
+		const char *stream = doc["stream"] | "";
+		if (strlen(stream) == 0) {
+			return false;
+		}
+		MediaHub_WriteManifestCache(cardId, body);
+		MediaHub_ClearStale(cardId);
+		Log_Println(mediaHubWebstreamFromManifest, LOGLEVEL_NOTICE);
+		AudioPlayer_SetPlaylist(stream, 0, WEBSTREAM, 0);
+		return true;
+	}
+
+	const char *filesBaseUrl = doc["filesBaseUrl"] | "";
+	JsonArrayConst files = doc["files"].as<JsonArrayConst>();
+	if (strlen(filesBaseUrl) == 0 || files.size() == 0) {
+		return false;
+	}
+
+	uint64_t totalNeeded = 0;
+	for (JsonVariantConst f : files) {
+		totalNeeded += (uint32_t) (f["size"] | 0);
+	}
+
+	const String mediaDir = MediaHub_MediaDir(cardId);
+	const uint64_t oldFolderSize = MediaHub_DirSize(mediaDir);
+	if (SdCard_GetFreeSize() + oldFolderSize < totalNeeded) {
+		// Old, working version stays untouched (nothing wiped yet); card
+		// remains "stale" so this is retried on the next tap.
+		Log_Println(mediaHubSdFull, LOGLEVEL_ERROR);
+		return false;
+	}
+
+	File oldDir = gFSystem.open(mediaDir);
+	if (oldDir && oldDir.isDirectory()) {
+		MediaHub_DeleteDirRecursive(oldDir);
+	}
+	// Past this point there's no complete old copy left to fall back to: any
+	// further failure leaves the card marked "stale" ("needs resync") for a
+	// retry on the next tap, exactly like a fresh sync failure would.
+
+	MediaHub_WriteManifestCache(cardId, body);
+	if (!MediaHub_SyncMissingFiles(filesBaseUrl, mediaDir, files)) {
+		return false;
+	}
+
+	MediaHub_ClearStale(cardId);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
+	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
+	return true;
+}
+
+struct MediaHub_VersionCheckArgs {
+	String cardId;
+	String hostPort;
+};
+
+// Runs on its own short-lived task so it never delays returning from
+// MediaHub_HandleCardTapped (concept §9/§11: "Hintergrund"-check must not
+// block the tap that's already playing). Only ever compares/marks — it
+// never downloads or touches the manifest cache; the actual update happens
+// via MediaHub_TryReSync() on a later tap.
+static void MediaHub_VersionCheckTask(void *pvParameters) {
+	auto *args = static_cast<MediaHub_VersionCheckArgs *>(pvParameters);
+
+	String cachedVersion;
+	File cacheFile = gFSystem.open(MediaHub_ManifestCachePath(args->cardId.c_str()));
+	if (cacheFile && !cacheFile.isDirectory()) {
+		JsonDocument cachedDoc;
+		if (!deserializeJson(cachedDoc, cacheFile)) {
+			cachedVersion = String((const char *) (cachedDoc["version"] | ""));
+		}
+		cacheFile.close();
+	}
+
+	if (cachedVersion.length() > 0) {
+		String espId = MediaHub_GetEspId();
+		String url = "http://" + args->hostPort + "/" + espId + "/card/" + args->cardId + "/manifest.json";
+
+		HTTPClient http;
+		http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
+		http.setTimeout(MediaHub_ReadTimeoutMs);
+		if (http.begin(url)) {
+			const int httpCode = http.GET();
+			if (httpCode == HTTP_CODE_OK) {
+				const String body = http.getString();
+				JsonDocument doc;
+				if (!deserializeJson(doc, body)) {
+					const char *manifestCardId = doc["cardId"] | "";
+					const char *freshVersion = doc["version"] | "";
+					if (strcmp(manifestCardId, args->cardId.c_str()) == 0 && strlen(freshVersion) > 0 && cachedVersion != freshVersion) {
+						MediaHub_MarkStale(args->cardId.c_str());
+						Log_Println(mediaHubMarkedStale, LOGLEVEL_NOTICE);
+					}
+				}
+			}
+			http.end();
+		}
+	}
+
+	delete args;
+	vTaskDelete(NULL);
+}
+
+static void MediaHub_StartBackgroundVersionCheck(const char *cardId, const String &hostPort) {
+	auto *args = new MediaHub_VersionCheckArgs {String(cardId), hostPort};
+	xTaskCreatePinnedToCore(MediaHub_VersionCheckTask, "MediaHubVerChk", 4096, args, 1, NULL, 1);
+}
+
 // Local-first fast path (concept §3 principle 1): if a manifest is already
 // cached and every one of its files is present with the right size, play
 // immediately — no network access at all, so this works fully offline
@@ -373,19 +569,34 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	if (MediaHub_TryPlayFromLocalCache(cardId, lastPlayPos, trackLastPlayed)) {
-		return;
-	}
-
-	if (!Wlan_IsConnected()) {
-		Log_Println(mediaHubNotReachable, LOGLEVEL_ERROR);
+	String hostPort = String(path).substring(strlen(MediaHub_PathPrefix));
+	if (hostPort.length() == 0) {
+		Log_Println(mediaHubInvalidPath, LOGLEVEL_ERROR);
 		System_IndicateError();
 		return;
 	}
 
-	String hostPort = String(path).substring(strlen(MediaHub_PathPrefix));
-	if (hostPort.length() == 0) {
-		Log_Println(mediaHubInvalidPath, LOGLEVEL_ERROR);
+	const bool online = Wlan_IsConnected();
+
+	if (MediaHub_IsStale(cardId) && online) {
+		if (MediaHub_TryReSync(cardId, hostPort, lastPlayPos, trackLastPlayed)) {
+			return; // playing the just-fetched fresh content; no follow-up check needed
+		}
+		// Re-sync wasn't possible right now (hub unreachable, bad manifest, SD
+		// full for the new version, ...) — fall through and play the old,
+		// still-complete local copy instead (concept §14: never block on a
+		// transient hub failure while a working copy exists).
+	}
+
+	if (MediaHub_TryPlayFromLocalCache(cardId, lastPlayPos, trackLastPlayed)) {
+		if (online) {
+			MediaHub_StartBackgroundVersionCheck(cardId, hostPort);
+		}
+		return;
+	}
+
+	if (!online) {
+		Log_Println(mediaHubNotReachable, LOGLEVEL_ERROR);
 		System_IndicateError();
 		return;
 	}
@@ -461,10 +672,13 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		// track (concept §7.2) — hand the stream straight to the existing
 		// webradio playback path, same as a native WEBSTREAM card.
 		AudioPlayer_SetPlaylist(stream, 0, WEBSTREAM, 0);
+		MediaHub_StartBackgroundVersionCheck(cardId, hostPort);
 		return;
 	}
 
-	if (!MediaHub_SyncAndPlay(cardId, doc, manifestPlayMode, lastPlayPos, trackLastPlayed)) {
+	if (MediaHub_SyncAndPlay(cardId, doc, manifestPlayMode, lastPlayPos, trackLastPlayed)) {
+		MediaHub_StartBackgroundVersionCheck(cardId, hostPort);
+	} else {
 		System_IndicateError();
 	}
 }
@@ -475,6 +689,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 // phase alongside the "stale" mechanism it shares its machinery with).
 bool MediaHub_ForceRefresh(const char *cardId) {
 	gFSystem.remove(MediaHub_ManifestCachePath(cardId));
+	MediaHub_ClearStale(cardId);
 	File mediaDir = gFSystem.open(MediaHub_MediaDir(cardId));
 	if (!mediaDir || !mediaDir.isDirectory()) {
 		return true; // nothing to wipe

@@ -8,15 +8,19 @@
 // and the actual playMode/content comes from a per-card manifest fetched
 // from that host at tap-time (never from NVS).
 //
-// Phase 4 (current): webradio manifests (playMode WEBSTREAM) always go
+// Phase 6 (current): webradio manifests (playMode WEBSTREAM) always go
 // live to the hub. File-based manifests play instantly from a locally
 // cached manifest + already-synced files, offline, no network at all
 // (concept §3/§9); if anything is missing and the hub is reachable, the
 // missing files are downloaded in the foreground (.tmp -> SHA-256 verify
 // -> move, SD-space checked up front, concept §10/§13) before playback.
-// Change detection ("stale") and the re-sync wipe are a later phase —
-// MediaHub_ForceRefresh(All)() already exist as the escape-hatch those will
-// share, but nothing calls them yet.
+// After every successful online play, a short-lived background task
+// compares the hub's current manifest version against the cached one and
+// marks the card "stale" on a mismatch (concept §9); a "stale" card gets a
+// foreground re-sync (wipe + full re-download) on its next tap, falling
+// back to the old, still-complete copy if that isn't possible right now.
+// MediaHub_ForceRefresh(All)() are the same escape-hatch, callable directly
+// but still not wired to a trigger (Admin-Karte / Hub-Button).
 
 // Prefix identifying a MediaHub base-address in the NVS path field.
 extern const char *const MediaHub_PathPrefix; // "mediahub://"

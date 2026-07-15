@@ -253,4 +253,6 @@ const char mediaHubDownloadingFile[] = "MediaHub: downloading %s.";
 const char mediaHubDownloadFailed[] = "MediaHub: download of %s failed.";
 const char mediaHubVerifyFailed[] = "MediaHub: SHA-256 check of %s failed.";
 const char mediaHubPlayingAfterSync[] = "MediaHub: sync complete, starting playback.";
+const char mediaHubMarkedStale[] = "MediaHub: change detected, card will be refreshed on next tap.";
+const char mediaHubResyncing[] = "MediaHub: card changed, re-syncing.";
 #endif
