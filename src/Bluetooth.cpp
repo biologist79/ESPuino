@@ -35,6 +35,7 @@ I2SClass i2s;
 // Timeout matches ESP-IDF inquiry duration: 10 slots * 1.28s = 12.8s
 static constexpr uint32_t SCAN_TIMEOUT_MS = 13000u;
 static constexpr uint32_t SCAN_TIMEOUT_GUARD_MS = 2000u;
+static constexpr size_t AUDIO_SOURCE_RINGBUFFER_SIZE = 262144; // 256KB
 
 BluetoothA2DPSink *a2dp_sink;
 BluetoothA2DPSource *a2dp_source;
@@ -355,33 +356,68 @@ void avrc_metadata_callback(uint8_t id, const uint8_t *text) {
 
 #ifdef BLUETOOTH_ENABLE
 int32_t get_data_channels(Frame *frame, int32_t channel_len) {
-	if (channel_len < 0 || frame == NULL) {
+	if (channel_len <= 0 || frame == NULL || audioSourceRingBuffer == NULL) {
 		return 0;
 	}
-	if (audioSourceRingBuffer == NULL) {
-		return 0;
-	}
-	size_t len {};
-	vRingbufferGetInfo(audioSourceRingBuffer, nullptr, nullptr, nullptr, nullptr, &len);
-	const size_t PREFILL_THRESHOLD = channel_len * 4 * 4; // 4 frames worth
-	if (len < PREFILL_THRESHOLD) {
-		// Return silence instead of 0
+
+	const size_t bytes_per_frame = 2 * sizeof(int16_t); // ch1 + ch2, 16-bit each
+	const size_t bytes_needed = (size_t) channel_len * bytes_per_frame;
+
+	// --- Gate on actual data available, before touching the buffer ---
+	// uxItemsWaiting is the number of bytes currently queued for a
+	// no-split ring buffer. If there isn't a full frame's worth sitting
+	// there, bail out to silence instead of blocking / partially filling.
+	size_t bytes_waiting = 0;
+	vRingbufferGetInfo(audioSourceRingBuffer, NULL, NULL, NULL, NULL, &bytes_waiting);
+
+	if (bytes_waiting < bytes_needed) {
 		memset(frame, 0, channel_len * sizeof(Frame));
-		return channel_len; // ← keeps A2DP happy, sends silence
+		return channel_len;
 	}
-	size_t sampleSize = 0;
-	uint8_t *sampleBuff;
-	sampleBuff = (uint8_t *) xRingbufferReceiveUpTo(audioSourceRingBuffer, &sampleSize, (TickType_t) portMAX_DELAY, channel_len * 4);
-	if (sampleBuff != NULL) {
-		for (int sample = 0; sample < (channel_len); ++sample) {
-			frame[sample].channel1 = (sampleBuff[sample * 4 + 3] << 8) | sampleBuff[sample * 4 + 2];
-			frame[sample].channel2 = (sampleBuff[sample * 4 + 1] << 8) | sampleBuff[sample * 4];
-		};
+
+	// --- Pull the data, handling one possible wrap-around ---
+	// A no-split buffer returns at most the contiguous run up to the
+	// physical end of the buffer. Since we've already confirmed enough
+	// total bytes are waiting, a short read here means we hit the wrap
+	// boundary, not that data is missing — read again to get the rest.
+	int32_t samples_received = 0;
+	for (int reads = 0; reads < 2 && samples_received < channel_len; ++reads) {
+		size_t sampleSize = 0;
+		size_t bytes_left = bytes_needed - (size_t) samples_received * bytes_per_frame;
+
+		uint8_t *sampleBuff = (uint8_t *) xRingbufferReceiveUpTo(
+			audioSourceRingBuffer,
+			&sampleSize,
+			0,
+			bytes_left);
+
+		if (sampleBuff == NULL) {
+			break; // shouldn't happen given the pre-check, but stay safe
+		}
+
+		int32_t chunk_samples = sampleSize / bytes_per_frame;
+		int16_t *raw_samples = (int16_t *) sampleBuff;
+
+		for (int32_t i = 0; i < chunk_samples; ++i) {
+			frame[samples_received + i].channel1 = raw_samples[i * 2];
+			frame[samples_received + i].channel2 = raw_samples[i * 2 + 1];
+		}
+
+		samples_received += chunk_samples;
 		vRingbufferReturnItem(audioSourceRingBuffer, (void *) sampleBuff);
-	};
-	vTaskDelay(portTICK_PERIOD_MS * 1);
+
+		if (sampleSize == bytes_left) {
+			break; // got the full amount in one contiguous chunk, no wrap
+		}
+		// else: short read == we hit the wrap boundary, loop once more
+	}
+
+	if (samples_received < channel_len) {
+		memset(&frame[samples_received], 0, (channel_len - samples_received) * sizeof(Frame));
+	}
+
 	return channel_len;
-};
+}
 #endif
 
 #ifdef BLUETOOTH_ENABLE
@@ -661,7 +697,8 @@ void Bluetooth_Init(void) {
 		}
 		a2dp_source->set_ssid_callback(scan_bluetooth_device_callback);
 		a2dp_source->set_avrc_passthru_command_callback(button_handler);
-		a2dp_source->start(get_data_channels);
+		a2dp_source->set_data_callback_in_frames(get_data_channels);
+		a2dp_source->start("ESPUINO");
 		btDeviceName = "";
 		if (gPrefsSettings.isKey("btDeviceName")) {
 			btDeviceName = gPrefsSettings.getString("btDeviceName", "");
@@ -839,41 +876,25 @@ uint8_t Bluetooth_GetCurrentVolume() {
 	return 0;
 }
 
-bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
+bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		if (audioSourceRingBuffer == nullptr) {
-			if (psramFound()) {
-				size_t bufferSize = 16384;
-				StaticRingbuffer_t *bufferStruct = (StaticRingbuffer_t *) heap_caps_malloc(sizeof(StaticRingbuffer_t), MALLOC_CAP_SPIRAM);
-				uint8_t *bufferStorage = (uint8_t *) heap_caps_malloc(bufferSize, MALLOC_CAP_SPIRAM);
+			StaticRingbuffer_t *bufferStruct = (StaticRingbuffer_t *) heap_caps_malloc(sizeof(StaticRingbuffer_t), MALLOC_CAP_SPIRAM);
+			uint8_t *bufferStorage = (uint8_t *) heap_caps_malloc(AUDIO_SOURCE_RINGBUFFER_SIZE, MALLOC_CAP_SPIRAM);
 
-				if (bufferStruct != NULL && bufferStorage != NULL) {
-					audioSourceRingBuffer = xRingbufferCreateStatic(bufferSize, RINGBUF_TYPE_BYTEBUF, bufferStorage, bufferStruct); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-					Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in PSRAM on demand (%d bytes, free heap: %u Bytes)", bufferSize, ESP.getFreeHeap());
-				} else {
-					Log_Println("Failed to allocate PSRAM for audioSourceRingBuffer, using heap", LOGLEVEL_ERROR);
-					if (bufferStruct) {
-						heap_caps_free(bufferStruct);
-					}
-					if (bufferStorage) {
-						heap_caps_free(bufferStorage);
-					}
-					audioSourceRingBuffer = xRingbufferCreate(16384, RINGBUF_TYPE_BYTEBUF);
-				}
-			} else {
-				audioSourceRingBuffer = xRingbufferCreate(16384, RINGBUF_TYPE_BYTEBUF);
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in heap on demand (Free heap: %u Bytes)", ESP.getFreeHeap());
+			if (bufferStruct != NULL && bufferStorage != NULL) {
+				audioSourceRingBuffer = xRingbufferCreateStatic(AUDIO_SOURCE_RINGBUFFER_SIZE, RINGBUF_TYPE_BYTEBUF, bufferStorage, bufferStruct); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+				Log_Printf(LOGLEVEL_INFO, "Bluetooth => audioSourceRingBuffer created in PSRAM on demand (%d bytes, free heap: %u Bytes)", AUDIO_SOURCE_RINGBUFFER_SIZE, ESP.getFreeHeap());
 			}
-
 			if (audioSourceRingBuffer == NULL) {
 				Log_Println("Failed to create audioSourceRingBuffer!", LOGLEVEL_ERROR);
 				return false;
 			}
 		}
 
-		const TickType_t sendTimeout = pdMS_TO_TICKS(100);
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, 2 * 2 * validSamples, sendTimeout));
+		const TickType_t sendTimeout = pdMS_TO_TICKS(50); // Reduced timeout for non-blocking feel
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, validSamples * 2 * sizeof(int16_t), sendTimeout));
 	} else {
 		return false;
 	}
