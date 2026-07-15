@@ -725,3 +725,69 @@ bool MediaHub_ForceRefreshAll() {
 	}
 	return ok;
 }
+
+// Registered media servers (concept §5.1): stored as one JSON array under a
+// single settings key rather than mirroring Wlan.cpp's per-entry NVS-key
+// scheme, since this is always a short list of two-string records - a
+// dedicated per-entry NVS layout would be complexity this doesn't need.
+static constexpr const char *MediaHub_ServersNvsKey = "mediaHubSrvs";
+static constexpr uint8_t MediaHub_MaxServers = 10;
+
+std::vector<MediaHubServer> MediaHub_GetServers() {
+	std::vector<MediaHubServer> servers;
+	const String json = gPrefsSettings.getString(MediaHub_ServersNvsKey, "[]");
+	JsonDocument doc;
+	if (deserializeJson(doc, json)) {
+		return servers; // corrupt/missing -> treat as empty
+	}
+	for (JsonVariantConst entry : doc.as<JsonArrayConst>()) {
+		MediaHubServer s;
+		s.name = entry["name"] | "";
+		s.hostPort = entry["hostPort"] | "";
+		if (s.name.length() > 0 && s.hostPort.length() > 0) {
+			servers.push_back(s);
+		}
+	}
+	return servers;
+}
+
+static bool MediaHub_SaveServers(const std::vector<MediaHubServer> &servers) {
+	JsonDocument doc;
+	JsonArray arr = doc.to<JsonArray>();
+	for (const auto &s : servers) {
+		JsonObject o = arr.add<JsonObject>();
+		o["name"] = s.name;
+		o["hostPort"] = s.hostPort;
+	}
+	String json;
+	serializeJson(doc, json);
+	return gPrefsSettings.putString(MediaHub_ServersNvsKey, json) == json.length();
+}
+
+bool MediaHub_SaveServer(const String &name, const String &hostPort) {
+	if (name.length() == 0 || hostPort.length() == 0) {
+		return false;
+	}
+	std::vector<MediaHubServer> servers = MediaHub_GetServers();
+	for (auto &s : servers) {
+		if (s.name == name) {
+			s.hostPort = hostPort;
+			return MediaHub_SaveServers(servers);
+		}
+	}
+	if (servers.size() >= MediaHub_MaxServers) {
+		return false;
+	}
+	servers.push_back({name, hostPort});
+	return MediaHub_SaveServers(servers);
+}
+
+bool MediaHub_DeleteServer(const String &name) {
+	std::vector<MediaHubServer> servers = MediaHub_GetServers();
+	const size_t before = servers.size();
+	servers.erase(std::remove_if(servers.begin(), servers.end(), [&name](const MediaHubServer &s) { return s.name == name; }), servers.end());
+	if (servers.size() == before) {
+		return false; // nothing to delete
+	}
+	return MediaHub_SaveServers(servers);
+}
