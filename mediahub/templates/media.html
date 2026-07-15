@@ -16,6 +16,7 @@
 			<thead>
 				<tr>
 					<th>{{ _('Card ID') }}</th>
+					<th>{{ _('Device') }}</th>
 					<th>{{ _('Name') }}</th>
 					<th>{{ _('Files') }}</th>
 					<th>{{ _('Size') }}</th>
@@ -23,13 +24,14 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for card_id, card, total_size in rows %}
+				{% for card, total_size in rows %}
 				<tr>
-					<td><code>{{ card_id }}</code></td>
+					<td><code>{{ card.card_id }}</code></td>
+					<td><code>{{ card.esp_id }}</code></td>
 					<td>{{ card.name or "—" }}</td>
 					<td>{{ card.files | length }}</td>
 					<td>{{ (total_size / 1048576) | round(1) }}&nbsp;MB</td>
-					<td><a class="btn btn-small" href="{{ url_for('assign_card', card_id=card_id) }}">{{ _('Manage') }}</a></td>
+					<td><a class="btn btn-small" href="{{ url_for('assign_card', esp_id=card.esp_id, card_id=card.card_id) }}">{{ _('Manage') }}</a></td>
 				</tr>
 				{% endfor %}
 			</tbody>

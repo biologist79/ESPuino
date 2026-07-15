@@ -145,11 +145,50 @@ def health():
 # --------------------------------------------------------------------------
 # Web UI: devices
 # --------------------------------------------------------------------------
+def _delete_device_confirm(esp_id, card_count):
+    if not card_count:
+        return _("Delete ESPuino %(esp_id)s?", esp_id=esp_id)
+    return ngettext(
+        "There is still %(num)s card assignment for this ESPuino, which must be "
+        "deleted first. Delete it automatically? Note: cards are only removed "
+        "locally in MediaHub.",
+        "There are still %(num)s card assignments for this ESPuino, which must "
+        "be deleted first. Delete them automatically? Note: cards are only "
+        "removed locally in MediaHub.",
+        card_count,
+    ) % {"num": card_count}
+
+
 @app.route("/devices")
 def devices():
     devices_by_id = store.list_devices()
-    rows = sorted(devices_by_id.items(), key=lambda kv: kv[1]["last_seen"], reverse=True)
+    rows = []
+    for esp_id, dev in devices_by_id.items():
+        card_count = store.count_cards_for_device(esp_id)
+        rows.append((esp_id, dev, card_count, _delete_device_confirm(esp_id, card_count)))
+    rows.sort(key=lambda row: row[1]["last_seen"], reverse=True)
     return render_template("devices.html", devices=rows)
+
+
+@app.route("/devices/<esp_id>/alias", methods=["POST"])
+def set_device_alias(esp_id):
+    if esp_id not in store.list_devices():
+        abort(404)
+    store.set_device_alias(esp_id, request.form.get("alias", "").strip())
+    flash(_("Alias saved."), "success")
+    return redirect(url_for("devices"))
+
+
+@app.route("/devices/<esp_id>/delete", methods=["POST"])
+def delete_device(esp_id):
+    if esp_id not in store.list_devices():
+        abort(404)
+    n = store.delete_device(esp_id)
+    if n:
+        flash(_("Device %(esp_id)s and its %(num)s card assignment(s) deleted (locally in MediaHub only).", esp_id=esp_id, num=n), "success")
+    else:
+        flash(_("Device %(esp_id)s deleted.", esp_id=esp_id), "success")
+    return redirect(url_for("devices"))
 
 
 # --------------------------------------------------------------------------
@@ -165,38 +204,52 @@ def _content_label(card):
 @app.route("/cards")
 def cards():
     only_pending = request.args.get("pending") == "1"
-    cards_by_id = store.list_cards()
+    cards_by_key = store.list_cards()
+    devices_by_id = store.list_devices()
     rows = [
-        (cid, c, _content_label(c))
-        for cid, c in cards_by_id.items()
+        (c, _content_label(c), devices_by_id.get(c["esp_id"], {}).get("alias") or c["esp_id"])
+        for c in cards_by_key.values()
         if not only_pending or c["status"] == "pending"
     ]
-    rows.sort(key=lambda row: row[1]["last_seen"], reverse=True)
-    return render_template("cards.html", cards=rows, only_pending=only_pending)
+    rows.sort(key=lambda row: row[0]["last_seen"], reverse=True)
+    return render_template(
+        "cards.html",
+        cards=rows,
+        only_pending=only_pending,
+        devices=devices_by_id,
+    )
 
 
 @app.route("/cards/add", methods=["POST"])
 def add_card():
+    esp_id = request.form.get("esp_id", "").strip()
     card_id = request.form.get("card_id", "").strip()
+
     if not manifest_lib.is_valid_card_id(card_id):
         flash(_("Card ID must be exactly 12 digits."), "error")
         return redirect(url_for("cards"))
 
-    existing = store.get_card(card_id)
+    if esp_id not in store.list_devices():
+        flash(_("Please choose a known ESPuino."), "error")
+        return redirect(url_for("cards"))
+
+    existing = store.get_card(esp_id, card_id)
     if existing and existing["status"] == "assigned":
-        # Not an error — "Add" doubles as "jump to this card's edit form" —
-        # but flag it so a card ID typo doesn't silently overwrite an
-        # already-configured card without the admin noticing.
+        # Not an error — "Add" doubles as "jump to this assignment's edit
+        # form" — but flag it so a card ID typo doesn't silently overwrite
+        # an already-configured assignment without the admin noticing.
         flash(
-            _("Card %(id)s already exists and is assigned — opening it for editing.", id=card_id),
+            _("Card %(id)s is already assigned on this ESPuino — opening it for editing.", id=card_id),
             "info",
         )
-    return redirect(url_for("assign_card", card_id=card_id))
+    return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
 
 
-@app.route("/cards/<card_id>/assign", methods=["GET", "POST"])
-def assign_card(card_id):
-    card = store.get_card(card_id) or {
+@app.route("/cards/<esp_id>/<card_id>/assign", methods=["GET", "POST"])
+def assign_card(esp_id, card_id):
+    card = store.get_card(esp_id, card_id) or {
+        "esp_id": esp_id,
+        "card_id": card_id,
         "status": "pending",
         "name": "",
         "kind": "files",
@@ -213,8 +266,8 @@ def assign_card(card_id):
             stream_url = request.form.get("stream_url", "").strip()
             if not stream_url:
                 flash(_("A stream URL is required for webradio."), "error")
-                return redirect(url_for("assign_card", card_id=card_id))
-            store.save_assignment(card_id, name, "webradio", None, stream_url, [])
+                return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
+            store.save_assignment(esp_id, card_id, name, "webradio", None, stream_url, [])
         else:
             try:
                 play_mode = int(request.form.get("play_mode", ""))
@@ -222,7 +275,7 @@ def assign_card(card_id):
                 play_mode = -1
             if not manifest_lib.is_valid_file_play_mode(play_mode):
                 flash(_("Please choose a valid play mode."), "error")
-                return redirect(url_for("assign_card", card_id=card_id))
+                return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
 
             try:
                 selected_paths = json.loads(request.form.get("selected_paths_json", "[]"))
@@ -250,30 +303,32 @@ def assign_card(card_id):
 
             if not files:
                 flash(_("At least one audio file is required."), "error")
-                return redirect(url_for("assign_card", card_id=card_id))
+                return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
 
             if play_mode in manifest_lib.SINGLE_FILE_PLAY_MODES and len(files) > 1:
                 flash(_("This play mode only supports a single file — please select just one."), "error")
-                return redirect(url_for("assign_card", card_id=card_id))
+                return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
 
             files.sort(key=lambda f: f["path"])
-            store.save_assignment(card_id, name, "files", play_mode, None, files)
+            store.save_assignment(esp_id, card_id, name, "files", play_mode, None, files)
 
         flash(_("Card %(id)s assigned.", id=card_id), "success")
         return redirect(url_for("cards"))
 
     return render_template(
         "card_form.html",
+        esp_id=esp_id,
         card_id=card_id,
         card=card,
+        device=store.list_devices().get(esp_id),
         play_modes=manifest_lib.FILE_PLAY_MODES,
         single_file_play_modes=list(manifest_lib.SINGLE_FILE_PLAY_MODES),
     )
 
 
-@app.route("/cards/<card_id>/force-refresh", methods=["POST"])
-def force_refresh_card(card_id):
-    if store.bump_force_epoch(card_id) is None:
+@app.route("/cards/<esp_id>/<card_id>/force-refresh", methods=["POST"])
+def force_refresh_card(esp_id, card_id):
+    if store.bump_force_epoch(esp_id, card_id) is None:
         abort(404)
     flash(_("Force refresh triggered for card %(id)s.", id=card_id), "success")
     return redirect(url_for("cards"))
@@ -286,23 +341,24 @@ def force_refresh_all():
     return redirect(url_for("cards"))
 
 
-@app.route("/cards/<card_id>/delete", methods=["POST"])
-def delete_card(card_id):
-    card = store.get_card(card_id)
+@app.route("/cards/<esp_id>/<card_id>/delete", methods=["POST"])
+def delete_card(esp_id, card_id):
+    card = store.get_card(esp_id, card_id)
     if card is None:
         abort(404)
 
     delete_mode = store.get_settings()["delete_mode"]
     if delete_mode == "secure" and card["status"] == "assigned":
-        devices_by_id = store.list_devices()
-        esp_id = card.get("last_seen_esp_id")
-        ip = devices_by_id.get(esp_id, {}).get("ip") if esp_id else None
+        # The assignment already names its one ESPuino — no more guessing
+        # from whichever device last happened to tap the card.
+        device = store.list_devices().get(esp_id)
+        ip = device.get("ip") if device else None
         if not delete_rfid_on_device(ip, card_id):
             flash(
                 _(
                     "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. "
                     "Card was kept, please retry.",
-                    esp_id=esp_id or _("unknown"),
+                    esp_id=esp_id,
                 ),
                 "error",
             )
@@ -311,18 +367,18 @@ def delete_card(card_id):
     # Only the assignment (NVS-equivalent entry) is removed — the underlying
     # files belong to the admin's own media library, not to MediaHub, and
     # are never touched here.
-    store.delete_card(card_id)
+    store.delete_card(esp_id, card_id)
 
     flash(_("Card %(id)s deleted (%(mode)s).", id=card_id, mode=delete_mode), "success")
     return redirect(url_for("cards"))
 
 
-@app.route("/cards/<card_id>/manifest-preview")
-def manifest_preview(card_id):
+@app.route("/cards/<esp_id>/<card_id>/manifest-preview")
+def manifest_preview(esp_id, card_id):
     """Admin-only preview of the manifest an ESPuino would receive for this
     card — same builder as card_manifest(), but without its side effects
     (no device/card "last seen" tracking, no pending-registration)."""
-    card = store.get_card(card_id)
+    card = store.get_card(esp_id, card_id)
     if card is None or card["status"] != "assigned":
         abort(404)
     files_base_url = url_for("serve_media", filename="", _external=True)
@@ -334,13 +390,13 @@ def manifest_preview(card_id):
 # --------------------------------------------------------------------------
 @app.route("/media")
 def media_overview():
-    cards_by_id = store.list_cards()
+    cards_by_key = store.list_cards()
     rows = [
-        (cid, c, sum(f["size"] for f in c.get("files", [])))
-        for cid, c in cards_by_id.items()
+        (c, sum(f["size"] for f in c.get("files", [])))
+        for c in cards_by_key.values()
         if c["kind"] == "files" and c.get("files")
     ]
-    rows.sort(key=lambda row: row[2], reverse=True)
+    rows.sort(key=lambda row: row[1], reverse=True)
     return render_template("media.html", rows=rows)
 
 
@@ -399,12 +455,12 @@ def card_manifest(esp_id, card_id):
     ts = store_lib.now_iso()
     store.touch_device(esp_id, request.remote_addr, card_id, ts)
 
-    card = store.get_card(card_id)
+    card = store.get_card(esp_id, card_id)
     if card is None:
-        store.register_pending(card_id, esp_id, ts)
+        store.register_pending(esp_id, card_id, ts)
         return jsonify(error="unknown_card", status="pending"), 404
 
-    store.touch_card_seen(card_id, esp_id, ts)
+    store.touch_card_seen(esp_id, card_id, ts)
     if card["status"] != "assigned":
         return jsonify(error="not_assigned", status="pending"), 404
 

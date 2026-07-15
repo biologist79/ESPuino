@@ -16,14 +16,14 @@
 				<input type="radio" name="delete_mode" value="lazy" {{ "checked" if settings.delete_mode == "lazy" }}>
 				<span>
 					<strong>{{ _('Lazy delete') }}</strong> —
-					{{ _('the hub only removes its own entry. The card keeps playing on the ESPuino from its local cache, even offline.') }}
+					{{ _('the hub only removes its own entry. The card keeps playing on the ESPuino from its local cache, even offline — it is not removed from the ESPuino itself.') }}
 				</span>
 			</label>
 			<label class="radio-option">
 				<input type="radio" name="delete_mode" value="secure" {{ "checked" if settings.delete_mode == "secure" }}>
 				<span>
 					<strong>{{ _('Secure delete') }}</strong> —
-					{{ _('the hub first calls DELETE /rfid on the ESPuino and only removes its own entry after a confirmed 200 response.') }}
+					{{ _('the hub first calls DELETE /rfid on the ESPuino and only removes its own entry after a confirmed 200 response — the card is only deleted in the hub once the deletion on the ESPuino has succeeded.') }}
 				</span>
 			</label>
 		</div>

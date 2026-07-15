@@ -5,6 +5,13 @@ expected scale (a handful of devices, a few dozen cards) — a database
 server would be pure overhead here. Writes are serialized by a
 process-local lock and applied atomically (tmp file + rename), mirroring
 the download pattern used on the ESPuino itself (concept §13).
+
+Cards are keyed by (esp_id, card_id), not card_id alone — the same
+physical card can be enrolled on several ESPuinos (that's the point of
+the feature: kids swap cards between devices), and each device gets its
+own independent assignment. This also makes secure delete unambiguous:
+an assignment already knows exactly which one ESPuino to call, no more
+guessing from whichever device last happened to tap the card.
 """
 
 import json
@@ -28,6 +35,10 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _card_key(esp_id, card_id):
+    return f"{esp_id}/{card_id}"
+
+
 class Store:
     def __init__(self, data_dir):
         self.data_dir = data_dir
@@ -35,6 +46,8 @@ class Store:
         os.makedirs(data_dir, exist_ok=True)
         if not os.path.exists(self.db_path):
             self._write(_DEFAULT_DB)
+        else:
+            self._migrate_legacy_cards()
 
     # -- low-level ---------------------------------------------------
     def _read(self):
@@ -55,6 +68,33 @@ class Store:
             self._write(data)
             return result
 
+    def _migrate_legacy_cards(self):
+        """One-time upgrade from the pre-esp_id schema, where "cards" was
+        keyed by card_id alone and carried a "last_seen_esp_id" field.
+        Cards that never saw a device (no last_seen_esp_id) can't be
+        migrated — there's nothing to attach them to — and are dropped.
+        """
+
+        def mutate(data):
+            legacy = {
+                key: card
+                for key, card in data["cards"].items()
+                if "esp_id" not in card
+            }
+            if not legacy:
+                return 0
+            for key, card in legacy.items():
+                del data["cards"][key]
+                esp_id = card.pop("last_seen_esp_id", None)
+                if not esp_id:
+                    continue
+                card["esp_id"] = esp_id
+                card["card_id"] = key
+                data["cards"][_card_key(esp_id, key)] = card
+            return len(legacy)
+
+        self._mutate(mutate)
+
     # -- devices -------------------------------------------------------
     def list_devices(self):
         return self._read()["devices"]
@@ -62,7 +102,8 @@ class Store:
     def touch_device(self, esp_id, ip, card_id, ts):
         def mutate(data):
             dev = data["devices"].setdefault(
-                esp_id, {"first_seen": ts, "last_seen": ts, "ip": ip, "last_card_id": card_id}
+                esp_id,
+                {"first_seen": ts, "last_seen": ts, "ip": ip, "last_card_id": card_id, "alias": None},
             )
             dev["last_seen"] = ts
             dev["ip"] = ip
@@ -71,23 +112,53 @@ class Store:
 
         return self._mutate(mutate)
 
+    def set_device_alias(self, esp_id, alias):
+        def mutate(data):
+            dev = data["devices"].get(esp_id)
+            if dev is not None:
+                dev["alias"] = alias or None
+            return dev
+
+        return self._mutate(mutate)
+
+    def count_cards_for_device(self, esp_id):
+        return sum(1 for c in self._read()["cards"].values() if c["esp_id"] == esp_id)
+
+    def delete_device(self, esp_id):
+        """Removes the device bookkeeping entry AND all of its card
+        assignments (cascade) — the admin already confirmed the count
+        client-side before this is called. Returns the number of card
+        assignments removed."""
+
+        def mutate(data):
+            keys = [key for key, c in data["cards"].items() if c["esp_id"] == esp_id]
+            for key in keys:
+                del data["cards"][key]
+            data["devices"].pop(esp_id, None)
+            return len(keys)
+
+        return self._mutate(mutate)
+
     # -- cards -----------------------------------------------------------
     def list_cards(self):
         return self._read()["cards"]
 
-    def get_card(self, card_id):
-        return self._read()["cards"].get(card_id)
+    def get_card(self, esp_id, card_id):
+        return self._read()["cards"].get(_card_key(esp_id, card_id))
 
-    def register_pending(self, card_id, esp_id, ts):
-        """Registers a not-yet-known card as 'pending' (concept §5.3)."""
+    def register_pending(self, esp_id, card_id, ts):
+        """Registers a not-yet-known (esp_id, card_id) pair as 'pending'
+        (concept §5.3)."""
 
         def mutate(data):
-            if card_id in data["cards"]:
-                card = data["cards"][card_id]
+            key = _card_key(esp_id, card_id)
+            if key in data["cards"]:
+                card = data["cards"][key]
                 card["last_seen"] = ts
-                card["last_seen_esp_id"] = esp_id
                 return card
             card = {
+                "esp_id": esp_id,
+                "card_id": card_id,
                 "status": "pending",
                 "name": "",
                 "kind": "files",
@@ -97,36 +168,36 @@ class Store:
                 "force_epoch": 0,
                 "first_seen": ts,
                 "last_seen": ts,
-                "last_seen_esp_id": esp_id,
                 "created_at": ts,
                 "updated_at": ts,
             }
-            data["cards"][card_id] = card
+            data["cards"][key] = card
             return card
 
         return self._mutate(mutate)
 
-    def touch_card_seen(self, card_id, esp_id, ts):
+    def touch_card_seen(self, esp_id, card_id, ts):
         def mutate(data):
-            card = data["cards"].get(card_id)
+            card = data["cards"].get(_card_key(esp_id, card_id))
             if card is not None:
                 card["last_seen"] = ts
-                card["last_seen_esp_id"] = esp_id
             return card
 
         return self._mutate(mutate)
 
-    def save_assignment(self, card_id, name, kind, play_mode, stream_url, files):
+    def save_assignment(self, esp_id, card_id, name, kind, play_mode, stream_url, files):
         def mutate(data):
             ts = now_iso()
+            key = _card_key(esp_id, card_id)
             card = data["cards"].setdefault(
-                card_id,
+                key,
                 {
+                    "esp_id": esp_id,
+                    "card_id": card_id,
                     "status": "pending",
                     "force_epoch": 0,
                     "first_seen": ts,
                     "last_seen": ts,
-                    "last_seen_esp_id": None,
                 },
             )
             card["status"] = "assigned"
@@ -140,9 +211,9 @@ class Store:
 
         return self._mutate(mutate)
 
-    def bump_force_epoch(self, card_id):
+    def bump_force_epoch(self, esp_id, card_id):
         def mutate(data):
-            card = data["cards"].get(card_id)
+            card = data["cards"].get(_card_key(esp_id, card_id))
             if card is not None:
                 card["force_epoch"] = card.get("force_epoch", 0) + 1
                 card["updated_at"] = now_iso()
@@ -160,9 +231,9 @@ class Store:
 
         return self._mutate(mutate)
 
-    def delete_card(self, card_id):
+    def delete_card(self, esp_id, card_id):
         def mutate(data):
-            return data["cards"].pop(card_id, None)
+            return data["cards"].pop(_card_key(esp_id, card_id), None)
 
         return self._mutate(mutate)
 

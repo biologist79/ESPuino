@@ -93,8 +93,10 @@ Der **einzige** Weg dorthin ist das **manuelle Anlernen (§5.1)**: Karte am ESPu
 Die Karten-ID entsteht zwangsläufig zuerst am ESPuino (er ist der Leser) und muss von dort zum Hub. Dieser Push passiert **beim Auflegen der Karte**, nicht beim Anlernen im Web-UI:
 
 - Das **Anlernen (§5.1)** schreibt nur den NVS-Eintrag (`mediahub://…`, `MEDIAHUB`) — **kein** Hub-Kontakt.
-- Beim **Auflegen** fragt der ESPuino das Manifest beim Hub an. Kennt der Hub die Karte noch nicht, **registriert er sie dabei** (legt sie als noch-nicht-zugewiesen an, damit der Admin sie im Hub-UI sieht) und antwortet negativ. Der ESPuino zeigt einen **Fehler** — dem Bediener ist klar, dass die Karte neu ist.
+- Beim **Auflegen** fragt der ESPuino das Manifest beim Hub an. Kennt der Hub das **(espId, cardId)-Paar** noch nicht, **registriert er es dabei** (legt die Zuweisung als noch-nicht-konfiguriert an, damit der Admin sie im Hub-UI sieht) und antwortet negativ. Der ESPuino zeigt einen **Fehler** — dem Bediener ist klar, dass diese Kombination neu ist.
 - Danach weist der Admin am Hub-Web-UI Inhalt zu; beim nächsten Auflegen kommt das Manifest, und die Karte spielt (nach Download).
+
+Wichtig: Die Zuweisung gehört zu **genau diesem** ESPuino (§5.5) — dasselbe Kartentapping auf einem zweiten, dem Hub noch unbekannten Gerät registriert dort **unabhängig davon** eine eigene, separate Zuweisung.
 
 **Warum beim Auflegen statt beim Anlernen:** So ist der Zeitpunkt des ID-Pushs frei wählbar — einfach Karte auflegen. Käme die Registrierung beim Anlernen, müsste man zum erneuten Pushen (z. B. nach einem Hub-Reset) die Karte neu anlernen. Durch die Kopplung ans Auflegen genügt ein erneutes Auflegen.
 
@@ -117,6 +119,20 @@ Einrichtungs-Ablauf end-to-end:
 - Mehrere Karten dürfen denselben Ordner/dieselben Dateien referenzieren (z. B. dieselbe Geschichte für zwei Kinder-Karten).
 
 **Optionales Passwort fürs Hub-Web-UI.** Über die Einstellungen-Seite kann der Admin ein Passwort setzen, ändern oder wieder entfernen; gespeichert wird nur ein gesalzener Hash (nie das Klartext-Passwort) in der JSON-DB. Ist ein Passwort gesetzt, verlangt jede Web-UI-Seite eine Anmeldung (Session-Cookie). Die ESPuino-Endpunkte (§6) bleiben davon **unberührt** — sie sind technisch nicht absicherbar, da die Geräte sich nicht anmelden können, und das war ohnehin nie das Bedrohungsmodell (§2).
+
+### 5.5 Zuweisungs-Identität: ESPuino + Karten-ID, nicht Karte allein
+
+**Problem.** Eine Karte kann legitim auf mehreren ESPuinos bekannt sein (genau der Zweck des Features: Kinder tauschen Karten zwischen Geräten). Würde der Hub Zuweisungen nur nach `cardId` führen, gäbe es zu einer Karte nur *einen* Datensatz — welchen der ggf. mehreren Geräte-IPs sollte dann z. B. Secure Delete (§13.1) anrufen? Ein früherer Entwurf löste das über „das zuletzt gesehene Gerät", was bei mehreren Geräten pro Karte falsch bzw. unvollständig ist (siehe Entscheidung #27 unten).
+
+**Lösung.** Der Schlüssel einer Zuweisung im Hub ist das Paar **(espId, cardId)**, nicht die Karten-ID allein:
+
+- Man kann **dieselbe** 12-stellige Karten-ID mehrfach anlegen — einmal pro ESPuino. Jede (espId, cardId)-Kombination ist ein eigener, unabhängiger Datensatz mit eigenem Namen, Abspielmodus/Dateien und eigenem Lifecycle.
+- Beim manuellen Anlegen im Hub-Web-UI (§5.3) wählt der Admin daher **zusätzlich zur Karten-ID auch das Ziel-ESPuino** aus einem Dropdown — befüllt mit allen Geräten, die sich beim Hub schon mindestens einmal gemeldet haben (jede Manifest-Anfrage registriert das anfragende Gerät, auch bei unbekannten Karten, siehe §5.3).
+- Damit ist **Secure Delete eindeutig**: Eine Zuweisung kennt ihr ESPuino direkt, keine Heuristik über „zuletzt gesehen" mehr nötig.
+
+**Geräte-Alias-Liste.** Die vom ESPuino gesendete `espId` ist vermutlich MAC-Adresse oder Hostname — für Menschen nicht schön lesbar. Der Hub führt daher pro Gerät ein optionales, frei vergebbares **Alias** (z. B. „Kinderzimmer"), gepflegt auf der Geräte-Seite. Das Alias ist reine Anzeige-Ergonomie im Hub-UI (Dropdown, Kartenliste) und hat keine Wirkung auf Protokoll oder NVS.
+
+**Gerät löschen.** Der Admin kann einen Geräte-Eintrag (Alias, IP, „zuletzt gesehen") im Hub-UI wieder entfernen. Da Zuweisungen an die `espId` gebunden sind, fragt der Hub dabei ab, wie viele Zuweisungen betroffen sind, und lässt sie **auf Bestätigung mit löschen** (kaskadierend) — das betrifft ausdrücklich nur den Hub-eigenen Datensatz, nie den ESPuino selbst oder dessen NVS/SD-Cache. Meldet sich das Gerät später erneut (Tap), wird es beim nächsten Manifest-Request automatisch neu registriert.
 
 ## 6. Endpunkte
 
@@ -316,7 +332,7 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 **Hub-seitige Konfiguration (lazy vs. secure).** Der Hub-Nutzer stellt ein, was beim Löschen passiert:
 
 - **lazy delete:** Der Hub löscht nur seinen eigenen Eintrag. Der ESPuino bleibt unangetastet — die Karte lebt lokal weiter (spielt aus dem Cache, auch offline). Konsequenz: Bei einem späteren Online-Tap kennt der Hub sie nicht mehr → sie registriert sich als neue/pending Karte (für einen Soft-Delete akzeptiert).
-- **secure delete:** Der Hub ruft `DELETE /rfid?id=<cardId>` auf und löscht seinen eigenen Eintrag **erst nach einer 200**. Zwei-Phasen → konsistent; scheitert der Call, behält der Hub seinen Eintrag und versucht es erneut.
+- **secure delete:** Der Hub ruft `DELETE /rfid?id=<cardId>` auf **dem in der Zuweisung hinterlegten ESPuino** (§5.5) an und löscht seinen eigenen Eintrag **erst nach einer 200**. Zwei-Phasen → konsistent; scheitert der Call, behält der Hub seinen Eintrag und versucht es erneut. Da die Zuweisung ihr Gerät direkt kennt (statt es aus „zuletzt gesehen" zu erraten), ist auch bei mehreren ESPuinos pro Karte immer klar, welches genau angerufen wird.
 
 **Aufräumen bei Inhaltsänderung.** Ein Content-Update räumt implizit auf: Beim Re-Sync (nächstes Auflegen einer „stale"-Karte, §11) wird `/.mediahub/media/<cardId>/` **geleert und neu befüllt** — verwaiste Dateien verschwinden dabei automatisch.
 
@@ -372,3 +388,5 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 | 24 | SD-Platz wird vor dem Download geprüft (frisch: `frei ≥ benötigt`; Re-Sync: erst prüfen `frei + alt ≥ benötigt`, dann wipen — sonst alte Version behalten). |
 | 25 | Hub-Web-UI optional per Passwort absicherbar (Settings, gehashter Wert in der JSON-DB). Betrifft nur die Verwaltungsoberfläche — die ESPuino-Endpunkte (§6) bleiben immer offen (§19). |
 | 26 | Karten-Zuweisung über eine read-only in den Container gemountete Medienbibliothek (`/media`) statt Datei-Upload; Auswahl per eingebettetem Datei-Browser (§5.4). Löschen einer Zuweisung fasst nie die Bibliotheksdateien an — der Hub referenziert sie nur. |
+| 27 | **Zuweisungs-Schlüssel ist (espId, cardId), nicht cardId allein** (§5.5) — dieselbe Karte kann pro ESPuino unabhängig konfiguriert werden. Löst die Mehrdeutigkeit bei Secure Delete: Vorher rief der Hub das „zuletzt gesehene" Gerät zur Karte an (falsch/unvollständig bei mehreren ESPuinos pro Karte); jetzt kennt jede Zuweisung ihr Gerät direkt. |
+| 28 | Geräte-Alias-Liste im Hub (frei vergebbarer Name je `espId`, z. B. „Kinderzimmer") — reine Anzeige-Ergonomie, da die vom ESPuino gesendete `espId` (MAC/Hostname) für Menschen unhandlich ist. Gerät im Hub-UI löschbar; bestehende Zuweisungen dieses Geräts werden dabei nach Bestätigung mit gelöscht (nur der Hub-Datensatz, nie ESPuino/NVS). |

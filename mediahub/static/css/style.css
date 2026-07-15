@@ -334,13 +334,24 @@ main.container {
 }
 
 .add-card-form input[type="text"] {
-	width: 180px;
+	width: 260px;
 	font-variant-numeric: tabular-nums;
 	letter-spacing: .3px;
 }
 
 .add-card-hint {
 	font-size: .82rem;
+}
+
+.alias-form {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: normal;
+}
+
+.alias-form input[type="text"] {
+	width: 160px;
 }
 
 /* --- Tables --- */
@@ -439,20 +450,25 @@ td code, .file-list code {
 .btn:hover { background: var(--brand-dark); }
 
 .btn-secondary {
-	background: transparent;
+	background: var(--surface);
 	color: var(--text);
-	border-color: var(--border);
+	border-color: color-mix(in srgb, var(--text) 22%, transparent);
+	box-shadow: var(--shadow);
 }
 
-.btn-secondary:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.btn-secondary:hover {
+	background: color-mix(in srgb, var(--text) 6%, var(--surface));
+	border-color: color-mix(in srgb, var(--text) 34%, transparent);
+}
 
 .btn-danger {
-	background: transparent;
+	background: var(--surface);
 	color: #dc2626;
-	border-color: color-mix(in srgb, #dc2626 35%, transparent);
+	border-color: color-mix(in srgb, #dc2626 45%, transparent);
+	box-shadow: var(--shadow);
 }
 
-.btn-danger:hover { background: color-mix(in srgb, #dc2626 10%, transparent); }
+.btn-danger:hover { background: color-mix(in srgb, #dc2626 10%, var(--surface)); }
 
 .btn-small {
 	padding: 6px 12px;

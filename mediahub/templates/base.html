@@ -53,6 +53,18 @@
 		<div class="container">{{ _('MediaHub · a local media hub for ESPuino') }}</div>
 	</footer>
 
+	<script>
+		// Generic confirm-before-submit for forms carrying a data-confirm
+		// message — avoids embedding dynamic (translated, user-influenced)
+		// text as JS-string-literal syntax inside an inline onsubmit="...".
+		document.querySelectorAll(".confirm-form").forEach(function (form) {
+			form.addEventListener("submit", function (event) {
+				if (!confirm(form.dataset.confirm)) {
+					event.preventDefault();
+				}
+			});
+		});
+	</script>
 	{% block scripts %}{% endblock %}
 </body>
 </html>

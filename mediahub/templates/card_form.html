@@ -5,7 +5,10 @@
 {% block content %}
 <section class="page-head">
 	<h1>{{ _('Assign card') }} <code>{{ card_id }}</code></h1>
-	<p class="muted">{{ _('Defines what this card plays. The ESPuino picks it up on next tap.') }}</p>
+	<p class="muted">
+		{{ _('Defines what this card plays. The ESPuino picks it up on next tap.') }}
+		{{ _('For ESPuino: %(device)s', device=(device.alias if device and device.alias else esp_id)) }}
+	</p>
 </section>
 
 <form class="form-card" method="post">

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 15:05+0200\n"
+"POT-Creation-Date: 2026-07-15 15:50+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: de\n"
@@ -28,37 +28,83 @@ msgid_plural "%(num)s devices"
 msgstr[0] "%(num)s Gerät"
 msgstr[1] "%(num)s Geräte"
 
-#: app.py:160 templates/card_form.html:26
+#: app.py:150
+#, python-format
+msgid "Delete ESPuino %(esp_id)s?"
+msgstr "ESPuino %(esp_id)s löschen?"
+
+#: app.py:152
+#, python-format
+msgid ""
+"There is still %(num)s card assignment for this ESPuino, which must be "
+"deleted first. Delete it automatically? Note: cards are only removed "
+"locally in MediaHub."
+msgid_plural ""
+"There are still %(num)s card assignments for this ESPuino, which must be "
+"deleted first. Delete them automatically? Note: cards are only removed "
+"locally in MediaHub."
+msgstr[0] ""
+"Es existiert noch %(num)s Kartenzuweisung für diesen ESPuino, die zuerst "
+"gelöscht werden muss. Soll sie automatisch gelöscht werden? Hinweis: Die "
+"Karte wird nur lokal im MediaHub gelöscht."
+msgstr[1] ""
+"Es existieren noch %(num)s Kartenzuweisungen für diesen ESPuino, die "
+"zuerst gelöscht werden müssen. Sollen sie automatisch gelöscht werden? "
+"Hinweis: Die Karten werden nur lokal im MediaHub gelöscht."
+
+#: app.py:178
+msgid "Alias saved."
+msgstr "Alias gespeichert."
+
+#: app.py:188
+#, python-format
+msgid ""
+"Device %(esp_id)s and its %(num)s card assignment(s) deleted (locally in "
+"MediaHub only)."
+msgstr ""
+"Gerät %(esp_id)s und seine %(num)s Kartenzuweisung(en) gelöscht (nur "
+"lokal im MediaHub)."
+
+#: app.py:190
+#, python-format
+msgid "Device %(esp_id)s deleted."
+msgstr "Gerät %(esp_id)s gelöscht."
+
+#: app.py:199 templates/card_form.html:29
 msgid "Webradio"
 msgstr "Webradio"
 
-#: app.py:162
+#: app.py:201
 #, python-format
 msgid "%(num)s file"
 msgid_plural "%(num)s files"
 msgstr[0] "%(num)s Datei"
 msgstr[1] "%(num)s Dateien"
 
-#: app.py:182
+#: app.py:229
 msgid "Card ID must be exactly 12 digits."
 msgstr "Die Karten-ID muss genau 12 Ziffern haben."
 
-#: app.py:191
-#, python-format
-msgid "Card %(id)s already exists and is assigned — opening it for editing."
-msgstr ""
-"Karte %(id)s existiert bereits und ist zugewiesen — wird zum Bearbeiten "
-"geöffnet."
+#: app.py:233
+msgid "Please choose a known ESPuino."
+msgstr "Bitte einen bekannten ESPuino wählen."
 
-#: app.py:215
+#: app.py:242
+#, python-format
+msgid "Card %(id)s is already assigned on this ESPuino — opening it for editing."
+msgstr ""
+"Karte %(id)s ist auf diesem ESPuino bereits zugewiesen — wird zum "
+"Bearbeiten geöffnet."
+
+#: app.py:268
 msgid "A stream URL is required for webradio."
 msgstr "Für Webradio wird eine Stream-URL benötigt."
 
-#: app.py:224
+#: app.py:277
 msgid "Please choose a valid play mode."
 msgstr "Bitte einen gültigen Abspielmodus wählen."
 
-#: app.py:243
+#: app.py:296
 #, python-format
 msgid ""
 "Some selected files could not be used (missing, or not readable by the "
@@ -67,32 +113,32 @@ msgstr ""
 "Einige ausgewählte Dateien konnten nicht verwendet werden (fehlen oder "
 "vom Container-Nutzer nicht lesbar) und wurden übersprungen: %(paths)s"
 
-#: app.py:252
+#: app.py:305
 msgid "At least one audio file is required."
 msgstr "Mindestens eine Audiodatei wird benötigt."
 
-#: app.py:256
+#: app.py:309
 msgid "This play mode only supports a single file — please select just one."
 msgstr ""
 "Dieser Abspielmodus unterstützt nur eine einzelne Datei — bitte nur eine "
 "auswählen."
 
-#: app.py:262
+#: app.py:315
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Karte %(id)s zugewiesen."
 
-#: app.py:278
+#: app.py:333
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Force Refresh für Karte %(id)s ausgelöst."
 
-#: app.py:285
+#: app.py:340
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Force Refresh für alle %(num)s Karten ausgelöst."
 
-#: app.py:303
+#: app.py:359
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -101,32 +147,28 @@ msgstr ""
 "Secure Delete: Der ESPuino (%(esp_id)s) hat das Löschen nicht bestätigt. "
 "Die Karte wurde beibehalten, bitte erneut versuchen."
 
-#: app.py:305
-msgid "unknown"
-msgstr "unbekannt"
-
-#: app.py:316
+#: app.py:372
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Karte %(id)s gelöscht (%(mode)s)."
 
-#: app.py:367
+#: app.py:423
 msgid "Settings saved."
 msgstr "Einstellungen gespeichert."
 
-#: app.py:377
+#: app.py:433
 msgid "Please enter a password."
 msgstr "Bitte ein Passwort eingeben."
 
-#: app.py:379
+#: app.py:435
 msgid "Passwords do not match."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: app.py:382
+#: app.py:438
 msgid "Hub password set."
 msgstr "Hub-Passwort gesetzt."
 
-#: app.py:390
+#: app.py:446
 msgid "Hub password removed."
 msgstr "Hub-Passwort entfernt."
 
@@ -194,7 +236,7 @@ msgstr "Übersicht"
 msgid "Devices"
 msgstr "Geräte"
 
-#: templates/base.html:21 templates/cards.html:3
+#: templates/base.html:21 templates/cards.html:3 templates/devices.html:24
 msgid "Cards"
 msgstr "Karten"
 
@@ -224,49 +266,54 @@ msgstr "Karte"
 msgid "Assign card"
 msgstr "Karte zuweisen"
 
-#: templates/card_form.html:8
+#: templates/card_form.html:9
 msgid "Defines what this card plays. The ESPuino picks it up on next tap."
 msgstr ""
 "Legt fest, was diese Karte abspielt. Der ESPuino übernimmt das beim "
 "nächsten Auflegen."
 
-#: templates/card_form.html:13 templates/cards.html:49 templates/media.html:19
+#: templates/card_form.html:10
+#, python-format
+msgid "For ESPuino: %(device)s"
+msgstr "Für ESPuino: %(device)s"
+
+#: templates/card_form.html:16 templates/cards.html:61 templates/media.html:20
 msgid "Name"
 msgstr "Name"
 
-#: templates/card_form.html:13
+#: templates/card_form.html:16
 msgid "(display/logs only)"
 msgstr "(nur Anzeige/Logs)"
 
-#: templates/card_form.html:14
+#: templates/card_form.html:17
 msgid "e.g. Bedtime Stories – Episode 12"
 msgstr "z. B. Gute-Nacht-Geschichten – Folge 12"
 
-#: templates/card_form.html:18
+#: templates/card_form.html:21
 msgid "Content type"
 msgstr "Inhaltstyp"
 
-#: templates/card_form.html:22
+#: templates/card_form.html:25
 msgid "Audio files"
 msgstr "Audiodateien"
 
-#: templates/card_form.html:33
+#: templates/card_form.html:36
 msgid "Play mode"
 msgstr "Abspielmodus"
 
-#: templates/card_form.html:42
+#: templates/card_form.html:45
 msgid "Selected files"
 msgstr "Ausgewählte Dateien"
 
-#: templates/card_form.html:44
+#: templates/card_form.html:47
 msgid "No files selected yet — browse the library below."
 msgstr "Noch keine Dateien ausgewählt — unten in der Bibliothek stöbern."
 
-#: templates/card_form.html:48
+#: templates/card_form.html:51
 msgid "Media library"
 msgstr "Medienbibliothek"
 
-#: templates/card_form.html:49
+#: templates/card_form.html:52
 msgid ""
 "Files come from the library mounted at /media — MediaHub doesn't store "
 "its own copies."
@@ -274,23 +321,23 @@ msgstr ""
 "Dateien kommen aus der unter /media eingebundenen Bibliothek — MediaHub "
 "legt keine eigenen Kopien an."
 
-#: templates/card_form.html:57
+#: templates/card_form.html:59
 msgid "Use folder"
 msgstr "Ordner verwenden"
 
-#: templates/card_form.html:58
+#: templates/card_form.html:60
 msgid "No audio files here."
 msgstr "Keine Audiodateien hier."
 
-#: templates/card_form.html:59
+#: templates/card_form.html:61
 msgid "Remove"
 msgstr "Entfernen"
 
-#: templates/card_form.html:60
+#: templates/card_form.html:62
 msgid "Could not list this folder (permission denied?)."
 msgstr "Ordner konnte nicht gelistet werden (Zugriff verweigert?)."
 
-#: templates/card_form.html:62
+#: templates/card_form.html:64
 msgid ""
 "This play mode only supports one file — pick a different mode to select "
 "more."
@@ -298,15 +345,16 @@ msgstr ""
 "Dieser Abspielmodus unterstützt nur eine Datei — für mehrere einen "
 "anderen Modus wählen."
 
-#: templates/card_form.html:69
+#: templates/card_form.html:72
 msgid "Stream URL"
 msgstr "Stream-URL"
 
-#: templates/card_form.html:75 templates/settings.html:33
+#: templates/card_form.html:78 templates/devices.html:35
+#: templates/settings.html:33
 msgid "Save"
 msgstr "Speichern"
 
-#: templates/card_form.html:76
+#: templates/card_form.html:79
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -348,15 +396,29 @@ msgstr "Force Refresh für ALLE Karten auslösen?"
 msgid "Force refresh (all)"
 msgstr "Force Refresh (alle)"
 
-#: templates/cards.html:32
+#: templates/cards.html:31
+msgid ""
+"No ESPuino has checked in yet — a device needs to contact the hub at "
+"least once (e.g. tapping an unknown card) before you can add a card "
+"assignment for it."
+msgstr ""
+"Noch kein ESPuino hat sich gemeldet — ein Gerät muss den Hub mindestens "
+"einmal kontaktiert haben (z. B. durch Auflegen einer unbekannten Karte), "
+"bevor du eine Kartenzuweisung dafür anlegen kannst."
+
+#: templates/cards.html:35
+msgid "ESPuino"
+msgstr "ESPuino"
+
+#: templates/cards.html:41
 msgid "12-digit card ID"
 msgstr "12-stellige Karten-ID"
 
-#: templates/cards.html:33
+#: templates/cards.html:43
 msgid "Add card"
 msgstr "Karte hinzufügen"
 
-#: templates/cards.html:34
+#: templates/cards.html:44
 msgid ""
 "You'll find the card ID on the ESPuino's own web UI when you tap the card"
 " there."
@@ -364,66 +426,70 @@ msgstr ""
 "Die Karten-ID findest du im Web-Interface des ESPuino selbst, wenn du die"
 " Karte dort auflegst."
 
-#: templates/cards.html:41
+#: templates/cards.html:52
 msgid "No pending cards."
 msgstr "Keine wartenden Karten."
 
-#: templates/cards.html:41
+#: templates/cards.html:52
 msgid "No card known yet — it will show up here once tapped on an ESPuino."
 msgstr ""
 "Noch keine Karte bekannt — sie erscheint hier, sobald sie einmal an einem"
 " ESPuino aufgelegt wurde."
 
-#: templates/cards.html:48 templates/media.html:18
+#: templates/cards.html:59 templates/media.html:18
 msgid "Card ID"
 msgstr "Karten-ID"
 
-#: templates/cards.html:50
+#: templates/cards.html:60 templates/media.html:19
+msgid "Device"
+msgstr "Gerät"
+
+#: templates/cards.html:62
 msgid "Status"
 msgstr "Status"
 
-#: templates/cards.html:51
+#: templates/cards.html:63
 msgid "Content"
 msgstr "Inhalt"
 
-#: templates/cards.html:52 templates/devices.html:20
+#: templates/cards.html:64 templates/devices.html:21
 msgid "Last seen"
 msgstr "Zuletzt gesehen"
 
-#: templates/cards.html:63
+#: templates/cards.html:77
 msgid "assigned"
 msgstr "zugewiesen"
 
-#: templates/cards.html:65
+#: templates/cards.html:79
 msgid "pending"
 msgstr "wartend"
 
-#: templates/cards.html:72
+#: templates/cards.html:86
 msgid "Assign"
 msgstr "Zuweisen"
 
-#: templates/cards.html:72
+#: templates/cards.html:86
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/cards.html:76
+#: templates/cards.html:90
 msgid "Force refresh"
 msgstr "Force Refresh"
 
-#: templates/cards.html:80
+#: templates/cards.html:94
 msgid "Could not load the manifest."
 msgstr "Manifest konnte nicht geladen werden."
 
-#: templates/cards.html:80
+#: templates/cards.html:94
 msgid "Manifest"
 msgstr "Manifest"
 
-#: templates/cards.html:82
+#: templates/cards.html:96
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr "Karte %(id)s wirklich löschen?"
 
-#: templates/cards.html:83
+#: templates/cards.html:97 templates/devices.html:45
 msgid "Delete"
 msgstr "Löschen"
 
@@ -452,16 +518,24 @@ msgid "Device ID"
 msgstr "Geräte-ID"
 
 #: templates/devices.html:19
+msgid "Alias"
+msgstr "Alias"
+
+#: templates/devices.html:20
 msgid "IP address"
 msgstr "IP-Adresse"
 
-#: templates/devices.html:21
+#: templates/devices.html:22
 msgid "First seen"
 msgstr "Zuerst gesehen"
 
-#: templates/devices.html:22
+#: templates/devices.html:23
 msgid "Last card"
 msgstr "Letzte Karte"
+
+#: templates/devices.html:34
+msgid "e.g. Kids room"
+msgstr "z. B. Kinderzimmer"
 
 #: templates/index.html:6
 msgid "Central management of RFID assignments for your ESPuinos."
@@ -517,15 +591,15 @@ msgstr "Speichernutzung je Karte. Hochgeladen wird direkt bei der Kartenzuweisun
 msgid "No media files uploaded yet."
 msgstr "Noch keine Mediendateien hochgeladen."
 
-#: templates/media.html:20
+#: templates/media.html:21
 msgid "Files"
 msgstr "Dateien"
 
-#: templates/media.html:21
+#: templates/media.html:22
 msgid "Size"
 msgstr "Größe"
 
-#: templates/media.html:32
+#: templates/media.html:34
 msgid "Manage"
 msgstr "Verwalten"
 
@@ -544,10 +618,12 @@ msgstr "Lazy Delete"
 #: templates/settings.html:19
 msgid ""
 "the hub only removes its own entry. The card keeps playing on the ESPuino"
-" from its local cache, even offline."
+" from its local cache, even offline — it is not removed from the ESPuino "
+"itself."
 msgstr ""
 "der Hub löscht nur seinen eigenen Eintrag. Die Karte spielt am ESPuino "
-"aus dem lokalen Cache weiter, auch offline."
+"aus dem lokalen Cache weiter, auch offline. Sie wird also auf dem ESPuino"
+" nicht entfernt."
 
 #: templates/settings.html:25
 msgid "Secure delete"
@@ -556,10 +632,13 @@ msgstr "Secure Delete"
 #: templates/settings.html:26
 msgid ""
 "the hub first calls DELETE /rfid on the ESPuino and only removes its own "
-"entry after a confirmed 200 response."
+"entry after a confirmed 200 response — the card is only deleted in the "
+"hub once the deletion on the ESPuino has succeeded."
 msgstr ""
 "der Hub ruft zuerst DELETE /rfid am ESPuino auf und löscht seinen eigenen"
-" Eintrag erst nach einer bestätigten 200-Antwort."
+" Eintrag erst nach einer bestätigten 200-Antwort. Die Karte wird im Hub "
+"also erst gelöscht, wenn der Löschvorgang auf dem ESPuino erfolgreich "
+"war."
 
 #: templates/settings.html:38
 msgid "Hub password"
@@ -601,4 +680,7 @@ msgstr "Passwort entfernen"
 
 #~ msgid "Upload audio files"
 #~ msgstr "Audiodateien hochladen"
+
+#~ msgid "unknown"
+#~ msgstr "unbekannt"
 
