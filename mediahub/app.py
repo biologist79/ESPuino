@@ -252,6 +252,10 @@ def assign_card(card_id):
                 flash(_("At least one audio file is required."), "error")
                 return redirect(url_for("assign_card", card_id=card_id))
 
+            if play_mode in manifest_lib.SINGLE_FILE_PLAY_MODES and len(files) > 1:
+                flash(_("This play mode only supports a single file — please select just one."), "error")
+                return redirect(url_for("assign_card", card_id=card_id))
+
             files.sort(key=lambda f: f["path"])
             store.save_assignment(card_id, name, "files", play_mode, None, files)
 
@@ -263,6 +267,7 @@ def assign_card(card_id):
         card_id=card_id,
         card=card,
         play_modes=manifest_lib.FILE_PLAY_MODES,
+        single_file_play_modes=list(manifest_lib.SINGLE_FILE_PLAY_MODES),
     )
 
 
@@ -310,6 +315,18 @@ def delete_card(card_id):
 
     flash(_("Card %(id)s deleted (%(mode)s).", id=card_id, mode=delete_mode), "success")
     return redirect(url_for("cards"))
+
+
+@app.route("/cards/<card_id>/manifest-preview")
+def manifest_preview(card_id):
+    """Admin-only preview of the manifest an ESPuino would receive for this
+    card — same builder as card_manifest(), but without its side effects
+    (no device/card "last seen" tracking, no pending-registration)."""
+    card = store.get_card(card_id)
+    if card is None or card["status"] != "assigned":
+        abort(404)
+    files_base_url = url_for("serve_media", filename="", _external=True)
+    return jsonify(manifest_lib.build_manifest(card_id, card, files_base_url))
 
 
 # --------------------------------------------------------------------------

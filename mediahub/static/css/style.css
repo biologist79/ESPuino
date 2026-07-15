@@ -383,10 +383,30 @@ td code, .file-list code {
 
 .table-actions {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 6px;
+	white-space: normal;
+	max-width: 230px;
 }
 
 .table-actions form { display: inline; }
+
+.mh-manifest-row td {
+	background: var(--bg);
+	padding: 0;
+}
+
+.mh-manifest-json {
+	margin: 0;
+	padding: 14px 16px;
+	max-height: 320px;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-break: break-all;
+	font-size: .82rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	color: var(--text);
+}
 
 /* --- Status badges (table variants; the dashboard tile badge is above) --- */
 .badge-ok {
