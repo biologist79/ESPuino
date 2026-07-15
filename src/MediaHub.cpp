@@ -14,8 +14,10 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <algorithm>
+#include <atomic>
 #include <esp_task_wdt.h>
 #include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 #include <freertos/task.h>
 #include <mbedtls/sha256.h>
 
@@ -30,7 +32,10 @@ static constexpr uint16_t MediaHub_ReadTimeoutMs = 3000;
 // large, so this is a "no bytes at all for this long" watchdog, not a total
 // transfer-time budget.
 static constexpr uint32_t MediaHub_DownloadStallTimeoutMs = 8000;
-static constexpr size_t MediaHub_DownloadBufferSize = 4096;
+// Matches start_chunk_size in Web.cpp's upload path: bigger chunks mean fewer
+// read()/write() round-trips per file, which is where most of the throughput
+// difference against the (~450 kB/s) upload path came from besides power-save.
+static constexpr size_t MediaHub_DownloadBufferSize = 16384;
 
 // Set for the duration of an actual file download (concept §14/#16): a card
 // tapped while this is true gets a "busy" error instead of being processed.
@@ -39,9 +44,16 @@ static volatile bool MediaHub_DownloadBusy = false;
 struct MediaHub_BusyGuard {
 	MediaHub_BusyGuard() {
 		MediaHub_DownloadBusy = true;
+		// Full WiFi power for the duration of the download - same win the
+		// upload path gets from System_PauseTasksDuringUpload(). Deliberately
+		// not reusing that function: it also suspends Led_Task and the RFID
+		// task, which would kill the non-suspending download animation from
+		// Phase 5 and pause the very task this download is running on.
+		Wlan_SetPowerSave(false);
 	}
 	~MediaHub_BusyGuard() {
 		MediaHub_DownloadBusy = false;
+		Wlan_SetPowerSave(true);
 		Led_SetDownloadProgress(false);
 	}
 };
@@ -170,6 +182,28 @@ static uint64_t MediaHub_DirSize(const String &path) {
 	return MediaHub_DirSizeRecursive(dir);
 }
 
+// Percent-encodes a manifest file path for use in the download URL. Library
+// paths come straight from the hub's filesystem and routinely contain
+// spaces or other characters that aren't valid unencoded in a URL (distinct
+// from SanitizedFS's FAT-illegal-char encoding used for local storage,
+// which is unrelated and already handled elsewhere). '/' is preserved since
+// it's the path separator, not data to encode.
+static String MediaHub_UrlEncodePath(const String &path) {
+	String encoded;
+	encoded.reserve(path.length());
+	for (size_t i = 0; i < path.length(); i++) {
+		const uint8_t c = (uint8_t) path[i];
+		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '/') {
+			encoded += (char) c;
+		} else {
+			char hex[4];
+			snprintf(hex, sizeof(hex), "%%%02X", c);
+			encoded += hex;
+		}
+	}
+	return encoded;
+}
+
 static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
 	static const char *hexDigits = "0123456789abcdef";
 	String hex;
@@ -179,6 +213,70 @@ static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
 		hex += hexDigits[digest[i] & 0x0F];
 	}
 	return hex;
+}
+
+// Double-buffered download/write, mirroring explorerHandleFileUpload() /
+// explorerHandleFileStorageTask() in Web.cpp: while one buffer is being
+// written to SD by a dedicated task, the network read loop already fills the
+// other one, instead of serializing "read network" and "write SD" on the same
+// task. File-scope statics (not per-call locals) are fine here: only one
+// download ever runs at a time (MediaHub_BusyGuard), and re-initialized at
+// the top of every MediaHub_DownloadAndVerifyFile() call.
+static constexpr size_t MediaHub_DownloadNumBuffers = 2;
+static uint8_t MediaHub_DownloadBuffers[MediaHub_DownloadNumBuffers][MediaHub_DownloadBufferSize];
+static std::atomic<uint32_t> MediaHub_DownloadBufferBytes[MediaHub_DownloadNumBuffers];
+static std::atomic<bool> MediaHub_DownloadBufferFull[MediaHub_DownloadNumBuffers];
+static TaskHandle_t MediaHub_DownloadWriterTaskHandle = NULL;
+static SemaphoreHandle_t MediaHub_DownloadWriterDone = NULL;
+static volatile bool MediaHub_DownloadWriterError = false;
+
+struct MediaHub_WriterTaskArgs {
+	File file; // already open at index 0, created by the caller
+};
+
+// Drains full buffers to `file` as they become available. Notification value
+// 1 = producer done normally (drain what's left, then exit); 2 = producer
+// aborted (exit immediately, whatever's unwritten doesn't matter since the
+// caller discards the .tmp file on any error anyway).
+static void MediaHub_DownloadWriterTask(void *parameter) {
+	auto *args = static_cast<MediaHub_WriterTaskArgs *>(parameter);
+	File file = args->file;
+	delete args;
+
+	uint32_t readIndex = 0;
+	for (;;) {
+		uint32_t notifyValue = 0;
+		const BaseType_t notified = xTaskNotifyWait(0, 0, &notifyValue, 0);
+		if (notified == pdPASS && notifyValue == 2u) {
+			break; // producer aborted, don't bother writing anything more
+		}
+		if (MediaHub_DownloadBufferFull[readIndex]) {
+			while (MediaHub_DownloadBufferFull[readIndex]) {
+				const uint32_t len = MediaHub_DownloadBufferBytes[readIndex];
+				if (len > 0 && file.write(MediaHub_DownloadBuffers[readIndex], len) != len) {
+					MediaHub_DownloadWriterError = true;
+				}
+				MediaHub_DownloadBufferBytes[readIndex] = 0;
+				MediaHub_DownloadBufferFull[readIndex] = false;
+				readIndex = (readIndex + 1) % MediaHub_DownloadNumBuffers;
+				if (MediaHub_DownloadWriterError) {
+					break; // don't keep writing to a file that just failed
+				}
+				esp_task_wdt_reset();
+			}
+			if (MediaHub_DownloadWriterError || (notified == pdPASS && notifyValue == 1u)) {
+				break; // write failed, or that was the last (partial) buffer
+			}
+		} else if (notified == pdPASS && notifyValue == 1u) {
+			break; // done, and nothing was left to drain
+		} else {
+			vTaskDelay(pdMS_TO_TICKS(1));
+		}
+	}
+	file.close();
+	MediaHub_DownloadWriterTaskHandle = NULL;
+	xSemaphoreGive(MediaHub_DownloadWriterDone);
+	vTaskDelete(NULL);
 }
 
 // Downloads one file to <finalPath>.tmp, hashing incrementally while writing
@@ -196,7 +294,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 
 	const int httpCode = http.GET();
 	if (httpCode != HTTP_CODE_OK) {
-		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadHttpError, httpCode, fileUrl.c_str());
 		http.end();
 		return false;
 	}
@@ -204,7 +302,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 	const String tmpPath = finalPath + ".tmp";
 	File tmpFile = gFSystem.open(tmpPath, FILE_WRITE, true); // create=true: also creates missing parent dirs
 	if (!tmpFile) {
-		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFileError, fileUrl.c_str());
 		http.end();
 		return false;
 	}
@@ -213,13 +311,42 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 	mbedtls_sha256_init(&shaCtx);
 	mbedtls_sha256_starts(&shaCtx, 0); // 0 = SHA-256 (not the SHA-224 variant)
 
+	// Hand the open file off to the writer task; from here on the producer
+	// (this function/task) only ever touches the buffers, never the file.
+	for (size_t i = 0; i < MediaHub_DownloadNumBuffers; i++) {
+		MediaHub_DownloadBufferBytes[i] = 0;
+		MediaHub_DownloadBufferFull[i] = false;
+	}
+	MediaHub_DownloadWriterError = false;
+	if (MediaHub_DownloadWriterDone == NULL) {
+		MediaHub_DownloadWriterDone = xSemaphoreCreateBinary();
+	} else {
+		xSemaphoreTake(MediaHub_DownloadWriterDone, 0); // make sure it's empty before this run
+	}
+	auto *writerArgs = new MediaHub_WriterTaskArgs {tmpFile};
+	xTaskCreatePinnedToCore(MediaHub_DownloadWriterTask, "MediaHubWriter", 3072, writerArgs, 2, &MediaHub_DownloadWriterTaskHandle, 1);
+
 	auto *stream = http.getStreamPtr();
-	uint8_t buf[MediaHub_DownloadBufferSize];
 	size_t totalRead = 0;
+	uint32_t writeIndex = 0;
 	bool transferError = false;
-	uint32_t lastDataMs = millis();
+	bool restartRequested = false;
+	const uint32_t transferStartMs = millis();
+	uint32_t lastDataMs = transferStartMs;
 
 	while (totalRead < expectedSize) {
+		// A pending restart/shutdown must never wait out a multi-minute download
+		// first (concept-adjacent hardening): bail out now, System_Cyclic() picks
+		// it up as soon as this call unwinds back to loop(). Whatever's on disk
+		// stays a discarded .tmp file either way, so there's nothing to protect.
+		if (System_IsRestartOrSleepPending()) {
+			restartRequested = true;
+			break;
+		}
+		if (MediaHub_DownloadWriterError) {
+			transferError = true;
+			break;
+		}
 		const int avail = stream->available();
 		if (avail <= 0) {
 			if (millis() - lastDataMs > MediaHub_DownloadStallTimeoutMs) {
@@ -229,35 +356,73 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 			delay(1);
 			continue;
 		}
-		const size_t toRead = std::min((size_t) avail, sizeof(buf));
-		const size_t got = stream->readBytes(buf, toRead);
+		// wait for the writer task to finish draining this buffer before reusing it
+		while (MediaHub_DownloadBufferFull[writeIndex]) {
+			if (MediaHub_DownloadWriterError) {
+				transferError = true;
+				break;
+			}
+			if (System_IsRestartOrSleepPending()) {
+				restartRequested = true;
+				break;
+			}
+			vTaskDelay(pdMS_TO_TICKS(1));
+		}
+		if (transferError || restartRequested) {
+			break;
+		}
+
+		const size_t bufferedSoFar = MediaHub_DownloadBufferBytes[writeIndex];
+		const size_t spaceLeft = MediaHub_DownloadBufferSize - bufferedSoFar;
+		const size_t toRead = std::min((size_t) avail, spaceLeft);
+		const size_t got = stream->readBytes(MediaHub_DownloadBuffers[writeIndex] + bufferedSoFar, toRead);
 		if (got == 0) {
 			transferError = true;
 			break;
 		}
 		lastDataMs = millis();
-		mbedtls_sha256_update(&shaCtx, buf, got);
-		if (tmpFile.write(buf, got) != got) {
-			transferError = true;
-			break;
-		}
+		mbedtls_sha256_update(&shaCtx, MediaHub_DownloadBuffers[writeIndex] + bufferedSoFar, got);
+		MediaHub_DownloadBufferBytes[writeIndex] = bufferedSoFar + got;
 		totalRead += got;
 		completedBytes += got;
 		if (totalBytes > 0) {
 			Led_SetDownloadProgress(true, (uint8_t) std::min<uint64_t>(100, (completedBytes * 100) / totalBytes));
 		}
+		if (MediaHub_DownloadBufferBytes[writeIndex] == MediaHub_DownloadBufferSize) {
+			MediaHub_DownloadBufferFull[writeIndex] = true;
+			writeIndex = (writeIndex + 1) % MediaHub_DownloadNumBuffers;
+		}
 		esp_task_wdt_reset();
 	}
 	http.end();
-	tmpFile.close();
+
+	// hand off whatever's left in the current buffer, then tell the writer
+	// task we're done (2 = abort, 1 = normal finish - drain and exit either way)
+	if (MediaHub_DownloadBufferBytes[writeIndex] > 0 && !MediaHub_DownloadBufferFull[writeIndex]) {
+		MediaHub_DownloadBufferFull[writeIndex] = true;
+	}
+	xTaskNotify(MediaHub_DownloadWriterTaskHandle, (transferError || restartRequested) ? 2u : 1u, eSetValueWithOverwrite);
+	if (xSemaphoreTake(MediaHub_DownloadWriterDone, pdMS_TO_TICKS(30000)) != pdTRUE) {
+		// writer task got stuck somehow - don't hang forever, just report failure
+		transferError = true;
+	}
+	if (MediaHub_DownloadWriterError) {
+		transferError = true;
+	}
 
 	uint8_t digest[32];
 	mbedtls_sha256_finish(&shaCtx, digest);
 	mbedtls_sha256_free(&shaCtx);
 
+	if (restartRequested) {
+		gFSystem.remove(tmpPath);
+		Log_Println(mediaHubDownloadAbortedForRestart, LOGLEVEL_NOTICE);
+		return false;
+	}
+
 	if (transferError || totalRead != expectedSize) {
 		gFSystem.remove(tmpPath);
-		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadTransferError, fileUrl.c_str(), (unsigned) totalRead, (unsigned) expectedSize);
 		return false;
 	}
 
@@ -270,9 +435,13 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 	gFSystem.remove(finalPath); // clears a stale leftover from an earlier aborted sync, if any
 	if (!gFSystem.rename(tmpPath, finalPath)) {
 		gFSystem.remove(tmpPath);
-		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadRenameError, fileUrl.c_str());
 		return false;
 	}
+
+	const uint32_t elapsedMs = millis() - transferStartMs;
+	const float rateKBs = elapsedMs > 0 ? (totalRead / 1024.0f) / (elapsedMs / 1000.0f) : 0.0f;
+	Log_Printf(LOGLEVEL_NOTICE, mediaHubDownloadRate, fileUrl.c_str(), (unsigned) totalRead, rateKBs);
 	return true;
 }
 
@@ -318,7 +487,9 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 			return false;
 		}
 		Log_Printf(LOGLEVEL_NOTICE, mediaHubDownloadingFile, path);
-		if (!MediaHub_DownloadAndVerifyFile(filesBaseUrl + path, mediaDir + "/" + path, size, sha256, completedBytes, totalBytes)) {
+		// URL-encode only for the HTTP request; the local path (mediaDir + path)
+		// stays as-is for SanitizedFS, which does its own FAT-safe encoding.
+		if (!MediaHub_DownloadAndVerifyFile(filesBaseUrl + MediaHub_UrlEncodePath(path), mediaDir + "/" + path, size, sha256, completedBytes, totalBytes)) {
 			return false;
 		}
 	}
@@ -362,12 +533,17 @@ static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t
 
 // Re-sync flow for a card already marked "stale" (concept §11/§13): fetches
 // the fresh manifest live, then wipes the media folder and re-downloads
-// everything. Returns false for anything that leaves the OLD, still-complete
-// local copy as the better fallback (hub unreachable, bad manifest, SD too
-// full for the new version) — the caller then plays that old copy instead,
-// and the card stays marked "stale" for the next attempt. Only clears
-// "stale" on full success.
-static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+// everything. Deliberately never starts playback on success (unlike the
+// concept's original "RS -> PLAY" flowchart, §11): a re-sync can take
+// minutes, and starting playback of whatever just finished downloading,
+// unprompted, after that long a silent wait surprised more than it helped in
+// practice - the next tap plays it instead, by then straight from the now-
+// fully-synced local cache. Returns false for anything that leaves the OLD,
+// still-complete local copy as the better fallback (hub unreachable, bad
+// manifest, SD too full for the new version) — the caller then plays that
+// old copy instead, and the card stays marked "stale" for the next attempt.
+// Only clears "stale" on full success.
+static bool MediaHub_TryReSync(const char *cardId, const String &hostPort) {
 	String espId = MediaHub_GetEspId();
 	String url = "http://" + hostPort + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
 
@@ -404,8 +580,8 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 		}
 		MediaHub_WriteManifestCache(cardId, body);
 		MediaHub_ClearStale(cardId);
-		Log_Println(mediaHubWebstreamFromManifest, LOGLEVEL_NOTICE);
-		AudioPlayer_SetPlaylist(stream, 0, WEBSTREAM, 0);
+		Log_Println(mediaHubResyncComplete, LOGLEVEL_NOTICE);
+		System_IndicateOk();
 		return true;
 	}
 
@@ -443,9 +619,8 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	}
 
 	MediaHub_ClearStale(cardId);
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
-	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
-	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
+	Log_Println(mediaHubResyncComplete, LOGLEVEL_NOTICE);
+	System_IndicateOk();
 	return true;
 }
 
@@ -579,8 +754,8 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 	const bool online = Wlan_IsConnected();
 
 	if (MediaHub_IsStale(cardId) && online) {
-		if (MediaHub_TryReSync(cardId, hostPort, lastPlayPos, trackLastPlayed)) {
-			return; // playing the just-fetched fresh content; no follow-up check needed
+		if (MediaHub_TryReSync(cardId, hostPort)) {
+			return; // re-synced; this tap doesn't play, the next one does (see MediaHub_TryReSync())
 		}
 		// Re-sync wasn't possible right now (hub unreachable, bad manifest, SD
 		// full for the new version, ...) — fall through and play the old,
