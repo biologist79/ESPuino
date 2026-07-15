@@ -5,6 +5,7 @@
 
 #include "AudioPlayer.h"
 #include "Log.h"
+#include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
 #include "logmessages.h"
@@ -19,6 +20,102 @@ const char *const MediaHub_PathPrefix = "mediahub://";
 static constexpr int32_t MediaHub_ConnectTimeoutMs = 2000;
 static constexpr uint16_t MediaHub_ReadTimeoutMs = 3000;
 
+// Fixed, hidden storage layout (concept §13.1) — MediaHub is the only thing
+// that ever touches this tree.
+static String MediaHub_ManifestCachePath(const char *cardId) {
+	return "/.mediahub/manifests/" + String(cardId) + ".json";
+}
+
+static String MediaHub_MediaDir(const char *cardId) {
+	return "/.mediahub/media/" + String(cardId);
+}
+
+// SINGLE_TRACK/SINGLE_TRACK_LOOP name one specific file, not a folder to
+// scan (mirrors SINGLE_FILE_PLAY_MODES on the hub, which caps assignment
+// to exactly one file for these two modes).
+static bool MediaHub_IsSingleFilePlayMode(uint32_t playMode) {
+	return playMode == SINGLE_TRACK || playMode == SINGLE_TRACK_LOOP;
+}
+
+// Local integrity check is size-only, never a hash (concept §9): hashing a
+// possibly 100 MB file on every tap just to confirm what the hub already
+// verified at download time isn't an option on this hardware.
+static bool MediaHub_FileFullySynced(const String &mediaDir, JsonVariantConst fileEntry) {
+	const char *path = fileEntry["path"] | "";
+	if (strlen(path) == 0) {
+		return false;
+	}
+	const uint32_t expectedSize = fileEntry["size"] | 0;
+	File f = gFSystem.open(mediaDir + "/" + path);
+	if (!f || f.isDirectory()) {
+		return false;
+	}
+	const bool sizeMatches = (uint32_t) f.size() == expectedSize;
+	f.close();
+	return sizeMatches;
+}
+
+static bool MediaHub_AllFilesSynced(const String &mediaDir, JsonArrayConst files) {
+	if (files.size() == 0) {
+		return false; // nothing to play
+	}
+	for (JsonVariantConst f : files) {
+		if (!MediaHub_FileFullySynced(mediaDir, f)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Local-first fast path (concept §3 principle 1): if a manifest is already
+// cached and every one of its files is present with the right size, play
+// immediately — no network access at all, so this works fully offline
+// (e.g. in the car). Returns false if there's no cache yet, it doesn't
+// parse, it's a webradio manifest (never offline-playable, §7.2/§14), or
+// anything is missing/mismatched — the caller then falls back to asking
+// the hub live.
+static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	File manifestFile = gFSystem.open(MediaHub_ManifestCachePath(cardId));
+	if (!manifestFile || manifestFile.isDirectory()) {
+		return false;
+	}
+
+	JsonDocument doc;
+	const DeserializationError jsonError = deserializeJson(doc, manifestFile);
+	manifestFile.close();
+	if (jsonError) {
+		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, jsonError.c_str());
+		return false; // corrupt cache -> treat as if there was none
+	}
+
+	const uint32_t manifestPlayMode = doc["playMode"] | 0;
+	if (manifestPlayMode == WEBSTREAM) {
+		return false;
+	}
+
+	const String mediaDir = MediaHub_MediaDir(cardId);
+	JsonArrayConst files = doc["files"].as<JsonArrayConst>();
+	if (!MediaHub_AllFilesSynced(mediaDir, files)) {
+		return false;
+	}
+
+	String itemToPlay;
+	if (MediaHub_IsSingleFilePlayMode(manifestPlayMode)) {
+		const char *singleFilePath = files[0]["path"] | "";
+		itemToPlay = mediaDir + "/" + singleFilePath;
+	} else {
+		// Folder mode: point at the card's media directory and let the
+		// existing SdCard_ReturnPlaylist() scan/sort/recurse it exactly like
+		// any other SD folder — it already knows how to do that per
+		// playMode, MediaHub doesn't need to reimplement any of it.
+		itemToPlay = mediaDir;
+	}
+
+	Log_Println(mediaHubPlayingFromCache, LOGLEVEL_NOTICE);
+	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
+	return true;
+}
+
 bool MediaHub_IsMediaHubPath(const char *path) {
 	return path != NULL && strncmp(path, MediaHub_PathPrefix, strlen(MediaHub_PathPrefix)) == 0;
 }
@@ -31,15 +128,13 @@ String MediaHub_GetEspId() {
 }
 
 void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
-	// lastPlayPos/trackLastPlayed aren't used until file-based manifest
-	// playback is implemented (later phase); accepted here already so
-	// that call site doesn't need to change again then.
-	(void) lastPlayPos;
-	(void) trackLastPlayed;
-
 	if (!MediaHub_IsMediaHubPath(path)) {
 		Log_Println(mediaHubInvalidPath, LOGLEVEL_ERROR);
 		System_IndicateError();
+		return;
+	}
+
+	if (MediaHub_TryPlayFromLocalCache(cardId, lastPlayPos, trackLastPlayed)) {
 		return;
 	}
 

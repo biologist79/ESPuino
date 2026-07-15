@@ -240,6 +240,7 @@ const char mDNSFailed[] = "mDNS failure, hostname: %s";
 const char restartAfterOperationModeChange[] = "Operation Mode changed. Restart ESPuino now...";
 
 // MediaHub
+const char mediaHubPlayingFromCache[] = "MediaHub: all files present locally, playing without network access.";
 const char mediaHubNotReachable[] = "MediaHub not reachable.";
 const char mediaHubInvalidPath[] = "MediaHub: invalid hub address in NVS.";
 const char mediaHubCardPending[] = "MediaHub: card is not assigned yet.";
