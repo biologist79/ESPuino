@@ -53,7 +53,7 @@
 		<input type="hidden" name="selected_paths_json" id="selected-paths-json"
 			value="{{ card.files | map(attribute='path') | list | tojson }}">
 		<script type="application/json" id="media-tree-labels">
-			{{ {"useFolder": _("Use folder"), "emptyFolder": _("No audio files here."), "remove": _("Remove")} | tojson }}
+			{{ {"useFolder": _("Use folder"), "emptyFolder": _("No audio files here."), "remove": _("Remove"), "listError": _("Could not list this folder (permission denied?).")} | tojson }}
 		</script>
 	</div>
 

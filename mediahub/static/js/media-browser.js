@@ -131,6 +131,14 @@
 					li.dataset.loaded = "true";
 					children.hidden = false;
 					toggle.textContent = "▾";
+				}).catch(function () {
+					toggle.textContent = "▸";
+					children.hidden = false;
+					children.innerHTML = "";
+					var error = document.createElement("li");
+					error.className = "mt-empty mt-error";
+					error.textContent = labels.listError;
+					children.appendChild(error);
 				});
 			}
 
@@ -138,10 +146,17 @@
 			nameSpan.addEventListener("click", expand);
 
 			useBtn.addEventListener("click", function () {
+				var originalLabel = useBtn.textContent;
+				useBtn.disabled = true;
 				fetchListing(path).then(function (data) {
 					addPaths(data.files.map(function (name) {
 						return joinPath(path, name);
 					}));
+				}).catch(function () {
+					window.alert(labels.listError);
+				}).finally(function () {
+					useBtn.disabled = false;
+					useBtn.textContent = originalLabel;
 				});
 			});
 
@@ -201,6 +216,11 @@
 
 		fetchListing("").then(function (data) {
 			renderChildren(tree, data);
+		}).catch(function () {
+			var error = document.createElement("li");
+			error.className = "mt-empty mt-error";
+			error.textContent = labels.listError;
+			tree.appendChild(error);
 		});
 
 		renderSelectedList();

@@ -6,6 +6,14 @@ services:
     # Run as www-data (33:33) instead of root by default. Make sure the host
     # ./data directory is writable by that uid/gid, e.g.:
     #   chown -R 33:33 ./data
+    #
+    # Your ./media library also needs to be *readable* by this uid/gid —
+    # directory listing and file reading are separate Unix permissions, so a
+    # track can show up in the browser yet fail to save with "permission
+    # denied" if the file itself isn't world-readable. Either:
+    #   chmod -R o+rX /path/to/your/library
+    # or override `user:` below to match the uid/gid that already owns it
+    # (e.g. `id -u`:`id -g` of your own account) instead of 33:33.
     user: "33:33"
     ports:
       - "8080:8080"

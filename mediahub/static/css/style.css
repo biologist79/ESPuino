@@ -306,6 +306,12 @@ main.container {
 	color: #dc2626;
 }
 
+.flash-info {
+	background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+	border-color: color-mix(in srgb, var(--brand) 30%, transparent);
+	color: var(--brand-dark);
+}
+
 /* --- Empty state --- */
 .empty-state {
 	color: var(--muted);
@@ -616,6 +622,11 @@ input[type="file"]:focus,
 .mt-empty {
 	padding: 4px 6px;
 	font-size: .85rem;
+	color: var(--muted);
+}
+
+.mt-error {
+	color: #dc2626;
 }
 
 .mt-remove {

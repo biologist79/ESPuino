@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 14:22+0200\n"
+"POT-Creation-Date: 2026-07-15 14:53+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: de\n"
@@ -43,43 +43,48 @@ msgstr[1] "%(num)s Dateien"
 msgid "Card ID must be exactly 12 digits."
 msgstr "Die Karten-ID muss genau 12 Ziffern haben."
 
-#: app.py:205
+#: app.py:191
+#, python-format
+msgid "Card %(id)s already exists and is assigned — opening it for editing."
+msgstr "Karte %(id)s existiert bereits und ist zugewiesen — wird zum Bearbeiten geöffnet."
+
+#: app.py:215
 msgid "A stream URL is required for webradio."
 msgstr "Für Webradio wird eine Stream-URL benötigt."
 
-#: app.py:214
+#: app.py:224
 msgid "Please choose a valid play mode."
 msgstr "Bitte einen gültigen Abspielmodus wählen."
 
-#: app.py:233
+#: app.py:243
 #, python-format
 msgid ""
-"Some selected files could no longer be found in the library and were "
-"skipped: %(paths)s"
+"Some selected files could not be used (missing, or not readable by the "
+"container's user) and were skipped: %(paths)s"
 msgstr ""
-"Einige ausgewählte Dateien wurden in der Bibliothek nicht mehr gefunden "
-"und übersprungen: %(paths)s"
+"Einige ausgewählte Dateien konnten nicht verwendet werden (fehlen oder "
+"vom Container-Nutzer nicht lesbar) und wurden übersprungen: %(paths)s"
 
-#: app.py:241
+#: app.py:252
 msgid "At least one audio file is required."
 msgstr "Mindestens eine Audiodatei wird benötigt."
 
-#: app.py:247
+#: app.py:258
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Karte %(id)s zugewiesen."
 
-#: app.py:262
+#: app.py:273
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Force Refresh für Karte %(id)s ausgelöst."
 
-#: app.py:269
+#: app.py:280
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Force Refresh für alle %(num)s Karten ausgelöst."
 
-#: app.py:287
+#: app.py:298
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -88,32 +93,32 @@ msgstr ""
 "Secure Delete: Der ESPuino (%(esp_id)s) hat das Löschen nicht bestätigt. "
 "Die Karte wurde beibehalten, bitte erneut versuchen."
 
-#: app.py:289
+#: app.py:300
 msgid "unknown"
 msgstr "unbekannt"
 
-#: app.py:300
+#: app.py:311
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Karte %(id)s gelöscht (%(mode)s)."
 
-#: app.py:339
+#: app.py:350
 msgid "Settings saved."
 msgstr "Einstellungen gespeichert."
 
-#: app.py:349
+#: app.py:360
 msgid "Please enter a password."
 msgstr "Bitte ein Passwort eingeben."
 
-#: app.py:351
+#: app.py:362
 msgid "Passwords do not match."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: app.py:354
+#: app.py:365
 msgid "Hub password set."
 msgstr "Hub-Passwort gesetzt."
 
-#: app.py:362
+#: app.py:373
 msgid "Hub password removed."
 msgstr "Hub-Passwort entfernt."
 
@@ -272,6 +277,10 @@ msgstr "Keine Audiodateien hier."
 #: templates/card_form.html:56
 msgid "Remove"
 msgstr "Entfernen"
+
+#: templates/card_form.html:56
+msgid "Could not list this folder (permission denied?)."
+msgstr "Ordner konnte nicht gelistet werden (Zugriff verweigert?)."
 
 #: templates/card_form.html:62
 msgid "Stream URL"
@@ -538,7 +547,8 @@ msgid ""
 "reachable either way, since devices can't log in."
 msgstr ""
 "Optional — schützt die Web-Oberfläche unten. Die für ESPuinos gedachte "
-"API bleibt in jedem Fall erreichbar, da sich Geräte nicht anmelden können."
+"API bleibt in jedem Fall erreichbar, da sich Geräte nicht anmelden "
+"können."
 
 #: templates/settings.html:44
 msgid "New password"

@@ -19,6 +19,12 @@ docker compose up --build
 By default `docker-compose.yml` maps a local `./media` folder; edit that
 line to point at your actual library path instead, e.g. `/mnt/audiobooks:/media:ro`.
 
+**Directory listing and file reading are separate Unix permissions** — a
+track can show up in the browser tree yet fail to save with "permission
+denied" if the file itself isn't readable by uid `33`. If that happens,
+either `chmod -R o+rX /path/to/your/library` or point `user:` in
+`docker-compose.yml` at the uid/gid that already owns your library instead.
+
 Then open [http://localhost:8080](http://localhost:8080).
 
 For local development without Docker:
