@@ -411,3 +411,59 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 | 27 | **Zuweisungs-Schlüssel ist (espId, cardId), nicht cardId allein** (§5.5) — dieselbe Karte kann pro ESPuino unabhängig konfiguriert werden. Löst die Mehrdeutigkeit bei Secure Delete: Vorher rief der Hub das „zuletzt gesehene" Gerät zur Karte an (falsch/unvollständig bei mehreren ESPuinos pro Karte); jetzt kennt jede Zuweisung ihr Gerät direkt. |
 | 28 | Geräte-Alias-Liste im Hub (frei vergebbarer Name je `espId`, z. B. „Kinderzimmer") — reine Anzeige-Ergonomie, da die vom ESPuino gesendete `espId` (MAC/Hostname) für Menschen unhandlich ist. Gerät im Hub-UI löschbar; bestehende Zuweisungen dieses Geräts werden dabei nach Bestätigung mit gelöscht (nur der Hub-Datensatz, nie ESPuino/NVS). |
 | 29 | **Play-Position-Persistenz (§8.1):** NVS-Format korrigiert auf die tatsächlichen vier Felder `path#lastPlayPos#playMode#trackLastPlayed`. `AudioPlayer_NvsRfidWriteWrapper()` muss bei einem `mediahub://`-Pfad das `playMode`-Feld beim Zurückschreiben immer auf `MEDIAHUB` erzwingen (statt des echten, gerade abgespielten Modus) — sonst überschreibt der erste Pause-/Trackwechsel-Save den Marker und die Karte wird beim nächsten Auflegen nicht mehr als MediaHub-Karte erkannt. `AudioPlayer_SetPlaylist()` wird beim Abspielen mit dem echten Manifest-`playMode` plus den aus dem NVS gelesenen `lastPlayPos`/`trackLastPlayed` aufgerufen — dadurch greifen `saveLastPlayPosition` und der Shutdown-Flush unverändert, ohne dass AudioPlayer.cpp/System.cpp MediaHub kennen müssen. |
+
+## 17. Implementierungsplan ESPuino-Seite (Phasen)
+
+Der Hub (`mediahub/`) ist implementiert und getestet (§15). Für die Firmware-Seite folgt die Umsetzung in Phasen, aufsteigend nach Abhängigkeiten sortiert — jede Phase soll für sich testbar/demofähig sein, bevor die nächste draufkommt.
+
+### Phase 0 — Fundament & Dispatch-Weiche
+
+- Neuer `MEDIAHUB`-playMode-Wert in `values.h` (< 100, siehe Constraint mit Modifikationskarten, §8)
+- `mediahub://`-Erkennung im Pfad-Feld, Dispatch-Weiche in `RfidCommon.cpp` **vor** der bestehenden Webradio-Erkennung — vorerst nur geloggt/gestubbt, keine echte Netzwerkaktivität
+- Wichtigster Test: **alle bestehenden, normalen Karten verhalten sich exakt unverändert.** Das ist der riskanteste Berührungspunkt (Code-Pfad, den jede Karte durchläuft), deshalb isoliert und zuerst.
+
+### Phase 1 — Vertikale Scheibe: nur Webradio
+
+- Manifest per HTTP GET holen + parsen, Registrierung-beim-Auflegen (§5.3, unbekannte Karte → pending + Fehleranzeige)
+- Bei `playMode = WEBSTREAM`: Stream-URL direkt an den bestehenden AudioPlayer-Webradio-Pfad übergeben
+- Kurze Connect-Timeouts, Offline-Fehleranzeige
+- Bewusst zuerst, weil komplett ohne Download-/SD-Logik — testet Netzwerk- und Dispatch-Plumbing isoliert, erstes demofähiges Ergebnis (Karte auflegen → Stream läuft).
+
+### Phase 2 — Datei-Wiedergabe, nur der lokale Pfad
+
+- Manifest-Cache lesen, lokaler Integritätscheck (nur Größe, §9)
+- Ist alles bereits lokal vorhanden → sofort abspielen, kein Netzwerk nötig
+- Testbar mit einer von Hand vorbereiteten SD-Struktur + Manifest-Cache, ganz ohne Downloadpfad.
+
+### Phase 3 — Play-Position-Fix
+
+- Der in §8.1 beschriebene Fix in `AudioPlayer_NvsRfidWriteWrapper()` (Marker beim Zurückschreiben erzwingen) + Durchreichen von `lastPlayPos`/`trackLastPlayed` an `AudioPlayer_SetPlaylist()`
+- Klein, aber jetzt einbauen, weil Phase 2 gerade den ersten echten Hörbuch-Wiedergabepfad liefert, an dem sich das überhaupt testen lässt (Pause → erneut auflegen → Marker noch da?).
+
+### Phase 4 — Download-Pipeline (der aufwändigste Teil)
+
+- `MediaHub_EnsureCard` (§10): fehlende Dateien erkennen, `.tmp` → SHA-256-Verify → Move, SD-Platz-Check vorab (§13)
+- Vordergrund-Download mit Fortschritt, „busy"-Antwort bei Kartenauflegen während laufendem Download (§14)
+- Force Refresh, pro Karte / alle (§9)
+
+### Phase 5 — LED-Integration
+
+- Eigene, nicht-suspendierende Download-Animation in die `Led_Task`-Prioritätslogik einhängen (§12)
+
+### Phase 6 — Änderungserkennung & Re-Sync
+
+- Hintergrund-`version`-Check nach Wiedergabestart, „stale"-Markierung (§9)
+- Re-Sync-Ablauf beim nächsten Auflegen (SD-Platz-Check → wipen → neu laden, §13/§13.1)
+
+### Phase 7 — Löschen-Kaskade
+
+- `DELETE /rfid`-Handler um den MEDIAHUB-Fall erweitern (Medien + Manifest-Cache lokal löschen, §13.1)
+- Lazy/Secure werden hub-seitig entschieden (bereits implementiert, §13.1/§25); hier nur der Ausführungs-Endpunkt
+
+### Phase 8 — ESPuino-Web-UI-Ergonomie
+
+- Registrierte Medienserver-Liste + Dropdown beim Kartenzuweisen (§5.1)
+
+### Phase 9 — Härtung & vollständiger Testdurchlauf
+
+- Kompletter Abgleich gegen die Fehlerfälle aus §14 (Hub weg, SD voll, Abbruch mitten im Download, Re-Sync scheitert, …) auf echter Hardware
