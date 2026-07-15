@@ -181,6 +181,16 @@ def add_card():
     if not manifest_lib.is_valid_card_id(card_id):
         flash(_("Card ID must be exactly 12 digits."), "error")
         return redirect(url_for("cards"))
+
+    existing = store.get_card(card_id)
+    if existing and existing["status"] == "assigned":
+        # Not an error — "Add" doubles as "jump to this card's edit form" —
+        # but flag it so a card ID typo doesn't silently overwrite an
+        # already-configured card without the admin noticing.
+        flash(
+            _("Card %(id)s already exists and is assigned — opening it for editing.", id=card_id),
+            "info",
+        )
     return redirect(url_for("assign_card", card_id=card_id))
 
 
@@ -230,8 +240,9 @@ def assign_card(card_id):
             if missing:
                 flash(
                     _(
-                        "Some selected files could no longer be found in the "
-                        "library and were skipped: %(paths)s",
+                        "Some selected files could not be used (missing, or not "
+                        "readable by the container's user) and were skipped: "
+                        "%(paths)s",
                         paths=", ".join(missing),
                     ),
                     "error",

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 14:22+0200\n"
+"POT-Creation-Date: 2026-07-15 14:53+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: fr\n"
@@ -43,43 +43,48 @@ msgstr[1] "%(num)s fichiers"
 msgid "Card ID must be exactly 12 digits."
 msgstr "L'ID de la carte doit comporter exactement 12 chiffres."
 
-#: app.py:205
+#: app.py:191
+#, python-format
+msgid "Card %(id)s already exists and is assigned — opening it for editing."
+msgstr "La carte %(id)s existe déjà et est assignée — ouverture pour modification."
+
+#: app.py:215
 msgid "A stream URL is required for webradio."
 msgstr "Une URL de flux est requise pour la webradio."
 
-#: app.py:214
+#: app.py:224
 msgid "Please choose a valid play mode."
 msgstr "Veuillez choisir un mode de lecture valide."
 
-#: app.py:233
+#: app.py:243
 #, python-format
 msgid ""
-"Some selected files could no longer be found in the library and were "
-"skipped: %(paths)s"
+"Some selected files could not be used (missing, or not readable by the "
+"container's user) and were skipped: %(paths)s"
 msgstr ""
-"Certains fichiers sélectionnés n'ont plus été trouvés dans la "
-"bibliothèque et ont été ignorés : %(paths)s"
+"Certains fichiers sélectionnés n'ont pas pu être utilisés (absents ou non"
+" lisibles par l'utilisateur du conteneur) et ont été ignorés : %(paths)s"
 
-#: app.py:241
+#: app.py:252
 msgid "At least one audio file is required."
 msgstr "Au moins un fichier audio est requis."
 
-#: app.py:247
+#: app.py:258
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Carte %(id)s assignée."
 
-#: app.py:262
+#: app.py:273
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Actualisation forcée déclenchée pour la carte %(id)s."
 
-#: app.py:269
+#: app.py:280
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Actualisation forcée déclenchée pour les %(num)s cartes."
 
-#: app.py:287
+#: app.py:298
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -88,32 +93,32 @@ msgstr ""
 "Suppression sécurisée : l'ESPuino (%(esp_id)s) n'a pas confirmé la "
 "suppression. La carte a été conservée, veuillez réessayer."
 
-#: app.py:289
+#: app.py:300
 msgid "unknown"
 msgstr "inconnu"
 
-#: app.py:300
+#: app.py:311
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Carte %(id)s supprimée (%(mode)s)."
 
-#: app.py:339
+#: app.py:350
 msgid "Settings saved."
 msgstr "Paramètres enregistrés."
 
-#: app.py:349
+#: app.py:360
 msgid "Please enter a password."
 msgstr "Veuillez saisir un mot de passe."
 
-#: app.py:351
+#: app.py:362
 msgid "Passwords do not match."
 msgstr "Les mots de passe ne correspondent pas."
 
-#: app.py:354
+#: app.py:365
 msgid "Hub password set."
 msgstr "Mot de passe du hub défini."
 
-#: app.py:362
+#: app.py:373
 msgid "Hub password removed."
 msgstr "Mot de passe du hub supprimé."
 
@@ -247,7 +252,9 @@ msgstr "Fichiers sélectionnés"
 
 #: templates/card_form.html:44
 msgid "No files selected yet — browse the library below."
-msgstr "Aucun fichier sélectionné pour l'instant — parcourez la bibliothèque ci-dessous."
+msgstr ""
+"Aucun fichier sélectionné pour l'instant — parcourez la bibliothèque ci-"
+"dessous."
 
 #: templates/card_form.html:48
 msgid "Media library"
@@ -258,8 +265,8 @@ msgid ""
 "Files come from the library mounted at /media — MediaHub doesn't store "
 "its own copies."
 msgstr ""
-"Les fichiers proviennent de la bibliothèque montée dans /media — "
-"MediaHub n'en conserve aucune copie."
+"Les fichiers proviennent de la bibliothèque montée dans /media — MediaHub"
+" n'en conserve aucune copie."
 
 #: templates/card_form.html:56
 msgid "Use folder"
@@ -272,6 +279,10 @@ msgstr "Aucun fichier audio ici."
 #: templates/card_form.html:56
 msgid "Remove"
 msgstr "Retirer"
+
+#: templates/card_form.html:56
+msgid "Could not list this folder (permission denied?)."
+msgstr "Ce dossier n'a pas pu être listé (accès refusé ?)."
 
 #: templates/card_form.html:62
 msgid "Stream URL"
