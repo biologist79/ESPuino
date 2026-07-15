@@ -231,6 +231,7 @@ def _content_detail(card):
 @app.route("/cards")
 def cards():
     only_pending = request.args.get("pending") == "1"
+    esp_id_filter = request.args.get("esp_id") or ""
     cards_by_key = store.list_cards()
     devices_by_id = store.list_devices()
     rows = [
@@ -241,7 +242,8 @@ def cards():
             devices_by_id.get(c["esp_id"], {}).get("alias") or c["esp_id"],
         )
         for c in cards_by_key.values()
-        if not only_pending or c["status"] == "pending"
+        if (not only_pending or c["status"] == "pending")
+        and (not esp_id_filter or c["esp_id"] == esp_id_filter)
     ]
     rows.sort(key=lambda row: row[0]["last_seen"], reverse=True)
     return render_template(
@@ -249,6 +251,8 @@ def cards():
         cards=rows,
         only_pending=only_pending,
         devices=devices_by_id,
+        esp_id_filter=esp_id_filter,
+        esp_id_filter_label=(devices_by_id.get(esp_id_filter, {}).get("alias") or esp_id_filter),
     )
 
 

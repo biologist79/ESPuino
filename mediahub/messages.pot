@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 16:18+0200\n"
+"POT-Creation-Date: 2026-07-15 16:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,99 +73,99 @@ msgid_plural "%(num)s files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: app.py:261
+#: app.py:265
 msgid "Card ID must be exactly 12 digits."
 msgstr ""
 
-#: app.py:265
+#: app.py:269
 msgid "Please choose a known ESPuino."
 msgstr ""
 
-#: app.py:274 app.py:294
+#: app.py:278 app.py:298
 #, python-format
 msgid "Card %(id)s is already assigned on this ESPuino — opening it for editing."
 msgstr ""
 
-#: app.py:288
+#: app.py:292
 msgid "Please choose a different, known ESPuino."
 msgstr ""
 
-#: app.py:308
+#: app.py:312
 #, python-format
 msgid "Card %(id)s duplicated to %(esp_id)s."
 msgstr ""
 
-#: app.py:332
+#: app.py:336
 msgid "A stream URL is required for webradio."
 msgstr ""
 
-#: app.py:341
+#: app.py:345
 msgid "Please choose a valid play mode."
 msgstr ""
 
-#: app.py:360
+#: app.py:364
 #, python-format
 msgid ""
 "Some selected files could not be used (missing, or not readable by the "
 "container's user) and were skipped: %(paths)s"
 msgstr ""
 
-#: app.py:369
+#: app.py:373
 msgid "At least one audio file is required."
 msgstr ""
 
-#: app.py:373
+#: app.py:377
 msgid "This play mode only supports a single file — please select just one."
 msgstr ""
 
-#: app.py:379
+#: app.py:383
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr ""
 
-#: app.py:398
+#: app.py:402
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr ""
 
-#: app.py:405
+#: app.py:409
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr ""
 
-#: app.py:424
+#: app.py:428
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
 "was kept, please retry."
 msgstr ""
 
-#: app.py:437
+#: app.py:441
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr ""
 
-#: app.py:509
+#: app.py:513
 msgid "Recursion depth must be between 0 and 20."
 msgstr ""
 
-#: app.py:512
+#: app.py:516
 msgid "Settings saved."
 msgstr ""
 
-#: app.py:522
+#: app.py:526
 msgid "Please enter a password."
 msgstr ""
 
-#: app.py:524
+#: app.py:528
 msgid "Passwords do not match."
 msgstr ""
 
-#: app.py:527
+#: app.py:531
 msgid "Hub password set."
 msgstr ""
 
-#: app.py:535
+#: app.py:539
 msgid "Hub password removed."
 msgstr ""
 
@@ -272,7 +272,7 @@ msgstr ""
 msgid "For ESPuino: %(device)s"
 msgstr ""
 
-#: templates/card_form.html:16 templates/cards.html:61 templates/media.html:20
+#: templates/card_form.html:16 templates/cards.html:76 templates/media.html:20
 msgid "Name"
 msgstr ""
 
@@ -351,7 +351,7 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: templates/card_form.html:83 templates/cards.html:132
+#: templates/card_form.html:83 templates/cards.html:147
 msgid "Cancel"
 msgstr ""
 
@@ -373,130 +373,143 @@ msgid ""
 " don't yet."
 msgstr ""
 
-#: templates/cards.html:20
+#: templates/cards.html:17
+#, python-format
+msgid "Showing only cards for %(device)s."
+msgstr ""
+
+#: templates/cards.html:18
+msgid "Clear filter"
+msgstr ""
+
+#: templates/cards.html:27
+msgid "All ESPuinos"
+msgstr ""
+
+#: templates/cards.html:35
 msgid "Show all"
 msgstr ""
 
-#: templates/cards.html:22
+#: templates/cards.html:37
 msgid "Pending only"
 msgstr ""
 
-#: templates/cards.html:23
+#: templates/cards.html:38
 msgid "Trigger force refresh for ALL cards?"
 msgstr ""
 
-#: templates/cards.html:24
+#: templates/cards.html:39
 msgid "Force refresh (all)"
 msgstr ""
 
-#: templates/cards.html:31
+#: templates/cards.html:46
 msgid ""
 "No ESPuino has checked in yet — a device needs to contact the hub at "
 "least once (e.g. tapping an unknown card) before you can add a card "
 "assignment for it."
 msgstr ""
 
-#: templates/cards.html:35
+#: templates/cards.html:50
 msgid "ESPuino"
 msgstr ""
 
-#: templates/cards.html:41
+#: templates/cards.html:56
 msgid "12-digit card ID"
 msgstr ""
 
-#: templates/cards.html:43
+#: templates/cards.html:58
 msgid "Add card"
 msgstr ""
 
-#: templates/cards.html:44
+#: templates/cards.html:59
 msgid ""
 "You'll find the card ID on the ESPuino's own web UI when you tap the card"
 " there."
 msgstr ""
 
-#: templates/cards.html:52
+#: templates/cards.html:67
 msgid "No pending cards."
 msgstr ""
 
-#: templates/cards.html:52
+#: templates/cards.html:67
 msgid "No card known yet — it will show up here once tapped on an ESPuino."
 msgstr ""
 
-#: templates/cards.html:59 templates/media.html:18
+#: templates/cards.html:74 templates/media.html:18
 msgid "Card ID"
 msgstr ""
 
-#: templates/cards.html:60 templates/media.html:19
+#: templates/cards.html:75 templates/media.html:19
 msgid "Device"
 msgstr ""
 
-#: templates/cards.html:62
+#: templates/cards.html:77
 msgid "Status"
 msgstr ""
 
-#: templates/cards.html:63
+#: templates/cards.html:78
 msgid "Content"
 msgstr ""
 
-#: templates/cards.html:64 templates/devices.html:21
+#: templates/cards.html:79 templates/devices.html:21
 msgid "Last seen"
 msgstr ""
 
-#: templates/cards.html:77
+#: templates/cards.html:92
 msgid "assigned"
 msgstr ""
 
-#: templates/cards.html:79
+#: templates/cards.html:94
 msgid "pending"
 msgstr ""
 
-#: templates/cards.html:91
+#: templates/cards.html:106
 msgid "Assign"
 msgstr ""
 
-#: templates/cards.html:91
+#: templates/cards.html:106
 msgid "Edit"
 msgstr ""
 
-#: templates/cards.html:95
+#: templates/cards.html:110
 msgid "Force refresh"
 msgstr ""
 
-#: templates/cards.html:99
+#: templates/cards.html:114
 msgid "Could not load the manifest."
 msgstr ""
 
-#: templates/cards.html:99
+#: templates/cards.html:114
 msgid "Manifest"
 msgstr ""
 
-#: templates/cards.html:103
+#: templates/cards.html:118
 #, python-format
 msgid "Copy card %(id)s's configuration to:"
 msgstr ""
 
-#: templates/cards.html:104
+#: templates/cards.html:119
 msgid "No other known ESPuino to duplicate to yet."
 msgstr ""
 
-#: templates/cards.html:104 templates/cards.html:131
+#: templates/cards.html:119 templates/cards.html:146
 msgid "Duplicate"
 msgstr ""
 
-#: templates/cards.html:106
+#: templates/cards.html:121
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr ""
 
-#: templates/cards.html:107 templates/devices.html:45
+#: templates/cards.html:122 templates/devices.html:45
 msgid "Delete"
 msgstr ""
 
-#: templates/cards.html:124
+#: templates/cards.html:139
 msgid "Duplicate to another ESPuino"
 msgstr ""
 
-#: templates/cards.html:127
+#: templates/cards.html:142
 msgid "Target ESPuino"
 msgstr ""
 
