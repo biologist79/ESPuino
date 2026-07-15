@@ -279,6 +279,7 @@ Der Download-Fortschritt wird auf dem Neopixel-Ring angezeigt. **Wichtig:** Nich
 - Der Karten-Ordner `/.mediahub/media/<cardId>/` wird bei Bedarf angelegt.
 - Jede Datei wird nach `…/<path>.tmp` geladen und erst nach erfolgreicher SHA-Prüfung per Rename an den endgültigen Ort verschoben.
 - Abbruch/Fehler (Netzwerk weg, Hub-Fehler, SD-Fehler) → `.tmp` entfernen, klare Fehlermeldung, kein Zombie-File.
+- **SD-Platz vorab prüfen** (frei = `totalBytes − usedBytes`, gegen die Summe der `files[].size`): frischer Download nur, wenn `frei ≥ benötigt`. Beim **Re-Sync erst prüfen, dann wipen** — `frei + alte_Ordnergröße ≥ benötigt`; passt es nicht, wird **nicht gewiped** (die alte, funktionierende Version bleibt) und ein „SD voll"-Fehler angezeigt.
 - **Re-Sync (stale-Karte):** der Ordner wird geleert und neu befüllt. Bricht das ab, bleibt die Karte **„needs resync"** markiert → der nächste Tap versucht es erneut. (Ehrlicher Preis der Wipe-Strategie: bis dahin ist die Karte ggf. unvollständig.)
 - Kurze Connect-Timeouts (schnelles Scheitern), damit ein unerreichbarer Hub nie hängt.
 
@@ -326,7 +327,7 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 
 ## 15. Offene Punkte / später
 
-- **Verhalten bei voller SD-Karte** während eines Downloads (sauber stoppen + melden) — noch nicht ausdetailliert.
+- Keine offenen **Konzept**-Fragen mehr. Verbleibende Details (LED-Fehlermuster, Web-UI-Status-Texte, genaue „needs resync"-Retry-Politik) klären sich bei der Umsetzung.
 
 ## 16. Entscheidungslog
 
@@ -355,3 +356,4 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 | 21 | Löschen via `DELETE /rfid?id=X`-Cascade (MEDIAHUB-gated: NVS + Medien + Cache; 200 nur bei vollem Erfolg). Kein `action`-Feld im Manifest. |
 | 22 | Hub-Config: **lazy** (nur Hub-Eintrag) vs. **secure** (zwei-Phasen: erst `DELETE /rfid`, Hub-Eintrag erst nach 200). |
 | 23 | Change-Handling = Lazy Update beim nächsten Auflegen (stale-Markierung; Wipe + Neuladen erst beim nächsten Tap → Resync braucht 2× Auflegen). |
+| 24 | SD-Platz wird vor dem Download geprüft (frisch: `frei ≥ benötigt`; Re-Sync: erst prüfen `frei + alt ≥ benötigt`, dann wipen — sonst alte Version behalten). |
