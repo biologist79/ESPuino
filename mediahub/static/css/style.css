@@ -392,6 +392,17 @@ td code, .file-list code {
 	font-size: .85em;
 }
 
+.content-detail {
+	display: block;
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: .78rem;
+	color: var(--muted);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 .table-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -678,4 +689,33 @@ input[type="file"]:focus,
 
 .mt-remove:hover {
 	color: #dc2626;
+}
+
+/* --- Duplicate-card dialog --- */
+.duplicate-dialog {
+	background: var(--surface);
+	color: var(--text);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+	padding: 28px;
+	width: 100%;
+	max-width: 420px;
+}
+
+.duplicate-dialog::backdrop {
+	background: rgba(15, 20, 25, .5);
+}
+
+.duplicate-dialog h2 {
+	margin: 0 0 4px;
+	font-size: 1.15rem;
+}
+
+.duplicate-dialog #duplicate-dialog-desc {
+	margin: 0 0 18px;
+}
+
+.duplicate-dialog .form-row {
+	margin-bottom: 20px;
 }

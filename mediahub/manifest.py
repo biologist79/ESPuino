@@ -22,6 +22,13 @@ WEBSTREAM_PLAY_MODE = 8
 # both use this to cap selection to a single file for these two modes.
 SINGLE_FILE_PLAY_MODES = {1, 2}
 
+# AUDIOBOOK_RECURSIVE / ALL_TRACKS_OF_DIR_SORTED_RECURSIVE /
+# ALL_TRACKS_OF_DIR_RANDOM_RECURSIVE (values.h) descend into subfolders on
+# the ESPuino. "Use folder" in the library browser mirrors that by
+# gathering files recursively (capped by the configurable recursion depth,
+# concept/settings) instead of just the folder's direct children.
+RECURSIVE_PLAY_MODES = {15, 16, 17}
+
 # The ESPuino always builds a card ID from exactly 4 UID bytes formatted as
 # "%03d" each (see cardIdSize/cardIdStringSize in src/Rfid.h) — always 12
 # decimal digits, never hex.
