@@ -8,9 +8,11 @@
 // and the actual playMode/content comes from a per-card manifest fetched
 // from that host at tap-time (never from NVS).
 //
-// Phase 1 (current): only webradio manifests (playMode WEBSTREAM) are
-// handed off to playback. File-based manifests are recognized but not yet
-// downloaded/played (later phases).
+// Phase 2 (current): webradio manifests (playMode WEBSTREAM) always go
+// live to the hub. File-based manifests play instantly from a locally
+// cached manifest + already-synced files, offline, no network at all
+// (concept §3/§9) — but if anything is missing or there's no cache yet,
+// they're only recognized, not downloaded (that's a later phase).
 
 // Prefix identifying a MediaHub base-address in the NVS path field.
 extern const char *const MediaHub_PathPrefix; // "mediahub://"

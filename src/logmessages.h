@@ -239,6 +239,7 @@ extern const char jumpForwardsToFolder[];
 extern const char jumpBackwardsToFolder[];
 
 // MediaHub
+extern const char mediaHubPlayingFromCache[];
 extern const char mediaHubNotReachable[];
 extern const char mediaHubInvalidPath[];
 extern const char mediaHubCardPending[];
