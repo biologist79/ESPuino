@@ -624,6 +624,9 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools"
 				data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i
 					class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-mediahub-tab" data-bs-toggle="tab" href="#nav-mediahub"
+				data-bs-target="#nav-mediahub" role="tab" aria-controls="nav-mediahub" aria-selected="false"><i
+					class="fas fa-hard-drive"></i><span data-i18n="nav.mediahub"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help"
 				data-bs-target="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i
 					class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span
@@ -975,59 +978,6 @@
 								</div>
 							</div>
 						</div>
-					</div>
-				</fieldset>
-				<hr>
-			</div>
-			<div class="container" id="mediaHubServers">
-				<fieldset>
-					<legend data-i18n="files.rfid.mediahub.serversTitle"></legend>
-					<form action="#mediaHubServers" method="POST"
-						onsubmit="mediaHubServerConfig('mediaHubServers'); return false">
-						<div class="mb-3 col-md-12">
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="mediaHubServerName" class="col-form-label"
-										data-i18n="[prepend]files.rfid.mediahub.name.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]files.rfid.mediahub.name.explanation" tabindex="0"><i
-											class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<input type="text" class="form-control" id="mediaHubServerName"
-										name="mediaHubServerName" maxlength="32" required>
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="mediaHubServerHostPort" class="col-form-label"
-										data-i18n="[prepend]files.rfid.mediahub.hostPort.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]files.rfid.mediahub.hostPort.explanation"
-										tabindex="0"><i class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<div class="input-group">
-										<select class="form-select flex-grow-0 w-auto" id="mediaHubServerScheme"
-											name="mediaHubServerScheme">
-											<option value="http">http://</option>
-											<option value="https">https://</option>
-										</select>
-										<input type="text" class="form-control" id="mediaHubServerHostPort"
-											name="mediaHubServerHostPort"
-											data-i18n="[placeholder]files.rfid.mediahub.hostPort.placeholder"
-											maxlength="64" required>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div>
-							<button type="submit" class="btn btn-primary"
-								data-i18n="files.rfid.mediahub.addButton"></button>
-						</div>
-					</form>
-					<div class="col-md-12" style="margin-top: 20px;">
-						<ul class="list-group" id="mediaHubServerListManaged"></ul>
 					</div>
 				</fieldset>
 				<hr>
@@ -2492,6 +2442,70 @@
 					</div>
 				</div>
 				</div>
+			</div>
+		</div>
+		<!-- ### Tab MediaHub ### -->
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-mediahub" role="tabpanel"
+			aria-labelledby="nav-mediahub-tab">
+			<div class="container" id="mediaHubIntro">
+				<legend data-i18n="mediahub.title"></legend>
+				<p data-i18n="mediahub.intro"></p>
+				<hr>
+			</div>
+			<div class="container" id="mediaHubServers">
+				<fieldset>
+					<legend data-i18n="mediahub.serversTitle"></legend>
+					<form action="#mediaHubServers" method="POST"
+						onsubmit="mediaHubServerConfig('mediaHubServers'); return false">
+						<div class="mb-3 col-md-12">
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mediaHubServerName" class="col-form-label"
+										data-i18n="[prepend]files.rfid.mediahub.name.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]files.rfid.mediahub.name.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="mediaHubServerName"
+										name="mediaHubServerName" maxlength="32" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mediaHubServerHostPort" class="col-form-label"
+										data-i18n="[prepend]files.rfid.mediahub.hostPort.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]files.rfid.mediahub.hostPort.explanation"
+										tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="input-group">
+										<select class="form-select flex-grow-0 w-auto" id="mediaHubServerScheme"
+											name="mediaHubServerScheme">
+											<option value="http">http://</option>
+											<option value="https">https://</option>
+										</select>
+										<input type="text" class="form-control" id="mediaHubServerHostPort"
+											name="mediaHubServerHostPort"
+											data-i18n="[placeholder]files.rfid.mediahub.hostPort.placeholder"
+											maxlength="64" required>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div>
+							<button type="submit" class="btn btn-primary"
+								data-i18n="files.rfid.mediahub.addButton"></button>
+						</div>
+					</form>
+					<hr>
+					<div class="col-md-12" style="margin-top: 20px;">
+						<p style="font-weight: bold" data-i18n="mediahub.registeredServersTitle"></p>
+						<ul class="list-group" id="mediaHubServerListManaged"></ul>
+					</div>
+				</fieldset>
+				<hr>
 			</div>
 		</div>
 		<!-- ### Tab Help ### -->

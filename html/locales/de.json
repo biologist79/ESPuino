@@ -35,6 +35,7 @@
 		"general": "Allgemein",
 		"updates": "Updates",
 		"tools": "Tools",
+		"mediahub": "MediaHub",
 		"help": "Hilfe"
 	},
 	"settingsex": {
@@ -281,7 +282,6 @@
 				"error": "Kein gültiger Abspielmodus"
 			},
 			"mediahub": {
-				"serversTitle": "Medienserver",
 				"serverSelect": {
 					"title": "Medienserver"
 				},
@@ -639,6 +639,12 @@
 				"fetchError": "Firmware-Liste konnte nicht abgerufen werden."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub ist eine optionale, separat betriebene Zusatzkomponente: ein kleiner lokaler Server, der als Docker-Container im eigenen Netzwerk läuft. Damit lassen sich RFID-Kartenzuweisungen zentral für mehrere ESPuinos verwalten - Inhalt und Abspielmodus kommen dann vom Server statt aus der lokalen NVS-Konfiguration. Ohne einen laufenden MediaHub-Server bringt diese Seite nichts. Hier registrierst du die Adresse(n) deiner MediaHub-Server, damit sie beim Zuweisen einer Karte im Dropdown zur Auswahl stehen.",
+		"serversTitle": "Medienserver",
+		"registeredServersTitle": "Registrierte Medienserver"
 	},
 	"help": {
 		"forum": {
