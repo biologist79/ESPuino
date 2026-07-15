@@ -57,7 +57,7 @@ Der Abgleich passiert ausschließlich **pro Karte, beim Auflegen** — gekapselt
 
 ## 5. NVS-Integration (ohne Formatänderung)
 
-Der NVS-Wert bleibt `#`-getrennt: `<pfad> # <playMode> # …` (siehe `RfidCommon.cpp`). Für eine MediaHub-Karte steht im **Pfad-Feld** ein eigenes Schema statt eines SD-Pfads:
+Der NVS-Wert bleibt unverändert `#`-getrennt mit exakt vier Feldern: `#<pfad>#<lastPlayPos>#<playMode>#<trackLastPlayed>` (Parser in `RfidCommon.cpp`, Schreiber `AudioPlayer_NvsRfidWriteWrapper()` in `AudioPlayer.cpp` — siehe §8.1 zu den beiden mittleren/letzten Feldern). Für eine MediaHub-Karte steht im **Pfad-Feld** ein eigenes Schema statt eines SD-Pfads:
 
 ```text
 mediahub://<host:port>
@@ -211,6 +211,21 @@ Der **tatsächliche** playMode für die Wiedergabe (Hörbuch, Einzeltitel, Webst
 
 Ein „Fallback-playMode" im NVS entfällt damit: `MEDIAHUB` allein ist nicht abspielbar — ohne Manifest weiß der ESPuino nicht, *was* zu spielen ist. Das entspricht genau dem gewünschten Verhalten (das erste Auflegen braucht das Manifest).
 
+### 8.1 Play-Position-Persistenz für Hörbuch-Manifeste
+
+Die Hörbuch-Modi (`AUDIOBOOK`, `AUDIOBOOK_LOOP`, `AUDIOBOOK_RECURSIVE`) merken sich die Abspielposition (`lastPlayPos`, Sekunden) und den zuletzt gespielten Track-Index (`trackLastPlayed`) — beides Felder desselben NVS-Eintrags (§5), nicht separat abgelegt. Das muss für MediaHub-Karten mit einem Hörbuch-artigen Manifest-`playMode` genauso funktionieren, hat aber einen Fallstrick:
+
+**Das Problem.** `AudioPlayer_NvsRfidWriteWrapper()` (`AudioPlayer.cpp`) — die einzige Stelle, die `lastPlayPos`/`playMode`/`trackLastPlayed` ins NVS zurückschreibt (ausgelöst bei Pause, Track-/Ordnerwechsel, Playlist-Ende, Shutdown) — bekommt den zu schreibenden `playMode` an jeder Aufrufstelle als `gPlayProperties.playMode` übergeben. Das ist der **tatsächliche, gerade abgespielte** Modus (z. B. `AUDIOBOOK`), nicht der NVS-Marker `MEDIAHUB`. Ohne Gegenmaßnahme würde also schon die erste Pause/der erste Trackwechsel einer MediaHub-Hörbuch-Karte das NVS-`playMode`-Feld stillschweigend von `MEDIAHUB` auf `AUDIOBOOK` überschreiben — beim nächsten Auflegen erkennt `RfidCommon.cpp` die Karte dann nicht mehr als MediaHub-Karte (der Marker ist weg) und versucht, `mediahub://host:port` als echten SD-Pfad zu öffnen. Bricht komplett.
+
+**Der Fix — an einer einzigen Stelle.** `AudioPlayer_NvsRfidWriteWrapper()` liest ohnehin schon den aktuellen NVS-Wert, um das Pfad-Feld unverändert zu erhalten (`firstPart`). Sie muss dabei zusätzlich prüfen, ob dieses Pfad-Feld mit `mediahub://` beginnt — falls ja, wird der übergebene `playMode`-Parameter vor dem Schreiben auf `MEDIAHUB` überschrieben, unabhängig davon, welcher echte Modus gerade lief. `lastPlayPos` und `trackLastPlayed` werden ganz normal mit den echten Werten geschrieben — nur das `playMode`-Feld bleibt für MediaHub-Karten dauerhaft der Marker.
+
+**Der Rest fügt sich ohne weitere Änderungen an AudioPlayer.cpp/System.cpp:**
+
+- Beim Auflegen liest `Rfid_PreferenceLookupHandler()` die vier Felder ohnehin generisch, unabhängig vom `playMode`-Wert — `lastPlayPos`/`trackLastPlayed` stehen also bereits zur Verfügung, bevor die MediaHub-Dispatch-Logik (§11) überhaupt greift.
+- Erkennt `RfidCommon.cpp` `MEDIAHUB`, reicht sie diese beiden Werte an `MediaHub_EnsureCard` (§10) durch. Nach erfolgreichem Sync ruft der ESPuino `AudioPlayer_SetPlaylist(<lokaler /.mediahub/media/cardId-Pfad>, lastPlayPos, <echter playMode aus Manifest>, trackLastPlayed)` auf — mit dem **echten** Modus aus dem Manifest, nicht dem Marker, und dem lokalen SD-Pfad, nicht der `mediahub://`-Zeichenkette.
+- Ab hier ist es für `AudioPlayer_SetPlaylist` ein ganz gewöhnliches Hörbuch: Der bestehende Switch setzt `saveLastPlayPosition = true` für die drei Hörbuch-Modi wie eh und je, und der literale Playmode-Vergleich im Shutdown-Flush (`AudioPlayer_Exit()`) greift ebenso — beide kennen MediaHub nicht und müssen es auch nicht kennen.
+- Nicht-Hörbuch-Manifest-Modi (z. B. `SINGLE_TRACK`) setzen `saveLastPlayPosition` schon heute nicht — für sie ändert sich nichts, `lastPlayPos`/`trackLastPlayed` bleiben unbenutzt bei `0`.
+
 ## 9. Integrität, Änderungserkennung, Force Refresh
 
 - **Lokaler Integritätscheck:** ausschließlich über **Dateigröße**. Schnell, kein Hashing großer Dateien.
@@ -301,6 +316,8 @@ flowchart TD
 6. Sonst & Hub erreichbar → **Vordergrund-Download** mit Ring-Fortschritt, danach spielen.
 7. Sonst (Hub weg) → **kurze Fehleranzeige, kein Blockieren**.
 8. Nach dem Start: **Hintergrund-`version`-Check** (nur prüfen); bei Änderung Karte „stale" markieren → Update beim nächsten Auflegen.
+
+Der „PLAY"-Schritt ruft `AudioPlayer_SetPlaylist()` mit dem **echten** `playMode` aus dem Manifest sowie den beim NVS-Lookup (Schritt 1) bereits gelesenen `lastPlayPos`/`trackLastPlayed` auf — Details und der dafür nötige Fix in `AudioPlayer_NvsRfidWriteWrapper()` siehe §8.1.
 
 ## 12. LED / Fortschritt
 
@@ -393,3 +410,4 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 | 26 | Karten-Zuweisung über eine read-only in den Container gemountete Medienbibliothek (`/media`) statt Datei-Upload; Auswahl per eingebettetem Datei-Browser (§5.4). Löschen einer Zuweisung fasst nie die Bibliotheksdateien an — der Hub referenziert sie nur. |
 | 27 | **Zuweisungs-Schlüssel ist (espId, cardId), nicht cardId allein** (§5.5) — dieselbe Karte kann pro ESPuino unabhängig konfiguriert werden. Löst die Mehrdeutigkeit bei Secure Delete: Vorher rief der Hub das „zuletzt gesehene" Gerät zur Karte an (falsch/unvollständig bei mehreren ESPuinos pro Karte); jetzt kennt jede Zuweisung ihr Gerät direkt. |
 | 28 | Geräte-Alias-Liste im Hub (frei vergebbarer Name je `espId`, z. B. „Kinderzimmer") — reine Anzeige-Ergonomie, da die vom ESPuino gesendete `espId` (MAC/Hostname) für Menschen unhandlich ist. Gerät im Hub-UI löschbar; bestehende Zuweisungen dieses Geräts werden dabei nach Bestätigung mit gelöscht (nur der Hub-Datensatz, nie ESPuino/NVS). |
+| 29 | **Play-Position-Persistenz (§8.1):** NVS-Format korrigiert auf die tatsächlichen vier Felder `path#lastPlayPos#playMode#trackLastPlayed`. `AudioPlayer_NvsRfidWriteWrapper()` muss bei einem `mediahub://`-Pfad das `playMode`-Feld beim Zurückschreiben immer auf `MEDIAHUB` erzwingen (statt des echten, gerade abgespielten Modus) — sonst überschreibt der erste Pause-/Trackwechsel-Save den Marker und die Karte wird beim nächsten Auflegen nicht mehr als MediaHub-Karte erkannt. `AudioPlayer_SetPlaylist()` wird beim Abspielen mit dem echten Manifest-`playMode` plus den aus dem NVS gelesenen `lastPlayPos`/`trackLastPlayed` aufgerufen — dadurch greifen `saveLastPlayPosition` und der Shutdown-Flush unverändert, ohne dass AudioPlayer.cpp/System.cpp MediaHub kennen müssen. |
