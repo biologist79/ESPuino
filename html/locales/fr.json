@@ -275,9 +275,30 @@
 					"13": "🎲📁 Toutes les pistes d'un sous-répertoire aléatoire (triées)",
 					"14": "🎲📁🔀 Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
+					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local",
+					"18": "🌐 MediaHub (contenu/mode fourni par le serveur média sélectionné)"
 				},
 				"error": "Mode de lecture invalide"
+			},
+			"mediahub": {
+				"serversTitle": "Serveurs média",
+				"serverSelect": {
+					"title": "Serveur média"
+				},
+				"name": {
+					"title": "Nom affiché",
+					"explanation": "Nom librement choisi affiché pour ce serveur média dans le menu déroulant."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Hôte et port du serveur MediaHub, par ex. 192.168.1.50:8080.",
+					"placeholder": "par ex. 192.168.1.50:8080"
+				},
+				"addButton": "Enregistrer le serveur média",
+				"delete": {
+					"title": "Supprimer le serveur média ?",
+					"prompt": "Vraiment supprimer le serveur média \"{{name}}\" ? Les cartes déjà assignées à ce serveur restent inchangées."
+				}
 			},
 			"mod": {
 				"title": "Modification",

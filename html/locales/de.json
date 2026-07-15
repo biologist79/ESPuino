@@ -275,9 +275,30 @@
 					"13": "🎲📁 Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
 					"14": "🎲📁🔀 Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei",
+					"18": "🌐 MediaHub (Inhalt/Modus kommt vom gewählten Medienserver)"
 				},
 				"error": "Kein gültiger Abspielmodus"
+			},
+			"mediahub": {
+				"serversTitle": "Medienserver",
+				"serverSelect": {
+					"title": "Medienserver"
+				},
+				"name": {
+					"title": "Anzeigename",
+					"explanation": "Frei wählbarer Name, unter dem dieser Medienserver im Auswahl-Dropdown erscheint."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Host und Port des MediaHub-Servers, z.B. 192.168.1.50:8080.",
+					"placeholder": "z.B. 192.168.1.50:8080"
+				},
+				"addButton": "Medienserver speichern",
+				"delete": {
+					"title": "Medienserver löschen?",
+					"prompt": "Soll der Medienserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				}
 			},
 			"mod": {
 				"title": "Modifikation",

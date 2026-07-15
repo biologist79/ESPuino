@@ -275,9 +275,30 @@
 					"13": "🎲📁 All tracks of a random subdirectory (sorted)",
 					"14": "🎲📁🔀 All tracks of a random subdirectory (random)",
 					"8": "📻 Webradio",
-					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File"
+					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File",
+					"18": "🌐 MediaHub (content/mode comes from the selected media server)"
 				},
 				"error": "Invalid playmode"
+			},
+			"mediahub": {
+				"serversTitle": "Media servers",
+				"serverSelect": {
+					"title": "Media server"
+				},
+				"name": {
+					"title": "Display name",
+					"explanation": "Freely chosen name shown for this media server in the selection dropdown."
+				},
+				"hostPort": {
+					"title": "Address",
+					"explanation": "Host and port of the MediaHub server, e.g. 192.168.1.50:8080.",
+					"placeholder": "e.g. 192.168.1.50:8080"
+				},
+				"addButton": "Save media server",
+				"delete": {
+					"title": "Delete media server?",
+					"prompt": "Really delete the media server \"{{name}}\"? Cards already assigned to it are left unchanged."
+				}
 			},
 			"mod": {
 				"title": "Modification",

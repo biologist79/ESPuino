@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 // MediaHub (see mediahub-konzept.md at the repo root, §17 for the phased
 // implementation plan): lets a locally-run companion server centrally
 // manage RFID-card assignments across multiple ESPuinos. A card is
@@ -51,3 +53,17 @@ bool MediaHub_ForceRefreshAll();
 // the DELETE /rfid cascade (concept §13.1), called in addition to removing
 // the NVS entry. Returns false if any part of the wipe failed.
 bool MediaHub_DeleteCard(const char *cardId);
+
+// Registered media servers (concept §5.1): a small device-local list of
+// known hubs (display name + "host:port"), purely enrollment convenience for
+// the Web-UI's RFID-assignment dropdown. Stored as its own settings entry,
+// not in the RFID NVS format, and never read by the runtime playback flow.
+struct MediaHubServer {
+	String name;
+	String hostPort;
+};
+
+std::vector<MediaHubServer> MediaHub_GetServers();
+// Adds a new server, or updates the hostPort of an existing one with the same name.
+bool MediaHub_SaveServer(const String &name, const String &hostPort);
+bool MediaHub_DeleteServer(const String &name);
