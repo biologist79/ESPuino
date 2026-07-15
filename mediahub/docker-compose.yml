@@ -1,0 +1,13 @@
+services:
+  mediahub:
+    build: .
+    image: espuino-mediahub
+    container_name: espuino-mediahub
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persistente Daten (Zuweisungen, Manifeste, Medien) außerhalb des Containers
+      - ./data:/data
+    environment:
+      - MEDIAHUB_DATA=/data
+    restart: unless-stopped
