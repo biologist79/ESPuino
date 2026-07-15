@@ -13,13 +13,28 @@
 				{% else %}
 					{{ _('All cards known to the hub — assigned ones play on next tap, pending ones don\'t yet.') }}
 				{% endif %}
+				{% if esp_id_filter %}
+					{{ _('Showing only cards for %(device)s.', device=esp_id_filter_label) }}
+					<a href="{{ url_for('cards', pending=1 if only_pending else None) }}">{{ _('Clear filter') }}</a>
+				{% endif %}
 			</p>
 		</div>
 		<div class="page-head-actions">
+			{% if devices %}
+			<form class="esp-filter-form" method="get">
+				{% if only_pending %}<input type="hidden" name="pending" value="1">{% endif %}
+				<select name="esp_id" onchange="this.form.submit()">
+					<option value="">{{ _('All ESPuinos') }}</option>
+					{% for esp_id, dev in devices.items() %}
+					<option value="{{ esp_id }}" {{ "selected" if esp_id == esp_id_filter }}>{{ dev.alias or esp_id }}</option>
+					{% endfor %}
+				</select>
+			</form>
+			{% endif %}
 			{% if only_pending %}
-				<a class="btn btn-secondary" href="{{ url_for('cards') }}">{{ _('Show all') }}</a>
+				<a class="btn btn-secondary" href="{{ url_for('cards', esp_id=esp_id_filter or None) }}">{{ _('Show all') }}</a>
 			{% else %}
-				<a class="btn btn-secondary" href="{{ url_for('cards', pending=1) }}">{{ _('Pending only') }}</a>
+				<a class="btn btn-secondary" href="{{ url_for('cards', pending=1, esp_id=esp_id_filter or None) }}">{{ _('Pending only') }}</a>
 				<form method="post" action="{{ url_for('force_refresh_all') }}" onsubmit="return confirm('{{ _('Trigger force refresh for ALL cards?') }}');">
 					<button class="btn btn-secondary" type="submit">{{ _('Force refresh (all)') }}</button>
 				</form>
@@ -70,7 +85,7 @@
 				{% set row_key = card.esp_id ~ "/" ~ card.card_id %}
 				<tr>
 					<td><code>{{ card.card_id }}</code></td>
-					<td>{{ device_label }}</td>
+					<td><a href="{{ url_for('cards', esp_id=card.esp_id, pending=1 if only_pending else None) }}">{{ device_label }}</a></td>
 					<td>{{ card.name or "—" }}</td>
 					<td>
 						{% if card.status == "assigned" %}

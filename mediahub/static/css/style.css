@@ -277,6 +277,11 @@ main.container {
 	gap: 8px;
 	flex-wrap: wrap;
 	padding-top: 4px;
+	align-items: center;
+}
+
+.esp-filter-form select {
+	padding: 9px 12px;
 }
 
 /* --- Flash messages --- */

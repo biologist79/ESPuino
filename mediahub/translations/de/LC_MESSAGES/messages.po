@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 16:18+0200\n"
+"POT-Creation-Date: 2026-07-15 16:38+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: de\n"
@@ -81,39 +81,39 @@ msgid_plural "%(num)s files"
 msgstr[0] "%(num)s Datei"
 msgstr[1] "%(num)s Dateien"
 
-#: app.py:261
+#: app.py:265
 msgid "Card ID must be exactly 12 digits."
 msgstr "Die Karten-ID muss genau 12 Ziffern haben."
 
-#: app.py:265
+#: app.py:269
 msgid "Please choose a known ESPuino."
 msgstr "Bitte einen bekannten ESPuino wählen."
 
-#: app.py:274 app.py:294
+#: app.py:278 app.py:298
 #, python-format
 msgid "Card %(id)s is already assigned on this ESPuino — opening it for editing."
 msgstr ""
 "Karte %(id)s ist auf diesem ESPuino bereits zugewiesen — wird zum "
 "Bearbeiten geöffnet."
 
-#: app.py:288
+#: app.py:292
 msgid "Please choose a different, known ESPuino."
 msgstr "Bitte einen anderen, bekannten ESPuino wählen."
 
-#: app.py:308
+#: app.py:312
 #, python-format
 msgid "Card %(id)s duplicated to %(esp_id)s."
 msgstr "Karte %(id)s dupliziert auf %(esp_id)s."
 
-#: app.py:332
+#: app.py:336
 msgid "A stream URL is required for webradio."
 msgstr "Für Webradio wird eine Stream-URL benötigt."
 
-#: app.py:341
+#: app.py:345
 msgid "Please choose a valid play mode."
 msgstr "Bitte einen gültigen Abspielmodus wählen."
 
-#: app.py:360
+#: app.py:364
 #, python-format
 msgid ""
 "Some selected files could not be used (missing, or not readable by the "
@@ -122,32 +122,32 @@ msgstr ""
 "Einige ausgewählte Dateien konnten nicht verwendet werden (fehlen oder "
 "vom Container-Nutzer nicht lesbar) und wurden übersprungen: %(paths)s"
 
-#: app.py:369
+#: app.py:373
 msgid "At least one audio file is required."
 msgstr "Mindestens eine Audiodatei wird benötigt."
 
-#: app.py:373
+#: app.py:377
 msgid "This play mode only supports a single file — please select just one."
 msgstr ""
 "Dieser Abspielmodus unterstützt nur eine einzelne Datei — bitte nur eine "
 "auswählen."
 
-#: app.py:379
+#: app.py:383
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Karte %(id)s zugewiesen."
 
-#: app.py:398
+#: app.py:402
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Force Refresh für Karte %(id)s ausgelöst."
 
-#: app.py:405
+#: app.py:409
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Force Refresh für alle %(num)s Karten ausgelöst."
 
-#: app.py:424
+#: app.py:428
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -156,32 +156,32 @@ msgstr ""
 "Secure Delete: Der ESPuino (%(esp_id)s) hat das Löschen nicht bestätigt. "
 "Die Karte wurde beibehalten, bitte erneut versuchen."
 
-#: app.py:437
+#: app.py:441
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Karte %(id)s gelöscht (%(mode)s)."
 
-#: app.py:509
+#: app.py:513
 msgid "Recursion depth must be between 0 and 20."
 msgstr "Die Rekursionstiefe muss zwischen 0 und 20 liegen."
 
-#: app.py:512
+#: app.py:516
 msgid "Settings saved."
 msgstr "Einstellungen gespeichert."
 
-#: app.py:522
+#: app.py:526
 msgid "Please enter a password."
 msgstr "Bitte ein Passwort eingeben."
 
-#: app.py:524
+#: app.py:528
 msgid "Passwords do not match."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: app.py:527
+#: app.py:531
 msgid "Hub password set."
 msgstr "Hub-Passwort gesetzt."
 
-#: app.py:535
+#: app.py:539
 msgid "Hub password removed."
 msgstr "Hub-Passwort entfernt."
 
@@ -290,7 +290,7 @@ msgstr ""
 msgid "For ESPuino: %(device)s"
 msgstr "Für ESPuino: %(device)s"
 
-#: templates/card_form.html:16 templates/cards.html:61 templates/media.html:20
+#: templates/card_form.html:16 templates/cards.html:76 templates/media.html:20
 msgid "Name"
 msgstr "Name"
 
@@ -375,7 +375,7 @@ msgstr "Stream-URL"
 msgid "Save"
 msgstr "Speichern"
 
-#: templates/card_form.html:83 templates/cards.html:132
+#: templates/card_form.html:83 templates/cards.html:147
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -401,23 +401,36 @@ msgstr ""
 "Alle dem Hub bekannten Karten — zugewiesene spielen beim nächsten "
 "Auflegen, wartende noch nicht."
 
-#: templates/cards.html:20
+#: templates/cards.html:17
+#, python-format
+msgid "Showing only cards for %(device)s."
+msgstr "Zeigt nur Karten für %(device)s."
+
+#: templates/cards.html:18
+msgid "Clear filter"
+msgstr "Filter zurücksetzen"
+
+#: templates/cards.html:27
+msgid "All ESPuinos"
+msgstr "Alle ESPuinos"
+
+#: templates/cards.html:35
 msgid "Show all"
 msgstr "Alle anzeigen"
 
-#: templates/cards.html:22
+#: templates/cards.html:37
 msgid "Pending only"
 msgstr "Nur wartende"
 
-#: templates/cards.html:23
+#: templates/cards.html:38
 msgid "Trigger force refresh for ALL cards?"
 msgstr "Force Refresh für ALLE Karten auslösen?"
 
-#: templates/cards.html:24
+#: templates/cards.html:39
 msgid "Force refresh (all)"
 msgstr "Force Refresh (alle)"
 
-#: templates/cards.html:31
+#: templates/cards.html:46
 msgid ""
 "No ESPuino has checked in yet — a device needs to contact the hub at "
 "least once (e.g. tapping an unknown card) before you can add a card "
@@ -427,19 +440,19 @@ msgstr ""
 "einmal kontaktiert haben (z. B. durch Auflegen einer unbekannten Karte), "
 "bevor du eine Kartenzuweisung dafür anlegen kannst."
 
-#: templates/cards.html:35
+#: templates/cards.html:50
 msgid "ESPuino"
 msgstr "ESPuino"
 
-#: templates/cards.html:41
+#: templates/cards.html:56
 msgid "12-digit card ID"
 msgstr "12-stellige Karten-ID"
 
-#: templates/cards.html:43
+#: templates/cards.html:58
 msgid "Add card"
 msgstr "Karte hinzufügen"
 
-#: templates/cards.html:44
+#: templates/cards.html:59
 msgid ""
 "You'll find the card ID on the ESPuino's own web UI when you tap the card"
 " there."
@@ -447,91 +460,91 @@ msgstr ""
 "Die Karten-ID findest du im Web-Interface des ESPuino selbst, wenn du die"
 " Karte dort auflegst."
 
-#: templates/cards.html:52
+#: templates/cards.html:67
 msgid "No pending cards."
 msgstr "Keine wartenden Karten."
 
-#: templates/cards.html:52
+#: templates/cards.html:67
 msgid "No card known yet — it will show up here once tapped on an ESPuino."
 msgstr ""
 "Noch keine Karte bekannt — sie erscheint hier, sobald sie einmal an einem"
 " ESPuino aufgelegt wurde."
 
-#: templates/cards.html:59 templates/media.html:18
+#: templates/cards.html:74 templates/media.html:18
 msgid "Card ID"
 msgstr "Karten-ID"
 
-#: templates/cards.html:60 templates/media.html:19
+#: templates/cards.html:75 templates/media.html:19
 msgid "Device"
 msgstr "Gerät"
 
-#: templates/cards.html:62
+#: templates/cards.html:77
 msgid "Status"
 msgstr "Status"
 
-#: templates/cards.html:63
+#: templates/cards.html:78
 msgid "Content"
 msgstr "Inhalt"
 
-#: templates/cards.html:64 templates/devices.html:21
+#: templates/cards.html:79 templates/devices.html:21
 msgid "Last seen"
 msgstr "Zuletzt gesehen"
 
-#: templates/cards.html:77
+#: templates/cards.html:92
 msgid "assigned"
 msgstr "zugewiesen"
 
-#: templates/cards.html:79
+#: templates/cards.html:94
 msgid "pending"
 msgstr "wartend"
 
-#: templates/cards.html:91
+#: templates/cards.html:106
 msgid "Assign"
 msgstr "Zuweisen"
 
-#: templates/cards.html:91
+#: templates/cards.html:106
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/cards.html:95
+#: templates/cards.html:110
 msgid "Force refresh"
 msgstr "Force Refresh"
 
-#: templates/cards.html:99
+#: templates/cards.html:114
 msgid "Could not load the manifest."
 msgstr "Manifest konnte nicht geladen werden."
 
-#: templates/cards.html:99
+#: templates/cards.html:114
 msgid "Manifest"
 msgstr "Manifest"
 
-#: templates/cards.html:103
+#: templates/cards.html:118
 #, python-format
 msgid "Copy card %(id)s's configuration to:"
 msgstr "Konfiguration von Karte %(id)s kopieren nach:"
 
-#: templates/cards.html:104
+#: templates/cards.html:119
 msgid "No other known ESPuino to duplicate to yet."
 msgstr "Noch kein weiterer bekannter ESPuino zum Duplizieren vorhanden."
 
-#: templates/cards.html:104 templates/cards.html:131
+#: templates/cards.html:119 templates/cards.html:146
 msgid "Duplicate"
 msgstr "Duplizieren"
 
-#: templates/cards.html:106
+#: templates/cards.html:121
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr "Karte %(id)s wirklich löschen?"
 
-#: templates/cards.html:107 templates/devices.html:45
+#: templates/cards.html:122 templates/devices.html:45
 msgid "Delete"
 msgstr "Löschen"
 
-#: templates/cards.html:124
+#: templates/cards.html:139
 msgid "Duplicate to another ESPuino"
 msgstr "Auf einen anderen ESPuino duplizieren"
 
-#: templates/cards.html:127
+#: templates/cards.html:142
 msgid "Target ESPuino"
 msgstr "Ziel-ESPuino"
 
@@ -696,10 +709,10 @@ msgid ""
 " modes (Audiobook recursive, All tracks recursive). Non-recursive play "
 "modes always use just the folder itself, regardless of this setting."
 msgstr ""
-"Wie viele Unterordner-Ebenen „Ordner verwenden" bei rekursiven "
-"Abspielmodi (Hörbuch rekursiv, Alle Titel rekursiv) einbezieht. "
-"Nicht-rekursive Modi nutzen unabhängig von dieser Einstellung immer nur "
-"den Ordner selbst."
+"Wie viele Unterordner-Ebenen „Ordner verwenden\" bei rekursiven "
+"Abspielmodi (Hörbuch rekursiv, Alle Titel rekursiv) einbezieht. Nicht-"
+"rekursive Modi nutzen unabhängig von dieser Einstellung immer nur den "
+"Ordner selbst."
 
 #: templates/settings.html:45
 msgid "Hub password"
