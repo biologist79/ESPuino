@@ -1,6 +1,6 @@
 # MediaHub — Detailspezifikation (Entwurf 1)
 
-*Stand: 14. Juli 2026 · Branch `feature-mediahub` · Status: Konzept, noch kein Code*
+*Stand: 15. Juli 2026 · Branch `feature-mediahub` · Status: Hub-Server (`mediahub/`) implementiert und getestet; ESPuino-Firmware-Seite noch offen (§15)*
 
 ## 1. Worum es geht
 
@@ -17,7 +17,7 @@ Es ist ein Feature für wenige Power-User; wer es nicht nutzt, bemerkt nichts da
 - **Keine Änderung des NVS-Speicherformats.**
 - **Kein Streaming der eigenen Mediathek.** Datei-Inhalte werden auf die SD geladen und lokal abgespielt. (Webradio-Zuweisungen werden hingegen direkt gestreamt — siehe §7.2.)
 - **Kein Blockieren der Wiedergabe durch Netzwerk-Timeouts** (Offline-/Unterwegs-Tauglichkeit ist Pflicht).
-- **Keine Authentifizierung / Absicherung des Hub-Zugriffs.** Der Hub ist ein lokaler, vertrauenswürdiger Dienst im Heimnetz.
+- **Keine Authentifizierung der ESPuino-Endpunkte** (§6). Manifest- und Medien-Abruf bleiben unauthentifiziert, da die Geräte sich nicht anmelden können. Für das Hub-Web-UI selbst gibt es optional ein Passwort (§5.4) — das ist eine reine Zugriffs-Absicherung der Verwaltungsoberfläche, keine Auth zwischen ESPuino und Hub.
 
 ## 3. Grundprinzipien
 
@@ -107,6 +107,17 @@ Einrichtungs-Ablauf end-to-end:
 4. Karte erneut auflegen                                 → Manifest → Download → spielen
 ```
 
+### 5.4 Hub-Web-UI: Medienbibliothek statt Upload, optionales Passwort
+
+**Kein Upload — die Bibliothek wird eingebunden.** Der Hub speichert selbst keine Mediendateien und bietet auch keinen Upload dafür an. Stattdessen mountet der Admin seine bereits vorhandene Musik-/Hörbuch-Sammlung read-only in den Container (`./media:/media:ro`, siehe Docker-Compose). Beim Zuweisen einer Karte wählt der Admin Dateien bzw. einen ganzen Ordner aus dieser Bibliothek über einen im Web-UI eingebetteten Datei-Browser aus — angelehnt an den bestehenden SD-Explorer im ESPuino-Web-Interface (Baumansicht, Ordner vor Dateien, Auswahl per Klick), aber schlicht in Vanilla-JS statt jsTree/jQuery, um ohne zusätzliche Frontend-Abhängigkeiten auszukommen.
+
+- Größe und SHA-256 der ausgewählten Dateien berechnet der Hub beim Speichern der Zuweisung direkt von der eingebundenen Bibliothek — nicht beim Hochladen, da es keinen Upload gibt.
+- `filesBaseUrl` im Manifest (§7.1) ist für alle Karten identisch (Wurzel der Bibliothek); `files[].path` ist relativ zu dieser Wurzel, nicht mehr pro Karte isoliert.
+- **Löschen einer Zuweisung löscht nie Dateien in der Bibliothek** — der Hub besitzt sie nicht, er referenziert sie nur. Das gilt für lazy- wie secure-delete gleichermaßen (§13.1); beide räumen ausschließlich den Hub-eigenen Eintrag (und ggf. den ESPuino-Cache) auf, nie die Quelldateien.
+- Mehrere Karten dürfen denselben Ordner/dieselben Dateien referenzieren (z. B. dieselbe Geschichte für zwei Kinder-Karten).
+
+**Optionales Passwort fürs Hub-Web-UI.** Über die Einstellungen-Seite kann der Admin ein Passwort setzen, ändern oder wieder entfernen; gespeichert wird nur ein gesalzener Hash (nie das Klartext-Passwort) in der JSON-DB. Ist ein Passwort gesetzt, verlangt jede Web-UI-Seite eine Anmeldung (Session-Cookie). Die ESPuino-Endpunkte (§6) bleiben davon **unberührt** — sie sind technisch nicht absicherbar, da die Geräte sich nicht anmelden können, und das war ohnehin nie das Bedrohungsmodell (§2).
+
 ## 6. Endpunkte
 
 ```text
@@ -123,17 +134,19 @@ Ein Manifest-Request beim Auflegen dient zugleich der **Registrierung** (§5.3):
 ```json
 {
   "schema": 1,
-  "cardId": "0123456789AB",
+  "cardId": "012345678901",
   "version": "9f86d081884c7d65...",
   "name": "Benjamin Blümchen – Folge 12",
   "playMode": 3,
-  "filesBaseUrl": "http://192.168.1.50:8080/media/benjamin-12/",
+  "filesBaseUrl": "http://192.168.1.50:8080/media/",
   "files": [
-    { "path": "01.mp3", "size": 5432101, "sha256": "9f86d0..." },
-    { "path": "02.mp3", "size": 4998210, "sha256": "ef01ab..." }
+    { "path": "Benjamin Blümchen/Folge 12/01.mp3", "size": 5432101, "sha256": "9f86d0..." },
+    { "path": "Benjamin Blümchen/Folge 12/02.mp3", "size": 4998210, "sha256": "ef01ab..." }
   ]
 }
 ```
+
+(`cardId` ist immer 12 Dezimalstellen — 4 UID-Bytes, je als `%03d` formatiert, siehe `cardIdSize`/`cardIdStringSize` in `src/Rfid.h`.)
 
 | Feld | Bedeutung / Verwendung auf dem ESPuino |
 | --- | --- |
@@ -142,8 +155,8 @@ Ein Manifest-Request beim Auflegen dient zugleich der **Registrierung** (§5.3):
 | `version` | **Opaker Änderungsstempel = SHA-256 des kanonischen Manifests, berechnet auf dem Hub.** Der ESPuino rechnet hier nichts, er **vergleicht nur Strings**. Grundlage der Änderungserkennung. Da es ein Content-Hash ist, kann der Hub das „Hochzählen" nicht vergessen. |
 | `name` | Optional, nur für Logs/Web-UI. |
 | `playMode` | ESPuino-`playMode`-Enum (`values.h`), z. B. 3 = Hörbuch. **Quelle der Wahrheit ist der Hub.** |
-| `filesBaseUrl` | Download-Basis. Download-URL je Datei = `filesBaseUrl + path`. Entkoppelt Medien-Ablage vom Manifest. |
-| `files[].path` | Relativ. Lokal → `/.mediahub/media/<cardId>/` + `path`, remote → `filesBaseUrl + path`. Kein `target` mehr — die Ablage bestimmt der ESPuino (§13.1). |
+| `filesBaseUrl` | Download-Basis. Download-URL je Datei = `filesBaseUrl + path`. Entkoppelt Medien-Ablage vom Manifest — auf dem Hub identisch für alle Karten, da `path` relativ zur Wurzel der (eingebundenen) Medienbibliothek ist, nicht mehr pro Karte isoliert (§5.4). |
+| `files[].path` | Relativ zur Bibliotheks-Wurzel des Hubs. Lokal auf dem ESPuino landet die Datei trotzdem unter `/.mediahub/media/<cardId>/` + `path` — kein `target` nötig, die Ablage dort bestimmt weiterhin der ESPuino selbst (§13.1). |
 | `files[].size` | **Schneller lokaler Integritätscheck.** |
 | `files[].sha256` | **Nur inkrementell während des Downloads** geprüft (HW-beschleunigt, WiFi ist der Flaschenhals). **Nie** über lokale Dateien neu berechnet. |
 
@@ -156,7 +169,7 @@ Trägt eine Karte einen Webradio-Sender, gibt es **keine Dateien** herunterzulad
 ```json
 {
   "schema": 1,
-  "cardId": "0123456789AB",
+  "cardId": "012345678901",
   "version": "...",
   "playMode": 8,
   "name": "Radio Beispiel",
@@ -351,9 +364,11 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 | 16 | Während eines laufenden (blockierenden) Downloads wird das Auflegen weiterer Karten mit Fehler quittiert („busy"). |
 | 17 | **Bulk-Sync/Index (früher „Mechanismus b") verworfen** — Fehlerbehandlung zu komplex, Downloadrate ~450 kB/s. Zuweisungen nur via manuelles Anlernen, Inhalte on-demand beim Auflegen. |
 | 18 | `playMode` lebt ausschließlich im Manifest (keine Rückpropagierung ins NVS). |
-| 19 | Keine Authentifizierung des Hub-Zugriffs (lokaler, vertrauenswürdiger Hub im Heimnetz). |
+| 19 | Keine Authentifizierung des Hub-Zugriffs (lokaler, vertrauenswürdiger Hub im Heimnetz) — für die ESPuino-Endpunkte weiterhin so; für das Hub-Web-UI durch #25 um ein optionales Passwort ergänzt. |
 | 20 | Speicher-Layout Option B: Medien unter `/.mediahub/media/<cardId>/`, Cache unter `/.mediahub/manifests/`. `target` entfällt — die Ablage bestimmt der ESPuino. |
 | 21 | Löschen via `DELETE /rfid?id=X`-Cascade (MEDIAHUB-gated: NVS + Medien + Cache; 200 nur bei vollem Erfolg). Kein `action`-Feld im Manifest. |
 | 22 | Hub-Config: **lazy** (nur Hub-Eintrag) vs. **secure** (zwei-Phasen: erst `DELETE /rfid`, Hub-Eintrag erst nach 200). |
 | 23 | Change-Handling = Lazy Update beim nächsten Auflegen (stale-Markierung; Wipe + Neuladen erst beim nächsten Tap → Resync braucht 2× Auflegen). |
 | 24 | SD-Platz wird vor dem Download geprüft (frisch: `frei ≥ benötigt`; Re-Sync: erst prüfen `frei + alt ≥ benötigt`, dann wipen — sonst alte Version behalten). |
+| 25 | Hub-Web-UI optional per Passwort absicherbar (Settings, gehashter Wert in der JSON-DB). Betrifft nur die Verwaltungsoberfläche — die ESPuino-Endpunkte (§6) bleiben immer offen (§19). |
+| 26 | Karten-Zuweisung über eine read-only in den Container gemountete Medienbibliothek (`/media`) statt Datei-Upload; Auswahl per eingebettetem Datei-Browser (§5.4). Löschen einer Zuweisung fasst nie die Bibliotheksdateien an — der Hub referenziert sie nur. |

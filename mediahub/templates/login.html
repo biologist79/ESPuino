@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Sign in') }} · ESPuino MediaHub{% endblock %}
+
+{% block content %}
+<section class="page-head">
+	<h1>{{ _('Sign in') }}</h1>
+	<p class="muted">{{ _('This MediaHub is password-protected.') }}</p>
+</section>
+
+<form class="form-card" method="post">
+	<input type="hidden" name="next" value="{{ next }}">
+	<div class="form-row">
+		<label for="password">{{ _('Password') }}</label>
+		<input type="password" id="password" name="password" autofocus required>
+	</div>
+	<div class="form-actions">
+		<button class="btn" type="submit">{{ _('Sign in') }}</button>
+	</div>
+</form>
+{% endblock %}

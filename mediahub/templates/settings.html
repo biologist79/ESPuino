@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Settings') }} · ESPuino MediaHub{% endblock %}
+
+{% block content %}
+<section class="page-head">
+	<h1>{{ _('Settings') }}</h1>
+	<p class="muted">{{ _('Configure how the hub behaves when a card assignment is deleted.') }}</p>
+</section>
+
+<form class="form-card" method="post">
+	<div class="form-row">
+		<span class="form-label">{{ _('Delete behavior') }}</span>
+		<div class="radio-group radio-group-stacked">
+			<label class="radio-option">
+				<input type="radio" name="delete_mode" value="lazy" {{ "checked" if settings.delete_mode == "lazy" }}>
+				<span>
+					<strong>{{ _('Lazy delete') }}</strong> —
+					{{ _('the hub only removes its own entry. The card keeps playing on the ESPuino from its local cache, even offline.') }}
+				</span>
+			</label>
+			<label class="radio-option">
+				<input type="radio" name="delete_mode" value="secure" {{ "checked" if settings.delete_mode == "secure" }}>
+				<span>
+					<strong>{{ _('Secure delete') }}</strong> —
+					{{ _('the hub first calls DELETE /rfid on the ESPuino and only removes its own entry after a confirmed 200 response.') }}
+				</span>
+			</label>
+		</div>
+	</div>
+
+	<div class="form-actions">
+		<button class="btn" type="submit">{{ _('Save') }}</button>
+	</div>
+</form>
+
+<section class="page-head">
+	<h1>{{ _('Hub password') }}</h1>
+	<p class="muted">{{ _('Optional — protects the web UI below. The ESPuino-facing API stays reachable either way, since devices can\'t log in.') }}</p>
+</section>
+
+<form class="form-card" method="post" action="{{ url_for('set_password') }}">
+	<div class="form-row">
+		<label for="new_password">{{ _('New password') }}</label>
+		<input type="password" id="new_password" name="new_password" autocomplete="new-password">
+	</div>
+	<div class="form-row">
+		<label for="confirm_password">{{ _('Confirm new password') }}</label>
+		<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password">
+	</div>
+	<div class="form-actions">
+		<button class="btn" type="submit">{{ _('Set password') }}</button>
+		{% if settings.password_hash %}
+		<button class="btn btn-danger" type="submit" formaction="{{ url_for('remove_password') }}">{{ _('Remove password') }}</button>
+		{% endif %}
+	</div>
+</form>
+{% endblock %}

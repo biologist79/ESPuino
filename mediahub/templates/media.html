@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Media') }} · ESPuino MediaHub{% endblock %}
+
+{% block content %}
+<section class="page-head">
+	<h1>{{ _('Media') }}</h1>
+	<p class="muted">{{ _('Storage usage per card. Uploads happen right in the card assignment form.') }}</p>
+</section>
+
+{% if not rows %}
+	<p class="empty-state">{{ _('No media files uploaded yet.') }}</p>
+{% else %}
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>{{ _('Card ID') }}</th>
+					<th>{{ _('Name') }}</th>
+					<th>{{ _('Files') }}</th>
+					<th>{{ _('Size') }}</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for card_id, card, total_size in rows %}
+				<tr>
+					<td><code>{{ card_id }}</code></td>
+					<td>{{ card.name or "—" }}</td>
+					<td>{{ card.files | length }}</td>
+					<td>{{ (total_size / 1048576) | round(1) }}&nbsp;MB</td>
+					<td><a class="btn btn-small" href="{{ url_for('assign_card', card_id=card_id) }}">{{ _('Manage') }}</a></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endif %}
+{% endblock %}

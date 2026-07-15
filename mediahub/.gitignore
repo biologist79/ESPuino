@@ -1,4 +1,10 @@
 /data/*
 !/data/.gitkeep
+/media/*
+!/media/.gitkeep
 __pycache__/
 *.pyc
+
+# Compiled translation catalogs — generated at Docker build time (or via
+# `pybabel compile -d translations` for local dev), not committed.
+translations/**/*.mo
