@@ -397,12 +397,15 @@ void AudioPlayer_Init(void) {
 
 	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
 	// DMA-settings must be adjusted before setting the pinout
-	audio->setOutput16Bit(true); // to save dma-buffer and because we just don't need more than 16 bit
-	audio->settings.DMA_DESC_NUM = 32;
-	audio->settings.DMA_FRAME_NUM = 256; // not too high, so safe SRAM
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
 		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);
+		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
+	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
+	} else {
+		// just use default-values
 	}
+
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolumeCurve(Audio_GetVolume);
@@ -1657,7 +1660,12 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 // record audiodata or send via BT
 void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
-		Bluetooth_Source_SendAudioData(outBuff, validSamples);
+		// do downsamling to 16bit and send via BT
+		int16_t *outBuff16 = (int16_t *) outBuff;
+		for (int i = 0; i < validSamples * 2; i++) {
+			outBuff16[i] = outBuff[i] >> 16;
+		}
+		Bluetooth_Source_SendAudioData(outBuff16, validSamples);
 		*continueI2S = false;
 		return;
 	}

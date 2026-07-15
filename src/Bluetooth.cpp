@@ -839,7 +839,7 @@ uint8_t Bluetooth_GetCurrentVolume() {
 	return 0;
 }
 
-bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
+bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		if (audioSourceRingBuffer == nullptr) {
@@ -873,7 +873,7 @@ bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples) {
 		}
 
 		const TickType_t sendTimeout = pdMS_TO_TICKS(100);
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, 2 * 2 * validSamples, sendTimeout));
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, 2 * sizeof(int16_t) * validSamples, sendTimeout));
 	} else {
 		return false;
 	}

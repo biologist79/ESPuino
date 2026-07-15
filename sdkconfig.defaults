@@ -1,331 +1,92 @@
-# This file was generated using idf.py save-defconfig or menuconfig [D] key. It can be edited manually.
-# Espressif IoT Development Framework (ESP-IDF)  Project Minimal Configuration
-#
-
-#
-# Bootloader config
-#
-
-#
-# Application Rollback
-#
 CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
-# end of Application Rollback
-
-#
-# Log
-#
 CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
-# end of Log
-
 CONFIG_BOOTLOADER_SKIP_VALIDATE_IN_DEEP_SLEEP=y
-# end of Bootloader config
-
-#
-# Serial flasher config
-#
 CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
 CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
 CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
-# end of Serial flasher config
-
-#
-# Arduino Configuration
-#
 CONFIG_AUTOSTART_ARDUINO=y
 CONFIG_ARDUINO_EVENT_RUN_CORE0=y
 CONFIG_ARDUINO_SERIAL_EVENT_RUN_CORE0=y
-
-#
-# Debug Log Configuration
-#
 CONFIG_ARDUHAL_ESP_LOG=y
-# end of Debug Log Configuration
-# end of Arduino Configuration
-
-#
-# Compiler options
-#
 CONFIG_COMPILER_OPTIMIZATION_SIZE=y
 CONFIG_COMPILER_OPTIMIZATION_CHECKS_SILENT=y
 CONFIG_COMPILER_CXX_EXCEPTIONS=y
 CONFIG_COMPILER_STACK_CHECK_MODE_NORM=y
-# end of Compiler options
-
-#
-# Component config
-#
-
-#
-# Bluetooth
-#
 CONFIG_BT_ENABLED=y
-
-#
-# Bluedroid Options
-#
-CONFIG_BT_BTC_TASK_STACK_SIZE=4096
-CONFIG_BT_BTU_TASK_STACK_SIZE=4096
+CONFIG_BT_BTU_TASK_STACK_SIZE=3072
 CONFIG_BT_CLASSIC_ENABLED=y
 CONFIG_BT_A2DP_ENABLE=y
 CONFIG_BT_SPP_ENABLED=y
-CONFIG_BT_BLE_ENABLED=n
+# CONFIG_BT_BLE_ENABLED is not set
 CONFIG_BT_STACK_NO_LOG=y
 CONFIG_BT_ALLOCATION_FROM_SPIRAM_FIRST=y
 CONFIG_BT_BLE_DYNAMIC_ENV_MEMORY=y
-# end of Bluedroid Options
-
-#
-# Controller Options
-#
 CONFIG_BTDM_CTRL_MODE_BTDM=y
-CONFIG_BTDM_SCAN_DUPL_CACHE_SIZE=20
-# end of Controller Options
-# end of Bluetooth
-
-#
-# Driver Configurations
-#
-
-#
-# Legacy PCNT Driver Configurations
-#
 CONFIG_PCNT_SUPPRESS_DEPRECATE_WARN=y
-# end of Legacy PCNT Driver Configurations
-# end of Driver Configurations
-
-#
-# ESP-Driver:SPI Configurations
-#
-CONFIG_SPI_MASTER_ISR_IN_IRAM=n
-CONFIG_SPI_SLAVE_ISR_IN_IRAM=n
-# end of ESP-Driver:SPI Configurations
-
-#
-# ESP HTTP client
-#
+# CONFIG_SPI_MASTER_ISR_IN_IRAM is not set
+# CONFIG_SPI_SLAVE_ISR_IN_IRAM is not set
 CONFIG_ESP_HTTP_CLIENT_ENABLE_BASIC_AUTH=y
-# end of ESP HTTP client
-
-#
-# HTTP Server
-#
 CONFIG_HTTPD_WS_SUPPORT=y
-# end of HTTP Server
-
-#
-# ESP HTTPS server
-#
 CONFIG_ESP_HTTPS_SERVER_ENABLE=y
-# end of ESP HTTPS server
-
-#
-# Hardware Settings
-#
-
-#
-# Chip revision
-#
 CONFIG_ESP32_REV_MIN_3=y
-# end of Chip revision
-
-#
-# Main XTAL Config
-#
 CONFIG_XTAL_FREQ_AUTO=y
-# end of Main XTAL Config
-# end of Hardware Settings
-
-#
-# ESP PSRAM
-#
 CONFIG_SPIRAM=y
-
-#
-# SPI RAM config
-#
 CONFIG_SPIRAM_SPEED_80M=y
 CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=128
 CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=8192
 CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y
 CONFIG_SPIRAM_OCCUPY_HSPI_HOST=y
-# end of SPI RAM config
-# end of ESP PSRAM
-
-#
-# ESP System Settings
-#
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=2048
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=4096
 CONFIG_ESP_INT_WDT_TIMEOUT_MS=300
 CONFIG_ESP_TASK_WDT_PANIC=y
-CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
-# end of ESP System Settings
-
-#
-# ESP Timer (High Resolution Timer)
-#
+# CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1 is not set
 CONFIG_ESP_TIMER_TASK_STACK_SIZE=4096
-# end of ESP Timer (High Resolution Timer)
-
-#
-# Wi-Fi
-#
 CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=8
 CONFIG_ESP_WIFI_CSI_ENABLED=y
-CONFIG_ESP_WIFI_ENABLE_WPA3_SAE=n
-# end of Wi-Fi
-
-#
-# Core dump
-#
+# CONFIG_ESP_WIFI_ENABLE_WPA3_SAE is not set
 CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH=y
-# end of Core dump
-
-#
-# FAT Filesystem support
-#
 CONFIG_FATFS_LFN_STACK=y
 CONFIG_FATFS_CODEPAGE_850=y
 CONFIG_FATFS_API_ENCODING_UTF_8=y
-# end of FAT Filesystem support
-
-#
-# FreeRTOS
-#
-
-#
-# Kernel
-#
 CONFIG_FREERTOS_HZ=1000
 CONFIG_FREERTOS_IDLE_TASK_STACKSIZE=1024
 CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID=y
 CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y
-# end of Kernel
-
-#
-# Port
-#
 CONFIG_FREERTOS_WATCHPOINT_END_OF_STACK=y
 CONFIG_FREERTOS_FPU_IN_ISR=y
 CONFIG_FREERTOS_PLACE_FUNCTIONS_INTO_FLASH=y
-# end of Port
-# end of FreeRTOS
-
-#
-# Heap memory debugging
-#
 CONFIG_HEAP_POISONING_LIGHT=y
-# end of Heap memory debugging
-
-#
-# Log
-#
-
-#
-# Log Level
-#
 CONFIG_LOG_DEFAULT_LEVEL_ERROR=y
-# end of Log Level
-# end of Log
-
-#
-# LWIP
-#
 CONFIG_LWIP_MAX_SOCKETS=16
 CONFIG_LWIP_DHCP_RESTORE_LAST_IP=y
 CONFIG_LWIP_DHCP_OPTIONS_LEN=128
 CONFIG_LWIP_IPV6_AUTOCONFIG=y
-
-#
-# TCP
-#
 CONFIG_LWIP_TCP_SYNMAXRTX=6
 CONFIG_LWIP_TCP_MSS=1436
-CONFIG_LWIP_TCP_RTO_TIME=3000
-# Enlarge the TCP window (default 5760 = 4*MSS) to lift the web-upload throughput ceiling. On upload the
-# ESP is the receiver, so throughput is bound by window/RTT - effective once WiFi modem-sleep is disabled
-# during uploads (see System_PauseTasksDuringUpload), which keeps the RTT low. 16*MSS is where the gain
-# materializes; the extra ~11KB of buffered data per socket is more than offset by reducing the upload
-# double-buffer from 3 to 2 buffers (see nr_of_buffers in Web.cpp). Kept below 64KB so no window-scaling.
-CONFIG_LWIP_TCP_WND_DEFAULT=22976
 CONFIG_LWIP_TCP_SND_BUF_DEFAULT=22976
+CONFIG_LWIP_TCP_WND_DEFAULT=22976
 CONFIG_LWIP_TCP_RECVMBOX_SIZE=16
-# end of TCP
-
+CONFIG_LWIP_TCP_RTO_TIME=3000
 CONFIG_LWIP_TCPIP_TASK_STACK_SIZE=2560
 CONFIG_LWIP_TCPIP_TASK_AFFINITY_CPU0=y
-
-#
-# SNTP
-#
 CONFIG_LWIP_SNTP_MAX_SERVERS=3
 CONFIG_LWIP_DHCP_GET_NTP_SRV=y
 CONFIG_LWIP_SNTP_UPDATE_DELAY=10800000
-# end of SNTP
-# end of LWIP
-
-#
-# mbedTLS
-#
-CONFIG_MBEDTLS_ASYMMETRIC_CONTENT_LEN=n
-
-#
-# TLS Key Exchange Methods
-#
+# CONFIG_MBEDTLS_ASYMMETRIC_CONTENT_LEN is not set
 CONFIG_MBEDTLS_PSK_MODES=y
 CONFIG_MBEDTLS_KEY_EXCHANGE_PSK=y
-# end of TLS Key Exchange Methods
-
 CONFIG_MBEDTLS_SSL_PROTO_DTLS=y
-
-#
-# Symmetric Ciphers
-#
 CONFIG_MBEDTLS_CAMELLIA_C=y
-# end of Symmetric Ciphers
-# end of mbedTLS
-
-#
-# ESP-MQTT Configurations
-#
 CONFIG_MQTT_SKIP_PUBLISH_IF_DISCONNECTED=y
 CONFIG_MQTT_TASK_CORE_SELECTION_ENABLED=y
-# end of ESP-MQTT Configurations
-
-#
-# PThreads
-#
 CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=2048
-# end of PThreads
-
-#
-# SPI Flash driver
-#
 CONFIG_SPI_FLASH_ERASE_YIELD_DURATION_MS=10
 CONFIG_SPI_FLASH_ERASE_YIELD_TICKS=2
 CONFIG_SPI_FLASH_WRITE_CHUNK_SIZE=4096
-# end of SPI Flash driver
-
-#
-# Ultra Low Power (ULP) Co-processor
-#
 CONFIG_ULP_COPROC_ENABLED=y
-# end of Ultra Low Power (ULP) Co-processor
-
-#
-# Wi-Fi Provisioning Manager
-#
 CONFIG_WIFI_PROV_BLE_BONDING=y
 CONFIG_WIFI_PROV_BLE_FORCE_ENCRYPTION=y
-# end of Wi-Fi Provisioning Manager
-
-#
-# Modbus configuration
-#
-CONFIG_FMB_COMM_MODE_TCP_EN=n
-CONFIG_FMB_CONTROLLER_SLAVE_ID_SUPPORT=n
-CONFIG_FMB_TIMER_PORT_ENABLED=y
-# end of Modbus configuration
-# end of Component config
+# CONFIG_FMB_COMM_MODE_TCP_EN is not set
+# CONFIG_FMB_CONTROLLER_SLAVE_ID_SUPPORT is not set

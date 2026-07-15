@@ -30,7 +30,7 @@ void Bluetooth_PreviousTrack(void);
 void Bluetooth_SetVolume(const int32_t _newVolume);
 uint8_t Bluetooth_GetCurrentVolume();
 
-bool Bluetooth_Source_SendAudioData(int32_t *outBuff, int16_t validSamples);
+bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples);
 bool Bluetooth_Device_Connected();
 
 #ifdef BLUETOOTH_ENABLE
