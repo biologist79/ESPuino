@@ -76,6 +76,7 @@ static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
 static void handleTrackProgressRequest(AsyncWebServerRequest *request);
 static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetWifiStatus(AsyncWebServerRequest *request);
+static void handlePostWifiTest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetActiveSSID(AsyncWebServerRequest *request);
@@ -628,6 +629,7 @@ void webserverStart(void) {
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
 		wServer.on("/wifistatus", HTTP_GET, handleGetWifiStatus);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wifitest", handlePostWifiTest));
 
 		wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
@@ -2239,6 +2241,8 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 // reported alongside for the curious/for support.
 static const char *classifyDisconnectReason(uint8_t reason) {
 	switch (reason) {
+		case 0: // no disconnect event: association held, but no IP arrived
+			return "timeout";
 		case WIFI_REASON_AUTH_EXPIRE:
 		case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
 		case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
@@ -2285,8 +2289,34 @@ void handleGetWifiStatus(AsyncWebServerRequest *request) {
 		fail["class"] = classifyDisconnectReason(failReason);
 	}
 
+	// live connection test (started via POST /wifitest from the setup page)
+	const char *testPhase = Wlan_GetTestPhase();
+	if (strcmp(testPhase, "idle") != 0) {
+		JsonObject test = obj["test"].to<JsonObject>();
+		test["phase"] = testPhase;
+		test["ssid"] = Wlan_GetTestSsid();
+		if (strcmp(testPhase, "failed") == 0) {
+			const uint8_t reason = Wlan_GetTestReason();
+			test["reason"] = reason;
+			test["class"] = classifyDisconnectReason(reason);
+		} else if (strcmp(testPhase, "success") == 0) {
+			test["ip"] = Wlan_GetIpAddress();
+		}
+	}
+
 	response->setLength();
 	request->send(response);
+}
+
+// Start a live connection test while in AP mode. Body: {"ssid": "..."} —
+// the credentials must have been saved via POST /savedSSIDs beforehand.
+void handlePostWifiTest(AsyncWebServerRequest *request, JsonVariant &json) {
+	const char *ssid = json["ssid"].as<const char *>();
+	if (!ssid || !Wlan_StartConnectionTest(ssid)) {
+		request->send(400);
+		return;
+	}
+	request->send(200);
 }
 
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {

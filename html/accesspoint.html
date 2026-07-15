@@ -133,7 +133,8 @@
 		</div>
 		<button type="submit" class="btn" id="save-button" data-i18n="wifi.saveButton"></button>
 	</form>
-	<form action="/restart" method="POST" class="box">
+	<div id="teststatus" style="display:none;border-radius:4px;padding:10px;margin:0 auto 20px;max-width:500px;text-align:left"></div>
+	<form id="restartform" action="/restart" method="POST" class="box">
 		<h1 data-i18n="wifi.restartPrompt"></h1>
 		<button type="submit" class="btn" id="restart-button" data-i18n="restart" value="Reboot"></button>
 	</form>
@@ -229,10 +230,65 @@
 			let new_style = this.checked ? null : "none";
 			document.getElementById("wifi_static_div").style.display = new_style;
 		};
+		// live connection test: kicked off after saving, result shown in-page
+		const testStatusColors = {
+			progress: ["#cce5ff", "#004085"],
+			success: ["#d4edda", "#155724"],
+			failed: ["#f8d7da", "#721c24"]
+		};
+		let lastTestState = null;
+		function showTestStatus(kind, text) {
+			lastTestState = { kind: kind, text: text };
+			const box = document.getElementById("teststatus");
+			box.style.background = testStatusColors[kind][0];
+			box.style.color = testStatusColors[kind][1];
+			box.innerText = text;
+			box.style.display = "block";
+		}
+		// Disable the form and turn the Connect button into a "Connecting …"
+		// indicator while a live test is in flight, so it's obvious the box is
+		// working (the button is where the eye already is). Re-enabled on failure
+		// so the user can fix the credentials and retry.
+		function setFormBusy(busy) {
+			const form = document.getElementById("settings");
+			for (const el of form.elements) {
+				el.disabled = busy;
+			}
+			const btn = document.getElementById("save-button");
+			btn.innerText = busy ? i18next.t("wifi.test.connectingBtn") : i18next.t("wifi.saveButton");
+		}
+		async function pollTestStatus() {
+			try {
+				const data = await (await fetch("/wifistatus")).json();
+				if (data.test) {
+					const t = data.test;
+					if (t.phase === "success") {
+						document.getElementById("settings").style.display = "none";
+						document.getElementById("restartform").style.display = "none";
+						retargetFullInterfaceCard(t.ip);
+						showTestStatus("success", i18next.t("wifi.test.success", { ssid: t.ssid, ip: t.ip }));
+						return;
+					}
+					if (t.phase === "failed") {
+						setFormBusy(false);
+						const cls = ["wrong_password", "not_found", "rejected", "timeout"].includes(t.class) ? t.class : "other";
+						showTestStatus("failed", i18next.t("wifi.fail." + cls, { ssid: t.ssid, code: t.reason }));
+						return;
+					}
+					showTestStatus("progress", i18next.t("wifi.test.connecting", { ssid: t.ssid }));
+				}
+			} catch (error) {
+				// expected while the AP hops to the target network's channel
+				console.log(error);
+			}
+			setTimeout(pollTestStatus, 1500);
+		}
 		async function wifiConfig() {
+			setFormBusy(true);
 			let static = document.getElementById('static_enabled').checked;
+			const ssid = document.getElementById('ssid').value;
 			var myObj = {
-				ssid: document.getElementById('ssid').value,
+				ssid: ssid,
 				pwd: document.getElementById('pwd').value,
 				static: static
 			};
@@ -264,6 +320,22 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			// try the credentials right away, while the AP stays up
+			document.getElementById("connstatus").style.display = "none";
+			const response = await fetch("/wifitest", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ ssid: ssid })
+			});
+			if (response.ok) {
+				showTestStatus("progress", i18next.t("wifi.test.connecting", { ssid: ssid }));
+				setTimeout(pollTestStatus, 1000);
+			} else {
+				setFormBusy(false);
+				showTestStatus("failed", i18next.t("wifi.fail.other", { ssid: ssid, code: 0 }));
+			}
 		}
 		addEventListener("DOMContentLoaded", (event) => {
 			getWiFiList();
@@ -284,6 +356,25 @@
 		// IP. Copying a URL built from that would produce a link that resolves to the real apple.com (or
 		// whichever host) once opened outside the captive session - not back to ESPuino. The AP's IP is a
 		// fixed constant (see apIP in Wlan.cpp), so hardcoding it here is the robust choice.
+		// A successful test closes the AP moments later, which kills the 192.168.4.1
+		// address this card advertises — and the card's premise ("skip WiFi setup")
+		// no longer applies either. Repoint it at the address the box just obtained
+		// and relabel it, so the copy button hands the user a link that still works
+		// once the setup network is gone.
+		function retargetFullInterfaceCard(ip) {
+			document.getElementById("full-interface-url").value = `http://${ip}/management.html`;
+			const title = document.querySelector('[data-i18n="wifi.fullInterface.title"]');
+			const hint = document.querySelector('[data-i18n="wifi.fullInterface.hint"]');
+			if (title) {
+				title.setAttribute("data-i18n", "wifi.test.reachTitle");
+			}
+			if (hint) {
+				hint.setAttribute("data-i18n", "wifi.test.reachHint");
+			}
+			if (typeof localize === "function") {
+				localize('body');
+			}
+		}
 		function setupFullInterfaceLink() {
 			const urlField = document.getElementById("full-interface-url");
 			urlField.value = "http://192.168.4.1/management.html";

@@ -173,7 +173,15 @@
 			"wrong_password": "Verbindung mit \"{{ssid}}\" fehlgeschlagen — vermutlich ist das Passwort falsch (Code {{code}}). Bitte prüfen und erneut eingeben.",
 			"not_found": "Das Netzwerk \"{{ssid}}\" wurde nicht gefunden (Code {{code}}). Ist es in Reichweite und auf 2,4 GHz?",
 			"rejected": "Der Router hat die Verbindung mit \"{{ssid}}\" abgelehnt (Code {{code}}). MAC-Filter, Client-Limits oder Sicherheitseinstellungen prüfen (WPA2 erforderlich).",
-			"other": "Verbindung mit \"{{ssid}}\" fehlgeschlagen (Code {{code}})."
+			"other": "Verbindung mit \"{{ssid}}\" fehlgeschlagen (Code {{code}}).",
+			"timeout": "Mit \"{{ssid}}\" verbunden, aber keine IP-Adresse erhalten (Code {{code}}). DHCP-Einstellungen des Routers prüfen."
+		},
+		"test": {
+			"connecting": "Verbinde mit \"{{ssid}}\" …",
+			"connectingBtn": "Verbinde …",
+			"success": "Verbunden! Die Box hat die IP {{ip}} erhalten und verlässt jetzt den Einrichtungsmodus. Verbinde dein Telefon wieder mit deinem normalen WLAN und erreiche die Box unter http://{{ip}}",
+			"reachTitle": "ESPuino erreichen",
+			"reachHint": "Dein ESPuino ist jetzt unter dieser Adresse in deinem WLAN erreichbar. Kopiere sie oder speichere sie als Lesezeichen — das Einrichtungs-WLAN wird geschlossen."
 		}
 	},
 	"control": {
