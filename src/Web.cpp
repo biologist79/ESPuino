@@ -18,6 +18,7 @@
 #include "HallEffectSensor.h"
 #include "Led.h"
 #include "Log.h"
+#include "MediaHub.h"
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Rfid.h"
@@ -2685,7 +2686,14 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 			// stop playback, tag to delete is in use
 			Cmd_Action(CMD_STOP);
 		}
-		if (gPrefsRfid.remove(tagId.c_str())) {
+		// MediaHub cascade (concept §13.1): the NVS entry's path field starts
+		// with "mediahub://" for MediaHub-managed cards. Checked before the
+		// NVS entry itself is removed below.
+		const String nvsValue = gPrefsRfid.getString(tagId.c_str(), "");
+		const bool isMediaHubCard = nvsValue.startsWith(String(stringDelimiter) + MediaHub_PathPrefix);
+		const bool mediaHubCleanupOk = !isMediaHubCard || MediaHub_DeleteCard(tagId.c_str());
+
+		if (gPrefsRfid.remove(tagId.c_str()) && mediaHubCleanupOk) {
 			Rfid_ResetLastTag(); // The tag means nothing now: make sure re-applying it is not deduped away
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");

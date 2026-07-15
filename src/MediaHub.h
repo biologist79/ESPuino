@@ -46,3 +46,8 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 // next tap (concept §9). Returns false if any part of the wipe failed.
 bool MediaHub_ForceRefresh(const char *cardId);
 bool MediaHub_ForceRefreshAll();
+
+// Same wipe as MediaHub_ForceRefresh(), but the card isn't coming back: for
+// the DELETE /rfid cascade (concept §13.1), called in addition to removing
+// the NVS entry. Returns false if any part of the wipe failed.
+bool MediaHub_DeleteCard(const char *cardId);
