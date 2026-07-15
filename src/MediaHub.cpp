@@ -4,6 +4,7 @@
 #include "MediaHub.h"
 
 #include "AudioPlayer.h"
+#include "Led.h"
 #include "Log.h"
 #include "SdCard.h"
 #include "System.h"
@@ -39,6 +40,7 @@ struct MediaHub_BusyGuard {
 	}
 	~MediaHub_BusyGuard() {
 		MediaHub_DownloadBusy = false;
+		Led_SetDownloadProgress(false);
 	}
 };
 
@@ -133,7 +135,7 @@ static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
 // (concept §9: SHA-256 only ever checked during download, never recomputed
 // over local files afterwards). Renames into place only once size and hash
 // both match; leaves no partial/renamed file behind on any failure.
-static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &finalPath, uint32_t expectedSize, const char *expectedSha256Hex) {
+static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &finalPath, uint32_t expectedSize, const char *expectedSha256Hex, uint64_t &completedBytes, uint64_t totalBytes) {
 	HTTPClient http;
 	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
 	http.setTimeout(MediaHub_DownloadStallTimeoutMs);
@@ -190,6 +192,10 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 			break;
 		}
 		totalRead += got;
+		completedBytes += got;
+		if (totalBytes > 0) {
+			Led_SetDownloadProgress(true, (uint8_t) std::min<uint64_t>(100, (completedBytes * 100) / totalBytes));
+		}
 		esp_task_wdt_reset();
 	}
 	http.end();
@@ -225,10 +231,16 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 // (concept §13) so a card is never left half-downloaded due to running out
 // of space mid-way through.
 static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &mediaDir, JsonArrayConst files) {
+	// Total-vs-missing split doubles as the progress-bar baseline (concept
+	// §7.1): a card that already has some files from an earlier partial sync
+	// starts the bar accordingly, instead of jumping back to 0.
+	uint64_t totalBytes = 0;
 	uint64_t missingBytes = 0;
 	for (JsonVariantConst f : files) {
+		const uint32_t size = f["size"] | 0;
+		totalBytes += size;
 		if (!MediaHub_FileFullySynced(mediaDir, f)) {
-			missingBytes += (uint32_t) (f["size"] | 0);
+			missingBytes += size;
 		}
 	}
 	if (missingBytes == 0) {
@@ -240,6 +252,10 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 	}
 
 	MediaHub_BusyGuard busyGuard;
+	uint64_t completedBytes = totalBytes - missingBytes;
+	if (totalBytes > 0) {
+		Led_SetDownloadProgress(true, (uint8_t) ((completedBytes * 100) / totalBytes));
+	}
 	for (JsonVariantConst f : files) {
 		if (MediaHub_FileFullySynced(mediaDir, f)) {
 			continue;
@@ -252,7 +268,7 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 			return false;
 		}
 		Log_Printf(LOGLEVEL_NOTICE, mediaHubDownloadingFile, path);
-		if (!MediaHub_DownloadAndVerifyFile(filesBaseUrl + path, mediaDir + "/" + path, size, sha256)) {
+		if (!MediaHub_DownloadAndVerifyFile(filesBaseUrl + path, mediaDir + "/" + path, size, sha256, completedBytes, totalBytes)) {
 			return false;
 		}
 	}
