@@ -12,6 +12,9 @@
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <algorithm>
+#include <esp_task_wdt.h>
+#include <mbedtls/sha256.h>
 
 const char *const MediaHub_PathPrefix = "mediahub://";
 
@@ -19,6 +22,25 @@ const char *const MediaHub_PathPrefix = "mediahub://";
 // a long hang while a card is being tapped.
 static constexpr int32_t MediaHub_ConnectTimeoutMs = 2000;
 static constexpr uint16_t MediaHub_ReadTimeoutMs = 3000;
+
+// Per-chunk stall timeout while downloading a file body: media files can be
+// large, so this is a "no bytes at all for this long" watchdog, not a total
+// transfer-time budget.
+static constexpr uint32_t MediaHub_DownloadStallTimeoutMs = 8000;
+static constexpr size_t MediaHub_DownloadBufferSize = 4096;
+
+// Set for the duration of an actual file download (concept §14/#16): a card
+// tapped while this is true gets a "busy" error instead of being processed.
+static volatile bool MediaHub_DownloadBusy = false;
+
+struct MediaHub_BusyGuard {
+	MediaHub_BusyGuard() {
+		MediaHub_DownloadBusy = true;
+	}
+	~MediaHub_BusyGuard() {
+		MediaHub_DownloadBusy = false;
+	}
+};
 
 // Fixed, hidden storage layout (concept §13.1) — MediaHub is the only thing
 // that ever touches this tree.
@@ -67,6 +89,211 @@ static bool MediaHub_AllFilesSynced(const String &mediaDir, JsonArrayConst files
 	return true;
 }
 
+// SINGLE_TRACK/SINGLE_TRACK_LOOP point at one specific file; every other mode
+// points at the whole media folder and leaves scanning/sorting/recursion to
+// SdCard_ReturnPlaylist() (same reasoning as in AudioPlayer_SetPlaylist()).
+static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files) {
+	if (MediaHub_IsSingleFilePlayMode(playMode)) {
+		const char *singleFilePath = files[0]["path"] | "";
+		return mediaDir + "/" + singleFilePath;
+	}
+	return mediaDir;
+}
+
+// Mirrors explorerDeleteDirectory() in Web.cpp: recurse via File objects only,
+// never rebuild string paths for entries, so SanitizedFS's percent-encoding
+// (FileSystem.h) can't be applied twice to an already-sanitized name.
+static bool MediaHub_DeleteDirRecursive(File dir) {
+	bool ok = true;
+	File entry = dir.openNextFile();
+	while (entry) {
+		if (entry.isDirectory()) {
+			ok &= MediaHub_DeleteDirRecursive(entry);
+		} else {
+			ok &= gFSystem.remove(entry);
+		}
+		entry = dir.openNextFile();
+		esp_task_wdt_reset();
+	}
+	return gFSystem.rmdir(dir) && ok;
+}
+
+static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
+	static const char *hexDigits = "0123456789abcdef";
+	String hex;
+	hex.reserve(64);
+	for (int i = 0; i < 32; i++) {
+		hex += hexDigits[digest[i] >> 4];
+		hex += hexDigits[digest[i] & 0x0F];
+	}
+	return hex;
+}
+
+// Downloads one file to <finalPath>.tmp, hashing incrementally while writing
+// (concept §9: SHA-256 only ever checked during download, never recomputed
+// over local files afterwards). Renames into place only once size and hash
+// both match; leaves no partial/renamed file behind on any failure.
+static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &finalPath, uint32_t expectedSize, const char *expectedSha256Hex) {
+	HTTPClient http;
+	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
+	http.setTimeout(MediaHub_DownloadStallTimeoutMs);
+	if (!http.begin(fileUrl)) {
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		return false;
+	}
+
+	const int httpCode = http.GET();
+	if (httpCode != HTTP_CODE_OK) {
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		http.end();
+		return false;
+	}
+
+	const String tmpPath = finalPath + ".tmp";
+	File tmpFile = gFSystem.open(tmpPath, FILE_WRITE, true); // create=true: also creates missing parent dirs
+	if (!tmpFile) {
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		http.end();
+		return false;
+	}
+
+	mbedtls_sha256_context shaCtx;
+	mbedtls_sha256_init(&shaCtx);
+	mbedtls_sha256_starts(&shaCtx, 0); // 0 = SHA-256 (not the SHA-224 variant)
+
+	auto *stream = http.getStreamPtr();
+	uint8_t buf[MediaHub_DownloadBufferSize];
+	size_t totalRead = 0;
+	bool transferError = false;
+	uint32_t lastDataMs = millis();
+
+	while (totalRead < expectedSize) {
+		const int avail = stream->available();
+		if (avail <= 0) {
+			if (millis() - lastDataMs > MediaHub_DownloadStallTimeoutMs) {
+				transferError = true;
+				break;
+			}
+			delay(1);
+			continue;
+		}
+		const size_t toRead = std::min((size_t) avail, sizeof(buf));
+		const size_t got = stream->readBytes(buf, toRead);
+		if (got == 0) {
+			transferError = true;
+			break;
+		}
+		lastDataMs = millis();
+		mbedtls_sha256_update(&shaCtx, buf, got);
+		if (tmpFile.write(buf, got) != got) {
+			transferError = true;
+			break;
+		}
+		totalRead += got;
+		esp_task_wdt_reset();
+	}
+	http.end();
+	tmpFile.close();
+
+	uint8_t digest[32];
+	mbedtls_sha256_finish(&shaCtx, digest);
+	mbedtls_sha256_free(&shaCtx);
+
+	if (transferError || totalRead != expectedSize) {
+		gFSystem.remove(tmpPath);
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		return false;
+	}
+
+	if (!MediaHub_Sha256Hex(digest).equalsIgnoreCase(expectedSha256Hex)) {
+		gFSystem.remove(tmpPath);
+		Log_Printf(LOGLEVEL_ERROR, mediaHubVerifyFailed, fileUrl.c_str());
+		return false;
+	}
+
+	gFSystem.remove(finalPath); // clears a stale leftover from an earlier aborted sync, if any
+	if (!gFSystem.rename(tmpPath, finalPath)) {
+		gFSystem.remove(tmpPath);
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		return false;
+	}
+	return true;
+}
+
+// Downloads every file in `files` that isn't already fully synced in mediaDir.
+// Checks free SD space against the total size of missing files up front
+// (concept §13) so a card is never left half-downloaded due to running out
+// of space mid-way through.
+static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &mediaDir, JsonArrayConst files) {
+	uint64_t missingBytes = 0;
+	for (JsonVariantConst f : files) {
+		if (!MediaHub_FileFullySynced(mediaDir, f)) {
+			missingBytes += (uint32_t) (f["size"] | 0);
+		}
+	}
+	if (missingBytes == 0) {
+		return true; // already fully synced
+	}
+	if (SdCard_GetFreeSize() < missingBytes) {
+		Log_Println(mediaHubSdFull, LOGLEVEL_ERROR);
+		return false;
+	}
+
+	MediaHub_BusyGuard busyGuard;
+	for (JsonVariantConst f : files) {
+		if (MediaHub_FileFullySynced(mediaDir, f)) {
+			continue;
+		}
+		const char *path = f["path"] | "";
+		const uint32_t size = f["size"] | 0;
+		const char *sha256 = f["sha256"] | "";
+		if (strlen(path) == 0 || strlen(sha256) == 0) {
+			Log_Println(mediaHubInvalidManifest, LOGLEVEL_ERROR);
+			return false;
+		}
+		Log_Printf(LOGLEVEL_NOTICE, mediaHubDownloadingFile, path);
+		if (!MediaHub_DownloadAndVerifyFile(filesBaseUrl + path, mediaDir + "/" + path, size, sha256)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Writes the just-fetched manifest body to the local cache, best-effort: a
+// failure here doesn't block playback since the manifest is already parsed
+// in memory, it just means this device won't have an offline copy for the
+// next tap.
+static void MediaHub_WriteManifestCache(const char *cardId, const String &body) {
+	File f = gFSystem.open(MediaHub_ManifestCachePath(cardId), FILE_WRITE, true);
+	if (!f) {
+		return;
+	}
+	f.print(body);
+	f.close();
+}
+
+// Fetches missing files and then plays (concept §10 "EnsureCard" core, sans
+// the "stale"/re-sync wipe which is Phase 6). Called after a live manifest
+// fetch for a file-based (non-webradio) manifest.
+static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t manifestPlayMode, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	const char *filesBaseUrl = doc["filesBaseUrl"] | "";
+	JsonArrayConst files = doc["files"].as<JsonArrayConst>();
+	if (strlen(filesBaseUrl) == 0 || files.size() == 0) {
+		Log_Println(mediaHubInvalidManifest, LOGLEVEL_ERROR);
+		return false;
+	}
+
+	const String mediaDir = MediaHub_MediaDir(cardId);
+	if (!MediaHub_SyncMissingFiles(filesBaseUrl, mediaDir, files)) {
+		return false;
+	}
+
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
+	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
+	return true;
+}
+
 // Local-first fast path (concept §3 principle 1): if a manifest is already
 // cached and every one of its files is present with the right size, play
 // immediately — no network access at all, so this works fully offline
@@ -99,17 +326,7 @@ static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlay
 		return false;
 	}
 
-	String itemToPlay;
-	if (MediaHub_IsSingleFilePlayMode(manifestPlayMode)) {
-		const char *singleFilePath = files[0]["path"] | "";
-		itemToPlay = mediaDir + "/" + singleFilePath;
-	} else {
-		// Folder mode: point at the card's media directory and let the
-		// existing SdCard_ReturnPlaylist() scan/sort/recurse it exactly like
-		// any other SD folder — it already knows how to do that per
-		// playMode, MediaHub doesn't need to reimplement any of it.
-		itemToPlay = mediaDir;
-	}
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
 
 	Log_Println(mediaHubPlayingFromCache, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
@@ -128,6 +345,12 @@ String MediaHub_GetEspId() {
 }
 
 void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	if (MediaHub_DownloadBusy) {
+		Log_Println(mediaHubBusy, LOGLEVEL_NOTICE);
+		System_IndicateError();
+		return;
+	}
+
 	if (!MediaHub_IsMediaHubPath(path)) {
 		Log_Println(mediaHubInvalidPath, LOGLEVEL_ERROR);
 		System_IndicateError();
@@ -199,6 +422,16 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
+	// Cross-check that the manifest actually belongs to the tapped card
+	// (concept §7.1) before trusting/caching any of it.
+	const char *manifestCardId = doc["cardId"] | "";
+	if (strcmp(manifestCardId, cardId) != 0) {
+		Log_Println(mediaHubInvalidManifest, LOGLEVEL_ERROR);
+		System_IndicateError();
+		return;
+	}
+	MediaHub_WriteManifestCache(cardId, body);
+
 	const uint32_t manifestPlayMode = doc["playMode"] | 0;
 	if (manifestPlayMode == WEBSTREAM) {
 		const char *stream = doc["stream"] | "";
@@ -215,8 +448,35 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	// File-based manifests (download/sync pipeline, §10/§13) land in a later
-	// phase — recognized here, but not played yet.
-	Log_Println(mediaHubFileModeNotYetSupported, LOGLEVEL_NOTICE);
-	System_IndicateError();
+	if (!MediaHub_SyncAndPlay(cardId, doc, manifestPlayMode, lastPlayPos, trackLastPlayed)) {
+		System_IndicateError();
+	}
+}
+
+// Escape-hatch (concept §9/#7): discards the local cache for one card so the
+// next tap re-fetches the manifest and re-downloads everything from scratch.
+// Not wired to a trigger yet (Admin-Karte / Hub-Button lands in a later
+// phase alongside the "stale" mechanism it shares its machinery with).
+bool MediaHub_ForceRefresh(const char *cardId) {
+	gFSystem.remove(MediaHub_ManifestCachePath(cardId));
+	File mediaDir = gFSystem.open(MediaHub_MediaDir(cardId));
+	if (!mediaDir || !mediaDir.isDirectory()) {
+		return true; // nothing to wipe
+	}
+	return MediaHub_DeleteDirRecursive(mediaDir);
+}
+
+// Same escape-hatch for every MediaHub-managed card at once ("für alle",
+// concept §9).
+bool MediaHub_ForceRefreshAll() {
+	bool ok = true;
+	File manifestsDir = gFSystem.open("/.mediahub/manifests");
+	if (manifestsDir && manifestsDir.isDirectory()) {
+		ok &= MediaHub_DeleteDirRecursive(manifestsDir);
+	}
+	File mediaRootDir = gFSystem.open("/.mediahub/media");
+	if (mediaRootDir && mediaRootDir.isDirectory()) {
+		ok &= MediaHub_DeleteDirRecursive(mediaRootDir);
+	}
+	return ok;
 }

@@ -244,6 +244,11 @@ const char mediaHubInvalidPath[] = "MediaHub : adresse du hub invalide dans le N
 const char mediaHubCardPending[] = "MediaHub : la carte n'est pas encore assignée.";
 const char mediaHubUnexpectedStatus[] = "MediaHub : code de statut inattendu %d.";
 const char mediaHubInvalidManifest[] = "MediaHub : manifeste invalide ou incomplet.";
-const char mediaHubFileModeNotYetSupported[] = "MediaHub : la lecture de fichiers n'est pas encore implémentée.";
 const char mediaHubWebstreamFromManifest[] = "MediaHub : démarrage du flux web depuis le manifeste.";
+const char mediaHubBusy[] = "MediaHub : un téléchargement est déjà en cours, carte ignorée.";
+const char mediaHubSdFull[] = "MediaHub : espace SD insuffisant pour le téléchargement.";
+const char mediaHubDownloadingFile[] = "MediaHub : téléchargement de %s.";
+const char mediaHubDownloadFailed[] = "MediaHub : échec du téléchargement de %s.";
+const char mediaHubVerifyFailed[] = "MediaHub : échec de la vérification SHA-256 de %s.";
+const char mediaHubPlayingAfterSync[] = "MediaHub : synchronisation terminée, démarrage de la lecture.";
 #endif
