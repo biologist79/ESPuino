@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% block title %}ESPuino MediaHub{% endblock %}</title>
+	<link rel="icon" href="{{ url_for('static', filename='branding/favicon.ico') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+	<header class="topbar">
+		<div class="topbar-inner">
+			<a class="brand" href="{{ url_for('index') }}">
+				<img class="brand-logo" src="{{ url_for('static', filename='branding/logo.webp') }}"
+					alt="ESPuino" width="36" height="36">
+				<span class="brand-name">ESPuino&nbsp;<strong>MediaHub</strong></span>
+			</a>
+			<nav class="topnav">
+				<a href="{{ url_for('index') }}">Übersicht</a>
+			</nav>
+		</div>
+	</header>
+
+	<main class="container">
+		{% block content %}{% endblock %}
+	</main>
+
+	<footer class="footer">
+		<div class="container">MediaHub · lokaler Medien-Hub für ESPuino</div>
+	</footer>
+
+	{% block scripts %}{% endblock %}
+</body>
+</html>

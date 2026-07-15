@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-head">
+	<h1>Übersicht</h1>
+	<p class="muted">Zentrale Verwaltung der RFID-Zuweisungen für deine ESPuinos.</p>
+</section>
+
+<div class="card-grid">
+	<a class="card" href="#">
+		<div class="card-icon">🔊</div>
+		<h2>ESPuinos</h2>
+		<p>Registrierte Geräte und ihren Sync-Status im Blick behalten.</p>
+		<span class="badge">Bald verfügbar</span>
+	</a>
+
+	<a class="card" href="#">
+		<div class="card-icon">🏷️</div>
+		<h2>Karten &amp; Zuweisungen</h2>
+		<p>Festlegen, welche RFID-Karte welchen Inhalt und Abspielmodus bekommt.</p>
+		<span class="badge">Bald verfügbar</span>
+	</a>
+
+	<a class="card" href="#">
+		<div class="card-icon">🆕</div>
+		<h2>Neue Karten</h2>
+		<p>Beim Auflegen registrierte, aber noch nicht zugewiesene Karten.</p>
+		<span class="badge">Bald verfügbar</span>
+	</a>
+
+	<a class="card" href="#">
+		<div class="card-icon">📁</div>
+		<h2>Medien</h2>
+		<p>Audiodateien hochladen und den Karten zuordnen.</p>
+		<span class="badge">Bald verfügbar</span>
+	</a>
+
+	<a class="card" href="#">
+		<div class="card-icon">⚙️</div>
+		<h2>Einstellungen</h2>
+		<p>Löschverhalten (lazy/secure) und weitere Optionen.</p>
+		<span class="badge">Bald verfügbar</span>
+	</a>
+</div>
+{% endblock %}
