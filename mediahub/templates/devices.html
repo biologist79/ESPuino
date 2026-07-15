@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Devices') }} · ESPuino MediaHub{% endblock %}
+
+{% block content %}
+<section class="page-head">
+	<h1>{{ _('ESPuinos') }}</h1>
+	<p class="muted">{{ _('Devices that have already contacted the hub (identified by the device ID sent with the manifest request).') }}</p>
+</section>
+
+{% if not devices %}
+	<p class="empty-state">{{ _('No ESPuino has checked in yet. Once a device taps a MediaHub card, it will show up here.') }}</p>
+{% else %}
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>{{ _('Device ID') }}</th>
+					<th>{{ _('IP address') }}</th>
+					<th>{{ _('Last seen') }}</th>
+					<th>{{ _('First seen') }}</th>
+					<th>{{ _('Last card') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for esp_id, dev in devices %}
+				<tr>
+					<td><code>{{ esp_id }}</code></td>
+					<td>{{ dev.ip }}</td>
+					<td>{{ dev.last_seen }}</td>
+					<td>{{ dev.first_seen }}</td>
+					<td><code>{{ dev.last_card_id }}</code></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endif %}
+{% endblock %}

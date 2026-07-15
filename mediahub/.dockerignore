@@ -1,4 +1,5 @@
 data/
+media/
 **/__pycache__/
 *.pyc
 .git

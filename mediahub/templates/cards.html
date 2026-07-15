@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Cards') }} · ESPuino MediaHub{% endblock %}
+
+{% block content %}
+<section class="page-head">
+	<div class="page-head-row">
+		<div>
+			<h1>{{ _('New Cards') if only_pending else _('Cards & Assignments') }}</h1>
+			<p class="muted">
+				{% if only_pending %}
+					{{ _('Registered on tap but not yet assigned. Click "Assign" to set content.') }}
+				{% else %}
+					{{ _('All cards known to the hub — assigned ones play on next tap, pending ones don\'t yet.') }}
+				{% endif %}
+			</p>
+		</div>
+		<div class="page-head-actions">
+			{% if only_pending %}
+				<a class="btn btn-secondary" href="{{ url_for('cards') }}">{{ _('Show all') }}</a>
+			{% else %}
+				<a class="btn btn-secondary" href="{{ url_for('cards', pending=1) }}">{{ _('Pending only') }}</a>
+				<form method="post" action="{{ url_for('force_refresh_all') }}" onsubmit="return confirm('{{ _('Trigger force refresh for ALL cards?') }}');">
+					<button class="btn btn-secondary" type="submit">{{ _('Force refresh (all)') }}</button>
+				</form>
+			{% endif %}
+		</div>
+	</div>
+	{% if not only_pending %}
+	<form class="add-card-form" method="post" action="{{ url_for('add_card') }}">
+		<input type="text" name="card_id" inputmode="numeric" pattern="\d{12}" maxlength="12"
+			placeholder="{{ _('12-digit card ID') }}" required>
+		<button class="btn btn-secondary" type="submit">{{ _('Add card') }}</button>
+		<span class="muted add-card-hint">{{ _("You'll find the card ID on the ESPuino's own web UI when you tap the card there.") }}</span>
+	</form>
+	{% endif %}
+</section>
+
+{% if not cards %}
+	<p class="empty-state">
+		{% if only_pending %}{{ _('No pending cards.') }}{% else %}{{ _('No card known yet — it will show up here once tapped on an ESPuino.') }}{% endif %}
+	</p>
+{% else %}
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>{{ _('Card ID') }}</th>
+					<th>{{ _('Name') }}</th>
+					<th>{{ _('Status') }}</th>
+					<th>{{ _('Content') }}</th>
+					<th>{{ _('Last seen') }}</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for card_id, card, content_label in cards %}
+				<tr>
+					<td><code>{{ card_id }}</code></td>
+					<td>{{ card.name or "—" }}</td>
+					<td>
+						{% if card.status == "assigned" %}
+							<span class="badge badge-ok">{{ _('assigned') }}</span>
+						{% else %}
+							<span class="badge badge-attention">{{ _('pending') }}</span>
+						{% endif %}
+					</td>
+					<td>{{ content_label }}</td>
+					<td>{{ card.last_seen }}</td>
+					<td class="table-actions">
+						<a class="btn btn-small" href="{{ url_for('assign_card', card_id=card_id) }}">
+							{{ _('Assign') if card.status != "assigned" else _('Edit') }}
+						</a>
+						{% if card.status == "assigned" %}
+						<form method="post" action="{{ url_for('force_refresh_card', card_id=card_id) }}">
+							<button class="btn btn-small btn-secondary" type="submit">{{ _('Force refresh') }}</button>
+						</form>
+						{% endif %}
+						<form method="post" action="{{ url_for('delete_card', card_id=card_id) }}" onsubmit="return confirm('{{ _('Really delete card %(id)s?', id=card_id) }}');">
+							<button class="btn btn-small btn-danger" type="submit">{{ _('Delete') }}</button>
+						</form>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endif %}
+{% endblock %}

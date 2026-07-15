@@ -3,11 +3,21 @@ services:
     build: .
     image: espuino-mediahub
     container_name: espuino-mediahub
+    # Run as www-data (33:33) instead of root by default. Make sure the host
+    # ./data directory is writable by that uid/gid, e.g.:
+    #   chown -R 33:33 ./data
+    user: "33:33"
     ports:
       - "8080:8080"
     volumes:
-      # Persistente Daten (Zuweisungen, Manifeste, Medien) außerhalb des Containers
+      # Devices/cards/assignments (db.json) — small, structured data
       - ./data:/data
+      # Your own existing audio library, browsed and referenced in place —
+      # MediaHub never writes here, just point this at wherever your music/
+      # audiobook files already live. Read-only is enough (and enforced).
+      - ./media:/media:ro
     environment:
       - MEDIAHUB_DATA=/data
+      - MEDIAHUB_MEDIA=/media
+      - TZ=Europe/Berlin
     restart: unless-stopped

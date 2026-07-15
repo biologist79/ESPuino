@@ -1,0 +1,532 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-15 14:22+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app.py:108
+msgid "Incorrect password."
+msgstr ""
+
+#: app.py:130
+#, python-format
+msgid "%(num)s device"
+msgid_plural "%(num)s devices"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app.py:160 templates/card_form.html:26
+msgid "Webradio"
+msgstr ""
+
+#: app.py:162
+#, python-format
+msgid "%(num)s file"
+msgid_plural "%(num)s files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app.py:182
+msgid "Card ID must be exactly 12 digits."
+msgstr ""
+
+#: app.py:205
+msgid "A stream URL is required for webradio."
+msgstr ""
+
+#: app.py:214
+msgid "Please choose a valid play mode."
+msgstr ""
+
+#: app.py:233
+#, python-format
+msgid ""
+"Some selected files could no longer be found in the library and were "
+"skipped: %(paths)s"
+msgstr ""
+
+#: app.py:241
+msgid "At least one audio file is required."
+msgstr ""
+
+#: app.py:247
+#, python-format
+msgid "Card %(id)s assigned."
+msgstr ""
+
+#: app.py:262
+#, python-format
+msgid "Force refresh triggered for card %(id)s."
+msgstr ""
+
+#: app.py:269
+#, python-format
+msgid "Force refresh triggered for all %(num)s cards."
+msgstr ""
+
+#: app.py:287
+#, python-format
+msgid ""
+"Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
+"was kept, please retry."
+msgstr ""
+
+#: app.py:289
+msgid "unknown"
+msgstr ""
+
+#: app.py:300
+#, python-format
+msgid "Card %(id)s deleted (%(mode)s)."
+msgstr ""
+
+#: app.py:339
+msgid "Settings saved."
+msgstr ""
+
+#: app.py:349
+msgid "Please enter a password."
+msgstr ""
+
+#: app.py:351
+msgid "Passwords do not match."
+msgstr ""
+
+#: app.py:354
+msgid "Hub password set."
+msgstr ""
+
+#: app.py:362
+msgid "Hub password removed."
+msgstr ""
+
+#: manifest.py:66
+msgid "Single track"
+msgstr ""
+
+#: manifest.py:67
+msgid "Single track (loop)"
+msgstr ""
+
+#: manifest.py:68
+msgid "Audiobook (remembers position)"
+msgstr ""
+
+#: manifest.py:69
+msgid "Audiobook (loop)"
+msgstr ""
+
+#: manifest.py:70
+msgid "Audiobook, recursive (remembers position)"
+msgstr ""
+
+#: manifest.py:71
+msgid "All tracks of a folder (sorted)"
+msgstr ""
+
+#: manifest.py:72
+msgid "All tracks of a folder (shuffled)"
+msgstr ""
+
+#: manifest.py:73
+msgid "All tracks of a folder (sorted, loop)"
+msgstr ""
+
+#: manifest.py:74
+msgid "All tracks of a folder (shuffled, loop)"
+msgstr ""
+
+#: manifest.py:75
+msgid "All tracks, recursive (shuffled)"
+msgstr ""
+
+#: manifest.py:76
+msgid "All tracks, recursive (sorted)"
+msgstr ""
+
+#: manifest.py:77
+msgid "Single random track of a folder"
+msgstr ""
+
+#: manifest.py:78
+msgid "Random subfolder (sorted)"
+msgstr ""
+
+#: manifest.py:79
+msgid "Random subfolder (shuffled)"
+msgstr ""
+
+#: templates/base.html:19 templates/index.html:5
+msgid "Overview"
+msgstr ""
+
+#: templates/base.html:20 templates/devices.html:3
+msgid "Devices"
+msgstr ""
+
+#: templates/base.html:21 templates/cards.html:3
+msgid "Cards"
+msgstr ""
+
+#: templates/base.html:22 templates/index.html:33 templates/media.html:3
+#: templates/media.html:7
+msgid "Media"
+msgstr ""
+
+#: templates/base.html:23 templates/index.html:40 templates/settings.html:3
+#: templates/settings.html:7
+msgid "Settings"
+msgstr ""
+
+#: templates/base.html:33
+msgid "Log out"
+msgstr ""
+
+#: templates/base.html:53
+msgid "MediaHub · a local media hub for ESPuino"
+msgstr ""
+
+#: templates/card_form.html:3
+msgid "Card"
+msgstr ""
+
+#: templates/card_form.html:7
+msgid "Assign card"
+msgstr ""
+
+#: templates/card_form.html:8
+msgid "Defines what this card plays. The ESPuino picks it up on next tap."
+msgstr ""
+
+#: templates/card_form.html:13 templates/cards.html:49 templates/media.html:19
+msgid "Name"
+msgstr ""
+
+#: templates/card_form.html:13
+msgid "(display/logs only)"
+msgstr ""
+
+#: templates/card_form.html:14
+msgid "e.g. Bedtime Stories – Episode 12"
+msgstr ""
+
+#: templates/card_form.html:18
+msgid "Content type"
+msgstr ""
+
+#: templates/card_form.html:22
+msgid "Audio files"
+msgstr ""
+
+#: templates/card_form.html:33
+msgid "Play mode"
+msgstr ""
+
+#: templates/card_form.html:42
+msgid "Selected files"
+msgstr ""
+
+#: templates/card_form.html:44
+msgid "No files selected yet — browse the library below."
+msgstr ""
+
+#: templates/card_form.html:48
+msgid "Media library"
+msgstr ""
+
+#: templates/card_form.html:49
+msgid ""
+"Files come from the library mounted at /media — MediaHub doesn't store "
+"its own copies."
+msgstr ""
+
+#: templates/card_form.html:56
+msgid "Use folder"
+msgstr ""
+
+#: templates/card_form.html:56
+msgid "No audio files here."
+msgstr ""
+
+#: templates/card_form.html:56
+msgid "Remove"
+msgstr ""
+
+#: templates/card_form.html:62
+msgid "Stream URL"
+msgstr ""
+
+#: templates/card_form.html:68 templates/settings.html:33
+msgid "Save"
+msgstr ""
+
+#: templates/card_form.html:69
+msgid "Cancel"
+msgstr ""
+
+#: templates/cards.html:9 templates/index.html:26
+msgid "New Cards"
+msgstr ""
+
+#: templates/cards.html:9 templates/index.html:19
+msgid "Cards & Assignments"
+msgstr ""
+
+#: templates/cards.html:12
+msgid "Registered on tap but not yet assigned. Click \"Assign\" to set content."
+msgstr ""
+
+#: templates/cards.html:14
+msgid ""
+"All cards known to the hub — assigned ones play on next tap, pending ones"
+" don't yet."
+msgstr ""
+
+#: templates/cards.html:20
+msgid "Show all"
+msgstr ""
+
+#: templates/cards.html:22
+msgid "Pending only"
+msgstr ""
+
+#: templates/cards.html:23
+msgid "Trigger force refresh for ALL cards?"
+msgstr ""
+
+#: templates/cards.html:24
+msgid "Force refresh (all)"
+msgstr ""
+
+#: templates/cards.html:32
+msgid "12-digit card ID"
+msgstr ""
+
+#: templates/cards.html:33
+msgid "Add card"
+msgstr ""
+
+#: templates/cards.html:34
+msgid ""
+"You'll find the card ID on the ESPuino's own web UI when you tap the card"
+" there."
+msgstr ""
+
+#: templates/cards.html:41
+msgid "No pending cards."
+msgstr ""
+
+#: templates/cards.html:41
+msgid "No card known yet — it will show up here once tapped on an ESPuino."
+msgstr ""
+
+#: templates/cards.html:48 templates/media.html:18
+msgid "Card ID"
+msgstr ""
+
+#: templates/cards.html:50
+msgid "Status"
+msgstr ""
+
+#: templates/cards.html:51
+msgid "Content"
+msgstr ""
+
+#: templates/cards.html:52 templates/devices.html:20
+msgid "Last seen"
+msgstr ""
+
+#: templates/cards.html:63
+msgid "assigned"
+msgstr ""
+
+#: templates/cards.html:65
+msgid "pending"
+msgstr ""
+
+#: templates/cards.html:72
+msgid "Assign"
+msgstr ""
+
+#: templates/cards.html:72
+msgid "Edit"
+msgstr ""
+
+#: templates/cards.html:76
+msgid "Force refresh"
+msgstr ""
+
+#: templates/cards.html:79
+#, python-format
+msgid "Really delete card %(id)s?"
+msgstr ""
+
+#: templates/cards.html:80
+msgid "Delete"
+msgstr ""
+
+#: templates/devices.html:7 templates/index.html:12
+msgid "ESPuinos"
+msgstr ""
+
+#: templates/devices.html:8
+msgid ""
+"Devices that have already contacted the hub (identified by the device ID "
+"sent with the manifest request)."
+msgstr ""
+
+#: templates/devices.html:12
+msgid ""
+"No ESPuino has checked in yet. Once a device taps a MediaHub card, it "
+"will show up here."
+msgstr ""
+
+#: templates/devices.html:18
+msgid "Device ID"
+msgstr ""
+
+#: templates/devices.html:19
+msgid "IP address"
+msgstr ""
+
+#: templates/devices.html:21
+msgid "First seen"
+msgstr ""
+
+#: templates/devices.html:22
+msgid "Last card"
+msgstr ""
+
+#: templates/index.html:6
+msgid "Central management of RFID assignments for your ESPuinos."
+msgstr ""
+
+#: templates/index.html:13
+msgid "Keep an eye on registered devices and their sync status."
+msgstr ""
+
+#: templates/index.html:20
+msgid "Define which RFID card plays which content and play mode."
+msgstr ""
+
+#: templates/index.html:21
+#, python-format
+msgid "%(num)s assigned"
+msgstr ""
+
+#: templates/index.html:27
+msgid "Cards registered on tap but not yet assigned."
+msgstr ""
+
+#: templates/index.html:28
+#, python-format
+msgid "%(num)s pending"
+msgstr ""
+
+#: templates/index.html:34
+msgid "Storage usage per card; uploads happen right in the assignment form."
+msgstr ""
+
+#: templates/index.html:41
+msgid "Delete behavior (lazy/secure) and other options."
+msgstr ""
+
+#: templates/login.html:3 templates/login.html:7 templates/login.html:18
+msgid "Sign in"
+msgstr ""
+
+#: templates/login.html:8
+msgid "This MediaHub is password-protected."
+msgstr ""
+
+#: templates/login.html:14
+msgid "Password"
+msgstr ""
+
+#: templates/media.html:8
+msgid "Storage usage per card. Uploads happen right in the card assignment form."
+msgstr ""
+
+#: templates/media.html:12
+msgid "No media files uploaded yet."
+msgstr ""
+
+#: templates/media.html:20
+msgid "Files"
+msgstr ""
+
+#: templates/media.html:21
+msgid "Size"
+msgstr ""
+
+#: templates/media.html:32
+msgid "Manage"
+msgstr ""
+
+#: templates/settings.html:8
+msgid "Configure how the hub behaves when a card assignment is deleted."
+msgstr ""
+
+#: templates/settings.html:13
+msgid "Delete behavior"
+msgstr ""
+
+#: templates/settings.html:18
+msgid "Lazy delete"
+msgstr ""
+
+#: templates/settings.html:19
+msgid ""
+"the hub only removes its own entry. The card keeps playing on the ESPuino"
+" from its local cache, even offline."
+msgstr ""
+
+#: templates/settings.html:25
+msgid "Secure delete"
+msgstr ""
+
+#: templates/settings.html:26
+msgid ""
+"the hub first calls DELETE /rfid on the ESPuino and only removes its own "
+"entry after a confirmed 200 response."
+msgstr ""
+
+#: templates/settings.html:38
+msgid "Hub password"
+msgstr ""
+
+#: templates/settings.html:39
+msgid ""
+"Optional — protects the web UI below. The ESPuino-facing API stays "
+"reachable either way, since devices can't log in."
+msgstr ""
+
+#: templates/settings.html:44
+msgid "New password"
+msgstr ""
+
+#: templates/settings.html:48
+msgid "Confirm new password"
+msgstr ""
+
+#: templates/settings.html:52
+msgid "Set password"
+msgstr ""
+
+#: templates/settings.html:54
+msgid "Remove password"
+msgstr ""
+
