@@ -59,7 +59,7 @@ Der Abgleich passiert ausschließlich **pro Karte, beim Auflegen** — gekapselt
 
 Der NVS-Wert bleibt `#`-getrennt: `<pfad> # <playMode> # …` (siehe `RfidCommon.cpp`). Für eine MediaHub-Karte steht im **Pfad-Feld** ein eigenes Schema statt eines SD-Pfads:
 
-```
+```text
 mediahub://<host:port>
 ```
 
@@ -100,7 +100,7 @@ Die Karten-ID entsteht zwangsläufig zuerst am ESPuino (er ist der Leser) und mu
 
 Einrichtungs-Ablauf end-to-end:
 
-```
+```text
 1. Web-UI: Karte auflegen, Hub-Server wählen, Speichern  → NVS: cardId → mediahub://…, MEDIAHUB (kein Hub-Kontakt)
 2. Karte zum Abspielen auflegen                          → Hub-Anfrage; Hub kennt sie nicht → registriert + Fehler
 3. Am Hub-Web-UI Inhalt zuweisen                         → Manifest existiert
@@ -109,7 +109,7 @@ Einrichtungs-Ablauf end-to-end:
 
 ## 6. Endpunkte
 
-```
+```text
 Manifest (pro Karte)   GET  http://<host:port>/<espId>/card/<cardId>/manifest.json
 Mediendateien          GET  <filesBaseUrl>/<files[].path>
 ```
@@ -136,7 +136,7 @@ Ein Manifest-Request beim Auflegen dient zugleich der **Registrierung** (§5.3):
 ```
 
 | Feld | Bedeutung / Verwendung auf dem ESPuino |
-|---|---|
+| --- | --- |
 | `schema` | Format-Version für Vorwärtskompatibilität. |
 | `cardId` | Gegenprüfung, dass das Manifest zur aufgelegten Karte gehört. |
 | `version` | **Opaker Änderungsstempel = SHA-256 des kanonischen Manifests, berechnet auf dem Hub.** Der ESPuino rechnet hier nichts, er **vergleicht nur Strings**. Grundlage der Änderungserkennung. Da es ein Content-Hash ist, kann der Hub das „Hochzählen" nicht vergessen. |
@@ -192,7 +192,7 @@ Ein „Fallback-playMode" im NVS entfällt damit: `MEDIAHUB` allein ist nicht ab
 
 Die Primitive kapselt Manifest-Beschaffung, lokalen Integritätscheck und Download. Sie läuft **im Vordergrund beim Auflegen** (mit Play + Fortschritt). Der Hintergrund-`version`-Check danach lädt **nichts** — er markiert bei einer Änderung nur „stale" (§9, §11).
 
-```
+```text
 MediaHub_EnsureCard(cardId, {showProgress}):
     manifest ← Cache /.mediahub/manifests/<cardId>.json
     wenn kein Cache und Hub erreichbar:
@@ -332,7 +332,7 @@ Ein Code-Pfad für beide Auslöser: Der **Nutzer** löscht die Karte im ESPuino-
 ## 16. Entscheidungslog
 
 | # | Entscheidung |
-|---|---|
+| --- | --- |
 | 1 | Lokaler Hub (Docker), keine Cloud. |
 | 2 | Nichts auf der Karte; nur die 12-stellige Nummer. |
 | 3 | NVS-Format unverändert; Hub-Adresse via `mediahub://` im Pfad-Feld. |
