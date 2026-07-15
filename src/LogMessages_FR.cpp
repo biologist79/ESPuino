@@ -251,4 +251,6 @@ const char mediaHubDownloadingFile[] = "MediaHub : téléchargement de %s.";
 const char mediaHubDownloadFailed[] = "MediaHub : échec du téléchargement de %s.";
 const char mediaHubVerifyFailed[] = "MediaHub : échec de la vérification SHA-256 de %s.";
 const char mediaHubPlayingAfterSync[] = "MediaHub : synchronisation terminée, démarrage de la lecture.";
+const char mediaHubMarkedStale[] = "MediaHub : changement détecté, la carte sera mise à jour au prochain passage.";
+const char mediaHubResyncing[] = "MediaHub : la carte a changé, resynchronisation en cours.";
 #endif

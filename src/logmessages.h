@@ -252,3 +252,5 @@ extern const char mediaHubDownloadingFile[];
 extern const char mediaHubDownloadFailed[];
 extern const char mediaHubVerifyFailed[];
 extern const char mediaHubPlayingAfterSync[];
+extern const char mediaHubMarkedStale[];
+extern const char mediaHubResyncing[];
