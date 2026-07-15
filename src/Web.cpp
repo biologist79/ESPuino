@@ -65,7 +65,12 @@ static std::atomic<bool> uploadAborted = false;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-static void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+// Raw (non-multipart) request body: one PUT/POST per file, the target path
+// (folder + filename) travels in the "path" query param since a raw body
+// carries no per-part filename. The client is responsible for looping over
+// multiple files sequentially - see the double-buffer/writer-task machinery
+// below, which only supports one upload in flight at a time.
+static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 static void explorerHandleFileStorageTask(void *parameter);
 static void explorerHandleListRequest(AsyncWebServerRequest *request);
 static void explorerHandleDownloadRequest(AsyncWebServerRequest *request);
@@ -608,7 +613,7 @@ void webserverStart(void) {
 					request->send(200);
 				}
 			},
-			explorerHandleFileUpload);
+			NULL, explorerHandleFileUpload);
 
 		wServer.on("/explorerdownload", HTTP_GET, explorerHandleDownloadRequest);
 
@@ -1724,28 +1729,22 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 	}
 }
 
-// Handles file upload request from the explorer
-// requires a GET parameter path, as directory path to the file
-void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-
+// Handles a raw (non-multipart) file upload request from the explorer.
+// requires a GET parameter path (folder + filename) for the target file.
+// One request per file; the client loops over multiple files sequentially
+// since only one upload can be in flight at a time (shared buffers below).
+static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 	System_UpdateActivityTimer();
 
-	// New File
-	if (!index) {
-		// reset abort flag
+	if (index == 0) {
 		uploadAborted = false;
 
-		String utf8Folder = "/";
-		String utf8FilePath;
+		String filePath = "/";
 		if (request->hasParam("path")) {
-			const AsyncWebParameter *param = request->getParam("path");
-			utf8Folder = param->value() + "/";
+			filePath = request->getParam("path")->value();
 		}
-		utf8FilePath = utf8Folder + filename;
 
-		const char *filePath = utf8FilePath.c_str();
-
-		Log_Printf(LOGLEVEL_INFO, writingFile, filePath);
+		Log_Printf(LOGLEVEL_INFO, writingFile, filePath.c_str());
 
 		if (!allocateDoubleBuffer()) {
 			// we failed to allocate enough memory
@@ -1754,7 +1753,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			return;
 		}
 
-		// Create Queue for receiving a signal from the store task as synchronisation
 		if (explorerFileUploadFinished == NULL) {
 			explorerFileUploadFinished = xSemaphoreCreateBinary();
 		} else {
@@ -1770,8 +1768,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			buffer_full[i] = false;
 		}
 
-		// Create Task for handling the storage of the data
-		const char *filePathCopy = x_strdup(filePath);
+		const char *filePathCopy = x_strdup(filePath.c_str());
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
 			"fileStorageTask", /* Name of the task */
@@ -1782,10 +1779,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			1 /* Core where the task should run */
 		);
 
-		// register for early disconnect events
 		request->onDisconnect([]() {
-			// client went away before we were finished...
-			// trigger task suicide, since we can not use Log_Println here
 			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
 		});
 	}
@@ -1837,7 +1831,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 	}
 
-	if (final) {
+	if (index + len >= total) {
 		if (uploadAborted) {
 			handleUploadError(request, 500);
 			return;
@@ -1848,7 +1842,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
-		// watit until the storage task is sending the signal to finish
+		// wait until the storage task is sending the signal to finish
 		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
 			// timeout, something went wrong
 			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
