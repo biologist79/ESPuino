@@ -237,4 +237,13 @@ const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WL
 const char mDNSStarted[] = "mDNS gestartet: http://%s.local";
 const char mDNSFailed[] = "mDNS Start fehlgeschlagen, Hostname: %s";
 const char restartAfterOperationModeChange[] = "Operation Mode geändert. ESPuino wird neu gestartet...";
+
+// MediaHub
+const char mediaHubNotReachable[] = "MediaHub nicht erreichbar.";
+const char mediaHubInvalidPath[] = "MediaHub: ungültige Hub-Adresse im NVS.";
+const char mediaHubCardPending[] = "MediaHub: Karte ist (noch) nicht zugewiesen.";
+const char mediaHubUnexpectedStatus[] = "MediaHub: unerwarteter Status-Code %d.";
+const char mediaHubInvalidManifest[] = "MediaHub: Manifest ungültig oder unvollständig.";
+const char mediaHubFileModeNotYetSupported[] = "MediaHub: Datei-Wiedergabe ist noch nicht implementiert.";
+const char mediaHubWebstreamFromManifest[] = "MediaHub: Starte Webstream aus Manifest.";
 #endif

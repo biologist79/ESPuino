@@ -237,3 +237,12 @@ extern const char mDNSFailed[];
 extern const char restartAfterOperationModeChange[];
 extern const char jumpForwardsToFolder[];
 extern const char jumpBackwardsToFolder[];
+
+// MediaHub
+extern const char mediaHubNotReachable[];
+extern const char mediaHubInvalidPath[];
+extern const char mediaHubCardPending[];
+extern const char mediaHubUnexpectedStatus[];
+extern const char mediaHubInvalidManifest[];
+extern const char mediaHubFileModeNotYetSupported[];
+extern const char mediaHubWebstreamFromManifest[];
