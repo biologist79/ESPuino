@@ -243,6 +243,10 @@ void System_Restart(void) {
 	System_Rebooting = true;
 }
 
+bool System_IsRestartOrSleepPending(void) {
+	return System_Rebooting || System_GoToSleep;
+}
+
 void System_RebootHandler(void) {
 	if (System_Rebooting) {
 		// prepare power down (shutdown common modules)

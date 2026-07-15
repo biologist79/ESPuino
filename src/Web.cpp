@@ -2696,13 +2696,17 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 			Cmd_Action(CMD_STOP);
 		}
 		// MediaHub cascade (concept §13.1): the NVS entry's path field starts
-		// with "mediahub://" for MediaHub-managed cards. Checked before the
-		// NVS entry itself is removed below.
+		// with "mediahub://" for MediaHub-managed cards. Checked - and cleaned
+		// up - before the NVS entry itself is removed below: if the cleanup
+		// fails, the NVS entry is deliberately left in place so a retry can
+		// still recognize the card as MediaHub-managed and try again. Removing
+		// the NVS entry unconditionally would lose that marker on a partial
+		// failure, orphaning the local media/manifest files forever.
 		const String nvsValue = gPrefsRfid.getString(tagId.c_str(), "");
 		const bool isMediaHubCard = nvsValue.startsWith(String(stringDelimiter) + MediaHub_PathPrefix);
 		const bool mediaHubCleanupOk = !isMediaHubCard || MediaHub_DeleteCard(tagId.c_str());
 
-		if (gPrefsRfid.remove(tagId.c_str()) && mediaHubCleanupOk) {
+		if (mediaHubCleanupOk && gPrefsRfid.remove(tagId.c_str())) {
 			Rfid_ResetLastTag(); // The tag means nothing now: make sure re-applying it is not deduped away
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
