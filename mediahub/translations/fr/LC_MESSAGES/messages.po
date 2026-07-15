@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESPuino MediaHub\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-15 15:50+0200\n"
+"POT-Creation-Date: 2026-07-15 16:18+0200\n"
 "PO-Revision-Date: 2026-07-15 09:43+0200\n"
 "Last-Translator: ESPuino MediaHub\n"
 "Language: fr\n"
@@ -17,23 +17,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app.py:108
+#: app.py:118
 msgid "Incorrect password."
 msgstr "Mot de passe incorrect."
 
-#: app.py:130
+#: app.py:140
 #, python-format
 msgid "%(num)s device"
 msgid_plural "%(num)s devices"
 msgstr[0] "%(num)s appareil"
 msgstr[1] "%(num)s appareils"
 
-#: app.py:150
+#: app.py:160
 #, python-format
 msgid "Delete ESPuino %(esp_id)s?"
 msgstr "Supprimer l'ESPuino %(esp_id)s ?"
 
-#: app.py:152
+#: app.py:162
 #, python-format
 msgid ""
 "There is still %(num)s card assignment for this ESPuino, which must be "
@@ -49,14 +49,14 @@ msgstr[0] ""
 "cartes ne sont supprimées que localement dans MediaHub."
 msgstr[1] ""
 "Il reste encore %(num)s assignations de cartes pour cet ESPuino, qui "
-"doivent d'abord être supprimées. Les supprimer automatiquement ? "
-"Remarque : les cartes ne sont supprimées que localement dans MediaHub."
+"doivent d'abord être supprimées. Les supprimer automatiquement ? Remarque"
+" : les cartes ne sont supprimées que localement dans MediaHub."
 
-#: app.py:178
+#: app.py:188
 msgid "Alias saved."
 msgstr "Alias enregistré."
 
-#: app.py:188
+#: app.py:198
 #, python-format
 msgid ""
 "Device %(esp_id)s and its %(num)s card assignment(s) deleted (locally in "
@@ -65,46 +65,55 @@ msgstr ""
 "Appareil %(esp_id)s et ses %(num)s assignation(s) de carte supprimés "
 "(uniquement localement dans MediaHub)."
 
-#: app.py:190
+#: app.py:200
 #, python-format
 msgid "Device %(esp_id)s deleted."
 msgstr "Appareil %(esp_id)s supprimé."
 
-#: app.py:199 templates/card_form.html:29
+#: app.py:209 templates/card_form.html:29
 msgid "Webradio"
 msgstr "Webradio"
 
-#: app.py:201
+#: app.py:211
 #, python-format
 msgid "%(num)s file"
 msgid_plural "%(num)s files"
 msgstr[0] "%(num)s fichier"
 msgstr[1] "%(num)s fichiers"
 
-#: app.py:229
+#: app.py:261
 msgid "Card ID must be exactly 12 digits."
 msgstr "L'ID de la carte doit comporter exactement 12 chiffres."
 
-#: app.py:233
+#: app.py:265
 msgid "Please choose a known ESPuino."
 msgstr "Veuillez choisir un ESPuino connu."
 
-#: app.py:242
+#: app.py:274 app.py:294
 #, python-format
 msgid "Card %(id)s is already assigned on this ESPuino — opening it for editing."
 msgstr ""
 "La carte %(id)s est déjà assignée sur cet ESPuino — ouverture pour "
 "modification."
 
-#: app.py:268
+#: app.py:288
+msgid "Please choose a different, known ESPuino."
+msgstr "Veuillez choisir un autre ESPuino connu."
+
+#: app.py:308
+#, python-format
+msgid "Card %(id)s duplicated to %(esp_id)s."
+msgstr "Carte %(id)s dupliquée sur %(esp_id)s."
+
+#: app.py:332
 msgid "A stream URL is required for webradio."
 msgstr "Une URL de flux est requise pour la webradio."
 
-#: app.py:277
+#: app.py:341
 msgid "Please choose a valid play mode."
 msgstr "Veuillez choisir un mode de lecture valide."
 
-#: app.py:296
+#: app.py:360
 #, python-format
 msgid ""
 "Some selected files could not be used (missing, or not readable by the "
@@ -113,32 +122,32 @@ msgstr ""
 "Certains fichiers sélectionnés n'ont pas pu être utilisés (absents ou non"
 " lisibles par l'utilisateur du conteneur) et ont été ignorés : %(paths)s"
 
-#: app.py:305
+#: app.py:369
 msgid "At least one audio file is required."
 msgstr "Au moins un fichier audio est requis."
 
-#: app.py:309
+#: app.py:373
 msgid "This play mode only supports a single file — please select just one."
 msgstr ""
 "Ce mode de lecture ne prend en charge qu'un seul fichier — veuillez n'en "
 "sélectionner qu'un."
 
-#: app.py:315
+#: app.py:379
 #, python-format
 msgid "Card %(id)s assigned."
 msgstr "Carte %(id)s assignée."
 
-#: app.py:333
+#: app.py:398
 #, python-format
 msgid "Force refresh triggered for card %(id)s."
 msgstr "Actualisation forcée déclenchée pour la carte %(id)s."
 
-#: app.py:340
+#: app.py:405
 #, python-format
 msgid "Force refresh triggered for all %(num)s cards."
 msgstr "Actualisation forcée déclenchée pour les %(num)s cartes."
 
-#: app.py:359
+#: app.py:424
 #, python-format
 msgid ""
 "Secure delete: ESPuino (%(esp_id)s) did not confirm the deletion. Card "
@@ -147,84 +156,88 @@ msgstr ""
 "Suppression sécurisée : l'ESPuino (%(esp_id)s) n'a pas confirmé la "
 "suppression. La carte a été conservée, veuillez réessayer."
 
-#: app.py:372
+#: app.py:437
 #, python-format
 msgid "Card %(id)s deleted (%(mode)s)."
 msgstr "Carte %(id)s supprimée (%(mode)s)."
 
-#: app.py:423
+#: app.py:509
+msgid "Recursion depth must be between 0 and 20."
+msgstr "La profondeur de récursion doit être comprise entre 0 et 20."
+
+#: app.py:512
 msgid "Settings saved."
 msgstr "Paramètres enregistrés."
 
-#: app.py:433
+#: app.py:522
 msgid "Please enter a password."
 msgstr "Veuillez saisir un mot de passe."
 
-#: app.py:435
+#: app.py:524
 msgid "Passwords do not match."
 msgstr "Les mots de passe ne correspondent pas."
 
-#: app.py:438
+#: app.py:527
 msgid "Hub password set."
 msgstr "Mot de passe du hub défini."
 
-#: app.py:446
+#: app.py:535
 msgid "Hub password removed."
 msgstr "Mot de passe du hub supprimé."
 
-#: manifest.py:72
+#: manifest.py:79
 msgid "Single track"
 msgstr "Piste unique"
 
-#: manifest.py:73
+#: manifest.py:80
 msgid "Single track (loop)"
 msgstr "Piste unique (boucle)"
 
-#: manifest.py:74
+#: manifest.py:81
 msgid "Audiobook (remembers position)"
 msgstr "Livre audio (mémorise la position)"
 
-#: manifest.py:75
+#: manifest.py:82
 msgid "Audiobook (loop)"
 msgstr "Livre audio (boucle)"
 
-#: manifest.py:76
+#: manifest.py:83
 msgid "Audiobook, recursive (remembers position)"
 msgstr "Livre audio, récursif (mémorise la position)"
 
-#: manifest.py:77
+#: manifest.py:84
 msgid "All tracks of a folder (sorted)"
 msgstr "Toutes les pistes d'un dossier (triées)"
 
-#: manifest.py:78
+#: manifest.py:85
 msgid "All tracks of a folder (shuffled)"
 msgstr "Toutes les pistes d'un dossier (aléatoire)"
 
-#: manifest.py:79
+#: manifest.py:86
 msgid "All tracks of a folder (sorted, loop)"
 msgstr "Toutes les pistes d'un dossier (triées, boucle)"
 
-#: manifest.py:80
+#: manifest.py:87
 msgid "All tracks of a folder (shuffled, loop)"
 msgstr "Toutes les pistes d'un dossier (aléatoire, boucle)"
 
-#: manifest.py:81
+#: manifest.py:88
 msgid "All tracks, recursive (shuffled)"
 msgstr "Toutes les pistes, récursif (aléatoire)"
 
-#: manifest.py:82
+#: manifest.py:89
 msgid "All tracks, recursive (sorted)"
 msgstr "Toutes les pistes, récursif (triées)"
 
-#: manifest.py:83
+#: manifest.py:90
 msgid "Single random track of a folder"
 msgstr "Piste aléatoire d'un dossier"
 
-#: manifest.py:84
+#: manifest.py:91
 msgid "Random subfolder (sorted)"
 msgstr "Sous-dossier aléatoire (trié)"
 
-#: manifest.py:85
+#: manifest.py:92
 msgid "Random subfolder (shuffled)"
 msgstr "Sous-dossier aléatoire (aléatoire)"
 
@@ -323,23 +336,23 @@ msgstr ""
 "Les fichiers proviennent de la bibliothèque montée dans /media — MediaHub"
 " n'en conserve aucune copie."
 
-#: templates/card_form.html:59
+#: templates/card_form.html:61
 msgid "Use folder"
 msgstr "Utiliser le dossier"
 
-#: templates/card_form.html:60
+#: templates/card_form.html:62
 msgid "No audio files here."
 msgstr "Aucun fichier audio ici."
 
-#: templates/card_form.html:61
+#: templates/card_form.html:63
 msgid "Remove"
 msgstr "Retirer"
 
-#: templates/card_form.html:62
+#: templates/card_form.html:64
 msgid "Could not list this folder (permission denied?)."
 msgstr "Ce dossier n'a pas pu être listé (accès refusé ?)."
 
-#: templates/card_form.html:64
+#: templates/card_form.html:66
 msgid ""
 "This play mode only supports one file — pick a different mode to select "
 "more."
@@ -347,16 +360,24 @@ msgstr ""
 "Ce mode de lecture ne prend en charge qu'un seul fichier — choisissez un "
 "autre mode pour en sélectionner plusieurs."
 
-#: templates/card_form.html:72
+#: templates/card_form.html:68
+msgid ""
+"Includes subfolders too (recursive play mode; depth configurable in "
+"Settings)."
+msgstr ""
+"Inclut aussi les sous-dossiers (mode de lecture récursif ; profondeur "
+"configurable dans les paramètres)."
+
+#: templates/card_form.html:76
 msgid "Stream URL"
 msgstr "URL du flux"
 
-#: templates/card_form.html:78 templates/devices.html:35
-#: templates/settings.html:33
+#: templates/card_form.html:82 templates/devices.html:35
+#: templates/settings.html:40
 msgid "Save"
 msgstr "Enregistrer"
 
-#: templates/card_form.html:79
+#: templates/card_form.html:83 templates/cards.html:132
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -466,34 +487,55 @@ msgstr "assignée"
 msgid "pending"
 msgstr "en attente"
 
-#: templates/cards.html:86
+#: templates/cards.html:91
 msgid "Assign"
 msgstr "Assigner"
 
-#: templates/cards.html:86
+#: templates/cards.html:91
 msgid "Edit"
 msgstr "Modifier"
 
-#: templates/cards.html:90
+#: templates/cards.html:95
 msgid "Force refresh"
 msgstr "Actualisation forcée"
 
-#: templates/cards.html:94
+#: templates/cards.html:99
 msgid "Could not load the manifest."
 msgstr "Le manifeste n'a pas pu être chargé."
 
-#: templates/cards.html:94
+#: templates/cards.html:99
 msgid "Manifest"
 msgstr "Manifeste"
 
-#: templates/cards.html:96
+#: templates/cards.html:103
+#, python-format
+msgid "Copy card %(id)s's configuration to:"
+msgstr "Copier la configuration de la carte %(id)s vers :"
+
+#: templates/cards.html:104
+msgid "No other known ESPuino to duplicate to yet."
+msgstr "Aucun autre ESPuino connu vers lequel dupliquer pour l'instant."
+
+#: templates/cards.html:104 templates/cards.html:131
+msgid "Duplicate"
+msgstr "Dupliquer"
+
+#: templates/cards.html:106
 #, python-format
 msgid "Really delete card %(id)s?"
 msgstr "Vraiment supprimer la carte %(id)s ?"
 
-#: templates/cards.html:97 templates/devices.html:45
+#: templates/cards.html:107 templates/devices.html:45
 msgid "Delete"
 msgstr "Supprimer"
+
+#: templates/cards.html:124
+msgid "Duplicate to another ESPuino"
+msgstr "Dupliquer vers un autre ESPuino"
+
+#: templates/cards.html:127
+msgid "Target ESPuino"
+msgstr "ESPuino cible"
 
 #: templates/devices.html:7 templates/index.html:12
 msgid "ESPuinos"
@@ -612,10 +654,13 @@ msgid "Manage"
 msgstr "Gérer"
 
 #: templates/settings.html:8
-msgid "Configure how the hub behaves when a card assignment is deleted."
+msgid ""
+"Configure how the hub behaves when a card assignment is deleted, and how "
+"deep it looks into subfolders for recursive play modes."
 msgstr ""
 "Configure le comportement du hub lors de la suppression d'une assignation"
-" de carte."
+" de carte, ainsi que la profondeur d'exploration des sous-dossiers pour "
+"les modes de lecture récursifs."
 
 #: templates/settings.html:13
 msgid "Delete behavior"
@@ -649,11 +694,26 @@ msgstr ""
 "propre entrée qu'après une réponse 200 confirmée. La carte n'est donc "
 "supprimée dans le hub qu'une fois la suppression réussie sur l'ESPuino."
 
-#: templates/settings.html:38
+#: templates/settings.html:33
+msgid "Recursion depth"
+msgstr "Profondeur de récursion"
+
+#: templates/settings.html:36
+msgid ""
+"How many subfolder levels \"Use folder\" descends into for recursive play"
+" modes (Audiobook recursive, All tracks recursive). Non-recursive play "
+"modes always use just the folder itself, regardless of this setting."
+msgstr ""
+"Combien de niveaux de sous-dossiers « Utiliser le dossier » parcourt "
+"pour les modes de lecture récursifs (livre audio récursif, toutes les "
+"pistes récursif). Les modes non récursifs n'utilisent toujours que le "
+"dossier lui-même, quel que soit ce réglage."
+
+#: templates/settings.html:45
 msgid "Hub password"
 msgstr "Mot de passe du hub"
 
-#: templates/settings.html:39
+#: templates/settings.html:46
 msgid ""
 "Optional — protects the web UI below. The ESPuino-facing API stays "
 "reachable either way, since devices can't log in."
@@ -662,19 +722,19 @@ msgstr ""
 "ESPuino reste accessible dans tous les cas, puisque les appareils ne "
 "peuvent pas se connecter."
 
-#: templates/settings.html:44
+#: templates/settings.html:51
 msgid "New password"
 msgstr "Nouveau mot de passe"
 
-#: templates/settings.html:48
+#: templates/settings.html:55
 msgid "Confirm new password"
 msgstr "Confirmer le nouveau mot de passe"
 
-#: templates/settings.html:52
+#: templates/settings.html:59
 msgid "Set password"
 msgstr "Définir le mot de passe"
 
-#: templates/settings.html:54
+#: templates/settings.html:61
 msgid "Remove password"
 msgstr "Supprimer le mot de passe"
 

@@ -81,6 +81,33 @@ def list_audio_files_in_directory(media_root, relpath):
     return [f"{relpath}/{name}" if relpath else name for name in listing["files"]]
 
 
+def list_audio_files_recursive(media_root, relpath, max_depth):
+    """All audio files under relpath, descending up to max_depth levels of
+    subfolders (0 = relpath's own files only). Used for "use folder" when
+    the card's play mode is one of the recursive ones (manifest.py
+    RECURSIVE_PLAY_MODES) — mirrors what the ESPuino itself would recurse
+    into, capped so a huge library can't produce an unbounded manifest.
+    """
+    results = []
+
+    def walk(rel, depth_left):
+        listing = list_directory(media_root, rel)
+        if listing is None:
+            return
+        base = rel.strip("/")
+        for name in listing["files"]:
+            results.append(f"{base}/{name}" if base else name)
+        if depth_left <= 0:
+            return
+        for name in listing["dirs"]:
+            child = f"{base}/{name}" if base else name
+            walk(child, depth_left - 1)
+
+    walk(relpath, max_depth)
+    results.sort()
+    return results
+
+
 def stat_and_hash(media_root, relpath):
     """Validates relpath is a real, readable audio file inside media_root and
     returns {"path", "size", "sha256"} (path normalized with forward

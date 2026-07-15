@@ -21,10 +21,13 @@ from datetime import datetime, timezone
 
 _lock = threading.Lock()
 
+DEFAULT_RECURSION_DEPTH = 3
+
 _DEFAULT_DB = {
     "settings": {
         "delete_mode": "lazy",  # "lazy" | "secure" — see concept §13.1
         "password_hash": None,  # None = hub web UI has no login requirement
+        "recursion_depth": DEFAULT_RECURSION_DEPTH,  # subfolder levels "use folder" descends into for recursive play modes
     },
     "devices": {},
     "cards": {},
@@ -239,12 +242,22 @@ class Store:
 
     # -- settings ----------------------------------------------------
     def get_settings(self):
-        return self._read()["settings"]
+        # Merge over defaults so a db.json predating a newly-added setting
+        # (e.g. recursion_depth) still returns a usable value instead of
+        # requiring an explicit migration step for every new setting.
+        return {**_DEFAULT_DB["settings"], **self._read()["settings"]}
 
     def set_delete_mode(self, mode):
         def mutate(data):
             data["settings"]["delete_mode"] = mode
             return mode
+
+        return self._mutate(mutate)
+
+    def set_recursion_depth(self, depth):
+        def mutate(data):
+            data["settings"]["recursion_depth"] = depth
+            return depth
 
         return self._mutate(mutate)
 

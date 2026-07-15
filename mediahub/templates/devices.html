@@ -36,8 +36,8 @@
 						</form>
 					</td>
 					<td>{{ dev.ip }}</td>
-					<td>{{ dev.last_seen }}</td>
-					<td>{{ dev.first_seen }}</td>
+					<td>{{ dev.last_seen | shortdt }}</td>
+					<td>{{ dev.first_seen | shortdt }}</td>
 					<td><code>{{ dev.last_card_id }}</code></td>
 					<td>{{ card_count }}</td>
 					<td>

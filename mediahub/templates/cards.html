@@ -66,7 +66,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for card, content_label, device_label in cards %}
+				{% for card, content_label, content_detail, device_label in cards %}
 				{% set row_key = card.esp_id ~ "/" ~ card.card_id %}
 				<tr>
 					<td><code>{{ card.card_id }}</code></td>
@@ -79,8 +79,13 @@
 							<span class="badge badge-attention">{{ _('pending') }}</span>
 						{% endif %}
 					</td>
-					<td>{{ content_label }}</td>
-					<td>{{ card.last_seen }}</td>
+					<td>
+						{{ content_label }}
+						{% if content_detail %}
+						<span class="content-detail" title="{{ content_detail }}">{{ content_detail }}</span>
+						{% endif %}
+					</td>
+					<td>{{ card.last_seen | shortdt }}</td>
 					<td class="table-actions">
 						<a class="btn btn-small" href="{{ url_for('assign_card', esp_id=card.esp_id, card_id=card.card_id) }}">
 							{{ _('Assign') if card.status != "assigned" else _('Edit') }}
@@ -92,6 +97,11 @@
 						<button type="button" class="btn btn-small btn-secondary mh-manifest-btn"
 							data-key="{{ row_key }}" data-url="{{ url_for('manifest_preview', esp_id=card.esp_id, card_id=card.card_id) }}"
 							data-error="{{ _('Could not load the manifest.') }}">{{ _('Manifest') }}</button>
+						<button type="button" class="btn btn-small btn-secondary mh-duplicate-btn"
+							data-esp-id="{{ card.esp_id }}"
+							data-url="{{ url_for('duplicate_card', esp_id=card.esp_id, card_id=card.card_id) }}"
+							data-desc="{{ _('Copy card %(id)s\'s configuration to:', id=card.card_id) }}"
+							data-no-other-device="{{ _('No other known ESPuino to duplicate to yet.') }}">{{ _('Duplicate') }}</button>
 						{% endif %}
 						<form method="post" action="{{ url_for('delete_card', esp_id=card.esp_id, card_id=card.card_id) }}" onsubmit="return confirm('{{ _('Really delete card %(id)s?', id=card.card_id) }}');">
 							<button class="btn btn-small btn-danger" type="submit">{{ _('Delete') }}</button>
@@ -108,8 +118,27 @@
 		</table>
 	</div>
 {% endif %}
+
+<dialog id="duplicate-dialog" class="duplicate-dialog">
+	<form method="post" id="duplicate-form">
+		<h2>{{ _('Duplicate to another ESPuino') }}</h2>
+		<p class="muted" id="duplicate-dialog-desc"></p>
+		<div class="form-row">
+			<label for="duplicate-target">{{ _('Target ESPuino') }}</label>
+			<select id="duplicate-target" name="target_esp_id" required></select>
+		</div>
+		<div class="form-actions">
+			<button class="btn" type="submit">{{ _('Duplicate') }}</button>
+			<button class="btn btn-secondary" type="button" onclick="document.getElementById('duplicate-dialog').close()">{{ _('Cancel') }}</button>
+		</div>
+	</form>
+</dialog>
+<script type="application/json" id="duplicate-devices-data">
+	{{ devices | tojson }}
+</script>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/manifest-preview.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/duplicate-card.js') }}" defer></script>
 {% endblock %}

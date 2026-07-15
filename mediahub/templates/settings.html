@@ -5,7 +5,7 @@
 {% block content %}
 <section class="page-head">
 	<h1>{{ _('Settings') }}</h1>
-	<p class="muted">{{ _('Configure how the hub behaves when a card assignment is deleted.') }}</p>
+	<p class="muted">{{ _('Configure how the hub behaves when a card assignment is deleted, and how deep it looks into subfolders for recursive play modes.') }}</p>
 </section>
 
 <form class="form-card" method="post">
@@ -27,6 +27,13 @@
 				</span>
 			</label>
 		</div>
+	</div>
+
+	<div class="form-row">
+		<label for="recursion_depth">{{ _('Recursion depth') }}</label>
+		<input type="number" id="recursion_depth" name="recursion_depth" min="0" max="20" style="width: 100px"
+			value="{{ settings.recursion_depth }}">
+		<p class="muted">{{ _('How many subfolder levels "Use folder" descends into for recursive play modes (Audiobook recursive, All tracks recursive). Non-recursive play modes always use just the folder itself, regardless of this setting.') }}</p>
 	</div>
 
 	<div class="form-actions">

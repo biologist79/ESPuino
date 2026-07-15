@@ -7,12 +7,14 @@
 
 	function initMediaBrowser(root) {
 		var listUrl = root.dataset.listUrl;
+		var recursiveListUrl = root.dataset.recursiveListUrl;
 		var labels = JSON.parse(document.getElementById("media-tree-labels").textContent);
 		// Read from the JSON <script> block, not an HTML attribute: a raw
 		// tojson'd path containing a `"` would otherwise terminate the
 		// value="..." attribute early and truncate/corrupt it.
 		var selection = (labels.initialSelection || []).slice();
 		var singleFileModes = (labels.singleFileModes || []).map(String);
+		var recursivePlayModes = (labels.recursivePlayModes || []).map(String);
 		var playModeSelect = document.getElementById("play_mode");
 
 		var selectedListEl = document.getElementById("selected-files");
@@ -23,11 +25,22 @@
 			return !!playModeSelect && singleFileModes.indexOf(playModeSelect.value) !== -1;
 		}
 
+		function isRecursiveMode() {
+			return !!playModeSelect && recursivePlayModes.indexOf(playModeSelect.value) !== -1;
+		}
+
+		function useFolderTitle(disabled) {
+			if (disabled) {
+				return labels.singleFileOnly;
+			}
+			return isRecursiveMode() ? labels.recursiveHint : "";
+		}
+
 		function updateUseFolderButtons() {
 			var disabled = isSingleFileMode();
 			root.querySelectorAll(".mt-use-btn").forEach(function (btn) {
 				btn.disabled = disabled;
-				btn.title = disabled ? labels.singleFileOnly : "";
+				btn.title = useFolderTitle(disabled);
 			});
 		}
 
@@ -106,6 +119,24 @@
 			});
 		}
 
+		function fetchFilesForUseFolder(path) {
+			if (!isRecursiveMode()) {
+				return fetchListing(path).then(function (data) {
+					return data.files.map(function (name) {
+						return joinPath(path, name);
+					});
+				});
+			}
+			return fetch(recursiveListUrl + "?path=" + encodeURIComponent(path)).then(function (resp) {
+				if (!resp.ok) {
+					throw new Error("recursive listing failed");
+				}
+				return resp.json();
+			}).then(function (data) {
+				return data.files;
+			});
+		}
+
 		function buildDirNode(path, name) {
 			var li = document.createElement("li");
 			li.className = "mt-dir";
@@ -132,7 +163,7 @@
 			useBtn.className = "mt-use-btn";
 			useBtn.textContent = labels.useFolder;
 			useBtn.disabled = isSingleFileMode();
-			useBtn.title = useBtn.disabled ? labels.singleFileOnly : "";
+			useBtn.title = useFolderTitle(useBtn.disabled);
 
 			var children = document.createElement("ul");
 			children.className = "mt-children";
@@ -174,10 +205,8 @@
 			useBtn.addEventListener("click", function () {
 				var originalLabel = useBtn.textContent;
 				useBtn.disabled = true;
-				fetchListing(path).then(function (data) {
-					addPaths(data.files.map(function (name) {
-						return joinPath(path, name);
-					}));
+				fetchFilesForUseFolder(path).then(function (paths) {
+					addPaths(paths);
 				}).catch(function () {
 					window.alert(labels.listError);
 				}).finally(function () {

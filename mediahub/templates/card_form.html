@@ -50,7 +50,9 @@
 		<div class="form-row">
 			<span class="form-label">{{ _('Media library') }}</span>
 			<p class="muted">{{ _("Files come from the library mounted at /media — MediaHub doesn't store its own copies.") }}</p>
-			<div id="media-tree" class="media-tree" data-list-url="{{ url_for('media_browse') }}"></div>
+			<div id="media-tree" class="media-tree"
+				data-list-url="{{ url_for('media_browse') }}"
+				data-recursive-list-url="{{ url_for('media_browse_recursive') }}"></div>
 		</div>
 
 		<input type="hidden" name="selected_paths_json" id="selected-paths-json" value="[]">
@@ -62,6 +64,8 @@
 				"listError": _("Could not list this folder (permission denied?)."),
 				"singleFileModes": single_file_play_modes,
 				"singleFileOnly": _("This play mode only supports one file — pick a different mode to select more."),
+				"recursivePlayModes": recursive_play_modes,
+				"recursiveHint": _("Includes subfolders too (recursive play mode; depth configurable in Settings)."),
 				"initialSelection": card.files | map(attribute='path') | list
 			} | tojson }}
 		</script>

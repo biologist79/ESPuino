@@ -66,6 +66,16 @@ app.jinja_env.globals["_"] = app.jinja_env.globals["gettext"]
 app.jinja_env.globals["get_locale"] = get_locale
 
 
+def _short_datetime(value):
+    """"2026-07-15T13:56:58+00:00" -> "2026-07-15 13:56" — timestamps are
+    always UTC (now_iso()), so the seconds/offset just add width without
+    adding information for an at-a-glance table."""
+    return value[:16].replace("T", " ") if value else value
+
+
+app.jinja_env.filters["shortdt"] = _short_datetime
+
+
 @app.route("/lang/<lang_code>")
 def set_language(lang_code):
     if lang_code in LANGUAGES:
@@ -201,13 +211,35 @@ def _content_label(card):
     return "📁 " + ngettext("%(num)s file", "%(num)s files", n) % {"num": n}
 
 
+def _content_detail(card):
+    """What's actually behind the label — one file's path, a shared folder
+    if every file sits in the same one, or the full file list as a last
+    resort. Shown truncated in the table with this as the hover tooltip."""
+    if card["kind"] == "webradio":
+        return card.get("stream_url") or ""
+    files = card.get("files", [])
+    if not files:
+        return ""
+    if len(files) == 1:
+        return files[0]["path"]
+    dirs = {os.path.dirname(f["path"]) for f in files}
+    if len(dirs) == 1:
+        return next(iter(dirs)) or "/"
+    return ", ".join(f["path"] for f in files)
+
+
 @app.route("/cards")
 def cards():
     only_pending = request.args.get("pending") == "1"
     cards_by_key = store.list_cards()
     devices_by_id = store.list_devices()
     rows = [
-        (c, _content_label(c), devices_by_id.get(c["esp_id"], {}).get("alias") or c["esp_id"])
+        (
+            c,
+            _content_label(c),
+            _content_detail(c),
+            devices_by_id.get(c["esp_id"], {}).get("alias") or c["esp_id"],
+        )
         for c in cards_by_key.values()
         if not only_pending or c["status"] == "pending"
     ]
@@ -243,6 +275,38 @@ def add_card():
             "info",
         )
     return redirect(url_for("assign_card", esp_id=esp_id, card_id=card_id))
+
+
+@app.route("/cards/<esp_id>/<card_id>/duplicate", methods=["POST"])
+def duplicate_card(esp_id, card_id):
+    source = store.get_card(esp_id, card_id)
+    if source is None or source["status"] != "assigned":
+        abort(404)
+
+    target_esp_id = request.form.get("target_esp_id", "").strip()
+    if target_esp_id == esp_id or target_esp_id not in store.list_devices():
+        flash(_("Please choose a different, known ESPuino."), "error")
+        return redirect(url_for("cards"))
+
+    existing = store.get_card(target_esp_id, card_id)
+    if existing and existing["status"] == "assigned":
+        flash(
+            _("Card %(id)s is already assigned on this ESPuino — opening it for editing.", id=card_id),
+            "info",
+        )
+        return redirect(url_for("assign_card", esp_id=target_esp_id, card_id=card_id))
+
+    store.save_assignment(
+        target_esp_id,
+        card_id,
+        source["name"],
+        source["kind"],
+        source["play_mode"],
+        source["stream_url"],
+        source["files"],
+    )
+    flash(_("Card %(id)s duplicated to %(esp_id)s.", id=card_id, esp_id=target_esp_id), "success")
+    return redirect(url_for("cards"))
 
 
 @app.route("/cards/<esp_id>/<card_id>/assign", methods=["GET", "POST"])
@@ -323,6 +387,7 @@ def assign_card(esp_id, card_id):
         device=store.list_devices().get(esp_id),
         play_modes=manifest_lib.FILE_PLAY_MODES,
         single_file_play_modes=list(manifest_lib.SINGLE_FILE_PLAY_MODES),
+        recursive_play_modes=list(manifest_lib.RECURSIVE_PLAY_MODES),
     )
 
 
@@ -411,6 +476,19 @@ def media_browse():
     return jsonify(path=relpath.strip("/"), dirs=listing["dirs"], files=listing["files"])
 
 
+@app.route("/media/browse-recursive")
+def media_browse_recursive():
+    """Like /media/browse, but gathers audio files from subfolders too (up
+    to the configured recursion depth) — used by "use folder" when the
+    card's play mode is one of the recursive ones."""
+    relpath = request.args.get("path", "")
+    if media_library.list_directory(MEDIA_DIR, relpath) is None:
+        abort(404)
+    depth = store.get_settings().get("recursion_depth", store_lib.DEFAULT_RECURSION_DEPTH)
+    files = media_library.list_audio_files_recursive(MEDIA_DIR, relpath, depth)
+    return jsonify(path=relpath.strip("/"), files=files)
+
+
 # --------------------------------------------------------------------------
 # Web UI: settings
 # --------------------------------------------------------------------------
@@ -420,7 +498,18 @@ def settings():
         mode = request.form.get("delete_mode")
         if mode in ("lazy", "secure"):
             store.set_delete_mode(mode)
-            flash(_("Settings saved."), "success")
+
+        try:
+            depth = int(request.form.get("recursion_depth", ""))
+        except ValueError:
+            depth = -1
+        if 0 <= depth <= 20:
+            store.set_recursion_depth(depth)
+        else:
+            flash(_("Recursion depth must be between 0 and 20."), "error")
+            return redirect(url_for("settings"))
+
+        flash(_("Settings saved."), "success")
         return redirect(url_for("settings"))
     return render_template("settings.html", settings=store.get_settings())
 
