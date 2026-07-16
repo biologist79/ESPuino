@@ -15,6 +15,7 @@
 #include <HTTPClient.h>
 #include <algorithm>
 #include <atomic>
+#include <esp_heap_caps.h>
 #include <esp_task_wdt.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -304,16 +305,52 @@ static String MediaHub_Sha256Hex(const uint8_t digest[32]) {
 // explorerHandleFileStorageTask() in Web.cpp: while one buffer is being
 // written to SD by a dedicated task, the network read loop already fills the
 // other one, instead of serializing "read network" and "write SD" on the same
-// task. File-scope statics (not per-call locals) are fine here: only one
-// download ever runs at a time (MediaHub_BusyGuard), and re-initialized at
-// the top of every MediaHub_DownloadAndVerifyFile() call.
+// task.
+//
+// Allocated fresh per file, *after* that file's TLS handshake already
+// succeeded, and freed again once the transfer is done - not as a permanent
+// compile-time internal-DRAM array. A TLS handshake needs ~32-40 KB of
+// *internal* heap for its fixed in/out buffers (CONFIG_MBEDTLS_SSL_VARIABLE_
+// BUFFER_LENGTH is off); parking these 32 KB permanently in internal DRAM
+// left too little of it free/contiguous for that handshake to succeed on
+// https downloads (seen as HTTPC_ERROR_CONNECTION_REFUSED on real hardware).
+// Internal RAM stays the preferred allocator (PSRAM is SPI-attached and
+// measurably slower - moving these buffers there permanently cost the
+// throughput this double-buffering exists for in the first place); PSRAM is
+// only a last-resort fallback if internal allocation fails even at this
+// later, safer point.
 static constexpr size_t MediaHub_DownloadNumBuffers = 2;
-static uint8_t MediaHub_DownloadBuffers[MediaHub_DownloadNumBuffers][MediaHub_DownloadBufferSize];
+static uint8_t *MediaHub_DownloadBuffers[MediaHub_DownloadNumBuffers] = {nullptr, nullptr};
 static std::atomic<uint32_t> MediaHub_DownloadBufferBytes[MediaHub_DownloadNumBuffers];
 static std::atomic<bool> MediaHub_DownloadBufferFull[MediaHub_DownloadNumBuffers];
 static TaskHandle_t MediaHub_DownloadWriterTaskHandle = NULL;
 static SemaphoreHandle_t MediaHub_DownloadWriterDone = NULL;
 static volatile bool MediaHub_DownloadWriterError = false;
+
+static bool MediaHub_EnsureDownloadBuffersAllocated() {
+	for (size_t i = 0; i < MediaHub_DownloadNumBuffers; i++) {
+		if (MediaHub_DownloadBuffers[i] != nullptr) {
+			continue;
+		}
+		MediaHub_DownloadBuffers[i] = static_cast<uint8_t *>(heap_caps_malloc(MediaHub_DownloadBufferSize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+		if (MediaHub_DownloadBuffers[i] == nullptr) {
+			MediaHub_DownloadBuffers[i] = static_cast<uint8_t *>(heap_caps_malloc(MediaHub_DownloadBufferSize, MALLOC_CAP_SPIRAM));
+		}
+		if (MediaHub_DownloadBuffers[i] == nullptr) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Releases the two download buffers again once a file's transfer is done, so
+// they aren't parked in internal RAM across the next file's TLS handshake.
+static void MediaHub_FreeDownloadBuffers() {
+	for (size_t i = 0; i < MediaHub_DownloadNumBuffers; i++) {
+		heap_caps_free(MediaHub_DownloadBuffers[i]);
+		MediaHub_DownloadBuffers[i] = nullptr;
+	}
+}
 
 struct MediaHub_WriterTaskArgs {
 	File file; // already open at index 0, created by the caller
@@ -377,9 +414,17 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 		return false;
 	}
 
+	// The handshake (connect + TLS) happens here, before the download buffers
+	// exist - so it never has to compete with them for internal heap.
 	const int httpCode = http.GET();
 	if (httpCode != HTTP_CODE_OK) {
 		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadHttpError, httpCode, fileUrl.c_str());
+		http.end();
+		return false;
+	}
+
+	if (!MediaHub_EnsureDownloadBuffersAllocated()) {
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
 		http.end();
 		return false;
 	}
@@ -389,6 +434,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 	if (!tmpFile) {
 		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFileError, fileUrl.c_str());
 		http.end();
+		MediaHub_FreeDownloadBuffers();
 		return false;
 	}
 
@@ -495,6 +541,11 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 		transferError = true;
 	}
 
+	// The writer task has now stopped touching the buffers either way (done
+	// or aborted) - safe to release them before this file's next steps run,
+	// so a following file's TLS handshake doesn't have to compete with them.
+	MediaHub_FreeDownloadBuffers();
+
 	uint8_t digest[32];
 	mbedtls_sha256_finish(&shaCtx, digest);
 	mbedtls_sha256_free(&shaCtx);
@@ -527,6 +578,13 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 	const uint32_t elapsedMs = millis() - transferStartMs;
 	const float rateKBs = elapsedMs > 0 ? (totalRead / 1024.0f) / (elapsedMs / 1000.0f) : 0.0f;
 	Log_Printf(LOGLEVEL_NOTICE, mediaHubDownloadRate, fileUrl.c_str(), (unsigned) totalRead, rateKBs);
+
+	// Temporary diagnostic (kept for easy re-enabling, not deleted): confirms
+	// the per-file alloc/free of the download buffers isn't fragmenting the
+	// internal heap over a multi-file sync. Re-enable if fragmentation is
+	// ever suspected again - was confirmed stable across a multi-file test.
+	// Log_Printf(LOGLEVEL_NOTICE, "MediaHub: internal heap largestFreeBlock=%u after %s", (unsigned) heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL), fileUrl.c_str());
+
 	return true;
 }
 
