@@ -1060,7 +1060,10 @@ void AudioPlayer_Loop() {
 
 		if (gPlayProperties.playUntilTrackNumber == gPlayProperties.currentTrackNumber && gPlayProperties.playUntilTrackNumber > 0) {
 			if (gPlayProperties.saveLastPlayPosition) {
-				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, 0);
+				// Save the track we were about to start so playback resumes here after the
+				// sleep (mirrors the sleep-after-current-track path above). Writing 0/0 here
+				// would silently restart the audiobook from the beginning on next wake.
+				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 			}
 			gPlayProperties.playlistFinished = true;
 			gPlayProperties.playMode = NO_PLAYLIST;
