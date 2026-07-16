@@ -404,6 +404,15 @@ uint8_t Button_GetRotaryAction(uint8_t buttonIndex, bool clockwise) {
 		: gPrefsSettings.getUChar(cfg.prefsKeyCcw, cfg.defaultCcw);
 }
 
+// Compile-time default (settings.h / the override), ignoring any NVS override. Used by the
+// web-UI's "reset to factory settings".
+uint8_t Button_GetRotaryActionDefault(uint8_t buttonIndex, bool clockwise) {
+	if (buttonIndex >= (sizeof(rotaryCmdConfig) / sizeof(rotaryCmdConfig[0]))) {
+		return CMD_NOTHING;
+	}
+	return clockwise ? rotaryCmdConfig[buttonIndex].defaultCw : rotaryCmdConfig[buttonIndex].defaultCcw;
+}
+
 // currentState (not isPressed) is the live level: false means physically down right now. isPressed is a
 // consumable latch that the long-press handler clears while the finger is still on the button, so it is
 // useless as a "still held" signal.

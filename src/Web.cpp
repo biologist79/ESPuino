@@ -1344,6 +1344,13 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsSettings["multi34"].set(BUTTON_MULTI_34);
 		buttonsSettings["multi35"].set(BUTTON_MULTI_35);
 		buttonsSettings["multi45"].set(BUTTON_MULTI_45);
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char jsonCw[10], jsonCcw[11];
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			buttonsSettings[jsonCw].set(Button_GetRotaryActionDefault(i, true));
+			buttonsSettings[jsonCcw].set(Button_GetRotaryActionDefault(i, false));
+		}
 #ifdef USEROTARY_ENABLE
 		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
 		rotarySettings["reverse"].set(false); // REVERSE_ROTARY

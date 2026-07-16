@@ -97,7 +97,11 @@
 		"rotary": {
 			"title": "Rotary encoder",
 			"reverse": "Reverse direction of rotation",
-			"reverseExp": "Reverses the rotary encoder's counting/turning direction, e.g. if volume up/down is swapped."
+			"reverseExp": "Reverses the rotary encoder's counting/turning direction, e.g. if volume up/down is swapped.",
+			"gestures": "Hold button + turn encoder",
+			"gesturesExp": "While one of these buttons is held down, turning the encoder triggers the assigned action instead of changing the volume. 'Turn right' is the direction that raises the volume. The long-press action of such a button fires when it is released - and not at all if the encoder was turned.",
+			"ccw": "turn left",
+			"cw": "turn right"
 		}
 	},
 	"wifi": {
@@ -289,6 +293,8 @@
 					"151": "🌐 Announce IP-Address",
 					"152": "🕒 Announce current time",
 					"153": "💡 Toggle Ambient Light",
+					"154": "🔆 LED brightness up",
+					"155": "🔅 LED brightness down",
 					"0": "🗑 Remove assignment",
 					"170": "⏯ Toggle Play/Pause",
 					"171": "⏮ Previous track",

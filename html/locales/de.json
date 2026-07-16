@@ -97,7 +97,11 @@
 		"rotary": {
 			"title": "Drehimpulsgeber",
 			"reverse": "Drehrichtung umkehren",
-			"reverseExp": "Kehrt die Zähl-/Drehrichtung des Drehimpulsgebers um, z.B. falls Lauter/Leiser vertauscht ist."
+			"reverseExp": "Kehrt die Zähl-/Drehrichtung des Drehimpulsgebers um, z.B. falls Lauter/Leiser vertauscht ist.",
+			"gestures": "Taste halten + drehen",
+			"gesturesExp": "Solange eine dieser Tasten gehalten wird, löst Drehen am Drehimpulsgeber die zugewiesene Aktion aus, statt die Lautstärke zu ändern. 'Rechts drehen' ist die Richtung, die sonst lauter stellt. Die Lang-Aktion einer solchen Taste wird erst beim Loslassen ausgelöst - und gar nicht, wenn gedreht wurde.",
+			"ccw": "links drehen",
+			"cw": "rechts drehen"
 		}
 	},
 	"wifi": {
@@ -289,6 +293,8 @@
 					"151": "🌐 IP-Adresse ansagen",
 					"152": "🕒 Uhrzeit ansagen",
 					"153": "💡 Ambient Light umschalten",
+					"154": "🔆 LED-Helligkeit erhöhen",
+					"155": "🔅 LED-Helligkeit verringern",
 					"0": "🗑 Lösche Zuordnung",
 					"170": "⏯ Play/Pause",
 					"171": "⏮ Vorheriger Titel",

@@ -20,6 +20,7 @@ constexpr uint8_t BUTTON_NONE = 0xFFu;
 // button that is physically down right now AND has a rotary action configured, or BUTTON_NONE.
 uint8_t Button_GetHeldModifier(void);
 uint8_t Button_GetRotaryAction(uint8_t buttonIndex, bool clockwise);
+uint8_t Button_GetRotaryActionDefault(uint8_t buttonIndex, bool clockwise);
 void Button_MarkModifierUsed(uint8_t buttonIndex);
 
 void Button_Init(void);
