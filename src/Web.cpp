@@ -37,6 +37,12 @@
 #include <esp_task_wdt.h>
 #include <nvs.h>
 
+// An override written before this feature existed does not define it (settings-override.h replaces
+// settings.h wholesale), so fall back rather than break those builds.
+#ifndef JUMP_OFFSET_ROTARY
+	#define JUMP_OFFSET_ROTARY 10
+#endif
+
 typedef struct {
 	char nvsKey[cardIdStringSize];
 	char nvsEntry[512];
