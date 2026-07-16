@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 16.07.2026: Tools tab: keep the saved-RFID-assignments List/Export/Erase buttons always visible instead of hiding them (with dangling separator lines) when there are no assignments yet - grey them out and show the assignment count in each button label instead
 * 16.07.2026: Explorer file upload: send each file as its own raw (application/octet-stream) request instead of bundling the whole batch into one multipart/form-data POST - no MIME boundary parsing on the ESPuino side, ~450 -> ~650 kiB/s measured (#434)
 * 15.07.2026: Wlan/Web/accesspoint: test WiFi credentials live from the setup page - after saving, the box tries them on the station interface while the setup AP stays up, and shows connecting/failed/success right there instead of save -> reboot -> hope (#433), thanks to @mgoodfellow
 * 15.07.2026: Bt: small memory tweaks (#427), thanks to @Joe91

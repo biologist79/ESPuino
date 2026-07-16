@@ -1897,15 +1897,17 @@
 				<p data-i18n="tools.nvs.desc"></p>
 				<span class="container" style="padding: 0" id="listNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
-					<button class="btn btn-primary" type="button" data-bs-toggle="modal"
-						data-bs-target="#rfidListSavedAssignmentsModal" data-i18n="tools.nvs.list.show"></button>
+					<button class="btn btn-primary" type="button" id="showAssignmentsBtn" data-bs-toggle="modal"
+						data-bs-target="#rfidListSavedAssignmentsModal"><span
+							data-i18n="tools.nvs.list.show"></span><span id="showAssignmentsCount"></span></button>
 				</span>
 				<hr>
 				<span class="container" style="padding: 0" id="exportNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
 					<p data-i18n="tools.nvs.export.desc"></p>
-					<a type="submit" class="btn btn-primary" data-i18n="tools.nvs.export.button"
-						href="/explorerdownload?path=/backup.txt" target="_blank"></a>
+					<a type="submit" class="btn btn-primary" id="exportAssignmentsBtn"
+						href="/explorerdownload?path=/backup.txt" target="_blank"><span
+							data-i18n="tools.nvs.export.button"></span><span id="exportAssignmentsCount"></span></a>
 				</span>
 				<hr>
 				<span class="container" style="padding: 0">
@@ -1926,8 +1928,9 @@
 				<span class="container" style="padding: 0" id="eraseNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
 					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
-					<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
-						data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
+					<button type="submit" class="btn btn-danger" id="eraseAssignmentsBtn" data-bs-toggle="modal"
+						data-bs-target="#deleteNVSRFIDModal"><span
+							data-i18n="tools.nvs.erase.button"></span><span id="eraseAssignmentsCount"></span></button>
 				</span>
 				<hr>
 			</div>
@@ -3539,9 +3542,20 @@
 				rfidElem.appendChild(deleteSpan);
 				rfidListSavedAssignments.appendChild(rfidElem);
 			}
-			document.getElementById('listNvs').setAttribute('data-visible', (rfidList.length > 0));
-			document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
-			document.getElementById('exportNvs').setAttribute('data-visible', (rfidList.length > 0));
+			// Keep List/Export/Erase always visible (same page layout regardless of
+			// content) - just grey out and disable their buttons when there's
+			// nothing to list/export/erase yet.
+			const hasAssignments = rfidList.length > 0;
+			const countSuffix = hasAssignments ? " (" + rfidList.length + ")" : "";
+			document.getElementById('showAssignmentsBtn').disabled = !hasAssignments;
+			document.getElementById('showAssignmentsCount').textContent = countSuffix;
+			document.getElementById('eraseAssignmentsBtn').disabled = !hasAssignments;
+			document.getElementById('eraseAssignmentsCount').textContent = countSuffix;
+			const exportBtn = document.getElementById('exportAssignmentsBtn');
+			document.getElementById('exportAssignmentsCount').textContent = countSuffix;
+			exportBtn.classList.toggle('disabled', !hasAssignments);
+			exportBtn.setAttribute('aria-disabled', !hasAssignments);
+			exportBtn.tabIndex = hasAssignments ? 0 : -1;
 		}
 		async function deleteRFID(tagId) {
 			console.log("deleting", tagId);
