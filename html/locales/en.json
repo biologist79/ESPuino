@@ -486,7 +486,7 @@
 			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
 			"savePlayPosInterval": "Auto-save playback position for long audio books",
 			"savePlayPosIntervalSecs": "seconds",
-			"savePlayPosIntervalExp": "Periodically saves the playback position of long audio books (files of 5 minutes or more) to flash while playing, so a sudden power loss (dead battery, unplugged, crash) only rewinds by up to the set number of seconds instead of restarting the file. Only applies to audio-book playmodes; short or split tracks already save at each track boundary.",
+			"savePlayPosIntervalExp": "Periodically saves the playback position of long audio books (files of 5 minutes or more) to flash while playing, so a sudden power loss (dead battery, unplugged, crash) only rewinds by up to the set number of seconds instead of restarting the file. Only applies to audio-book playmodes; short or split tracks already save at each track boundary. A shorter interval writes to flash more often, so 30-60 seconds is recommended; going much lower gains little and wears the flash faster.",
 			"pauseIfRfidRemoved": "Pause when RFID tag is removed",
 			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
 			"dontAcceptRfidTwice": "Don't accept the same RFID twice",
