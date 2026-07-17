@@ -369,6 +369,7 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_StationLogoUrl = "";
 	gPlayProperties.playlist = allocatePlaylist();
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+	gPlayProperties.savePosIntervalSecs = gPrefsSettings.getUShort("savePosIntv", 0); // SAVE_PLAYPOS_INTERVAL (periodic checkpoint, 0 = off)
 	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
 #ifdef PAUSE_WHEN_RFID_REMOVED
 	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", true);
@@ -436,6 +437,8 @@ void AudioPlayer_Exit(void) {
 }
 
 static uint32_t lastPlayingTimestamp = 0;
+static uint32_t AudioPlayer_lastCheckpointTimestamp = 0; // millis() of the last periodic play-position checkpoint
+static uint32_t AudioPlayer_lastCheckpointPos = 0; // last checkpointed play-position (seconds) for dedup
 
 void AudioPlayer_Cyclic(void) {
 	if (AudioPlayer_UploadActive) {
@@ -447,6 +450,25 @@ void AudioPlayer_Cyclic(void) {
 		// audio is playing, update the playtime since start
 		lastPlayingTimestamp = millis();
 		playTimeSecSinceStart += 1;
+
+		// Periodic play-position checkpoint for long audiobooks (opt-in via savePosIntv, 0 = off).
+		// Bounds the position lost to an *ungraceful* power-off -- dead battery, yanked plug, watchdog
+		// reboot -- while the card is still on the reader. The graceful paths (pause, card-removal,
+		// clean shutdown) already save, but only on a clean transition; nothing saves if power just
+		// disappears mid-file, so playback restarts from the start of that file on resume. Gated on
+		// audiobook mode (saveLastPlayPosition) plus a minimum file length, so short/split tracks --
+		// which already checkpoint at every track boundary -- don't needlessly wear the NVS flash.
+		constexpr uint32_t checkpointMinDurationSecs = 300; // below 5 min, per-track boundary saves suffice
+		if (gPlayProperties.savePosIntervalSecs > 0 && gPlayProperties.saveLastPlayPosition && !gPlayProperties.isWebstream
+			&& audio != nullptr && audio->getAudioFileDuration() >= checkpointMinDurationSecs
+			&& (millis() - AudioPlayer_lastCheckpointTimestamp >= (uint32_t) gPlayProperties.savePosIntervalSecs * 1000)) {
+			uint32_t checkpointPos = audio->getAudioCurrentTime();
+			if (checkpointPos != AudioPlayer_lastCheckpointPos) { // dedup: skip if position hasn't advanced (e.g. stalled)
+				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, checkpointPos, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
+				AudioPlayer_lastCheckpointPos = checkpointPos;
+			}
+			AudioPlayer_lastCheckpointTimestamp = millis();
+		}
 	}
 
 	// Actual loop stuff
@@ -1036,6 +1058,11 @@ void AudioPlayer_Loop() {
 			gPlayProperties.trackFinished = true;
 			return;
 		} else {
+			// Restart the periodic-checkpoint clock for the freshly-started track, so the first
+			// checkpoint lands one full interval into playback (not immediately) rather than
+			// firing at once; the 0 baseline just means the first checkpoint always writes.
+			AudioPlayer_lastCheckpointTimestamp = millis();
+			AudioPlayer_lastCheckpointPos = 0;
 			if (gPlayProperties.currentTrackNumber) {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
 			}

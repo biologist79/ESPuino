@@ -1311,6 +1311,20 @@
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
+							<div class="d-flex gap-2 align-items-center">
+								<input type="checkbox" id="savePlayPosIntervalEnabled"
+									name="savePlayPosIntervalEnabled" value="false">
+								<label for="savePlayPosIntervalEnabled"
+									data-i18n="general.options.savePlayPosInterval"></label>
+								<input type="number" class="form-control" id="savePlayPosInterval"
+									name="savePlayPosInterval" style="width: 5em" min="10" max="3600" step="10"
+									value="60" disabled>
+								<label for="savePlayPosInterval"
+									data-i18n="general.options.savePlayPosIntervalSecs"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.options.savePlayPosIntervalExp"
+									tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="playLastRfidOnReboot" name="playLastRfidOnReboot"
 									value="false">
@@ -3255,6 +3269,8 @@
 				$('#playMono').prop('checked', genSettings.playMono);
 				$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 				$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChge);
+				$('#savePlayPosIntervalEnabled').prop('checked', genSettings.savePosInterval > 0);
+				$('#savePlayPosInterval').val(genSettings.savePosInterval > 0 ? genSettings.savePosInterval : 60).prop('disabled', !(genSettings.savePosInterval > 0));
 				$('#playLastRfidOnReboot').prop('checked', genSettings.playLastRfidOnReboot);
 				$('#pauseIfRfidRemoved').prop('checked', genSettings.pauseIfRfidRemoved);
 				$('#dontAcceptRfidTwice').prop('checked', genSettings.dontAcceptRfidTwice);
@@ -3727,6 +3743,7 @@
 					playMono: $('#playMono').prop('checked'),
 					savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 					savePosRfidChge: $('#savePlayPosRfidChange').prop('checked'),
+					savePosInterval: $('#savePlayPosIntervalEnabled').prop('checked') ? (parseInt($('#savePlayPosInterval').val()) || 60) : 0,
 					playLastRfidOnReboot: $('#playLastRfidOnReboot').prop('checked'),
 					pauseIfRfidRemoved: $('#pauseIfRfidRemoved').prop('checked'),
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
@@ -4392,6 +4409,16 @@
 				} else {
 					dontAcceptRfidTwice.prop('disabled', false);
 					resumeOnSameRfid.prop('disabled', !dontAcceptRfidTwice.prop('checked'));
+				}
+			});
+
+			/* Auto-save playback position: the checkbox gates the interval input; default it when enabling. */
+			$('#savePlayPosIntervalEnabled').on('change', function () {
+				const input = $('#savePlayPosInterval');
+				const on = $(this).prop('checked');
+				input.prop('disabled', !on);
+				if (on && !(parseInt(input.val()) >= 10)) {
+					input.val(60);
 				}
 			});
 
