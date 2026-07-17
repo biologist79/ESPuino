@@ -88,6 +88,7 @@ BaseType_t trackQStatus = pdFAIL;
 uint8_t trackCommand = NO_ACTION;
 bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
+static uint32_t AudioPlayer_resumeSeekPendingSecs = 0; // deferred resume-seek target (seconds); 0 = none pending (declared early: used by the audio_info evt_bitrate callback above AudioPlayer_Loop)
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
 
@@ -166,6 +167,22 @@ void Audio_InfoCallback(Audio::msg_t m) {
 		}
 		case Audio::evt_bitrate: {
 			Log_Printf(LOGLEVEL_INFO, "bitrate:      %s", m.msg);
+			// Deferred audiobook resume-seek. connecttoFS(fileStartTime) only seeks files whose
+			// Xing/VBR header sets m_nominal_bitrate; headerless CBR audiobooks are never seeked and
+			// restart from 0. This event fires once the measured average bitrate has *stabilised*, so
+			// setAudioPlayTime() now lands accurately and the lib re-syncs the reported play-time to
+			// match (seeking earlier, before the bitrate settles, both mis-positions and desyncs the
+			// clock). Guards: only when a resume is pending, the target is within the file, and we are
+			// not already there (a VBR file the lib already positioned at connect).
+			if (AudioPlayer_resumeSeekPendingSecs > 0 && audio != nullptr) {
+				const uint32_t target = AudioPlayer_resumeSeekPendingSecs;
+				AudioPlayer_resumeSeekPendingSecs = 0; // one-shot regardless of outcome
+				if (target < audio->getAudioFileDuration() && target > audio->getAudioCurrentTime() + 3) {
+					if (audio->setAudioPlayTime(target)) {
+						Log_Printf(LOGLEVEL_NOTICE, "Resume: deferred seek to position %u", target);
+					}
+				}
+			}
 			break;
 		}
 		case Audio::evt_icyurl: {
@@ -1014,8 +1031,14 @@ void AudioPlayer_Loop() {
 				return;
 			} else {
 				int32_t fileStartTime = -1;
+				AudioPlayer_resumeSeekPendingSecs = 0; // default: no deferred seek for this track
 				if (gPlayProperties.startAtFilePos > 0) {
 					fileStartTime = gPlayProperties.startAtFilePos;
+					// Also arm a deferred seek: ESP32-audioI2S only honors this connecttoFS() start
+					// position for files whose Xing/VBR header sets m_nominal_bitrate. Headerless CBR
+					// audiobooks never get seeked here and restart from 0, so we re-seek ourselves once
+					// the measured bitrate is known (see AudioPlayer_Loop). Harmless for VBR (skipped).
+					AudioPlayer_resumeSeekPendingSecs = gPlayProperties.startAtFilePos;
 					Log_Printf(LOGLEVEL_NOTICE, trackStartatPos, gPlayProperties.startAtFilePos);
 					gPlayProperties.startAtFilePos = 0;
 				}
