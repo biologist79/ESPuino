@@ -1526,6 +1526,58 @@
 							</div>
 						</fieldset>
 						<hr>
+						<div id="rotaryGesturesConfig" style="display:none">
+							<fieldset>
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a href="#"
+										class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.rotary.gesturesExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a></legend>
+								<div class="table-responsive">
+									<table class="table table-sm align-middle">
+										<thead>
+											<tr>
+												<th></th>
+												<th data-i18n="settingsex.rotary.ccw"></th>
+												<th data-i18n="settingsex.rotary.cw"></th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td data-i18n="settingsex.buttons.button0"></td>
+												<td><select id="cmdselect_rotccw_0" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_0" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button1"></td>
+												<td><select id="cmdselect_rotccw_1" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_1" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button2"></td>
+												<td><select id="cmdselect_rotccw_2" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_2" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button3"></td>
+												<td><select id="cmdselect_rotccw_3" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_3" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button4"></td>
+												<td><select id="cmdselect_rotccw_4" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_4" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button5"></td>
+												<td><select id="cmdselect_rotccw_5" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_5" class="form-control form-select"></select></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</fieldset>
+							<hr>
+						</div>
 						<fieldset>
 							<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
 							<div class="table-responsive">
@@ -3334,6 +3386,7 @@
 			let rotarySettings = settings.rotary;
 			if (rotarySettings) {
 				document.getElementById("rotaryConfig").style.display = null;
+				document.getElementById("rotaryGesturesConfig").style.display = null;
 				$('#rotaryReverse').prop('checked', rotarySettings.reverse);
 			}
 			// buttons
@@ -3351,6 +3404,18 @@
 				document.getElementById("cmdselect_long_3").value = buttonSettings.long3;
 				document.getElementById("cmdselect_long_4").value = buttonSettings.long4;
 				document.getElementById("cmdselect_long_5").value = buttonSettings.long5;
+				document.getElementById("cmdselect_rotcw_0").value = buttonSettings.rotCw0;
+				document.getElementById("cmdselect_rotcw_1").value = buttonSettings.rotCw1;
+				document.getElementById("cmdselect_rotcw_2").value = buttonSettings.rotCw2;
+				document.getElementById("cmdselect_rotcw_3").value = buttonSettings.rotCw3;
+				document.getElementById("cmdselect_rotcw_4").value = buttonSettings.rotCw4;
+				document.getElementById("cmdselect_rotcw_5").value = buttonSettings.rotCw5;
+				document.getElementById("cmdselect_rotccw_0").value = buttonSettings.rotCcw0;
+				document.getElementById("cmdselect_rotccw_1").value = buttonSettings.rotCcw1;
+				document.getElementById("cmdselect_rotccw_2").value = buttonSettings.rotCcw2;
+				document.getElementById("cmdselect_rotccw_3").value = buttonSettings.rotCcw3;
+				document.getElementById("cmdselect_rotccw_4").value = buttonSettings.rotCcw4;
+				document.getElementById("cmdselect_rotccw_5").value = buttonSettings.rotCcw5;
 				document.getElementById("cmdselect_multi_01").value = buttonSettings.multi01;
 				document.getElementById("cmdselect_multi_02").value = buttonSettings.multi02;
 				document.getElementById("cmdselect_multi_03").value = buttonSettings.multi03;
@@ -3780,6 +3845,18 @@
 					long3: Number(document.getElementById("cmdselect_long_3").value),
 					long4: Number(document.getElementById("cmdselect_long_4").value),
 					long5: Number(document.getElementById("cmdselect_long_5").value),
+					rotCw0: Number(document.getElementById("cmdselect_rotcw_0").value),
+					rotCw1: Number(document.getElementById("cmdselect_rotcw_1").value),
+					rotCw2: Number(document.getElementById("cmdselect_rotcw_2").value),
+					rotCw3: Number(document.getElementById("cmdselect_rotcw_3").value),
+					rotCw4: Number(document.getElementById("cmdselect_rotcw_4").value),
+					rotCw5: Number(document.getElementById("cmdselect_rotcw_5").value),
+					rotCcw0: Number(document.getElementById("cmdselect_rotccw_0").value),
+					rotCcw1: Number(document.getElementById("cmdselect_rotccw_1").value),
+					rotCcw2: Number(document.getElementById("cmdselect_rotccw_2").value),
+					rotCcw3: Number(document.getElementById("cmdselect_rotccw_3").value),
+					rotCcw4: Number(document.getElementById("cmdselect_rotccw_4").value),
+					rotCcw5: Number(document.getElementById("cmdselect_rotccw_5").value),
 					multi01: Number(document.getElementById("cmdselect_multi_01").value),
 					multi02: Number(document.getElementById("cmdselect_multi_02").value),
 					multi03: Number(document.getElementById("cmdselect_multi_03").value),
@@ -4502,7 +4579,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 154, 155, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
 				if ([140, 141, 142].includes(cmd)) {

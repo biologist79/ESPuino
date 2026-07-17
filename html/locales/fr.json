@@ -97,7 +97,11 @@
 		"rotary": {
 			"title": "Codeur rotatif",
 			"reverse": "Inversion du sens de rotation",
-			"reverseExp": "Inverse le sens de comptage/rotation du codeur rotatif, par ex. si volume haut/bas est inversé."
+			"reverseExp": "Inverse le sens de comptage/rotation du codeur rotatif, par ex. si volume haut/bas est inversé.",
+			"gestures": "Bouton maintenu + rotation",
+			"gesturesExp": "Tant qu'un de ces boutons est maintenu, tourner le codeur rotatif déclenche l'action attribuée au lieu de changer le volume. « Tourner à droite » est le sens qui augmente le volume. L'appui long d'un tel bouton ne se déclenche qu'au relâchement - et pas du tout si le codeur a été tourné.",
+			"ccw": "tourner à gauche",
+			"cw": "tourner à droite"
 		}
 	},
 	"wifi": {
@@ -290,6 +294,8 @@
 					"152": "🕒 Annoncer l'heure actuelle",
 					"0": "🗑 Supprimer l'affectation",
 					"153": "💡 Basculement de la lumière ambiante",
+					"154": "🔆 Augmenter la luminosité LED",
+					"155": "🔅 Diminuer la luminosité LED",
 					"170": "⏯ Basculer Lecture/Pause",
 					"171": "⏮ Piste précédente",
 					"172": "⏭ Piste suivante",

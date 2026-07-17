@@ -8,6 +8,7 @@
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Bluetooth.h"
+#include "Button.h"
 #include "Cmd.h"
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
@@ -35,6 +36,12 @@
 #include <atomic>
 #include <esp_task_wdt.h>
 #include <nvs.h>
+
+// An override written before this feature existed does not define it (settings-override.h replaces
+// settings.h wholesale), so fall back rather than break those builds.
+#ifndef JUMP_OFFSET_ROTARY
+	#define JUMP_OFFSET_ROTARY 10
+#endif
 
 typedef struct {
 	char nvsKey[cardIdStringSize];
@@ -738,6 +745,9 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
+		if (generalObj["rotSeekStep"].is<uint8_t>()) {
+			success = success && (gPrefsSettings.putUChar("rotSeekStep", generalObj["rotSeekStep"].as<uint8_t>()) != 0);
+		}
 		success = success && (gPrefsSettings.putBool("playMono", generalObj["playMono"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosShutdown", generalObj["savePosShutdown"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosRfidChge", generalObj["savePosRfidChge"].as<bool>()) != 0);
@@ -847,6 +857,19 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("btnLong3", buttonsObj["long3"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong4", buttonsObj["long4"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong5", buttonsObj["long5"].as<uint8_t>()) != 0);
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char keyCw[12], keyCcw[13], jsonCw[10], jsonCcw[11];
+			snprintf(keyCw, sizeof(keyCw), "btnRotCw%u", i);
+			snprintf(keyCcw, sizeof(keyCcw), "btnRotCcw%u", i);
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			if (buttonsObj[jsonCw].is<uint8_t>()) {
+				success = success && (gPrefsSettings.putUChar(keyCw, buttonsObj[jsonCw].as<uint8_t>()) != 0);
+			}
+			if (buttonsObj[jsonCcw].is<uint8_t>()) {
+				success = success && (gPrefsSettings.putUChar(keyCcw, buttonsObj[jsonCcw].as<uint8_t>()) != 0);
+			}
+		}
 		success = success && (gPrefsSettings.putUChar("btnMulti01", buttonsObj["multi01"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti02", buttonsObj["multi02"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti03", buttonsObj["multi03"].as<uint8_t>()) != 0);
@@ -1095,6 +1118,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
+		generalObj["rotSeekStep"].set(gPrefsSettings.getUChar("rotSeekStep", JUMP_OFFSET_ROTARY)); // seconds per detent when seeking via a rotary gesture
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
@@ -1178,6 +1202,15 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "buttons")) {
 		// button settings
 		JsonObject buttonsObj = obj["buttons"].to<JsonObject>();
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char keyCw[12], keyCcw[13], jsonCw[10], jsonCcw[11];
+			snprintf(keyCw, sizeof(keyCw), "btnRotCw%u", i);
+			snprintf(keyCcw, sizeof(keyCcw), "btnRotCcw%u", i);
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			buttonsObj[jsonCw].set(Button_GetRotaryAction(i, true));
+			buttonsObj[jsonCcw].set(Button_GetRotaryAction(i, false));
+		}
 		buttonsObj["short0"].set(gPrefsSettings.getUChar("btnShort0", BUTTON_0_SHORT));
 		buttonsObj["short1"].set(gPrefsSettings.getUChar("btnShort1", BUTTON_1_SHORT));
 		buttonsObj["short2"].set(gPrefsSettings.getUChar("btnShort2", BUTTON_2_SHORT));
@@ -1317,6 +1350,13 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsSettings["multi34"].set(BUTTON_MULTI_34);
 		buttonsSettings["multi35"].set(BUTTON_MULTI_35);
 		buttonsSettings["multi45"].set(BUTTON_MULTI_45);
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char jsonCw[10], jsonCcw[11];
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			buttonsSettings[jsonCw].set(Button_GetRotaryActionDefault(i, true));
+			buttonsSettings[jsonCcw].set(Button_GetRotaryActionDefault(i, false));
+		}
 #ifdef USEROTARY_ENABLE
 		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
 		rotarySettings["reverse"].set(false); // REVERSE_ROTARY
