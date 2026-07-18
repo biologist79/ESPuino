@@ -903,6 +903,14 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rotary");
 			return WebsocketCodeType::Error;
 		}
+		// CMD_SEEK_PREVIEW tuning: guarded (not hard-erroring like "reverse" above) so an older cached
+		// web-UI page that doesn't send these yet can't blank an already-saved value.
+		if (doc["rotary"]["seekPrevDelay"].is<uint16_t>()) {
+			gPrefsSettings.putUShort("seekPrevDelay", doc["rotary"]["seekPrevDelay"].as<uint16_t>());
+		}
+		if (doc["rotary"]["seekPrevSweep"].is<uint8_t>()) {
+			gPrefsSettings.putUChar("seekPrevSweep", doc["rotary"]["seekPrevSweep"].as<uint8_t>());
+		}
 		RotaryEncoder_Init();
 	}
 	if (doc["battery"].is<JsonObject>()) {
@@ -1250,6 +1258,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// Rotary encoder
 		JsonObject rotaryObj = obj["rotary"].to<JsonObject>();
 		rotaryObj["reverse"].set(gPrefsSettings.getBool("rotaryReverse", false));
+		rotaryObj["seekPrevDelay"].set(gPrefsSettings.getUShort("seekPrevDelay", 2000)); // ms idle before a CMD_SEEK_PREVIEW gesture auto-commits
+		rotaryObj["seekPrevSweep"].set(gPrefsSettings.getUChar("seekPrevSweep", 40)); // encoder detents for a full 0->100% sweep
 	}
 	// playlist
 	if ((section == "") || (section == "playlist")) {
@@ -1368,6 +1378,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 #ifdef USEROTARY_ENABLE
 		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
 		rotarySettings["reverse"].set(false); // REVERSE_ROTARY
+		rotarySettings["seekPrevDelay"].set(2000);
+		rotarySettings["seekPrevSweep"].set(40);
 #endif
 		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));

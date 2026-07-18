@@ -101,7 +101,12 @@
 			"gestures": "Bouton maintenu + rotation",
 			"gesturesExp": "Tant qu'un de ces boutons est maintenu, tourner le codeur rotatif déclenche l'action attribuée au lieu de changer le volume. « Tourner à droite » est le sens qui augmente le volume. L'appui long d'un tel bouton ne se déclenche qu'au relâchement - et pas du tout si le codeur a été tourné.",
 			"ccw": "tourner à gauche",
-			"cw": "tourner à droite"
+			"cw": "tourner à droite",
+			"seekPreviewTitle": "Réglages de l'aperçu de recherche",
+			"seekPrevDelay": "Délai avant validation",
+			"seekPrevDelayExp": "Durée (en ms) pendant laquelle le codeur doit rester immobile avant qu'un geste d'aperçu de recherche (voir commande 186) ne saute de lui-même à la position prévisualisée. Relâcher le bouton maintenu valide toujours immédiatement, indépendamment de ce délai. 0-3000, par défaut 2000.",
+			"seekPrevSweep": "Crans pour un balayage complet",
+			"seekPrevSweepExp": "Nombre de crans du codeur nécessaires pour déplacer la cible de l'aperçu de recherche de 0% à 100% du morceau. Plus bas = défilement plus grossier/rapide, plus haut = contrôle plus fin. Par défaut 40."
 		}
 	},
 	"wifi": {
@@ -312,6 +317,7 @@
 					"183": "🔄 Redémarrer",
 					"184": "📁 Passer au dossier suivant",
 					"185": "📁 Passer au dossier précédent",
+					"186": "🎯 Aperçu de recherche (tourner pour naviguer, valide au relâchement/immobilité)",
 					"199": "📊 Affichage de la charge de travail (console)",
 					"241": "🏷 Lire la carte RFID virtuelle 01",
 					"242": "🏷 Lire la carte RFID virtuelle 02",

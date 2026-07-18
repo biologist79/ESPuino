@@ -1039,12 +1039,28 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 	int32_t animationDelay = 0;
 	// static values
 	static double lastPos = 0.0f;
+	static bool lastPreviewActive = false;
+	static uint8_t lastPreviewTarget = 0;
 
-	if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
+	// CMD_SEEK_PREVIEW rotary gesture (RotaryEncoder.cpp/AudioPlayer.cpp): while active, the ring shows
+	// a not-yet-committed target instead of the actual (unchanged) playback position -- read via these
+	// accessors rather than gPlayProperties.currentRelPos, which must not reflect the preview before commit.
+	const bool previewActive = AudioPlayer_IsSeekPreviewActive();
+	const uint8_t previewTarget = AudioPlayer_GetSeekPreviewTargetPercent();
+
+	if (gPlayProperties.currentRelPos != lastPos || previewActive != lastPreviewActive || (previewActive && (previewTarget != lastPreviewTarget)) || startNewAnimation) {
 		lastPos = gPlayProperties.currentRelPos;
+		lastPreviewActive = previewActive;
+		lastPreviewTarget = previewTarget;
 		leds = CRGB::Black;
 		if (gLedSettings.numIndicatorLeds == 1) {
-			leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+			if (previewActive) {
+				// A single LED can't show ring-position and cursor separately -- solid blue is an
+				// unambiguous "preview active" signal, at the cost of not showing the target itself.
+				leds[0] = CRGB::Blue;
+			} else {
+				leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+			}
 		} else {
 			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
 			const uint8_t fullLeds = ledValue / gLedSettings.dimmableStates;
@@ -1052,6 +1068,8 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
+				} else if (previewActive) {
+					leds[Led_Address(led)] = CRGB::Yellow;
 				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
 				}
@@ -1059,10 +1077,19 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
+				} else if (previewActive) {
+					leds[Led_Address(fullLeds)] = CRGB::Yellow;
 				} else {
 					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
 				}
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+			}
+			if (previewActive) {
+				// Cursor is drawn last so it overrides whatever the ring fill just put at that position.
+				const uint32_t cursorValue = std::clamp<uint32_t>(map(previewTarget, 0, 100, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
+				const uint8_t cursorLed = std::min<uint8_t>(cursorValue / gLedSettings.dimmableStates, leds.size() - 1);
+				const uint8_t cursorSub = cursorValue % gLedSettings.dimmableStates;
+				leds[Led_Address(cursorLed)] = (cursorSub > 0) ? Led_DimColor(CRGB::Blue, cursorSub) : CRGB::Blue;
 			}
 		}
 		animationDelay = 10;

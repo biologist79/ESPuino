@@ -382,6 +382,15 @@ void Cmd_Action(const uint16_t mod) {
 			break;
 		}
 
+		case CMD_SEEK_PREVIEW: {
+			// Rotary-gesture-only: RotaryEncoder.cpp intercepts this command directly (it needs the raw,
+			// bidirectional detent delta to move a preview target, not a single fire-and-forget action) and
+			// never dispatches it here. This case only exists so an unexpected direct dispatch (e.g. a
+			// misconfigured short/long-press assignment) is a silent no-op instead of falling into "unknown
+			// command" below.
+			break;
+		}
+
 		case CMD_BRIGHTNESS_UP:
 		case CMD_BRIGHTNESS_DOWN: {
 			// Led_SetBrightness() takes a uint8_t and does not bounds-check, so clamping is the caller's job:
@@ -394,6 +403,7 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_STOP: {
+			AudioPlayer_SeekPreviewCancel(); // don't let a stopped track's leftover preview commit onto whatever plays next
 			AudioPlayer_SetTrackControl(STOP);
 			break;
 		}

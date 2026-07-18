@@ -52,8 +52,18 @@ void RotaryEncoder_Init(void) {
 // Handles volume directed by rotary encoder
 void RotaryEncoder_Cyclic(void) {
 #ifdef USEROTARY_ENABLE
+	// Tracks whether the currently-held modifier (if any) was resolved to CMD_SEEK_PREVIEW, i.e. whether
+	// this hold-gesture is a seek-preview session rather than the generic per-detent-command dispatch below.
+	static bool previewGestureActive = false;
+	static uint8_t lastModifier = BUTTON_NONE;
+
 	#ifdef INCLUDE_ROTARY_IN_CONTROLS_LOCK
 	if (System_AreControlsLocked()) {
+		if (previewGestureActive) {
+			AudioPlayer_SeekPreviewCommit(); // don't leave a preview hanging if controls get locked mid-gesture
+			previewGestureActive = false;
+			lastModifier = BUTTON_NONE;
+		}
 		encoder.clearCount();
 		return;
 	}
@@ -64,11 +74,26 @@ void RotaryEncoder_Cyclic(void) {
 	// half-step that has not completed a detent yet -- so discard whatever has accumulated whenever the
 	// modifier changes, otherwise a gesture inherits rotation from before the button went down (and the
 	// volume inherits rotation from during the gesture).
-	static uint8_t lastModifier = BUTTON_NONE;
 	const uint8_t modifier = Button_GetHeldModifier();
 	if (modifier != lastModifier) {
+		if (previewGestureActive) {
+			// Release (or switch to a different modifier) commits immediately -- don't make the user wait
+			// out the idle-delay just because they let go of the button.
+			AudioPlayer_SeekPreviewCommit();
+			previewGestureActive = false;
+		}
 		lastModifier = modifier;
 		encoder.clearCount();
+		if (modifier != BUTTON_NONE) {
+			// Either direction mapping to CMD_SEEK_PREVIEW makes the whole hold a preview session -- a
+			// preview is inherently bidirectional, so a button with only one direction assigned to it
+			// still previews both ways (the other direction falls back from volume to preview too, since
+			// there is no other sensible meaning for "turn while holding this preview-mapped button").
+			previewGestureActive = (Button_GetRotaryAction(modifier, true) == CMD_SEEK_PREVIEW) || (Button_GetRotaryAction(modifier, false) == CMD_SEEK_PREVIEW);
+			if (previewGestureActive) {
+				AudioPlayer_SeekPreviewStart();
+			}
+		}
 		return;
 	}
 
@@ -82,6 +107,13 @@ void RotaryEncoder_Cyclic(void) {
 		const int32_t detents = encoderValue / 2;
 
 		if (modifier != BUTTON_NONE) {
+			if (previewGestureActive) {
+				// Swallow the held button's own short/long action, same as the generic gesture path below.
+				Button_MarkModifierUsed(modifier);
+				AudioPlayer_SeekPreviewAdjust(detents);
+				return;
+			}
+
 			const uint8_t cmd = Button_GetRotaryAction(modifier, detents > 0);
 			if (cmd != CMD_NOTHING) {
 				// Tell Button.cpp to swallow this button's own short/long action -- otherwise letting go fires

@@ -24,7 +24,9 @@
 #include "main.h"
 #include "strnatcmp.h"
 
+#include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 #include <random>
@@ -37,6 +39,63 @@ static std::atomic<int16_t> AudioPlayer_PendingSeekSeconds {0};
 
 void AudioPlayer_AddSeekOffset(const int16_t seconds) {
 	AudioPlayer_PendingSeekSeconds.fetch_add(seconds, std::memory_order_relaxed);
+}
+
+// Seek-preview (rotary gesture, CMD_SEEK_PREVIEW): turning moves a not-yet-committed target position
+// instead of jumping immediately; committed via the existing SEEK_POS_PERCENT path once the encoder is
+// idle for a configurable delay, or immediately on release (see RotaryEncoder.cpp). currentRelPos must
+// never be touched before the commit -- it also drives the LED progress ring, and writing the preview
+// target into it early would make played-back position look like it already jumped.
+static std::atomic<bool> AudioPlayer_SeekPreviewActive {false};
+static std::atomic<uint8_t> AudioPlayer_SeekPreviewTargetPercent {0};
+static double AudioPlayer_SeekPreviewTargetExact = 0.0; // full precision; only ever touched by the loop() task
+static uint32_t AudioPlayer_SeekPreviewLastInputMs = 0; // only ever touched by the loop() task
+// Cached once per gesture (in Start()), not re-read from NVS on every AudioPlayer_Loop() iteration/detent:
+// the idle-commit check below runs on every single loop() cycle for as long as a gesture is held, and a
+// NVS getUShort/getUChar still costs a mutex lock + key lookup each time even though it's RAM-cached.
+static uint16_t AudioPlayer_SeekPreviewDelayMsCached = 2000;
+static uint8_t AudioPlayer_SeekPreviewSweepCached = 40;
+
+void AudioPlayer_SeekPreviewStart(void) {
+	if (gPlayProperties.audioFileDuration == 0) {
+		return; // no meaningful target for webstreams / unknown-length content
+	}
+	AudioPlayer_SeekPreviewDelayMsCached = gPrefsSettings.getUShort("seekPrevDelay", 2000);
+	AudioPlayer_SeekPreviewSweepCached = gPrefsSettings.getUChar("seekPrevSweep", 40);
+	AudioPlayer_SeekPreviewTargetExact = gPlayProperties.currentRelPos; // start from where playback is, not 0
+	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
+	AudioPlayer_SeekPreviewLastInputMs = millis();
+	AudioPlayer_SeekPreviewActive.store(true, std::memory_order_relaxed);
+}
+
+void AudioPlayer_SeekPreviewAdjust(const int32_t detents) {
+	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+		return;
+	}
+	AudioPlayer_SeekPreviewTargetExact = std::clamp(AudioPlayer_SeekPreviewTargetExact + (detents * 100.0 / AudioPlayer_SeekPreviewSweepCached), 0.0, 100.0);
+	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
+	AudioPlayer_SeekPreviewLastInputMs = millis();
+}
+
+void AudioPlayer_SeekPreviewCommit(void) {
+	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+		return;
+	}
+	gPlayProperties.currentRelPos = AudioPlayer_SeekPreviewTargetPercent.load(std::memory_order_relaxed);
+	gPlayProperties.seekmode = SEEK_POS_PERCENT;
+	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
+}
+
+void AudioPlayer_SeekPreviewCancel(void) {
+	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
+}
+
+bool AudioPlayer_IsSeekPreviewActive(void) {
+	return AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed);
+}
+
+uint8_t AudioPlayer_GetSeekPreviewTargetPercent(void) {
+	return AudioPlayer_SeekPreviewTargetPercent.load(std::memory_order_relaxed);
 }
 
 // Playlist
@@ -1094,6 +1153,7 @@ void AudioPlayer_Loop() {
 			// firing at once; the 0 baseline just means the first checkpoint always writes.
 			AudioPlayer_lastCheckpointTimestamp = millis();
 			AudioPlayer_lastCheckpointPos = 0;
+			AudioPlayer_SeekPreviewCancel(); // a preview from the previous track must never commit onto this one
 			if (gPlayProperties.currentTrackNumber) {
 				Led_Indicate(LedIndicatorType::PlaylistProgress);
 			}
@@ -1119,6 +1179,15 @@ void AudioPlayer_Loop() {
 	if (seekOffset != 0) {
 		if (audio->setTimeOffset(seekOffset)) {
 			Log_Printf(LOGLEVEL_NOTICE, (seekOffset > 0) ? secondsJumpForward : secondsJumpBackward, abs(seekOffset));
+		}
+	}
+
+	// Seek-preview (CMD_SEEK_PREVIEW rotary gesture): commit once the encoder has been idle for the
+	// configured delay. A release-triggered commit happens directly from RotaryEncoder.cpp instead of
+	// waiting for this -- this is only the "held but stopped turning" case.
+	if (AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+		if (millis() - AudioPlayer_SeekPreviewLastInputMs >= AudioPlayer_SeekPreviewDelayMsCached) {
+			AudioPlayer_SeekPreviewCommit();
 		}
 	}
 

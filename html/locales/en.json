@@ -101,7 +101,12 @@
 			"gestures": "Hold button + turn encoder",
 			"gesturesExp": "While one of these buttons is held down, turning the encoder triggers the assigned action instead of changing the volume. 'Turn right' is the direction that raises the volume. The long-press action of such a button fires when it is released - and not at all if the encoder was turned.",
 			"ccw": "turn left",
-			"cw": "turn right"
+			"cw": "turn right",
+			"seekPreviewTitle": "Seek preview settings",
+			"seekPrevDelay": "Auto-commit delay",
+			"seekPrevDelayExp": "How long (in ms) the encoder must stay idle before a 🎯 seek-preview gesture jumps to the previewed position on its own. Releasing the held button always commits immediately, regardless of this delay. 0-3000, default 2000.",
+			"seekPrevSweep": "Turns for full sweep",
+			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40."
 		}
 	},
 	"wifi": {
@@ -312,6 +317,7 @@
 					"183": "🔄 Restart",
 					"184": "📁 Jump to next folder",
 					"185": "📁 Jump to previous folder",
+					"186": "🎯 Seek preview (turn to scrub, commits on release/idle)",
 					"199": "📊 Display task load (console)",
 					"241": "🏷 Play virtual RFID-card 01",
 					"242": "🏷 Play virtual RFID-card 02",
