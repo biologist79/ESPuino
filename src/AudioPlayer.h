@@ -55,6 +55,7 @@ typedef struct { // Bit field
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
 	size_t audioFileDuration; // file duration of current audio file (in seconds)
+	uint16_t savePosIntervalSecs = 0; // periodic play-position checkpoint interval in seconds (0 = disabled)
 } playProps;
 
 extern playProps gPlayProperties;
