@@ -1235,56 +1235,77 @@
 						<div class="tab-pane fade show active" id="general-playback" role="tabpanel">
 					<div class="col-md-12 mb-4">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
-							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="initialVolume" class="col-form-label"
+										data-i18n="general.volume.restart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-										data-slider-value="" value="" required>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="maxVolumeSpeaker" class="col-form-label"
+										data-i18n="general.volume.speakerMax"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="maxVolumeSpeaker"
+												name="maxVolumeSpeaker" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
 							</div>
-							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="maxVolumeHeadphone" class="col-form-label"
+										data-i18n="general.volume.headphoneMax"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="maxVolumeSpeaker"
-										name="maxVolumeSpeaker" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-							</div>
-							</div>
-							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="maxVolumeHeadphone"
-										name="maxVolumeHeadphone" data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="maxVolumeHeadphone"
+												name="maxVolumeHeadphone" data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
@@ -1390,28 +1411,40 @@
 					<hr>
 					<div class="col-md-12 mb-4" id="playlistConfig">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
-							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
-								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
-								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
-								<option value="1" data-i18n="general.playlist.strcmp"></option>
-							</select>
-						</fieldset>
-						<fieldset>
-							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
-								<option value="4">4</option>
-								<option value="3">3</option>
-								<option value="2">2</option>
-								<option value="1">1</option>
-							</select>
+							<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="playlistSortMode" class="col-form-label"
+										data-i18n="general.playlist.sortMode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
+										<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
+										<option value="2" data-i18n="general.playlist.strnatcmp"></option>
+										<option value="1" data-i18n="general.playlist.strcmp"></option>
+									</select>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="playlistRecDepth" class="col-form-label"
+										data-i18n="general.playlist.recDepth"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
+										<option value="4">4</option>
+										<option value="3">3</option>
+										<option value="2">2</option>
+										<option value="1">1</option>
+									</select>
+								</div>
+							</div>
 						</fieldset>
 					</div>
 					<div>
@@ -1494,7 +1527,10 @@
 					<hr>
 					<div class="col-md-12 mb-4" id="buttonsConfig">
 						<fieldset>
-							<legend class="w-auto" data-i18n="settingsex.buttons.title"></legend><br>
+							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.buttons.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
 							<div class="table-responsive">
 								<table class="table table-sm align-middle">
 									<thead>
@@ -1591,7 +1627,10 @@
 								</div>
 							</fieldset>
 							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.rotary.seekPreviewTitle"></legend>
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a href="#"
+										class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.rotary.seekPreviewTitleExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a></legend>
 								<div class="row mb-2 align-items-center">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevDelay" class="col-form-label"
@@ -1622,7 +1661,10 @@
 							<hr>
 						</div>
 						<fieldset>
-							<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
+							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a href="#"
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.multibuttons.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
 							<div class="table-responsive">
 								<table class="table table-sm align-middle">
 									<tbody>
@@ -1700,150 +1742,235 @@
 						<div class="tab-pane fade" id="general-led" role="tabpanel">
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
-							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
+							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="initBrightness" class="col-form-label"
+										data-i18n="general.neopixel.restart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
-										min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
-								</div>
-							</div>
-							<br>
-							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
-										min="0" max="255" class="form-control" id="nightBrightness"
-										name="nightBrightness" data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="far fa-sun fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
+												min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x .icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
-							<br>
-							<label for="atmoBrightness" data-i18n="[prepend]general.neopixel.atmomode">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="nightBrightness" class="col-form-label"
+										data-i18n="general.neopixel.nightmode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
-										min="0" max="255" class="form-control" id="atmoBrightness" name="atmoBrightness"
-										data-slider-value="" value="" required>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="far fa-sun fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
+												min="0" max="255" class="form-control" id="nightBrightness"
+												name="nightBrightness" data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x .icon-pos"></i>
+										</div>
+									</div>
 								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="atmoBrightness" class="col-form-label"
+										data-i18n="general.neopixel.atmomode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="far fa-sun fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
+												min="0" max="255" class="form-control" id="atmoBrightness" name="atmoBrightness"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x .icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
 					</div>
 					<hr>
-							<div class="col-md-12 mb-4" id="ledSettingsConfig">
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
-								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator"
-									min="0" max="128"><br>
-								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
-									min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
-								<div id="controlColorList" class="mb-2 d-none"></div>
-								<div id="controlColorTemp" class="pb-2 d-none">
-									<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
-										class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
+					<div class="col-md-12 mb-4" id="ledSettingsConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.led.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_numIndicator" class="col-form-label"
+										data-i18n="settingsex.led.numindicator"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0"
-									max="128"><br>
-								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<div class="hue-slider">
-									<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control"
-										name="led_hueStart" data-slider-value="-1" value="-1">
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_numIndicator"
+										name="led_numIndicator" min="0" max="128">
 								</div>
-								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<div class="hue-slider">
-									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
-										data-slider-value="-1" value="-1">
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_numControl" class="col-form-label"
+										data-i18n="settingsex.led.numcontrol"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<div class="hue-slider">
-									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
-										data-slider-value="-1" value="-1">
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
+										min="0" max="128" onChange="listControlColors(Number(this.value), null)">
 								</div>
-								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<div class="sat-slider">
-									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
-										data-slider-value="-1" value="-1">
+								<div class="col-sm-8 offset-sm-4">
+									<div id="controlColorList" class="mb-2 mt-2 d-none"></div>
+									<div id="controlColorTemp" class="pb-2 d-none">
+										<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
+											class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
+									</div>
 								</div>
-								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
-								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>: <br>
-								<input type="number" class="form-control" id="led_offsetStart"
-									name="led_offsetStart"><br>
-								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_idleDots" class="col-form-label"
+										data-i18n="settingsex.led.numidledots"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_idleDots" name="led_idleDots"
+										min="0" max="128">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueStart" class="col-form-label"
+										data-i18n="settingsex.led.huestart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control"
+											name="led_hueStart" data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueEnd" class="col-form-label"
+										data-i18n="settingsex.led.hueend"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueAtmo" class="col-form-label"
+										data-i18n="settingsex.led.hueatmo"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_satAtmo" class="col-form-label"
+										data-i18n="settingsex.led.satatmo"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="sat-slider">
+										<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_dimStates" class="col-form-label"
+										data-i18n="settingsex.led.dimmablestates"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_dimStates" name="led_dimStates">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_offsetStart" class="col-form-label"
+										data-i18n="settingsex.led.offset"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
+								</div>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
 								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
 								<a href="#" class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a><br>
-								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation"
-									value="false">&nbsp;
-								<label for="led_reverseRotation"
-									data-i18n="settingsex.led.reverserotation"></label>
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
+								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
 								<a href="#" class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a><br><br>
-							</fieldset>
+										class="fas fa-circle-question"></i></a>
 							</div>
+						</fieldset>
+					</div>
 					<div>
 						<button type="button" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
@@ -1854,21 +1981,28 @@
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
-							<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="inactivityTime" class="col-form-label"
+										data-i18n="general.sleep.inactivity"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
-										min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
+												min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
@@ -1878,98 +2012,128 @@
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
 							<div data-i18n="general.battery.desc"></div>
-							<br>
-							<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="warningLowVoltage" class="col-form-label"
+										data-i18n="general.battery.lowWarning"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.5"
-										data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control"
-										id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value=""
-										pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" min="2.5" data-slider-step="0.05" data-slider-min="2.5"
-										data-slider-max="5.0" max="5.0" type="text" class="form-control"
-										id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value=""
-										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
-										data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
-										id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value=""
-										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<div id="criticalVoltageSection" data-visible="false">
-								<label for="criticalVoltage"
-									data-i18n="[prepend]general.battery.criticalShutoff">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
-								<div class="slider-container">
-									<div class="float-end" style="padding-left: 30px">
-										<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-									</div>
-									<div class="slider-container-inner">
-										<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
-											data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
-											id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
-											pattern="^\d{1,2}(\.\d{1,3})?" required>
-									</div>
-									<div class="float-end" style="padding-left: 10px">
-										<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.5"
+												data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control"
+												id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value=""
+												pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+										</div>
 									</div>
 								</div>
 							</div>
-							<label for="voltageCheckInterval"
-								data-i18n="[prepend]general.battery.measureInterval">:</label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
-								data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
-									class="fas fa-circle-question"></i></a>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageIndicatorLow" class="col-form-label"
+										data-i18n="general.battery.lowCritical"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
-										min="1" max="60" class="form-control" id="voltageCheckInterval"
-										data-slider-value="" name="voltageCheckInterval" value="" required>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" min="2.5" data-slider-step="0.05" data-slider-min="2.5"
+												data-slider-max="5.0" max="5.0" type="text" class="form-control"
+												id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value=""
+												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+										</div>
+									</div>
 								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageIndicatorHigh" class="col-form-label"
+										data-i18n="general.battery.high"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
+												data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+												id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value=""
+												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="criticalVoltage" class="col-form-label"
+										data-i18n="general.battery.criticalShutoff"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
+												data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+												id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
+												pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageCheckInterval" class="col-form-label"
+										data-i18n="general.battery.measureInterval"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
+												min="1" max="60" class="form-control" id="voltageCheckInterval"
+												data-slider-value="" name="voltageCheckInterval" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>

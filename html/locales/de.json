@@ -66,6 +66,7 @@
 		},
 		"buttons": {
 			"title": "Taster-Zuordnungen",
+			"titleExp": "Weist jedem Taster eine Aktion für kurzen und eine für langen Druck zu.",
 			"short": "kurz",
 			"long": "lang",
 			"noaction": "--",
@@ -77,7 +78,8 @@
 			"button5": "Btn5-Taste"
 		},
 		"multibuttons": {
-			"title": "Multi-Taster Zuordnungen",
+			"title": "Multi-Taster-Zuordnungen",
+			"titleExp": "Löst eine Aktion aus, wenn zwei Taster gleichzeitig gedrückt werden.",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
 			"03": "0+3 (Next + Drehimpulsgeber)",
@@ -103,6 +105,7 @@
 			"ccw": "links drehen",
 			"cw": "rechts drehen",
 			"seekPreviewTitle": "Positionsvorschau-Einstellungen",
+			"seekPreviewTitleExp": "Feineinstellungen für die 🎯 Positionsvorschau-Geste (siehe Tabelle oben): wie lange gewartet wird, bis eine Vorschau automatisch übernommen wird, und wie fein sich die Zielposition per Drehung steuern lässt.",
 			"seekPrevDelay": "Verzögerung bis zur Übernahme [ms]",
 			"seekPrevDelayExp": "Wie lange (in ms) der Drehimpulsgeber stillstehen muss, bevor eine 🎯 Positionsvorschau-Geste von selbst zur vorgeschauten Position springt. Loslassen der gehaltenen Taste übernimmt die Position immer sofort, unabhängig von dieser Verzögerung. 0-3000, Standard 2000.",
 			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",

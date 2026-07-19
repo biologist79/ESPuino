@@ -66,6 +66,7 @@
 		},
 		"buttons": {
 			"title": "Attribution des boutons",
+			"titleExp": "Attribue à chaque bouton une action pour un appui court et une pour un appui long.",
 			"short": "presse courte",
 			"long": "appui long",
 			"noaction": "--",
@@ -78,6 +79,7 @@
 		},
 		"multibuttons": {
 			"title": "Affectation des boutons multiples",
+			"titleExp": "Déclenche une action quand deux boutons sont pressés en même temps.",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
 			"03": "0+3 (Next + Codeur rotatif)",
@@ -103,6 +105,7 @@
 			"ccw": "tourner à gauche",
 			"cw": "tourner à droite",
 			"seekPreviewTitle": "Réglages de l'aperçu de recherche",
+			"seekPreviewTitleExp": "Réglages fins pour le geste 🎯 d'aperçu de recherche (voir tableau ci-dessus) : combien de temps attendre avant qu'un aperçu ne se valide automatiquement, et avec quelle précision la position cible peut être ajustée en tournant.",
 			"seekPrevDelay": "Délai avant validation",
 			"seekPrevDelayExp": "Durée (en ms) pendant laquelle le codeur doit rester immobile avant qu'un geste d'aperçu de recherche (voir commande 186) ne saute de lui-même à la position prévisualisée. Relâcher le bouton maintenu valide toujours immédiatement, indépendamment de ce délai. 0-3000, par défaut 2000.",
 			"seekPrevSweep": "Crans pour un balayage complet",

@@ -66,6 +66,7 @@
 		},
 		"buttons": {
 			"title": "Button assignments",
+			"titleExp": "Assigns each button an action for a short press and one for a long press.",
 			"short": "short press",
 			"long": "long press",
 			"noaction": "--",
@@ -78,6 +79,7 @@
 		},
 		"multibuttons": {
 			"title": "Multi-button assignments",
+			"titleExp": "Triggers an action when two buttons are pressed at the same time.",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
 			"03": "0+3 (Next + Encoder)",
@@ -103,6 +105,7 @@
 			"ccw": "turn left",
 			"cw": "turn right",
 			"seekPreviewTitle": "Seek preview settings",
+			"seekPreviewTitleExp": "Fine-tuning for the 🎯 seek preview gesture (see table above): how long to wait before a preview auto-commits, and how finely the target position can be steered by turning.",
 			"seekPrevDelay": "Auto-commit delay",
 			"seekPrevDelayExp": "How long (in ms) the encoder must stay idle before a 🎯 seek-preview gesture jumps to the previewed position on its own. Releasing the held button always commits immediately, regardless of this delay. 0-3000, default 2000.",
 			"seekPrevSweep": "Turns for full sweep",
