@@ -59,12 +59,23 @@
 			display: flex;
 		}
 
+		/* Without an explicit flex-basis, this item's width:100% is used as its basis - so when the row
+		   overflows (icons + 100%) and has to shrink, it shrinks far more than the icon boxes do, leaving
+		   the actual slider narrower than a plain input in the same column. Growing/shrinking from a 0
+		   basis instead makes it simply fill whatever space the (fixed-size, see below) icons don't need. */
 		.slider-container-inner {
-			width: 100%;
+			flex: 1 1 0;
+			min-width: 0;
 			padding-top: 10px;
 			padding-left: 20px;
 			padding-right: 20px;
 			float: left;
+		}
+
+		/* float-end has no effect on a flex child (float is ignored for flex items) - these icon boxes
+		   were relying on it for nothing; give them a real fixed size instead so they don't shrink either. */
+		.slider-container > .float-end {
+			flex: 0 0 auto;
 		}
 
 		.slider.slider-horizontal {
@@ -1754,7 +1765,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="far fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-moon fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
@@ -1762,7 +1773,7 @@
 												data-slider-value="" value="" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-sun fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -1778,7 +1789,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="far fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-moon fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
@@ -1786,7 +1797,7 @@
 												name="nightBrightness" data-slider-value="" value="" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-sun fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -1802,7 +1813,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="far fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-moon fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
@@ -1810,7 +1821,7 @@
 												data-slider-value="" value="" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-sun fa-2x .icon-pos"></i>
+											<i class="fas fa-sun fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -1992,7 +2003,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
@@ -2000,7 +2011,7 @@
 												data-slider-value="" value="" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2023,7 +2034,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.5"
@@ -2032,7 +2043,7 @@
 												pattern="^\d{1,2}(\.\d{1,3})?" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2048,7 +2059,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" min="2.5" data-slider-step="0.05" data-slider-min="2.5"
@@ -2057,7 +2068,7 @@
 												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2073,7 +2084,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
@@ -2082,7 +2093,7 @@
 												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2098,7 +2109,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
@@ -2107,7 +2118,7 @@
 												pattern="^\d{1,2}(\.\d{1,3})?" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2123,7 +2134,7 @@
 								<div class="col-sm-8">
 									<div class="slider-container">
 										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
+											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
 											<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
@@ -2131,7 +2142,7 @@
 												data-slider-value="" name="voltageCheckInterval" value="" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
+											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -2285,6 +2296,15 @@
 			} else {
 				document.getElementById("fileOrUrl").required = false;
 			}
+		});
+		/* General sub-tabs (Playback/RFID-Reader/Encoder/LED/Power): sliders inside a pane that's still
+		   display:none at page load get measured (and their width baked in) by bootstrap-slider at the
+		   wrong, too-narrow size, since only the first sub-tab is visible initially. Recompute once a
+		   pane actually becomes visible instead of leaving that first, wrong measurement stuck. */
+		$('#GeneralSubTab.nav-tabs a').on('shown.bs.tab', function (e) {
+			$($(e.target).attr('href')).find('[data-provide="slider"]').each(function () {
+				$(this).bootstrapSlider('relayout');
+			});
 		});
 		if (host == "") { // Not running on the device -> use the remote host
 			host = remoteHost;

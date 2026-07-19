@@ -499,7 +499,7 @@
 			"savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
 			"savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
-			"savePlayPosInterval": "Wiedergabeposition langer Hörbücher automatisch speichern",
+			"savePlayPosInterval": "Wiedergabeposition langer Hörbücher automatisch speichern alle",
 			"savePlayPosIntervalSecs": "Sekunden",
 			"savePlayPosIntervalExp": "Speichert die Wiedergabeposition langer Hörbücher (Dateien ab 5 Minuten) während der Wiedergabe regelmäßig ins Flash, sodass ein plötzlicher Stromausfall (leerer Akku, ausgesteckt, Absturz) höchstens um die eingestellte Anzahl Sekunden zurückspringt, statt die Datei neu zu starten. Betrifft nur Hörbuch-Modi; kurze oder geteilte Titel werden ohnehin bei jedem Titelwechsel gespeichert. Ein kürzeres Intervall schreibt häufiger ins Flash, daher werden 30-60 Sekunden empfohlen; deutlich niedrigere Werte bringen kaum etwas und nutzen das Flash schneller ab.",
 			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",

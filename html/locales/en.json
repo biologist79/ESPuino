@@ -106,7 +106,7 @@
 			"cw": "turn right",
 			"seekPreviewTitle": "Seek preview settings",
 			"seekPreviewTitleExp": "Fine-tuning for the 🎯 seek preview gesture (see table above): how long to wait before a preview auto-commits, and how finely the target position can be steered by turning.",
-			"seekPrevDelay": "Auto-commit delay",
+			"seekPrevDelay": "Auto-commit delay [ms]",
 			"seekPrevDelayExp": "How long (in ms) the encoder must stay idle before a 🎯 seek-preview gesture jumps to the previewed position on its own. Releasing the held button always commits immediately, regardless of this delay. 0-3000, default 2000.",
 			"seekPrevSweep": "Turns for full sweep",
 			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40."
@@ -499,7 +499,7 @@
 			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Remember playback position at RFID tag change",
 			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
-			"savePlayPosInterval": "Auto-save playback position for long audio books",
+			"savePlayPosInterval": "Auto-save playback position for long audio books every",
 			"savePlayPosIntervalSecs": "seconds",
 			"savePlayPosIntervalExp": "Periodically saves the playback position of long audio books (files of 5 minutes or more) to flash while playing, so a sudden power loss (dead battery, unplugged, crash) only rewinds by up to the set number of seconds instead of restarting the file. Only applies to audio-book playmodes; short or split tracks already save at each track boundary. A shorter interval writes to flash more often, so 30-60 seconds is recommended; going much lower gains little and wears the flash faster.",
 			"pauseIfRfidRemoved": "Pause when RFID tag is removed",
