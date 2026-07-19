@@ -1590,6 +1590,35 @@
 									</table>
 								</div>
 							</fieldset>
+							<fieldset>
+								<legend class="w-auto" data-i18n="settingsex.rotary.seekPreviewTitle"></legend>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="seekPrevDelay" class="col-form-label"
+											data-i18n="settingsex.rotary.seekPrevDelay"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.seekPrevDelayExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="seekPrevDelay" name="seekPrevDelay"
+											min="0" max="3000" step="100">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="seekPrevSweep" class="col-form-label"
+											data-i18n="settingsex.rotary.seekPrevSweep"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.seekPrevSweepExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="seekPrevSweep" name="seekPrevSweep"
+											min="4" max="250" step="1">
+									</div>
+								</div>
+							</fieldset>
 							<hr>
 						</div>
 						<fieldset>
@@ -3404,6 +3433,8 @@
 				document.getElementById("rotaryConfig").style.display = null;
 				document.getElementById("rotaryGesturesConfig").style.display = null;
 				$('#rotaryReverse').prop('checked', rotarySettings.reverse);
+				$('#seekPrevDelay').val(rotarySettings.seekPrevDelay);
+				$('#seekPrevSweep').val(rotarySettings.seekPrevSweep);
 			}
 			// buttons
 			let buttonSettings = settings.buttons;
@@ -3891,7 +3922,9 @@
 					multi45: Number(document.getElementById("cmdselect_multi_45").value),
 				},
 				"rotary": {
-					reverse: $('#rotaryReverse').prop('checked')
+					reverse: $('#rotaryReverse').prop('checked'),
+					seekPrevDelay: Number($('#seekPrevDelay').val()),
+					seekPrevSweep: Number($('#seekPrevSweep').val())
 				}
 			};
 			// fill LED control colors
@@ -4616,7 +4649,14 @@
 			}
 
 			/* fill settingsex button commands */
-			document.querySelectorAll('[id*=cmdselect_]').forEach(e => replaceCommandSelect(e, cmdElem));
+			document.querySelectorAll('[id*=cmdselect_]:not([id*=cmdselect_rotcw_]):not([id*=cmdselect_rotccw_])').forEach(e => replaceCommandSelect(e, cmdElem));
+
+			/* Rotary CW/CCW selects additionally get CMD_SEEK_PREVIEW (186): a plain short/long/multi-button
+			   press has no "turning" to drive it, so it's meaningless there and left out of the shared cmds
+			   list above -- only the "hold + turn" gesture selects offer it. */
+			const cmdElemRotary = cmdElem.cloneNode(true);
+			addOption(cmdElemRotary, 186);
+			document.querySelectorAll('[id*=cmdselect_rotcw_], [id*=cmdselect_rotccw_]').forEach(e => replaceCommandSelect(e, cmdElemRotary));
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');

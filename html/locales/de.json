@@ -101,7 +101,12 @@
 			"gestures": "Taste halten + drehen",
 			"gesturesExp": "Solange eine dieser Tasten gehalten wird, löst Drehen am Drehimpulsgeber die zugewiesene Aktion aus, statt die Lautstärke zu ändern. 'Rechts drehen' ist die Richtung, die sonst lauter stellt. Die Lang-Aktion einer solchen Taste wird erst beim Loslassen ausgelöst - und gar nicht, wenn gedreht wurde.",
 			"ccw": "links drehen",
-			"cw": "rechts drehen"
+			"cw": "rechts drehen",
+			"seekPreviewTitle": "Positionsvorschau-Einstellungen",
+			"seekPrevDelay": "Verzögerung bis zur Übernahme [ms]",
+			"seekPrevDelayExp": "Wie lange (in ms) der Drehimpulsgeber stillstehen muss, bevor eine 🎯 Positionsvorschau-Geste von selbst zur vorgeschauten Position springt. Loslassen der gehaltenen Taste übernimmt die Position immer sofort, unabhängig von dieser Verzögerung. 0-3000, Standard 2000.",
+			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",
+			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40."
 		}
 	},
 	"wifi": {
@@ -312,6 +317,7 @@
 					"183": "🔄 Neustart",
 					"184": "📁 Springe zum nächsten Ordner",
 					"185": "📁 Springe zum vorherigen Ordner",
+					"186": "🎯 Positionsvorschau (drehen zum Positionieren, wird bei Loslassen/Stillstand übernommen)",
 					"199": "📊 Taskauslastung anzeigen (Konsole)",
 					"241": "🏷 Spiele virtuelle RFID-Karte 01",
 					"242": "🏷 Spiele virtuelle RFID-Karte 02",
