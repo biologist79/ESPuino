@@ -126,6 +126,21 @@
 	#define BUTTON_4_LONG     CMD_VOLUMEUP
 	#define BUTTON_5_LONG     CMD_VOLUMEDOWN
 
+	// Rotary gestures: hold the button, turn the encoder. CMD_NOTHING disables the button as a modifier.
+	// A modifier button keeps its normal short/long action when it is pressed *without* turning the encoder.
+	#define BUTTON_0_ROTARY_CW   CMD_SEEK_FORWARDS   // hold NEXT + turn: seek within the track
+	#define BUTTON_0_ROTARY_CCW  CMD_SEEK_BACKWARDS
+	#define BUTTON_1_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_1_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_2_ROTARY_CW   CMD_BRIGHTNESS_UP   // hold PLAY/PAUSE + turn: LED brightness
+	#define BUTTON_2_ROTARY_CCW  CMD_BRIGHTNESS_DOWN
+	#define BUTTON_3_ROTARY_CW   CMD_NOTHING         // rotary push: short=play/pause, long=sleep -- left free on purpose
+	#define BUTTON_3_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_4_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_4_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_5_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_5_ROTARY_CCW  CMD_NOTHING
+
 	#define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
 	#define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
 	#define BUTTON_MULTI_03   CMD_NOTHING
@@ -190,10 +205,6 @@
 	// example for America/Toronto:	"EST5EDT,M3.2.0,M11.1.0"
 	constexpr const char timeZone[] = "CET-1CEST,M3.5.0,M10.5.0/3"; // Europe/Berlin
 
-	// ESPuino will create a WiFi if joing existing WiFi was not possible. Name and password can be configured here.
-	constexpr const char accessPointNetworkSSID[] = "ESPuino";     // Access-point's SSID
-	constexpr const char accessPointNetworkPassword[] = "";        // Access-point's Password, at least 8 characters! Set to an empty string to spawn an open WiFi.
-
 	// Bluetooth
 	constexpr const char nameBluetoothSinkDevice[] = "ESPuino";        // Name of your ESPuino as Bluetooth-device
 
@@ -241,6 +252,10 @@
 
 	// Seekmode-configuration
 	constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
+	#define JUMP_OFFSET_ROTARY 10                                 // Offset in seconds per encoder-detent when seeking via a rotary gesture. A button press is a
+	                                                              // deliberate act and can afford jumpOffset; a flick of the encoder is many detents at once, so
+	                                                              // reusing jumpOffset there scrubs minutes at a time. Overridable at runtime via NVS "rotSeekStep".
+	                                                              // A macro (not constexpr) so Button/RotaryEncoder can #ifndef-default it for older overrides.
 
 	// Topics for MQTT: used to build actual topics in webinterface. So normally there's no need to apply any changes here 
 	// MQTT configuration available via webinterface: https://forum.espuino.de/t/dokumentation-webinterface/2807.

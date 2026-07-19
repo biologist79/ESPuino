@@ -27,7 +27,7 @@
 #include "System.h"
 #include "Web.h"
 #include "Wlan.h"
-#include "revision.h"
+#include "gitrevision.h"
 
 #include <Wire.h>
 

@@ -15,7 +15,11 @@ typedef enum class WebsocketCode {
 	OperationMode,
 	NotAllowedInCurrentMode,
 	BluetoothScanInProgress,
-	BluetoothScanComplete
+	BluetoothScanComplete,
+	// Request was a read-only data fetch (ssids/settings/trackinfo/coverimg/volume/...) that
+	// already sent its own specific response - the caller should not also forward Ok/an ack
+	// for it, unlike a genuine settings-save or control action.
+	Silent
 } WebsocketCodeType;
 
 void Web_Cyclic(void);

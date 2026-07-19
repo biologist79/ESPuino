@@ -55,6 +55,7 @@ typedef struct { // Bit field
 	size_t coverFilePos; // current cover file position
 	size_t coverFileSize; // current cover file size
 	size_t audioFileDuration; // file duration of current audio file (in seconds)
+	uint16_t savePosIntervalSecs = 0; // periodic play-position checkpoint interval in seconds (0 = disabled)
 } playProps;
 
 extern playProps gPlayProperties;
@@ -71,6 +72,16 @@ void AudioPlayer_SetVolume(const int32_t _newVolume);
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
 void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
+// Queue a relative seek. Accumulates, so one call per rotary detent scrubs proportionally.
+void AudioPlayer_AddSeekOffset(const int16_t seconds);
+// Seek-preview (CMD_SEEK_PREVIEW rotary gesture): moves a not-yet-committed target position instead of
+// jumping immediately; commits via the existing SEEK_POS_PERCENT path (see RotaryEncoder.cpp).
+void AudioPlayer_SeekPreviewStart(void);
+void AudioPlayer_SeekPreviewAdjust(const int32_t detents);
+void AudioPlayer_SeekPreviewCommit(void);
+void AudioPlayer_SeekPreviewCancel(void);
+bool AudioPlayer_IsSeekPreviewActive(void);
+uint8_t AudioPlayer_GetSeekPreviewTargetPercent(void);
 // Arm the "don't accept same RFID twice"-lock to be released on the next idle-state. Called when a tag is
 // accepted, independent of whether playback actually starts, so a tag whose first track fails immediately
 // (e.g. a webstream without WiFi) does not stay locked forever.

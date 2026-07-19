@@ -1,5 +1,4 @@
 {
-	"submit": "Absenden",
 	"restart": "Neustart",
 	"reset": "Reset",
 	"execute": "Ausführen",
@@ -11,7 +10,6 @@
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
 	"ok": "OK",
-	"showhide": "Ein-/Ausblenden",
 	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",
 	"restartinfo": "ESPuino wird jetzt neu gestartet...<br>Die Seite lädt sich nach dem Neustart automatisch neu.",
@@ -19,9 +17,13 @@
 	"toast": {
 		"rfidDetect": "RFID Tag mit {{rfidId}} erkannt.",
 		"success": "Aktion erfolgreich ausgeführt.",
-		"conlost": "Die Verbindung zum ESPuino ist unterbrochen! Bitte Seite neu laden.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
-		"saved": "Einstellungen gespeichert."
+		"saved": "Einstellungen gespeichert.",
+		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen."
+	},
+	"status": {
+		"connected": "Verbindung zum ESPuino: OK",
+		"disconnected": "Verbindung zum ESPuino unterbrochen - versuche erneut zu verbinden..."
 	},
 	"nav": {
 		"control": "Steuerung",
@@ -31,11 +33,11 @@
 		"ftp": "FTP",
 		"bluetooth": "Bluetooth",
 		"general": "Allgemein",
+		"updates": "Updates",
 		"tools": "Tools",
 		"help": "Hilfe"
 	},
 	"settingsex": {
-		"title": "Erweiterte Einstellungen",
 		"led": {
 			"title": "LED-Einstellungen",
 			"numindicator": "Anzahl Anzeige-LEDs",
@@ -49,10 +51,22 @@
 			"satatmo": "Sättigung-Atmolight",
 			"dimmablestates": "Dimmbare Stufen",
 			"reverserotation": "Drehrichtung umkehren",
-			"offset": "Offset Start-LED"
+			"offset": "Offset Start-LED",
+			"numindicatorExp": "Anzahl der LEDs, die für Status-/Fortschrittsanzeigen verwendet werden (z.B. Lautstärke, Abspielfortschritt). Ein Neustart ist nötig, damit die Änderung wirksam wird.",
+			"numcontrolExp": "Anzahl zusätzlicher LEDs am Ende der Kette, denen jeweils eine eigene, frei wählbare Farbe zugewiesen werden kann. Ein Neustart ist nötig, damit die Änderung wirksam wird.",
+			"numidledotsExp": "Anzahl der Punkte/LEDs, die im Ruhezustand (keine Wiedergabe) angezeigt werden.",
+			"huestartExp": "Farbton (Hue, 0-255) am Anfang der Fortschrittsanzeige. -1 = Standardfarbe verwenden.",
+			"hueendExp": "Farbton (Hue, 0-255) am Ende der Fortschrittsanzeige. -1 = Standardfarbe verwenden.",
+			"hueatmoExp": "Farbton (Hue, 0-255) im Ambient-Light-Modus. -1 = Standardfarbe verwenden.",
+			"satatmoExp": "Farbsättigung (0-255) im Ambient-Light-Modus. -1 = Standardwert verwenden.",
+			"dimmablestatesExp": "Anzahl der Zwischenschritte pro LED, mit denen Übergänge (z.B. Lautstärke- oder Fortschrittsanzeige) feiner/weicher dargestellt werden.",
+			"offsetExp": "Verschiebt die erste LED der Anzeige um die angegebene Anzahl Positionen - nützlich, wenn der LED-Ring nicht bei Position 0 beginnen soll.",
+			"offsetpauseExp": "Versetzt die Pause-Anzeige um einen halben LED-Abstand gegenüber der normalen Ruhezustand-Anzeige, damit Pause optisch von Idle unterscheidbar ist.",
+			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind."
 		},
 		"buttons": {
 			"title": "Taster-Zuordnungen",
+			"titleExp": "Weist jedem Taster eine Aktion für kurzen und eine für langen Druck zu.",
 			"short": "kurz",
 			"long": "lang",
 			"noaction": "--",
@@ -64,7 +78,8 @@
 			"button5": "Btn5-Taste"
 		},
 		"multibuttons": {
-			"title": "Multi-Taster Zuordnungen",
+			"title": "Multi-Taster-Zuordnungen",
+			"titleExp": "Löst eine Aktion aus, wenn zwei Taster gleichzeitig gedrückt werden.",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
 			"03": "0+3 (Next + Drehimpulsgeber)",
@@ -83,27 +98,58 @@
 		},
 		"rotary": {
 			"title": "Drehimpulsgeber",
-			"reverse": "Drehrichtung umkehren"
+			"reverse": "Drehrichtung umkehren",
+			"reverseExp": "Kehrt die Zähl-/Drehrichtung des Drehimpulsgebers um, z.B. falls Lauter/Leiser vertauscht ist.",
+			"gestures": "Taste halten + drehen",
+			"gesturesExp": "Solange eine dieser Tasten gehalten wird, löst Drehen am Drehimpulsgeber die zugewiesene Aktion aus, statt die Lautstärke zu ändern. 'Rechts drehen' ist die Richtung, die sonst lauter stellt. Die Lang-Aktion einer solchen Taste wird erst beim Loslassen ausgelöst - und gar nicht, wenn gedreht wurde.",
+			"ccw": "links drehen",
+			"cw": "rechts drehen",
+			"seekPreviewTitle": "Positionsvorschau-Einstellungen",
+			"seekPreviewTitleExp": "Feineinstellungen für die 🎯 Positionsvorschau-Geste (siehe Tabelle oben): wie lange gewartet wird, bis eine Vorschau automatisch übernommen wird, und wie fein sich die Zielposition per Drehung steuern lässt.",
+			"seekPrevDelay": "Verzögerung bis zur Übernahme [ms]",
+			"seekPrevDelayExp": "Wie lange (in ms) der Drehimpulsgeber stillstehen muss, bevor eine 🎯 Positionsvorschau-Geste von selbst zur vorgeschauten Position springt. Loslassen der gehaltenen Taste übernimmt die Position immer sofort, unabhängig von dieser Verzögerung. 0-3000, Standard 2000.",
+			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",
+			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40."
 		}
 	},
 	"wifi": {
 		"title": "WLAN-Einstellungen",
+		"saveButton": "WLAN-Einstellungen speichern",
+		"addNetworkButton": "Netzwerk hinzufügen",
 		"networks": "Netzwerke",
 		"savedNetworks": "Gespeicherte Netzwerke",
 		"ssid": {
 			"title": "WLAN-Name (SSID)",
 			"placeholder": "SSID",
-			"validation": "Bitte SSID des WLANs eintragen"
+			"validation": "Bitte SSID des WLANs eintragen",
+			"explanation": "Name des WLANs, dem ESPuino beitreten soll."
 		},
 		"password": {
 			"title": "Passwort",
 			"placeholder": "Passwort",
-			"validation": "Bitte Passwort des WLANs eintragen"
+			"validation": "Bitte Passwort des WLANs eintragen",
+			"explanation": "Passwort des WLANs, dem ESPuino beitreten soll."
 		},
 		"hostname": {
 			"title": "ESPuino-Name (Hostname)",
 			"placeholder": "espuino",
-			"validation": "Trage einen validen Hostnamen ein"
+			"validation": "Trage einen validen Hostnamen ein",
+			"explanation": "Das ist der Name deines ESPuinos, wie er in deinem Netzwerk erscheint."
+		},
+		"apSSID": {
+			"title": "ESPuino-Accesspoint-Name",
+			"placeholder": "ESPuino",
+			"explanation": "Name des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
+		},
+		"apPassword": {
+			"title": "ESPuino-Accesspoint-Passwort",
+			"placeholder": "Passwort",
+			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
+		},
+		"apTimeout": {
+			"title": "Accesspoint schließt nach (Minuten)",
+			"hint": "0 = Accesspoint schließt nie automatisch (Sicherheitslücke!)",
+			"explanation": "Dauer in Minuten, wie lange das WLAN, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist, geöffnet bleibt."
 		},
 		"static": {
 			"addr": "Statische IP-Adresse",
@@ -111,16 +157,44 @@
 			"gateway": "Gateway für statische IP-Konfiguration",
 			"subnet": "Subnetzmaske für statische IP-Konfiguration",
 			"dns1": " DNS 1 für statische IP-Konfiguration",
-			"dns2": "DNS 2 für statische IP-Konfiguration"
+			"dns2": "DNS 2 für statische IP-Konfiguration",
+			"explanation": "Die IP-Konfiguration erfolgt manuell statt über einen DHCP-Server. Achtung: Du solltest wissen, was hier einzutragen ist, sonst ist dein ESPuino per Netzwerk möglicherweise nicht mehr erreichbar.",
+			"addrExp": "Feste IPv4-Adresse für ESPuino im WLAN (nur wirksam, wenn 'Statische IP-Konfiguration' aktiviert ist).",
+			"gatewayExp": "IP-Adresse des Gateways/Routers für die statische IP-Konfiguration.",
+			"subnetExp": "Subnetzmaske für die statische IP-Konfiguration, z.B. 255.255.255.0.",
+			"dns1Exp": "Bevorzugter DNS-Server für die statische IP-Konfiguration.",
+			"dns2Exp": "Alternativer DNS-Server für die statische IP-Konfiguration (wird verwendet, falls der erste nicht erreichbar ist)."
 		},
 		"scan": {
-			"enabled": "Start mit bestem WLAN"
+			"enabled": "Start mit bestem WLAN",
+			"explanation": "Sind mehrere WLANs in ESPuino konfiguriert oder betreibst du ein Mesh-WLAN, so tritt ESPuino nicht dem ersten konfigurierten WLAN bei, das es beim Scannen findet. Es scannt stattdessen alle WLANs und tritt dem stärksten bei. Vorteil: Höherer Datendurchsatz. Nachteil: Dauert etwas länger."
 		},
 		"delete": {
 			"title": "Netzwerk entfernen",
 			"prompt": "Gespeichertes Netzwerk \"{{ssid}}\" wirklich entfernen?"
 		},
-		"restartPrompt": "Fertig?"
+		"restartPrompt": "Fertig?",
+		"fullInterface": {
+			"title": "Nur das Webinterface nutzen?",
+			"hint": "Falls du kein WLAN einrichten, sondern nur auf die Bedienoberfläche zugreifen möchtest (z. B. unterwegs ohne bekanntes WLAN): Schließe dieses Fenster, öffne deinen normalen Browser und rufe diese Adresse auf.",
+			"copy": "Adresse kopieren",
+			"copied": "Adresse kopiert!",
+			"copyFailed": "Kopieren nicht möglich - bitte Adresse oben manuell markieren und kopieren."
+		},
+		"fail": {
+			"wrong_password": "Verbindung mit \"{{ssid}}\" fehlgeschlagen — vermutlich ist das Passwort falsch (Code {{code}}). Bitte prüfen und erneut eingeben.",
+			"not_found": "Das Netzwerk \"{{ssid}}\" wurde nicht gefunden (Code {{code}}). Ist es in Reichweite und auf 2,4 GHz?",
+			"rejected": "Der Router hat die Verbindung mit \"{{ssid}}\" abgelehnt (Code {{code}}). MAC-Filter, Client-Limits oder Sicherheitseinstellungen prüfen (WPA2 erforderlich).",
+			"other": "Verbindung mit \"{{ssid}}\" fehlgeschlagen (Code {{code}}).",
+			"timeout": "Mit \"{{ssid}}\" verbunden, aber keine IP-Adresse erhalten (Code {{code}}). DHCP-Einstellungen des Routers prüfen."
+		},
+		"test": {
+			"connecting": "Verbinde mit \"{{ssid}}\" …",
+			"connectingBtn": "Verbinde …",
+			"success": "Verbunden! Die Box hat die IP {{ip}} erhalten und verlässt jetzt den Einrichtungsmodus. Verbinde dein Telefon wieder mit deinem normalen WLAN und erreiche die Box unter http://{{ip}}",
+			"reachTitle": "ESPuino erreichen",
+			"reachHint": "Dein ESPuino ist jetzt unter dieser Adresse in deinem WLAN erreichbar. Kopiere sie oder speichere sie als Lesezeichen — das Einrichtungs-WLAN wird geschlossen."
+		}
 	},
 	"control": {
 		"title": "Steuerung",
@@ -173,6 +247,7 @@
 		},
 		"rfid": {
 			"title": "RFID-Zuweisungen",
+			"saveButton": "Zuweisung speichern",
 			"idNumber": "RFID-Chip-Nummer (12-stellig) oder <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtuell</a>",
 			"music": "Musik",
 			"modification": "Modifikation",
@@ -184,22 +259,22 @@
 				"title": "Abspielmodus",
 				"placeholder": "Modus auswählen",
 				"mode": {
-					"1": "Einzelner Titel",
-					"2": "Einzelner Titel (Endlosschleife)",
-					"12": "Einzelner Titel eines Verzeichnisses (zufällig). Danach schlafen.",
-					"3": "Hörbuch",
-					"16": "Hörbuch mit Unterverzeichnissen (rekursiv)",
-					"4": "Hörbuch (Endlosschleife)",
-					"5": "Alle Titel eines Verzeichnisses (sortiert)",
-					"15": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, sortiert)",
-					"6": "Alle Titel eines Verzeichnisses (zufällig)",
-					"17": "Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, zufällig)",
-					"7": "Alle Titel eines Verzeichnisses (sortiert, Endlosschleife)",
-					"9": "Alle Titel eines Verzeichnisses (zufällig, Endlosschleife)",
-					"13": "Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
-					"14": "Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
-					"8": "Webradio",
-					"11": "Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+					"1": "🎵 Einzelner Titel",
+					"2": "🎵🔁 Einzelner Titel (Endlosschleife)",
+					"12": "🎲💤 Einzelner Titel eines Verzeichnisses (zufällig). Danach schlafen.",
+					"3": "📖 Hörbuch",
+					"16": "📚 Hörbuch mit Unterverzeichnissen (rekursiv)",
+					"4": "📖🔁 Hörbuch (Endlosschleife)",
+					"5": "📁 Alle Titel eines Verzeichnisses (sortiert)",
+					"15": "🌳 Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, sortiert)",
+					"6": "📁🔀 Alle Titel eines Verzeichnisses (zufällig)",
+					"17": "🌳🔀 Alle Titel eines Verzeichnisses + Unterverzeichnisse (rekursiv, zufällig)",
+					"7": "📁🔁 Alle Titel eines Verzeichnisses (sortiert, Endlosschleife)",
+					"9": "📁🔀🔁 Alle Titel eines Verzeichnisses (zufällig, Endlosschleife)",
+					"13": "🎲📁 Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
+					"14": "🎲📁🔀 Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
+					"8": "📻 Webradio",
+					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
 				},
 				"error": "Kein gültiger Abspielmodus"
 			},
@@ -207,79 +282,87 @@
 				"title": "Modifikation",
 				"placeholder": "Modifikation auswählen",
 				"cmd": {
-					"100": "Tastensperre",
-					"101": "Schlafen nach 15 Minuten",
-					"102": "Schlafen nach 30 Minuten",
-					"103": "Schlafen nach 1 Stunde",
-					"104": "Schlafen nach 2 Stunden",
-					"105": "Schlafen nach Ende des Titels",
-					"106": "Schlafen nach Ende der Playlist",
-					"107": "Schlafen nach fünf Titeln",
-					"110": "Wiederhole Playlist (endlos)",
-					"111": "Wiederhole Titel (endlos)",
-					"120": "Dimme LEDs (Nachtmodus)",
-					"130": "Aktiviere/deaktiviere WLAN",
-					"140": "Bluetooth-Lautsprecher aktivieren/deaktivieren",
-					"141": "Bluetooth-Kopfhörer aktivieren/deaktivieren",
-					"142": "Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
-					"150": "Aktiviere FTP",
-					"151": "IP-Adresse ansagen",
-					"152": "Uhrzeit ansagen",
-					"153": "Ambient Light umschalten",
-					"0": "Lösche Zuordnung",
-					"170": "Play/Pause",
-					"171": "Vorheriger Titel",
-					"172": "Nächster Titel",
-					"173": "Erster Titel",
-					"174": "Letzter Titel",
-					"175": "Initiale Lautstärke",
-					"176": "Lauter",
-					"177": "Leiser",
-					"178": "Batteriespannung anzeigen",
-					"179": "Schlafe sofort",
-					"180": "Springe vorwärts (n Sekunden)",
-					"181": "Springe rückwärts (n Sekunden)",
-					"182": "Stop",
-					"183": "Neustart",
-					"184": "Springe zum nächsten Ordner",
-					"185": "Springe zum vorherigen Ordner",
-					"199": "Taskauslastung anzeigen (Konsole)",
-					"241": "Spiele virtuelle RFID-Karte 01",
-					"242": "Spiele virtuelle RFID-Karte 02",
-					"243": "Spiele virtuelle RFID-Karte 03",
-					"244": "Spiele virtuelle RFID-Karte 04",
-					"245": "Spiele virtuelle RFID-Karte 05",
-					"246": "Spiele virtuelle RFID-Karte 06",
-					"247": "Spiele virtuelle RFID-Karte 07",
-					"248": "Spiele virtuelle RFID-Karte 08",
-					"249": "Spiele virtuelle RFID-Karte 09",
-					"250": "Spiele virtuelle RFID-Karte 10"
+					"100": "🔒 Tastensperre",
+					"101": "💤 Schlafen nach 15 Minuten",
+					"102": "💤 Schlafen nach 30 Minuten",
+					"103": "💤 Schlafen nach 1 Stunde",
+					"104": "💤 Schlafen nach 2 Stunden",
+					"105": "💤 Schlafen nach Ende des Titels",
+					"106": "💤 Schlafen nach Ende der Playlist",
+					"107": "💤 Schlafen nach fünf Titeln",
+					"110": "🔁 Wiederhole Playlist (endlos)",
+					"111": "🔂 Wiederhole Titel (endlos)",
+					"120": "🌙 Dimme LEDs (Nachtmodus)",
+					"130": "📶 Aktiviere/deaktiviere WLAN",
+					"140": "🔊 Bluetooth-Lautsprecher aktivieren/deaktivieren",
+					"141": "🎧 Bluetooth-Kopfhörer aktivieren/deaktivieren",
+					"142": "🔀 Wechsle Modus (Normal => BT-Lautsprecher => BT-Kopfhörer)",
+					"150": "📁 Aktiviere FTP",
+					"151": "🌐 IP-Adresse ansagen",
+					"152": "🕒 Uhrzeit ansagen",
+					"153": "💡 Ambient Light umschalten",
+					"154": "🔆 LED-Helligkeit erhöhen",
+					"155": "🔅 LED-Helligkeit verringern",
+					"0": "🗑 Lösche Zuordnung",
+					"170": "⏯ Play/Pause",
+					"171": "⏮ Vorheriger Titel",
+					"172": "⏭ Nächster Titel",
+					"173": "⏪ Erster Titel",
+					"174": "⏩ Letzter Titel",
+					"175": "🔈 Initiale Lautstärke",
+					"176": "🔊 Lauter",
+					"177": "🔉 Leiser",
+					"178": "🔋 Batteriespannung anzeigen",
+					"179": "💤 Schlafe sofort",
+					"180": "» Springe vorwärts (n Sekunden)",
+					"181": "« Springe rückwärts (n Sekunden)",
+					"182": "⏹ Stop",
+					"183": "🔄 Neustart",
+					"184": "📁 Springe zum nächsten Ordner",
+					"185": "📁 Springe zum vorherigen Ordner",
+					"186": "🎯 Positionsvorschau (drehen zum Positionieren, wird bei Loslassen/Stillstand übernommen)",
+					"199": "📊 Taskauslastung anzeigen (Konsole)",
+					"241": "🏷 Spiele virtuelle RFID-Karte 01",
+					"242": "🏷 Spiele virtuelle RFID-Karte 02",
+					"243": "🏷 Spiele virtuelle RFID-Karte 03",
+					"244": "🏷 Spiele virtuelle RFID-Karte 04",
+					"245": "🏷 Spiele virtuelle RFID-Karte 05",
+					"246": "🏷 Spiele virtuelle RFID-Karte 06",
+					"247": "🏷 Spiele virtuelle RFID-Karte 07",
+					"248": "🏷 Spiele virtuelle RFID-Karte 08",
+					"249": "🏷 Spiele virtuelle RFID-Karte 09",
+					"250": "🏷 Spiele virtuelle RFID-Karte 10"
 				}
 			}
 		}
 	},
 	"mqtt": {
 		"title": "MQTT-Einstellungen",
+		"saveButton": "MQTT-Einstellungen speichern",
 		"enable": "MQTT aktivieren",
 		"clientId": {
 			"title": "MQTT-ClientId",
 			"placeholder": "z.B. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Eindeutige Kennung, mit der sich ESPuino beim MQTT-Broker anmeldet - muss im Netzwerk eindeutig sein. Der Platzhalter &lt;MAC&gt; wird durch die MAC-Adresse ersetzt."
 		},
 		"server": {
 			"title": "MQTT-Server",
 			"placeholder": "f.e. 192.168.2.89",
-			"validation": ""
+			"validation": "",
+			"explanation": "Hostname oder IP-Adresse des MQTT-Brokers."
 		},
 		"baseTopic": {
 			"title": "Basis-Topic (optional)",
 			"placeholder": "z.B. home/espuino",
-			"validation": ""
+			"validation": "",
+			"explanation": "Basis-Pfad, unter dem alle MQTT-Topics von ESPuino veröffentlicht werden, z.B. 'espuino/wohnzimmer/...'."
 		},
 		"deviceId": {
 			"title": "Geräte-ID",
 			"placeholder": "z.B. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Geräte-Bezeichner, der Teil des MQTT-Topic-Pfads ist - nützlich, um mehrere ESPuinos am selben Broker zu unterscheiden. Der Platzhalter &lt;MAC&gt; wird durch die MAC-Adresse ersetzt."
 		},
 		"topicsPreview": "Vollständige Topics (Vorschau)",
 		"restartNote": "Hinweis: MQTT-Änderungen werden erst nach einem Neustart des Geräts wirksam.",
@@ -290,28 +373,35 @@
 		"user": {
 			"title": "MQTT-Benutzername (optional)",
 			"placeholder": "Benutzername",
-			"validation": ""
+			"validation": "",
+			"explanation": "Benutzername für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
 		},
 		"pwd": {
 			"title": "MQTT-Passwort (optional)",
 			"placeholder": "Passwort",
-			"validation": ""
+			"validation": "",
+			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
 		},
 		"port": {
 			"title": "MQTT-Port",
 			"placeholder": "z.B. 1883",
-			"validation": ""
-		}
+			"validation": "",
+			"explanation": "TCP-Port des MQTT-Brokers (Standard: 1883 für unverschlüsselte Verbindungen)."
+		},
+		"enableExp": "Aktiviert die Verbindung zu einem MQTT-Broker. Ein Neustart ist nötig, damit die Änderung wirksam wird."
 	},
 	"ftp": {
 		"title": "FTP-Einstellungen",
+		"saveButton": "FTP-Einstellungen speichern",
 		"user": {
 			"title": "FTP-Benutzername",
-			"placeholder": "Benutzername"
+			"placeholder": "Benutzername",
+			"explanation": "Benutzername für den Zugriff auf ESPuino per FTP."
 		},
 		"pwd": {
 			"title": "FTP-Passwort",
-			"placeholder": "Passwort"
+			"placeholder": "Passwort",
+			"explanation": "Passwort für den Zugriff auf ESPuino per FTP."
 		},
 		"start": {
 			"title": "FTP-Server starten",
@@ -320,6 +410,7 @@
 		}
 	},
 	"bt": {
+		"saveButton": "Bluetooth-Einstellungen speichern",
 		"normal": {
 			"title": "Bluetooth-Modus verlassen",
 			"desc": "Kehrt zum normalen Modus mit WiFi-Funktionalität zurück. Musik von SD-Karte und Webstreams können abgespielt werden.",
@@ -350,11 +441,13 @@
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
-			"placeholder": "z.B. My POGS Wireless Headphone"
+			"placeholder": "z.B. My POGS Wireless Headphone",
+			"explanation": "Name, unter dem ESPuino beim Bluetooth-Pairing angezeigt wird bzw. mit dem es sich als Bluetooth-Kopfhörer verbindet."
 		},
 		"pincode": {
 			"title": "Pairing PIN-Code",
-			"placeholder": "z.B. 0000"
+			"placeholder": "z.B. 0000",
+			"explanation": "PIN-Code für die Bluetooth-Kopplung (nur nötig, falls das Zielgerät danach fragt)."
 		},
 		"switchmode": {
 			"title": "Wechsel zu WiFi-Modus",
@@ -363,12 +456,16 @@
 		}
 	},
 	"general": {
+		"saveButton": "Einstellungen speichern",
 		"language": "Sprache",
 		"volume": {
 			"title": "Lautstärke",
 			"restart": "Nach dem Einschalten",
 			"speakerMax": "Maximal (Lautsprecher)",
-			"headphoneMax": "Maximal (Kopfhörer)"
+			"headphoneMax": "Maximal (Kopfhörer)",
+			"restartExp": "Lautstärke, mit der ESPuino nach dem Einschalten startet (sofern 'Letzte Lautstärke merken' nicht aktiviert ist).",
+			"speakerMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über den Lautsprecher.",
+			"headphoneMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über Kopfhörer."
 		},
 		"equalizer": {
 			"title": "Equalizer",
@@ -380,17 +477,19 @@
 		"rfid": {
 			"title": "RFID Reader",
 			"readerType": {
-				"title": "Reader Type",
+				"title": "Reader-Typ",
 				"auto": "Auto-detect",
 				"mfrc522_spi": "MFRC522 (SPI)",
 				"mfrc522_i2c": "MFRC522 (I2C)",
-				"pn5180": "PN5180"
+				"pn5180": "PN5180",
+				"description": "Wähle den Typ des RFID readers. Auto-detect wird versuchen den Reader automatisch zu erkennen."
 			},
-			"description": "Wähle den Typ des RFID readers. Auto-detect wird versuchen den Reader automatisch zu erkennen.",
 			"pn5180Lpcd": "PN5180 LPCD aktivieren",
 			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind.",
 			"mfrc522Gain": "MFRC522 Gain",
-			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7."
+			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7.",
+			"pn5180Debounce": "PN5180 Debounce",
+			"pn5180DebounceExp": "Zeit in Millisekunden, die eine Karte ununterbrochen nicht erkannt werden muss, bevor sie als entfernt gilt. Verhindert, dass kurze Leseaussetzer (z.B. bei größerem Abstand zwischen Karte und Leser) fälschlich als Kartenentfernung gewertet werden. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 500ms."
 		},
 		"options": {
 			"title": "Optionen",
@@ -400,6 +499,9 @@
 			"savePlayPosShutdownExp": "Beim Ausschalten der Box wird für Hörbücher die Abspielposition gespeichert. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Abspielposition bei RFID-Tag Wechsel merken",
 			"savePlayPosRfidChangeExp": "Beim Wechsel zu einem neuen RFID-Tag wird für Hörbücher die Abspielposition gespeichert. Betrifft keine Modifikations-Tags. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"savePlayPosInterval": "Wiedergabeposition langer Hörbücher automatisch speichern alle",
+			"savePlayPosIntervalSecs": "Sekunden",
+			"savePlayPosIntervalExp": "Speichert die Wiedergabeposition langer Hörbücher (Dateien ab 5 Minuten) während der Wiedergabe regelmäßig ins Flash, sodass ein plötzlicher Stromausfall (leerer Akku, ausgesteckt, Absturz) höchstens um die eingestellte Anzahl Sekunden zurückspringt, statt die Datei neu zu starten. Betrifft nur Hörbuch-Modi; kurze oder geteilte Titel werden ohnehin bei jedem Titelwechsel gespeichert. Ein kürzeres Intervall schreibt häufiger ins Flash, daher werden 30-60 Sekunden empfohlen; deutlich niedrigere Werte bringen kaum etwas und nutzen das Flash schneller ab.",
 			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",
 			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PAUSE_WHEN_RFID_REMOVED</code>.",
 			"dontAcceptRfidTwice": "Denselben RFID-Tag nicht erneut akzeptieren",
@@ -419,11 +521,15 @@
 			"title": "Neopixel (Helligkeit)",
 			"restart": "Nach dem Einschalten",
 			"nightmode": "Im Nachtmodus",
-			"atmomode": "Im Atmolight-Modus"
+			"atmomode": "Im Atmolight-Modus",
+			"restartExp": "LED-Helligkeit direkt nach dem Einschalten.",
+			"nightmodeExp": "Reduzierte LED-Helligkeit im Nachtmodus.",
+			"atmomodeExp": "LED-Helligkeit im Ambient-Light-Modus (Atmolight)."
 		},
 		"sleep": {
 			"title": "Deep Sleep",
-			"inactivity": "Inaktivität nach (in Minuten)"
+			"inactivity": "Inaktivität nach (in Minuten)",
+			"inactivityExp": "Zeit in Minuten ohne Bedienung, nach der ESPuino automatisch in den Ruhezustand (Deep Sleep) wechselt."
 		},
 		"battery": {
 			"title": "Batterie",
@@ -432,7 +538,12 @@
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
-			"measureInterval": "Zeitabstand der Messung (in Minuten)"
+			"measureInterval": "Zeitabstand der Messung (in Minuten)",
+			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
+			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
+			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
+			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
+			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",
@@ -440,7 +551,16 @@
 			"strcmp": "Standardsortierung",
 			"strnatcmp": "Natürlich: Groß- und Kleinschreibung beachten",
 			"strnatcasecmp": "Natürlich: Groß- und Kleinschreibung ignorieren",
-			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists"
+			"recDepth": "Maximale Rekursionstiefe beim Generieren der Rekursiv-Playlists",
+			"sortModeExp": "Legt fest, wie Dateien und Playlists sortiert werden: Alphabetische Standardsortierung (z.B. '10' vor '2') oder natürliche Sortierung, die Zahlen im Namen korrekt einordnet (z.B. '2' vor '10'), wahlweise unter Beachtung der Groß-/Kleinschreibung.",
+			"recDepthExp": "Maximale Verzeichnistiefe, bis zu der beim Erstellen rekursiver Playlists in Unterordnern gesucht wird."
+		},
+		"tabs": {
+			"playback": "Wiedergabe",
+			"rfidReader": "RFID-Reader",
+			"encoderButtons": "Drehencoder & Taster",
+			"led": "LED",
+			"power": "Energie"
 		}
 	},
 	"tools": {
@@ -448,7 +568,8 @@
 			"title": "Gespeicherte RFID-Zuweisungen",
 			"desc": "Die RFID-Zuweisungen werden nicht auf der SD-Karte, sondern im internen, nicht-flüchtigen Speicher (NVS) des ESPuinos gespeichert.",
 			"list": {
-				"title": "Liste aller gespeicherten RFID-Zuweisungen"
+				"title": "Liste aller gespeicherten RFID-Zuweisungen",
+				"show": "Zuweisungen anzeigen"
 			},
 			"erase": {
 				"title": "Alle RFID-Zuweisungen löschen",
@@ -462,16 +583,34 @@
 			},
 			"import": {
 				"title": "Import",
-				"desc": "Hier kann eine Backup-Datei hochgeladen werden, um RFID-Zuweisungen zu importieren."
+				"desc": "Hier kann eine Backup-Datei hochgeladen werden, um RFID-Zuweisungen zu importieren.",
+				"button": "Zuweisungen importieren"
 			},
 			"export": {
 				"title": "Export",
-				"desc": "Hier kann eine Backup-Datei heruntergeladen werden, um RFID-Zuweisungen zu exportieren."
+				"desc": "Hier kann eine Backup-Datei heruntergeladen werden, um RFID-Zuweisungen zu exportieren.",
+				"button": "Zuweisungen exportieren"
 			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
-			"desc": "Hier kann ein Firmware-Update durchgeführt werden."
+			"button": "Firmware hochladen",
+			"desc": "Hier kann ein Firmware-Update durchgeführt werden.",
+			"github": {
+				"title": "Firmware von GitHub laden",
+				"desc": "Lädt eine fertig gebaute Firmware direkt aus dem ESPuino-Firmware-Repository und installiert sie – ohne manuellen Download.",
+				"branch": "Branch",
+				"checkButton": "Nach Updates suchen",
+				"searching": "Suche läuft…",
+				"noBuilds": "Für diese Auswahl wurden keine Builds gefunden.",
+				"notAvailablePlatform": "Für diese Plattform ({{platform}}) werden im Repository keine fertigen Firmwares bereitgestellt. Bitte die Firmware manuell hochladen.",
+				"notAvailableCustomBuild": "Dieses Board wurde mit individuellen Einstellungen (settings-override.h / platformio-override.ini) gebaut. Die offizielle Firmware enthält diese Anpassungen nicht – bitte selbst bauen und wie gewohnt manuell hochladen.",
+				"notAvailableOta": "Dieses Board unterstützt kein Firmware-Update über das Webinterface. Bitte die Firmware seriell flashen.",
+				"buildEntry": "{{date}} – Commit:",
+				"installButton": "Installieren",
+				"installPrompt": "Firmware vom {{date}} (Commit {{commit}}) jetzt installieren?\n\nPlattform: {{platform}}\nBranch: {{branch}}\nSprache: {{language}}\n\nDie neue Firmware wird nun auf deinem ESPuino installiert. Dies dauert ungefähr eine Minute - sofern ein Neopixel mit mehreren LEDs angeschlossen ist, wird währenddessen eine Fortschritts-Animation angezeigt (blau). Ist es nur eine LED, so blinkt diese blau.",
+				"fetchError": "Firmware-Liste konnte nicht abgerufen werden."
+			}
 		}
 	},
 	"help": {
@@ -498,6 +637,7 @@
 		"title": "Information",
 		"softwareversion": "ESPuino {{softwareversion}}",
 		"gitversion": "ESPuino {{gitversion}}",
+		"branch": "Branch: {{branch}}",
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Freier Heap: {{freeheap}} Bytes",

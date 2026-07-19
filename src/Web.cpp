@@ -8,6 +8,7 @@
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Bluetooth.h"
+#include "Button.h"
 #include "Cmd.h"
 #include "Common.h"
 #include "ESPAsyncWebServer.h"
@@ -25,7 +26,8 @@
 #include "System.h"
 #include "Wlan.h"
 #include "freertos/ringbuf.h"
-#include "revision.h"
+#include "gitrevision.h"
+#include "platforminfo.h"
 #include "soc/timer_group_reg.h"
 #include "soc/timer_group_struct.h"
 
@@ -34,6 +36,12 @@
 #include <atomic>
 #include <esp_task_wdt.h>
 #include <nvs.h>
+
+// An override written before this feature existed does not define it (settings-override.h replaces
+// settings.h wholesale), so fall back rather than break those builds.
+#ifndef JUMP_OFFSET_ROTARY
+	#define JUMP_OFFSET_ROTARY 10
+#endif
 
 typedef struct {
 	char nvsKey[cardIdStringSize];
@@ -47,7 +55,7 @@ AsyncEventSource events("/events");
 static bool webserverStarted = false;
 
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
-static constexpr uint32_t nr_of_buffers = 3; // at least two buffers. No speed improvement yet with more than two.
+static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two. Kept at 2 to save ~16KB heap during uploads.
 
 static constexpr size_t retry_count = 3; // how often we retry is a malloc fails (also the times we halfe the chunk_size)
 
@@ -64,7 +72,12 @@ static std::atomic<bool> uploadAborted = false;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-static void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+// Raw (non-multipart) request body: one PUT/POST per file, the target path
+// (folder + filename) travels in the "path" query param since a raw body
+// carries no per-part filename. The client is responsible for looping over
+// multiple files sequentially - see the double-buffer/writer-task machinery
+// below, which only supports one upload in flight at a time.
+static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 static void explorerHandleFileStorageTask(void *parameter);
 static void explorerHandleListRequest(AsyncWebServerRequest *request);
 static void explorerHandleDownloadRequest(AsyncWebServerRequest *request);
@@ -74,6 +87,8 @@ static void explorerHandleRenameRequest(AsyncWebServerRequest *request);
 static void explorerHandleAudioRequest(AsyncWebServerRequest *request);
 static void handleTrackProgressRequest(AsyncWebServerRequest *request);
 static void handleGetSavedSSIDs(AsyncWebServerRequest *request);
+static void handleGetWifiStatus(AsyncWebServerRequest *request);
+static void handlePostWifiTest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteSavedSSIDs(AsyncWebServerRequest *request);
 static void handleGetActiveSSID(AsyncWebServerRequest *request);
@@ -182,16 +197,19 @@ static void serveProgmemFiles(const String &uri, const String &contentType, cons
 	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
 		AsyncWebServerResponse *response;
 
-		// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-		const bool etag = false;
+		const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
 		if (etag) {
 			response = request->beginResponse(304);
 		} else {
 			response = request->beginResponse(200, contentType, content, len);
 			response->addHeader("Content-Encoding", "gzip");
 		}
-		// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-		// response->addHeader("ETag", gitRevShort);		// use git revision as digest
+		// no-cache (not "no-store"): browser may keep a local copy, but must always revalidate via ETag
+		// before using it. That way repeat loads cost only a small conditional request (304 if unchanged),
+		// while a firmware update (new gitRevShort) is picked up immediately instead of serving a stale
+		// cached copy for the "immutable"/long-max-age duration.
+		response->addHeader("Cache-Control", "no-cache");
+		response->addHeader("ETag", gitRevShort); // use git revision as digest
 		request->send(response);
 	});
 }
@@ -399,32 +417,53 @@ void webserverStart(void) {
 		wServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			AsyncWebServerResponse *response;
 
-			// const bool etag = request->hasHeader("if-None-Match") && request->getHeader("if-None-Match")->value().equals(gitRevShort);
-			const bool etag = false;
-			if (etag) {
-				response = request->beginResponse(304);
-			} else {
-				if (WiFi.getMode() == WIFI_STA) {
-					// serve management.html in station-mode
+			// ETag is tied to the firmware build (gitRevShort), so it must only gate the firmware-embedded
+			// management_html_BIN response below - never the user-provided SD-card index.htm, whose content
+			// can change independently of the firmware (a stale 304 would then serve an outdated cached
+			// copy of the user's own custom page).
+			const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
+
+			// management.html's frontend libraries are embedded rather than loaded from a CDN (see
+			// html/vendor/), so it no longer *needs* internet access - but AP-mode is typically reached
+			// through the OS's captive-portal mini-browser (e.g. iOS's Captive Network Assistant), which
+			// is a constrained sandbox: fixed small viewport, often no/partial WebSocket support, and a
+			// load-time budget the heavy Bootstrap/jQuery/jstree/WebSocket app can exceed - causing the OS
+			// to report the connection attempt as failed. So AP-mode keeps serving the minimal,
+			// framework-free accesspoint.html, which is known to work reliably in that sandbox.
+			if (WiFi.getMode() == WIFI_STA) {
+				// serve management.html in station-mode
 #ifdef NO_SDCARD
-					response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-					response->addHeader("Content-Encoding", "gzip");
-#else
-					if (gFSystem.exists("/.html/index.htm")) {
-						response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
-					} else {
-						response = request->beginResponse(200, "text/html", (const uint8_t *) management_BIN, sizeof(management_BIN));
-						response->addHeader("Content-Encoding", "gzip");
-					}
-#endif
+				if (etag) {
+					response = request->beginResponse(304);
 				} else {
-					// serve accesspoint.html in AP-mode
-					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_BIN, sizeof(accesspoint_BIN));
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
 					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#else
+				if (gFSystem.exists("/.html/index.htm")) {
+					response = request->beginResponse(gFSystem, "/.html/index.htm", "text/html", false);
+				} else if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) management_html_BIN, sizeof(management_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
+				}
+#endif
+			} else {
+				// serve accesspoint.html in AP-mode
+				if (etag) {
+					response = request->beginResponse(304);
+				} else {
+					response = request->beginResponse(200, "text/html", (const uint8_t *) accesspoint_html_BIN, sizeof(accesspoint_html_BIN));
+					response->addHeader("Content-Encoding", "gzip");
+					response->addHeader("Cache-Control", "no-cache");
+					response->addHeader("ETag", gitRevShort);
 				}
 			}
-			// response->addHeader("Cache-Control", "public, max-age=31536000, immutable");
-			// response->addHeader("ETag", gitRevShort);		// use git revision as digest
 			request->send(response);
 		});
 
@@ -475,6 +514,11 @@ void webserverStart(void) {
 
 				Update.write(data, len);
 				Log_Print(".", LOGLEVEL_NOTICE, false);
+
+				const size_t contentLength = request->contentLength();
+				if (contentLength > 0) {
+					Led_ShowOtaProgress((uint8_t) (((index + len) * 100) / contentLength));
+				}
 
 				if (final) {
 					Update.end(true);
@@ -576,7 +620,7 @@ void webserverStart(void) {
 					request->send(200);
 				}
 			},
-			explorerHandleFileUpload);
+			NULL, explorerHandleFileUpload);
 
 		wServer.on("/explorerdownload", HTTP_GET, explorerHandleDownloadRequest);
 
@@ -596,6 +640,8 @@ void webserverStart(void) {
 		wServer.addRewrite(new OneParamRewrite("/savedSSIDs/{ssid}", "/savedSSIDs?ssid={ssid}"));
 		wServer.on("/savedSSIDs", HTTP_DELETE, handleDeleteSavedSSIDs);
 		wServer.on("/activeSSID", HTTP_GET, handleGetActiveSSID);
+		wServer.on("/wifistatus", HTTP_GET, handleGetWifiStatus);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wifitest", handlePostWifiTest));
 
 		wServer.on("/wificonfig", HTTP_GET, handleGetWiFiConfig);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/wificonfig", handlePostWiFiConfig));
@@ -608,7 +654,9 @@ void webserverStart(void) {
 		wServer.on("/bluetoothresults", HTTP_GET, handleBluetoothResultsRequest);
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/bluetoothconnect", handleBluetoothConnectRequest));
 
-		// ESPuino logo
+		// ESPuino logo: user-provided SD override takes precedence, otherwise fall back to the default
+		// logo embedded in the firmware (previously an external redirect to espuino.de, which failed
+		// without internet access, e.g. in AP-mode).
 		wServer.on("/logo", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			Log_Println("logo request", LOGLEVEL_DEBUG);
@@ -621,17 +669,35 @@ void webserverStart(void) {
 				return;
 			};
 #endif
-			request->redirect("https://www.espuino.de/Espuino.webp");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/webp", (const uint8_t *) vendor_branding_logo_webp_BIN, sizeof(vendor_branding_logo_webp_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
-		// ESPuino favicon
+		// ESPuino favicon: same SD-override-then-embedded-default pattern as /logo above.
 		wServer.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request) {
 #ifndef NO_SDCARD
 			if (gFSystem.exists("/.html/favicon.ico")) {
-				request->send(gFSystem, "/.html/favicon.png", "image/x-icon");
+				request->send(gFSystem, "/.html/favicon.ico", "image/x-icon");
 				return;
 			};
 #endif
-			request->redirect("https://espuino.de/espuino/favicon.ico");
+			AsyncWebServerResponse *response;
+			if (request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort)) {
+				response = request->beginResponse(304);
+			} else {
+				response = request->beginResponse(200, "image/x-icon", (const uint8_t *) vendor_branding_favicon_ico_BIN, sizeof(vendor_branding_favicon_ico_BIN));
+				response->addHeader("Content-Encoding", "gzip");
+				response->addHeader("Cache-Control", "no-cache");
+				response->addHeader("ETag", gitRevShort);
+			}
+			request->send(response);
 		});
 		// ESPuino settings
 		wServer.on("/settings", HTTP_GET, handleGetSettings);
@@ -679,9 +745,18 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
+		if (generalObj["rotSeekStep"].is<uint8_t>()) {
+			success = success && (gPrefsSettings.putUChar("rotSeekStep", generalObj["rotSeekStep"].as<uint8_t>()) != 0);
+		}
 		success = success && (gPrefsSettings.putBool("playMono", generalObj["playMono"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosShutdown", generalObj["savePosShutdown"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosRfidChge", generalObj["savePosRfidChge"].as<bool>()) != 0);
+		if (generalObj["savePosInterval"].is<uint16_t>()) {
+			// Guard: an older cached GUI page POSTs this block without the field; without this guard
+			// putUShort would persist a 0 and silently disable a checkpoint interval the user had set.
+			success = success && (gPrefsSettings.putUShort("savePosIntv", generalObj["savePosInterval"].as<uint16_t>()) != 0);
+			gPlayProperties.savePosIntervalSecs = generalObj["savePosInterval"].as<uint16_t>(); // apply live, no reboot needed
+		}
 		success = success && (gPrefsSettings.putBool("playLastOnBoot", generalObj["playLastRfidOnReboot"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("pauseRfidRem", generalObj["pauseIfRfidRemoved"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("dAccRfidTwice", generalObj["dontAcceptRfidTwice"].as<bool>()) != 0);
@@ -692,6 +767,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsRfid.putUChar("rfidReaderType", generalObj["rfidReaderType"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putBool("pn5180Lpcd", generalObj["pn5180Lpcd"].as<bool>()) != 0);
 		success = success && (gPrefsRfid.putUChar("mfrc522Gain", generalObj["mfrc522Gain"].as<uint8_t>()) != 0);
+		success = success && (gPrefsRfid.putUShort("pn5180Debounce", generalObj["pn5180Debounce"].as<uint16_t>()) != 0);
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return WebsocketCodeType::Error;
@@ -737,6 +813,12 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (doc["led"].is<JsonObject>()) {
 		// Neopixel settings
 		JsonObject ledObj = doc["led"];
+		if (ledObj["dimStates"].as<uint8_t>() == 0) {
+			// used as a divisor throughout Led.cpp's animations - a stored 0 would only surface as a
+			// crash on the next boot (Led_Init() self-heals it, but only then), so reject it here instead.
+			Log_Println("Invalid dimStates (must not be 0)", LOGLEVEL_ERROR);
+			return WebsocketCodeType::Error;
+		}
 		bool success = (gPrefsSettings.putUChar("iLedBrightness", ledObj["initBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("nLedBrightness", ledObj["nightBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("aLedBrightness", ledObj["atmoBrightness"].as<uint8_t>()) != 0);
@@ -787,6 +869,19 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("btnLong3", buttonsObj["long3"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong4", buttonsObj["long4"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnLong5", buttonsObj["long5"].as<uint8_t>()) != 0);
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char keyCw[12], keyCcw[13], jsonCw[10], jsonCcw[11];
+			snprintf(keyCw, sizeof(keyCw), "btnRotCw%u", i);
+			snprintf(keyCcw, sizeof(keyCcw), "btnRotCcw%u", i);
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			if (buttonsObj[jsonCw].is<uint8_t>()) {
+				success = success && (gPrefsSettings.putUChar(keyCw, buttonsObj[jsonCw].as<uint8_t>()) != 0);
+			}
+			if (buttonsObj[jsonCcw].is<uint8_t>()) {
+				success = success && (gPrefsSettings.putUChar(keyCcw, buttonsObj[jsonCcw].as<uint8_t>()) != 0);
+			}
+		}
 		success = success && (gPrefsSettings.putUChar("btnMulti01", buttonsObj["multi01"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti02", buttonsObj["multi02"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("btnMulti03", buttonsObj["multi03"].as<uint8_t>()) != 0);
@@ -813,6 +908,14 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		if (gPrefsSettings.putBool("rotaryReverse", doc["rotary"]["reverse"].as<bool>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "rotary");
 			return WebsocketCodeType::Error;
+		}
+		// CMD_SEEK_PREVIEW tuning: guarded (not hard-erroring like "reverse" above) so an older cached
+		// web-UI page that doesn't send these yet can't blank an already-saved value.
+		if (doc["rotary"]["seekPrevDelay"].is<uint16_t>()) {
+			gPrefsSettings.putUShort("seekPrevDelay", doc["rotary"]["seekPrevDelay"].as<uint16_t>());
+		}
+		if (doc["rotary"]["seekPrevSweep"].is<uint8_t>()) {
+			gPrefsSettings.putUChar("seekPrevSweep", doc["rotary"]["seekPrevSweep"].as<uint8_t>());
 		}
 		RotaryEncoder_Init();
 	}
@@ -965,7 +1068,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			lastPongTimestamp = millis();
 			Web_SendWebsocketData(0, WebsocketCodeType::Pong);
 		}
-		return WebsocketCodeType::Error;
+		return WebsocketCodeType::Silent;
 	} else if (doc["controls"].is<JsonObject>()) {
 		// Prevent website control over volume and player actions in Bluetooth-Speaker mode
 		// we could still allow sone special commands, but it's cleaner this way
@@ -976,7 +1079,12 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		const JsonObject controlsObj = doc["controls"].as<JsonObject>();
 		if (controlsObj["set_volume"].is<uint8_t>()) {
 			uint8_t new_vol = controlsObj["set_volume"].as<uint8_t>();
-			AudioPlayer_SetVolume(new_vol);
+			AudioPlayer_SetVolume(new_vol); // already broadcasts its own Volume update
+			if (!controlsObj["action"].is<uint8_t>()) {
+				// pure volume-slider drag (no button action alongside it) - don't also send
+				// back an Ok ack, or dragging the slider spams a "success" toast per tick
+				return WebsocketCodeType::Silent;
+			}
 		}
 		if (controlsObj["action"].is<uint8_t>()) {
 			uint8_t cmd = controlsObj["action"].as<uint8_t>();
@@ -984,14 +1092,19 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		}
 	} else if (doc["trackinfo"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackInfo);
+		return WebsocketCodeType::Silent;
 	} else if (doc["coverimg"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::CoverImg);
+		return WebsocketCodeType::Silent;
 	} else if (doc["volume"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
+		return WebsocketCodeType::Silent;
 	} else if (doc["settings"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Settings);
+		return WebsocketCodeType::Silent;
 	} else if (doc["ssids"].is<JsonObject>()) {
 		Web_SendWebsocketData(0, WebsocketCodeType::Ssid);
+		return WebsocketCodeType::Silent;
 	} else if (doc["trackProgress"].is<JsonObject>()) {
 		// Prevent seeking in Bluetooth mode
 		if (!System_IsWebControlAllowed()) {
@@ -1004,6 +1117,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			gPlayProperties.currentRelPos = trackObj["posPercent"].as<uint8_t>();
 		}
 		Web_SendWebsocketData(0, WebsocketCodeType::TrackProgress);
+		return WebsocketCodeType::Silent;
 	}
 
 	return WebsocketCodeType::Ok;
@@ -1024,9 +1138,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
+		generalObj["rotSeekStep"].set(gPrefsSettings.getUChar("rotSeekStep", JUMP_OFFSET_ROTARY)); // seconds per detent when seeking via a rotary gesture
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+		generalObj["savePosInterval"].set(gPrefsSettings.getUShort("savePosIntv", 0)); // SAVE_PLAYPOS_INTERVAL (periodic checkpoint seconds, 0 = off)
 		generalObj["playLastRfidOnReboot"].set(gPrefsSettings.getBool("playLastOnBoot", false)); // PLAY_LAST_RFID_AFTER_REBOOT
 		generalObj["pauseIfRfidRemoved"].set(gPrefsSettings.getBool("pauseRfidRem", false)); // PAUSE_WHEN_RFID_REMOVED
 		generalObj["dontAcceptRfidTwice"].set(gPrefsSettings.getBool("dAccRfidTwice", false)); // DONT_ACCEPT_SAME_RFID_TWICE
@@ -1034,6 +1150,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["rfidReaderType"].set(gPrefsRfid.getUChar("rfidReaderType", 0)); // RFID_READER_TYPE_RUNTIME
 		generalObj["pn5180Lpcd"].set(gPrefsRfid.getBool("pn5180Lpcd", false)); // PN5180 LPCD
 		generalObj["mfrc522Gain"].set(gPrefsRfid.getUChar("mfrc522Gain", 7)); // MFRC522_GAIN
+		generalObj["pn5180Debounce"].set(gPrefsRfid.getUShort("pn5180Debounce", 500)); // PN5180 debounce (ms)
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
@@ -1050,6 +1167,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject wifiObj = obj["wifi"].to<JsonObject>();
 		wifiObj["hostname"] = Wlan_GetHostname();
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
+		wifiObj["apSSID"] = Wlan_GetApSSID();
+		wifiObj["apPassword"] = Wlan_GetApPassword();
+		wifiObj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 	}
 	if (section == "ssids") {
 		// saved SSID's
@@ -1103,6 +1223,15 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "buttons")) {
 		// button settings
 		JsonObject buttonsObj = obj["buttons"].to<JsonObject>();
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char keyCw[12], keyCcw[13], jsonCw[10], jsonCcw[11];
+			snprintf(keyCw, sizeof(keyCw), "btnRotCw%u", i);
+			snprintf(keyCcw, sizeof(keyCcw), "btnRotCcw%u", i);
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			buttonsObj[jsonCw].set(Button_GetRotaryAction(i, true));
+			buttonsObj[jsonCcw].set(Button_GetRotaryAction(i, false));
+		}
 		buttonsObj["short0"].set(gPrefsSettings.getUChar("btnShort0", BUTTON_0_SHORT));
 		buttonsObj["short1"].set(gPrefsSettings.getUChar("btnShort1", BUTTON_1_SHORT));
 		buttonsObj["short2"].set(gPrefsSettings.getUChar("btnShort2", BUTTON_2_SHORT));
@@ -1135,6 +1264,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// Rotary encoder
 		JsonObject rotaryObj = obj["rotary"].to<JsonObject>();
 		rotaryObj["reverse"].set(gPrefsSettings.getBool("rotaryReverse", false));
+		rotaryObj["seekPrevDelay"].set(gPrefsSettings.getUShort("seekPrevDelay", 2000)); // ms idle before a CMD_SEEK_PREVIEW gesture auto-commits
+		rotaryObj["seekPrevSweep"].set(gPrefsSettings.getUChar("seekPrevSweep", 40)); // encoder detents for a full 0->100% sweep
 	}
 	// playlist
 	if ((section == "") || (section == "playlist")) {
@@ -1169,6 +1300,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["playMono"].set(false); // PLAY_MONO_SPEAKER
 		genSettings["savePosShutdown"].set(false); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		genSettings["savePosRfidChge"].set(false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
+		genSettings["savePosInterval"].set(0); // SAVE_PLAYPOS_INTERVAL (periodic checkpoint seconds, 0 = off)
 		genSettings["playLastRfidOnReboot"].set(false); // PLAY_LAST_RFID_AFTER_REBOOT
 		genSettings["pauseIfRfidRemoved"].set(false); // PAUSE_WHEN_RFID_REMOVED
 		genSettings["dontAcceptRfidTwice"].set(false); // DONT_ACCEPT_SAME_RFID_TWICE
@@ -1179,6 +1311,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["rfidReaderType"].set(0u); // RFID_READER_TYPE_RUNTIME (auto-detect)
 		genSettings["pn5180Lpcd"].set(false); // PN5180 LPCD disabled
 		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
+		genSettings["pn5180Debounce"].set(500u); // PN5180 debounce (ms) default
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
@@ -1241,9 +1374,18 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		buttonsSettings["multi34"].set(BUTTON_MULTI_34);
 		buttonsSettings["multi35"].set(BUTTON_MULTI_35);
 		buttonsSettings["multi45"].set(BUTTON_MULTI_45);
+		for (uint8_t i = 0; i < 6; i++) { // "hold button + turn encoder" gestures
+			char jsonCw[10], jsonCcw[11];
+			snprintf(jsonCw, sizeof(jsonCw), "rotCw%u", i);
+			snprintf(jsonCcw, sizeof(jsonCcw), "rotCcw%u", i);
+			buttonsSettings[jsonCw].set(Button_GetRotaryActionDefault(i, true));
+			buttonsSettings[jsonCcw].set(Button_GetRotaryActionDefault(i, false));
+		}
 #ifdef USEROTARY_ENABLE
 		JsonObject rotarySettings = defaultsObj["rotary"].to<JsonObject>();
 		rotarySettings["reverse"].set(false); // REVERSE_ROTARY
+		rotarySettings["seekPrevDelay"].set(2000);
+		rotarySettings["seekPrevSweep"].set(40);
 #endif
 		JsonObject playlistSettings = defaultsObj["playlist"].to<JsonObject>();
 		playlistSettings["sortMode"].set(EnumUtils::underlying_value(AUDIOPLAYER_PLAYLIST_SORT_MODE_DEFAULT));
@@ -1328,8 +1470,16 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		JsonObject softwareObj = infoObj["software"].to<JsonObject>();
 		softwareObj["version"] = (String) softwareRevision;
 		softwareObj["git"] = (String) gitRevision;
+		softwareObj["branch"] = (String) gitBranch;
 		softwareObj["arduino"] = String(ESP_ARDUINO_VERSION_MAJOR) + "." + String(ESP_ARDUINO_VERSION_MINOR) + "." + String(ESP_ARDUINO_VERSION_PATCH);
 		softwareObj["idf"] = String(ESP.getSdkVersion());
+		softwareObj["platform"] = (String) espuinoPlatform;
+		softwareObj["customBuild"] = espuinoCustomBuild;
+#ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT
+		softwareObj["otaSupported"] = true;
+#else
+		softwareObj["otaSupported"] = false;
+#endif
 	}
 	// hardware
 	if ((section == "") || (section == "hardware")) {
@@ -1421,7 +1571,7 @@ void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json) {
 	const JsonObject &jsonObj = json.as<JsonObject>();
 	WebsocketCodeType res = JSONToSettings(jsonObj);
 	if (res != WebsocketCodeType::Error) {
-		if (res != WebsocketCodeType::Ok) {
+		if (res != WebsocketCodeType::Ok && res != WebsocketCodeType::Silent) {
 			Web_SendWebsocketData(0, res);
 		}
 		request->send(200);
@@ -1628,10 +1778,8 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
 			WebsocketCodeType result = processJsonRequest((char *) data);
-			if (result != WebsocketCodeType::Error) {
-				if (data && (strncmp((char *) data, "track", 5))) { // Don't send back ok-feedback if track's name is requested in background
-					Web_SendWebsocketData(client->id(), result);
-				}
+			if (result != WebsocketCodeType::Error && result != WebsocketCodeType::Silent) {
+				Web_SendWebsocketData(client->id(), result);
 			}
 
 			if (info->opcode == WS_TEXT) {
@@ -1647,28 +1795,22 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 	}
 }
 
-// Handles file upload request from the explorer
-// requires a GET parameter path, as directory path to the file
-void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-
+// Handles a raw (non-multipart) file upload request from the explorer.
+// requires a GET parameter path (folder + filename) for the target file.
+// One request per file; the client loops over multiple files sequentially
+// since only one upload can be in flight at a time (shared buffers below).
+static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 	System_UpdateActivityTimer();
 
-	// New File
-	if (!index) {
-		// reset abort flag
+	if (index == 0) {
 		uploadAborted = false;
 
-		String utf8Folder = "/";
-		String utf8FilePath;
+		String filePath = "/";
 		if (request->hasParam("path")) {
-			const AsyncWebParameter *param = request->getParam("path");
-			utf8Folder = param->value() + "/";
+			filePath = request->getParam("path")->value();
 		}
-		utf8FilePath = utf8Folder + filename;
 
-		const char *filePath = utf8FilePath.c_str();
-
-		Log_Printf(LOGLEVEL_INFO, writingFile, filePath);
+		Log_Printf(LOGLEVEL_INFO, writingFile, filePath.c_str());
 
 		if (!allocateDoubleBuffer()) {
 			// we failed to allocate enough memory
@@ -1677,7 +1819,6 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			return;
 		}
 
-		// Create Queue for receiving a signal from the store task as synchronisation
 		if (explorerFileUploadFinished == NULL) {
 			explorerFileUploadFinished = xSemaphoreCreateBinary();
 		} else {
@@ -1693,8 +1834,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			buffer_full[i] = false;
 		}
 
-		// Create Task for handling the storage of the data
-		const char *filePathCopy = x_strdup(filePath);
+		const char *filePathCopy = x_strdup(filePath.c_str());
 		xTaskCreatePinnedToCore(
 			explorerHandleFileStorageTask, /* Function to implement the task */
 			"fileStorageTask", /* Name of the task */
@@ -1705,10 +1845,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 			1 /* Core where the task should run */
 		);
 
-		// register for early disconnect events
 		request->onDisconnect([]() {
-			// client went away before we were finished...
-			// trigger task suicide, since we can not use Log_Println here
 			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
 		});
 	}
@@ -1760,7 +1897,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 	}
 
-	if (final) {
+	if (index + len >= total) {
 		if (uploadAborted) {
 			handleUploadError(request, 500);
 			return;
@@ -1771,7 +1908,7 @@ void explorerHandleFileUpload(AsyncWebServerRequest *request, String filename, s
 		}
 		// notify storage task that last data was stored on the ring buffer
 		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
-		// watit until the storage task is sending the signal to finish
+		// wait until the storage task is sending the signal to finish
 		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
 			// timeout, something went wrong
 			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
@@ -2159,6 +2296,89 @@ void handleGetSavedSSIDs(AsyncWebServerRequest *request) {
 	request->send(response);
 }
 
+// Map an 802.11 disconnect reason code onto a coarse, user-explainable class.
+// The page translates the class into a localized message; the raw code is
+// reported alongside for the curious/for support.
+static const char *classifyDisconnectReason(uint8_t reason) {
+	switch (reason) {
+		case 0: // no disconnect event: association held, but no IP arrived
+			return "timeout";
+		case WIFI_REASON_AUTH_EXPIRE:
+		case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+		case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
+		case WIFI_REASON_IE_IN_4WAY_DIFFERS:
+		case WIFI_REASON_AUTH_FAIL:
+		case WIFI_REASON_HANDSHAKE_TIMEOUT:
+			return "wrong_password";
+		case WIFI_REASON_NO_AP_FOUND:
+		case 210: // NO_AP_FOUND_IN_RSSI_THRESHOLD (IDF >= 5.3)
+		case 211: // NO_AP_FOUND_IN_AUTHMODE_THRESHOLD
+		case 212: // NO_AP_FOUND_IN_BAND
+		case 213: // NO_AP_FOUND_W_COMPATIBLE_SECURITY
+			return "not_found";
+		case WIFI_REASON_ASSOC_TOOMANY:
+		case WIFI_REASON_802_1X_AUTH_FAILED:
+		case WIFI_REASON_CIPHER_SUITE_REJECTED:
+		case WIFI_REASON_ASSOC_FAIL:
+		case WIFI_REASON_CONNECTION_FAIL:
+			return "rejected";
+		default:
+			return "other";
+	}
+}
+
+// Current WiFi state plus diagnostics of the last failed connection attempt.
+// Used by the accesspoint page to tell the user why their credentials didn't
+// work instead of silently falling back to the setup AP.
+void handleGetWifiStatus(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse();
+	JsonObject obj = response->getRoot();
+
+	obj["state"] = Wlan_GetConnectState();
+	if (Wlan_IsConnected()) {
+		obj["ssid"] = Wlan_GetCurrentSSID();
+		obj["ip"] = Wlan_GetIpAddress();
+	}
+
+	String failSsid;
+	uint8_t failReason;
+	if (Wlan_GetLastFailure(failSsid, failReason)) {
+		JsonObject fail = obj["last_failure"].to<JsonObject>();
+		fail["ssid"] = failSsid;
+		fail["reason"] = failReason;
+		fail["class"] = classifyDisconnectReason(failReason);
+	}
+
+	// live connection test (started via POST /wifitest from the setup page)
+	const char *testPhase = Wlan_GetTestPhase();
+	if (strcmp(testPhase, "idle") != 0) {
+		JsonObject test = obj["test"].to<JsonObject>();
+		test["phase"] = testPhase;
+		test["ssid"] = Wlan_GetTestSsid();
+		if (strcmp(testPhase, "failed") == 0) {
+			const uint8_t reason = Wlan_GetTestReason();
+			test["reason"] = reason;
+			test["class"] = classifyDisconnectReason(reason);
+		} else if (strcmp(testPhase, "success") == 0) {
+			test["ip"] = Wlan_GetIpAddress();
+		}
+	}
+
+	response->setLength();
+	request->send(response);
+}
+
+// Start a live connection test while in AP mode. Body: {"ssid": "..."} —
+// the credentials must have been saved via POST /savedSSIDs beforehand.
+void handlePostWifiTest(AsyncWebServerRequest *request, JsonVariant &json) {
+	const char *ssid = json["ssid"].as<const char *>();
+	if (!ssid || !Wlan_StartConnectionTest(ssid)) {
+		request->send(400);
+		return;
+	}
+	request->send(200);
+}
+
 void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 	WiFiSettings networkSettings;
 
@@ -2220,6 +2440,9 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 
 	obj["hostname"] = Wlan_GetHostname();
 	obj["scanOnStart"].set(scanWifiOnStart);
+	obj["apSSID"] = Wlan_GetApSSID();
+	obj["apPassword"] = Wlan_GetApPassword();
+	obj["apTimeout"] = Wlan_GetApTimeoutMinutes();
 
 	response->setLength();
 	request->send(response);
@@ -2240,7 +2463,26 @@ void handlePostWiFiConfig(AsyncWebServerRequest *request, JsonVariant &json) {
 		return;
 	}
 
+	// ESPuino's own access-point (used as fallback when no known WiFi is available)
+	String strApSSID = jsonObj["apSSID"];
+	if (!Wlan_ValidateApSSID(strApSSID)) {
+		Log_Println("AP SSID validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP SSID validation failed");
+		return;
+	}
+	String strApPassword = jsonObj["apPassword"];
+	if (!Wlan_ValidateApPassword(strApPassword)) {
+		Log_Println("AP password validation failed", LOGLEVEL_ERROR);
+		request->send(400, "text/plain; charset=utf-8", "AP password validation failed");
+		return;
+	}
+	// minutes the AP stays open before auto-closing; 0 = never close automatically
+	uint32_t apTimeoutMinutes = jsonObj["apTimeout"] | 5;
+
 	bool succ = Wlan_SetHostname(strHostname);
+	succ = succ && Wlan_SetApSSID(strApSSID);
+	succ = succ && Wlan_SetApPassword(strApPassword);
+	succ = succ && Wlan_SetApTimeoutMinutes(apTimeoutMinutes);
 	if (succ) {
 		Log_Println("WiFi configuration saved.", LOGLEVEL_NOTICE);
 		request->send(200, "text/plain; charset=utf-8", strHostname);

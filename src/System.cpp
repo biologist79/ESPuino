@@ -16,6 +16,7 @@
 #include "Rfid.h"
 #include "SdCard.h"
 #include "Web.h"
+#include "Wlan.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -47,13 +48,19 @@ void System_RebootHandler(void);
 
 // Init only NVS required for LPCD
 void System_Init_Rfid_Prefs(void) {
-	gPrefsRfid.begin(prefsRfidNamespace);
+	if (!gPrefsRfid.begin(prefsRfidNamespace)) {
+		// Preferences::begin() failing is silent otherwise: later getX() calls on this namespace just
+		// return their default parameter, indistinguishable from the key legitimately not existing yet.
+		Log_Println("Failed to open NVS namespace 'rfidTags'", LOGLEVEL_ERROR);
+	}
 }
 
 void System_Init(void) {
 	srand(esp_random());
 
-	gPrefsSettings.begin(prefsSettingsNamespace);
+	if (!gPrefsSettings.begin(prefsSettingsNamespace)) {
+		Log_Println("Failed to open NVS namespace 'settings'", LOGLEVEL_ERROR);
+	}
 
 	// Get maximum inactivity-time from NVS
 	uint32_t nvsMInactivityTime = gPrefsSettings.getUInt("mInactiviyT", System_MaxInactivityTime);
@@ -275,7 +282,9 @@ void System_PauseTasksDuringUpload(bool pause) {
 		AudioPlayer_NotifyUploadStart();
 		Rfid_TaskPause();
 		Led_TaskPause();
+		Wlan_SetPowerSave(false); // full WiFi power for max upload throughput (restored below when done)
 	} else {
+		Wlan_SetPowerSave(true); // restore power-save to keep idle power low (esp. on battery)
 		Led_TaskResume();
 		Rfid_TaskResume();
 		AudioPlayer_NotifyUploadEnd();

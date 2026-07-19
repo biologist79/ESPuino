@@ -23,6 +23,9 @@ TEMPLATE = """
     #define __GIT_REVISION_H__
     constexpr const char gitRevision[] = "Git-revision: {git_revision}";
     constexpr const char gitRevShort[] = "\\"{git_revision}\\"";
+    constexpr const char gitBranch[] = "{git_branch}";
+    constexpr const char softwareRevisionShort[] = "{software_revision}";
+    constexpr const char softwareRevision[] = "Software-revision: {software_revision}";
 #endif
 """
 
@@ -42,14 +45,45 @@ def git_revision():
         return "unknown"
 
 
+def git_branch():
+    """Returns the current Git branch name or unknown (e.g. detached HEAD in CI checkouts)."""
+    try:
+        branch = subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            text=True,
+            stderr=subprocess.PIPE,
+        ).strip()
+        return branch if branch != "HEAD" else "unknown"
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
+
+
+def git_commit_date():
+    """Returns the commit date (YYYYMMDD) of HEAD, or None if unavailable
+       (e.g. no .git directory, such as in a GitHub zip download)."""
+    try:
+        return subprocess.check_output(
+            ["git", "log", "-1", "--format=%cd", "--date=format:%Y%m%d"],
+            text=True,
+            stderr=subprocess.PIPE,
+        ).strip()
+    except (subprocess.CalledProcessError, OSError):
+        return None
+
+
 def generate():
     """Generates header file."""
     print("GENERATING GIT REVISION HEADER FILE")
     gitrev = git_revision()
-    print(f'  "{gitrev}" -> {OUTPUT_PATH}')
+    gitbranch = git_branch()
+    commit_date = git_commit_date()
+    swrev = f"{commit_date}-DEV" if commit_date else "unknown"
+    print(f'  "{gitrev}" (branch "{gitbranch}", revision "{swrev}") -> {OUTPUT_PATH}')
     OUTPUT_PATH.parent.mkdir(exist_ok=True, parents=True)
     with OUTPUT_PATH.open("w") as output_file:
-        output_file.write(TEMPLATE.format(git_revision=gitrev))
+        output_file.write(
+            TEMPLATE.format(git_revision=gitrev, git_branch=gitbranch, software_revision=swrev)
+        )
 
 
 generate()

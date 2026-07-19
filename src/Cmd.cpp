@@ -14,6 +14,8 @@
 #include "System.h"
 #include "Wlan.h"
 
+#include <algorithm>
+
 static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char *enMqttMsg) {
 	Led_SetNightmode(enable);
 	if (enable) {
@@ -369,16 +371,39 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_SEEK_FORWARDS: {
-			gPlayProperties.seekmode = SEEK_FORWARDS;
+			// Accumulate rather than set a flag: the flag was a single overwrite-able enum consumed once per
+			// audio-loop iteration, so N detents of a fast rotary spin collapsed into a single jump.
+			AudioPlayer_AddSeekOffset(jumpOffset);
 			break;
 		}
 
 		case CMD_SEEK_BACKWARDS: {
-			gPlayProperties.seekmode = SEEK_BACKWARDS;
+			AudioPlayer_AddSeekOffset(-static_cast<int16_t>(jumpOffset));
+			break;
+		}
+
+		case CMD_SEEK_PREVIEW: {
+			// Rotary-gesture-only: RotaryEncoder.cpp intercepts this command directly (it needs the raw,
+			// bidirectional detent delta to move a preview target, not a single fire-and-forget action) and
+			// never dispatches it here. This case only exists so an unexpected direct dispatch (e.g. a
+			// misconfigured short/long-press assignment) is a silent no-op instead of falling into "unknown
+			// command" below.
+			break;
+		}
+
+		case CMD_BRIGHTNESS_UP:
+		case CMD_BRIGHTNESS_DOWN: {
+			// Led_SetBrightness() takes a uint8_t and does not bounds-check, so clamping is the caller's job:
+			// brightness 2 minus a step would otherwise wrap to ~255 and blast a dark room at full power.
+			const int16_t step = (mod == CMD_BRIGHTNESS_UP) ? LED_BRIGHTNESS_STEP : -static_cast<int16_t>(LED_BRIGHTNESS_STEP);
+			const int16_t target = static_cast<int16_t>(Led_GetBrightness()) + step;
+			Led_SetBrightness(static_cast<uint8_t>(std::clamp<int16_t>(target, LED_BRIGHTNESS_MIN, 255)));
+			Log_Printf(LOGLEVEL_INFO, "LED-brightness: %u", Led_GetBrightness());
 			break;
 		}
 
 		case CMD_STOP: {
+			AudioPlayer_SeekPreviewCancel(); // don't let a stopped track's leftover preview commit onto whatever plays next
 			AudioPlayer_SetTrackControl(STOP);
 			break;
 		}
