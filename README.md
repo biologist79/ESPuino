@@ -56,9 +56,12 @@ your phone using [A2DP](https://de.wikipedia.org/wiki/A2DP), for example.
 
 Further control elements on ESPuino are buttons and a [rotary encoder](https://forum.espuino.de/t/drehencoder-by-espuino/2414).
 Buttons can be assigned dozens of different actions via the web interface — even double assignments (short
-press vs. long press) are possible. If used, the rotary encoder is reserved exclusively
-for volume control but includes an integrated button, that's usually used to switch on ESPuino and
-starts measurement of battery's voltage which is instantly indicated via LEDs (Neopixel). By default,
+press vs. long press) are possible. By default, turning the rotary encoder controls the volume, but it
+includes an integrated button, that's usually used to switch on ESPuino and
+starts measurement of battery's voltage which is instantly indicated via LEDs (Neopixel). Additionally,
+holding down a configured button while turning the encoder runs that button's own assigned rotary action
+instead - e.g. seeking within a track or adjusting Neopixel brightness - freely configurable per
+button and turning direction via the web interface. By default,
 ESPuino is designed for three buttons and one rotary encoder, but this can be varied: from 0 up to 5
 buttons, and no rotaty encoder or one rotaty encoder. If no rotary encoder is present, volume
 control is handled, for example, via buttons.
@@ -142,15 +145,20 @@ While headphone's plugged in, speaker is automatically disabled.
   run there might appear a few error messages (related to missing entries in NVS). Don't worry, this
   is just normal. However, make sure the µSD card is detected as this is mandatory for ESPuino to boot!
 - If everything is fine, at the first run, ESPuino should open an access-point and ESPuino offers a
-  captive portal that is shown on your computer. If that's not the case, join a WiFi called
+  captive portal (available in your browser's language, if supported) that is shown on your computer.
+  If that's not the case, join a WiFi called
   "ESPuino" and enter `http://192.168.4.1` to your webbrowser. Enter WiFi credentials and the
-  hostname there (or in the captive portal). After saving the configuration, restart ESPuino.
+  hostname there (or in the captive portal). Before saving, you can test the entered credentials
+  directly from this page: ESPuino tries connecting to your WiFi in the background while the setup
+  access point stays up, and reports success or a specific failure reason (e.g. wrong password,
+  network not found) right there - no need to save, reboot and hope. After saving the configuration,
+  restart ESPuino.
 - After reboot ESPuino tries to join your WiFi (with the credentials previously entered). If that
   was successful, an IP is shown in the serial console. You can access ESPuino's web interface using a
   webbrowser via this IP; make sure to allow Javascript. If the mDNS feature is active in
   `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you
   configured `espuino` as hostname, you can use `http://espuino.local` for web interface and FTP.
-- Via FTP and web interface you can upload data (expect a throughput like 320 kB/s up to 500 kB/s).
+- Via FTP and web interface you can upload data (expect a throughput of roughly 650 kB/s via the web interface).
 - FTP needs to be activated after boot if you need it! Don't forget to assign action
   `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if
   enabling was successful. It'll be disabled automatically after next reboot. Means: you have to
@@ -207,9 +215,12 @@ to (re-)enable/disable WiFi:
 
 ## Bluetooth
 
-> :warning: **Due to memory restrictions it's not possible to run Bluetooth in
-  parallel with WiFi.** This means that you cannot stream webradio via Bluetooth
-  or access the web interface while this mode is enabled. Switching both modes requires a restart.
+> :warning: **Bluetooth can now run in parallel with WiFi**, so streaming webradio via
+  Bluetooth or accessing the web interface while a Bluetooth mode is enabled is possible.
+  However, this combination is still not well tested and both stacks running at once puts
+  considerably more pressure on the ESP32's limited RAM, so memory problems (up to crashes)
+  are possible - use with caution. Switching between Bluetooth modes (or back to normal
+  mode) still requires a restart.
 
 ### ESPuino as A2DP sink (stream to ESPuino)
 
@@ -407,6 +418,10 @@ LED can be used.
   `MEASURE_BATTERY_VOLTAGE` is active)
 - **Previous** (long; keep pressed) + **Next** (short) + release (both): toggle WiFi
   enabled/disabled
+- **Any button** (held) + **Rotary Encoder** (turning): runs that button's own configured rotary
+  action (e.g. seek within the track, adjust Neopixel brightness) instead of changing the volume -
+  freely assignable per button and turning direction via the web interface, off (`--`) by default
+  for most buttons
 
 #### Virtual RFID cards
 

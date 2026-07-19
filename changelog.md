@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 19.07.2026: Rotary gestures: add CMD_SEEK_PREVIEW as a second seek variant for "hold button + turn encoder" - turning previews a target position (yellow ring + blue LED cursor) instead of jumping immediately, committing once the encoder is idle for a configurable delay or on release; selectable independently per button/direction alongside the existing immediate-jump seek gesture (#439)
+* 18.07.2026: AudioPlayer: opt-in periodic play-position checkpoint for long audiobook chapters - saves progress every N seconds (NVS "savePosIntv", default off) so a mid-chapter power loss doesn't lose up to an hour of progress (#438), thanks to @mgoodfellow
+* 18.07.2026: AudioPlayer: fix audiobook resume-seek for CBR MP3s without a Xing/Info header - the audio library's seek-on-connect only works when a nominal bitrate is known; the seek is now deferred until the first stable bitrate reading instead (#437), thanks to @mgoodfellow
+* 17.07.2026: "hold button + turn encoder" gestures - holding a configured button while turning the rotary encoder runs that button's assigned action (seek, LED brightness, ...) instead of changing the volume, configurable per button/direction in the web UI (#436), thanks to @mgoodfellow
 * 16.07.2026: Tools tab: keep the saved-RFID-assignments List/Export/Erase buttons always visible instead of hiding them (with dangling separator lines) when there are no assignments yet - grey them out and show the assignment count in each button label instead
 * 16.07.2026: Explorer file upload: send each file as its own raw (application/octet-stream) request instead of bundling the whole batch into one multipart/form-data POST - no MIME boundary parsing on the ESPuino side, ~450 -> ~650 kiB/s measured (#434)
 * 15.07.2026: Wlan/Web/accesspoint: test WiFi credentials live from the setup page - after saving, the box tries them on the station interface while the setup AP stays up, and shows connecting/failed/success right there instead of save -> reboot -> hope (#433), thanks to @mgoodfellow
