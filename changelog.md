@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+...nothing yet
+
+## Version 2.9 (19.07.2026)
+
 * 19.07.2026: Rotary gestures: add CMD_SEEK_PREVIEW as a second seek variant for "hold button + turn encoder" - turning previews a target position (yellow ring + blue LED cursor) instead of jumping immediately, committing once the encoder is idle for a configurable delay or on release; selectable independently per button/direction alongside the existing immediate-jump seek gesture (#439)
 * 18.07.2026: AudioPlayer: opt-in periodic play-position checkpoint for long audiobook chapters - saves progress every N seconds (NVS "savePosIntv", default off) so a mid-chapter power loss doesn't lose up to an hour of progress (#438), thanks to @mgoodfellow
 * 18.07.2026: AudioPlayer: fix audiobook resume-seek for CBR MP3s without a Xing/Info header - the audio library's seek-on-connect only works when a nominal bitrate is known; the seek is now deferred until the first stable bitrate reading instead (#437), thanks to @mgoodfellow
