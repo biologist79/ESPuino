@@ -274,7 +274,11 @@ static void migrateFromVersion2() {
 }
 
 void Wlan_Init(void) {
-	prefsWifiSettings.begin(nvsWiFiNamespace);
+	if (!prefsWifiSettings.begin(nvsWiFiNamespace)) {
+		// Otherwise silent: later getX() calls on this namespace would just return their default
+		// parameter, indistinguishable from the key legitimately not existing yet.
+		Log_Println("Failed to open NVS namespace 'wifi-settings'", LOGLEVEL_ERROR);
+	}
 
 	wifiEnabled = getWifiEnableStatusFromNVS();
 

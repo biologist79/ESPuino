@@ -118,6 +118,10 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+	if (settings.dimmableStates == 0) {
+		// avoid division by zero (used as a divisor throughout Led.cpp's animations)
+		settings.dimmableStates = DIMMABLE_STATES;
+	}
 
 	// get hue start/end from NVS
 	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);

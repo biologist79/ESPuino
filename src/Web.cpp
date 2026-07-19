@@ -813,6 +813,12 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (doc["led"].is<JsonObject>()) {
 		// Neopixel settings
 		JsonObject ledObj = doc["led"];
+		if (ledObj["dimStates"].as<uint8_t>() == 0) {
+			// used as a divisor throughout Led.cpp's animations - a stored 0 would only surface as a
+			// crash on the next boot (Led_Init() self-heals it, but only then), so reject it here instead.
+			Log_Println("Invalid dimStates (must not be 0)", LOGLEVEL_ERROR);
+			return WebsocketCodeType::Error;
+		}
 		bool success = (gPrefsSettings.putUChar("iLedBrightness", ledObj["initBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("nLedBrightness", ledObj["nightBrightness"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("aLedBrightness", ledObj["atmoBrightness"].as<uint8_t>()) != 0);
