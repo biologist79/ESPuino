@@ -2022,7 +2022,30 @@
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
-							<div data-i18n="general.battery.desc"></div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageCheckInterval" class="col-form-label"
+										data-i18n="general.battery.measureInterval"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
+												min="1" max="60" class="form-control" id="voltageCheckInterval"
+												data-slider-value="" name="voltageCheckInterval" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="warningLowVoltage" class="col-form-label"
@@ -2098,6 +2121,13 @@
 									</div>
 								</div>
 							</div>
+							<div class="d-flex gap-2 mt-3">
+								<input type="checkbox" id="shutdownOnCritical" name="shutdownOnCritical" value="false">
+								<label for="shutdownOnCritical" data-i18n="general.battery.shutdownOnCritical"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
@@ -2112,37 +2142,13 @@
 											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
 										</div>
 										<div class="slider-container-inner">
-											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
-												data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.8"
+												data-slider-max="5.0" min="2.8" max="5.0" type="text" class="form-control"
 												id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
 												pattern="^\d{1,2}(\.\d{1,3})?" required>
 										</div>
 										<div class="float-end" style="padding-left: 10px">
 											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="voltageCheckInterval" class="col-form-label"
-										data-i18n="general.battery.measureInterval"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
-											class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<div class="slider-container">
-										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
-										</div>
-										<div class="slider-container-inner">
-											<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
-												min="1" max="60" class="form-control" id="voltageCheckInterval"
-												data-slider-value="" name="voltageCheckInterval" value="" required>
-										</div>
-										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
 										</div>
 									</div>
 								</div>
@@ -3670,12 +3676,9 @@
 				$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
-				if (batSettings.criticalVoltage) {
-					document.getElementById('criticalVoltageSection').setAttribute('data-visible', true);
-					$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
-				} else {
-					document.getElementById('criticalVoltageSection').setAttribute('data-visible', false);
-				}
+				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', batSettings.shutdownOnCritical);
+				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 			}
 			// ftp
@@ -4058,6 +4061,7 @@
 					indicatorLow: Number($('#voltageIndicatorLow').val()),
 					indicatorHi: Number($('#voltageIndicatorHigh').val()),
 					criticalVoltage: Number($('#criticalVoltage').val()),
+					shutdownOnCritical: $('#shutdownOnCritical').prop('checked'),
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
@@ -4703,6 +4707,16 @@
 				} else {
 					dontAcceptRfidTwice.prop('disabled', false);
 					resumeOnSameRfid.prop('disabled', !dontAcceptRfidTwice.prop('checked'));
+				}
+			});
+
+			/* Reveal the critical-voltage threshold slider only when the shutdown feature is enabled.
+			   bootstrap-slider mismeasures its width while display:none, so relayout it now that it's visible. */
+			$('#shutdownOnCritical').on('change', function () {
+				const checked = $(this).prop('checked');
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', checked);
+				if (checked) {
+					$('#criticalVoltage').bootstrapSlider('relayout');
 				}
 			});
 

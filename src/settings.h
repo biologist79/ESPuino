@@ -43,7 +43,6 @@
 	//#define PLAY_MONO_SPEAKER             // If only one speaker is used enabling mono should make sense. Please note: headphones is always stereo (if HEADPHONE_ADJUST_ENABLE is active)
 	#define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 	#define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
-	//#define SHUTDOWN_ON_BAT_CRITICAL      // Whether to turn off on critical battery-level (only used if MEASURE_BATTERY_VOLTAGE is active)
 	#define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
 	#define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino or to a headset via bluetooth (a2dp-sink & a2dp-source). Note: This feature consumes a lot of resources and the available flash/ram might not be sufficient.
 	//#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
@@ -214,7 +213,7 @@
 
 		// (optional) Default-voltages for battery-monitoring via Neopixel; can be changed later via WebGUI
 		constexpr float s_warningLowVoltage = 3.0;                      // If battery-voltage is <= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Set to 0V to disable.
+		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Whether this triggers a shutdown is a separate GUI-toggle (off by default).
 		constexpr float s_voltageIndicatorLow = 2.9;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
 		constexpr float s_voltageIndicatorHigh = 3.3;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
 	#endif

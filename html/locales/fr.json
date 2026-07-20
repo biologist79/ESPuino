@@ -533,17 +533,18 @@
 		},
 		"battery": {
 			"title": "Batterie",
-			"desc": "Afficher l'état de tension via Neopixel",
 			"lowWarning": "Afficher un avertissement en dessous de ce seuil (en volt)",
 			"lowCritical": "Tension la plus basse (en volt), indiquée par une LED",
 			"criticalShutoff": "En dessous de cette tension (en volt), ESPuino s'éteint",
 			"high": "Tension indiquée par toutes les LED (en volt)",
 			"measureInterval": "Intervalle entre les mesures (en minutes)",
+			"shutdownOnCritical": "Éteindre automatiquement en cas de tension critique",
 			"lowWarningExp": "Tension en dessous de laquelle un avertissement visuel (LED) de batterie faible est déclenché.",
 			"lowCriticalExp": "Tension considérée comme 0% de charge de la batterie (batterie vide).",
 			"highExp": "Tension considérée comme 100% de charge de la batterie (batterie pleine).",
 			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
-			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée."
+			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée.",
+			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V."
 		},
 		"playlist": {
 			"title": "Playlist",

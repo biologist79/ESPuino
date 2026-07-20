@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 20.07.2026: Battery: make automatic shutdown on critical voltage a web-UI toggle instead of the compile-time-only `SHUTDOWN_ON_BAT_CRITICAL` - off by default, same as before for anyone who didn't compile with the flag. **Breaking for custom builds**: a `settings-override.h` still defining `SHUTDOWN_ON_BAT_CRITICAL` will silently no longer have any effect - enable "Bei kritischer Spannung automatisch abschalten" in the battery settings instead.
 * 20.07.2026: Remove compile-time toggles `STATIC_IP_ENABLE`, `PLAY_LAST_RFID_AFTER_REBOOT`, `PAUSE_WHEN_RFID_REMOVED`, `DONT_ACCEPT_SAME_RFID_TWICE`, `RESUME_ON_SAME_RFID` and `NEOPIXEL_REVERSE_ROTATION` - these were already fully configurable at runtime via the web interface; the macros only controlled the pre-first-save default (`true` vs `false`) and are now always initialized to `false`. **Breaking for custom builds**: a `settings-override.h` that still defines one of these macros will silently no longer have any effect - enable the corresponding option in the web UI instead. Static IP itself is unaffected, it has been a fully runtime/per-network web-UI setting for a while; the removed macro only fed a one-time migration for pre-multi-network configs.
 
 ## Version 2.9 (19.07.2026)

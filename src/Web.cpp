@@ -921,7 +921,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	}
 	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putBool("shutdownBatCrit", doc["battery"]["shutdownOnCritical"].as<bool>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return WebsocketCodeType::Error;
 		}
@@ -1281,9 +1281,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batteryObj["warnLowVoltage"].set(gPrefsSettings.getFloat("wLowVoltage", s_warningLowVoltage));
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
 		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
-		#ifdef SHUTDOWN_ON_BAT_CRITICAL
 		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
-		#endif
+		batteryObj["shutdownOnCritical"].set(gPrefsSettings.getBool("shutdownBatCrit", false)); // SHUTDOWN_ON_BAT_CRITICAL
 	#endif
 
 		batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
@@ -1392,9 +1391,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batSettings["warnLowVoltage"].set(s_warningLowVoltage);
 		batSettings["indicatorLow"].set(s_voltageIndicatorLow);
 		batSettings["indicatorHi"].set(s_voltageIndicatorHigh);
-		#ifdef SHUTDOWN_ON_BAT_CRITICAL
 		batSettings["criticalVoltage"].set(s_warningCriticalVoltage);
-		#endif
+		batSettings["shutdownOnCritical"].set(false); // SHUTDOWN_ON_BAT_CRITICAL
 	#endif
 		batSettings["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif

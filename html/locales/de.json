@@ -533,17 +533,18 @@
 		},
 		"battery": {
 			"title": "Batterie",
-			"desc": "Status über Neopixel anzeigen",
 			"lowWarning": "Unter dieser Spannung (in Volt) wird eine Warnung angezeigt",
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
 			"measureInterval": "Zeitabstand der Messung (in Minuten)",
+			"shutdownOnCritical": "Bei kritischer Spannung automatisch abschalten",
 			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
 			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
 			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
-			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird."
+			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
+			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",
