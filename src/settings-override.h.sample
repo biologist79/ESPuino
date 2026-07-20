@@ -164,9 +164,6 @@
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 	#define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked
 
-	// RFID-RC522
-	#define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
-
 	// Automatic restart
 	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
 		constexpr uint32_t deepsleepTimeAfterBootFails = 20;      // Automatic restart takes place if boot was not successful after this period (in seconds)

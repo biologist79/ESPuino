@@ -767,6 +767,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsRfid.putUChar("rfidReaderType", generalObj["rfidReaderType"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putBool("pn5180Lpcd", generalObj["pn5180Lpcd"].as<bool>()) != 0);
 		success = success && (gPrefsRfid.putUChar("mfrc522Gain", generalObj["mfrc522Gain"].as<uint8_t>()) != 0);
+		success = success && (gPrefsRfid.putUShort("rfidScanIntv", generalObj["mfrc522ScanInterval"].as<uint16_t>()) != 0);
 		success = success && (gPrefsRfid.putUShort("pn5180Debounce", generalObj["pn5180Debounce"].as<uint16_t>()) != 0);
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
@@ -1150,6 +1151,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["rfidReaderType"].set(gPrefsRfid.getUChar("rfidReaderType", 0)); // RFID_READER_TYPE_RUNTIME
 		generalObj["pn5180Lpcd"].set(gPrefsRfid.getBool("pn5180Lpcd", false)); // PN5180 LPCD
 		generalObj["mfrc522Gain"].set(gPrefsRfid.getUChar("mfrc522Gain", 7)); // MFRC522_GAIN
+		generalObj["mfrc522ScanInterval"].set(gPrefsRfid.getUShort("rfidScanIntv", 100)); // RFID_SCAN_INTERVAL
 		generalObj["pn5180Debounce"].set(gPrefsRfid.getUShort("pn5180Debounce", 500)); // PN5180 debounce (ms)
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
@@ -1310,6 +1312,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["rfidReaderType"].set(0u); // RFID_READER_TYPE_RUNTIME (auto-detect)
 		genSettings["pn5180Lpcd"].set(false); // PN5180 LPCD disabled
 		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
+		genSettings["mfrc522ScanInterval"].set(100u); // RFID_SCAN_INTERVAL default
 		genSettings["pn5180Debounce"].set(500u); // PN5180 debounce (ms) default
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);

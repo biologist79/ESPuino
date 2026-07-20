@@ -26,6 +26,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 static void RfidMfrc522_Task(void *parameter);
 
+// Cached once at init rather than read from NVS on every task-loop iteration; a restart is required
+// for a change to take effect, same as the other MFRC522/PN5180-specific settings.
+static uint16_t rfidScanInterval = 100;
+
 	#if defined(RFID_READER_TYPE_RUNTIME)
 extern TwoWire i2cBusTwo;
 static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
@@ -33,6 +37,7 @@ static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
 void RfidMfrc522_Init(uint8_t readerType) {
+	rfidScanInterval = gPrefsRfid.getUShort("rfidScanIntv", 100);
 	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
 	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
 	if (readerType == RfidReaderType::TYPE_MFRC522_SPI) {
@@ -81,8 +86,8 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 	uint8_t control = 0x00;
 
 	for (;;) {
-		if (RFID_SCAN_INTERVAL / 2 >= 20) {
-			vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+		if (rfidScanInterval / 2 >= 20) {
+			vTaskDelay(portTICK_PERIOD_MS * (rfidScanInterval / 2));
 		} else {
 			vTaskDelay(portTICK_PERIOD_MS * 20);
 		}
@@ -90,7 +95,7 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 		String cardIdString;
 		byte lastValidcardId[cardIdSize];
 		bool sameCardReapplied = false;
-		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+		if ((millis() - Rfid_LastRfidCheckTimestamp) >= rfidScanInterval) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 
 			Rfid_LastRfidCheckTimestamp = millis();
@@ -151,8 +156,8 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 			if (gPlayProperties.pauseIfRfidRemoved) {
 				// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
 				while (true) {
-					if (RFID_SCAN_INTERVAL / 2 >= 20) {
-						vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+					if (rfidScanInterval / 2 >= 20) {
+						vTaskDelay(portTICK_PERIOD_MS * (rfidScanInterval / 2));
 					} else {
 						vTaskDelay(portTICK_PERIOD_MS * 20);
 					}

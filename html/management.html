@@ -1505,6 +1505,19 @@
 							</div>
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mfrc522ScanInterval" class="col-form-label"
+										data-i18n="general.rfid.mfrc522ScanInterval"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="mfrc522ScanInterval"
+										name="mfrc522ScanInterval" min="20" max="2000" step="10">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="pn5180Debounce" class="col-form-label"
 										data-i18n="general.rfid.pn5180Debounce"></label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
@@ -3555,6 +3568,7 @@
 				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
 				$('#pn5180Lpcd').prop('disabled', genSettings.rfidReaderType == 1 || genSettings.rfidReaderType == 2);
 				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
+				$('#mfrc522ScanInterval').val(genSettings.mfrc522ScanInterval);
 				$('#pn5180Debounce').val(genSettings.pn5180Debounce);
 			}
 			// current values
@@ -4037,6 +4051,7 @@
 					rfidReaderType: Number($('#rfidReaderType').val()),
 					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
 					mfrc522Gain: Number($('#mfrc522Gain').val()),
+					mfrc522ScanInterval: Number($('#mfrc522ScanInterval').val()),
 					pn5180Debounce: Number($('#pn5180Debounce').val())
 				},
 				"led": {
