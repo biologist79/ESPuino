@@ -9,7 +9,7 @@
 	PCB: https://forum.espuino.de/t/espuino-complete/3817
 	Infos: ESP32-WROVER-E 16MB, buck-boost-converter TPS63000, voltage-monitoring SGM809, port-expander, MAX98357a, TP5000 (LiPo + LiFePO4-support)
 	Caveats: Don't forget to verify polarity of your battery-connector. It needs to fit the polarity printed on the PCB!
-	Settings: Make sure to enable at least PORT_EXPANDER_ENABLE. PLAY_MONO_SPEAKER should be disabled.
+	Settings: Make sure to enable at least PORT_EXPANDER_ENABLE.
 	Status: Tested
 	*/
 
