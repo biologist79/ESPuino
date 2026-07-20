@@ -217,10 +217,6 @@ static void migrateFromVersion1() {
 		entry.ssid = std::move(strSSID);
 		entry.password = std::move(strPassword);
 
-#ifdef STATIC_IP_ENABLE
-		entry.staticIp = WiFiSettings::StaticIp(IPAddress(LOCAL_IP), IPAddress(SUBNET_IP), IPAddress(GATEWAY_IP), IPAddress(DNS_IP));
-#endif
-
 		Wlan_AddNetworkSettings(entry);
 		// clean up old values from nvs
 		gPrefsSettings.remove("SSID");
@@ -548,7 +544,7 @@ void handleWifiStateConnectionSuccess() {
 	dnsServer = nullptr;
 
 	// A webstream-tag applied while WiFi was not yet connected (e.g. right after boot, or restored via
-	// PLAY_LAST_RFID_AFTER_REBOOT) could not be started. Now that WiFi is up, re-inject that tag into the
+	// the "play last RFID after reboot" setting) could not be started. Now that WiFi is up, re-inject that tag into the
 	// RFID-queue so playback starts. Only do so if nothing else is playing meanwhile - the user may have
 	// applied another tag in the meantime, which must not be overridden.
 	if (gRetryRfidOnWifiConnect) {

@@ -131,12 +131,7 @@ bool Led_LoadSettings(LedSettings &settings) {
 	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", ATMO_SATURATION);
 
 	// get reverse rotation from NVS
-	#ifdef NEOPIXEL_REVERSE_ROTATION
-	const bool defReverseRotation = true;
-	#else
-	const bool defReverseRotation = false;
-	#endif
-	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", defReverseRotation);
+	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", false); // NEOPIXEL_REVERSE_ROTATION
 
 	// get LED offset from NVS
 	#ifdef LED_OFFSET

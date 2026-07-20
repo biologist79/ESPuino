@@ -171,7 +171,7 @@ static void AudioPlayer_RememberRfidForWifiRetry(const char *rfidTagId) {
 	gRetryRfidOnWifiConnect = true;
 }
 
-// "Arm" the release of the DONT_ACCEPT_SAME_RFID_TWICE-lock: called by the RFID-handler the moment a new
+// "Arm" the release of the dontAcceptRfidTwice-lock: called by the RFID-handler the moment a new
 // tag is accepted, it records that this playback-attempt happened. The lock is then actually released the
 // next time the player becomes idle (see AudioPlayer_Cyclic()), which re-allows the same tag to be applied
 // again. Arming on acceptance - rather than on playback becoming active - is deliberate: it ensures the
@@ -455,23 +455,11 @@ void AudioPlayer_Init(void) {
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	gPlayProperties.savePosIntervalSecs = gPrefsSettings.getUShort("savePosIntv", 0); // SAVE_PLAYPOS_INTERVAL (periodic checkpoint, 0 = off)
 	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
-#ifdef PAUSE_WHEN_RFID_REMOVED
-	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", true);
-#else
-	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false);
-#endif
-#ifdef DONT_ACCEPT_SAME_RFID_TWICE
-	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", true);
-#else
-	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false);
-#endif
-#ifdef RESUME_ON_SAME_RFID
-	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", true);
-#else
-	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", false);
-#endif
+	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false); // PAUSE_WHEN_RFID_REMOVED
+	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false); // DONT_ACCEPT_SAME_RFID_TWICE
+	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", false); // RESUME_ON_SAME_RFID
 	if (gPlayProperties.pauseIfRfidRemoved) {
-		// ignore feature silently if PAUSE_WHEN_RFID_REMOVED is active
+		// ignore feature silently if pauseIfRfidRemoved is active
 		Log_Println("pauseIfRfidRemoved is enabled -> deactivate dontAcceptRfidTwice", LOGLEVEL_NOTICE);
 		gPlayProperties.dontAcceptRfidTwice = false;
 	}

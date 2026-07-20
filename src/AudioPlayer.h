@@ -46,7 +46,7 @@ typedef struct { // Bit field
 	bool SavePlayPosRfidChange	 : 1; // Save last play-position
 	bool pauseOnMinVolume		 : 1; // When playback is active and volume is changed to zero, playback is paused automatically.
 	bool pauseIfRfidRemoved		 : 1; // When playback is active and RFID is removed, playback is paused automatically.
-	bool dontAcceptRfidTwice	 : 1; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
+	bool dontAcceptRfidTwice	 : 1; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if pauseIfRfidRemoved is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
 	bool resumeOnSameRfid		 : 1; // If pause is active and same RFID is put on again, playback continues (only effective if dontAcceptRfidTwice is enabled)
 	int16_t jumpToFolderTrack = -1; // track to jump to
 	int8_t gainLowPass = 0; // Low Pass for EQ Control

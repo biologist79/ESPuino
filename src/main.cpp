@@ -238,14 +238,7 @@ void loop() {
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
-	bool playLastRfidAfterReboot;
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", true);
-#else
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", false);
-#endif
-
-	if (playLastRfidAfterReboot) {
+	if (gPrefsSettings.getBool("playLastOnBoot", false)) {
 		recoverBootCountFromNvs();
 		recoverLastRfidPlayedFromNvs();
 	}
