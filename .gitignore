@@ -4,6 +4,8 @@ venv/
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+.vscode/espuino-device
+.vscode/.venv
 .DS_Store
 .idea/
 .cache/
