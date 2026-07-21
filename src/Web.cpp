@@ -194,7 +194,14 @@ void handleUploadError(AsyncWebServerRequest *request, int code) {
 }
 
 static void serveProgmemFiles(const String &uri, const String &contentType, const uint8_t *content, size_t len) {
-	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
+	wServer.on(uri.c_str(), HTTP_GET, [uri, contentType, content, len](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
+		const String sdPath = "/.html" + uri;
+		if (gFSystem.exists(sdPath.c_str())) {
+			request->send(gFSystem, sdPath, contentType);
+			return;
+		}
+#endif
 		AsyncWebServerResponse *response;
 
 		const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
