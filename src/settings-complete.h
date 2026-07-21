@@ -9,7 +9,7 @@
 	PCB: https://forum.espuino.de/t/espuino-complete/3817
 	Infos: ESP32-WROVER-E 16MB, buck-boost-converter TPS63000, voltage-monitoring SGM809, port-expander, MAX98357a, TP5000 (LiPo + LiFePO4-support)
 	Caveats: Don't forget to verify polarity of your battery-connector. It needs to fit the polarity printed on the PCB!
-	Settings: Make sure to enable at least PORT_EXPANDER_ENABLE. PLAY_MONO_SPEAKER should be disabled.
+	Settings: Make sure to enable at least PORT_EXPANDER_ENABLE.
 	Status: Tested
 	*/
 
@@ -39,7 +39,7 @@
 	#define RFID_SCK                        18		// GPIO for clock-signal (RFID)
 
 	// RFID (PN5180 only; not necessary for RC522)
-	#ifdef RFID_READER_TYPE_PN5180
+	#if defined(RFID_READER_TYPE_RUNTIME)
 		#define RFID_BUSY					33		// PN5180 BUSY PIN
 		#define RFID_RST					22		// PN5180 RESET PIN
 		#define RFID_IRQ					32		// PN5180 IRQ PIN (only needed for low power card detection)

@@ -42,24 +42,23 @@ paths:
                         True if item is a directory. This parameter is omitted
                         for a file.
     post:
-      summary: Upload a file to a directory.
-      description: Upload a file to the specified directory.
+      summary: Upload a file.
+      description: >-
+        Uploads a single file, given as a raw binary body (not multipart/
+        form-data). To upload several files, send one request per file.
       parameters:
         - in: query
           name: path
           schema:
             type: string
-          description: Directory path to upload the file.
+          description: Full target path, including the filename, to upload the file to.
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/octet-stream:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
+              type: string
+              format: binary
       responses:
         "200":
           description: File successfully uploaded.
@@ -442,6 +441,165 @@ paths:
               schema:
                 type: string
                 format: binary
+  /logo:
+    get:
+      summary: Get the ESPuino logo.
+      description: >-
+        Serves the logo embedded in the firmware/SD-card (PNG or SVG,
+        whichever is present). Used instead of an external redirect so it
+        still works without internet access, e.g. in AP setup mode.
+      responses:
+        "200":
+          description: Successful response with the logo image.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+  /wifistatus:
+    get:
+      summary: Get current Wi-Fi connection status.
+      description: >-
+        Returns the current connection state, the last connection failure (if
+        any), and the state of an in-progress live connection test started via
+        POST /wifitest (used by the AP setup page).
+      responses:
+        "200":
+          description: Successful response with Wi-Fi status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: integer
+                    description: Current Wi-Fi connection state.
+                  ssid:
+                    type: string
+                    description: SSID of the currently connected network (only present while connected).
+                  ip:
+                    type: string
+                    description: Current IP address (only present while connected).
+                  last_failure:
+                    type: object
+                    description: Details of the most recent failed connection attempt, if any.
+                    properties:
+                      ssid:
+                        type: string
+                      reason:
+                        type: integer
+                        description: Raw ESP-IDF Wi-Fi disconnect reason code.
+                      class:
+                        type: string
+                        description: >-
+                          Classified reason: wrong_password, not_found,
+                          rejected, timeout, or other.
+                  test:
+                    type: object
+                    description: Present only while a live connection test (POST /wifitest) is in progress or has just finished.
+                    properties:
+                      phase:
+                        type: string
+                        enum:
+                          - connecting
+                          - success
+                          - failed
+                      ssid:
+                        type: string
+                      ip:
+                        type: string
+                        description: Only present when phase is "success".
+                      reason:
+                        type: integer
+                        description: Only present when phase is "failed".
+                      class:
+                        type: string
+                        description: Only present when phase is "failed". Same classification as last_failure.class.
+  /wifitest:
+    post:
+      summary: Start a live Wi-Fi connection test.
+      description: >-
+        Starts testing the given (already-saved via POST /savedSSIDs)
+        network's credentials in the background while staying in AP mode, so
+        the setup page can show success/failure without a save-reboot-hope
+        cycle. Poll GET /wifistatus for the result.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ssid:
+                  type: string
+              required:
+                - ssid
+      responses:
+        "200":
+          description: Test started.
+        "400":
+          description: Missing/invalid SSID, or the network isn't saved yet.
+  /bluetoothscan:
+    get:
+      summary: Start a Bluetooth device scan.
+      description: >-
+        Starts scanning for nearby Bluetooth devices. Only available in
+        Bluetooth source mode. Results are retrieved via GET /bluetoothresults.
+      responses:
+        "200":
+          description: Scan started.
+        "400":
+          description: Bluetooth source mode not active, or Bluetooth not enabled in this build.
+  /bluetoothresults:
+    get:
+      summary: Get discovered Bluetooth devices.
+      description: Returns the devices found so far by the scan started via GET /bluetoothscan.
+      responses:
+        "200":
+          description: Successful response with discovered devices.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    address:
+                      type: string
+                      description: "MAC address, formatted as XX:XX:XX:XX:XX:XX."
+                    rssi:
+                      type: integer
+        "400":
+          description: Bluetooth not enabled in this build.
+  /bluetoothconnect:
+    post:
+      summary: Connect to a Bluetooth device.
+      description: >-
+        Connects to the Bluetooth device with the given address. Only
+        available in Bluetooth source mode.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: "MAC address, formatted as XX:XX:XX:XX:XX:XX."
+              required:
+                - address
+      responses:
+        "200":
+          description: Connection attempt started.
+        "400":
+          description: Bluetooth source mode not active, or Bluetooth not enabled in this build.
   /info:
     get:
       summary: Get common information.

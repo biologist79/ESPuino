@@ -13,11 +13,12 @@
 #include <esp_vfs_fat.h>
 
 #ifdef SD_MMC_1BIT_MODE
-fs::FS gFSystem = (fs::FS) SD_MMC;
+	#define HARDWARE_FS SD_MMC
 #else
 SPIClass spiSD(HSPI);
-fs::FS gFSystem = (fs::FS) SD;
+	#define HARDWARE_FS SD
 #endif
+SanitizedFS gFSystem(HARDWARE_FS);
 
 uint8_t maxRecursionDepth;
 
@@ -25,15 +26,15 @@ void SdCard_Init(void) {
 #ifdef NO_SDCARD
 	// Initialize without any SD card, e.g. for webplayer only
 	Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
-	return
+	return;
 #endif
 
 #ifndef SINGLE_SPI_ENABLE
 	#ifdef SD_MMC_1BIT_MODE
-		pinMode(2, INPUT_PULLUP);
+	pinMode(2, INPUT_PULLUP);
 	while (!SD_MMC.begin("/sdcard", true)) {
 	#else
-		pinMode(SPISD_CS, OUTPUT);
+	pinMode(SPISD_CS, OUTPUT);
 	digitalWrite(SPISD_CS, HIGH);
 	spiSD.begin(SPISD_SCK, SPISD_MISO, SPISD_MOSI, SPISD_CS);
 	spiSD.setFrequency(1000000);
@@ -52,6 +53,7 @@ void SdCard_Init(void) {
 #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
 		if (millis() >= deepsleepTimeAfterBootFails * 1000) {
 			Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
+			Led_Exit();
 			esp_deep_sleep_start();
 		}
 #endif
@@ -67,13 +69,12 @@ void SdCard_Init(void) {
 
 void SdCard_Exit(void) {
 // SD card goto idle mode
-#ifdef SINGLE_SPI_ENABLE
-	Log_Println("shutdown SD card (SPI)..", LOGLEVEL_NOTICE);
-	SD.end();
-#endif
 #ifdef SD_MMC_1BIT_MODE
 	Log_Println("shutdown SD card (SD_MMC)..", LOGLEVEL_NOTICE);
 	SD_MMC.end();
+#else
+	Log_Println("shutdown SD card (SPI)..", LOGLEVEL_NOTICE);
+	SD.end();
 #endif
 }
 
@@ -238,7 +239,7 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	size_t dirCount = 0;
 	while (1) {
 		bool isDir;
-		const String name = directory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(directory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}
@@ -248,6 +249,7 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	}
 	if (!dirCount) {
 		// no paths in folder
+		directory.close();
 		return String();
 	}
 
@@ -256,18 +258,20 @@ const String SdCard_pickRandomSubdirectory(const char *_directory) {
 	dirCount = 0;
 	while (1) {
 		bool isDir;
-		const String name = directory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(directory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}
 		if (isDir) {
 			if (dirCount == randomNumber) {
+				directory.close();
 				return name;
 			}
 			dirCount++;
 		}
 	}
 
+	directory.close();
 	// if we reached here, something went wrong
 	return String();
 }
@@ -343,10 +347,12 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 
 	// File-mode
 	if (!fileOrDirectory.isDirectory()) {
-		if (!SdCard_allocAndSave(playlist, fileOrDirectory.path())) {
+		if (!SdCard_allocAndSave(playlist, gFSystem.path(fileOrDirectory))) {
+			fileOrDirectory.close();
 			// OOM, function already took care of house cleaning
 			return std::nullopt;
 		}
+		fileOrDirectory.close();
 		return playlist;
 	}
 
@@ -355,7 +361,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 	size_t hiddenFiles = 0;
 	while (true) {
 		bool isDir;
-		const String name = fileOrDirectory.getNextFileName(&isDir);
+		const String name = gFSystem.nextFileName(fileOrDirectory, &isDir);
 		if (name.isEmpty()) {
 			break;
 		}
@@ -364,7 +370,11 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 			if (currentRecDepth < _maxRecursionDepth) {
 				currentRecDepth++;
 				// Log_Printf(LOGLEVEL_DEBUG, "Added folder: %s, depth of recursion: %d\n", name.c_str(), currentRecDepth);
-				SdCard_ReturnPlaylist(name.c_str(), _playMode, _maxRecursionDepth, true);
+				if (!SdCard_ReturnPlaylist(name.c_str(), _playMode, _maxRecursionDepth, true)) {
+					currentRecDepth--;
+					fileOrDirectory.close();
+					return std::nullopt;
+				}
 				currentRecDepth--;
 			} else {
 				continue;
@@ -375,6 +385,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 			// save it to the vector
 			if (!SdCard_allocAndSave(playlist, name)) {
 				// OOM, function already took care of house cleaning
+				fileOrDirectory.close();
 				return std::nullopt;
 			}
 		} else {
@@ -388,6 +399,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 		Log_Printf(LOGLEVEL_NOTICE, numberOfValidFiles, playlist->size());
 		Log_Printf(LOGLEVEL_DEBUG, "Hidden files: %u", hiddenFiles);
 	}
+	fileOrDirectory.close();
 
 	return playlist;
 }

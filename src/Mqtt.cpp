@@ -10,8 +10,8 @@
 #include "Queues.h"
 #include "System.h"
 #include "Wlan.h"
+#include "gitrevision.h"
 #include "mqtt_client.h"
-#include "revision.h"
 
 #include <Rfid.h>
 #include <WiFi.h>
@@ -174,6 +174,8 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
 		mqtt_cfg.task.priority = 1; // default is 5, keep it below the audio
+		mqtt_cfg.buffer.size = 2048; //
+		mqtt_cfg.buffer.out_size = 2048; //
 
 		mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
 		esp_mqtt_client_register_event(mqtt_client, esp_mqtt_event_id_t::MQTT_EVENT_ANY, mqtt_event_handler, NULL);
@@ -232,12 +234,19 @@ const char *Mqtt_GetCommandTopic(const char *topic) {
 
 void Mqtt_Exit(void) {
 #ifdef MQTT_ENABLE
+	if (Mqtt_Enabled == false || mqtt_client == NULL) {
+		return;
+	}
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
 	publishMqtt(topicTrack, "---", false);
+	// Allow some time for messages to be sent before stopping the client
+	vTaskDelay(pdMS_TO_TICKS(10));
+
 	esp_mqtt_client_disconnect(mqtt_client);
 	esp_mqtt_client_stop(mqtt_client);
 	esp_mqtt_client_destroy(mqtt_client);
+	mqtt_client = NULL;
 #endif
 }
 
@@ -364,7 +373,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicRepeatMode, static_cast<uint32_t>(AudioPlayer_GetRepeatMode()), false);
 
 			char revBuf[16];
-			strncpy(revBuf, softwareRevision + 19, sizeof(revBuf) - 1);
+			strncpy(revBuf, softwareRevisionShort, sizeof(revBuf) - 1);
 			revBuf[sizeof(revBuf) - 1] = '\0';
 			publishMqtt(topicSRevision, revBuf, false);
 
@@ -454,8 +463,12 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		}
 		// Loudness to change?
 		else if (reduced_topic_str == topicLoudness) {
+			if (!System_IsWebControlAllowed()) {
+				Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+				return;
+			}
 			unsigned long vol = toNumber<uint32_t>(payload_str);
-			AudioPlayer_SetVolume(vol, true);
+			AudioPlayer_SetVolume(vol);
 		}
 		// Modify sleep-timer?
 		else if (reduced_topic_str == topicSleepTimer) {
@@ -521,6 +534,10 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		// Track-control (pause/play, stop, first, last, next, previous)
 		else if (reduced_topic_str == topicTrackControl) {
 			uint8_t controlCommand = toNumber<uint8_t>(payload_str);
+			if (!System_IsWebControlAllowed()) {
+				Log_Println(notAllowedInCurrentMode, LOGLEVEL_NOTICE);
+				return;
+			}
 			AudioPlayer_SetTrackControl(controlCommand);
 		}
 

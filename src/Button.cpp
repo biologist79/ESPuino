@@ -8,6 +8,8 @@
 #include "Port.h"
 #include "System.h"
 
+#include <atomic>
+
 bool gButtonInitComplete = false;
 
 // Only enable those buttons that are not disabled (99 or >115)
@@ -53,7 +55,7 @@ uint16_t gLongPressTime = 0;
 extern bool Port_AllowReadFromPortExpander;
 #endif
 
-static volatile SemaphoreHandle_t Button_TimerSemaphore;
+static std::atomic<SemaphoreHandle_t> Button_TimerSemaphore;
 
 hw_timer_t *Button_Timer = NULL;
 #if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
@@ -241,6 +243,9 @@ static const struct {
 // Check for multi-button combinations and execute corresponding action
 static bool Button_HandleMultiButtonPress(void) {
 	for (const auto &combo : multiButtonCombos) {
+		if (gButtons[combo.btn1].usedAsModifier || gButtons[combo.btn2].usedAsModifier) {
+			continue; // held as a rotary modifier, not as half of a combo
+		}
 		if (gButtons[combo.btn1].isPressed && gButtons[combo.btn2].isPressed) {
 			gButtons[combo.btn1].isPressed = false;
 			gButtons[combo.btn2].isPressed = false;
@@ -268,10 +273,29 @@ static const struct {
 
 // Handle a single button's short/long press action
 static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) {
+	// The button was used to modify a rotary gesture, so it must not also fire its own action. Its short
+	// press would otherwise fire on release, and its long press at intervalToLongPress while still held --
+	// which for a button whose long action is CMD_SLEEPMODE means the box falls asleep mid-gesture.
+	if (gButtons[i].usedAsModifier) {
+		if (gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp) {
+			gButtons[i].isPressed = false;
+			gButtons[i].usedAsModifier = false;
+		}
+		return;
+	}
+
 	uint8_t Cmd_Short = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyShort, buttonCmdConfig[i].defaultShort);
 	uint8_t Cmd_Long = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyLong, buttonCmdConfig[i].defaultLong);
 	unsigned long const pressDuration = currentTimestamp - gButtons[i].lastPressedTimestamp;
 	bool const wasReleased = gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp;
+
+	// A button that can act as a rotary modifier must not fire its long action at intervalToLongPress while
+	// it is still held: holding it is also how you start a gesture, and the user has not necessarily begun
+	// turning the encoder yet. (Holding NEXT for 700ms to seek would otherwise first fire BUTTON_0_LONG --
+	// CMD_LASTTRACK by default -- and jump straight to the end of the book.) Defer it to release, exactly as
+	// CMD_SLEEPMODE already is, so that a turn in the meantime can cancel it via usedAsModifier. A plain
+	// long-press with no turn still works, it just resolves when the button comes back up.
+	bool const isRotaryModifier = (Button_GetRotaryAction(i, true) != CMD_NOTHING) || (Button_GetRotaryAction(i, false) != CMD_NOTHING);
 
 	// Handle button release (short or long press completed)
 	if (wasReleased) {
@@ -280,13 +304,18 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 
 		if (wasShortPress) {
 			Cmd_Action(Cmd_Short);
-		} else if (Cmd_Long == CMD_SLEEPMODE) {
-			// Sleep-mode only triggers on release to prevent immediate wake-up
+		} else if (Cmd_Long == CMD_SLEEPMODE || isRotaryModifier) {
+			// Sleep-mode only triggers on release to prevent immediate wake-up; modifier buttons defer for
+			// the reason above.
 			Cmd_Action(Cmd_Long);
 		}
 
 		gButtons[i].isPressed = false;
 		return;
+	}
+
+	if (isRotaryModifier) {
+		return; // Still held: wait for release before deciding whether this was a long press or a gesture
 	}
 
 	// Handle volume buttons with repeat functionality
@@ -306,6 +335,105 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 	if (Cmd_Long != CMD_SLEEPMODE && pressDuration > intervalToLongPress) {
 		gButtons[i].isPressed = false;
 		Cmd_Action(Cmd_Long);
+	}
+}
+
+// settings-override.h, when present, replaces settings.h wholesale -- so an override written before this
+// feature existed defines none of the BUTTON_n_ROTARY_* macros. Default them to CMD_NOTHING (= button is
+// not a modifier) so those configs keep building and simply have no gestures until they opt in.
+#ifndef BUTTON_0_ROTARY_CW
+	#define BUTTON_0_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_0_ROTARY_CCW
+	#define BUTTON_0_ROTARY_CCW CMD_NOTHING
+#endif
+#ifndef BUTTON_1_ROTARY_CW
+	#define BUTTON_1_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_1_ROTARY_CCW
+	#define BUTTON_1_ROTARY_CCW CMD_NOTHING
+#endif
+#ifndef BUTTON_2_ROTARY_CW
+	#define BUTTON_2_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_2_ROTARY_CCW
+	#define BUTTON_2_ROTARY_CCW CMD_NOTHING
+#endif
+#ifndef BUTTON_3_ROTARY_CW
+	#define BUTTON_3_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_3_ROTARY_CCW
+	#define BUTTON_3_ROTARY_CCW CMD_NOTHING
+#endif
+#ifndef BUTTON_4_ROTARY_CW
+	#define BUTTON_4_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_4_ROTARY_CCW
+	#define BUTTON_4_ROTARY_CCW CMD_NOTHING
+#endif
+#ifndef BUTTON_5_ROTARY_CW
+	#define BUTTON_5_ROTARY_CW CMD_NOTHING
+#endif
+#ifndef BUTTON_5_ROTARY_CCW
+	#define BUTTON_5_ROTARY_CCW CMD_NOTHING
+#endif
+
+// "Hold this button, turn the encoder" -- one action per rotation direction, per button.
+// Mirrors buttonCmdConfig: compile-time default in settings.h, overridable at runtime via NVS.
+static const struct {
+	const char *prefsKeyCw;
+	const char *prefsKeyCcw;
+	uint8_t defaultCw;
+	uint8_t defaultCcw;
+} rotaryCmdConfig[] = {
+	{"btnRotCw0", "btnRotCcw0", BUTTON_0_ROTARY_CW, BUTTON_0_ROTARY_CCW},
+	{"btnRotCw1", "btnRotCcw1", BUTTON_1_ROTARY_CW, BUTTON_1_ROTARY_CCW},
+	{"btnRotCw2", "btnRotCcw2", BUTTON_2_ROTARY_CW, BUTTON_2_ROTARY_CCW},
+	{"btnRotCw3", "btnRotCcw3", BUTTON_3_ROTARY_CW, BUTTON_3_ROTARY_CCW},
+	{"btnRotCw4", "btnRotCcw4", BUTTON_4_ROTARY_CW, BUTTON_4_ROTARY_CCW},
+	{"btnRotCw5", "btnRotCcw5", BUTTON_5_ROTARY_CW, BUTTON_5_ROTARY_CCW},
+};
+
+uint8_t Button_GetRotaryAction(uint8_t buttonIndex, bool clockwise) {
+	if (buttonIndex >= (sizeof(rotaryCmdConfig) / sizeof(rotaryCmdConfig[0]))) {
+		return CMD_NOTHING;
+	}
+	const auto &cfg = rotaryCmdConfig[buttonIndex];
+	return clockwise
+		? gPrefsSettings.getUChar(cfg.prefsKeyCw, cfg.defaultCw)
+		: gPrefsSettings.getUChar(cfg.prefsKeyCcw, cfg.defaultCcw);
+}
+
+// Compile-time default (settings.h / the override), ignoring any NVS override. Used by the
+// web-UI's "reset to factory settings".
+uint8_t Button_GetRotaryActionDefault(uint8_t buttonIndex, bool clockwise) {
+	if (buttonIndex >= (sizeof(rotaryCmdConfig) / sizeof(rotaryCmdConfig[0]))) {
+		return CMD_NOTHING;
+	}
+	return clockwise ? rotaryCmdConfig[buttonIndex].defaultCw : rotaryCmdConfig[buttonIndex].defaultCcw;
+}
+
+// currentState (not isPressed) is the live level: false means physically down right now. isPressed is a
+// consumable latch that the long-press handler clears while the finger is still on the button, so it is
+// useless as a "still held" signal.
+uint8_t Button_GetHeldModifier(void) {
+	if (!gButtonInitComplete) {
+		return BUTTON_NONE; // gButtons[] is still garbage before the first scan
+	}
+	for (uint8_t i = 0; i < (sizeof(rotaryCmdConfig) / sizeof(rotaryCmdConfig[0])); i++) {
+		if (gButtons[i].currentState) {
+			continue; // not pressed
+		}
+		if (Button_GetRotaryAction(i, true) != CMD_NOTHING || Button_GetRotaryAction(i, false) != CMD_NOTHING) {
+			return i;
+		}
+	}
+	return BUTTON_NONE;
+}
+
+void Button_MarkModifierUsed(uint8_t buttonIndex) {
+	if (buttonIndex < (sizeof(gButtons) / sizeof(gButtons[0]))) {
+		gButtons[buttonIndex].usedAsModifier = true;
 	}
 }
 

@@ -35,30 +35,17 @@
 	//#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
 	//#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
 	#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
-	#define MQTT_ENABLE                   // Make sure to configure mqtt-server and (optionally) username+pwd
+	#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
 	#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
 	#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
-	//#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 	#define LANGUAGE DE                     // DE = deutsch; EN = english: FR = french
-	//#define STATIC_IP_ENABLE              // DEPRECATED: Enables static IP-configuration (change static ip-section accordingly)
-	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (if PLAY_MONO_SPEAKER is set)
-	//#define PLAY_MONO_SPEAKER             // If only one speaker is used enabling mono should make sense. Please note: headphones is always stereo (if HEADPHONE_ADJUST_ENABLE is active)
+	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (headphones are always stereo, even if mono-playback is enabled via GUI)
 	#define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 	#define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
-	//#define MEASURE_BATTERY_MAX17055      // Enables battery-measurement via external fuel gauge (MAX17055)
-	//#define SHUTDOWN_ON_BAT_CRITICAL      // Whether to turn off on critical battery-level (only used if MEASURE_BATTERY_XXX is active)
-	//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 	#define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
-	//#define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino or to a headset via bluetooth (a2dp-sink & a2dp-source). Note: This feature consumes a lot of resources and the available flash/ram might not be sufficient.
+	#define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino or to a headset via bluetooth (a2dp-sink & a2dp-source). Note: This feature consumes a lot of resources and the available flash/ram might not be sufficient.
 	//#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
-	//#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
-	//#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
 	//#define HALLEFFECT_SENSOR_ENABLE      // Support for hallsensor. For fine-tuning please adjust HallEffectSensor.h Please note: only user-support provided (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
-
-	//################## set PAUSE_WHEN_RFID_REMOVED behaviour #############################
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-		#define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after playback has ended (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541/2)
-	#endif
 
 	//################## select SD card mode #############################
 	#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
@@ -67,22 +54,17 @@
 
 
 	//################## select RFID reader ##############################
-	#define RFID_READER_TYPE_MFRC522_SPI // use MFRC522 via SPI
-	//#define RFID_READER_TYPE_MFRC522_I2C  // use MFRC522 via I2C
-	//#define RFID_READER_TYPE_PN5180 // use PN5180 via SPI
+	// Runtime RFID reader selection is now supported via web interface
+	// Runtime RFID reader type configuration
+	// 0 = Auto-detect
+	// 1 = MFRC522 (SPI)
+	// 2 = MFRC522 (I2C)
+	// 3 = PN5180
+	#define RFID_READER_TYPE_RUNTIME 0    // Default to Auto-detect
 
-	#ifdef RFID_READER_TYPE_MFRC522_I2C
+	#if defined(RFID_READER_TYPE_RUNTIME)
 		#define MFRC522_ADDR 0x28           // default I2C-address of MFRC522
 	#endif
-
-	#ifdef RFID_READER_TYPE_PN5180
-		//#define PN5180_ENABLE_LPCD        // Wakes up ESPuino if RFID-tag was applied while deepsleep is active.
-	#endif
-
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-		constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
-	#endif
-
 
 	//############# Port-expander-configuration ######################
 	#ifdef PORT_EXPANDER_ENABLE
@@ -131,6 +113,21 @@
 	#define BUTTON_4_LONG     CMD_VOLUMEUP
 	#define BUTTON_5_LONG     CMD_VOLUMEDOWN
 
+	// Rotary gestures: hold the button, turn the encoder. CMD_NOTHING disables the button as a modifier.
+	// A modifier button keeps its normal short/long action when it is pressed *without* turning the encoder.
+	#define BUTTON_0_ROTARY_CW   CMD_SEEK_FORWARDS   // hold NEXT + turn: seek within the track
+	#define BUTTON_0_ROTARY_CCW  CMD_SEEK_BACKWARDS
+	#define BUTTON_1_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_1_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_2_ROTARY_CW   CMD_BRIGHTNESS_UP   // hold PLAY/PAUSE + turn: LED brightness
+	#define BUTTON_2_ROTARY_CCW  CMD_BRIGHTNESS_DOWN
+	#define BUTTON_3_ROTARY_CW   CMD_NOTHING         // rotary push: short=play/pause, long=sleep -- left free on purpose
+	#define BUTTON_3_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_4_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_4_ROTARY_CCW  CMD_NOTHING
+	#define BUTTON_5_ROTARY_CW   CMD_NOTHING
+	#define BUTTON_5_ROTARY_CCW  CMD_NOTHING
+
 	#define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
 	#define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
 	#define BUTTON_MULTI_03   CMD_NOTHING
@@ -152,16 +149,6 @@
 	// Serial-logging-configuration
 	#define SERIAL_LOGLEVEL LOGLEVEL_DEBUG              // Current loglevel for serial console
 
-    // DEPRECATED: This is now done using dynamic network configuration.
-    //              If left, it is used for the automatic migration exactly once
-	// Static ip-configuration
-	#ifdef STATIC_IP_ENABLE
-		#define LOCAL_IP   192,168,2,100                // ESPuino's IP
-		#define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router
-		#define SUBNET_IP  255,255,255,0                // Netmask of your network (/24 => 255.255.255.0)
-		#define DNS_IP     192,168,2,1                  // DNS-server of your network; in private networks it's usually the gatewy's IP
-	#endif
-
 	// Buttons (better leave unchanged if in doubts :-))
 	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
 	constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
@@ -177,9 +164,6 @@
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 	#define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked
 
-	// RFID-RC522
-	#define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
-
 	// Automatic restart
 	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
 		constexpr uint32_t deepsleepTimeAfterBootFails = 20;      // Automatic restart takes place if boot was not successful after this period (in seconds)
@@ -194,10 +178,6 @@
 	// example for Europe/Berlin:	"CET-1CEST,M3.5.0,M10.5.0/3"
 	// example for America/Toronto:	"EST5EDT,M3.2.0,M11.1.0"
 	constexpr const char timeZone[] = "CET-1CEST,M3.5.0,M10.5.0/3"; // Europe/Berlin
-
-	// ESPuino will create a WiFi if joing existing WiFi was not possible. Name and password can be configured here.
-	constexpr const char accessPointNetworkSSID[] = "ESPuino";     // Access-point's SSID
-	constexpr const char accessPointNetworkPassword[] = "";        // Access-point's Password, at least 8 characters! Set to an empty string to spawn an open WiFi.
 
 	// Bluetooth
 	constexpr const char nameBluetoothSinkDevice[] = "ESPuino";        // Name of your ESPuino as Bluetooth-device
@@ -223,33 +203,19 @@
 		//#define LED_OFFSET                		0           	// shifts the starting LED in the original direction of the neopixel ring
 	#endif
 
-	#if defined(MEASURE_BATTERY_VOLTAGE) || defined(MEASURE_BATTERY_MAX17055)
+	#ifdef MEASURE_BATTERY_VOLTAGE
 		#define BATTERY_MEASURE_ENABLE                 // Don't change. Set automatically if any method of battery monitoring is selected.
 		constexpr uint8_t s_batteryCheckInterval = 10; // How often battery is measured (in minutes) (can be changed via GUI!)
-	#endif
 
-	#ifdef MEASURE_BATTERY_VOLTAGE
 		// (optional) Default-voltages for battery-monitoring via Neopixel; can be changed later via WebGUI
 		constexpr float s_warningLowVoltage = 3.0;                      // If battery-voltage is <= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Set to 0V to disable.
+		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Whether this triggers a shutdown is a separate GUI-toggle (off by default).
 		constexpr float s_voltageIndicatorLow = 2.9;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
 		constexpr float s_voltageIndicatorHigh = 3.3;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
 	#endif
 
-	#ifdef MEASURE_BATTERY_MAX17055
-		constexpr float s_batteryLow = 15.0;            // low percentage
-		constexpr float s_batteryCritical = 5.0;        // critical percentage
-
-		constexpr uint16_t s_batteryCapacity = 6000;    // design cap of battery (mAh)
-		constexpr uint16_t s_emptyVoltage = 300;        // empty voltage in 10mV
-		constexpr uint16_t s_recoveryVoltage = 360;     // recovery voltage in 10mV
-		constexpr uint8_t  s_batteryChemistry = 0x60;   // 0 = Li-Ion, 0x20 = NCR, 0x60 = LiFePO4
-		constexpr float s_resistSensor = 0.01;          // current sense resistor, currently non-default values might lead to problems
-		constexpr bool s_vCharge = false;                   // true if charge voltage is greater than 4.275V
-	#endif
-
 	// enable I2C if necessary
-	#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(MEASURE_BATTERY_MAX17055)
+	#if defined(RFID_READER_TYPE_RUNTIME) || defined(PORT_EXPANDER_ENABLE)
 		#define I2C_2_ENABLE
 	#endif
 
@@ -260,6 +226,10 @@
 
 	// Seekmode-configuration
 	constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
+	#define JUMP_OFFSET_ROTARY 10                                 // Offset in seconds per encoder-detent when seeking via a rotary gesture. A button press is a
+	                                                              // deliberate act and can afford jumpOffset; a flick of the encoder is many detents at once, so
+	                                                              // reusing jumpOffset there scrubs minutes at a time. Overridable at runtime via NVS "rotSeekStep".
+	                                                              // A macro (not constexpr) so Button/RotaryEncoder can #ifndef-default it for older overrides.
 
 	// Topics for MQTT: used to build actual topics in webinterface. So normally there's no need to apply any changes here 
 	// MQTT configuration available via webinterface: https://forum.espuino.de/t/dokumentation-webinterface/2807.

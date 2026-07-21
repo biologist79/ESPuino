@@ -21,17 +21,18 @@
 #include "Power.h"
 #include "Queues.h"
 #include "Rfid.h"
+#include "RfidConfig.h"
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Web.h"
 #include "Wlan.h"
-#include "revision.h"
+#include "gitrevision.h"
 
 #include <Wire.h>
 
-bool gPlayLastRfIdWhenWiFiConnected = false;
-bool gTriedToConnectToHost = false;
+bool gRetryRfidOnWifiConnect = false;
+char gRetryRfidTagId[cardIdStringSize] = "";
 
 static constexpr const char *logo = R"literal(
  _____   ____    ____            _
@@ -106,7 +107,6 @@ void recoverLastRfidPlayedFromNvs(bool force) {
 			Log_Println(unableToRestoreLastRfidFromNVS, LOGLEVEL_INFO);
 		} else {
 			xQueueSend(gRfidCardQueue, lastRfidPlayed.c_str(), 0);
-			gPlayLastRfIdWhenWiFiConnected = !force;
 			Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());
 		}
 	}
@@ -119,11 +119,14 @@ void setup() {
 	// Make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
 	Button_Init(); // To preseed internal button-storage with values
 
-#ifdef PN5180_ENABLE_LPCD
-	System_Init_LPCD();
-	Rfid_Init();
-#endif
-
+	System_Init_Rfid_Prefs();
+	const bool pn5180LpcdEnabled = gPrefsRfid.getBool("pn5180Lpcd", false);
+	if (pn5180LpcdEnabled) {
+		// Only handle a possible deep-sleep wakeup here; starting the RFID scanning task
+		// this early raced with the peripheral init below and could hang the boot (see
+		// Rfid_StartTask() call further down).
+		Rfid_WakeupHandling();
+	}
 	System_Init();
 
 // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
@@ -171,11 +174,12 @@ void setup() {
 	SdCard_PrintInfo();
 
 	Ftp_Init();
-#ifndef PN5180_ENABLE_LPCD
-	#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-	Rfid_Init();
-	#endif
-#endif
+	if (!pn5180LpcdEnabled) {
+		Rfid_Init();
+	} else {
+		// Peripherals are up now, safe to start the scanning task deferred above.
+		Rfid_StartTask();
+	}
 	RotaryEncoder_Init();
 	Bluetooth_Init();
 	Wlan_Init();
@@ -217,38 +221,24 @@ void setup() {
 }
 
 void loop() {
+	Wlan_Cyclic();
+	Web_Cyclic();
 	if (OPMODE_BLUETOOTH_SINK == System_GetOperationMode()) {
 		// bluetooth speaker mode
-		Wlan_Cyclic();
-		Web_Cyclic();
 		Bluetooth_Cyclic();
 	} else if (OPMODE_BLUETOOTH_SOURCE == System_GetOperationMode()) {
 		// bluetooth headset mode
-		Wlan_Cyclic();
-		Web_Cyclic();
 		Bluetooth_Cyclic();
-		RotaryEncoder_Cyclic();
-	} else {
-		// normal mode
-		Wlan_Cyclic();
-		Web_Cyclic();
-		Ftp_Cyclic();
-		RotaryEncoder_Cyclic();
 	}
+	RotaryEncoder_Cyclic();
+	Ftp_Cyclic();
 	AudioPlayer_Cyclic();
 	Battery_Cyclic();
 	Button_Cyclic();
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
-	bool playLastRfidAfterReboot;
-#ifdef PLAY_LAST_RFID_AFTER_REBOOT
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", true);
-#else
-	playLastRfidAfterReboot = gPrefsSettings.getBool("playLastOnBoot", false);
-#endif
-
-	if (playLastRfidAfterReboot) {
+	if (gPrefsSettings.getBool("playLastOnBoot", false)) {
 		recoverBootCountFromNvs();
 		recoverLastRfidPlayedFromNvs();
 	}

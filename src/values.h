@@ -57,7 +57,9 @@
 #define CMD_ENABLE_FTP_SERVER			 150 // Enables FTP-server
 #define CMD_TELL_IP_ADDRESS				 151 // Command: ESPuino announces its IP-address via speech
 #define CMD_TELL_CURRENT_TIME			 152 // Command: ESPuino announces current time via speech
-#define CMD_TOGGLE_AMBIENT_LIGHT		 153 // Command: ESPuino announces current time via speech
+#define CMD_TOGGLE_AMBIENT_LIGHT		 153 // Command: toggles the ambient light
+#define CMD_BRIGHTNESS_UP				 154 // Command: raise LED-brightness by one step
+#define CMD_BRIGHTNESS_DOWN				 155 // Command: lower LED-brightness by one step
 
 #define CMD_PLAYPAUSE	   170 // Command: play/pause
 #define CMD_PREVTRACK	   171 // Command: previous track
@@ -75,6 +77,7 @@
 #define CMD_RESTARTSYSTEM  183 // Command: restart System
 #define CMD_NEXTFOLDER	   184 // Command: jump forwards to next folder (only applicable for recursive playmodes)
 #define CMD_PREVFOLDER	   185 // Command: jump forwards to previous folder (only applicable for recursive playmodes)
+#define CMD_SEEK_PREVIEW   186 // Command: rotary-gesture-only. Turning previews a target position (LED cursor); commits on release/idle instead of jumping immediately
 
 #define CMD_VIRTUAL_RFID_CARD_01 241 // Command: Virtual RFID-Card 900000000001
 #define CMD_VIRTUAL_RFID_CARD_02 242 // Command: Virtual RFID-Card 900000000002

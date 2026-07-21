@@ -9,6 +9,7 @@
 #include "Mqtt.h"
 #include "Queues.h"
 #include "Rfid.h"
+#include "RfidConfig.h"
 #include "System.h"
 #include "Web.h"
 
@@ -16,14 +17,9 @@ unsigned long Rfid_LastRfidCheckTimestamp = 0;
 char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
 
-// check if we have RFID-reader enabled
-#if defined(RFID_READER_TYPE_MFRC522_SPI) || defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_PN5180)
-	#define RFID_READER_ENABLED 1
-#endif
-
 // Tries to lookup RFID-tag-string in NVS and extracts parameter from it if found
 void Rfid_PreferenceLookupHandler(void) {
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 	BaseType_t rfidStatus;
 	char rfidTagId[cardIdStringSize];
 	char _file[255];
@@ -77,11 +73,20 @@ void Rfid_PreferenceLookupHandler(void) {
 			} else {
 				if (gPlayProperties.dontAcceptRfidTwice) {
 					if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
+						// If pause is active, resume playback when the same RFID is put on again.
+						if (gPlayProperties.pausePlay && gPlayProperties.resumeOnSameRfid) {
+							Log_Printf(LOGLEVEL_INFO, "Same RFID while paused -> resume playback (%s)", gCurrentRfidTagId);
+							AudioPlayer_SetTrackControl(PAUSEPLAY);
+							return;
+						}
 						Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
 						// System_IndicateError(); // Enable to have shown error @neopixel every time
 						return;
 					} else {
 						strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+						// Arm the lock-reset now that a new tag was accepted. This must not depend on playback
+						// actually starting, otherwise a tag whose first track fails immediately stays locked forever.
+						AudioPlayer_ArmRfidResetOnIdle();
 					}
 				}
 	#ifdef MQTT_ENABLE
@@ -106,18 +111,22 @@ void Rfid_ResetOldRfid() {
 	strncpy(gOldRfidTagId, "X", cardIdStringSize - 1);
 }
 
-#if defined(RFID_READER_ENABLED)
+#if defined(RFID_READER_TYPE_RUNTIME)
 extern TaskHandle_t rfidTaskHandle;
 #endif
 
 void Rfid_TaskPause(void) {
-#if defined(RFID_READER_ENABLED)
-	vTaskSuspend(rfidTaskHandle);
+#if defined(RFID_READER_TYPE_RUNTIME)
+	if (rfidTaskHandle != NULL) {
+		vTaskSuspend(rfidTaskHandle);
+	}
 #endif
 }
 void Rfid_TaskResume(void) {
-#if defined(RFID_READER_ENABLED)
-	Rfid_TaskReset(); // Reset state machine to initial state
-	vTaskResume(rfidTaskHandle);
+#if defined(RFID_READER_TYPE_RUNTIME)
+	if (rfidTaskHandle != NULL) {
+		Rfid_TaskReset(); // Reset state machine to initial state
+		vTaskResume(rfidTaskHandle);
+	}
 #endif
 }

@@ -2,6 +2,51 @@
 
 ## DEV-branch
 
+* 20.07.2026: Make the MFRC522 scan interval a web-UI setting ("MFRC522 Scan-Intervall") instead of the compile-time-only `RFID_SCAN_INTERVAL` - default unchanged at 100ms. A restart is required for a change to take effect, same as the other MFRC522/PN5180-specific settings.
+* 20.07.2026: Fix LEDs staying lit forever in deepsleep after `SHUTDOWN_IF_SD_BOOT_FAILS` triggers - the LED task was still running its idle animation when `esp_deep_sleep_start()` was called, and NeoPixels simply hold their last-sent color with no active refresh. Now clears the LEDs before sleeping.
+* 20.07.2026: Remove unused compile-time macro `PLAY_MONO_SPEAKER` - mono/stereo playback has long been a runtime web-UI setting only (nothing in the codebase ever checked this macro), so it was dead documentation.
+* 20.07.2026: Battery: make automatic shutdown on critical voltage a web-UI toggle instead of the compile-time-only `SHUTDOWN_ON_BAT_CRITICAL` - off by default, same as before for anyone who didn't compile with the flag. **Breaking for custom builds**: a `settings-override.h` still defining `SHUTDOWN_ON_BAT_CRITICAL` will silently no longer have any effect - enable "Bei kritischer Spannung automatisch abschalten" in the battery settings instead.
+* 20.07.2026: Remove compile-time toggles `STATIC_IP_ENABLE`, `PLAY_LAST_RFID_AFTER_REBOOT`, `PAUSE_WHEN_RFID_REMOVED`, `DONT_ACCEPT_SAME_RFID_TWICE`, `RESUME_ON_SAME_RFID` and `NEOPIXEL_REVERSE_ROTATION` - these were already fully configurable at runtime via the web interface; the macros only controlled the pre-first-save default (`true` vs `false`) and are now always initialized to `false`. **Breaking for custom builds**: a `settings-override.h` that still defines one of these macros will silently no longer have any effect - enable the corresponding option in the web UI instead. Static IP itself is unaffected, it has been a fully runtime/per-network web-UI setting for a while; the removed macro only fed a one-time migration for pre-multi-network configs.
+
+## Version 2.9 (19.07.2026)
+
+* 19.07.2026: Rotary gestures: add CMD_SEEK_PREVIEW as a second seek variant for "hold button + turn encoder" - turning previews a target position (yellow ring + blue LED cursor) instead of jumping immediately, committing once the encoder is idle for a configurable delay or on release; selectable independently per button/direction alongside the existing immediate-jump seek gesture (#439)
+* 18.07.2026: AudioPlayer: opt-in periodic play-position checkpoint for long audiobook chapters - saves progress every N seconds (NVS "savePosIntv", default off) so a mid-chapter power loss doesn't lose up to an hour of progress (#438), thanks to @mgoodfellow
+* 18.07.2026: AudioPlayer: fix audiobook resume-seek for CBR MP3s without a Xing/Info header - the audio library's seek-on-connect only works when a nominal bitrate is known; the seek is now deferred until the first stable bitrate reading instead (#437), thanks to @mgoodfellow
+* 17.07.2026: "hold button + turn encoder" gestures - holding a configured button while turning the rotary encoder runs that button's assigned action (seek, LED brightness, ...) instead of changing the volume, configurable per button/direction in the web UI (#436), thanks to @mgoodfellow
+* 16.07.2026: Tools tab: keep the saved-RFID-assignments List/Export/Erase buttons always visible instead of hiding them (with dangling separator lines) when there are no assignments yet - grey them out and show the assignment count in each button label instead
+* 16.07.2026: Explorer file upload: send each file as its own raw (application/octet-stream) request instead of bundling the whole batch into one multipart/form-data POST - no MIME boundary parsing on the ESPuino side, ~450 -> ~650 kiB/s measured (#434)
+* 15.07.2026: Wlan/Web/accesspoint: test WiFi credentials live from the setup page - after saving, the box tries them on the station interface while the setup AP stays up, and shows connecting/failed/success right there instead of save -> reboot -> hope (#433), thanks to @mgoodfellow
+* 15.07.2026: Bt: small memory tweaks (#427), thanks to @Joe91
+* 14.07.2026: Wlan/Web/accesspoint: tell the user WHY a WiFi connection attempt failed (wrong password / network not found / rejected / associated but no IP) instead of a silent retry-then-fallback (#432), thanks to @mgoodfellow
+* 14.07.2026: accesspoint: honor browser language and add a language selector, instead of always defaulting to German (#431), thanks to @mgoodfellow
+* 14.07.2026: accesspoint: fix the blank save button caused by a locale key renamed during the settings-tabs restructure (#429), thanks to @mgoodfellow
+* 13.07.2026: CI: also publish bootloader.bin and partitions.bin per board alongside firmware.bin
+* 12.07.2026: Add missing help tooltips across the web UI settings (WiFi, MQTT, FTP, Bluetooth, volume/playlist, LED, sleep/battery) and align tooltip placement next to the field label consistently
+* 12.07.2026: GitHub firmware update list: show 10 builds instead of 5, and show the ESPuino commit's description as a hover tooltip on the commit link
+* 11.07.2026: Fix intermittent false "card removed" events with PN5180: avoid an unnecessary hardware reset on every poll while a tag is being tracked, clear stale IRQ flags before each ISO15693 inventory poll, switch to a PN5180-Library fork with shorter RF-field/transceive timeouts, and make the removal-debounce configurable in the web UI (General -> RFID-Reader) (#428)
+* 11.07.2026: Improve web-upload throughput: disable WiFi power-save and enlarge the TCP receive window during uploads/OTA (~360-400 -> ~430-464 kiB/s measured), restored again afterwards to keep idle power draw low (#416)
+* 11.07.2026: Restructure web UI settings tabs: split "General" into focused sub-tabs (Playback, RFID-Reader, Rotary encoder & buttons, LED, Power), add a new "Updates" tab, consistent row layout and left-aligned buttons across WiFi/MQTT/FTP/Bluetooth/RFID-reader, compact button-assignment tables, scrollable RFID assignments modal, and various smaller UX fixes
+* 10.07.2026: Automatically derive Software-revision from the Git commit date at build time instead of maintaining it by hand in src/revision.h
+* 10.07.2026: Fix connection watchdog false-positive and spurious "action performed successfully" toasts (#426)
+* 10.07.2026: Add firmware update from GitHub: list and install the last 5 builds from biologist79/ESPuino-Firmware directly in the web UI, with OTA progress shown on the LED ring
+* 10.07.2026: Self-host management webinterface locally (no more CDN dependency) & make AP SSID/password/timeout configurable via the web UI (#417)
+
+## Version 2.8 (10.07.2026)
+
+* 10.07.2026: Fix stack buffer overflow in RfidPn5180_WakeupCheck() when formatting the card UID for NVS lookup (#421)
+* 10.07.2026: Fix intermittent boot-hang with PN5180-LPCD enabled by deferring RFID-task start until after peripheral init (#420)
+* 09.07.2026: Remove unmaintained MAX17055 fuel-gauge support (MEASURE_BATTERY_MAX17055). Voltage-based battery measurement (MEASURE_BATTERY_VOLTAGE) is unaffected. (#419)
+* 08.07.2026: Fix DONT_ACCEPT_SAME_RFID_TWICE / PLAY_LAST_RFID_AFTER_REBOOT in combination with WiFi not yet available
+* 25.06.2026: update some libaries and platform (#411), thanks to @Joe91
+* 19.06.2026: Feature: ResumeOnSameRFID (#398), thanks to @joker-mik
+* 07.06.2026: Memory and stability improvements and more (#407), thanks to @Joe91
+* 25.05.2026: Fix broken BT, FTP, support special chars in filesystem (#405), thanks to @Joe91
+
+## Version 2.7 (12.05.2026)
+
+* 08.05.2026: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start (#403), thanks to @Joe91
+* 05.05.2026: Add missing mqtt topics in preview of webinterface
 * 19.04.2026: improvement to the i18n files (#399)
 * 28.03.2026: Bug fix: Suppression of sound artifacts on the speaker during Bluetooth playback (#397)
 * 28.03.2026: feature: Atmolight (#393)

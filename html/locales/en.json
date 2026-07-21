@@ -1,5 +1,4 @@
 {
-	"submit": "Submit",
 	"restart": "Restart",
 	"reset": "Reset",
 	"execute": "Execute",
@@ -11,7 +10,6 @@
 	"cancel": "Cancel",
 	"refresh": "Refresh",
 	"ok": "OK",
-	"showhide": "Show/Hide",
 	"infos": "Information",
 	"darkmode": "Dark Mode",
 	"restartinfo": "ESPuino is being restarted...<br>Page reloads automatically after restart finished.",
@@ -19,8 +17,13 @@
 	"toast": {
 		"rfidDetect": "RFID tag {{rfidId}} detected.",
 		"success": "Action performed successfully.",
-		"conlost": "Connection to ESPuino broken! Please reload website.",
-		"dropout": "slow stream, dropouts are possible."
+		"dropout": "slow stream, dropouts are possible.",
+		"saved": "Settings saved.",
+		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it."
+	},
+	"status": {
+		"connected": "Connection to ESPuino: OK",
+		"disconnected": "Connection to ESPuino lost - trying to reconnect..."
 	},
 	"nav": {
 		"control": "Control",
@@ -30,11 +33,11 @@
 		"ftp": "FTP",
 		"bluetooth": "Bluetooth",
 		"general": "General",
+		"updates": "Updates",
 		"tools": "Tools",
 		"help": "Help"
 	},
 	"settingsex": {
-		"title": "Advanced settings",
 		"led": {
 			"title": "LED settings",
 			"numindicator": "Number of indicator LEDs",
@@ -48,10 +51,22 @@
 			"satatmo": "Saturation-Atmolight",
 			"dimmablestates": "Dimmable steps",
 			"reverserotation": "Reverse direction of rotation",
-			"offset": "Offset start LED"
+			"offset": "Offset start LED",
+			"numindicatorExp": "Number of LEDs used for status/progress indication (e.g. volume, playback progress). A restart is required for the change to take effect.",
+			"numcontrolExp": "Number of extra LEDs at the end of the chain that can each be assigned their own freely chosen color. A restart is required for the change to take effect.",
+			"numidledotsExp": "Number of dots/LEDs shown while idle (no playback active).",
+			"huestartExp": "Hue (0-255) at the start of the progress indicator. -1 = use the default color.",
+			"hueendExp": "Hue (0-255) at the end of the progress indicator. -1 = use the default color.",
+			"hueatmoExp": "Hue (0-255) in ambient light mode. -1 = use the default color.",
+			"satatmoExp": "Saturation (0-255) in ambient light mode. -1 = use the default value.",
+			"dimmablestatesExp": "Number of intermediate steps per LED, used to make transitions (e.g. volume or progress indicator) smoother/finer.",
+			"offsetExp": "Shifts the first LED of the indicator by this many positions - useful if the LED ring shouldn't start at position 0.",
+			"offsetpauseExp": "Offsets the pause indicator by half an LED spacing compared to the normal idle indicator, so pause is visually distinguishable from idle.",
+			"reverserotationExp": "Reverses the direction the LED indicator runs in, e.g. for rings mounted counter-clockwise instead of clockwise."
 		},
 		"buttons": {
 			"title": "Button assignments",
+			"titleExp": "Assigns each button an action for a short press and one for a long press.",
 			"short": "short press",
 			"long": "long press",
 			"noaction": "--",
@@ -64,6 +79,7 @@
 		},
 		"multibuttons": {
 			"title": "Multi-button assignments",
+			"titleExp": "Triggers an action when two buttons are pressed at the same time.",
 			"01": "0+1 (Next + Prev)",
 			"02": "0+2 (Next + Play/Pause)",
 			"03": "0+3 (Next + Encoder)",
@@ -82,27 +98,58 @@
 		},
 		"rotary": {
 			"title": "Rotary encoder",
-			"reverse": "Reverse direction of rotation"
+			"reverse": "Reverse direction of rotation",
+			"reverseExp": "Reverses the rotary encoder's counting/turning direction, e.g. if volume up/down is swapped.",
+			"gestures": "Hold button + turn encoder",
+			"gesturesExp": "While one of these buttons is held down, turning the encoder triggers the assigned action instead of changing the volume. 'Turn right' is the direction that raises the volume. The long-press action of such a button fires when it is released - and not at all if the encoder was turned.",
+			"ccw": "turn left",
+			"cw": "turn right",
+			"seekPreviewTitle": "Seek preview settings",
+			"seekPreviewTitleExp": "Fine-tuning for the 🎯 seek preview gesture (see table above): how long to wait before a preview auto-commits, and how finely the target position can be steered by turning.",
+			"seekPrevDelay": "Auto-commit delay [ms]",
+			"seekPrevDelayExp": "How long (in ms) the encoder must stay idle before a 🎯 seek-preview gesture jumps to the previewed position on its own. Releasing the held button always commits immediately, regardless of this delay. 0-3000, default 2000.",
+			"seekPrevSweep": "Turns for full sweep",
+			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40."
 		}
 	},
 	"wifi": {
 		"title": "WiFi-configuration",
+		"saveButton": "Save WiFi settings",
+		"addNetworkButton": "Add network",
 		"networks": "Networks",
 		"savedNetworks": "Saved Networks",
 		"ssid": {
 			"title": "WiFi-name (SSID)",
 			"placeholder": "SSID",
-			"validation": "Enter WiFi's SSID"
+			"validation": "Enter WiFi's SSID",
+			"explanation": "Name of the WiFi network ESPuino should join."
 		},
 		"password": {
 			"title": "Password",
 			"placeholder": "Password",
-			"validation": "Enter the WiFi's password"
+			"validation": "Enter the WiFi's password",
+			"explanation": "Password of the WiFi network ESPuino should join."
 		},
 		"hostname": {
 			"title": "ESPuino's name (hostname)",
 			"placeholder": "espuino",
-			"validation": "Enter a valid hostname"
+			"validation": "Enter a valid hostname",
+			"explanation": "This is the name of your ESPuino as it appears in your network."
+		},
+		"apSSID": {
+			"title": "ESPuino access point name",
+			"placeholder": "ESPuino",
+			"explanation": "Name of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range."
+		},
+		"apPassword": {
+			"title": "ESPuino access point password",
+			"placeholder": "Password",
+			"explanation": "Password of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range."
+		},
+		"apTimeout": {
+			"title": "Access point closes after (minutes)",
+			"hint": "0 = access point never closes automatically (security risk!)",
+			"explanation": "Duration in minutes for which the WiFi network ESPuino opens (when either no WiFi has been configured yet, or no configured WiFi is in range) stays open."
 		},
 		"static": {
 			"addr": "Static IP-Address",
@@ -110,16 +157,44 @@
 			"gateway": "Gateway for static IP-Configuration",
 			"subnet": "Subnet-mask for static IP-Configuration",
 			"dns1": "DNS 1 for static IP-Configuration",
-			"dns2": "DNS 2 for static IP-Configuration"
+			"dns2": "DNS 2 for static IP-Configuration",
+			"explanation": "IP configuration happens manually instead of via a DHCP server. Caution: you should know what to enter here, otherwise your ESPuino may no longer be reachable over the network.",
+			"addrExp": "Fixed IPv4 address for ESPuino on the WiFi network (only effective if 'Static IP configuration' is enabled).",
+			"gatewayExp": "IP address of the gateway/router for the static IP configuration.",
+			"subnetExp": "Subnet mask for the static IP configuration, e.g. 255.255.255.0.",
+			"dns1Exp": "Preferred DNS server for the static IP configuration.",
+			"dns2Exp": "Alternative DNS server for the static IP configuration (used if the first one is unreachable)."
 		},
 		"scan": {
-			"enabled": "Start with strongest WiFi"
+			"enabled": "Start with strongest WiFi",
+			"explanation": "If multiple WiFi networks are configured in ESPuino, or you're running a mesh WiFi, ESPuino won't just join the first configured network it finds while scanning. Instead, it scans all networks and joins the strongest one. Advantage: higher throughput. Disadvantage: takes a bit longer."
 		},
 		"delete": {
 			"title": "Delete WiFi",
 			"prompt": "Delete saved WiFi \"{{ssid}}\"?"
 		},
-		"restartPrompt": "Ready to go?"
+		"restartPrompt": "Ready to go?",
+		"fullInterface": {
+			"title": "Just want the web interface?",
+			"hint": "If you don't want to set up WiFi but just access the interface (e.g. away from home with no known WiFi): close this window, open your regular browser and go to this address.",
+			"copy": "Copy address",
+			"copied": "Address copied!",
+			"copyFailed": "Could not copy - please select and copy the address above manually."
+		},
+		"fail": {
+			"wrong_password": "Could not join \"{{ssid}}\" — the password is probably wrong (code {{code}}). Please check it and try again.",
+			"not_found": "Network \"{{ssid}}\" was not found (code {{code}}). Is it in range and on 2.4 GHz?",
+			"rejected": "The router refused the connection to \"{{ssid}}\" (code {{code}}). Check MAC filters, client limits or security settings (WPA2 required).",
+			"other": "Connecting to \"{{ssid}}\" failed (code {{code}}).",
+			"timeout": "Joined \"{{ssid}}\", but no IP address was received (code {{code}}). Check the router's DHCP settings."
+		},
+		"test": {
+			"connecting": "Trying to connect to \"{{ssid}}\" …",
+			"connectingBtn": "Connecting …",
+			"success": "Connected! The box got IP {{ip}}. It will now leave setup mode — reconnect your phone to your normal WiFi and reach the box at http://{{ip}}",
+			"reachTitle": "Reach your ESPuino",
+			"reachHint": "Your ESPuino is now on your WiFi at this address. Copy it or save it as a bookmark — the setup network is closing."
+		}
 	},
 	"control": {
 		"title": "Control",
@@ -172,6 +247,7 @@
 		},
 		"rfid": {
 			"title": "RFID Assignments",
+			"saveButton": "Save assignment",
 			"idNumber": "RFID-number (12 digits) or <a href=\"https://forum.espuino.de/t/virtual-rfid-cards\" target=\"_blank\">virtual</a>",
 			"music": "Music",
 			"modification": "Modification",
@@ -183,22 +259,22 @@
 				"title": "Playmode",
 				"placeholder": "Select mode",
 				"mode": {
-					"1": "Single track",
-					"2": "Single track (loop)",
-					"12": "Single track of a directory (random). Followed by sleep.",
-					"3": "Audiobook",
-					"16": "Audiobook with subdirectories (recursive)",
-					"4": "Audiobook (loop)",
-					"5": "All tracks of a directory (sorted)",
-					"15": "All tracks of a directory + subdirectories (sorted, recursive)",
-					"6": "All tracks of a directory (random)",
-					"17": "All tracks of a directory + subdirectories (random, recursive)",
-					"7": "All tracks of a directory (sorted, loop)",
-					"9": "All tracks of a directory (random, loop)",
-					"13": "All tracks of a random subdirectory (sorted)",
-					"14": "All tracks of a random subdirectory (random)",
-					"8": "Webradio",
-					"11": "List (files from SD and/or webstreams) from local .m3u-File"
+					"1": "🎵 Single track",
+					"2": "🎵🔁 Single track (loop)",
+					"12": "🎲💤 Single track of a directory (random). Followed by sleep.",
+					"3": "📖 Audiobook",
+					"16": "📚 Audiobook with subdirectories (recursive)",
+					"4": "📖🔁 Audiobook (loop)",
+					"5": "📁 All tracks of a directory (sorted)",
+					"15": "🌳 All tracks of a directory + subdirectories (sorted, recursive)",
+					"6": "📁🔀 All tracks of a directory (random)",
+					"17": "🌳🔀 All tracks of a directory + subdirectories (random, recursive)",
+					"7": "📁🔁 All tracks of a directory (sorted, loop)",
+					"9": "📁🔀🔁 All tracks of a directory (random, loop)",
+					"13": "🎲📁 All tracks of a random subdirectory (sorted)",
+					"14": "🎲📁🔀 All tracks of a random subdirectory (random)",
+					"8": "📻 Webradio",
+					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File"
 				},
 				"error": "Invalid playmode"
 			},
@@ -206,79 +282,87 @@
 				"title": "Modification",
 				"placeholder": "Select a modification",
 				"cmd": {
-					"100": "Keylock",
-					"101": "Sleep after 15 minutes",
-					"102": "Sleep after 30 minutes",
-					"103": "Sleep after 1 hour",
-					"104": "Sleep after 2 hours",
-					"105": "Sleep after end of track",
-					"106": "Sleep after end of playlist",
-					"107": "Sleep after end of five tracks",
-					"110": "Loop playlist",
-					"111": "Loop track",
-					"120": "Dimm LEDs (nightmode)",
-					"130": "Toggle WiFi",
-					"140": "Toggle Bluetooth Speaker",
-					"141": "Toggle Bluetooth Headphones",
-					"142": "Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
-					"150": "Enable FTP",
-					"151": "Announce IP-Address",
-					"152": "Announce current time",
-					"153": "Toggle Ambient Light",
-					"0": "Remove assignment",
-					"170": "Toggle Play/Pause",
-					"171": "Previous track",
-					"172": "Next track",
-					"173": "First track",
-					"174": "Last track",
-					"175": "Initial volume",
-					"176": "Volume up",
-					"177": "Volume down",
-					"178": "Show battery voltage",
-					"179": "Sleep immediately",
-					"180": "Seek forwards (n seconds)",
-					"181": "Seek backwards (n seconds)",
-					"182": "Stop",
-					"183": "Restart",
-					"184": "Jump to next folder",
-					"185": "Jump to previous folder",
-					"199": "Display task load (console)",
-					"241": "Play virtual RFID-card 01",
-					"242": "Play virtual RFID-card 02",
-					"243": "Play virtual RFID-card 03",
-					"244": "Play virtual RFID-card 04",
-					"245": "Play virtual RFID-card 05",
-					"246": "Play virtual RFID-card 06",
-					"247": "Play virtual RFID-card 07",
-					"248": "Play virtual RFID-card 08",
-					"249": "Play virtual RFID-card 09",
-					"250": "Play virtual RFID-card 10"
+					"100": "🔒 Keylock",
+					"101": "💤 Sleep after 15 minutes",
+					"102": "💤 Sleep after 30 minutes",
+					"103": "💤 Sleep after 1 hour",
+					"104": "💤 Sleep after 2 hours",
+					"105": "💤 Sleep after end of track",
+					"106": "💤 Sleep after end of playlist",
+					"107": "💤 Sleep after end of five tracks",
+					"110": "🔁 Loop playlist",
+					"111": "🔂 Loop track",
+					"120": "🌙 Dimm LEDs (nightmode)",
+					"130": "📶 Toggle WiFi",
+					"140": "🔊 Toggle Bluetooth Speaker",
+					"141": "🎧 Toggle Bluetooth Headphones",
+					"142": "🔀 Toggle Mode (Normal => BT-Speaker => Bluetooth Headphone)",
+					"150": "📁 Enable FTP",
+					"151": "🌐 Announce IP-Address",
+					"152": "🕒 Announce current time",
+					"153": "💡 Toggle Ambient Light",
+					"154": "🔆 LED brightness up",
+					"155": "🔅 LED brightness down",
+					"0": "🗑 Remove assignment",
+					"170": "⏯ Toggle Play/Pause",
+					"171": "⏮ Previous track",
+					"172": "⏭ Next track",
+					"173": "⏪ First track",
+					"174": "⏩ Last track",
+					"175": "🔈 Initial volume",
+					"176": "🔊 Volume up",
+					"177": "🔉 Volume down",
+					"178": "🔋 Show battery voltage",
+					"179": "💤 Sleep immediately",
+					"180": "» Seek forwards (n seconds)",
+					"181": "« Seek backwards (n seconds)",
+					"182": "⏹ Stop",
+					"183": "🔄 Restart",
+					"184": "📁 Jump to next folder",
+					"185": "📁 Jump to previous folder",
+					"186": "🎯 Seek preview (turn to scrub, commits on release/idle)",
+					"199": "📊 Display task load (console)",
+					"241": "🏷 Play virtual RFID-card 01",
+					"242": "🏷 Play virtual RFID-card 02",
+					"243": "🏷 Play virtual RFID-card 03",
+					"244": "🏷 Play virtual RFID-card 04",
+					"245": "🏷 Play virtual RFID-card 05",
+					"246": "🏷 Play virtual RFID-card 06",
+					"247": "🏷 Play virtual RFID-card 07",
+					"248": "🏷 Play virtual RFID-card 08",
+					"249": "🏷 Play virtual RFID-card 09",
+					"250": "🏷 Play virtual RFID-card 10"
 				}
 			}
 		}
 	},
 	"mqtt": {
 		"title": "MQTT-settings",
+		"saveButton": "Save MQTT settings",
 		"enable": "Enable MQTT",
 		"clientId": {
 			"title": "MQTT-ClientId",
 			"placeholder": "f.e. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Unique identifier ESPuino uses to log in to the MQTT broker - must be unique on the network. The placeholder &lt;MAC&gt; is replaced with the MAC address."
 		},
 		"server": {
 			"title": "MQTT-server",
 			"placeholder": "f.e. 192.168.2.89",
-			"validation": ""
+			"validation": "",
+			"explanation": "Hostname or IP address of the MQTT broker."
 		},
 		"baseTopic": {
 			"title": "Base topic (optional)",
 			"placeholder": "f.e. home/espuino",
-			"validation": ""
+			"validation": "",
+			"explanation": "Base path under which all of ESPuino's MQTT topics are published, e.g. 'espuino/livingroom/...'."
 		},
 		"deviceId": {
 			"title": "Device Id",
 			"placeholder": "f.e. ESPuino-<MAC>",
-			"validation": ""
+			"validation": "",
+			"explanation": "Device identifier that is part of the MQTT topic path - useful to tell multiple ESPuinos on the same broker apart. The placeholder &lt;MAC&gt; is replaced with the MAC address."
 		},
 		"topicsPreview": "Full topics (preview)",
 		"restartNote": "Note: MQTT settings only take effect after restarting the device.",
@@ -289,28 +373,35 @@
 		"user": {
 			"title": "MQTT-username (optional)",
 			"placeholder": "username",
-			"validation": ""
+			"validation": "",
+			"explanation": "Username for logging in to the MQTT broker (if it requires authentication)."
 		},
 		"pwd": {
 			"title": "MQTT-password (optional)",
 			"placeholder": "password",
-			"validation": ""
+			"validation": "",
+			"explanation": "Password for logging in to the MQTT broker (if it requires authentication)."
 		},
 		"port": {
 			"title": "MQTT-port",
 			"placeholder": "f.e. 1883",
-			"validation": ""
-		}
+			"validation": "",
+			"explanation": "TCP port of the MQTT broker (default: 1883 for unencrypted connections)."
+		},
+		"enableExp": "Enables the connection to an MQTT broker. A restart is required for the change to take effect."
 	},
 	"ftp": {
 		"title": "FTP-settings",
+		"saveButton": "Save FTP settings",
 		"user": {
 			"title": "FTP-Username",
-			"placeholder": "username"
+			"placeholder": "username",
+			"explanation": "Username for accessing ESPuino via FTP."
 		},
 		"pwd": {
 			"title": "FTP-password",
-			"placeholder": "password"
+			"placeholder": "password",
+			"explanation": "Password for accessing ESPuino via FTP."
 		},
 		"start": {
 			"title": "Start FTP-server",
@@ -319,6 +410,7 @@
 		}
 	},
 	"bt": {
+		"saveButton": "Save Bluetooth settings",
 		"normal": {
 			"title": "Exit Bluetooth Mode",
 			"desc": "Returns to normal mode with WiFi functionality. Music from SD card and web streams can be played.",
@@ -338,22 +430,42 @@
 			"button": "Start in headphone mode",
 			"indicator": "Bluetooth Headphone Mode"
 		},
+		"scan": {
+			"title": "Scan for devices",
+			"button": "Scan",
+			"connect": "Connect",
+			"save": "Save Device",
+			"inProgress": "Scanning for devices...",
+			"noDevices": "No Bluetooth devices found",
+			"notAllowed": "Bluetooth device scan not allowed in current mode. Please switch to Bluetooth headphone mode first."
+		},
 		"device": {
 			"title": "Bluetooth device (headphone)",
-			"placeholder": "e.g. My POGS Wireless Headphone"
+			"placeholder": "e.g. My POGS Wireless Headphone",
+			"explanation": "Name ESPuino shows during Bluetooth pairing, or uses when connecting as a Bluetooth headphone."
 		},
 		"pincode": {
 			"title": "Pairing PIN-Code",
-			"placeholder": "e.g. 0000"
+			"placeholder": "e.g. 0000",
+			"explanation": "PIN code for Bluetooth pairing (only needed if the target device asks for it)."
+		},
+		"switchmode": {
+			"title": "Bluetooth Mode Active",
+			"prompt": "Control via website is restricted in Bluetooth mode. Would you like to switch back to WiFi mode and restart?",
+			"button": "Switch to WiFi Mode"
 		}
 	},
 	"general": {
+		"saveButton": "Save settings",
 		"language": "Language",
 		"volume": {
 			"title": "Volume",
 			"restart": "After restart",
 			"speakerMax": "Max. volume (speaker)",
-			"headphoneMax": "Max. volume (headphones)"
+			"headphoneMax": "Max. volume (headphones)",
+			"restartExp": "Volume ESPuino starts with after power-up (unless 'Remember last volume' is enabled).",
+			"speakerMaxExp": "Maximum volume allowed when playing back through the speaker.",
+			"headphoneMaxExp": "Maximum volume allowed when playing back through headphones."
 		},
 		"equalizer": {
 			"title": "Equalizer",
@@ -361,6 +473,25 @@
 			"gainBandPass": "Mids (in dB)",
 			"gainHighPass": "Highs (in dB)",
 			"info": "According to the library (ESP32-audioI2S), the frequencies are 500 Hz LowShelf, 3000 Hz PeakEQ and 6000 Hz HighShelf."
+		},
+		"rfid": {
+			"title": "RFID Reader",
+			"readerType": {
+				"title": "Reader Type",
+				"auto": "Auto-detect",
+				"mfrc522_spi": "MFRC522 (SPI)",
+				"mfrc522_i2c": "MFRC522 (I2C)",
+				"pn5180": "PN5180",
+				"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically."
+			},
+			"pn5180Lpcd": "Enable PN5180 LPCD",
+			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
+			"mfrc522Gain": "MFRC522 Gain",
+			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7.",
+			"mfrc522ScanInterval": "MFRC522 scan interval",
+			"mfrc522ScanIntervalExp": "Time in milliseconds between two polls of the MFRC522 RFID reader. A restart is required for a change to take effect. Default is 100ms.",
+			"pn5180Debounce": "PN5180 debounce",
+			"pn5180DebounceExp": "Time in milliseconds a card must go undetected before it's considered removed. Prevents brief read dropouts (e.g. with a larger gap between card and reader) from being mistaken for card removal. A restart is required for a change to take effect. Default is 500ms."
 		},
 		"options": {
 			"title": "Options",
@@ -370,12 +501,17 @@
 			"savePlayPosShutdownExp": "When the box is switched off, the playback position for audio books is saved. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_BEFORE_SHUTDOWN</code>.",
 			"savePlayPosRfidChange": "Remember playback position at RFID tag change",
 			"savePlayPosRfidChangeExp": "When switching to a new RFID tag, the playback position is saved for audio books. Does not affect modification tags. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>SAVE_PLAYPOS_WHEN_RFID_CHANGE</code>.",
+			"savePlayPosInterval": "Auto-save playback position for long audio books every",
+			"savePlayPosIntervalSecs": "seconds",
+			"savePlayPosIntervalExp": "Periodically saves the playback position of long audio books (files of 5 minutes or more) to flash while playing, so a sudden power loss (dead battery, unplugged, crash) only rewinds by up to the set number of seconds instead of restarting the file. Only applies to audio-book playmodes; short or split tracks already save at each track boundary. A shorter interval writes to flash more often, so 30-60 seconds is recommended; going much lower gains little and wears the flash faster.",
 			"pauseIfRfidRemoved": "Pause when RFID tag is removed",
-			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"pauseIfRfidRemovedExp": "Playback is paused when the RFID tag is removed.",
 			"dontAcceptRfidTwice": "Don't accept the same RFID twice",
 			"dontAcceptRfidTwiceExp": "RFID tags are not accepted twice in a row. Cannot be used together with <em>Pause when RFID tag is removed</em>.",
+			"resumeOnSameRfid": "Resume from pause when placing the same RFID again",
+			"resumeOnSameRfidExp": "If playback is paused and the same RFID tag is placed again, playback continues. Only effective if <em>Don't accept the same RFID twice</em> is enabled.",
 			"playLastRfidOnReboot": "Play last RFID tag on restart",
-			"playLastRfidOnRebootExp": "Play last RFID tag on restart. More information <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>here</a> under <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"playLastRfidOnRebootExp": "Play last RFID tag on restart.",
 			"pauseOnMinVolume": "Pause at minimum volume",
 			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More information <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
 			"recoverVolBoot": "Use last volume at restart",
@@ -387,20 +523,30 @@
 			"title": "Neopixel (brightness)",
 			"restart": "After restart",
 			"nightmode": "For nightmode",
-			"atmomode": "For Atmolight-mode"
+			"atmomode": "For Atmolight-mode",
+			"restartExp": "LED brightness right after power-up.",
+			"nightmodeExp": "Reduced LED brightness in night mode.",
+			"atmomodeExp": "LED brightness in ambient light mode (Atmolight)."
 		},
 		"sleep": {
 			"title": "Deep Sleep",
-			"inactivity": "After n minutes inactivity"
+			"inactivity": "After n minutes inactivity",
+			"inactivityExp": "Time in minutes without any interaction after which ESPuino automatically goes to sleep (deep sleep)."
 		},
 		"battery": {
 			"title": "Battery",
-			"desc": "Show voltage-status via Neopixel",
 			"lowWarning": "Show warning below this threshold (in volt)",
 			"lowCritical": "Lowest voltage (in volt), that is indicated by one LED",
 			"criticalShutoff": "Below this voltage (in volt), ESPuino turns off",
 			"high": "Voltage (in volt), that is indicated by all LEDs",
-			"measureInterval": "Interval between measurements (in minutes)"
+			"measureInterval": "Interval between measurements (in minutes)",
+			"shutdownOnCritical": "Automatically shut down on critical voltage",
+			"lowWarningExp": "Voltage below which a visual (LED) low-battery warning is triggered.",
+			"lowCriticalExp": "Voltage that is shown as 0% battery charge (empty battery).",
+			"highExp": "Voltage that is shown as 100% battery charge (full battery).",
+			"criticalShutoffExp": "Voltage at which ESPuino automatically shuts down to protect the battery from deep discharge.",
+			"measureIntervalExp": "Time interval in minutes at which the battery voltage is measured.",
+			"shutdownOnCriticalExp": "Automatically shuts ESPuino down once the battery voltage drops below the critical threshold set below. Can help protect the battery from deep discharge to some extent, but does not replace a battery management system! Recommended values are: LFP: 2.7 V, LiPo: 3.0 V."
 		},
 		"playlist": {
 			"title": "Playlist",
@@ -408,7 +554,16 @@
 			"strcmp": "Standard sorting",
 			"strnatcmp": "Natural: case-sensitive",
 			"strnatcasecmp": "Natural: case-insensitive",
-			"recDepth": "Maximum recursion depth at generation of recursive playlists"
+			"recDepth": "Maximum recursion depth at generation of recursive playlists",
+			"sortModeExp": "Determines how files and playlists are sorted: standard alphabetical sorting (e.g. '10' before '2') or natural sorting, which orders numbers in names correctly (e.g. '2' before '10'), optionally case-sensitive.",
+			"recDepthExp": "Maximum directory depth to search when generating recursive playlists from subfolders."
+		},
+		"tabs": {
+			"playback": "Playback",
+			"rfidReader": "RFID Reader",
+			"encoderButtons": "Rotary Encoder & Buttons",
+			"led": "LED",
+			"power": "Power"
 		}
 	},
 	"tools": {
@@ -416,7 +571,8 @@
 			"title": "Saved RFID assignments",
 			"desc": "The RFID assignments are not stored on the SD card but on the internal, non-volative storage (NVS) of the ESPuino.",
 			"list": {
-				"title": "List of all stored RFID assignments"
+				"title": "List of all stored RFID assignments",
+				"show": "Show assignments"
 			},
 			"erase": {
 				"title": "Erase all RFID assignments",
@@ -430,16 +586,34 @@
 			},
 			"import": {
 				"title": "Import",
-				"desc": "A backup file can be uploaded here in order to import RFID assignments."
+				"desc": "A backup file can be uploaded here in order to import RFID assignments.",
+				"button": "Import assignments"
 			},
 			"export": {
 				"title": "Export",
-				"desc": "A backup file can be downloaded here in order to export the RFID assignments."
+				"desc": "A backup file can be downloaded here in order to export the RFID assignments.",
+				"button": "Export assignments"
 			}
 		},
 		"fwupdate": {
 			"title": "Firmware-Update",
-			"desc": "Firmware can be updated right here."
+			"button": "Upload firmware",
+			"desc": "Firmware can be updated right here.",
+			"github": {
+				"title": "Load firmware from GitHub",
+				"desc": "Downloads a ready-built firmware directly from the ESPuino-Firmware repository and installs it – no manual download needed.",
+				"branch": "Branch",
+				"checkButton": "Check for updates",
+				"searching": "Searching…",
+				"noBuilds": "No builds found for this selection.",
+				"notAvailablePlatform": "No prebuilt firmwares are provided in the repository for this platform ({{platform}}). Please upload the firmware manually.",
+				"notAvailableCustomBuild": "This board was built with custom settings (settings-override.h / platformio-override.ini). The official firmware does not include these customizations – please build it yourself and upload it manually as usual.",
+				"notAvailableOta": "This board does not support firmware updates via the web interface. Please flash the firmware over serial.",
+				"buildEntry": "{{date}} – commit:",
+				"installButton": "Install",
+				"installPrompt": "Install the firmware from {{date}} (commit {{commit}}) now?\n\nPlatform: {{platform}}\nBranch: {{branch}}\nLanguage: {{language}}\n\nThe new firmware will now be installed on your ESPuino. This takes about a minute - if a Neopixel strip with multiple LEDs is connected, a progress animation (blue) will be shown during this time. With just a single LED, it will blink blue instead.",
+				"fetchError": "Could not fetch the firmware list."
+			}
 		}
 	},
 	"help": {
@@ -466,6 +640,7 @@
 		"title": "Information",
 		"softwareversion": "ESPuino {{softwareversion}}",
 		"gitversion": "ESPuino {{gitversion}}",
+		"branch": "Branch: {{branch}}",
 		"arduinoversion": "Arduino Version: {{arduinoversion}} (ESP-IDF {{idfversion}})",
 		"hardware": "Hardware: {{hwmodel}}, Revision {{hwrevision}}, CPU: {{hwfreq}} MHZ",
 		"freeheap": "Free heap: {{freeheap}} Bytes",

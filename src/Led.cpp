@@ -15,6 +15,7 @@
 #include "Wlan.h"
 
 #include <WiFi.h>
+#include <atomic>
 #include <esp_task_wdt.h>
 
 #ifdef NEOPIXEL_ENABLE
@@ -29,11 +30,16 @@
 extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 extern uint8_t gShutdownButton;
 
-static uint32_t Led_Indicators = 0u;
+static std::atomic<uint32_t> Led_Indicators = 0u;
 static uint8_t Led_savedBrightness;
 
 // global led settings
 static LedSettings gLedSettings;
+
+// the strip buffer bound to FastLED via addLeds(); file-scope (rather than local to Led_Task)
+// so Led_ShowOtaProgress() can draw into it directly while Led_Task is suspended during an
+// OTA upload (see System_PauseTasksDuringUpload())
+static CRGB *leds = nullptr;
 
 TaskHandle_t Led_TaskHandle;
 static void Led_Task(void *parameter);
@@ -112,6 +118,10 @@ bool Led_LoadSettings(LedSettings &settings) {
 
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+	if (settings.dimmableStates == 0) {
+		// avoid division by zero (used as a divisor throughout Led.cpp's animations)
+		settings.dimmableStates = DIMMABLE_STATES;
+	}
 
 	// get hue start/end from NVS
 	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
@@ -121,12 +131,7 @@ bool Led_LoadSettings(LedSettings &settings) {
 	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", ATMO_SATURATION);
 
 	// get reverse rotation from NVS
-	#ifdef NEOPIXEL_REVERSE_ROTATION
-	const bool defReverseRotation = NEOPIXEL_REVERSE_ROTATION;
-	#else
-	const bool defReverseRotation = false;
-	#endif
-	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", defReverseRotation);
+	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", false); // NEOPIXEL_REVERSE_ROTATION
 
 	// get LED offset from NVS
 	#ifdef LED_OFFSET
@@ -395,7 +400,6 @@ bool CheckForPowerButtonAnimation() {
 #ifdef NEOPIXEL_ENABLE
 static void Led_Task(void *parameter) {
 	static uint8_t lastLedBrightness = gLedSettings.Led_Brightness;
-	static CRGB *leds = nullptr;
 	static CRGBSet *indicator = nullptr;
 
 	uint8_t numIndicatorLeds = gLedSettings.numIndicatorLeds;
@@ -422,14 +426,17 @@ static void Led_Task(void *parameter) {
 			Led_LoadSettings(gLedSettings);
 			// number of indicator/control leds changed
 			if (((gLedSettings.numIndicatorLeds + gLedSettings.numControlLeds) != (numIndicatorLeds + numControlLeds)) || (gLedSettings.numControlLeds != numControlLeds)) {
-				FastLED.clear(true);
-				numIndicatorLeds = gLedSettings.numIndicatorLeds;
-				numControlLeds = gLedSettings.numControlLeds;
-				delete (leds);
-				delete (indicator);
-				leds = new CRGB[numIndicatorLeds + numControlLeds];
-				indicator = new CRGBSet(leds, numIndicatorLeds);
-				FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, numIndicatorLeds + numControlLeds).setCorrection(TypicalSMD5050);
+				// FastLED's SPI/RMT WS2812 driver lazily creates its internal strip object,
+				// sized for whatever pixel count was in effect on the very first show() call,
+				// and never resizes it afterwards. Calling addLeds() again with a different
+				// count here doesn't reset that internal state, so every following show()
+				// call hits a hard FASTLED_ASSERT (mLedStrip->numPixels() != pixels.size()).
+				// Request a clean restart instead of trying to hot-reallocate the strip, and
+				// stop touching leds/indicator/FastLED until then (their sizes no longer
+				// match gLedSettings).
+				Log_Println("Number of LEDs changed, restarting to apply..", LOGLEVEL_NOTICE);
+				System_Restart();
+				vTaskDelay(portMAX_DELAY);
 			}
 		}
 
@@ -610,8 +617,8 @@ static void Led_Task(void *parameter) {
 		animationTimer -= taskDelay;
 		vTaskDelay(portTICK_PERIOD_MS * taskDelay);
 	}
-	delete (leds);
-	delete (indicator);
+	delete[] leds;
+	delete indicator;
 	vTaskDelete(NULL);
 }
 #endif
@@ -1031,12 +1038,28 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 	int32_t animationDelay = 0;
 	// static values
 	static double lastPos = 0.0f;
+	static bool lastPreviewActive = false;
+	static uint8_t lastPreviewTarget = 0;
 
-	if (gPlayProperties.currentRelPos != lastPos || startNewAnimation) {
+	// CMD_SEEK_PREVIEW rotary gesture (RotaryEncoder.cpp/AudioPlayer.cpp): while active, the ring shows
+	// a not-yet-committed target instead of the actual (unchanged) playback position -- read via these
+	// accessors rather than gPlayProperties.currentRelPos, which must not reflect the preview before commit.
+	const bool previewActive = AudioPlayer_IsSeekPreviewActive();
+	const uint8_t previewTarget = AudioPlayer_GetSeekPreviewTargetPercent();
+
+	if (gPlayProperties.currentRelPos != lastPos || previewActive != lastPreviewActive || (previewActive && (previewTarget != lastPreviewTarget)) || startNewAnimation) {
 		lastPos = gPlayProperties.currentRelPos;
+		lastPreviewActive = previewActive;
+		lastPreviewTarget = previewTarget;
 		leds = CRGB::Black;
 		if (gLedSettings.numIndicatorLeds == 1) {
-			leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+			if (previewActive) {
+				// A single LED can't show ring-position and cursor separately -- solid blue is an
+				// unambiguous "preview active" signal, at the cost of not showing the target itself.
+				leds[0] = CRGB::Blue;
+			} else {
+				leds[0].setHue((uint8_t) (85 - ((double) 90 / 100) * gPlayProperties.currentRelPos));
+			}
 		} else {
 			const uint32_t ledValue = std::clamp<uint32_t>(map(gPlayProperties.currentRelPos, 0, 98, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
 			const uint8_t fullLeds = ledValue / gLedSettings.dimmableStates;
@@ -1044,6 +1067,8 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			for (uint8_t led = 0; led < fullLeds; led++) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(led)] = CRGB::Red;
+				} else if (previewActive) {
+					leds[Led_Address(led)] = CRGB::Yellow;
 				} else if (!gPlayProperties.pausePlay) { // Hue-rainbow
 					leds[Led_Address(led)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * led + gLedSettings.progressHueStart));
 				}
@@ -1051,10 +1076,19 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 			if (lastLed > 0) {
 				if (System_AreControlsLocked()) {
 					leds[Led_Address(fullLeds)] = CRGB::Red;
+				} else if (previewActive) {
+					leds[Led_Address(fullLeds)] = CRGB::Yellow;
 				} else {
 					leds[Led_Address(fullLeds)].setHue((uint8_t) (((float) gLedSettings.progressHueEnd - (float) gLedSettings.progressHueStart) / (leds.size() - 1) * fullLeds + gLedSettings.progressHueStart));
 				}
 				leds[Led_Address(fullLeds)] = Led_DimColor(leds[Led_Address(fullLeds)], lastLed);
+			}
+			if (previewActive) {
+				// Cursor is drawn last so it overrides whatever the ring fill just put at that position.
+				const uint32_t cursorValue = std::clamp<uint32_t>(map(previewTarget, 0, 100, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
+				const uint8_t cursorLed = std::min<uint8_t>(cursorValue / gLedSettings.dimmableStates, leds.size() - 1);
+				const uint8_t cursorSub = cursorValue % gLedSettings.dimmableStates;
+				leds[Led_Address(cursorLed)] = (cursorSub > 0) ? Led_DimColor(CRGB::Blue, cursorSub) : CRGB::Blue;
 			}
 		}
 		animationDelay = 10;
@@ -1303,13 +1337,50 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 
 void Led_TaskPause(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskSuspend(Led_TaskHandle);
-	FastLED.clear(true);
+	if (Led_TaskHandle != NULL) {
+		vTaskSuspend(Led_TaskHandle);
+		FastLED.clear(true);
+	}
 #endif
 }
 
 void Led_TaskResume(void) {
 #ifdef NEOPIXEL_ENABLE
-	vTaskResume(Led_TaskHandle);
+	if (Led_TaskHandle != NULL) {
+		vTaskResume(Led_TaskHandle);
+	}
+#endif
+}
+
+// Shows OTA-update progress on the indicator LEDs while Led_Task is suspended (see
+// Led_TaskPause(), called from System_PauseTasksDuringUpload()). No-op if Neopixel is
+// disabled or the strip hasn't been initialized yet. With a single indicator LED (which
+// can't show a fill level), blinks it instead, matching how other animations handle that case.
+void Led_ShowOtaProgress(uint8_t percent) {
+#ifdef NEOPIXEL_ENABLE
+	if ((leds == nullptr) || (gLedSettings.numIndicatorLeds == 0)) {
+		return;
+	}
+	if (percent > 100) {
+		percent = 100;
+	}
+	if (gLedSettings.numIndicatorLeds == 1) {
+		// a single LED can't show a fill level; blink it instead, like other single-LED animations
+		static uint32_t lastToggle = 0;
+		static bool blinkOn = false;
+		const uint32_t now = millis();
+		if (now - lastToggle >= 250) {
+			lastToggle = now;
+			blinkOn = !blinkOn;
+		}
+		leds[0] = blinkOn ? CRGB::Blue : CRGB::Black;
+		FastLED.show();
+		return;
+	}
+	const uint8_t litCount = (uint8_t) (((uint16_t) percent * gLedSettings.numIndicatorLeds) / 100);
+	for (uint8_t i = 0; i < gLedSettings.numIndicatorLeds; i++) {
+		leds[i] = (i < litCount) ? CRGB::Blue : CRGB::Black;
+	}
+	FastLED.show();
 #endif
 }

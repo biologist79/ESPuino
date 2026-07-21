@@ -10,25 +10,22 @@
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="preconnect" href="https://cdnjs.cloudflare.com">
 	<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 	<link rel="apple-touch-icon" href="/logo">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css" />
-	<link rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default-dark/style.min.css" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-	<link rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/23.7.11/i18next.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.4.2/i18nextHttpBackend.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/loc-i18next@0.1.6/dist/umd/loc-i18next.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/gh/sourcefrog/natsort@f8a6b0c/natcompare.js"></script>
+	<link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+	<link rel="stylesheet" href="/vendor/jstree/light/style.min.css" />
+	<link rel="stylesheet" href="/vendor/jstree/dark/style.min.css" />
+	<link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
+	<link rel="stylesheet" href="/vendor/bootstrap-slider/bootstrap-slider.min.css" />
+	<script src="/vendor/jquery/jquery.min.js"></script>
+	<script src="/vendor/jqueryui/jquery-ui.min.js"></script>
+	<script src="/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+	<script src="/vendor/jstree/jstree.min.js"></script>
+	<script src="/vendor/bootstrap-slider/bootstrap-slider.min.js"></script>
+	<script src="/vendor/i18next/i18next.min.js"></script>
+	<script src="/vendor/i18next/i18nextHttpBackend.min.js"></script>
+	<script src="/vendor/i18next/loc-i18next.min.js"></script>
+	<script src="/vendor/natsort/natcompare.js"></script>
 	<style type="text/css">
 		body {
 			/* According to https://www.freecodecamp.org/news/css-media-queries-breakpoints-media-types-standard-resolutions-and-more
@@ -62,12 +59,23 @@
 			display: flex;
 		}
 
+		/* Without an explicit flex-basis, this item's width:100% is used as its basis - so when the row
+		   overflows (icons + 100%) and has to shrink, it shrinks far more than the icon boxes do, leaving
+		   the actual slider narrower than a plain input in the same column. Growing/shrinking from a 0
+		   basis instead makes it simply fill whatever space the (fixed-size, see below) icons don't need. */
 		.slider-container-inner {
-			width: 100%;
+			flex: 1 1 0;
+			min-width: 0;
 			padding-top: 10px;
 			padding-left: 20px;
 			padding-right: 20px;
 			float: left;
+		}
+
+		/* float-end has no effect on a flex child (float is ignored for flex items) - these icon boxes
+		   were relying on it for nothing; give them a real fixed size instead so they don't shrink either. */
+		.slider-container > .float-end {
+			flex: 0 0 auto;
 		}
 
 		.slider.slider-horizontal {
@@ -211,6 +219,38 @@
 			/* Make sure the jstree context menu is most top */
 			z-index: 99999;
 		}
+
+		@keyframes heartbeat-pulse {
+			0% {
+				transform: scale(1);
+			}
+
+			30% {
+				transform: scale(1.5);
+			}
+
+			100% {
+				transform: scale(1);
+			}
+		}
+
+		#connectionStatusIndicator {
+			font-size: 1.4em;
+		}
+
+		#connectionStatusIndicator.heartbeat-pulse {
+			display: inline-block;
+			animation: heartbeat-pulse 0.3s ease-out;
+		}
+
+		/* text-success/text-danger are too dark/muted against the navbar's blue background */
+		#connectionStatusIndicator.connection-ok {
+			color: #4ade80;
+		}
+
+		#connectionStatusIndicator.connection-lost {
+			color: #ff6b6b;
+		}
 	</style>
 </head>
 
@@ -230,7 +270,10 @@
 				<span id="navbar-heading" data-i18n="title"></span>
 			</a>
 			<div class="collapse navbar-collapse justify-content-end">
-				<ul class="navbar-nav">
+				<ul class="navbar-nav align-items-center">
+					<li class="nav-item me-3">
+						<i class="fas fa-heartbeat" id="connectionStatusIndicator" title=""></i>
+					</li>
 					<li class="nav-item">
 						<button class="btn dropdown-toggle border-0 text-white" id="menuToggle"
 							data-bs-toggle="dropdown" aria-expanded="false">
@@ -282,8 +325,7 @@
 				<div class="modal-footer">
 					<button type="button" id="modalInfoRefresh" class="btn btn-primary me-auto"><i
 							class="fas fa-sync"></i><span data-i18n="refresh"></span></button>
-					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"
-						onclick="restartDevice()"><span data-i18n="restart"></span></button>
+					<button type="button" id="modalRestartNow" class="btn btn-danger" style="display:none"></button>
 					<button type="button" class="btn btn-primary" data-bs-dismiss="modal"><span
 							data-i18n="ok"></span></button>
 				</div>
@@ -427,6 +469,38 @@
 			</div>
 		</div>
 	</div>
+	<!-- Modal dialog for the list of saved RFID assignments -->
+	<div class="modal fade" data-bs-backdrop="static" id="rfidListSavedAssignmentsModal" role="dialog">
+		<div class="modal-dialog modal-dialog-scrollable" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.nvs.list.title"></h5>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group" id="rfidListSavedAssignments"></ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="ok"></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal dialog for GitHub firmware build list -->
+	<div class="modal fade" data-bs-backdrop="static" id="githubBuildListModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="tools.fwupdate.github.title"></h5>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group" id="githubBuildList"></ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="ok"></button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<nav class="mb-4">
 		<div class="container nav nav-tabs" id="nav-tab" role="tablist">
 			<a class="nav-item nav-link main-tab-item" id="nav-control-tab" data-bs-toggle="tab" href="#nav-control"
@@ -451,6 +525,9 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general"
 				data-bs-target="#nav-general" role="tab" aria-controls="nav-general" aria-selected="false"><i
 					class="fas fa-sliders-h"></i><span data-i18n="nav.general"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-updates-tab" data-bs-toggle="tab" href="#nav-updates"
+				data-bs-target="#nav-updates" role="tab" aria-controls="nav-updates" aria-selected="false"><i
+					class="fas fa-cloud-upload-alt"></i><span data-i18n="nav.updates"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools"
 				data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i
 					class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
@@ -469,17 +546,75 @@
 					<form action="#globalWifiConfig" method="POST"
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
 						<div class="mb-3 col-md-12">
-							<label for="hostname" data-i18n="[prepend]wifi.hostname.title">:</label>
-							<input type="text" class="form-control" id="hostname"
-								data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
-								pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required><br>
-							<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start"
-								value="false">&nbsp; <label for="scan_wifi_on_start"
-								data-i18n="wifi.scan.enabled"></label>
+							<div class="d-flex gap-2 mb-2">
+								<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
+								<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="hostname" class="col-form-label"
+										data-i18n="[prepend]wifi.hostname.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="hostname"
+										data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
+										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apSSID" class="col-form-label"
+										data-i18n="[prepend]wifi.apSSID.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="apSSID"
+										data-i18n="[placeholder]wifi.apSSID.placeholder" name="apSSID" value="ESPuino"
+										maxlength="32" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apPassword" class="col-form-label"
+										data-i18n="[prepend]wifi.apPassword.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="password" class="form-control" id="apPassword"
+										data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
+										autocomplete="off" minlength="8" maxlength="63">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="apTimeout" class="col-form-label"
+										data-i18n="[prepend]wifi.apTimeout.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="apTimeout" name="apTimeout"
+										value="5" min="0" step="1">
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<small class="form-text text-muted" data-i18n="wifi.apTimeout.hint"></small>
+								</div>
+							</div>
 						</div>
-						<div class="text-center">
+						<div>
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+								type="submit" class="btn btn-primary" data-i18n="wifi.saveButton"></button>
 						</div>
 					</form>
 				</div>
@@ -488,30 +623,109 @@
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
 						<div class="mb-3 col-md-12">
-							<label for="ssid" data-i18n="[prepend]wifi.ssid.title">:</label>
-							<input type="text" class="form-control" id="ssid"
-								data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required><br>
-							<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
-							<label for="pwd" data-i18n="[prepend]wifi.password.title">:</label>
-							<input type="password" class="form-control" id="pwd" name="pwd"
-								data-i18n="[placeholder]wifi.password.placeholder" required><br>
-							<input type="checkbox" id="static_enabled" name="static_enabled" value="false">&nbsp; <label
-								for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="ssid" class="col-form-label"
+										data-i18n="[prepend]wifi.ssid.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="ssid"
+										data-i18n="[placeholder]wifi.ssid.placeholder" name="ssid" required>
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<div class="invalid-feedback" data-i18n="wifi.ssid.validation"></div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="pwd" class="col-form-label"
+										data-i18n="[prepend]wifi.password.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="password" class="form-control" id="pwd" name="pwd"
+										data-i18n="[placeholder]wifi.password.placeholder" required>
+								</div>
+							</div>
+							<div class="d-flex gap-2 mb-2">
+								<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
+								<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
 							<div id="wifi_static_div" style="display:none">
-								<label for="static_addr" data-i18n="[prepend]wifi.static.addr">:</label>
-								<input type="text" class="form-control" id="static_addr" name="static_addr">
-								<label for="static_gateway" data-i18n="[prepend]wifi.static.gateway">:</label>
-								<input type="text" class="form-control" id="static_gateway" name="static_gateway">
-								<label for="static_subnet" data-i18n="[prepend]wifi.static.subnet">:</label>
-								<input type="text" class="form-control" id="static_subnet" name="static_subnet">
-								<label for="static_dns1" data-i18n="[prepend]wifi.static.dns1">:</label>
-								<input type="text" class="form-control" id="static_dns1" name="static_dns1">
-								<label for="static_dns2" data-i18n="[prepend]wifi.static.dns2">:</label>
-								<input type="text" class="form-control" id="static_dns2" name="static_dns2">
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_addr" class="col-form-label"
+											data-i18n="[prepend]wifi.static.addr">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.addrExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_addr" name="static_addr">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_gateway" class="col-form-label"
+											data-i18n="[prepend]wifi.static.gateway">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.gatewayExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_gateway"
+											name="static_gateway">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_subnet" class="col-form-label"
+											data-i18n="[prepend]wifi.static.subnet">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.subnetExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_subnet"
+											name="static_subnet">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_dns1" class="col-form-label"
+											data-i18n="[prepend]wifi.static.dns1">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.dns1Exp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_dns1" name="static_dns1">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="static_dns2" class="col-form-label"
+											data-i18n="[prepend]wifi.static.dns2">:</label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]wifi.static.dns2Exp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="static_dns2" name="static_dns2">
+									</div>
+								</div>
 							</div>
 						</div>
-						<div class="text-center">
-							<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+						<div>
+							<button type="submit" class="btn btn-primary" data-i18n="wifi.addNetworkButton"></button>
 						</div>
 					</form>
 				</div>
@@ -568,7 +782,7 @@
 					<div class="slider-container-inner">
 						<input class="form-control float-end" data-provide="slider" type="number" data-slider-min="1"
 							data-slider-max="21" min="1" max="21" id="setVolume" data-slider-value="" value=""
-							onchange="sendVolume(Number(this.value))">
+						onchange="sendVolume(Number(this.value))">
 					</div>
 					<div class="float-end" style="padding-left: 10px">
 						<button type="button" class="btn btn-primary btn-lg volume-button float-end"
@@ -602,7 +816,7 @@
 						<select class="form-control form-select" id="commandId" name="commandId"></select>
 					</div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="executeCommand()"
 							data-i18n="execute"></button>
 					</div>
@@ -737,9 +951,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="text-center">
+						<div>
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-								type="submit" class="btn btn-primary" data-i18n="submit"></button>
+								type="submit" class="btn btn-primary" data-i18n="files.rfid.saveButton"></button>
 						</div>
 					</form>
 				</fieldset>
@@ -752,37 +966,109 @@
 					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
 					<div class="mb-2"><small class="text-muted" data-i18n="mqtt.restartNote"></small></div>
-					<div class="form-check col-md-12">
-						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable"
-							name="mqttEnable">&nbsp; <label class="form-check-label" for="mqttEnable"
-							data-i18n="mqtt.enable"></label>
+					<div class="form-check col-md-12 d-flex align-items-center gap-2">
+						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
+						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
+						<a href="#" class="link-secondary" data-bs-toggle="popover"
+							data-i18n="[data-bs-content]mqtt.enableExp" tabindex="0"><i
+								class="fas fa-circle-question"></i></a>
 					</div>
 					<div class="mb-3 my-2 col-md-12">
-						<label for="mqttClientId" data-i18n="[prepend]mqtt.clientId.title">:</label>
-						<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
-							data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
-						<label for="mqttBaseTopic" data-i18n="[prepend]mqtt.baseTopic.title">:</label>
-						<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
-							data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
-						<label for="mqttDeviceId" data-i18n="[prepend]mqtt.deviceId.title">:</label>
-						<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
-							data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
-						<label for="mqttServer" data-i18n="[prepend]mqtt.server.title">:</label>
-						<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
-							data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
-						<label for="mqttUser" data-i18n="[prepend]mqtt.user.title">:</label>
-						<input type="text" class="form-control" id="mqttUser" maxlength=""
-							data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
-						<label for="mqttPwd" data-i18n="[prepend]mqtt.pwd.title">:</label>
-						<input type="password" class="form-control" id="mqttPwd" maxlength=""
-							data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
-						<label for="mqttPort" data-i18n="[prepend]mqtt.port.title">:</label>
-						<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
-							data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttClientId" class="col-form-label"
+									data-i18n="[prepend]mqtt.clientId.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.clientId.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttClientId" minlength="7" maxlength="0"
+									data-i18n="[placeholder]mqtt.clientId.placeholder" name="mqttClientId" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttBaseTopic" class="col-form-label"
+									data-i18n="[prepend]mqtt.baseTopic.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.baseTopic.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttBaseTopic" maxlength="0"
+									data-i18n="[placeholder]mqtt.baseTopic.placeholder" name="mqttBaseTopic" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttDeviceId" class="col-form-label"
+									data-i18n="[prepend]mqtt.deviceId.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.deviceId.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttDeviceId" maxlength="0"
+									data-i18n="[placeholder]mqtt.deviceId.placeholder" name="mqttDeviceId" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttServer" class="col-form-label"
+									data-i18n="[prepend]mqtt.server.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.server.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttServer" minlength="7" maxlength="0"
+									data-i18n="[placeholder]mqtt.server.placeholder" name="mqttServer" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttUser" class="col-form-label"
+									data-i18n="[prepend]mqtt.user.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.user.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="mqttUser" maxlength=""
+									data-i18n="[placeholder]mqtt.user.placeholder" name="mqttUser" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttPwd" class="col-form-label"
+									data-i18n="[prepend]mqtt.pwd.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.pwd.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" id="mqttPwd" maxlength=""
+									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="mqttPort" class="col-form-label"
+									data-i18n="[prepend]mqtt.port.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mqtt.port.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="number" class="form-control" id="mqttPort" min="1" max="65535"
+									data-i18n="[placeholder]mqtt.port.placeholder" name="mqttPort" value="" required>
+							</div>
+						</div>
 					</div>
-					<div class="text-center">
+					<div id="mqttFormButtons">
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							type="submit" class="btn btn-primary" data-i18n="mqtt.saveButton"></button>
 					</div>
 				</form>
 			</div>
@@ -793,16 +1079,35 @@
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
-						<label for="ftpUser" data-i18n="[prepend]ftp.user.title">:</label>
-						<input type="text" class="form-control" id="ftpUser" maxlength="0"
-							data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
-						<label for="pwd" data-i18n="[prepend]ftp.pwd.title">:</label>
-						<input type="password" class="form-control" id="ftpPwd" maxlength="0"
-							data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="ftpUser" class="col-form-label"
+									data-i18n="[prepend]ftp.user.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]ftp.user.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="ftpUser" maxlength="0"
+									data-i18n="[placeholder]ftp.user.placeholder" name="ftpUser" value="" required>
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="pwd" class="col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]ftp.pwd.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="password" class="form-control" id="ftpPwd" maxlength="0"
+									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+							</div>
+						</div>
 					</div>
-					<div class="text-center">
+					<div>
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
-							type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							type="submit" class="btn btn-primary" data-i18n="ftp.saveButton"></button>
 					</div>
 				</form>
 				<hr>
@@ -812,7 +1117,7 @@
 					<legend data-i18n="ftp.start.title"></legend>
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="ftpStart()"
 							data-i18n="ftp.start.button"></button>
 					</div>
@@ -826,7 +1131,7 @@
 					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
 					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
 							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
 					</div>
@@ -837,15 +1142,58 @@
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
-						<label for="btDeviceName" data-i18n="[prepend]bt.device.title">:</label>
-						<input type="text" class="form-control" id="btDeviceName"
-							data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value=""><br>
-						<label for="btPinCode" data-i18n="[prepend]bt.pincode.title">:</label>
-						<input type="text" class="form-control" id="btPinCode"
-							data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="btDeviceName" class="col-form-label"
+									data-i18n="[prepend]bt.device.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="btDeviceName"
+									data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+							</div>
+						</div>
+						<div class="row mb-2 align-items-center">
+							<div class="col-sm-4 d-flex align-items-center gap-2">
+								<label for="btPinCode" class="col-form-label"
+									data-i18n="[prepend]bt.pincode.title">:</label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="col-sm-8">
+								<input type="text" class="form-control" id="btPinCode"
+									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+							</div>
+						</div>
 					</div>
-					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+					<div class="mb-3 col-md-12">
+						<div class="row mb-2 align-items-center">
+							<label class="col-sm-4 col-form-label" data-i18n="bt.scan.title"></label>
+							<div class="col-sm-8">
+								<button type="button" class="btn btn-outline-primary" id="bt-scan-btn"
+									onclick="startBtScan()"><i class="fas fa-search"></i> <span
+										data-i18n="bt.scan.button"></span></button>
+							</div>
+						</div>
+					</div>
+					<div id="bt-scan-results" class="mt-3 d-none">
+						<table class="table table-sm table-striped table-hover">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Address</th>
+									<th>RSSI</th>
+									<th class="text-end">Action</th>
+								</tr>
+							</thead>
+							<tbody id="bt-scan-list"></tbody>
+						</table>
+					</div>
+					<div>
+						<button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button>
 					</div>
 				</form>
 				<hr>
@@ -855,7 +1203,7 @@
 					<legend data-i18n="bt.source.title"></legend>
 					<div data-i18n="bt.source.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
@@ -867,65 +1215,113 @@
 					<legend data-i18n="bt.sink.title"></legend>
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
-					<div class="text-center">
+					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
 					</div>
 				</div>
 			</div>
 		</div>
-		<!-- ### Tab General ### -->
-		<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
-			aria-labelledby="nav-general-tab">
-			<div class="container" id="generalConfig">
-				<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+			<!-- ### Tab General ### -->
+			<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
+				aria-labelledby="nav-general-tab">
+				<div class="container" id="generalConfig">
+					<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+					<div class="nav nav-tabs" id="GeneralSubTab" role="tablist">
+						<a class="nav-item nav-link active" id="general-playback-tab" data-bs-toggle="tab"
+							href="#general-playback" role="tab"><i class="fas fa-volume-up"></i><span
+								data-i18n="general.tabs.playback"></span></a>
+						<a class="nav-item nav-link" id="general-rfidreader-tab" data-bs-toggle="tab"
+							href="#general-rfidreader" role="tab"><i class="fas fa-microchip"></i><span
+								data-i18n="general.tabs.rfidReader"></span></a>
+						<a class="nav-item nav-link" id="general-encoder-tab" data-bs-toggle="tab"
+							href="#general-encoder" role="tab"><i class="fas fa-toggle-on"></i><span
+								data-i18n="general.tabs.encoderButtons"></span></a>
+						<a class="nav-item nav-link" id="general-led-tab" data-bs-toggle="tab" href="#general-led"
+							role="tab"><i class="fas fa-lightbulb"></i><span data-i18n="general.tabs.led"></span></a>
+						<a class="nav-item nav-link" id="general-power-tab" data-bs-toggle="tab" href="#general-power"
+							role="tab"><i class="fas fa-battery-full"></i><span data-i18n="general.tabs.power"></span></a>
+					</div>
+						<div class="tab-content mt-3" id="GeneralSubTabContent">
+						<div class="tab-pane fade show active" id="general-playback" role="tabpanel">
 					<div class="col-md-12 mb-4">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.volume.title"></legend><br>
-							<label for="initialVolume" data-i18n="[prepend]general.volume.restart">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="initialVolume" class="col-form-label"
+										data-i18n="general.volume.restart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
-								</div>
-							</div>
-							<label for="maxVolumeSpeaker" data-i18n="[prepend]general.volume.speakerMax">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="maxVolumeSpeaker"
-										name="maxVolumeSpeaker" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="initialVolume" name="initialVolume"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
-							<label for="maxVolumeHeadphone" data-i18n="[prepend]general.volume.headphoneMax">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="maxVolumeSpeaker" class="col-form-label"
+										data-i18n="general.volume.speakerMax"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
-										min="1" max="21" class="form-control" id="maxVolumeHeadphone"
-										name="maxVolumeHeadphone" data-slider-value="" value="" required>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="maxVolumeSpeaker"
+												name="maxVolumeSpeaker" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="maxVolumeHeadphone" class="col-form-label"
+										data-i18n="general.volume.headphoneMax"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="1" data-slider-max="21"
+												min="1" max="21" class="form-control" id="maxVolumeHeadphone"
+												name="maxVolumeHeadphone" data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
 					</div>
+					<hr>
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
@@ -945,6 +1341,20 @@
 									data-i18n="general.options.savePlayPosRfidChange"></label>
 								<a href="#" class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
+									tabindex="0"><i class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2 align-items-center">
+								<input type="checkbox" id="savePlayPosIntervalEnabled"
+									name="savePlayPosIntervalEnabled" value="false">
+								<label for="savePlayPosIntervalEnabled"
+									data-i18n="general.options.savePlayPosInterval"></label>
+								<input type="number" class="form-control" id="savePlayPosInterval"
+									name="savePlayPosInterval" style="width: 5em" min="10" max="3600" step="10"
+									value="60" disabled>
+								<label for="savePlayPosInterval"
+									data-i18n="general.options.savePlayPosIntervalSecs"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.options.savePlayPosIntervalExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
@@ -972,6 +1382,13 @@
 									data-i18n="[data-bs-content]general.options.dontAcceptRfidTwiceExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+						<div class="d-flex gap-2 ms-4">
+							<input type="checkbox" id="resumeOnSameRfid" name="resumeOnSameRfid" value="false">
+							<label for="resumeOnSameRfid" data-i18n="general.options.resumeOnSameRfid"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]general.options.resumeOnSameRfidExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+						</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
@@ -1002,341 +1419,765 @@
 							</div>
 						</fieldset>
 					</div>
-					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
+					<hr>
+					<div class="col-md-12 mb-4" id="playlistConfig">
 						<fieldset>
-							<legend class="w-auto" data-i18n="general.neopixel.title"></legend><br>
-							<label for="initBrightness" data-i18n="[prepend]general.neopixel.restart">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
+							<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="playlistSortMode" class="col-form-label"
+										data-i18n="general.playlist.sortMode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
-										min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
-								</div>
-							</div>
-							<br>
-							<label for="nightBrightness" data-i18n="[prepend]general.neopixel.nightmode">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
-										min="0" max="255" class="form-control" id="nightBrightness"
-										name="nightBrightness" data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
+								<div class="col-sm-8">
+									<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
+										<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
+										<option value="2" data-i18n="general.playlist.strnatcmp"></option>
+										<option value="1" data-i18n="general.playlist.strcmp"></option>
+									</select>
 								</div>
 							</div>
-							<br>
-							<label for="atmoBrightness" data-i18n="[prepend]general.neopixel.atmomode">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="far fa-sun fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="playlistRecDepth" class="col-form-label"
+										data-i18n="general.playlist.recDepth"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
-										min="0" max="255" class="form-control" id="atmoBrightness" name="atmoBrightness"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-sun fa-2x .icon-pos"></i>
+								<div class="col-sm-8">
+									<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
+										<option value="4">4</option>
+										<option value="3">3</option>
+										<option value="2">2</option>
+										<option value="1">1</option>
+									</select>
 								</div>
 							</div>
 						</fieldset>
 					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-rfidreader" role="tabpanel">
+					<div class="col-md-12 mb-4" id="rfidConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
+								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<label for="rfidReaderType" class="col-sm-4 col-form-label"
+									data-i18n="general.rfid.readerType.title"></label>
+								<div class="col-sm-8">
+									<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
+										<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
+										<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
+										<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
+										<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
+									</select>
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mfrc522Gain" class="col-form-label"
+										data-i18n="general.rfid.mfrc522Gain"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain"
+										min="0" max="7">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mfrc522ScanInterval" class="col-form-label"
+										data-i18n="general.rfid.mfrc522ScanInterval"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="mfrc522ScanInterval"
+										name="mfrc522ScanInterval" min="20" max="2000" step="10">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="pn5180Debounce" class="col-form-label"
+										data-i18n="general.rfid.pn5180Debounce"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="pn5180Debounce" name="pn5180Debounce"
+										min="0" max="2000" step="10">
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-encoder" role="tabpanel">
+					<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
+							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
+							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
+							<a href="#" class="link-secondary" data-bs-toggle="popover"
+								data-i18n="[data-bs-content]settingsex.rotary.reverseExp" tabindex="0"><i
+									class="fas fa-circle-question"></i></a>
+						</fieldset>
+					</div>
+					<hr>
+					<div class="col-md-12 mb-4" id="buttonsConfig">
+						<fieldset>
+							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.buttons.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle">
+									<thead>
+										<tr>
+											<th></th>
+											<th data-i18n="settingsex.buttons.short"></th>
+											<th data-i18n="settingsex.buttons.long"></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td data-i18n="settingsex.buttons.button0"></td>
+											<td><select id="cmdselect_short_0" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_0" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button1"></td>
+											<td><select id="cmdselect_short_1" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_1" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button2"></td>
+											<td><select id="cmdselect_short_2" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_2" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button3"></td>
+											<td><select id="cmdselect_short_3" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_3" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button4"></td>
+											<td><select id="cmdselect_short_4" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_4" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.buttons.button5"></td>
+											<td><select id="cmdselect_short_5" class="form-control form-select"></select></td>
+											<td><select id="cmdselect_long_5" class="form-control form-select"></select></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</fieldset>
+						<hr>
+						<div id="rotaryGesturesConfig" style="display:none">
+							<fieldset>
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a href="#"
+										class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.rotary.gesturesExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a></legend>
+								<div class="table-responsive">
+									<table class="table table-sm align-middle">
+										<thead>
+											<tr>
+												<th></th>
+												<th data-i18n="settingsex.rotary.ccw"></th>
+												<th data-i18n="settingsex.rotary.cw"></th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td data-i18n="settingsex.buttons.button0"></td>
+												<td><select id="cmdselect_rotccw_0" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_0" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button1"></td>
+												<td><select id="cmdselect_rotccw_1" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_1" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button2"></td>
+												<td><select id="cmdselect_rotccw_2" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_2" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button3"></td>
+												<td><select id="cmdselect_rotccw_3" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_3" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button4"></td>
+												<td><select id="cmdselect_rotccw_4" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_4" class="form-control form-select"></select></td>
+											</tr>
+											<tr>
+												<td data-i18n="settingsex.buttons.button5"></td>
+												<td><select id="cmdselect_rotccw_5" class="form-control form-select"></select></td>
+												<td><select id="cmdselect_rotcw_5" class="form-control form-select"></select></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</fieldset>
+							<fieldset>
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a href="#"
+										class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.rotary.seekPreviewTitleExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a></legend>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="seekPrevDelay" class="col-form-label"
+											data-i18n="settingsex.rotary.seekPrevDelay"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.seekPrevDelayExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="seekPrevDelay" name="seekPrevDelay"
+											min="0" max="3000" step="100">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="seekPrevSweep" class="col-form-label"
+											data-i18n="settingsex.rotary.seekPrevSweep"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.seekPrevSweepExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="seekPrevSweep" name="seekPrevSweep"
+											min="4" max="250" step="1">
+									</div>
+								</div>
+							</fieldset>
+							<hr>
+						</div>
+						<fieldset>
+							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a href="#"
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.multibuttons.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
+							<div class="table-responsive">
+								<table class="table table-sm align-middle">
+									<tbody>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.01"></td>
+											<td><select id="cmdselect_multi_01" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.02"></td>
+											<td><select id="cmdselect_multi_02" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.03"></td>
+											<td><select id="cmdselect_multi_03" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.04"></td>
+											<td><select id="cmdselect_multi_04" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.05"></td>
+											<td><select id="cmdselect_multi_05" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.12"></td>
+											<td><select id="cmdselect_multi_12" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.13"></td>
+											<td><select id="cmdselect_multi_13" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.14"></td>
+											<td><select id="cmdselect_multi_14" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.15"></td>
+											<td><select id="cmdselect_multi_15" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.23"></td>
+											<td><select id="cmdselect_multi_23" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.24"></td>
+											<td><select id="cmdselect_multi_24" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.25"></td>
+											<td><select id="cmdselect_multi_25" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.34"></td>
+											<td><select id="cmdselect_multi_34" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.35"></td>
+											<td><select id="cmdselect_multi_35" class="form-control form-select"></select></td>
+										</tr>
+										<tr>
+											<td data-i18n="settingsex.multibuttons.45"></td>
+											<td><select id="cmdselect_multi_45" class="form-control form-select"></select></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-led" role="tabpanel">
+					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
+						<fieldset>
+							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="initBrightness" class="col-form-label"
+										data-i18n="general.neopixel.restart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-moon fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="254"
+												min="0" max="254" class="form-control" id="initBrightness" name="initBrightness"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="nightBrightness" class="col-form-label"
+										data-i18n="general.neopixel.nightmode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-moon fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
+												min="0" max="255" class="form-control" id="nightBrightness"
+												name="nightBrightness" data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="atmoBrightness" class="col-form-label"
+										data-i18n="general.neopixel.atmomode"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-moon fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="255"
+												min="0" max="255" class="form-control" id="atmoBrightness" name="atmoBrightness"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-sun fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<hr>
+					<div class="col-md-12 mb-4" id="ledSettingsConfig">
+						<fieldset>
+							<legend class="w-auto" data-i18n="settingsex.led.title"></legend>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_numIndicator" class="col-form-label"
+										data-i18n="settingsex.led.numindicator"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_numIndicator"
+										name="led_numIndicator" min="0" max="128">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_numControl" class="col-form-label"
+										data-i18n="settingsex.led.numcontrol"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
+										min="0" max="128" onChange="listControlColors(Number(this.value), null)">
+								</div>
+								<div class="col-sm-8 offset-sm-4">
+									<div id="controlColorList" class="mb-2 mt-2 d-none"></div>
+									<div id="controlColorTemp" class="pb-2 d-none">
+										<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
+											class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_idleDots" class="col-form-label"
+										data-i18n="settingsex.led.numidledots"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_idleDots" name="led_idleDots"
+										min="0" max="128">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueStart" class="col-form-label"
+										data-i18n="settingsex.led.huestart"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control"
+											name="led_hueStart" data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueEnd" class="col-form-label"
+										data-i18n="settingsex.led.hueend"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_hueAtmo" class="col-form-label"
+										data-i18n="settingsex.led.hueatmo"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="hue-slider">
+										<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_satAtmo" class="col-form-label"
+										data-i18n="settingsex.led.satatmo"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="sat-slider">
+										<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
+											data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
+											data-slider-value="-1" value="-1">
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_dimStates" class="col-form-label"
+										data-i18n="settingsex.led.dimmablestates"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_dimStates" name="led_dimStates" min="1">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_offsetStart" class="col-form-label"
+										data-i18n="settingsex.led.offset"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
+								</div>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
+								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
+								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+						</fieldset>
+					</div>
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
+							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
+							data-i18n="general.saveButton"></button>
+					</div>
+						</div>
+						<div class="tab-pane fade" id="general-power" role="tabpanel">
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
-							<label for="inactivityTime" data-i18n="general.sleep.inactivity"></label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-hourglass-start fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="inactivityTime" class="col-form-label"
+										data-i18n="general.sleep.inactivity"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
-										min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
-										data-slider-value="" value="" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-hourglass-end fa-2x .icon-pos"></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input type="number" data-provide="slider" data-slider-min="0" data-slider-max="30"
+												min="1" max="120" class="form-control" id="inactivityTime" name="inactivityTime"
+												data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
 					</div>
+					<hr>
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
-							<div data-i18n="general.battery.desc"></div>
-							<br>
-							<label for="warningLowVoltage" data-i18n="[prepend]general.battery.lowWarning">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageCheckInterval" class="col-form-label"
+										data-i18n="general.battery.measureInterval"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.5"
-										data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control"
-										id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value=""
-										pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<label for="voltageIndicatorLow" data-i18n="[prepend]general.battery.lowCritical">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" min="2.5" data-slider-step="0.05" data-slider-min="2.5"
-										data-slider-max="5.0" max="5.0" type="text" class="form-control"
-										id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value=""
-										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<label for="voltageIndicatorHigh" data-i18n="[prepend]general.battery.high">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
-										data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
-										id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value=""
-										value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
-								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
-								</div>
-							</div>
-							<div id="criticalVoltageSection" data-visible="false">
-								<label for="criticalVoltage"
-									data-i18n="[prepend]general.battery.criticalShutoff">:</label>
-								<div class="slider-container">
-									<div class="float-end" style="padding-left: 30px">
-										<i class="fas fa-battery-quarter fa-2x .icon-pos"></i>
-									</div>
-									<div class="slider-container-inner">
-										<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
-											data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
-											id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
-											pattern="^\d{1,2}(\.\d{1,3})?" required>
-									</div>
-									<div class="float-end" style="padding-left: 10px">
-										<i class="fas fa-battery-three-quarters fa-2x .icon-pos" fa-2x .icon-pos></i>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-hourglass-start fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
+												min="1" max="60" class="form-control" id="voltageCheckInterval"
+												data-slider-value="" name="voltageCheckInterval" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-hourglass-end fa-2x icon-pos"></i>
+										</div>
 									</div>
 								</div>
 							</div>
-							<label for="voltageCheckInterval"
-								data-i18n="[prepend]general.battery.measureInterval">:</label>
-							<div class="slider-container">
-								<div class="float-end" style="padding-left: 30px">
-									<i class="fas fas fa-hourglass-start fa-2x .icon-pos"></i>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="warningLowVoltage" class="col-form-label"
+										data-i18n="general.battery.lowWarning"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
-								<div class="slider-container-inner">
-									<input data-provide="slider" data-slider-min="1" data-slider-max="60" type="number"
-										min="1" max="60" class="form-control" id="voltageCheckInterval"
-										data-slider-value="" name="voltageCheckInterval" value="" required>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.5"
+												data-slider-max="5.0" min="2.5" max="5.0" type="text" class="form-control"
+												id="warningLowVoltage" name="warningLowVoltage" data-slider-value="" value=""
+												pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
-								<div class="float-end" style="padding-left: 10px">
-									<i class="fas fas fa-hourglass-end fa-2x .icon-pos" fa-2x .icon-pos></i>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageIndicatorLow" class="col-form-label"
+										data-i18n="general.battery.lowCritical"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" min="2.5" data-slider-step="0.05" data-slider-min="2.5"
+												data-slider-max="5.0" max="5.0" type="text" class="form-control"
+												id="voltageIndicatorLow" name="voltageIndicatorLow" data-slider-value=""
+												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="voltageIndicatorHigh" class="col-form-label"
+										data-i18n="general.battery.high"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.0"
+												data-slider-max="5.0" min="2.0" max="5.0" type="text" class="form-control"
+												id="voltageIndicatorHigh" name="voltageIndicatorHigh" data-slider-value=""
+												value="" pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="d-flex gap-2 mt-3">
+								<input type="checkbox" id="shutdownOnCritical" name="shutdownOnCritical" value="false">
+								<label for="shutdownOnCritical" data-i18n="general.battery.shutdownOnCritical"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="criticalVoltage" class="col-form-label"
+										data-i18n="general.battery.criticalShutoff"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.8"
+												data-slider-max="5.0" min="2.8" max="5.0" type="text" class="form-control"
+												id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
+												pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
+										</div>
+									</div>
 								</div>
 							</div>
 						</fieldset>
 					</div>
-					<div class="col-md-12 mb-4" id="playlistConfig">
-						<fieldset>
-							<legend class="w-auto" data-i18n="general.playlist.title"></legend><br>
-							<label for="playlistSortMode" data-i18n="[prepend]general.playlist.sortMode">:</label>
-							<select id="playlistSortMode" name="playlistSortMode" class="form-control form-select">
-								<option value="3" selected data-i18n="general.playlist.strnatcasecmp"></option>
-								<option value="2" data-i18n="general.playlist.strnatcmp"></option>
-								<option value="1" data-i18n="general.playlist.strcmp"></option>
-							</select>
-						</fieldset>
-						<fieldset>
-							<label for="playlistRecDepth" data-i18n="[prepend]general.playlist.recDepth">:</label>
-							<select id="playlistRecDepth" name="playlistRecDepth" class="form-control form-select">
-								<option value="4">4</option>
-								<option value="3">3</option>
-								<option value="2">2</option>
-								<option value="1">1</option>
-							</select>
-						</fieldset>
-					</div>
-					<p data-i18n="settingsex.title"></p>
-					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-						data-bs-target="#settingsExConfigContainer" aria-expanded="false"
-						aria-controls="settingsExConfigContainer" data-i18n="showhide"></button><br><br>
-					<span class="collapse" id="settingsExConfigContainer">
-						<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
-								<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
-								<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
-							</fieldset>
-						</div>
-						<div class="col-md-12 mb-4" id="settingsExConfig">
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.led.title"></legend><br>
-								<label for="led_numIndicator" data-i18n="settingsex.led.numindicator"></label>: <br>
-								<input type="number" class="form-control" id="led_numIndicator" name="led_numIndicator"
-									min="0" max="128"><br>
-								<label for="led_numControl" data-i18n="settingsex.led.numcontrol"></label>: <br>
-								<input type="number" class="form-control" id="led_numControl" name="led_numcontrol"
-									min="0" max="128" onChange="listControlColors(Number(this.value), null)"><br>
-								<div id="controlColorList" class="mb-2 d-none"></div>
-								<div id="controlColorTemp" class="pb-2 d-none">
-									<span data-i18n="settingsex.led.controlled"></span>&nbsp;<span
-										class="ledNumber"></span>:&nbsp;<input type="color" value="#ffffff">
-								</div>
-								<label for="led_idleDots" data-i18n="settingsex.led.numidledots"></label>: <br>
-								<input type="number" class="form-control" id="led_idleDots" name="led_idleDots" min="0"
-									max="128"><br>
-								<label for="led_hueStart" data-i18n="settingsex.led.huestart"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueStart" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control"
-										name="led_hueStart" data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_hueEnd" data-i18n="settingsex.led.hueend"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueEnd" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueEnd"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_hueAtmo" data-i18n="settingsex.led.hueatmo"></label>: <br>
-								<div class="hue-slider">
-									<input id="led_hueAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_hueAtmo"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_satAtmo" data-i18n="settingsex.led.satatmo"></label>: <br>
-								<div class="sat-slider">
-									<input id="led_satAtmo" type="number" data-provide="slider" data-slider-min="-1"
-										data-slider-max="255" min="-1" max="255" class="form-control" name="led_satAtmo"
-										data-slider-value="-1" value="-1">
-								</div>
-								<label for="led_dimStates" data-i18n="settingsex.led.dimmablestates"></label>: <br>
-								<input type="number" class="form-control" id="led_dimStates" name="led_dimStates"><br>
-								<label for="led_offsetStart" data-i18n="settingsex.led.offset"></label>: <br>
-								<input type="number" class="form-control" id="led_offsetStart"
-									name="led_offsetStart"><br>
-								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">&nbsp;
-								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label><br>
-								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation"
-									value="false">&nbsp;
-								<label for="led_reverseRotation"
-									data-i18n="settingsex.led.reverserotation"></label><br><br>
-							</fieldset>
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.buttons.title"></legend><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button0"></legend>
-								<label for="cmdselect_short_0"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_0"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_0" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_0" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button1"></legend>
-								<label for="cmdselect_short_1"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_1"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_1" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_1" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button2"></legend>
-								<label for="cmdselect_short_2"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_2"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_2" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_2" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button3"></legend>
-								<label for="cmdselect_short_3"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_3"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_3" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_3" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button4"></legend>
-								<label for="cmdselect_short_4"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_4"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_4" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_4" class="form-control form-select"></select><br><br>
-								<legend class="fs-5" data-i18n="settingsex.buttons.button5"></legend>
-								<label for="cmdselect_short_5"
-									data-i18n="settingsex.buttons.short"></label>:&nbsp;<select id="cmdselect_short_5"
-									class="form-control form-select"></select><br>
-								<label for="cmdselect_long_5" data-i18n="settingsex.buttons.long"></label>:&nbsp;<select
-									id="cmdselect_long_5" class="form-control form-select"></select><br><br>
-							</fieldset>
-							<fieldset>
-								<legend class="w-auto" data-i18n="settingsex.multibuttons.title"></legend><br>
-								<label for="cmdselect_multi_01"
-									data-i18n="settingsex.multibuttons.01"></label>:&nbsp;<select
-									id="cmdselect_multi_01" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_02"
-									data-i18n="settingsex.multibuttons.02"></label>:&nbsp;<select
-									id="cmdselect_multi_02" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_03"
-									data-i18n="settingsex.multibuttons.03"></label>:&nbsp;<select
-									id="cmdselect_multi_03" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_04"
-									data-i18n="settingsex.multibuttons.04"></label>:&nbsp;<select
-									id="cmdselect_multi_04" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_05"
-									data-i18n="settingsex.multibuttons.05"></label>:&nbsp;<select
-									id="cmdselect_multi_05" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_12"
-									data-i18n="settingsex.multibuttons.12"></label>:&nbsp;<select
-									id="cmdselect_multi_12" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_13"
-									data-i18n="settingsex.multibuttons.13"></label>:&nbsp;<select
-									id="cmdselect_multi_13" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_14"
-									data-i18n="settingsex.multibuttons.14"></label>:&nbsp;<select
-									id="cmdselect_multi_14" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_15"
-									data-i18n="settingsex.multibuttons.15"></label>:&nbsp;<select
-									id="cmdselect_multi_15" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_23"
-									data-i18n="settingsex.multibuttons.23"></label>:&nbsp;<select
-									id="cmdselect_multi_23" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_24"
-									data-i18n="settingsex.multibuttons.24"></label>:&nbsp;<select
-									id="cmdselect_multi_24" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_25"
-									data-i18n="settingsex.multibuttons.25"></label>:&nbsp;<select
-									id="cmdselect_multi_25" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_34"
-									data-i18n="settingsex.multibuttons.34"></label>:&nbsp;<select
-									id="cmdselect_multi_34" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_35"
-									data-i18n="settingsex.multibuttons.35"></label>:&nbsp;<select
-									id="cmdselect_multi_35" class="form-control form-select"></select><br>
-								<label for="cmdselect_multi_45"
-									data-i18n="settingsex.multibuttons.45"></label>:&nbsp;<select
-									id="cmdselect_multi_45" class="form-control form-select"></select><br>
-							</fieldset>
-						</div>
-					</span>
-					<div class="text-center">
-						<button type="reset" class="btn btn-warning" data-i18n="reset"
+					<div>
+						<button type="button" class="btn btn-warning" data-i18n="reset"
 							onclick="resetSettings()"></button>&nbsp;<button type="submit" class="btn btn-primary"
-							data-i18n="submit"></button>
+							data-i18n="general.saveButton"></button>
 					</div>
-				</form>
+						</div>
+						</div>
+					</form>
+				</div>
 			</div>
-		</div>
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
 			aria-labelledby="nav-tools-tab">
@@ -1345,64 +2186,91 @@
 				<p data-i18n="tools.nvs.desc"></p>
 				<span class="container" style="padding: 0" id="listNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
-					<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
-						data-bs-target="#rfidListSavedAssignmentsContainer" aria-expanded="false"
-						aria-controls="rfidListSavedAssignmentsContainer" data-i18n="showhide"></button>
-					<span class="collapse" id="rfidListSavedAssignmentsContainer"><br><br>
-						<ul class="list-group" id="rfidListSavedAssignments"></ul>
-					</span><br><br>
+					<button class="btn btn-primary" type="button" id="showAssignmentsBtn" data-bs-toggle="modal"
+						data-bs-target="#rfidListSavedAssignmentsModal"><span
+							data-i18n="tools.nvs.list.show"></span><span id="showAssignmentsCount"></span></button>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0" id="exportNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
 					<p data-i18n="tools.nvs.export.desc"></p>
-					<a type="submit" class="btn btn-primary" data-i18n="submit"
-						href="/explorerdownload?path=/backup.txt" target="_blank"></a>
-					<br><br>
+					<a type="submit" class="btn btn-primary" id="exportAssignmentsBtn"
+						href="/explorerdownload?path=/backup.txt" target="_blank"><span
+							data-i18n="tools.nvs.export.button"></span><span id="exportAssignmentsCount"></span></a>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0">
 					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
 					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
 						onsubmit="uploadNVSRFID('nvsUpload'); return false">
 						<div class="mb-3">
 							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-							<input type="file" class="form-control-file btn btn-primary" id="nvsUpload" name="nvsUpload"
-								accept=".txt">
-							<br><br>
-							<div class="text-center">
-								<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
+							<div class="d-flex gap-2">
+								<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
+									name="nvsUpload" accept=".txt">
+								<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
 							</div>
 						</div>
 					</form>
 				</span>
+				<hr>
 				<span class="container" style="padding: 0" id="eraseNvs">
 					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
 					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
-					<div class="text-center">
-						<button type="submit" class="btn btn-danger" data-i18n="tools.nvs.erase.button"
-							data-bs-toggle="modal" data-bs-target="#deleteNVSRFIDModal"></button>
-					</div>
+					<button type="submit" class="btn btn-danger" id="eraseAssignmentsBtn" data-bs-toggle="modal"
+						data-bs-target="#deleteNVSRFIDModal"><span
+							data-i18n="tools.nvs.erase.button"></span><span id="eraseAssignmentsCount"></span></button>
 				</span>
 				<hr>
 			</div>
+		</div>
+		<!-- ### Tab Updates ### -->
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-updates" role="tabpanel"
+			aria-labelledby="nav-updates-tab">
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
-							name="firmwareUpload" accept=".bin">
+						<div class="d-flex gap-2">
+							<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
+								name="firmwareUpload" accept=".bin">
+							<button type="submit" class="btn btn-primary" data-i18n="tools.fwupdate.button"></button>
+						</div>
 					</div>
-					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative">
+					<div id="firmwareUploadProgress" class="progress upload-progress-bar position-relative"
+						style="display:none;">
 						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdate"></div>
 						<div
 							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
 						</div>
 					</div>
-					<br>
-					<div class="text-center">
-						<button type="submit" class="btn btn-primary" data-i18n="submit"></button>
-					</div>
 				</form>
+				<hr>
+			</div>
+			<div class="container" id="githubUpdate">
+				<legend id="legendfwupdategithub" data-i18n="tools.fwupdate.github.title"></legend>
+				<p data-i18n="tools.fwupdate.github.desc"></p>
+				<p id="githubUpdateUnavailableText" class="text-warning" style="display:none;"></p>
+				<div id="githubUpdateAvailable" style="display:none;">
+					<div class="mb-3 d-flex align-items-center flex-wrap gap-2">
+						<label for="githubBranchSel" class="me-1" data-i18n="tools.fwupdate.github.branch"></label>
+						<select class="form-control form-select" id="githubBranchSel" style="width: auto;">
+							<!-- Do not translate those texts! -->
+							<option value="dev">dev</option>
+							<option value="master">master</option>
+						</select>
+						<button type="button" class="btn btn-primary" id="githubCheckButton"
+							data-i18n="tools.fwupdate.github.checkButton"></button>
+					</div>
+					<div id="githubUpdateProgress"
+						class="progress upload-progress-bar position-relative" style="display:none;">
+						<div class="progress-bar" role="progressbar" aria-labelledby="legendfwupdategithub"></div>
+						<div
+							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<!-- ### Tab Help ### -->
@@ -1421,7 +2289,12 @@
 		var lastIdclicked = '';
 		var ActiveTab = 'nav-rfid-tab';
 		var ActiveSubTab = 'rfid-music-tab';
+		var initialSettingsLoaded = false;
+		// last known-saved led count, to detect a change on save (device restarts to apply it)
+		var lastNumIndicatorLeds = null;
+		var lastNumControlLeds = null;
 		var host = $(location).attr('hostname');
+		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
 		var localize;
 		/* show active / selected tab */
@@ -1442,6 +2315,15 @@
 			} else {
 				document.getElementById("fileOrUrl").required = false;
 			}
+		});
+		/* General sub-tabs (Playback/RFID-Reader/Encoder/LED/Power): sliders inside a pane that's still
+		   display:none at page load get measured (and their width baked in) by bootstrap-slider at the
+		   wrong, too-narrow size, since only the first sub-tab is visible initially. Recompute once a
+		   pane actually becomes visible instead of leaving that first, wrong measurement stuck. */
+		$('#GeneralSubTab.nav-tabs a').on('shown.bs.tab', function (e) {
+			$($(e.target).attr('href')).find('[data-provide="slider"]').each(function () {
+				$(this).bootstrapSlider('relayout');
+			});
 		});
 		if (host == "") { // Not running on the device -> use the remote host
 			host = remoteHost;
@@ -1498,6 +2380,7 @@
 			warning: msg => toaster.toast(msg, 'text-bg-warning'),
 			error: msg => toaster.toast(msg, 'text-bg-danger')
 		}
+
 
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
@@ -1612,6 +2495,15 @@
 				lastSelectedNodePath = data.node.data.path;
 			}
 		});
+		/* Webradio (mode 8) needs a URL, not a file/folder path - prefill "http://" when switching
+		   to it, and restore the file browser's current selection when switching away again */
+		$('#playMode').on('change', function () {
+			if (this.value === '8') {
+				$('#fileOrUrl').val('http://');
+			} else {
+				$('#fileOrUrl').val(lastSelectedNodePath || '/');
+			}
+		});
 
 		function doRest(path, callback, obj) {
 			obj.url = path;
@@ -1624,11 +2516,24 @@
 					}
 				};
 			obj.error = function (jqXHR, textStatus, errorThrown) {
-				console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url);
+								console.log("AJAX error: " + textStatus + ", " + errorThrown + ": " + obj.url);
 				/*debugger; */
 			};
 			jQuery.ajax(obj);
 		} /* doRest */
+
+		function showSwitchModePrompt() {
+			// Reuse the info modal to prompt for mode switch
+			$('.modal-title').text(i18next.t('bt.switchmode.title'));
+			$('.modal-body').html(i18next.t('bt.switchmode.prompt'));
+			$(".modal-body").removeAttr("style");
+			$('#modalInfoRefresh').hide();
+			$('#modalRestartNow').show().text(i18next.t('bt.switchmode.button')).off('click').on('click', function () {
+				setOperationMode(0, true);
+			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
+		}
+
 		function getData(path, callback) {
 			doRest(path, callback, {
 				method: "GET"
@@ -1684,10 +2589,13 @@
 			// Reuse the info modal to prompt the user to restart now or later
 			$('.modal-title').text(i18next.t('restart'));
 			$('.modal-body').html(i18next.t('mqtt.restartPrompt'));
+			$(".modal-body").removeAttr("style");
 			// Hide refresh button and show restart-now button
 			$('#modalInfoRefresh').hide();
-			$('#modalRestartNow').show();
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			$('#modalRestartNow').show().text(i18next.t('restart')).off('click').on('click', function () {
+				restartDevice();
+			});
+			new bootstrap.Modal(document.getElementById('modalInfo')).show();
 		}
 
 		async function shutdownDevice() {
@@ -1715,6 +2623,7 @@
 			const startTime = new Date().getTime();
 			let bytesTotal = 0;
 			const fup = $('#firmwareUploadProgress');
+			fup.show();
 			$.ajax({
 				url: '/update',
 				type: 'POST',
@@ -1789,11 +2698,183 @@
 				}
 			});
 		});
+		/* Firmware Update via GitHub (biologist79/ESPuino-Firmware) */
+		const GITHUB_FW_REPO = "biologist79/ESPuino-Firmware";
+		let githubFirmwareInitialized = false;
+		let githubPlatform = '';
+
+		function showGithubUpdateUnavailable(text) {
+			$('#githubUpdateUnavailableText').text(text).show();
+		}
+
+		async function initGithubFirmwareUpdate() {
+			if (githubFirmwareInitialized) {
+				return;
+			}
+			githubFirmwareInitialized = true;
+			try {
+				let info = await (await fetch("http://" + host + "/info?section=software")).json();
+				const sw = info.software;
+				if (!sw.otaSupported) {
+					showGithubUpdateUnavailable(i18next.t("tools.fwupdate.github.notAvailableOta"));
+					return;
+				}
+				if (sw.customBuild) {
+					showGithubUpdateUnavailable(i18next.t("tools.fwupdate.github.notAvailableCustomBuild"));
+					return;
+				}
+				githubPlatform = sw.platform;
+				$('#githubUpdateAvailable').show();
+				$('#githubCheckButton').on('click', function () {
+					checkGithubFirmwareBuilds();
+				});
+			} catch (e) {
+				console.log("Could not fetch software info for github firmware update", e);
+			}
+		}
+
+		async function checkGithubFirmwareBuilds() {
+			const branch = $('#githubBranchSel').val();
+			// firmware repo languages are DE/EN/FR, matching i18next's 2-letter codes
+			const lang = (i18next.language || 'en').toUpperCase();
+			const path = `Firmwares/${branch}/${githubPlatform}/firmware-${lang}.bin`;
+			const list = $('#githubBuildList');
+			list.empty().append($('<li class="list-group-item"></li>').text(i18next.t("tools.fwupdate.github.searching")));
+			new bootstrap.Modal(document.getElementById('githubBuildListModal')).show();
+			try {
+				const resp = await fetch(`https://api.github.com/repos/${GITHUB_FW_REPO}/commits?path=${encodeURIComponent(path)}&per_page=10&sha=main`);
+				if (!resp.ok) {
+					throw new Error(resp.statusText);
+				}
+				const commits = await resp.json();
+				list.empty();
+				if (!commits.length) {
+					list.append($('<li class="list-group-item"></li>').text(i18next.t("tools.fwupdate.github.noBuilds")));
+					return;
+				}
+				commits.forEach(function (c) {
+					const date = new Date(c.commit.author.date).toLocaleString();
+					// commit message looks like "Firmware built from commit biologist79/ESPuino@<sha>" -
+					// that sha is the original ESPuino commit, not this (firmware repo's own) commit
+					const match = /ESPuino@([0-9a-f]{7,40})/.exec(c.commit.message);
+					const fullSha = match ? match[1] : null;
+					const commitShort = (fullSha || c.sha).substring(0, 10);
+					const label = i18next.t("tools.fwupdate.github.buildEntry", { date: date });
+					const li = $('<li class="list-group-item d-flex justify-content-between align-items-center"></li>');
+					const textSpan = $('<span></span>').append(document.createTextNode(label + " "));
+					if (fullSha) {
+						const commitLink = $('<a target="_blank" rel="noopener noreferrer"></a>')
+							.attr('href', `https://github.com/biologist79/ESPuino/commit/${fullSha}`)
+							.text(commitShort);
+						textSpan.append(commitLink);
+						// Fetch the ESPuino commit's own message to show as a hover tooltip. Fire and
+						// forget - don't block rendering the list on it, and silently skip on failure
+						// (e.g. GitHub API rate-limit) since the tooltip is a nice-to-have, not essential.
+						fetch(`https://api.github.com/repos/biologist79/ESPuino/commits/${fullSha}`)
+							.then(r => r.ok ? r.json() : null)
+							.then(data => {
+								if (data && data.commit && data.commit.message) {
+									commitLink.attr('title', data.commit.message);
+								}
+							})
+							.catch(() => { });
+					} else {
+						textSpan.append(document.createTextNode(commitShort));
+					}
+					li.append(textSpan);
+					const btn = $('<button type="button" class="btn btn-sm btn-primary"></button>').text(i18next.t("tools.fwupdate.github.installButton"));
+					btn.on('click', function () {
+						const prompt = i18next.t("tools.fwupdate.github.installPrompt", { date: date, commit: commitShort, platform: githubPlatform, branch: branch, language: lang });
+						if (confirm(prompt)) {
+							installGithubFirmware(c.sha, path);
+						}
+					});
+					li.append(btn);
+					list.append(li);
+				});
+			} catch (e) {
+				list.empty().append($('<li class="list-group-item text-danger"></li>').text(i18next.t("tools.fwupdate.github.fetchError")));
+				console.log("Error fetching github firmware builds", e);
+			}
+		}
+
+		async function installGithubFirmware(sha, path) {
+			const rawUrl = `https://raw.githubusercontent.com/${GITHUB_FW_REPO}/${sha}/${path}`;
+			const gup = $('#githubUpdateProgress');
+			gup.show().addClass('bg-primary bg-opacity-75');
+			$('.progress-bar', gup).removeClass('bg-danger').css('width', '0%');
+			$(".label", gup).text(i18next.t("files.upload.timeCalc"));
+			let blob;
+			try {
+				const blobResp = await fetch(rawUrl);
+				if (!blobResp.ok) {
+					throw new Error(blobResp.statusText);
+				}
+				blob = await blobResp.blob();
+			} catch (e) {
+				gup.removeClass('bg-primary bg-opacity-75');
+				$('.progress-bar', gup).addClass('bg-danger');
+				$(".label", gup).text(i18next.t("tools.fwupdate.github.fetchError"));
+				toaster.error(i18next.t("tools.fwupdate.github.fetchError"));
+				console.log("Error downloading github firmware", e);
+				return;
+			}
+			const data = new FormData();
+			data.append('firmwareUpload', blob, 'firmware.bin');
+			const startTime = new Date().getTime();
+			$.ajax({
+				url: '/update',
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData: false,
+				xhr: function () {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener("progress", function (evt) {
+						if (evt.lengthComputable) {
+							const now = new Date().getTime();
+							const percent = parseInt(evt.loaded * 100 / evt.total);
+							const elapsed = (now - startTime) / 1000;
+							let progressText = i18next.t("files.upload.timeCalc");
+							if (elapsed) {
+								const bps = evt.loaded / elapsed;
+								const kbps = bps / 1024;
+								const remaining = Math.round((evt.total - evt.loaded) / bps);
+								progressText = i18next.t("files.upload.progress", {
+									percent: percent,
+									remaining: {
+										unit: (remaining > 60) ? i18next.t("files.upload.minutes", { count: Math.round(remaining / 60) }) : i18next.t("files.upload.seconds"),
+										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+									},
+									speed: kbps.toFixed(2)
+								});
+							}
+							$(".progress-bar", gup).css('width', percent + "%");
+							$(".label", gup).text(progressText);
+						}
+					}, false);
+					return xhr;
+				},
+				success: function () {
+					$(".label", gup).text(i18next.t("files.upload.success", { elapsed: "00:00", speed: "0,00" }));
+					restartDevice();
+				},
+				error: function (request) {
+					gup.removeClass('bg-primary bg-opacity-75');
+					$('.progress-bar', gup).addClass('bg-danger');
+					$(".label", gup).text(i18next.t("files.upload.error") + ": " + request.statusText);
+					toaster.error(i18next.t("files.upload.error") + ': ' + request.statusText);
+				}
+			});
+		}
 		/* File Upload */
+		// Each selected file is sent as its own raw (application/octet-stream)
+		// POST instead of bundling the whole batch into one multipart/form-data
+		// request - server side (explorerHandleFileUpload() in Web.cpp) never has
+		// to parse MIME boundaries, which measurably improved throughput.
 		$('#explorerUploadForm').submit(function (e) {
 			e.preventDefault();
 			console.log("Upload!");
-			var data = new FormData(this);
 			var ref = $('#explorerTree').jstree(true),
 				sel = ref.get_selected(),
 				path = "/";
@@ -1801,7 +2882,8 @@
 				alert(i18next.t("files.upload.selectFolder"));
 				return false;
 			}
-			if (!document.getElementById('uploaded_file').files.length > 0) {
+			const fileInput = document.getElementById('uploaded_file');
+			if (!(fileInput.files.length > 0)) {
 				alert(i18next.t("files.upload.selectFile"));
 				return false;
 			}
@@ -1816,87 +2898,111 @@
 				path = parentNode.data.path;
 				console.log("Parent path: " + path);
 			}
+
+			const files = Array.from(fileInput.files);
+			const bytesTotal = files.reduce((sum, f) => sum + f.size, 0);
 			const startTime = new Date().getTime();
-			let bytesTotal = 0;
 			const eup = $("#explorerUploadProgress");
-			$.ajax({
-				url: '/explorer?path=' + encodeURIComponent(path),
-				type: 'POST',
-				data: data,
-				contentType: false,
-				processData: false,
-				xhr: function () {
-					var xhr = new window.XMLHttpRequest();
-					xhr.upload.addEventListener("progress", function (evt) {
-						if (evt.lengthComputable) {
-							const now = new Date().getTime();
-							const percent = parseInt(evt.loaded * 100 / evt.total);
-							const elapsed = (now - startTime) / 1000;
-							bytesTotal = evt.total;
-							let progressText = i18next.t("files.upload.timeCalc");
-							if (elapsed) {
-								const bps = evt.loaded / elapsed;
-								const kbps = bps / 1024;
-								const remaining = Math.round((evt.total - evt.loaded) / bps);
-								const data = {
-									percent: percent,
-									remaining: {
-										unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
-											count: Math.round(remaining / 60)
-										}) : i18next.t("files.upload.seconds"),
-										value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
-									},
-									speed: kbps.toFixed(2)
-								}
-								progressText = i18next.t("files.upload.progress", data);
-								console.log("Percent: " + percent + "%% " + kbps.toFixed(2) + " KB/s");
-							}
-							$('.progress-bar', eup).css('width', percent + "%");
-							$('.label', eup).text(progressText);
-						}
-					}, false);
-					eup.addClass('bg-primary bg-opacity-75');
-					$('.progress-bar', eup).removeClass('bg-danger');
-					return xhr;
-				},
-				success: function (data, textStatus, jqXHR) {
-					const now = new Date().getTime();
-					const elapsed = (now - startTime) / 1000;
-					let transData = {
-						elapsed: "00:00",
-						speed: "0,00"
-					};
-					if (elapsed) {
-						const bps = bytesTotal / elapsed;
-						const kbps = bps / 1024;
-						const date = new Date(null);
-						date.setSeconds(elapsed);
-						const timeText = date.toISOString().substr(11, 8);
-						transData = {
-							elapsed: timeText,
-							speed: kbps.toFixed(2)
-						};
+			eup.addClass('bg-primary bg-opacity-75');
+			$('.progress-bar', eup).removeClass('bg-danger');
+			let bytesDoneBefore = 0;
+
+			function showProgress(loaded) {
+				const now = new Date().getTime();
+				const percent = bytesTotal ? parseInt(loaded * 100 / bytesTotal) : 100;
+				const elapsed = (now - startTime) / 1000;
+				let progressText = i18next.t("files.upload.timeCalc");
+				if (elapsed && loaded) {
+					const bps = loaded / elapsed;
+					const kbps = bps / 1024;
+					const remaining = Math.round((bytesTotal - loaded) / bps);
+					const data = {
+						percent: percent,
+						remaining: {
+							unit: (remaining > 60) ? i18next.t("files.upload.minutes", {
+								count: Math.round(remaining / 60)
+							}) : i18next.t("files.upload.seconds"),
+							value: (remaining > 60) ? Math.round(remaining / 60) : ((remaining > 2) ? remaining : i18next.t("files.upload.fewSec"))
+						},
+						speed: kbps.toFixed(2)
 					}
-					console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s): " + textStatus);
-					const progressText = i18next.t("files.upload.success", transData);
-					$('.label', eup).text(progressText);
-					document.getElementById('uploaded_file').value = '';
-					document.getElementById('uploaded_file_text').innerHTML = '';
-					getData("http://" + host + "/explorer?path=" + path, function (data) {
-						/* We now have data! */
-						deleteChildrenNodes(sel);
-						addFileDirectory(sel, data);
-						ref.open_node(sel);
-					});
-				},
-				error: function (request, status, error) {
-					console.log("Upload ERROR!", request);
-					eup.removeClass('bg-primary bg-opacity-75');
-					$('.progress-bar', eup).addClass('bg-danger');
-					$('.label', eup).text(i18next.t("files.upload.error") + ": " + request.statusText);
-					toaster.error(i18next.t("files.upload.error") + ": " + request.statusText);
+					progressText = i18next.t("files.upload.progress", data);
 				}
-			});
+				$('.progress-bar', eup).css('width', percent + "%");
+				$('.label', eup).text(progressText);
+			}
+
+			function uploadFailed(statusText) {
+				console.log("Upload ERROR!", statusText);
+				eup.removeClass('bg-primary bg-opacity-75');
+				$('.progress-bar', eup).addClass('bg-danger');
+				$('.label', eup).text(i18next.t("files.upload.error") + ": " + statusText);
+				toaster.error(i18next.t("files.upload.error") + ": " + statusText);
+			}
+
+			function uploadDone() {
+				const now = new Date().getTime();
+				const elapsed = (now - startTime) / 1000;
+				let transData = {
+					elapsed: "00:00",
+					speed: "0,00"
+				};
+				if (elapsed) {
+					const bps = bytesTotal / elapsed;
+					const kbps = bps / 1024;
+					const date = new Date(null);
+					date.setSeconds(elapsed);
+					const timeText = date.toISOString().substr(11, 8);
+					transData = {
+						elapsed: timeText,
+						speed: kbps.toFixed(2)
+					};
+				}
+				console.log("Upload success (" + transData.elapsed + ", " + transData.speed + " KB/s)");
+				$('.label', eup).text(i18next.t("files.upload.success", transData));
+				fileInput.value = '';
+				document.getElementById('uploaded_file_text').innerHTML = '';
+				getData("http://" + host + "/explorer?path=" + path, function (data) {
+					/* We now have data! */
+					deleteChildrenNodes(sel);
+					addFileDirectory(sel, data);
+					ref.open_node(sel);
+				});
+			}
+
+			// Files upload one at a time (the shared double-buffer/writer-task
+			// on the ESPuino only supports one active upload at a time) - each as
+			// its own raw PUT, with the target path (folder + filename) passed as
+			// a query param since a raw body carries no per-part filename.
+			function uploadNext(idx) {
+				if (idx >= files.length) {
+					uploadDone();
+					return;
+				}
+				const file = files[idx];
+				const targetPath = (path.endsWith('/') ? path : path + '/') + file.name;
+				const xhr = new XMLHttpRequest();
+				xhr.open('POST', '/explorer?path=' + encodeURIComponent(targetPath));
+				xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+				xhr.upload.addEventListener('progress', function (evt) {
+					if (evt.lengthComputable) {
+						showProgress(bytesDoneBefore + evt.loaded);
+					}
+				}, false);
+				xhr.onload = function () {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						bytesDoneBefore += file.size;
+						uploadNext(idx + 1);
+					} else {
+						uploadFailed(xhr.statusText || ("HTTP " + xhr.status));
+					}
+				};
+				xhr.onerror = function () {
+					uploadFailed(i18next.t("files.upload.error"));
+				};
+				xhr.send(file);
+			}
+			uploadNext(0);
 		});
 		/* File Delete */
 		function handleDeleteData(nodeId) {
@@ -2236,6 +3342,9 @@
 				clearInterval(getTrackProgressInterval);
 				pingInterval = setInterval(ping, 3000);
 				setTrackProgressInterval = setInterval(getTrackProgress, 1000);
+				// arm the watchdog now too, so a connection that dies before its first pong
+				// arrives is still caught (not just ones that were alive at some point)
+				armConnectionWatchdog();
 				// clear old socket messages
 				socket.sendBuffer = [];
 				socket.send('{"settings":{"settings":"settings"}}'); // request settings
@@ -2246,6 +3355,13 @@
 			socket.onclose = function (e) {
 				console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
 				socket = null;
+				// stop ping()/getTrackProgress() - otherwise they keep firing against a null
+				// socket (or a dead server) until the reconnect below succeeds and re-arms them
+				clearInterval(pingInterval);
+				clearInterval(getTrackProgressInterval);
+				// a definitive close is known for certain - mark it right away instead of
+				// waiting for the watchdog timeout below
+				setConnectionStatus(false);
 				setTimeout(function () {
 					connect();
 				}, 5000);
@@ -2275,6 +3391,9 @@
 					if (socketMsg.status == "dropout") {
 						toaster.warning(i18next.t("toast.dropout"));
 					}
+					if (socketMsg.status == "not_allowed_in_current_mode") {
+						showSwitchModePrompt();
+					}
 				}
 				if ("pong" in socketMsg) {
 					if (socketMsg.pong == 'pong') {
@@ -2282,6 +3401,7 @@
 					}
 				}
 				if ("opmode" in socketMsg) {
+					currentOpMode = socketMsg.opmode;
 					updateOperationModeIndicator(socketMsg.opmode);
 				}
 				if ("volume" in socketMsg) {
@@ -2324,6 +3444,12 @@
 				if ("settings" in socketMsg) {
 					fillSettings(socketMsg.settings);
 				}
+				if ("bt_scan" in socketMsg) {
+					if (socketMsg.bt_scan === 'complete') {
+						resetBtScanButton();
+						fetchBtResults();
+					}
+				}
 			};
 		}
 
@@ -2350,6 +3476,63 @@
 			}
 		}
 
+		function startBtScan() {
+			if (currentOpMode !== 2) {
+				toaster.error(i18next.t('bt.scan.notAllowed') || "Scan only allowed in Bluetooth Source mode");
+				return;
+			}
+			const btn = $('#bt-scan-btn');
+			btn.prop('disabled', true);
+			btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' + i18next.t('bt.scan.inProgress'));
+			fetch('/bluetoothscan');
+		}
+
+		function resetBtScanButton() {
+			const btn = $('#bt-scan-btn');
+			btn.prop('disabled', false);
+			btn.html('<i class="fas fa-search"></i> ' + i18next.t('bt.scan.button'));
+		}
+
+		function fetchBtResults() {
+			fetch('/bluetoothresults')
+				.then(response => response.json())
+				.then(devices => {
+					const list = $('#bt-scan-list');
+					const container = $('#bt-scan-results');
+					list.empty();
+					if (devices.length > 0) {
+						devices.forEach(dev => {
+							const displayName = (dev.name && dev.name !== 'Unknown') ? dev.name : `<i>Device ${dev.address}</i>`;
+							const row = `<tr>
+								<td>${displayName}</td>
+								<td><code>${dev.address}</code></td>
+								<td>${dev.rssi} dBm</td>
+								<td class="text-end">
+									<button class="btn btn-sm btn-success" onclick="saveBtDevice('${dev.name}', '${dev.address}')" title="${i18next.t('bt.scan.save')}"><i class="fas fa-save"></i></button>
+									<button class="btn btn-sm btn-primary" onclick="connectBt('${dev.address}')">${i18next.t('bt.scan.connect')}</button>
+								</td>
+							</tr>`;
+							list.append(row);
+						});
+					} else {
+						list.append('<tr><td colspan="4" class="text-center text-muted"><i>' + i18next.t('bt.scan.noDevices') + '</i></td></tr>');
+					}
+					container.removeClass('d-none');
+				});
+		}
+
+		function saveBtDevice(name, address) {
+			// Prefer name if available, otherwise use address for better reliability
+			const identifier = (name && name !== 'Unknown') ? name : address;
+			document.getElementById('btDeviceName').value = identifier;
+			btSettings('btConfig');
+		}
+
+		function connectBt(address) {
+			postData('/bluetoothconnect', null, JSON.stringify({ address: address }));
+			toaster.info("Connecting to " + address + "...");
+		}
+
 		async function fillSettings(settings) {
 			if (!settings) {
 				return false;
@@ -2359,6 +3542,7 @@
 				...window.settings,
 				...settings
 			};
+
 			// general
 			let genSettings = settings.general;
 			if (genSettings) {
@@ -2369,13 +3553,23 @@
 				$('#playMono').prop('checked', genSettings.playMono);
 				$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 				$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChge);
+				$('#savePlayPosIntervalEnabled').prop('checked', genSettings.savePosInterval > 0);
+				$('#savePlayPosInterval').val(genSettings.savePosInterval > 0 ? genSettings.savePosInterval : 60).prop('disabled', !(genSettings.savePosInterval > 0));
 				$('#playLastRfidOnReboot').prop('checked', genSettings.playLastRfidOnReboot);
 				$('#pauseIfRfidRemoved').prop('checked', genSettings.pauseIfRfidRemoved);
 				$('#dontAcceptRfidTwice').prop('checked', genSettings.dontAcceptRfidTwice);
 				$('#dontAcceptRfidTwice').prop('disabled', genSettings.pauseIfRfidRemoved);
+				$('#resumeOnSameRfid').prop('checked', genSettings.resumeOnSameRfid);
+				$('#resumeOnSameRfid').prop('disabled', genSettings.pauseIfRfidRemoved || !genSettings.dontAcceptRfidTwice);
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
+				$('#rfidReaderType').val(genSettings.rfidReaderType);
+				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
+				$('#pn5180Lpcd').prop('disabled', genSettings.rfidReaderType == 1 || genSettings.rfidReaderType == 2);
+				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
+				$('#mfrc522ScanInterval').val(genSettings.mfrc522ScanInterval);
+				$('#pn5180Debounce').val(genSettings.pn5180Debounce);
 			}
 			// current values
 			let currSettings = settings.current;
@@ -2398,6 +3592,9 @@
 			if (wifiSettings) {
 				document.getElementById("hostname").value = wifiSettings.hostname;
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
+				document.getElementById("apSSID").value = wifiSettings.apSSID;
+				document.getElementById("apPassword").value = wifiSettings.apPassword;
+				document.getElementById("apTimeout").value = wifiSettings.apTimeout;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
 			}
@@ -2415,6 +3612,8 @@
 				$('#atmoBrightness').bootstrapSlider('setValue', ledSettings.atmoBrightness);
 				document.getElementById('led_numIndicator').value = ledSettings.numIndicator;
 				document.getElementById('led_numControl').value = ledSettings.numControl;
+				lastNumIndicatorLeds = ledSettings.numIndicator;
+				lastNumControlLeds = ledSettings.numControl;
 				listControlColors(ledSettings.numControl, ledSettings.controlColors);
 				document.getElementById('led_idleDots').value = ledSettings.numIdleDots;
 				$('#led_hueStart').bootstrapSlider('setValue', ledSettings.hueStart);
@@ -2436,7 +3635,10 @@
 			let rotarySettings = settings.rotary;
 			if (rotarySettings) {
 				document.getElementById("rotaryConfig").style.display = null;
+				document.getElementById("rotaryGesturesConfig").style.display = null;
 				$('#rotaryReverse').prop('checked', rotarySettings.reverse);
+				$('#seekPrevDelay').val(rotarySettings.seekPrevDelay);
+				$('#seekPrevSweep').val(rotarySettings.seekPrevSweep);
 			}
 			// buttons
 			let buttonSettings = settings.buttons;
@@ -2453,6 +3655,18 @@
 				document.getElementById("cmdselect_long_3").value = buttonSettings.long3;
 				document.getElementById("cmdselect_long_4").value = buttonSettings.long4;
 				document.getElementById("cmdselect_long_5").value = buttonSettings.long5;
+				document.getElementById("cmdselect_rotcw_0").value = buttonSettings.rotCw0;
+				document.getElementById("cmdselect_rotcw_1").value = buttonSettings.rotCw1;
+				document.getElementById("cmdselect_rotcw_2").value = buttonSettings.rotCw2;
+				document.getElementById("cmdselect_rotcw_3").value = buttonSettings.rotCw3;
+				document.getElementById("cmdselect_rotcw_4").value = buttonSettings.rotCw4;
+				document.getElementById("cmdselect_rotcw_5").value = buttonSettings.rotCw5;
+				document.getElementById("cmdselect_rotccw_0").value = buttonSettings.rotCcw0;
+				document.getElementById("cmdselect_rotccw_1").value = buttonSettings.rotCcw1;
+				document.getElementById("cmdselect_rotccw_2").value = buttonSettings.rotCcw2;
+				document.getElementById("cmdselect_rotccw_3").value = buttonSettings.rotCcw3;
+				document.getElementById("cmdselect_rotccw_4").value = buttonSettings.rotCcw4;
+				document.getElementById("cmdselect_rotccw_5").value = buttonSettings.rotCcw5;
 				document.getElementById("cmdselect_multi_01").value = buttonSettings.multi01;
 				document.getElementById("cmdselect_multi_02").value = buttonSettings.multi02;
 				document.getElementById("cmdselect_multi_03").value = buttonSettings.multi03;
@@ -2476,12 +3690,9 @@
 				$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
-				if (batSettings.criticalVoltage) {
-					document.getElementById('criticalVoltageSection').setAttribute('data-visible', true);
-					$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
-				} else {
-					document.getElementById('criticalVoltageSection').setAttribute('data-visible', false);
-				}
+				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', batSettings.shutdownOnCritical);
+				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 			}
 			// ftp
@@ -2536,10 +3747,23 @@
 					});
 				});
 			}
+			// On the very first settings load, restore the previously active tab now that
+			// conditional tabs (bluetooth, ftp, mqtt) are visible.
+			if (!initialSettingsLoaded) {
+				initialSettingsLoaded = true;
+				selectActiveTabFromLocalStorage();
+			}
 		}
 		async function resetSettings() {
-			let obj = await (await fetch("http://" + host + "/settings?section=defaults")).json();
-			fillSettings(obj.defaults);
+			try {
+				const response = await fetch("http://" + host + "/settings?section=defaults");
+				if (!response.ok) throw new Error(response.statusText);
+				const obj = await response.json();
+				const data = obj.defaults ? obj.defaults : obj;
+				await fillSettings(data);
+			} catch (err) {
+				toaster.error(i18next.t("toast.error") + ": " + err.message);
+			}
 		}
 		const wifiListSavedSSIDs = document.getElementById("wifiListSavedSSIDs");
 		async function rebuildSSIDList(data) {
@@ -2631,9 +3855,20 @@
 				rfidElem.appendChild(deleteSpan);
 				rfidListSavedAssignments.appendChild(rfidElem);
 			}
-			document.getElementById('listNvs').setAttribute('data-visible', (rfidList.length > 0));
-			document.getElementById('eraseNvs').setAttribute('data-visible', (rfidList.length > 0));
-			document.getElementById('exportNvs').setAttribute('data-visible', (rfidList.length > 0));
+			// Keep List/Export/Erase always visible (same page layout regardless of
+			// content) - just grey out and disable their buttons when there's
+			// nothing to list/export/erase yet.
+			const hasAssignments = rfidList.length > 0;
+			const countSuffix = hasAssignments ? " (" + rfidList.length + ")" : "";
+			document.getElementById('showAssignmentsBtn').disabled = !hasAssignments;
+			document.getElementById('showAssignmentsCount').textContent = countSuffix;
+			document.getElementById('eraseAssignmentsBtn').disabled = !hasAssignments;
+			document.getElementById('eraseAssignmentsCount').textContent = countSuffix;
+			const exportBtn = document.getElementById('exportAssignmentsBtn');
+			document.getElementById('exportAssignmentsCount').textContent = countSuffix;
+			exportBtn.classList.toggle('disabled', !hasAssignments);
+			exportBtn.setAttribute('aria-disabled', !hasAssignments);
+			exportBtn.tabIndex = hasAssignments ? 0 : -1;
 		}
 		async function deleteRFID(tagId) {
 			console.log("deleting", tagId);
@@ -2701,7 +3936,22 @@
 		})
 		toolsTabObserver.observe(toolsTab, config);
 
+		const updatesTab = document.getElementById("nav-updates-tab");
+		var updatesTabActive = false;
+		const updatesTabObserver = new MutationObserver((mutationList, observer) => {
+			if (!updatesTabActive && updatesTab.classList.contains("active")) {
+				updatesTabActive = true;
+				initGithubFirmwareUpdate();
+			} else {
+				updatesTabActive = false;
+			}
+		})
+		updatesTabObserver.observe(updatesTab, config);
+
 		async function ping() {
+			if (!socket) {
+				return;
+			}
 			var myObj = {
 				"ping": {
 					ping: 'ping'
@@ -2709,13 +3959,35 @@
 			};
 			var myJSON = JSON.stringify(myObj);
 			socket.send(myJSON);
+			// sending doesn't confirm the connection is alive - only a received pong does
+		}
+
+		function setConnectionStatus(connected) {
+			const icon = $('#connectionStatusIndicator');
+			icon.toggleClass('connection-ok', connected).toggleClass('connection-lost', !connected);
+			icon.attr('title', i18next.t(connected ? "status.connected" : "status.disconnected"));
+		}
+
+		function armConnectionWatchdog() {
+			// called on a positive confirmation (a pong, or having just connected) - the
+			// connection is known good right now, so mark it OK and give it a fresh window
+			// before considering it stale again
+			setConnectionStatus(true);
+			clearTimeout(tm);
 			tm = setTimeout(function () {
-				toaster.warning(i18next.t("toast.conlost"));
+				setConnectionStatus(false);
 			}, 5000);
 		}
 
 		function pong() {
-			clearTimeout(tm);
+			armConnectionWatchdog();
+			// brief pulse on the heartbeat icon to show a pong actually just came in - remove
+			// the class first and force a reflow so the animation restarts even if the previous
+			// pulse (3s ago) already finished and left the class in place
+			const icon = document.getElementById('connectionStatusIndicator');
+			icon.classList.remove('heartbeat-pulse');
+			void icon.offsetWidth;
+			icon.classList.add('heartbeat-pulse');
 		}
 		async function getTrackProgress() {
 			if (ActiveTab !== 'nav-control-tab') {
@@ -2750,8 +4022,15 @@
 			return parseInt(input.replace(/^#([\da-f])([\da-f])([\da-f])$/i, '#$1$1$2$2$3$3').substring(1), 16);
 		};
 
-		function genSettings(clickedId) {
+		async function genSettings(clickedId) {
 			lastIdclicked = clickedId;
+			const newNumIndicatorLeds = Number(document.getElementById("led_numIndicator").value);
+			const newNumControlLeds = Number(document.getElementById("led_numControl").value);
+			if ((lastNumIndicatorLeds !== null) && ((newNumIndicatorLeds !== lastNumIndicatorLeds) || (newNumControlLeds !== lastNumControlLeds))) {
+				toaster.warning(i18next.t("toast.ledCountRestart"));
+			}
+			lastNumIndicatorLeds = newNumIndicatorLeds;
+			lastNumControlLeds = newNumControlLeds;
 			var myObj = {
 				"general": {
 					initVolume: Number($('#initialVolume').val()),
@@ -2761,12 +4040,19 @@
 					playMono: $('#playMono').prop('checked'),
 					savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 					savePosRfidChge: $('#savePlayPosRfidChange').prop('checked'),
+					savePosInterval: $('#savePlayPosIntervalEnabled').prop('checked') ? (parseInt($('#savePlayPosInterval').val()) || 60) : 0,
 					playLastRfidOnReboot: $('#playLastRfidOnReboot').prop('checked'),
 					pauseIfRfidRemoved: $('#pauseIfRfidRemoved').prop('checked'),
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
+					resumeOnSameRfid: $('#resumeOnSameRfid').prop('checked'),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
-					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0
+					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
+					rfidReaderType: Number($('#rfidReaderType').val()),
+					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
+					mfrc522Gain: Number($('#mfrc522Gain').val()),
+					mfrc522ScanInterval: Number($('#mfrc522ScanInterval').val()),
+					pn5180Debounce: Number($('#pn5180Debounce').val())
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),
@@ -2790,6 +4076,7 @@
 					indicatorLow: Number($('#voltageIndicatorLow').val()),
 					indicatorHi: Number($('#voltageIndicatorHigh').val()),
 					criticalVoltage: Number($('#criticalVoltage').val()),
+					shutdownOnCritical: $('#shutdownOnCritical').prop('checked'),
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
@@ -2809,6 +4096,18 @@
 					long3: Number(document.getElementById("cmdselect_long_3").value),
 					long4: Number(document.getElementById("cmdselect_long_4").value),
 					long5: Number(document.getElementById("cmdselect_long_5").value),
+					rotCw0: Number(document.getElementById("cmdselect_rotcw_0").value),
+					rotCw1: Number(document.getElementById("cmdselect_rotcw_1").value),
+					rotCw2: Number(document.getElementById("cmdselect_rotcw_2").value),
+					rotCw3: Number(document.getElementById("cmdselect_rotcw_3").value),
+					rotCw4: Number(document.getElementById("cmdselect_rotcw_4").value),
+					rotCw5: Number(document.getElementById("cmdselect_rotcw_5").value),
+					rotCcw0: Number(document.getElementById("cmdselect_rotccw_0").value),
+					rotCcw1: Number(document.getElementById("cmdselect_rotccw_1").value),
+					rotCcw2: Number(document.getElementById("cmdselect_rotccw_2").value),
+					rotCcw3: Number(document.getElementById("cmdselect_rotccw_3").value),
+					rotCcw4: Number(document.getElementById("cmdselect_rotccw_4").value),
+					rotCcw5: Number(document.getElementById("cmdselect_rotccw_5").value),
 					multi01: Number(document.getElementById("cmdselect_multi_01").value),
 					multi02: Number(document.getElementById("cmdselect_multi_02").value),
 					multi03: Number(document.getElementById("cmdselect_multi_03").value),
@@ -2826,7 +4125,9 @@
 					multi45: Number(document.getElementById("cmdselect_multi_45").value),
 				},
 				"rotary": {
-					reverse: $('#rotaryReverse').prop('checked')
+					reverse: $('#rotaryReverse').prop('checked'),
+					seekPrevDelay: Number($('#seekPrevDelay').val()),
+					seekPrevSweep: Number($('#seekPrevSweep').val())
 				}
 			};
 			// fill LED control colors
@@ -2843,10 +4144,16 @@
 				...window.settings,
 				...myObj
 			};
-			socket.send(myJSON);
+			
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
-		function ftpSettings(clickedId) {
+		async function ftpSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
 				"ftp": {
@@ -2855,7 +4162,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
 		function ftpStart() {
@@ -2868,7 +4180,7 @@
 			socket.send(myJSON);
 		}
 
-		function mqttSettings(clickedId) {
+		async function mqttSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var val;
 			if (document.getElementById('mqttEnable').checked) {
@@ -2889,7 +4201,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 
 			// If any MQTT setting changed, prompt user to restart to apply changes
 			try {
@@ -2907,7 +4224,7 @@
 			} catch (e) { console.log('mqttSettings compare error', e); }
 		}
 
-		function btSettings(clickedId) {
+		async function btSettings(clickedId) {
 			lastIdclicked = clickedId;
 			var myObj = {
 				"bluetooth": {
@@ -2916,7 +4233,12 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 
 		function removeTrSlash(str) {
@@ -2971,7 +4293,7 @@
 
 			// Static list of known topics (mirrors firmware settings.h)
 			var commandTopics = ['sleep', 'rfid', 'trackcontrol', 'loudness', 'sleep_timer', 'lock_controls', 'repeatmode', 'led_brightness', 'ambient_light'];
-			var stateTopics = ['track', 'cover_changed', 'state', 'ipv4', 'pauseplay', 'playmode', 'wifi_rssi', 'software_revision'];
+			var stateTopics = ['track', 'cover_changed', 'state', 'ipv4', 'pauseplay', 'playmode', 'wifi_rssi', 'software_revision', 'battery_voltage', 'battery_soc'];
 
 			// Combine command and state topics
 			var allTopics = commandTopics.concat(stateTopics);
@@ -3001,7 +4323,7 @@
 			return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 		}
 
-		function rfidAssign(clickedId) {
+		async function rfidAssign(clickedId) {
 			lastIdclicked = clickedId;
 			if (ActiveSubTab == 'rfid-music-tab') {
 				var myObj = {
@@ -3020,15 +4342,26 @@
 				};
 			}
 			var myJSON = JSON.stringify(myObj);
-			socket.send(myJSON);
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: myJSON
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 		async function globalWifiConfig(clickedId) {
 			lastIdclicked = clickedId;
 			let hostname = document.getElementById("hostname").value;
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
+			let apSSID = document.getElementById("apSSID").value;
+			let apPassword = document.getElementById("apPassword").value;
+			let apTimeout = parseInt(document.getElementById("apTimeout").value, 10);
 			var myObj = {
 				hostname: hostname,
-				scanOnStart: scanWifi
+				scanOnStart: scanWifi,
+				apSSID: apSSID,
+				apPassword: apPassword,
+				apTimeout: apTimeout
 			};
 			// set title to hostname
 			setTitle(hostname);
@@ -3039,7 +4372,9 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 		}
+
 		// disable static input fields on toggle
 		document.getElementById('static_enabled').onchange = function () {
 			let new_style = this.checked ? null : "none";
@@ -3070,6 +4405,7 @@
 				},
 				body: JSON.stringify(myObj)
 			});
+			toaster.info(i18next.t("toast.saved"));
 			await rebuildSSIDList();
 		}
 
@@ -3087,17 +4423,17 @@
 			socket.send(myJSON);
 		}
 
-		function setOperationMode(mode) {
+		async function setOperationMode(mode, quiet = false) {
 			console.log("set operation mode: " + mode);
-			// Show modal immediately before sending request
-			tryRedirect();
-			$('.modal-title').text(i18next.t("restart"));
-			$('.modal-body').html(i18next.t("restartinfo"));
-			$(".modal-body").removeAttr("style");
-			new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
-
+			if (!quiet) {
+				// Show modal immediately before sending request
+				$('.modal-title').text(i18next.t("restart"));
+				$('.modal-body').html(i18next.t("restartinfo"));
+				$(".modal-body").removeAttr("style");
+				new bootstrap.Modal(document.getElementById('modalInfo')).toggle();
+			}
 			// Send mode change request (device will restart immediately)
-			fetch('/mode', {
+			await fetch('/mode', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -3106,6 +4442,9 @@
 			}).catch(error => {
 				console.log('Device restarting, connection lost (expected):', error);
 			});
+			
+			// Start redirecting mechanism only after the request has been sent
+			tryRedirect();
 		}
 
 		function executeCommand() {
@@ -3201,6 +4540,9 @@
 			content += i18next.t("systeminfo.gitversion", {
 				gitversion: info.software.git
 			}) + "<br>";
+			content += i18next.t("systeminfo.branch", {
+				branch: info.software.branch
+			}) + "<br>";
 			content += i18next.t("systeminfo.arduinoversion", {
 				arduinoversion: info.software.arduino,
 				idfversion: info.software.idf
@@ -3281,8 +4623,8 @@
 			buildFileSystemTree("/");
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
-				var preview = $('<fieldset class="mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
-				$('#mqttConfig form .text-center').first().before(preview);
+				var preview = $('<fieldset class="mt-4 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
+				$('#mqttFormButtons').after(preview);
 			}
 			// Bind live update when relevant mqtt fields change
 			$('#mqttBaseTopic, #mqttDeviceId, #mqttClientId').off('input.mqttPreview').on('input.mqttPreview', function () {
@@ -3304,6 +4646,13 @@
 					rfid: rfid
 				}));
 				$(this).find('.btn-ok').attr('href', "javascript:deleteRFID('" + rfid + "')");
+			})
+			// Bootstrap only shows one modal at a time, so opening the delete-confirmation modal
+			// from within the RFID assignments list modal implicitly closes the list modal - reopen
+			// it once the confirmation is dismissed (cancelled or confirmed) so it doesn't feel like
+			// deleting an entry closes the whole list.
+			$('#deleteRFIDModal').on('hidden.bs.modal', function () {
+				new bootstrap.Modal(document.getElementById('rfidListSavedAssignmentsModal')).show();
 			})
 			$('.openPopupInfo').on('click', function () {
 				// Reset modal buttons when modal is closed
@@ -3366,11 +4715,59 @@
 			/* Disable dontAcceptRfidTwice if pauseIfRfidRemoved enabled. */
 			$('#pauseIfRfidRemoved').on('change', function () {
 				const dontAcceptRfidTwice = $('#dontAcceptRfidTwice');
+				const resumeOnSameRfid = $('#resumeOnSameRfid');
 				if ($(this).prop('checked')) {
 					dontAcceptRfidTwice.prop('checked', false).prop('disabled', true);
+					resumeOnSameRfid.prop('disabled', true);
 				} else {
 					dontAcceptRfidTwice.prop('disabled', false);
+					resumeOnSameRfid.prop('disabled', !dontAcceptRfidTwice.prop('checked'));
 				}
+			});
+
+			/* Reveal the critical-voltage threshold slider only when the shutdown feature is enabled.
+			   bootstrap-slider mismeasures its width while display:none, so relayout it now that it's visible. */
+			$('#shutdownOnCritical').on('change', function () {
+				const checked = $(this).prop('checked');
+				document.getElementById('criticalVoltageSection').setAttribute('data-visible', checked);
+				if (checked) {
+					$('#criticalVoltage').bootstrapSlider('relayout');
+				}
+			});
+
+			/* Auto-save playback position: the checkbox gates the interval input; default it when enabling. */
+			$('#savePlayPosIntervalEnabled').on('change', function () {
+				const input = $('#savePlayPosInterval');
+				const on = $(this).prop('checked');
+				input.prop('disabled', !on);
+				if (on && !(parseInt(input.val()) >= 10)) {
+					input.val(60);
+				}
+			});
+
+			/* PN5180 LPCD only applies to the PN5180 reader - disable it (and clear it) for MFRC522. */
+			$('#rfidReaderType').on('change', function () {
+				const pn5180Lpcd = $('#pn5180Lpcd');
+				if (this.value === '1' || this.value === '2') {
+					pn5180Lpcd.prop('checked', false).prop('disabled', true);
+				} else {
+					pn5180Lpcd.prop('disabled', false);
+				}
+			});
+
+			/* Enable/disable "resumeOnSameRfid" depending on dontAcceptRfidTwice. */
+			$('#dontAcceptRfidTwice').on('change', function () {
+				const resumeOnSameRfid = $('#resumeOnSameRfid');
+				// If pauseIfRfidRemoved is active, dontAcceptRfidTwice is forced disabled anyway.
+				if ($('#pauseIfRfidRemoved').prop('checked')) {
+					resumeOnSameRfid.prop('disabled', true);
+					return;
+				}
+				const enabled = $(this).prop('checked');
+				if (!enabled) {
+					resumeOnSameRfid.prop('checked', false);
+				}
+				resumeOnSameRfid.prop('disabled', !enabled);
 			});
 
 			const lightSwitch = $('#lightSwitch');
@@ -3455,7 +4852,7 @@
 			const cmdElem = document.createElement('select');
 			const cmdNothing = addOption(cmdElem, 0);
 			cmdNothing.setAttribute('data-i18n', "settingsex.buttons.noaction");
-			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const cmds = [170, 171, 172, 173, 174, 184, 185, 175, 176, 177, 178, 179, 180, 181, 182, 183, 199, 130, 140, 141, 142, 150, 151, 152, 153, 154, 155, 120, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const cmd of cmds) {
 				const opt = addOption(cmdElem, cmd);
 				if ([140, 141, 142].includes(cmd)) {
@@ -3465,11 +4862,18 @@
 			}
 
 			/* fill settingsex button commands */
-			document.querySelectorAll('[id*=cmdselect_]').forEach(e => replaceCommandSelect(e, cmdElem));
+			document.querySelectorAll('[id*=cmdselect_]:not([id*=cmdselect_rotcw_]):not([id*=cmdselect_rotccw_])').forEach(e => replaceCommandSelect(e, cmdElem));
+
+			/* Rotary CW/CCW selects additionally get CMD_SEEK_PREVIEW (186): a plain short/long/multi-button
+			   press has no "turning" to drive it, so it's meaningless there and left out of the shared cmds
+			   list above -- only the "hold + turn" gesture selects offer it. */
+			const cmdElemRotary = cmdElem.cloneNode(true);
+			addOption(cmdElemRotary, 186);
+			document.querySelectorAll('[id*=cmdselect_rotcw_], [id*=cmdselect_rotccw_]').forEach(e => replaceCommandSelect(e, cmdElemRotary));
 
 			/* The <select /> that houses all commands for the modification selectors */
 			const modElem = document.createElement('select');
-			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
+			const mods = [100, 179, 101, 102, 103, 104, 105, 106, 110, 111, 120, 130, 140, 141, 142, 150, 151, 152, 153, 154, 155, 0, 170, 171, 172, 173, 174, 184, 185, 180, 181, 176, 177, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250];
 			for (const mod of mods) {
 				const opt = addOption(modElem, mod);
 				if ([140, 141, 142].includes(mod)) {
@@ -3482,6 +4886,21 @@
 
 			darkmodeSwitchSetup();
 			selectActiveTabFromLocalStorage();
+			
+			setTimeout(function() {
+				if (!initialSettingsLoaded) {
+					fetch("http://" + host + "/settings")
+						.then(function(r) { return r.json(); })
+						.then(function(data) { if (data && !initialSettingsLoaded) fillSettings(data); })
+						.catch(function(e) {
+							console.warn("Settings fallback HTTP fetch failed:", e);
+							if (!initialSettingsLoaded) {
+								initialSettingsLoaded = true;
+								selectActiveTabFromLocalStorage();
+							}
+						});
+				}
+			}, 3000);
 		});
 	</script>
 </body>
