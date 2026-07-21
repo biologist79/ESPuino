@@ -62,6 +62,9 @@ void AudioPlayer_SeekPreviewStart(void) {
 	}
 	AudioPlayer_SeekPreviewDelayMsCached = gPrefsSettings.getUShort("seekPrevDelay", 2000);
 	AudioPlayer_SeekPreviewSweepCached = gPrefsSettings.getUChar("seekPrevSweep", 40);
+	if (AudioPlayer_SeekPreviewSweepCached < 1) {
+		AudioPlayer_SeekPreviewSweepCached = 1; // guard against divide-by-zero in AudioPlayer_SeekPreviewAdjust
+	}
 	AudioPlayer_SeekPreviewTargetExact = gPlayProperties.currentRelPos; // start from where playback is, not 0
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
@@ -1193,7 +1196,7 @@ void AudioPlayer_Loop() {
 
 	// Handle seekmodes
 	if (gPlayProperties.seekmode != SEEK_NORMAL) {
-		if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
+		if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos >= 0) && (gPlayProperties.currentRelPos < 100)) {
 			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
 			if (audio->setAudioPlayTime(newFileTime)) {
 				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());
