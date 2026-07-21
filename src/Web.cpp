@@ -915,7 +915,11 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			gPrefsSettings.putUShort("seekPrevDelay", doc["rotary"]["seekPrevDelay"].as<uint16_t>());
 		}
 		if (doc["rotary"]["seekPrevSweep"].is<uint8_t>()) {
-			gPrefsSettings.putUChar("seekPrevSweep", doc["rotary"]["seekPrevSweep"].as<uint8_t>());
+			uint8_t seekPrevSweep = doc["rotary"]["seekPrevSweep"].as<uint8_t>();
+			if (seekPrevSweep < 1) {
+				seekPrevSweep = 1; // must be >= 1 to avoid divide-by-zero in seek-preview
+			}
+			gPrefsSettings.putUChar("seekPrevSweep", seekPrevSweep);
 		}
 		RotaryEncoder_Init();
 	}
