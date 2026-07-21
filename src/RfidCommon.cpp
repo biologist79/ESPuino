@@ -50,7 +50,8 @@ void Rfid_PreferenceLookupHandler(void) {
 		token = strtok((char *) s.c_str(), stringDelimiter);
 		while (token != NULL) { // Try to extract data from string after lookup
 			if (i == 1) {
-				strncpy(_file, token, sizeof(_file) / sizeof(_file[0]));
+				strncpy(_file, token, sizeof(_file) - 1);
+				_file[sizeof(_file) - 1] = '\0';
 			} else if (i == 2) {
 				_lastPlayPos = strtoul(token, NULL, 10);
 			} else if (i == 3) {
