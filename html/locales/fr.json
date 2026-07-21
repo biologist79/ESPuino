@@ -643,7 +643,7 @@
 	"mediahub": {
 		"title": "MediaHub",
 		"intro": "MediaHub est un composant optionnel, exécuté séparément : un petit serveur local fonctionnant comme conteneur Docker sur votre propre réseau. Il permet de gérer de façon centralisée les assignations de cartes RFID pour plusieurs ESPuino - le contenu et le mode de lecture proviennent alors du serveur plutôt que de la configuration NVS locale. Sans serveur MediaHub en cours d'exécution, cette page ne sert à rien. Vous enregistrez ici l'adresse (ou les adresses) de votre/vos serveur(s) MediaHub afin qu'ils apparaissent dans le menu déroulant lors de l'assignation d'une carte.",
-		"serversTitle": "Serveurs média",
+		"serversTitle": "Ajouter un serveur média",
 		"registeredServersTitle": "Serveurs média enregistrés"
 	},
 	"help": {

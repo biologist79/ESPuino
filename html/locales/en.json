@@ -643,7 +643,7 @@
 	"mediahub": {
 		"title": "MediaHub",
 		"intro": "MediaHub is an optional, separately-run add-on: a small local server running as a Docker container on your own network. It lets you manage RFID card assignments centrally for multiple ESPuinos - content and playback mode then come from the server instead of the local NVS configuration. Without a running MediaHub server, this page doesn't do anything useful. Here you register the address(es) of your MediaHub server(s) so they show up in the dropdown when assigning a card.",
-		"serversTitle": "Media servers",
+		"serversTitle": "Add media server",
 		"registeredServersTitle": "Registered media servers"
 	},
 	"help": {
