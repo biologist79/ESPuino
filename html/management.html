@@ -2450,13 +2450,13 @@
 			<div class="container" id="mediaHubIntro">
 				<legend data-i18n="mediahub.title"></legend>
 				<p data-i18n="mediahub.intro"></p>
-				<hr>
 			</div>
-			<div class="container" id="mediaHubServers">
+			<div class="container mt-5" id="mediaHubServers">
 				<fieldset>
 					<legend data-i18n="mediahub.serversTitle"></legend>
 					<form action="#mediaHubServers" method="POST"
 						onsubmit="mediaHubServerConfig('mediaHubServers'); return false">
+						<div class="settings-group-card">
 						<div class="mb-3 col-md-12">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
@@ -2498,14 +2498,15 @@
 							<button type="submit" class="btn btn-primary"
 								data-i18n="files.rfid.mediahub.addButton"></button>
 						</div>
+						</div>
 					</form>
-					<hr>
 					<div class="col-md-12" style="margin-top: 20px;">
 						<p style="font-weight: bold" data-i18n="mediahub.registeredServersTitle"></p>
+						<div class="settings-group-card">
 						<ul class="list-group" id="mediaHubServerListManaged"></ul>
+						</div>
 					</div>
 				</fieldset>
-				<hr>
 			</div>
 		</div>
 		<!-- ### Tab Help ### -->
