@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 21.07.2026: Remove compile-time LED/NeoPixel defaults (`NUM_INDICATOR_LEDS`, `NUM_CONTROL_LEDS`, `CONTROL_LEDS_COLORS`, `NUM_LEDS_IDLE_DOTS`, `OFFSET_PAUSE_LEDS`, `PROGRESS_HUE_START`, `PROGRESS_HUE_END`, `ATMO_HUE`, `ATMO_SATURATION`, `DIMMABLE_STATES`, `LED_OFFSET`) - all of these were already fully runtime-configurable via the web interface, the macros only fed the pre-first-save NVS default (now hardcoded, same values as before). `CHIPSET`/`COLOR_ORDER` are unaffected - those are genuine compile-time FastLED template parameters and can't be runtime-configurable. **Breaking for custom builds**: a `settings-override.h` still defining one of the removed macros will silently no longer have any effect - set the value once via the web UI instead.
 * 21.07.2026: Web-UI: give settings sliders live value badges and circular +/- step buttons instead of a bare drag handle, and group related settings across all tabs into rounded cards for a clearer, more compact layout.
 * 20.07.2026: Make the MFRC522 scan interval a web-UI setting ("MFRC522 Scan-Intervall") instead of the compile-time-only `RFID_SCAN_INTERVAL` - default unchanged at 100ms. A restart is required for a change to take effect, same as the other MFRC522/PN5180-specific settings.
 * 20.07.2026: Fix LEDs staying lit forever in deepsleep after `SHUTDOWN_IF_SD_BOOT_FAILS` triggers - the LED task was still running its idle animation when `esp_deep_sleep_start()` was called, and NeoPixels simply hold their last-sent color with no active refresh. Now clears the LEDs before sleeping.

@@ -1193,12 +1193,12 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledObj["initBrightness"].set(gPrefsSettings.getUChar("iLedBrightness", 0));
 		ledObj["nightBrightness"].set(gPrefsSettings.getUChar("nLedBrightness", 0));
 		ledObj["atmoBrightness"].set(gPrefsSettings.getUChar("aLedBrightness", 0));
-		ledObj["numIndicator"].set(gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS));
-		uint8_t numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
+		ledObj["numIndicator"].set(gPrefsSettings.getUChar("numIndicator", 24)); // NUM_INDICATOR_LEDS
+		uint8_t numControlLeds = gPrefsSettings.getUChar("numControl", 0); // NUM_CONTROL_LEDS
 		ledObj["numControl"].set(numControlLeds);
 		if (numControlLeds > 0) {
 			// get control led colors from NVS
-			std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+			std::vector<CRGB::HTMLColorCode> controlLedColors = {}; // CONTROL_LEDS_COLORS
 			size_t keySize = gPrefsSettings.getBytesLength("controlColors");
 			if (keySize == (numControlLeds * sizeof(CRGB::HTMLColorCode))) {
 				controlLedColors.resize(numControlLeds);
@@ -1211,13 +1211,13 @@ static void settingsToJSON(JsonObject obj, const String section) {
 				}
 			}
 		}
-		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS));
-		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS));
-		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START));
-		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END));
-		ledObj["hueAtmo"].set(gPrefsSettings.getShort("hueAtmo", ATMO_HUE));
-		ledObj["satAtmo"].set(gPrefsSettings.getShort("satAtmo", ATMO_SATURATION));
-		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES));
+		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", 4)); // NUM_LEDS_IDLE_DOTS
+		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", false)); // OFFSET_PAUSE_LEDS
+		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", 85)); // PROGRESS_HUE_START
+		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", -1)); // PROGRESS_HUE_END
+		ledObj["hueAtmo"].set(gPrefsSettings.getShort("hueAtmo", 10)); // ATMO_HUE
+		ledObj["satAtmo"].set(gPrefsSettings.getShort("satAtmo", 180)); // ATMO_SATURATION
+		ledObj["dimStates"].set(gPrefsSettings.getUChar("dimStates", 50)); // DIMMABLE_STATES
 		ledObj["reverseRot"].set(gPrefsSettings.getBool("ledReverseRot", false));
 		ledObj["offsetStart"].set(gPrefsSettings.getUChar("ledOffset", 0));
 	}
@@ -1323,23 +1323,19 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["initBrightness"].set(16u); // LED_INITIAL_BRIGHTNESS
 		ledSettings["nightBrightness"].set(2u); // LED_INITIAL_NIGHT_BRIGHTNESS
 		ledSettings["atmoBrightness"].set(30u); // LED_INITIAL_NIGHT_BRIGHTNESS
-		ledSettings["numIndicator"].set(NUM_INDICATOR_LEDS); // NUM_INDICATOR_LEDS
-		ledSettings["numControl"].set(NUM_CONTROL_LEDS); // NUM_CONTROL_LEDS
-		ledSettings["numIdleDots"].set(NUM_LEDS_IDLE_DOTS); // NUM_LEDS_IDLE_DOTS
-		ledSettings["offsetPause"].set(OFFSET_PAUSE_LEDS); // OFFSET_PAUSE_LEDS
-		ledSettings["hueStart"].set(PROGRESS_HUE_START); // PROGRESS_HUE_START
-		ledSettings["hueEnd"].set(PROGRESS_HUE_END); // PROGRESS_HUE_END
-		ledSettings["hueAtmo"].set(ATMO_HUE);
-		ledSettings["satAtmo"].set(ATMO_SATURATION);
-		ledSettings["dimStates"].set(DIMMABLE_STATES); // DIMMABLE_STATES
+		ledSettings["numIndicator"].set(24u); // NUM_INDICATOR_LEDS
+		ledSettings["numControl"].set(0u); // NUM_CONTROL_LEDS
+		ledSettings["numIdleDots"].set(4u); // NUM_LEDS_IDLE_DOTS
+		ledSettings["offsetPause"].set(false); // OFFSET_PAUSE_LEDS
+		ledSettings["hueStart"].set(85); // PROGRESS_HUE_START
+		ledSettings["hueEnd"].set(-1); // PROGRESS_HUE_END
+		ledSettings["hueAtmo"].set(10); // ATMO_HUE
+		ledSettings["satAtmo"].set(180); // ATMO_SATURATION
+		ledSettings["dimStates"].set(50u); // DIMMABLE_STATES
 		ledSettings["reverseRot"].set(false); // NEOPIXEL_REVERSE_ROTATION
-	#ifdef LED_OFFSET
-		ledSettings["offsetStart"].set(LED_OFFSET);
-	#else
-		ledSettings["offsetStart"].set(0);
-	#endif
+		ledSettings["offsetStart"].set(0); // LED_OFFSET
 		JsonArray colorArr = ledSettings["controlColors"].to<JsonArray>();
-		std::vector<CRGB::HTMLColorCode> controlLedColors = CONTROL_LEDS_COLORS;
+		std::vector<CRGB::HTMLColorCode> controlLedColors = {}; // CONTROL_LEDS_COLORS
 		for (uint8_t controlLed = 0; controlLed < controlLedColors.size(); controlLed++) {
 			colorArr.add(controlLedColors[controlLed]);
 		}

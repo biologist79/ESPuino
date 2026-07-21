@@ -101,51 +101,46 @@ bool Led_LoadSettings(LedSettings &settings) {
 	}
 
 	// Get the number of indicator LEDs from NVS
-	settings.numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", NUM_INDICATOR_LEDS);
+	settings.numIndicatorLeds = gPrefsSettings.getUChar("numIndicator", 24); // NUM_INDICATOR_LEDS
 
 	// Get the number of control LEDs from NVS
-	settings.numControlLeds = gPrefsSettings.getUChar("numControl", NUM_CONTROL_LEDS);
+	settings.numControlLeds = gPrefsSettings.getUChar("numControl", 0); // NUM_CONTROL_LEDS
 
 	// Get the number of Led idle dots from NVS
-	settings.numIdleDots = gPrefsSettings.getUChar("numIdleDots", NUM_LEDS_IDLE_DOTS);
+	settings.numIdleDots = gPrefsSettings.getUChar("numIdleDots", 4); // NUM_LEDS_IDLE_DOTS
 	if (settings.numIdleDots == 0) {
 		// avoid division by zero
 		settings.numIdleDots = 4;
 	}
 
 	// Get offset LED pause from NVS
-	settings.offsetLedPause = gPrefsSettings.getBool("offsetPause", OFFSET_PAUSE_LEDS);
+	settings.offsetLedPause = gPrefsSettings.getBool("offsetPause", false); // OFFSET_PAUSE_LEDS
 
 	// get dimmableStates from NVS
-	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", DIMMABLE_STATES);
+	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", 50); // DIMMABLE_STATES
 	if (settings.dimmableStates == 0) {
 		// avoid division by zero (used as a divisor throughout Led.cpp's animations)
-		settings.dimmableStates = DIMMABLE_STATES;
+		settings.dimmableStates = 50;
 	}
 
 	// get hue start/end from NVS
-	settings.progressHueStart = gPrefsSettings.getShort("hueStart", PROGRESS_HUE_START);
-	settings.progressHueEnd = gPrefsSettings.getShort("hueEnd", PROGRESS_HUE_END);
+	settings.progressHueStart = gPrefsSettings.getShort("hueStart", 85); // PROGRESS_HUE_START
+	settings.progressHueEnd = gPrefsSettings.getShort("hueEnd", -1); // PROGRESS_HUE_END
 	// get atmo light from NVS
-	settings.atmoHue = gPrefsSettings.getShort("hueAtmo", ATMO_HUE);
-	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", ATMO_SATURATION);
+	settings.atmoHue = gPrefsSettings.getShort("hueAtmo", 10); // ATMO_HUE
+	settings.atmoSaturation = gPrefsSettings.getShort("satAtmo", 180); // ATMO_SATURATION
 
 	// get reverse rotation from NVS
 	settings.neopixelReverseRotation = gPrefsSettings.getBool("ledReverseRot", false); // NEOPIXEL_REVERSE_ROTATION
 
 	// get LED offset from NVS
-	#ifdef LED_OFFSET
-	const uint8_t defLedOffset = LED_OFFSET;
-	#else
-	const uint8_t defLedOffset = 0;
-	#endif
-	settings.ledOffset = gPrefsSettings.getUChar("ledOffset", defLedOffset);
+	settings.ledOffset = gPrefsSettings.getUChar("ledOffset", 0); // LED_OFFSET
 	if (settings.ledOffset >= settings.numIndicatorLeds) {
 		Log_Println("ledOffset must be between 0 and numIndicatorLeds-1", LOGLEVEL_ERROR);
 		return false;
 	}
 	// load control colors from NVS
-	settings.controlLedColors = CONTROL_LEDS_COLORS;
+	settings.controlLedColors = {}; // CONTROL_LEDS_COLORS
 	if ((settings.numControlLeds > 0) && gPrefsSettings.isKey("controlColors")) {
 		size_t keySize = gPrefsSettings.getBytesLength("controlColors");
 		if (keySize == (settings.numControlLeds * sizeof(uint32_t))) {

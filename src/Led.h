@@ -69,16 +69,16 @@ struct AnimationReturnType {
 	#include <FastLED.h>
 
 struct LedSettings {
-	uint8_t numIndicatorLeds = NUM_INDICATOR_LEDS;
-	uint8_t numControlLeds = NUM_CONTROL_LEDS;
+	uint8_t numIndicatorLeds = 24;
+	uint8_t numControlLeds = 0;
 	std::vector<uint32_t> controlLedColors;
-	uint8_t numIdleDots = NUM_LEDS_IDLE_DOTS;
-	bool offsetLedPause = OFFSET_PAUSE_LEDS;
-	int16_t progressHueStart = PROGRESS_HUE_START;
-	int16_t progressHueEnd = PROGRESS_HUE_END;
-	int16_t atmoHue = ATMO_HUE;
-	int16_t atmoSaturation = ATMO_SATURATION;
-	uint8_t dimmableStates = DIMMABLE_STATES;
+	uint8_t numIdleDots = 4;
+	bool offsetLedPause = false;
+	int16_t progressHueStart = 85;
+	int16_t progressHueEnd = -1;
+	int16_t atmoHue = 10;
+	int16_t atmoSaturation = 180;
+	uint8_t dimmableStates = 50;
 	bool neopixelReverseRotation;
 	uint8_t ledOffset;
 	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
