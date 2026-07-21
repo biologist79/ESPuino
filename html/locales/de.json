@@ -40,6 +40,7 @@
 	"settingsex": {
 		"led": {
 			"title": "LED-Einstellungen",
+			"hueTitle": "Farbtöne",
 			"numindicator": "Anzahl Anzeige-LEDs",
 			"numcontrol": "Anzahl Kontroll-LEDs",
 			"controlled": "Kontroll-LED",

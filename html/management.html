@@ -78,6 +78,81 @@
 			flex: 0 0 auto;
 		}
 
+		.slider-value-badge {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 2.6em;
+			padding: 0.15em 0.5em;
+			border-radius: 0.5em;
+			background: var(--bs-tertiary-bg);
+			border: 1px solid var(--bs-border-color);
+			font-variant-numeric: tabular-nums;
+			font-weight: 600;
+		}
+
+		.slider-step-row {
+			display: flex;
+			align-items: center;
+			gap: 0.6em;
+			width: 100%;
+			margin-top: 0.5em;
+			margin-bottom: 0.5em;
+		}
+
+		.slider-divider {
+			margin: 0.75em 0;
+			border: none;
+			border-top: 1px solid var(--bs-border-color);
+			opacity: 0.5;
+		}
+
+		.slider-value-row {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			/* Matches .col-form-label's own top padding so the badge's text lines up with the label's. */
+			padding-top: calc(0.375rem + 1px);
+			margin-bottom: 0.6em;
+		}
+
+		.settings-group-card {
+			border: 1px solid var(--bs-border-color);
+			border-radius: 0.75rem;
+			padding: 1rem 1.25rem;
+		}
+
+		.slider-step-row > .slider-container,
+		.slider-step-row > .hue-slider,
+		.slider-step-row > .sat-slider {
+			flex: 1 1 0;
+			min-width: 0;
+		}
+
+		.slider-step-btn {
+			flex: 0 0 auto;
+			width: 2.3em;
+			height: 2.3em;
+			border-radius: 50%;
+			border: 1px solid var(--bs-border-color);
+			background: var(--bs-tertiary-bg);
+			color: var(--bs-body-color);
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.1em;
+			line-height: 1;
+			padding: 0;
+		}
+
+		.slider-step-btn:hover {
+			background: var(--bs-secondary-bg);
+		}
+
+		.slider-step-btn:active {
+			background: var(--bs-border-color);
+		}
+
 		.slider.slider-horizontal {
 			width: 100%;
 		}
@@ -358,6 +433,7 @@
 					<h5 class="modal-title" data-i18n="general.equalizer.title"></h5>
 				</div>
 				<div class="modal-body row" id="modalEqualizerContent">
+					<div class="settings-group-card">
 					<label class="w-100" for="gainLowPass" data-i18n="[prepend]general.equalizer.gainLowPass">:</label>
 					<div class="slider-container">
 						<div class="float-end" style="padding-left: 30px">
@@ -403,6 +479,7 @@
 						<div class="float-end" style="padding-left: 10px">
 							<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
 						</div>
+					</div>
 					</div>
 					<hr>
 					<div class="col-12">
@@ -545,6 +622,7 @@
 					<legend data-i18n="wifi.title"></legend>
 					<form action="#globalWifiConfig" method="POST"
 						onsubmit="globalWifiConfig('globalWifiConfig'); return false">
+						<div class="settings-group-card">
 						<div class="mb-3 col-md-12">
 							<div class="d-flex gap-2 mb-2">
 								<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
@@ -616,12 +694,13 @@
 							<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
 								type="submit" class="btn btn-primary" data-i18n="wifi.saveButton"></button>
 						</div>
+						</div>
 					</form>
 				</div>
-				<hr>
-				<div>
+				<div class="mt-5">
 					<legend data-i18n="wifi.networks"></legend>
 					<form action="#wifiConfig" method="POST" onsubmit="wifiConfig('wifiConfig'); return false">
+						<div class="settings-group-card">
 						<div class="mb-3 col-md-12">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
@@ -727,13 +806,15 @@
 						<div>
 							<button type="submit" class="btn btn-primary" data-i18n="wifi.addNetworkButton"></button>
 						</div>
+						</div>
 					</form>
 				</div>
-				<hr>
 				<div class="col-md-12" style="margin-top: 20px;">
 					<legend data-i18n="wifi.savedNetworks"></legend>
+					<div class="settings-group-card">
 					<ul class="list-group" id="wifiListSavedSSIDs">
 					</ul>
+					</div>
 				</div>
 			</div>
 			<br />
@@ -966,6 +1047,7 @@
 					onsubmit="mqttSettings('mqttConfig'); return false">
 					<legend data-i18n="mqtt.title"></legend>
 					<div class="mb-2"><small class="text-muted" data-i18n="mqtt.restartNote"></small></div>
+					<div class="settings-group-card" id="mqttSettingsCard">
 					<div class="form-check col-md-12 d-flex align-items-center gap-2">
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
@@ -1070,6 +1152,7 @@
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
 							type="submit" class="btn btn-primary" data-i18n="mqtt.saveButton"></button>
 					</div>
+					</div>
 				</form>
 			</div>
 		</div>
@@ -1079,6 +1162,7 @@
 				<form action="#ftpConfig" method="POST" onsubmit="ftpSettings('ftpConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="ftp.title"></legend>
+						<div class="settings-group-card">
 						<div class="row mb-2 align-items-center">
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="ftpUser" class="col-form-label"
@@ -1104,22 +1188,24 @@
 									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
 							</div>
 						</div>
-					</div>
 					<div>
 						<button type="reset" class="btn btn-warning" data-i18n="reset"></button>&nbsp;<button
 							type="submit" class="btn btn-primary" data-i18n="ftp.saveButton"></button>
 					</div>
+					</div>
+					</div>
 				</form>
-				<hr>
 			</div>
-			<div class="container" id="ftpStart">
+			<div class="container mt-5" id="ftpStart">
 				<div class="col-md-12">
 					<legend data-i18n="ftp.start.title"></legend>
+					<div class="settings-group-card">
 					<div data-i18n="ftp.start.desc"></div>
 					<br>
 					<div>
 						<button type="button" class="btn btn-primary" onclick="ftpStart()"
 							data-i18n="ftp.start.button"></button>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -1136,12 +1222,12 @@
 							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
 					</div>
 				</div>
-				<hr>
 			</div>
-			<div class="container" id="btConfig">
+			<div class="container mt-5" id="btConfig">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
+						<div class="settings-group-card">
 						<div class="row mb-2 align-items-center">
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="btDeviceName" class="col-form-label"
@@ -1168,7 +1254,6 @@
 									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
 							</div>
 						</div>
-					</div>
 					<div class="mb-3 col-md-12">
 						<div class="row mb-2 align-items-center">
 							<label class="col-sm-4 col-form-label" data-i18n="bt.scan.title"></label>
@@ -1195,29 +1280,33 @@
 					<div>
 						<button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button>
 					</div>
+						</div>
+						</div>
 				</form>
-				<hr>
 			</div>
-			<div class="container" id="btStartSource">
+			<div class="container mt-5" id="btStartSource">
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.source.title"></legend>
+					<div class="settings-group-card">
 					<div data-i18n="bt.source.desc"></div>
 					<br>
 					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
 							data-i18n="bt.source.button"></button>
 					</div>
+					</div>
 				</div>
-				<hr>
 			</div>
-			<div class="container" id="btStartSink">
+			<div class="container mt-5" id="btStartSink">
 				<div class="mb-3 col-md-12">
 					<legend data-i18n="bt.sink.title"></legend>
+					<div class="settings-group-card">
 					<div data-i18n="bt.sink.desc"></div>
 					<br>
 					<div>
 						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
 							data-i18n="bt.sink.button"></button>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -1247,6 +1336,7 @@
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.volume.title"></legend>
+							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initialVolume" class="col-form-label"
@@ -1319,12 +1409,13 @@
 									</div>
 								</div>
 							</div>
+							</div>
 						</fieldset>
 					</div>
-					<hr>
 					<div class="col-md-12 mb-4" id="optionsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.options.title"></legend><br>
+							<div class="settings-group-card">
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="savePlayPosShutdown" name="savePlayPosShutdown"
 									value="false">
@@ -1417,12 +1508,13 @@
 									data-i18n="[data-bs-content]general.options.volumeCurveExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+							</div>
 						</fieldset>
 					</div>
-					<hr>
 					<div class="col-md-12 mb-4" id="playlistConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.playlist.title"></legend>
+						<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="playlistSortMode" class="col-form-label"
@@ -1456,6 +1548,7 @@
 									</select>
 								</div>
 							</div>
+						</div>
 						</fieldset>
 					</div>
 					<div>
@@ -1468,6 +1561,7 @@
 					<div class="col-md-12 mb-4" id="rfidConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
+							<div class="settings-group-card">
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
 								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
@@ -1529,6 +1623,7 @@
 										min="0" max="2000" step="10">
 								</div>
 							</div>
+						</div>
 						</fieldset>
 					</div>
 					<div>
@@ -1541,20 +1636,22 @@
 					<div class="col-md-12 mb-4" id="rotaryConfig" style="display:none">
 						<fieldset>
 							<legend class="w-auto" data-i18n="settingsex.rotary.title"></legend><br>
+						<div class="settings-group-card">
 							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
 							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
 							<a href="#" class="link-secondary" data-bs-toggle="popover"
 								data-i18n="[data-bs-content]settingsex.rotary.reverseExp" tabindex="0"><i
 									class="fas fa-circle-question"></i></a>
+						</div>
 						</fieldset>
 					</div>
-					<hr>
 					<div class="col-md-12 mb-4" id="buttonsConfig">
 						<fieldset>
 							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.buttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
+						<div class="settings-group-card">
 							<div class="table-responsive">
 								<table class="table table-sm align-middle">
 									<thead>
@@ -1598,14 +1695,15 @@
 									</tbody>
 								</table>
 							</div>
+						</div>
 						</fieldset>
-						<hr>
-						<div id="rotaryGesturesConfig" style="display:none">
+						<div id="rotaryGesturesConfig" class="mt-5" style="display:none">
 							<fieldset>
 								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a href="#"
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.gesturesExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
+							<div class="settings-group-card">
 								<div class="table-responsive">
 									<table class="table table-sm align-middle">
 										<thead>
@@ -1649,12 +1747,14 @@
 										</tbody>
 									</table>
 								</div>
+							</div>
 							</fieldset>
-							<fieldset>
+							<fieldset class="mt-5">
 								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a href="#"
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.seekPreviewTitleExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
+							<div class="settings-group-card">
 								<div class="row mb-2 align-items-center">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevDelay" class="col-form-label"
@@ -1681,14 +1781,15 @@
 											min="4" max="250" step="1">
 									</div>
 								</div>
+							</div>
 							</fieldset>
-							<hr>
 						</div>
-						<fieldset>
+						<fieldset class="mt-5">
 							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a href="#"
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.multibuttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
+						<div class="settings-group-card">
 							<div class="table-responsive">
 								<table class="table table-sm align-middle">
 									<tbody>
@@ -1755,6 +1856,7 @@
 									</tbody>
 								</table>
 							</div>
+						</div>
 						</fieldset>
 					</div>
 					<div>
@@ -1767,6 +1869,7 @@
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
+							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initBrightness" class="col-form-label"
@@ -1839,12 +1942,13 @@
 									</div>
 								</div>
 							</div>
+							</div>
 						</fieldset>
 					</div>
-					<hr>
 					<div class="col-md-12 mb-4" id="ledSettingsConfig">
 						<fieldset>
 							<legend class="w-auto" data-i18n="settingsex.led.title"></legend>
+						<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_numIndicator" class="col-form-label"
@@ -1891,6 +1995,49 @@
 										min="0" max="128">
 								</div>
 							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_dimStates" class="col-form-label"
+										data-i18n="settingsex.led.dimmablestates"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_dimStates" name="led_dimStates" min="1">
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="led_offsetStart" class="col-form-label"
+										data-i18n="settingsex.led.offset"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
+								</div>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
+								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
+								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+						</div>
+						</fieldset>
+						<fieldset class="mt-5">
+							<legend class="w-auto" data-i18n="settingsex.led.hueTitle"></legend>
+						<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueStart" class="col-form-label"
@@ -1955,44 +2102,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="led_dimStates" class="col-form-label"
-										data-i18n="settingsex.led.dimmablestates"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
-											class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<input type="number" class="form-control" id="led_dimStates" name="led_dimStates" min="1">
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="led_offsetStart" class="col-form-label"
-										data-i18n="settingsex.led.offset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
-											class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
-								</div>
-							</div>
-							<div class="d-flex gap-2">
-								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
-								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
-							</div>
-							<div class="d-flex gap-2">
-								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
-								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
-							</div>
+						</div>
 						</fieldset>
 					</div>
 					<div>
@@ -2005,6 +2115,7 @@
 					<div class="col-md-12 mb-4">
 						<fieldset>
 							<legend data-i18n="general.sleep.title"></legend>
+							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="inactivityTime" class="col-form-label"
@@ -2029,12 +2140,13 @@
 									</div>
 								</div>
 							</div>
+						</div>
 						</fieldset>
 					</div>
-					<hr>
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
 						<fieldset>
 							<legend data-i18n="general.battery.title">Batterie</legend>
+							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageCheckInterval" class="col-form-label"
@@ -2166,6 +2278,7 @@
 									</div>
 								</div>
 							</div>
+							</div>
 						</fieldset>
 					</div>
 					<div>
@@ -2181,54 +2294,59 @@
 		<!-- ### Tab Tools ### -->
 		<div class="tab-pane main-tab-pane fade select-div" id="nav-tools" role="tabpanel"
 			aria-labelledby="nav-tools-tab">
-			<div class="container" id="savedAssignments">
-				<legend data-i18n="tools.nvs.title"></legend>
-				<p data-i18n="tools.nvs.desc"></p>
-				<span class="container" style="padding: 0" id="listNvs">
-					<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
-					<button class="btn btn-primary" type="button" id="showAssignmentsBtn" data-bs-toggle="modal"
-						data-bs-target="#rfidListSavedAssignmentsModal"><span
-							data-i18n="tools.nvs.list.show"></span><span id="showAssignmentsCount"></span></button>
-				</span>
-				<hr>
-				<span class="container" style="padding: 0" id="exportNvs">
-					<p style="font-weight: bold" data-i18n="tools.nvs.export.title"></p>
-					<p data-i18n="tools.nvs.export.desc"></p>
-					<a type="submit" class="btn btn-primary" id="exportAssignmentsBtn"
-						href="/explorerdownload?path=/backup.txt" target="_blank"><span
-							data-i18n="tools.nvs.export.button"></span><span id="exportAssignmentsCount"></span></a>
-				</span>
-				<hr>
-				<span class="container" style="padding: 0">
-					<p style="font-weight: bold" data-i18n="tools.nvs.import.title"></p>
-					<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
-						onsubmit="uploadNVSRFID('nvsUpload'); return false">
-						<div class="mb-3">
-							<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-							<div class="d-flex gap-2">
-								<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
-									name="nvsUpload" accept=".txt">
-								<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
-							</div>
+				<div class="container" id="savedAssignments">
+					<legend class="mb-3" data-i18n="tools.nvs.title"></legend>
+					<div class="container" style="padding: 0" id="listNvs">
+						<div class="settings-group-card">
+						<p data-i18n="tools.nvs.desc"></p>
+						<p style="font-weight: bold" data-i18n="tools.nvs.list.title"></p>
+						<button class="btn btn-primary" type="button" id="showAssignmentsBtn" data-bs-toggle="modal"
+							data-bs-target="#rfidListSavedAssignmentsModal"><span
+								data-i18n="tools.nvs.list.show"></span><span id="showAssignmentsCount"></span></button>
 						</div>
-					</form>
-				</span>
-				<hr>
-				<span class="container" style="padding: 0" id="eraseNvs">
-					<p style="font-weight: bold" data-i18n="tools.nvs.erase.title"></p>
-					<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
-					<button type="submit" class="btn btn-danger" id="eraseAssignmentsBtn" data-bs-toggle="modal"
-						data-bs-target="#deleteNVSRFIDModal"><span
-							data-i18n="tools.nvs.erase.button"></span><span id="eraseAssignmentsCount"></span></button>
-				</span>
-				<hr>
+					</div>
+					<div class="container mt-5" style="padding: 0" id="exportNvs">
+						<h4 class="mb-2" data-i18n="tools.nvs.export.title"></h4>
+						<div class="settings-group-card">
+						<p data-i18n="tools.nvs.export.desc"></p>
+						<a type="submit" class="btn btn-primary" id="exportAssignmentsBtn"
+							href="/explorerdownload?path=/backup.txt" target="_blank"><span
+								data-i18n="tools.nvs.export.button"></span><span id="exportAssignmentsCount"></span></a>
+						</div>
+					</div>
+					<div class="container mt-5" style="padding: 0">
+						<h4 class="mb-2" data-i18n="tools.nvs.import.title"></h4>
+						<div class="settings-group-card">
+						<form id="nvsUploadForm" action="/upload" enctype="multipart/form-data" method="POST"
+							onsubmit="uploadNVSRFID('nvsUpload'); return false">
+							<div class="mb-3">
+								<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
+								<div class="d-flex gap-2">
+									<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
+										name="nvsUpload" accept=".txt">
+									<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
+								</div>
+							</div>
+						</form>
+						</div>
+					</div>
+					<div class="container mt-5" style="padding: 0" id="eraseNvs">
+						<h4 class="mb-2" data-i18n="tools.nvs.erase.title"></h4>
+						<div class="settings-group-card">
+						<p class="mb-3" data-i18n="[html]tools.nvs.erase.desc"></p>
+						<button type="submit" class="btn btn-danger" id="eraseAssignmentsBtn" data-bs-toggle="modal"
+							data-bs-target="#deleteNVSRFIDModal"><span
+								data-i18n="tools.nvs.erase.button"></span><span id="eraseAssignmentsCount"></span></button>
+						</div>
+					</div>
+				</div>
 			</div>
-		</div>
 		<!-- ### Tab Updates ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-updates" role="tabpanel"
 			aria-labelledby="nav-updates-tab">
 			<div class="container" id="httpUpdate">
 				<legend id="legendfwupdate" data-i18n="tools.fwupdate.title"></legend>
+				<div class="settings-group-card">
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
@@ -2246,10 +2364,11 @@
 						</div>
 					</div>
 				</form>
-				<hr>
+				</div>
 			</div>
-			<div class="container" id="githubUpdate">
+			<div class="container mt-5" id="githubUpdate">
 				<legend id="legendfwupdategithub" data-i18n="tools.fwupdate.github.title"></legend>
+				<div class="settings-group-card">
 				<p data-i18n="tools.fwupdate.github.desc"></p>
 				<p id="githubUpdateUnavailableText" class="text-warning" style="display:none;"></p>
 				<div id="githubUpdateAvailable" style="display:none;">
@@ -2270,6 +2389,7 @@
 							class="label d-flex position-absolute flex-column align-self-center text-center w-100 text-nowrap text-light">
 						</div>
 					</div>
+				</div>
 				</div>
 			</div>
 		</div>
@@ -3533,6 +3653,125 @@
 			toaster.info("Connecting to " + address + "...");
 		}
 
+		// Adds a live value badge and circular +/- step buttons around a bootstrap-slider input.
+		// Works for both the icon-flanked ".slider-container" sliders and the icon-less
+		// ".hue-slider"/".sat-slider" ones; existing decorative icons are removed since the new
+		// buttons take over that role.
+		const sliderStepperIds = [];
+
+		function Slider_AddStepper(id, step) {
+			const input = document.getElementById(id);
+			if (!input) {
+				return;
+			}
+			const container = input.closest('.slider-container') || input.closest('.hue-slider') || input.closest('.sat-slider');
+			if (!container) {
+				return;
+			}
+			container.querySelectorAll(':scope > .float-end').forEach((el) => el.remove());
+
+			step = step || parseFloat(input.getAttribute('data-slider-step')) || 1;
+			const decimals = (String(step).split('.')[1] || '').length;
+
+			const badge = document.createElement('span');
+			badge.className = 'slider-value-badge';
+			badge.id = id + 'Badge';
+
+			const row = container.closest('.row');
+			const labelCol = row ? row.querySelector(':scope > .col-sm-4') : null;
+			const sliderCol = row ? row.querySelector(':scope > .col-sm-8') : null;
+
+			if (row && labelCol && sliderCol) {
+				// The label/value grid split (col-sm-4 + col-sm-8) leaves the track only 2/3 of the
+				// row's width even on desktop, and behaves inconsistently across breakpoints on
+				// mobile. Free the slider from it entirely: label + badge share one full-width line,
+				// the slider (and its buttons) get the full width on the line below, on every screen size.
+				const headerRow = document.createElement('div');
+				// flex-start rather than center: on narrow widths the label can wrap onto two lines,
+				// and centering would then align the badge to the label block's vertical middle
+				// instead of its first line.
+				headerRow.className = 'd-flex align-items-start justify-content-between gap-2 mb-2';
+				labelCol.classList.remove('col-sm-4');
+				headerRow.appendChild(labelCol);
+				headerRow.appendChild(badge);
+
+				while (sliderCol.firstChild) {
+					row.insertBefore(sliderCol.firstChild, sliderCol);
+				}
+				sliderCol.remove();
+				row.classList.remove('row', 'align-items-center', 'align-items-start');
+				row.insertBefore(headerRow, row.firstChild);
+			} else {
+				// No label/value grid to unwrap (e.g. the equalizer modal, already full-width) -
+				// just float the badge above the slider.
+				const badgeRow = document.createElement('div');
+				badgeRow.className = 'slider-value-row';
+				badgeRow.appendChild(badge);
+				container.parentNode.insertBefore(badgeRow, container);
+			}
+
+			// Thin divider between consecutive sliders in the same group (e.g. Volume, LED
+			// brightness) - only if the immediately preceding sibling is itself an already-enhanced slider.
+			if (row) {
+				const prevSibling = row.previousElementSibling;
+				if (prevSibling && prevSibling.querySelector('.slider-step-row, .hue-slider, .sat-slider')) {
+					const hr = document.createElement('hr');
+					hr.className = 'slider-divider';
+					row.parentNode.insertBefore(hr, row);
+				}
+			}
+
+			const stepRow = document.createElement('div');
+			stepRow.className = 'slider-step-row';
+			container.parentNode.insertBefore(stepRow, container);
+
+			const makeButton = (symbol, delta) => {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'slider-step-btn';
+				btn.textContent = symbol;
+				btn.setAttribute('aria-label', delta > 0 ? 'increase' : 'decrease');
+				btn.addEventListener('click', () => {
+					const min = parseFloat(input.getAttribute('data-slider-min'));
+					const max = parseFloat(input.getAttribute('data-slider-max'));
+					let val = parseFloat($(input).bootstrapSlider('getValue')) + delta;
+					if (!isNaN(min)) {
+						val = Math.max(min, val);
+					}
+					if (!isNaN(max)) {
+						val = Math.min(max, val);
+					}
+					val = parseFloat(val.toFixed(decimals));
+					$(input).bootstrapSlider('setValue', val, true, true);
+					badge.textContent = val;
+				});
+				return btn;
+			};
+
+			stepRow.appendChild(makeButton('−', -step));
+			stepRow.appendChild(container);
+			stepRow.appendChild(makeButton('+', step));
+
+			$(input).on('change slide', function () {
+				badge.textContent = $(input).bootstrapSlider('getValue');
+			});
+
+			badge.textContent = input.value;
+			sliderStepperIds.push(id);
+		}
+
+		// fillSettings() populates sliders via bootstrapSlider('setValue', ...), which doesn't
+		// necessarily fire a 'change'/'slide' event - call this once afterwards to sync all badges.
+		function Slider_SyncAllBadges() {
+			sliderStepperIds.forEach((id) => {
+				const input = document.getElementById(id);
+				const badge = document.getElementById(id + 'Badge');
+				if (input && badge) {
+					badge.textContent = $(input).bootstrapSlider('getValue');
+				}
+			});
+		}
+
 		async function fillSettings(settings) {
 			if (!settings) {
 				return false;
@@ -3753,6 +3992,7 @@
 				initialSettingsLoaded = true;
 				selectActiveTabFromLocalStorage();
 			}
+			Slider_SyncAllBadges();
 		}
 		async function resetSettings() {
 			try {
@@ -4623,8 +4863,8 @@
 			buildFileSystemTree("/");
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
-				var preview = $('<fieldset class="mt-4 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></fieldset>');
-				$('#mqttFormButtons').after(preview);
+				var preview = $('<fieldset class="mt-5 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><div class="settings-group-card"><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></div></fieldset>');
+				$('#mqttSettingsCard').after(preview);
 			}
 			// Bind live update when relevant mqtt fields change
 			$('#mqttBaseTopic, #mqttDeviceId, #mqttClientId').off('input.mqttPreview').on('input.mqttPreview', function () {
@@ -4711,6 +4951,32 @@
 			$(function () {
 				$('[data-bs-toggle="tooltip"]').tooltip();
 			});
+
+			// Equalizer
+			Slider_AddStepper('gainLowPass', 1);
+			Slider_AddStepper('gainBandPass', 1);
+			Slider_AddStepper('gainHighPass', 1);
+			// Volume
+			Slider_AddStepper('initialVolume', 1);
+			Slider_AddStepper('maxVolumeSpeaker', 1);
+			Slider_AddStepper('maxVolumeHeadphone', 1);
+			// LED brightness
+			Slider_AddStepper('initBrightness', 1);
+			Slider_AddStepper('nightBrightness', 1);
+			Slider_AddStepper('atmoBrightness', 1);
+			// LED hue/saturation
+			Slider_AddStepper('led_hueStart', 1);
+			Slider_AddStepper('led_hueEnd', 1);
+			Slider_AddStepper('led_hueAtmo', 1);
+			Slider_AddStepper('led_satAtmo', 1);
+			// General
+			Slider_AddStepper('inactivityTime', 1);
+			// Battery
+			Slider_AddStepper('voltageCheckInterval', 1);
+			Slider_AddStepper('warningLowVoltage', 0.05);
+			Slider_AddStepper('voltageIndicatorLow', 0.05);
+			Slider_AddStepper('voltageIndicatorHigh', 0.05);
+			Slider_AddStepper('criticalVoltage', 0.05);
 
 			/* Disable dontAcceptRfidTwice if pauseIfRfidRemoved enabled. */
 			$('#pauseIfRfidRemoved').on('change', function () {

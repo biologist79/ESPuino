@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 21.07.2026: Web-UI: give settings sliders live value badges and circular +/- step buttons instead of a bare drag handle, and group related settings across all tabs into rounded cards for a clearer, more compact layout.
 * 20.07.2026: Make the MFRC522 scan interval a web-UI setting ("MFRC522 Scan-Intervall") instead of the compile-time-only `RFID_SCAN_INTERVAL` - default unchanged at 100ms. A restart is required for a change to take effect, same as the other MFRC522/PN5180-specific settings.
 * 20.07.2026: Fix LEDs staying lit forever in deepsleep after `SHUTDOWN_IF_SD_BOOT_FAILS` triggers - the LED task was still running its idle animation when `esp_deep_sleep_start()` was called, and NeoPixels simply hold their last-sent color with no active refresh. Now clears the LEDs before sleeping.
 * 20.07.2026: Remove unused compile-time macro `PLAY_MONO_SPEAKER` - mono/stereo playback has long been a runtime web-UI setting only (nothing in the codebase ever checked this macro), so it was dead documentation.
