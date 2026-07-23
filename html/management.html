@@ -2,11 +2,6 @@
 <html lang="de">
 
 <head>
-	<script>
-		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
-		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
-		var remoteHost = "192.168.1.207";
-	</script>
 	<title data-i18n="title">ESPuino</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2413,7 +2408,6 @@
 		// last known-saved led count, to detect a change on save (device restarts to apply it)
 		var lastNumIndicatorLeds = null;
 		var lastNumControlLeds = null;
-		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
 		var localize;
@@ -2445,18 +2439,6 @@
 				$(this).bootstrapSlider('relayout');
 			});
 		});
-		if (host == "") { // Not running on the device -> use the remote host
-			host = remoteHost;
-			console.log("Using remote host on " + remoteHost);
-			var anchors = document.getElementsByTagName("img");
-			for (var i = 0; i < anchors.length; i++) {
-				anchors[i].src = "http://" + host + anchors[i].src.replace("file://", "");
-			}
-			var anchors = document.getElementsByTagName("form");
-			for (var i = 0; i < anchors.length; i++) {
-				anchors[i].action = "http://" + host + anchors[i].action.replace("file://", "");
-			}
-		}
 
 		const toaster = {
 			// remove all children, except the first (which is the template)
@@ -2504,7 +2486,7 @@
 
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
-				loadPath: "http://" + host + "/locales/{{lng}}.json"
+				loadPath: "/locales/{{lng}}.json"
 			},
 			load: 'languageOnly',
 			debug: true,
@@ -2691,7 +2673,7 @@
 				const modalInst = bootstrap.Modal.getInstance(modalEl);
 				if (modalInst) modalInst.hide();
 			} catch (e) { }
-			await fetch("http://" + host + "/restart", {
+			await fetch("/restart", {
 				method: "POST"
 			});
 			tryRedirect();
@@ -2720,7 +2702,7 @@
 
 		async function shutdownDevice() {
 			console.log("shutdown..");
-			await fetch("http://" + host + "/shutdown", {
+			await fetch("/shutdown", {
 				method: "POST"
 			});
 			$('.modal-title').text(i18next.t("shutdown"));
@@ -2833,7 +2815,7 @@
 			}
 			githubFirmwareInitialized = true;
 			try {
-				let info = await (await fetch("http://" + host + "/info?section=software")).json();
+				let info = await (await fetch("/info?section=software")).json();
 				const sw = info.software;
 				if (!sw.otaSupported) {
 					showGithubUpdateUnavailable(i18next.t("tools.fwupdate.github.notAvailableOta"));
@@ -3082,7 +3064,7 @@
 				$('.label', eup).text(i18next.t("files.upload.success", transData));
 				fileInput.value = '';
 				document.getElementById('uploaded_file_text').innerHTML = '';
-				getData("http://" + host + "/explorer?path=" + path, function (data) {
+				getData("/explorer?path=" + path, function (data) {
 					/* We now have data! */
 					deleteChildrenNodes(sel);
 					addFileDirectory(sel, data);
@@ -3131,7 +3113,7 @@
 				var ref = $('#explorerTree').jstree(true);
 				var node = ref.get_node(this.id);
 				console.log("call delete request: " + node.data.path);
-				deleteData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path));
+				deleteData("/explorer?path=" + encodeURIComponent(node.data.path));
 			});
 		}
 
@@ -3200,7 +3182,7 @@
 		function refreshNode(nodeId) {
 			var ref = $('#explorerTree').jstree(true);
 			var node = ref.get_node(nodeId);
-			getData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path), function (data) {
+			getData("/explorer?path=" + encodeURIComponent(node.data.path), function (data) {
 				/* We now have data! */
 				// If root node and first element has root flag, skip it (volume label)
 				var startIndex = 0;
@@ -3313,7 +3295,7 @@
 									});
 									if (childNode) {
 										ref.edit(childNode, null, function (childNode, status) {
-											putData("http://" + host + "/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
+											putData("/explorer?path=" + encodeURIComponent(node.data.path) + "/" + encodeURIComponent(childNode.text));
 											refreshNode(nodeId);
 										});
 									}
@@ -3333,7 +3315,7 @@
 										playMode = 11;
 									}
 								}
-								postData("http://" + host + "/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
+								postData("/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
 						/* Refresh */
@@ -3361,7 +3343,7 @@
 								var srcPath = node.data.path;
 								ref.edit(nodeId, null, function (node, status) {
 									node.data.path = node.data.path.substring(0, node.data.path.lastIndexOf("/") + 1) + node.text;
-									patchData("http://" + host + "/explorer?srcpath=" + encodeURIComponent(srcPath) + "&dstpath=" + encodeURIComponent(node.data.path));
+									patchData("/explorer?srcpath=" + encodeURIComponent(srcPath) + "&dstpath=" + encodeURIComponent(node.data.path));
 									refreshNode(ref.get_parent(nodeId));
 								});
 							}
@@ -3372,7 +3354,7 @@
 								label: () => i18next.t("files.context.download"),
 								icon: "fas fa-download",
 								action: function (x) {
-									uri = "http://" + host + "/explorerdownload?path=" + encodeURIComponent(node.data.path);
+									uri = "/explorerdownload?path=" + encodeURIComponent(node.data.path);
 									console.log("download file: " + node.data.path);
 									var anchor = document.createElement('a');
 									anchor.href = uri;
@@ -3390,7 +3372,7 @@
 			if (path.length == 0) {
 				return;
 			}
-			getData("http://" + host + "/explorer?path=/", function (data) {
+			getData("/explorer?path=/", function (data) {
 				/* We now have data! */
 				$('#explorerTree').jstree(true).settings.core.data.children = [];
 
@@ -3559,7 +3541,7 @@
 					setTrackProgress(socketMsg.trackProgress);
 				}
 				if ("coverimg" in socketMsg) {
-					document.getElementById('coverimg').src = "http://" + host + "/cover?" + new Date().getTime();
+					document.getElementById('coverimg').src = "/cover?" + new Date().getTime();
 				}
 				if ("settings" in socketMsg) {
 					fillSettings(socketMsg.settings);
@@ -3996,7 +3978,7 @@
 		}
 		async function resetSettings() {
 			try {
-				const response = await fetch("http://" + host + "/settings?section=defaults");
+				const response = await fetch("/settings?section=defaults");
 				if (!response.ok) throw new Error(response.statusText);
 				const obj = await response.json();
 				const data = obj.defaults ? obj.defaults : obj;
@@ -4013,8 +3995,8 @@
 				ssidList = data.savedSSIDs;
 				ssidActive = data.active;
 			} else {
-				ssidList = await (await fetch("http://" + host + "/savedSSIDs")).json();
-				let ssidActiveObj = await (await fetch("http://" + host + "/activeSSID")).json();
+				ssidList = await (await fetch("/savedSSIDs")).json();
+				let ssidActiveObj = await (await fetch("/activeSSID")).json();
 				console.log(ssidActiveObj);
 				ssidActive = ssidActiveObj.active;
 			}
@@ -4044,14 +4026,14 @@
 		async function deleteSSID(ssid) {
 			console.log("deleting", ssid);
 			$('#deleteSSIDModal').modal('hide');
-			await fetch("http://" + host + "/savedSSIDs/" + ssid, {
+			await fetch("/savedSSIDs/" + ssid, {
 				method: "DELETE"
 			});
 			await rebuildSSIDList();
 		}
 		const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");
 		async function rebuildRFIDList() {
-			var rfidList = await (await fetch("http://" + host + "/rfid")).json();
+			var rfidList = await (await fetch("/rfid")).json();
 			var rfidActive = document.getElementById('rfidIdMusic').value;
 			rfidListSavedAssignments.innerHTML = "";
 			console.log(rfidList.length + ' nvs rfid entries received.');
@@ -4113,7 +4095,7 @@
 		async function deleteRFID(tagId) {
 			console.log("deleting", tagId);
 			$('#deleteRFIDModal').modal('hide');
-			var response = await fetch("http://" + host + "/rfid?id=" + encodeURIComponent(tagId), {
+			var response = await fetch("/rfid?id=" + encodeURIComponent(tagId), {
 				method: "DELETE"
 			});
 			if (response.ok) {
@@ -4127,7 +4109,7 @@
 		async function eraseNVSRFID() {
 			console.log("erase all NVS RFIDs");
 			$('#deleteNVSRFIDModal').modal('hide');
-			var response = await fetch("http://" + host + "/rfidnvserase", {
+			var response = await fetch("/rfidnvserase", {
 				method: "POST"
 			});
 			if (response.ok) {
@@ -4234,7 +4216,7 @@
 				return;
 			};
 			// use http request here, websocket comminication seems to be unstable with many messages
-			let data = await (await fetch("http://" + host + "/trackprogress")).json();
+			let data = await (await fetch("/trackprogress")).json();
 			if (data && data.trackProgress) {
 				// console.log(data.trackProgress);
 				setTrackProgress(data.trackProgress);
@@ -4385,7 +4367,7 @@
 				...myObj
 			};
 			
-			await fetch("http://" + host + "/settings", {
+			await fetch("/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
@@ -4402,7 +4384,7 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			await fetch("/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
@@ -4441,7 +4423,7 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			await fetch("/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
@@ -4473,7 +4455,7 @@
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			await fetch("/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
@@ -4582,7 +4564,7 @@
 				};
 			}
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			await fetch("/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
@@ -4605,7 +4587,7 @@
 			};
 			// set title to hostname
 			setTitle(hostname);
-			await fetch("http://" + host + "/wificonfig", {
+			await fetch("/wificonfig", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
@@ -4638,7 +4620,7 @@
 					static_dns2: document.getElementById('static_dns2').value,
 				};
 			}
-			await fetch("http://" + host + "/savedSSIDs", {
+			await fetch("/savedSSIDs", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
@@ -4772,7 +4754,7 @@
 			return dDisplay + hDisplay + mDisplay;
 		}
 		async function fetchInfo() {
-			let info = await (await fetch("http://" + host + "/info")).json();
+			let info = await (await fetch("/info")).json();
 			console.log(info);
 			let content = i18next.t("systeminfo.softwareversion", {
 				softwareversion: info.software.version
@@ -4843,7 +4825,7 @@
 			$('#modalInfoContent').html(content);
 		}
 		async function fetchLog() {
-			let logtext = await (await fetch("http://" + host + "/log")).text();
+			let logtext = await (await fetch("/log")).text();
 			$('#modalLogContent').text(logtext);
 			jQuery('#modalLogContent').animate({
 				scrollTop: 999999
@@ -5155,7 +5137,7 @@
 			
 			setTimeout(function() {
 				if (!initialSettingsLoaded) {
-					fetch("http://" + host + "/settings")
+					fetch("/settings")
 						.then(function(r) { return r.json(); })
 						.then(function(data) { if (data && !initialSettingsLoaded) fillSettings(data); })
 						.catch(function(e) {
