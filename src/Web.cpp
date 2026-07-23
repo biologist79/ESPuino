@@ -591,6 +591,7 @@ void webserverStart(void) {
 			// make a backup first
 			Web_DumpNvsToSd("rfidTags", backupFile);
 			if (gPrefsRfid.clear()) {
+				Rfid_ResetLastTag(); // Every tag means something else now (namely: nothing)
 				request->send(200);
 			} else {
 				request->send(500);
@@ -1045,6 +1046,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 				return WebsocketCodeType::Error;
 			}
 		}
+		Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
 	} else if (doc["rfidAssign"].is<JsonObject>()) {
 		const char *_rfidIdAssinId = doc["rfidAssign"]["rfidIdMusic"];
@@ -1057,9 +1059,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		char rfidString[275];
 		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
 		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
-		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid(); // Set old rfid-id to crap in order to allow to re-apply a new assigned rfid-tag exactly once
-		}
+		Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
 
 		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
 		if (s.compareTo(rfidString)) {
@@ -2261,9 +2261,7 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playModeString = param->value();
 
 		playMode = atoi(playModeString.c_str());
-		if (gPlayProperties.dontAcceptRfidTwice) {
-			Rfid_ResetOldRfid();
-		}
+		Rfid_ResetLastTag(); // Another playlist is loaded now: re-applying the last tag must reload it, not toggle pause
 		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
@@ -2645,6 +2643,7 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 	char rfidString[275];
 	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playModeOrModId, stringDelimiter);
 	gPrefsRfid.putString(tagId.c_str(), rfidString);
+	Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
 
 	String s = gPrefsRfid.getString(tagId.c_str(), "-1");
 	if (s.compareTo(rfidString)) {
@@ -2676,6 +2675,7 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 			Cmd_Action(CMD_STOP);
 		}
 		if (gPrefsRfid.remove(tagId.c_str())) {
+			Rfid_ResetLastTag(); // The tag means nothing now: make sure re-applying it is not deduped away
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
 		} else {
@@ -2785,6 +2785,7 @@ void Web_DumpSdToNvs(const char *_filename) {
 	}
 
 	Led_SetPause(false);
+	Rfid_ResetLastTag(); // Tags may mean something else now: make sure re-applying one is not deduped away
 	Log_Printf(LOGLEVEL_NOTICE, importCountNokNvs, invalidCount);
 	tmpFile.close();
 	gFSystem.remove(_filename);
