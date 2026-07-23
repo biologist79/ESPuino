@@ -35,6 +35,7 @@
 		"general": "Général",
 		"updates": "Mises à jour",
 		"tools": "Outils",
+		"mediahub": "MediaHub",
 		"help": "Aide"
 	},
 	"settingsex": {
@@ -275,9 +276,29 @@
 					"13": "🎲📁 Toutes les pistes d'un sous-répertoire aléatoire (triées)",
 					"14": "🎲📁🔀 Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
+					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local",
+					"18": "🌐 MediaHub (contenu/mode fourni par le serveur média sélectionné)"
 				},
 				"error": "Mode de lecture invalide"
+			},
+			"mediahub": {
+				"serverSelect": {
+					"title": "Serveur média"
+				},
+				"name": {
+					"title": "Nom affiché",
+					"explanation": "Nom librement choisi affiché pour ce serveur média dans le menu déroulant."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Hôte et port du serveur MediaHub, par ex. 192.168.1.50:8080.",
+					"placeholder": "par ex. 192.168.1.50:8080"
+				},
+				"addButton": "Enregistrer le serveur média",
+				"delete": {
+					"title": "Supprimer le serveur média ?",
+					"prompt": "Vraiment supprimer le serveur média \"{{name}}\" ? Les cartes déjà assignées à ce serveur restent inchangées."
+				}
 			},
 			"mod": {
 				"title": "Modification",
@@ -618,6 +639,12 @@
 				"fetchError": "Impossible de récupérer la liste des micrologiciels."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub est un composant optionnel, exécuté séparément : un petit serveur local fonctionnant comme conteneur Docker sur votre propre réseau. Il permet de gérer de façon centralisée les assignations de cartes RFID pour plusieurs ESPuino - le contenu et le mode de lecture proviennent alors du serveur plutôt que de la configuration NVS locale. Sans serveur MediaHub en cours d'exécution, cette page ne sert à rien. Vous enregistrez ici l'adresse (ou les adresses) de votre/vos serveur(s) MediaHub afin qu'ils apparaissent dans le menu déroulant lors de l'assignation d'une carte.",
+		"serversTitle": "Ajouter un serveur média",
+		"registeredServersTitle": "Serveurs média enregistrés"
 	},
 	"help": {
 		"forum": {

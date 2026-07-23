@@ -513,6 +513,22 @@
 			</div>
 		</div>
 	</div>
+	<!-- Modal dialog for delete MediaHub server-->
+	<div class="modal fade" data-bs-backdrop="static" id="deleteMediaHubServerModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="files.rfid.mediahub.delete.title"></h5>
+				</div>
+				<div class="modal-body">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="cancel"></button>
+					<a class="btn btn-danger btn-ok" data-i18n="delete"></a>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- Modal dialog for delete NVS RFID assignment-->
 	<div class="modal fade" data-bs-backdrop="static" id="deleteRFIDModal" role="dialog">
 		<div class="modal-dialog" role="document">
@@ -608,6 +624,9 @@
 			<a class="nav-item nav-link main-tab-item" id="nav-tools-tab" data-bs-toggle="tab" href="#nav-tools"
 				data-bs-target="#nav-tools" role="tab" aria-controls="nav-tools" aria-selected="false"><i
 					class="fas fa-wrench"></i><span data-i18n="nav.tools"></span></a>
+			<a class="nav-item nav-link main-tab-item" id="nav-mediahub-tab" data-bs-toggle="tab" href="#nav-mediahub"
+				data-bs-target="#nav-mediahub" role="tab" aria-controls="nav-mediahub" aria-selected="false"><i
+					class="fas fa-hard-drive"></i><span data-i18n="nav.mediahub"></span></a>
 			<a class="nav-item nav-link main-tab-item" id="nav-help-tab" data-bs-toggle="tab" href="#nav-help"
 				data-bs-target="#nav-help" role="tab" aria-controls="nav-help" aria-selected="false"><i
 					class="fas fa-comment"></i><span class=".d-sm-none .d-md-block"><span
@@ -1024,7 +1043,15 @@
 										</option>
 										<option class="option-stream" value="11"
 											data-i18n="files.rfid.playmode.mode.11"></option>
+										<option class="option-mediahub" value="18"
+											data-i18n="files.rfid.playmode.mode.18"></option>
 									</select>
+									<div id="mediaHubServerDiv" style="display:none">
+										<label for="mediaHubServerSelect"
+											data-i18n="files.rfid.mediahub.serverSelect.title"></label>
+										<select class="form-control form-select" id="mediaHubServerSelect"
+											name="mediaHubServerSelect"></select>
+									</div>
 								</div>
 								<div class="tab-pane" id="rfidmod" role="tabpanel">
 									<label for="modId" data-i18n="files.rfid.mod.title"></label>
@@ -2417,6 +2444,71 @@
 				</div>
 			</div>
 		</div>
+		<!-- ### Tab MediaHub ### -->
+		<div class="tab-pane main-tab-pane fade mb-4" id="nav-mediahub" role="tabpanel"
+			aria-labelledby="nav-mediahub-tab">
+			<div class="container" id="mediaHubIntro">
+				<legend data-i18n="mediahub.title"></legend>
+				<p data-i18n="mediahub.intro"></p>
+			</div>
+			<div class="container mt-5" id="mediaHubServers">
+				<fieldset>
+					<legend data-i18n="mediahub.serversTitle"></legend>
+					<form action="#mediaHubServers" method="POST"
+						onsubmit="mediaHubServerConfig('mediaHubServers'); return false">
+						<div class="settings-group-card">
+						<div class="mb-3 col-md-12">
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mediaHubServerName" class="col-form-label"
+										data-i18n="[prepend]files.rfid.mediahub.name.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]files.rfid.mediahub.name.explanation" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="text" class="form-control" id="mediaHubServerName"
+										name="mediaHubServerName" maxlength="32" required>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="mediaHubServerHostPort" class="col-form-label"
+										data-i18n="[prepend]files.rfid.mediahub.hostPort.title">:</label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]files.rfid.mediahub.hostPort.explanation"
+										tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="input-group">
+										<select class="form-select flex-grow-0 w-auto" id="mediaHubServerScheme"
+											name="mediaHubServerScheme">
+											<option value="http">http://</option>
+											<option value="https">https://</option>
+										</select>
+										<input type="text" class="form-control" id="mediaHubServerHostPort"
+											name="mediaHubServerHostPort"
+											data-i18n="[placeholder]files.rfid.mediahub.hostPort.placeholder"
+											maxlength="64" required>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div>
+							<button type="submit" class="btn btn-primary"
+								data-i18n="files.rfid.mediahub.addButton"></button>
+						</div>
+						</div>
+					</form>
+					<div class="col-md-12" style="margin-top: 20px;">
+						<legend data-i18n="mediahub.registeredServersTitle"></legend>
+						<div class="settings-group-card">
+						<ul class="list-group" id="mediaHubServerListManaged"></ul>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+		</div>
 		<!-- ### Tab Help ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-help" role="tabpanel" aria-labelledby="nav-help-tab">
 			<div class="container" id="divForum">
@@ -2640,14 +2732,30 @@
 			}
 		});
 		/* Webradio (mode 8) needs a URL, not a file/folder path - prefill "http://" when switching
-		   to it, and restore the file browser's current selection when switching away again */
+		   to it, and restore the file browser's current selection when switching away again.
+		   MediaHub (mode 18) derives fileOrUrl entirely from the server dropdown, so it's made
+		   read-only while that mode is selected instead of being hand-edited. */
 		$('#playMode').on('change', function () {
 			if (this.value === '8') {
 				$('#fileOrUrl').val('http://');
+				$('#fileOrUrl').prop('readonly', false);
+				$('#mediaHubServerDiv').hide();
+			} else if (this.value === '18') {
+				$('#fileOrUrl').prop('readonly', true);
+				$('#mediaHubServerDiv').show();
+				updateFileOrUrlFromMediaHubServer();
 			} else {
 				$('#fileOrUrl').val(lastSelectedNodePath || '/');
+				$('#fileOrUrl').prop('readonly', false);
+				$('#mediaHubServerDiv').hide();
 			}
 		});
+		function updateFileOrUrlFromMediaHubServer() {
+			// the option's value is already "scheme://host:port" (see rebuildMediaHubServerList)
+			let base = $('#mediaHubServerSelect').val();
+			$('#fileOrUrl').val(base ? ('mediahub://' + base) : '');
+		}
+		$('#mediaHubServerSelect').on('change', updateFileOrUrlFromMediaHubServer);
 
 		function doRest(path, callback, obj) {
 			obj.url = path;
@@ -4074,6 +4182,77 @@
 			});
 			await rebuildSSIDList();
 		}
+		// Registered MediaHub servers (concept §5.1): a small local list used purely as
+		// enrollment convenience for the RFID-assignment dropdown - the runtime flow (§11)
+		// never reads it, it only ever fills in the "mediahub://<host:port>" fileOrUrl value.
+		const mediaHubServerListManaged = document.getElementById("mediaHubServerListManaged");
+		const mediaHubServerSelect = document.getElementById("mediaHubServerSelect");
+		async function rebuildMediaHubServerList() {
+			let servers = await (await fetch("http://" + host + "/mediahubservers")).json();
+
+			mediaHubServerSelect.innerHTML = "";
+			for (let server of servers) {
+				// the option's value is the full "scheme://host:port" base: at
+				// assignment time that's exactly what fills the fileOrUrl field
+				// (via mediahub://<value>), the runtime never sees this server list.
+				let base = (server.https ? "https://" : "http://") + server.hostPort;
+				let opt = document.createElement("option");
+				opt.value = base;
+				opt.textContent = server.name + " (" + base + ")";
+				mediaHubServerSelect.appendChild(opt);
+			}
+			if (servers.length === 1) {
+				// only one known hub -> preselect it (concept §5.1)
+				mediaHubServerSelect.selectedIndex = 0;
+			}
+			if ($('#playMode').val() === '18') {
+				updateFileOrUrlFromMediaHubServer();
+			}
+
+			mediaHubServerListManaged.innerHTML = "";
+			for (let server of servers) {
+				let base = (server.https ? "https://" : "http://") + server.hostPort;
+				let elem = document.createElement("li");
+				elem.classList.add("list-group-item");
+				elem.appendChild(document.createTextNode(server.name + " (" + base + ")"));
+				let deleteSpan = document.createElement("span");
+				deleteSpan.classList.add("float-end");
+				deleteSpan.classList.add("button-group");
+				let deleteButton = document.createElement("button");
+				deleteButton.classList.add("btn", "btn-danger", "fa", "fa-trash");
+				deleteButton.setAttribute("data-bs-toggle", "modal");
+				deleteButton.setAttribute("data-bs-target", "#deleteMediaHubServerModal");
+				deleteButton.setAttribute("data-mediahubserver", server.name);
+				deleteSpan.appendChild(deleteButton);
+				elem.appendChild(deleteSpan);
+				mediaHubServerListManaged.appendChild(elem);
+			}
+		}
+		async function deleteMediaHubServer(name) {
+			console.log("deleting mediahub server", name);
+			$('#deleteMediaHubServerModal').modal('hide');
+			await fetch("http://" + host + "/mediahubservers/" + encodeURIComponent(name), {
+				method: "DELETE"
+			});
+			await rebuildMediaHubServerList();
+		}
+		async function mediaHubServerConfig(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				name: document.getElementById('mediaHubServerName').value,
+				hostPort: document.getElementById('mediaHubServerHostPort').value,
+				https: document.getElementById('mediaHubServerScheme').value === 'https'
+			};
+			await fetch("http://" + host + "/mediahubservers", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(myObj)
+			});
+			toaster.info(i18next.t("toast.saved"));
+			await rebuildMediaHubServerList();
+		}
 		const rfidListSavedAssignments = document.getElementById("rfidListSavedAssignments");
 		async function rebuildRFIDList() {
 			var rfidList = await (await fetch("http://" + host + "/rfid")).json();
@@ -4887,6 +5066,7 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			rebuildMediaHubServerList();
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
 				var preview = $('<fieldset class="mt-5 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><div class="settings-group-card"><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></div></fieldset>');
@@ -4904,6 +5084,14 @@
 					ssid: ssid
 				}));
 				$(this).find('.btn-ok').attr('href', "javascript:deleteSSID('" + ssid + "')");
+			})
+			$('#deleteMediaHubServerModal').on('show.bs.modal', function (event) {
+				var name = $(event.relatedTarget).data('mediahubserver')
+				$(this).find('.modal-title').text(i18next.t("files.rfid.mediahub.delete.title"));
+				$(this).find('.modal-body').text(i18next.t("files.rfid.mediahub.delete.prompt", {
+					name: name
+				}));
+				$(this).find('.btn-ok').attr('href', "javascript:deleteMediaHubServer('" + name + "')");
 			})
 			$('#deleteRFIDModal').on('show.bs.modal', function (event) {
 				var rfid = $(event.relatedTarget).data('rfid')

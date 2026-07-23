@@ -18,6 +18,7 @@
 #include "HallEffectSensor.h"
 #include "Led.h"
 #include "Log.h"
+#include "MediaHub.h"
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Rfid.h"
@@ -102,6 +103,9 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 static void handleGetRFIDRequest(AsyncWebServerRequest *request);
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
+static void handleGetMediaHubServers(AsyncWebServerRequest *request);
+static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDeleteMediaHubServers(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
@@ -605,6 +609,12 @@ void webserverStart(void) {
 		wServer.addHandler(new AsyncCallbackJsonWebHandler("/rfid", handlePostRFIDRequest));
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
+
+		// MediaHub registered servers (concept §5.1)
+		wServer.on("/mediahubservers", HTTP_GET, handleGetMediaHubServers);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/mediahubservers", handlePostMediaHubServers));
+		wServer.addRewrite(new OneParamRewrite("/mediahubservers/{name}", "/mediahubservers?name={name}"));
+		wServer.on("/mediahubservers", HTTP_DELETE, handleDeleteMediaHubServers);
 
 		// WiFi scan
 		wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
@@ -2685,7 +2695,18 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 			// stop playback, tag to delete is in use
 			Cmd_Action(CMD_STOP);
 		}
-		if (gPrefsRfid.remove(tagId.c_str())) {
+		// MediaHub cascade (concept §13.1): the NVS entry's path field starts
+		// with "mediahub://" for MediaHub-managed cards. Checked - and cleaned
+		// up - before the NVS entry itself is removed below: if the cleanup
+		// fails, the NVS entry is deliberately left in place so a retry can
+		// still recognize the card as MediaHub-managed and try again. Removing
+		// the NVS entry unconditionally would lose that marker on a partial
+		// failure, orphaning the local media/manifest files forever.
+		const String nvsValue = gPrefsRfid.getString(tagId.c_str(), "");
+		const bool isMediaHubCard = nvsValue.startsWith(String(stringDelimiter) + MediaHub_PathPrefix);
+		const bool mediaHubCleanupOk = !isMediaHubCard || MediaHub_DeleteCard(tagId.c_str());
+
+		if (mediaHubCleanupOk && gPrefsRfid.remove(tagId.c_str())) {
 			Rfid_ResetLastTag(); // The tag means nothing now: make sure re-applying it is not deduped away
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
@@ -2696,6 +2717,46 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 	} else {
 		Log_Printf(LOGLEVEL_DEBUG, "/rfid (DELETE): tag %s not exists", tagId);
 		request->send(404, "text/plain; charset=utf-8", "error removing tag from NVS: Tag not exists");
+	}
+}
+
+// Registered MediaHub servers (concept §5.1): pure Web-UI enrollment
+// convenience, never read by the runtime playback flow.
+static void handleGetMediaHubServers(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	JsonArray arr = response->getRoot();
+	for (const MediaHubServer &server : MediaHub_GetServers()) {
+		JsonObject obj = arr.add<JsonObject>();
+		obj["name"] = server.name;
+		obj["hostPort"] = server.hostPort;
+		obj["https"] = server.https;
+	}
+	response->setLength();
+	request->send(response);
+}
+
+static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVariant &json) {
+	const char *name = json["name"].as<const char *>();
+	const char *hostPort = json["hostPort"].as<const char *>();
+	const bool https = json["https"] | false;
+	if (!name || !hostPort || strlen(name) == 0 || strlen(hostPort) == 0) {
+		request->send(400, "text/plain; charset=utf-8", "error adding media server");
+		return;
+	}
+	if (MediaHub_SaveServer(name, hostPort, https)) {
+		request->send(200, "text/plain; charset=utf-8", name);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error adding media server");
+	}
+}
+
+static void handleDeleteMediaHubServers(AsyncWebServerRequest *request) {
+	const AsyncWebParameter *p = request->getParam("name");
+	const String name = p->value();
+	if (MediaHub_DeleteServer(name)) {
+		request->send(200, "text/plain; charset=utf-8", name);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error deleting media server");
 	}
 }
 

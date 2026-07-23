@@ -236,4 +236,28 @@ const char wifiSetLastSSID[] = "Écrire le dernier SSID réussi dans le NVS pour
 const char mDNSStarted[] = "mDNS démarré : http://%s.local";
 const char mDNSFailed[] = "Échec de mDNS, nom d'hôte : %s";
 const char restartAfterOperationModeChange[] = "Le mode de fonctionnement a changé. Redémarrez ESPuino maintenant...";
+
+// MediaHub
+const char mediaHubPlayingFromCache[] = "MediaHub : tous les fichiers sont présents localement, lecture sans accès réseau.";
+const char mediaHubNotReachable[] = "MediaHub inaccessible.";
+const char mediaHubInvalidPath[] = "MediaHub : adresse du hub invalide dans le NVS.";
+const char mediaHubCardPending[] = "MediaHub : la carte n'est pas encore assignée.";
+const char mediaHubUnexpectedStatus[] = "MediaHub : code de statut inattendu %d.";
+const char mediaHubInvalidManifest[] = "MediaHub : manifeste invalide ou incomplet.";
+const char mediaHubWebstreamFromManifest[] = "MediaHub : démarrage du flux web depuis le manifeste.";
+const char mediaHubBusy[] = "MediaHub : un téléchargement est déjà en cours, carte ignorée.";
+const char mediaHubSdFull[] = "MediaHub : espace SD insuffisant pour le téléchargement.";
+const char mediaHubDownloadingFile[] = "MediaHub : téléchargement de %s.";
+const char mediaHubDownloadFailed[] = "MediaHub : échec du téléchargement de %s.";
+const char mediaHubDownloadHttpError[] = "MediaHub : statut HTTP %d lors du téléchargement de %s.";
+const char mediaHubDownloadFileError[] = "MediaHub : impossible d'ouvrir le fichier cible pour %s (carte SD pleine ou défectueuse ?).";
+const char mediaHubDownloadTransferError[] = "MediaHub : connexion interrompue pendant le téléchargement de %s (%u sur %u octets reçus).";
+const char mediaHubDownloadRenameError[] = "MediaHub : impossible de déplacer le fichier téléchargé pour %s (erreur de carte SD ?).";
+const char mediaHubDownloadRate[] = "MediaHub : %s téléchargé (%u octets, %.1f Ko/s).";
+const char mediaHubDownloadAbortedForRestart[] = "MediaHub : téléchargement interrompu en raison d'une demande de redémarrage/veille.";
+const char mediaHubResyncComplete[] = "MediaHub : synchronisation terminée. Repassez la carte pour lancer la lecture.";
+const char mediaHubVerifyFailed[] = "MediaHub : échec de la vérification SHA-256 de %s.";
+const char mediaHubPlayingAfterSync[] = "MediaHub : synchronisation terminée, démarrage de la lecture.";
+const char mediaHubMarkedStale[] = "MediaHub : changement détecté, la carte sera mise à jour au prochain passage.";
+const char mediaHubResyncing[] = "MediaHub : la carte a changé, resynchronisation en cours.";
 #endif

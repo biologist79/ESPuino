@@ -237,3 +237,27 @@ extern const char mDNSFailed[];
 extern const char restartAfterOperationModeChange[];
 extern const char jumpForwardsToFolder[];
 extern const char jumpBackwardsToFolder[];
+
+// MediaHub
+extern const char mediaHubPlayingFromCache[];
+extern const char mediaHubNotReachable[];
+extern const char mediaHubInvalidPath[];
+extern const char mediaHubCardPending[];
+extern const char mediaHubUnexpectedStatus[];
+extern const char mediaHubInvalidManifest[];
+extern const char mediaHubWebstreamFromManifest[];
+extern const char mediaHubBusy[];
+extern const char mediaHubSdFull[];
+extern const char mediaHubDownloadingFile[];
+extern const char mediaHubDownloadFailed[];
+extern const char mediaHubDownloadHttpError[];
+extern const char mediaHubDownloadFileError[];
+extern const char mediaHubDownloadTransferError[];
+extern const char mediaHubDownloadRenameError[];
+extern const char mediaHubDownloadRate[];
+extern const char mediaHubDownloadAbortedForRestart[];
+extern const char mediaHubResyncComplete[];
+extern const char mediaHubVerifyFailed[];
+extern const char mediaHubPlayingAfterSync[];
+extern const char mediaHubMarkedStale[];
+extern const char mediaHubResyncing[];

@@ -61,6 +61,13 @@ AnimationReturnType Animation_Idle(const bool startNewAnimation, CRGBSet &leds);
 AnimationReturnType Animation_Busy(const bool startNewAnimation, CRGBSet &leds);
 AnimationReturnType Animation_Pause(const bool startNewAnimation, CRGBSet &leds);
 AnimationReturnType Animation_Speech(const bool startNewAnimation, CRGBSet &leds);
+AnimationReturnType Animation_Download(const bool startNewAnimation, CRGBSet &leds);
+
+// Pushed by MediaHub via Led_SetDownloadProgress(); Led_Task only ever reads
+// these, it doesn't know MediaHub exists (same arrangement as the
+// LED_INDICATOR flags/gPlayProperties fields other animations key off).
+static bool Led_DownloadActive = false;
+static uint8_t Led_DownloadPercent = 0;
 #endif
 
 #ifdef NEOPIXEL_ENABLE
@@ -461,6 +468,8 @@ static void Led_Task(void *parameter) {
 		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VoltageWarning)) {
 			LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
 			nextAnimation = LedAnimationType::VoltageWarning;
+		} else if (Led_DownloadActive) {
+			nextAnimation = LedAnimationType::Download;
 		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
 			nextAnimation = LedAnimationType::BatteryMeasurement;
 		} else if (LED_INDICATOR_IS_SET(LedIndicatorType::VolumeChange)) {
@@ -566,6 +575,10 @@ static void Led_Task(void *parameter) {
 
 					case LedAnimationType::Progress:
 						ret = Animation_Progress(startNewAnimation, *indicator);
+						break;
+
+					case LedAnimationType::Download:
+						ret = Animation_Download(startNewAnimation, *indicator);
 						break;
 
 					case LedAnimationType::Webstream:
@@ -1092,6 +1105,39 @@ AnimationReturnType Animation_Progress(const bool startNewAnimation, CRGBSet &le
 }
 
 // --------------------------------
+// MediaHub Download Progress Animation
+// --------------------------------
+// Own, non-suspending animation (concept §12): unlike Led_ShowOtaProgress(),
+// this goes through the normal Led_Task priority ladder instead of
+// suspending it, so e.g. an error/voltage-warning can still interrupt it.
+// Fill level comes from Led_SetDownloadProgress(), driven by MediaHub.
+AnimationReturnType Animation_Download(const bool startNewAnimation, CRGBSet &leds) {
+	int32_t animationDelay = 0;
+	static uint16_t lastPercent = 0xFFFF; // force first draw
+
+	if (Led_DownloadPercent != lastPercent || startNewAnimation) {
+		lastPercent = Led_DownloadPercent;
+		leds = CRGB::Black;
+		if (gLedSettings.numIndicatorLeds == 1) {
+			leds[0] = CRGB::DeepSkyBlue;
+			leds[0].nscale8((uint8_t) map(Led_DownloadPercent, 0, 100, 40, 255));
+		} else {
+			const uint32_t ledValue = std::clamp<uint32_t>(map(Led_DownloadPercent, 0, 100, 0, leds.size() * gLedSettings.dimmableStates), 0, leds.size() * gLedSettings.dimmableStates);
+			const uint8_t fullLeds = ledValue / gLedSettings.dimmableStates;
+			const uint8_t lastLed = ledValue % gLedSettings.dimmableStates;
+			for (uint8_t led = 0; led < fullLeds; led++) {
+				leds[Led_Address(led)] = CRGB::DeepSkyBlue;
+			}
+			if (lastLed > 0 && fullLeds < leds.size()) {
+				leds[Led_Address(fullLeds)] = Led_DimColor(CRGB::DeepSkyBlue, lastLed);
+			}
+		}
+		animationDelay = 10;
+	}
+	return AnimationReturnType(false, animationDelay, true);
+}
+
+// --------------------------------
 // Volume-Change Animation
 // --------------------------------
 // - Single-LED: led indicates loudness between green (low) => red (high)
@@ -1344,6 +1390,15 @@ void Led_TaskResume(void) {
 	if (Led_TaskHandle != NULL) {
 		vTaskResume(Led_TaskHandle);
 	}
+#endif
+}
+
+// Feeds the Download animation's priority check and fill level (concept §12);
+// pure state, picked up by Led_Task on its next iteration.
+void Led_SetDownloadProgress(bool active, uint8_t percent) {
+#ifdef NEOPIXEL_ENABLE
+	Led_DownloadActive = active;
+	Led_DownloadPercent = percent;
 #endif
 }
 
