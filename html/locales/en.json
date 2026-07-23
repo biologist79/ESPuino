@@ -462,9 +462,11 @@
 		"volume": {
 			"title": "Volume",
 			"restart": "After restart",
+			"min": "Minimum",
 			"speakerMax": "Max. volume (speaker)",
 			"headphoneMax": "Max. volume (headphones)",
 			"restartExp": "Volume ESPuino starts with after power-up (unless 'Remember last volume' is enabled).",
+			"minExp": "Lowest selectable volume. Prevents ESPuino from being muted entirely - e.g. so children cannot accidentally turn it silent. Must be lower than both maximum volumes. Takes effect after a restart.",
 			"speakerMaxExp": "Maximum volume allowed when playing back through the speaker.",
 			"headphoneMaxExp": "Maximum volume allowed when playing back through headphones."
 		},

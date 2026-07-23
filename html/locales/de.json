@@ -462,9 +462,11 @@
 		"volume": {
 			"title": "Lautstärke",
 			"restart": "Nach dem Einschalten",
+			"min": "Minimal",
 			"speakerMax": "Maximal (Lautsprecher)",
 			"headphoneMax": "Maximal (Kopfhörer)",
 			"restartExp": "Lautstärke, mit der ESPuino nach dem Einschalten startet (sofern 'Letzte Lautstärke merken' nicht aktiviert ist).",
+			"minExp": "Kleinste einstellbare Lautstärke. Verhindert, dass ESPuino ganz stummgeschaltet werden kann - z. B. damit Kinder ihn nicht versehentlich lautlos drehen. Muss kleiner als beide Maximallautstärken sein. Wird erst nach einem Neustart wirksam.",
 			"speakerMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über den Lautsprecher.",
 			"headphoneMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über Kopfhörer."
 		},

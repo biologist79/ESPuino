@@ -422,6 +422,12 @@ void AudioPlayer_Init(void) {
 		Log_Println(wroteMaxLoudnessForSpeakerToNvs, LOGLEVEL_ERROR);
 	}
 
+	// Get minimum volume from NVS. Unlike the max values, 0 (= AUDIOPLAYER_VOLUME_MIN) is a perfectly
+	// valid setting and in fact the default, so a plain read-with-default is used instead of the
+	// "0 means unset, write default" pattern above. AudioPlayer_SetVolume() clamps every volume change
+	// to this floor, so a non-zero value takes effect for all volume sources (rotary, buttons, BT, web).
+	AudioPlayer_SetMinVolume(gPrefsSettings.getUInt("minVolume", AUDIOPLAYER_VOLUME_MIN));
+
 #ifdef HEADPHONE_ADJUST_ENABLE
 	#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
 	pinMode(HP_DETECT, INPUT_PULLUP);
@@ -471,7 +477,10 @@ void AudioPlayer_Init(void) {
 	audio->setI2SCommFMT_LSB(true);
 #endif
 
-	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
+	// Raise the boot volume to the configured minimum if it sits below it: the init/remembered volume is
+	// applied directly here (not via AudioPlayer_SetVolume(), which is where the min-clamp lives), so
+	// without this the box could start below its own floor until the first volume change.
+	AudioPlayer_CurrentVolume = std::max(AudioPlayer_GetInitVolume(), AudioPlayer_GetMinVolume());
 	// DMA-settings must be adjusted before setting the pinout
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
 		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);

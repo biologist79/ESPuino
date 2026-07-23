@@ -462,9 +462,11 @@
 		"volume": {
 			"title": "Volume",
 			"restart": "Après le redémarrage",
+			"min": "Minimum",
 			"speakerMax": "Volume maximal (haut-parleur)",
 			"headphoneMax": "Volume maximal (écouteurs)",
 			"restartExp": "Volume avec lequel ESPuino démarre après la mise sous tension (sauf si 'Mémoriser le dernier volume' est activé).",
+			"minExp": "Volume minimal réglable. Empêche de couper complètement le son d'ESPuino - par exemple pour que les enfants ne puissent pas le rendre muet par accident. Doit être inférieur aux deux volumes maximum. Prend effet après un redémarrage.",
 			"speakerMaxExp": "Volume maximal autorisé lors de la lecture via le haut-parleur.",
 			"headphoneMaxExp": "Volume maximal autorisé lors de la lecture via un casque."
 		},

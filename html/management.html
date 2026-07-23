@@ -1363,6 +1363,30 @@
 							</div>
 							<div class="row mb-2 align-items-center">
 								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="minVolume" class="col-form-label"
+										data-i18n="general.volume.min"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.volume.minExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="col-auto fas fa-volume-down fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" type="number" data-slider-min="0" data-slider-max="21"
+												min="0" max="21" class="form-control" id="minVolume"
+												name="minVolume" data-slider-value="" value="" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="col-auto fas fa-volume-up fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="maxVolumeSpeaker" class="col-form-label"
 										data-i18n="general.volume.speakerMax"></label>
 									<a href="#" class="link-secondary" data-bs-toggle="popover"
@@ -3786,6 +3810,7 @@
 			let genSettings = settings.general;
 			if (genSettings) {
 				$('#initialVolume').bootstrapSlider('setValue', genSettings.initVolume);
+				$('#minVolume').bootstrapSlider('setValue', genSettings.minVolume);
 				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
@@ -4274,6 +4299,7 @@
 			var myObj = {
 				"general": {
 					initVolume: Number($('#initialVolume').val()),
+					minVolume: Number($('#minVolume').val()),
 					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
 					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 					sleepInactivity: Number($('#inactivityTime').val()),
@@ -4958,6 +4984,7 @@
 			Slider_AddStepper('gainHighPass', 1);
 			// Volume
 			Slider_AddStepper('initialVolume', 1);
+			Slider_AddStepper('minVolume', 1);
 			Slider_AddStepper('maxVolumeSpeaker', 1);
 			Slider_AddStepper('maxVolumeHeadphone', 1);
 			// LED brightness

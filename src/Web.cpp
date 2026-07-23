@@ -742,7 +742,16 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (doc["general"].is<JsonObject>()) {
 		// general settings
 		JsonObject generalObj = doc["general"];
+		// A minimum volume that is not strictly below both maximums would leave no usable volume range,
+		// so reject it before writing anything. The HTML input already constrains this, but a direct
+		// REST/websocket POST could bypass that.
+		const uint8_t minVolume = generalObj["minVolume"].as<uint8_t>();
+		if (minVolume >= generalObj["maxVolumeSp"].as<uint8_t>() || minVolume >= generalObj["maxVolumeHp"].as<uint8_t>()) {
+			Log_Println(webSaveSettingsVolumeMinMaxError, LOGLEVEL_ERROR);
+			return WebsocketCodeType::Error;
+		}
 		bool success = (gPrefsSettings.putUInt("initVolume", generalObj["initVolume"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("minVolume", minVolume) != 0);
 		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
@@ -1140,6 +1149,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// general settings
 		JsonObject generalObj = obj["general"].to<JsonObject>();
 		generalObj["initVolume"].set(gPrefsSettings.getUInt("initVolume", 3));
+		generalObj["minVolume"].set(gPrefsSettings.getUInt("minVolume", AUDIOPLAYER_VOLUME_MIN));
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
@@ -1299,6 +1309,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		JsonObject defaultsObj = obj["defaults"].to<JsonObject>();
 		JsonObject genSettings = defaultsObj["general"].to<JsonObject>();
 		genSettings["initVolume"].set(AUDIOPLAYER_VOLUME_INIT);
+		genSettings["minVolume"].set(AUDIOPLAYER_VOLUME_MIN);
 		genSettings["maxVolumeSp"].set(AUDIOPLAYER_VOLUME_MAX);
 		genSettings["maxVolumeHp"].set(18u); // gPrefsSettings.getUInt("maxVolumeHp", 0));
 		genSettings["sleepInactivity"].set(10u); // System_MaxInactivityTime
