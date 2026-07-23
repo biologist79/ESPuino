@@ -258,9 +258,10 @@ your router (or the configured hostname). Using this interface you can:
 - make bindings between RFID tag and a modification type
 - configure MQTT and its topics (if enabled)
 - configure FTP (if enabled)
-- configure initial volume, maximum volume (speaker / headphone), brightness of Neopixel (night mode
-  / default) and inactivity time
-- configure voltage levels for battery mode
+- configure initial volume, minimum volume, maximum volume (speaker / headphone), brightness of
+  Neopixel (night mode / default) and inactivity time
+- configure voltage levels for battery mode (and optionally let ESPuino shut down automatically on
+  critically low voltage)
 - configure type of rfid reader (however, not necessary because of [autodetection](https://forum.espuino.de/t/autoerkennung-von-rfid-reader/4453))
 - view logs / status / current track / cover art (if available)
 - control player
@@ -391,7 +392,8 @@ LED can be used.
 #### Battery Status (optional)
 
 - **Undervoltage**: flashes three times red if battery-voltage is too low. This voltage-level can be
-  configured via web interface.
+  configured via web interface. Optionally, ESPuino can be told to shut down automatically once the
+  voltage drops below a configurable critical level (off by default; enable it via web interface).
 - Short press of rotary encoder's button provides battery-voltage visualisation via Neopixel. Upper
   und lower voltage cut-offs can be adjusted via web interface. So for example if lower voltage is set to 3.2
   V and upper voltage to 4.2 V, 50% of the LEDs indicate a voltage of 3.7 V.
