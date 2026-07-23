@@ -143,6 +143,62 @@ void RfidPn5180_TaskReset(void) {
 	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
 }
 
+// Reads a Type-A card like PN5180ISO14443::readCardSerial(), but polls with WUPA (activateTypeA
+// kind=1, short frame 0x52) instead of REQA (kind=0, 0x26). Per ISO-14443-3 an ACTIVE PICC - the
+// state a card is left in once activateTypeA has selected it - ignores REQA; it answers REQA only
+// from IDLE. WUPA is answered from both IDLE and HALT. So polling with WUPA and parking the card in
+// HALT (mifareHalt) after each read re-reads a resting card on every poll with no RF field
+// power-cycle: first detection (a freshly placed card is IDLE) and re-detection (parked in HALT) are
+// both covered. A removed card answers neither, so activateTypeA returns <=0 and the caller sees a
+// clean miss. readCardSerial() hardcodes REQA and leaves mifareHalt() unused, so both are driven
+// here; the UID validation below matches readCardSerial() so the set of accepted UIDs is unchanged.
+static int8_t Rfid_Pn5180ReadCardWupa(PN5180ISO14443 &nfc, uint8_t *buffer) {
+	uint8_t response[10] = {0};
+	int8_t uidLength = nfc.activateTypeA(response, 1); // 1 = WUPA (wakes IDLE and HALT); 0 would be REQA (IDLE only)
+	if (uidLength <= 0) {
+		return uidLength;
+	}
+	if (uidLength < 4) {
+		return 0;
+	}
+	if ((response[0] == 0xFF) && (response[1] == 0xFF)) {
+		uidLength = 0;
+	}
+	if (response[3] == 0x00) {
+		uidLength = 0;
+	}
+	bool validUID = false;
+	for (int i = 1; i < uidLength; i++) {
+		if ((response[i + 3] != 0x00) && (response[i + 3] != 0xFF)) {
+			validUID = true;
+			break;
+		}
+	}
+	if (uidLength == 4) {
+		if ((response[3] == 0x88)) {
+			validUID = false;
+		}
+	}
+	if (uidLength == 7) {
+		if ((response[6] == 0x88)) {
+			validUID = false;
+		}
+		if ((response[6] == 0x00) && (response[7] == 0x00) && (response[8] == 0x00) && (response[9] == 0x00)) {
+			validUID = false;
+		}
+		if ((response[6] == 0xFF) && (response[7] == 0xFF) && (response[8] == 0xFF) && (response[9] == 0xFF)) {
+			validUID = false;
+		}
+	}
+	if (validUID) {
+		for (int i = 0; i < uidLength; i++) {
+			buffer[i] = response[i + 3];
+		}
+		return uidLength;
+	}
+	return 0;
+}
+
 void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
@@ -201,7 +257,11 @@ void RfidPn5180_Task(void *parameter) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 		} else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
 
-			if (nfc14443.readCardSerial(uid) >= 4) {
+			if (Rfid_Pn5180ReadCardWupa(nfc14443, uid) >= 4) {
+				// Park the just-read card in HALT so the next poll's WUPA can wake and re-read it
+				// (see Rfid_Pn5180ReadCardWupa). mifareHalt() is valid from the ACTIVE state that
+				// activateTypeA leaves the card in.
+				nfc14443.mifareHalt();
 				if (silentHealActive) {
 					// The re-init sweep re-found the still-present card: end the heal silently. The
 					// same-card fast path below (lastCardId was left intact) suppresses re-queue/pause.
