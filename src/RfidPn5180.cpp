@@ -399,7 +399,10 @@ void RfidPn5180_Task(void *parameter) {
 		}
 
 		if (gPlayProperties.pauseIfRfidRemoved) {
-			if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) { // Card removed => pause
+			// Only pause if there's actually something to pause -- otherwise removing a card after the
+			// playlist has already finished naturally queues a PAUSEPLAY that AudioPlayer_Cyclic() then
+			// rejects with "no playmode change while idle", which is a confusing error for a normal action.
+			if (!cardAppliedCurrentRun && cardAppliedLastRun && !gPlayProperties.pausePlay && !gPlayProperties.playlistFinished && gPlayProperties.playMode != NO_PLAYLIST && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) { // Card removed => pause
 				AudioPlayer_SetTrackControl(PAUSEPLAY);
 				Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
 			}
