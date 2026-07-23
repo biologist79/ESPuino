@@ -35,6 +35,18 @@
 #define RFID_PN5180_NFC15693_STATE_GETINVENTORY_PRIVACY 7u
 #define RFID_PN5180_NFC15693_STATE_ACTIVE				100u
 
+// Silent wedge-vs-removal disambiguation before declaring a card removed.
+// The PN5180 can start returning corrupted responses and then stop answering until it is reset
+// (per the PN5180-Library author). A wedged reader is indistinguishable from a removed card - reads
+// just fail - so declaring removal purely on the pn5180Debounce timeout would pause playback on a
+// card that is still present. When reads have failed for the whole debounce window, run ONE silent
+// re-init sweep before declaring removal to tell the two apart: it re-runs the reader's own
+// RESET/SETUPRF/read states (the same sequence the post-removal path uses), steered so the full
+// cross-protocol sweep completes before the wedged protocol is re-read, with removal suppressed
+// throughout. Re-find the card -> it was a wedge: continue silently (the same-card fast path leaves
+// lastCardId intact, so no re-queue or pause). Sweep finds nothing -> real removal: declare it. One
+// sweep per failure episode; a removed card is declared removed one sweep after the debounce.
+
 extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 
@@ -131,6 +143,62 @@ void RfidPn5180_TaskReset(void) {
 	stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
 }
 
+// Reads a Type-A card like PN5180ISO14443::readCardSerial(), but polls with WUPA (activateTypeA
+// kind=1, short frame 0x52) instead of REQA (kind=0, 0x26). Per ISO-14443-3 an ACTIVE PICC - the
+// state a card is left in once activateTypeA has selected it - ignores REQA; it answers REQA only
+// from IDLE. WUPA is answered from both IDLE and HALT. So polling with WUPA and parking the card in
+// HALT (mifareHalt) after each read re-reads a resting card on every poll with no RF field
+// power-cycle: first detection (a freshly placed card is IDLE) and re-detection (parked in HALT) are
+// both covered. A removed card answers neither, so activateTypeA returns <=0 and the caller sees a
+// clean miss. readCardSerial() hardcodes REQA and leaves mifareHalt() unused, so both are driven
+// here; the UID validation below matches readCardSerial() so the set of accepted UIDs is unchanged.
+static int8_t Rfid_Pn5180ReadCardWupa(PN5180ISO14443 &nfc, uint8_t *buffer) {
+	uint8_t response[10] = {0};
+	int8_t uidLength = nfc.activateTypeA(response, 1); // 1 = WUPA (wakes IDLE and HALT); 0 would be REQA (IDLE only)
+	if (uidLength <= 0) {
+		return uidLength;
+	}
+	if (uidLength < 4) {
+		return 0;
+	}
+	if ((response[0] == 0xFF) && (response[1] == 0xFF)) {
+		uidLength = 0;
+	}
+	if (response[3] == 0x00) {
+		uidLength = 0;
+	}
+	bool validUID = false;
+	for (int i = 1; i < uidLength; i++) {
+		if ((response[i + 3] != 0x00) && (response[i + 3] != 0xFF)) {
+			validUID = true;
+			break;
+		}
+	}
+	if (uidLength == 4) {
+		if ((response[3] == 0x88)) {
+			validUID = false;
+		}
+	}
+	if (uidLength == 7) {
+		if ((response[6] == 0x88)) {
+			validUID = false;
+		}
+		if ((response[6] == 0x00) && (response[7] == 0x00) && (response[8] == 0x00) && (response[9] == 0x00)) {
+			validUID = false;
+		}
+		if ((response[6] == 0xFF) && (response[7] == 0xFF) && (response[8] == 0xFF) && (response[9] == 0xFF)) {
+			validUID = false;
+		}
+	}
+	if (validUID) {
+		for (int i = 0; i < uidLength; i++) {
+			buffer[i] = response[i + 3];
+		}
+		return uidLength;
+	}
+	return 0;
+}
+
 void RfidPn5180_Task(void *parameter) {
 	static PN5180ISO14443 nfc14443(RFID_CS, RFID_BUSY, RFID_RST);
 	static PN5180ISO15693 nfc15693(RFID_CS, RFID_BUSY, RFID_RST);
@@ -143,6 +211,9 @@ void RfidPn5180_Task(void *parameter) {
 	static byte cardId[cardIdSize], lastCardId[cardIdSize];
 	uint8_t uid[10];
 	bool showDisablePrivacyNotification = true;
+	bool silentHealActive = false; // a full re-init sweep is in progress to un-wedge a still-present card
+	uint32_t silentHealStartMs = 0; // millis() when the current heal started (for the recover/give-up logs)
+	uint8_t silentHealGiveUpState = 0; // the wedged protocol's read state; the sweep concludes when it is re-reached
 
 	// wait until queues are created
 	while (gRfidCardQueue == NULL) {
@@ -186,16 +257,53 @@ void RfidPn5180_Task(void *parameter) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 		} else if (RFID_PN5180_NFC14443_STATE_READCARD == stateMachine) {
 
-			if (nfc14443.readCardSerial(uid) >= 4) {
+			if (Rfid_Pn5180ReadCardWupa(nfc14443, uid) >= 4) {
+				// Park the just-read card in HALT so the next poll's WUPA can wake and re-read it
+				// (see Rfid_Pn5180ReadCardWupa). mifareHalt() is valid from the ACTIVE state that
+				// activateTypeA leaves the card in.
+				nfc14443.mifareHalt();
+				if (silentHealActive) {
+					// The re-init sweep re-found the still-present card: end the heal silently. The
+					// same-card fast path below (lastCardId was left intact) suppresses re-queue/pause.
+					Log_Printf(LOGLEVEL_DEBUG, "PN5180 silent heal recovered ISO-14443 card after %u ms", millis() - silentHealStartMs);
+					silentHealActive = false;
+				}
 				cardReceived = true;
 				stateMachine = RFID_PN5180_NFC14443_STATE_ACTIVE;
 				lastTimeDetected14443 = millis();
 				cardAppliedCurrentRun = true;
+			} else if (silentHealActive) {
+				// A heal sweep is running. Conclude it only when the ISO-14443 read is the one being
+				// healed and it fails after a full re-init sweep -> the card is really gone. Otherwise
+				// this failed 14443 read is just a step in an ISO-15693 heal sweep: keep walking
+				// (bottom-of-loop state++), do not declare removal or re-enter the fast path.
+				if (silentHealGiveUpState == RFID_PN5180_NFC14443_STATE_READCARD) {
+					Log_Printf(LOGLEVEL_DEBUG, "PN5180 silent heal gave up after %u ms (ISO-14443 card not re-found)", millis() - silentHealStartMs);
+					silentHealActive = false;
+					lastTimeDetected14443 = 0;
+					cardAppliedCurrentRun = false;
+					for (uint8_t i = 0; i < cardIdSize; i++) {
+						lastCardId[i] = 0;
+					}
+				}
 			} else {
 				// Reset to dummy-value if no card is there
 				// Necessary to differentiate between "card is still applied" and "card is re-applied again after removal"
 				// lastTimeDetected14443 is used to prevent "new card detection with old card" with single events where no card was detected
 				if (!lastTimeDetected14443 || (millis() - lastTimeDetected14443 >= debounceMs)) {
+					if (lastTimeDetected14443) {
+						// A card was present and reads have failed for the whole debounce window: either
+						// the card was removed or the reader has wedged. Run ONE silent re-init sweep
+						// before declaring removal to tell them apart. Steer to the ISO-15693 RESET so
+						// the full cross-protocol sweep runs before the ISO-14443 read that concludes the
+						// heal; continue so RESET executes next. Removal stays suppressed until it ends.
+						silentHealActive = true;
+						silentHealStartMs = millis();
+						silentHealGiveUpState = RFID_PN5180_NFC14443_STATE_READCARD;
+						Log_Printf(LOGLEVEL_DEBUG, "PN5180 wedge/removal suspected (%u ms since last good ISO-14443 read): silent re-init", millis() - lastTimeDetected14443);
+						stateMachine = RFID_PN5180_NFC15693_STATE_RESET;
+						continue;
+					}
 					lastTimeDetected14443 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
@@ -239,13 +347,41 @@ void RfidPn5180_Task(void *parameter) {
 			// try to read ISO15693 inventory
 			ISO15693ErrorCode rc = nfc15693.getInventory(uid);
 			if (rc == ISO15693_EC_OK) {
+				if (silentHealActive) {
+					Log_Printf(LOGLEVEL_DEBUG, "PN5180 silent heal recovered ISO-15693 card after %u ms", millis() - silentHealStartMs);
+					silentHealActive = false;
+				}
 				cardReceived = true;
 				stateMachine = RFID_PN5180_NFC15693_STATE_ACTIVE;
 				lastTimeDetected15693 = millis();
 				cardAppliedCurrentRun = true;
+			} else if (silentHealActive) {
+				// Heal sweep running (see ISO-14443 path). Conclude only when the ISO-15693 read is
+				// the one being healed and it failed after a full sweep -> card really gone. Otherwise
+				// this failed 15693 read is just a step in an ISO-14443 heal sweep: keep walking.
+				if (silentHealGiveUpState == RFID_PN5180_NFC15693_STATE_GETINVENTORY) {
+					Log_Printf(LOGLEVEL_DEBUG, "PN5180 silent heal gave up after %u ms (ISO-15693 card not re-found)", millis() - silentHealStartMs);
+					silentHealActive = false;
+					lastTimeDetected15693 = 0;
+					cardAppliedCurrentRun = false;
+					for (uint8_t i = 0; i < cardIdSize; i++) {
+						lastCardId[i] = 0;
+					}
+				}
 			} else {
 				// lastTimeDetected15693 is used to prevent "new card detection with old card" with single events where no card was detected
 				if (!lastTimeDetected15693 || (millis() - lastTimeDetected15693 >= debounceMs)) {
+					if (lastTimeDetected15693) {
+						// Real wedge or real removal (see ISO-14443 path): try ONE silent re-init sweep
+						// before declaring removal. Steer to the ISO-14443 RESET so the full cross-
+						// protocol sweep runs first and the ISO-15693 read concludes the heal; continue.
+						silentHealActive = true;
+						silentHealStartMs = millis();
+						silentHealGiveUpState = RFID_PN5180_NFC15693_STATE_GETINVENTORY;
+						Log_Printf(LOGLEVEL_DEBUG, "PN5180 wedge/removal suspected (%u ms since last good ISO-15693 read): silent re-init", millis() - lastTimeDetected15693);
+						stateMachine = RFID_PN5180_NFC14443_STATE_RESET;
+						continue;
+					}
 					lastTimeDetected15693 = 0;
 					cardAppliedCurrentRun = false;
 					for (uint8_t i = 0; i < cardIdSize; i++) {
