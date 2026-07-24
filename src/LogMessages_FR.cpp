@@ -48,6 +48,7 @@ const char rfid15693TagDetected[] = "Tag RFID (ISO-15693) détecté : ";
 const char rfidTagReceived[] = "Tag RFID reçu";
 const char dontAccepctSameRfid[] = "Même tag RFID réappliqué - rejeté ! (%s)";
 const char rfidTagUnknownInNvs[] = "Le tag RFID est inconnu dans NVS.";
+const char unknownRfidDefaultNotFound[] = "Valeur par défaut pour les cartes inconnues introuvable : %s";
 const char goToSleepDueToIdle[] = "Mise en veille profonde en raison du minuteur d'inactivité...";
 const char goToSleepDueToTimer[] = "Mise en veille profonde en raison du minuteur d'arrêt...";
 const char goToSleepNow[] = "Mise en veille profonde maintenant !";

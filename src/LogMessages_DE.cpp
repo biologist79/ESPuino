@@ -49,6 +49,7 @@ const char rfid15693TagDetected[] = "RFID-Karte (ISO-15693) erkannt: ";
 const char rfidTagReceived[] = "RFID-Karte empfangen";
 const char dontAccepctSameRfid[] = "Aktuelle RFID-Karte erneut aufgelegt - abgelehnt! (%s)";
 const char rfidTagUnknownInNvs[] = "RFID-Karte ist im NVS nicht hinterlegt.";
+const char unknownRfidDefaultNotFound[] = "Standard für unbekannte Karten nicht gefunden: %s";
 const char goToSleepDueToIdle[] = "Gehe in Deep Sleep wegen Inaktivität...";
 const char goToSleepDueToTimer[] = "Gehe in Deep Sleep wegen Sleep Timer...";
 const char goToSleepNow[] = "Gehe jetzt in Deep Sleep!";

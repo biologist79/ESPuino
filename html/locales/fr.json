@@ -513,6 +513,8 @@
 			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Ne peut pas être utilisé avec <em>Mettre en pause si la balise RFID est retirée</em>.",
 			"resumeOnSameRfid": "Reprendre la lecture si la même RFID est reposée",
 			"resumeOnSameRfidExp": "Si la lecture est en pause et que la même balise RFID est reposée, la lecture reprend. Actif uniquement si <em>Ne pas accepter la balise RFID deux fois</em> est activé.",
+			"unknownRfidPath": "Par défaut pour les cartes inconnues",
+			"unknownRfidPathExp": "Fichier ou dossier à lire lorsqu'une balise RFID non attribuée est scannée. Un fichier est lu comme une piste unique, un dossier lit toutes ses pistes triées. Laisser vide pour désactiver (une balise inconnue affiche alors une erreur).",
 			"playLastRfidOnReboot": "Lire la dernière balise RFID au redémarrage",
 			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage.",
 			"pauseOnMinVolume": "Pause au volume minimal",

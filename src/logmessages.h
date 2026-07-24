@@ -45,6 +45,7 @@ extern const char rfid15693TagDetected[];
 extern const char rfidTagReceived[];
 extern const char dontAccepctSameRfid[];
 extern const char rfidTagUnknownInNvs[];
+extern const char unknownRfidDefaultNotFound[];
 extern const char goToSleepDueToIdle[];
 extern const char goToSleepDueToTimer[];
 extern const char goToSleepNow[];

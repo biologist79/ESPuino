@@ -10,6 +10,7 @@
 #include "Queues.h"
 #include "Rfid.h"
 #include "RfidConfig.h"
+#include "SdCard.h"
 #include "System.h"
 #include "Web.h"
 
@@ -40,6 +41,37 @@ void Rfid_PreferenceLookupHandler(void) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 		}
 		if (!s.compareTo("-1")) {
+			// Unknown card: play the configured default if one is set and exists, else the legacy error.
+			const String unknownPath = gPrefsSettings.getString("unknownPath", "");
+			if (!unknownPath.isEmpty() && System_GetOperationMode() == OPMODE_NORMAL) {
+				File item = gFSystem.open(unknownPath);
+				if (item) {
+					const uint32_t playMode = item.isDirectory() ? ALL_TRACKS_OF_DIR_SORTED : SINGLE_TRACK;
+					item.close();
+					// Mirror the music-card dedup bookkeeping so a later tap of a real card is not wrongly
+					// rejected as "same RFID twice", and re-applying this tag honours dontAcceptRfidTwice.
+					// gOldRfidTagId is reset on idle via Rfid_ResetOldRfid (not Rfid_ResetLastTag), so the
+					// reader's own buffer is untouched and the resting tag still won't re-trigger in a loop.
+					if (gPlayProperties.dontAcceptRfidTwice) {
+						if (strncmp(gCurrentRfidTagId, gOldRfidTagId, 12) == 0) {
+							if (gPlayProperties.pausePlay && gPlayProperties.resumeOnSameRfid) {
+								Log_Printf(LOGLEVEL_INFO, "Same RFID while paused -> resume playback (%s)", gCurrentRfidTagId);
+								AudioPlayer_SetTrackControl(PAUSEPLAY);
+								return;
+							}
+							Log_Printf(LOGLEVEL_ERROR, dontAccepctSameRfid, gCurrentRfidTagId);
+							return;
+						}
+						strncpy(gOldRfidTagId, gCurrentRfidTagId, 12);
+						AudioPlayer_ArmRfidResetOnIdle();
+					}
+					AudioPlayer_SetPlaylist(unknownPath.c_str(), 0, playMode, 0);
+					return;
+				}
+				// Configured but missing (typo / SD swap): fall through to the legacy error instead of
+				// handing a bad path to SetPlaylist, which would STOP current playback on a not-found file.
+				Log_Printf(LOGLEVEL_ERROR, unknownRfidDefaultNotFound, unknownPath.c_str());
+			}
 			Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 			System_IndicateError();
 			// allow to escape from bluetooth mode with an unknown card, switch back to normal mode

@@ -1505,6 +1505,13 @@
 									class="fas fa-circle-question"></i></a>
 						</div>
 							<div class="d-flex gap-2">
+								<label for="unknownRfidPath" data-i18n="general.options.unknownRfidPath"></label>
+								<input type="text" class="form-control form-control-sm" id="unknownRfidPath" name="unknownRfidPath" placeholder="/">
+								<a href="#" class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.options.unknownRfidPathExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
 								<a href="#" class="link-secondary" data-bs-toggle="popover"
@@ -3825,6 +3832,7 @@
 				$('#dontAcceptRfidTwice').prop('disabled', genSettings.pauseIfRfidRemoved);
 				$('#resumeOnSameRfid').prop('checked', genSettings.resumeOnSameRfid);
 				$('#resumeOnSameRfid').prop('disabled', genSettings.pauseIfRfidRemoved || !genSettings.dontAcceptRfidTwice);
+				$('#unknownRfidPath').val(genSettings.unknownRfidPath || '');
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
@@ -4311,6 +4319,7 @@
 					pauseIfRfidRemoved: $('#pauseIfRfidRemoved').prop('checked'),
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
 					resumeOnSameRfid: $('#resumeOnSameRfid').prop('checked'),
+					unknownRfidPath: $('#unknownRfidPath').val(),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,

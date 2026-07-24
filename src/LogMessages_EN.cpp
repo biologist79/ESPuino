@@ -49,6 +49,7 @@ const char rfid15693TagDetected[] = "RFID-ta (ISO-15693) detected: ";
 const char rfidTagReceived[] = "RFID-tag received";
 const char dontAccepctSameRfid[] = "Reapplied same rfid-tag - rejected! (%s)";
 const char rfidTagUnknownInNvs[] = "RFID-tag is unkown to NVS.";
+const char unknownRfidDefaultNotFound[] = "Default for unknown cards not found: %s";
 const char goToSleepDueToIdle[] = "Going to deepsleep due to inactivity-timer...";
 const char goToSleepDueToTimer[] = "Going to deepsleep due to sleep timer...";
 const char goToSleepNow[] = "Going to deepsleep now!";

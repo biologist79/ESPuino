@@ -513,6 +513,8 @@
 			"dontAcceptRfidTwiceExp": "Denselben RFID-Tag nicht erneut akzeptieren. Kann nicht zusammen mit <em>Pause wenn RFID-Tag entfernt</em> verwendet werden.",
 			"resumeOnSameRfid": "Wechsel von Pause zu Play bei erneutem Auflegen",
 			"resumeOnSameRfidExp": "Wenn die Wiedergabe pausiert ist und derselbe RFID-Tag erneut aufgelegt wird, wird die Wiedergabe fortgesetzt. Funktioniert nur, wenn <em>Denselben RFID-Tag nicht erneut akzeptieren</em> aktiv ist.",
+			"unknownRfidPath": "Standard für unbekannte Karten",
+			"unknownRfidPathExp": "Datei oder Ordner, die/der abgespielt wird, wenn ein nicht zugewiesener RFID-Tag aufgelegt wird. Eine Datei wird als einzelner Titel abgespielt, ein Ordner spielt alle Titel sortiert. Leer lassen zum Deaktivieren (ein unbekannter Tag zeigt dann einen Fehler).",
 			"playLastRfidOnReboot": "Letzten RFID-Tag nach Neustart abspielen",
 			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
