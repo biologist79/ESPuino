@@ -797,11 +797,25 @@ void AudioPlayer_Loop() {
 					AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber + 1);
 				}
 			}
-			if (gPlayProperties.sleepAfterCurrentTrack) { // Go to sleep if "sleep after track" was requested
+			if (gPlayProperties.sleepAfterCurrentTrack) {
 				gPlayProperties.playlistFinished = true;
 				gPlayProperties.playMode = NO_PLAYLIST;
+
+				gPlayProperties.sleepAfterCurrentTrack = false;
+				gPlayProperties.sleepAfterPlaylist = false;
+				gPlayProperties.playUntilTrackNumber = 0;
+
+#ifdef MQTT_ENABLE
+				publishMqtt(
+				    topicSleepTimer,
+				    static_cast<uint32_t>(0),
+				    false
+				);
+				Mqtt_PublishSleepTimerState();
+#endif
+
 				System_RequestSleep();
-				return; // TODO-> check if this is necessary or if we need a flag here
+				return;
 			}
 			if (!gPlayProperties.repeatCurrentTrack) { // If endless-loop requested, track-number will not be incremented
 				gPlayProperties.currentTrackNumber++;
@@ -1057,13 +1071,41 @@ void AudioPlayer_Loop() {
 				System_IndicateError();
 				return;
 		}
-
-		if (gPlayProperties.playUntilTrackNumber == gPlayProperties.currentTrackNumber && gPlayProperties.playUntilTrackNumber > 0) {
+#ifdef MQTT_ENABLE
+		if (gPlayProperties.playUntilTrackNumber > 0) {
+			Mqtt_PublishSleepTimerState();
+		}
+#endif
+		if (
+		    gPlayProperties.playUntilTrackNumber ==
+		        gPlayProperties.currentTrackNumber &&
+		    gPlayProperties.playUntilTrackNumber > 0
+		) {
 			if (gPlayProperties.saveLastPlayPosition) {
-				AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, 0);
+				AudioPlayer_NvsRfidWriteWrapper(
+				    gPlayProperties.playRfidTag,
+				    0,
+				    gPlayProperties.playMode,
+				    0
+				);
 			}
+
 			gPlayProperties.playlistFinished = true;
 			gPlayProperties.playMode = NO_PLAYLIST;
+
+			gPlayProperties.sleepAfterCurrentTrack = false;
+			gPlayProperties.sleepAfterPlaylist = false;
+			gPlayProperties.playUntilTrackNumber = 0;
+
+#ifdef MQTT_ENABLE
+			publishMqtt(
+			    topicSleepTimer,
+			    static_cast<uint32_t>(0),
+			    false
+			);
+			Mqtt_PublishSleepTimerState();
+#endif
+
 			System_RequestSleep();
 			return;
 		}
@@ -1083,14 +1125,46 @@ void AudioPlayer_Loop() {
 				publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 #endif
 				gPlayProperties.currentTrackNumber = 0;
+
 				if (gPlayProperties.sleepAfterPlaylist) {
+					gPlayProperties.sleepAfterCurrentTrack = false;
+					gPlayProperties.sleepAfterPlaylist = false;
+					gPlayProperties.playUntilTrackNumber = 0;
+
+#ifdef MQTT_ENABLE
+					publishMqtt(
+					    topicSleepTimer,
+					    static_cast<uint32_t>(0),
+					    false
+					);
+					Mqtt_PublishSleepTimerState();
+#endif
+
 					System_RequestSleep();
 				}
+
 				return;
 			} else { // Check if sleep after current track/playlist was requested
-				if (gPlayProperties.sleepAfterPlaylist || gPlayProperties.sleepAfterCurrentTrack) {
+				if (
+				    gPlayProperties.sleepAfterPlaylist ||
+				    gPlayProperties.sleepAfterCurrentTrack
+				) {
 					gPlayProperties.playlistFinished = true;
 					gPlayProperties.playMode = NO_PLAYLIST;
+
+					gPlayProperties.sleepAfterCurrentTrack = false;
+					gPlayProperties.sleepAfterPlaylist = false;
+					gPlayProperties.playUntilTrackNumber = 0;
+
+#ifdef MQTT_ENABLE
+					publishMqtt(
+					    topicSleepTimer,
+					    static_cast<uint32_t>(0),
+					    false
+					);
+					Mqtt_PublishSleepTimerState();
+#endif
+
 					System_RequestSleep();
 					return;
 				} // Repeat playlist; set current track number back to 0

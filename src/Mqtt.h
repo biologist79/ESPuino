@@ -20,6 +20,7 @@ void Mqtt_Init(void);
 void Mqtt_Exit(void);
 void Mqtt_OnWifiConnected(void);
 bool Mqtt_IsEnabled(void);
+void Mqtt_PublishSleepTimerState(void);
 
 bool publishMqtt(const char *topic, const char *payload, bool retained);
 bool publishMqtt(const char *topic, int32_t payload, bool retained);

@@ -60,6 +60,10 @@ static bool Mqtt_Enabled = false;
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const char *payload_buf, uint32_t payload_length);
+static constexpr const char topicSleepTimerMode[] = "sleepTimerMode";
+static constexpr const char topicSleepTimerActive[] = "sleepTimerActive";
+static constexpr const char topicSleepTimerRemainingMinutes[] = "sleepTimerRemainingMinutes";
+static constexpr const char topicSleepTimerRemainingTracks[] = "sleepTimerRemainingTracks";
 #endif
 
 void Mqtt_Init() {
@@ -296,7 +300,84 @@ bool publishMqtt(const char *topic, uint32_t payload, bool retained) {
 	return false;
 #endif
 }
+void Mqtt_PublishSleepTimerState(void) {
+#ifdef MQTT_ENABLE
+	const char *mode = "OFF";
+	uint32_t active = 0;
+	uint32_t remainingMinutes = 0;
+	uint32_t remainingTracks = 0;
 
+	if (gPlayProperties.sleepAfterCurrentTrack) {
+		mode = "EOT";
+		active = 1;
+		remainingTracks = 1;
+	} else if (gPlayProperties.playUntilTrackNumber > 0) {
+		mode = "EO5T";
+		active = 1;
+
+		if (
+			gPlayProperties.playUntilTrackNumber >= gPlayProperties.currentTrackNumber) {
+			remainingTracks = gPlayProperties.playUntilTrackNumber - gPlayProperties.currentTrackNumber;
+		}
+	} else if (gPlayProperties.sleepAfterPlaylist) {
+		mode = "EOP";
+		active = 1;
+
+		if (gPlayProperties.playlist) {
+			const uint32_t playlistSize = static_cast<uint32_t>(
+				gPlayProperties.playlist->size());
+
+			const uint32_t currentTrack = static_cast<uint32_t>(
+				gPlayProperties.currentTrackNumber);
+
+			if (playlistSize > currentTrack) {
+				remainingTracks = playlistSize - currentTrack;
+			}
+		}
+	} else if (System_GetSleepTimerTimeStamp() > 0) {
+		mode = "MINUTES";
+		active = 1;
+
+		const uint32_t timerStart = System_GetSleepTimerTimeStamp();
+
+		const uint32_t totalMilliseconds = static_cast<uint32_t>(
+											   System_GetSleepTimer())
+			* 60000u;
+
+		const uint32_t currentMilliseconds = millis();
+
+		if (currentMilliseconds >= timerStart) {
+			const uint32_t elapsedMilliseconds = currentMilliseconds - timerStart;
+
+			if (elapsedMilliseconds < totalMilliseconds) {
+				const uint32_t remainingMilliseconds = totalMilliseconds - elapsedMilliseconds;
+
+				remainingMinutes = (remainingMilliseconds + 59999u) / 60000u;
+			}
+		}
+	}
+
+	publishMqtt(
+		topicSleepTimerMode,
+		mode,
+		true);
+
+	publishMqtt(
+		topicSleepTimerActive,
+		active,
+		true);
+
+	publishMqtt(
+		topicSleepTimerRemainingMinutes,
+		remainingMinutes,
+		true);
+
+	publishMqtt(
+		topicSleepTimerRemainingTracks,
+		remainingTracks,
+		true);
+#endif
+}
 template <typename NumberType>
 static NumberType toNumber(const std::string str) {
 	NumberType result;
@@ -357,12 +438,13 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicCoverChanged, "", false);
 			publishMqtt(topicLoudness, static_cast<uint32_t>(AudioPlayer_GetCurrentVolume()), false);
 			publishMqtt(
-    			topicSleepTimer,
-    			System_IsSleepTimerEnabled()
-        			? static_cast<uint32_t>(System_GetSleepTimer())
-        			: static_cast<uint32_t>(0),
-    			false
-			);
+				topicSleepTimer,
+				System_IsSleepTimerEnabled()
+					? static_cast<uint32_t>(System_GetSleepTimer())
+					: static_cast<uint32_t>(0),
+				false);
+			Mqtt_PublishSleepTimerState();
+
 			publishMqtt(topicLockControls, static_cast<uint32_t>(System_AreControlsLocked()), false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // idle
@@ -485,57 +567,116 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				return;
 			}
 			if (payload_str == "EOP") {
+				System_DisableSleepTimer();
+
+				gPlayProperties.sleepAfterCurrentTrack = false;
+				gPlayProperties.playUntilTrackNumber = 0;
 				gPlayProperties.sleepAfterPlaylist = true;
+
 				Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOP", false);
+				Mqtt_PublishSleepTimerState();
+
 				Led_SetNightmode(true);
 				System_IndicateOk();
 				return;
+
 			} else if (payload_str == "EOT") {
+				System_DisableSleepTimer();
+
+				gPlayProperties.sleepAfterPlaylist = false;
+				gPlayProperties.playUntilTrackNumber = 0;
 				gPlayProperties.sleepAfterCurrentTrack = true;
+
 				Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOT", false);
+				Mqtt_PublishSleepTimerState();
+
 				Led_SetNightmode(true);
 				System_IndicateOk();
 				return;
+
 			} else if (payload_str == "EO5T") {
-				if (gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
-					Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_NOTICE);
+				if (
+					gPlayProperties.playMode == NO_PLAYLIST || !gPlayProperties.playlist) {
+					Log_Println(
+						modificatorNotallowedWhenIdle,
+						LOGLEVEL_NOTICE);
 					System_IndicateError();
 					return;
 				}
-				if ((gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
+
+				System_DisableSleepTimer();
+
+				gPlayProperties.sleepAfterCurrentTrack = false;
+				gPlayProperties.sleepAfterPlaylist = false;
+				gPlayProperties.playUntilTrackNumber = 0;
+
+				if (
+					(gPlayProperties.playlist->size() - 1) >= (gPlayProperties.currentTrackNumber + 5)) {
 					gPlayProperties.playUntilTrackNumber = gPlayProperties.currentTrackNumber + 5;
 				} else {
-					gPlayProperties.sleepAfterPlaylist = true; // If +5 tracks is > than active playlist, take end of current playlist
+					gPlayProperties.sleepAfterPlaylist = true;
 				}
+
 				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EO5T", false);
+				Mqtt_PublishSleepTimerState();
+
 				Led_SetNightmode(true);
 				System_IndicateOk();
 				return;
-			} else if (payload_str == "0") { // Disable sleep after it was active previously
-				if (System_IsSleepTimerEnabled()) {
+
+			} else if (payload_str == "0") {
+				const bool sleepModeActive = System_IsSleepTimerEnabled() || gPlayProperties.sleepAfterPlaylist || gPlayProperties.sleepAfterCurrentTrack || gPlayProperties.playUntilTrackNumber > 0;
+
+				if (sleepModeActive) {
 					System_DisableSleepTimer();
-					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
-					System_IndicateOk();
-					Led_SetNightmode(false);
-					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
+
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;
 					gPlayProperties.playUntilTrackNumber = 0;
+
+					Log_Println(
+						sleepTimerStop,
+						LOGLEVEL_NOTICE);
+
+					Led_SetNightmode(false);
+
+					publishMqtt(
+						topicSleepTimer,
+						static_cast<uint32_t>(0),
+						false);
+
+					Mqtt_PublishSleepTimerState();
+					System_IndicateOk();
 				} else {
-					Log_Println(sleepTimerAlreadyStopped, LOGLEVEL_INFO);
+					Log_Println(
+						sleepTimerAlreadyStopped,
+						LOGLEVEL_INFO);
+
 					System_IndicateError();
 				}
+
 				return;
 			}
-			System_SetSleepTimer(toNumber<uint8_t>(payload_str));
-			Log_Printf(LOGLEVEL_NOTICE, sleepTimerSetTo, System_GetSleepTimer());
-			System_IndicateOk();
 
+			// Alles andere wird als Minutenwert behandelt
 			gPlayProperties.sleepAfterPlaylist = false;
 			gPlayProperties.sleepAfterCurrentTrack = false;
+			gPlayProperties.playUntilTrackNumber = 0;
+
+			System_SetSleepTimer(
+				toNumber<uint8_t>(payload_str));
+
+			Mqtt_PublishSleepTimerState();
+
+			Log_Printf(
+				LOGLEVEL_NOTICE,
+				sleepTimerSetTo,
+				System_GetSleepTimer());
+
+			System_IndicateOk();
 		}
 		// Track-control (pause/play, stop, first, last, next, previous)
 		else if (reduced_topic_str == topicTrackControl) {

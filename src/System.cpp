@@ -207,9 +207,18 @@ void System_SleepHandler(void) {
 		const uint32_t totalMs = static_cast<uint32_t>(System_SleepTimer) * 60000u;
 
 		if (elapsedMs >= totalMs) {
+			System_SleepTimerStartTimestamp.store(0u);
+			System_SleepTimer = 0u;
+
 #ifdef MQTT_ENABLE
 			if (lastPublishedSleepMinutes != 0) {
-				publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
+				publishMqtt(
+				    topicSleepTimer,
+				    static_cast<uint32_t>(0),
+				    false
+				);
+				Mqtt_PublishSleepTimerState();
+
 				lastPublishedSleepMinutes = 0;
 			}
 #endif
@@ -224,6 +233,7 @@ void System_SleepHandler(void) {
 #ifdef MQTT_ENABLE
 			if (lastPublishedSleepMinutes != static_cast<int16_t>(remainingMinutes)) {
 				publishMqtt(topicSleepTimer, remainingMinutes, false);
+				Mqtt_PublishSleepTimerState();
 				lastPublishedSleepMinutes = static_cast<int16_t>(remainingMinutes);
 			}
 #endif
