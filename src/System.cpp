@@ -188,6 +188,8 @@ uint8_t System_GetOperationModeFromNvs(void) {
 
 // Sets deep-sleep-flag if max. inactivity-time is reached
 void System_SleepHandler(void) {
+	static int16_t lastPublishedSleepMinutes = -1;
+
 	uint32_t m = millis();
 	uint32_t lastActive = System_LastTimeActiveTimestamp.load();
 	uint32_t sleepStart = System_SleepTimerStartTimestamp.load();
@@ -201,10 +203,34 @@ void System_SleepHandler(void) {
 	}
 
 	if (sleepStart > 0 && m >= sleepStart) {
-		if (m - sleepStart >= (System_SleepTimer * 60000u)) {
+		const uint32_t elapsedMs = m - sleepStart;
+		const uint32_t totalMs = static_cast<uint32_t>(System_SleepTimer) * 60000u;
+
+		if (elapsedMs >= totalMs) {
+#ifdef MQTT_ENABLE
+			if (lastPublishedSleepMinutes != 0) {
+				publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
+				lastPublishedSleepMinutes = 0;
+			}
+#endif
+
 			Log_Println(goToSleepDueToTimer, LOGLEVEL_INFO);
 			System_RequestSleep();
+		} else {
+			// Aufrunden, damit ein 30-Minuten-Timer zunächst auch 30 anzeigt
+			const uint32_t remainingMinutes =
+			    (totalMs - elapsedMs + 59999u) / 60000u;
+
+#ifdef MQTT_ENABLE
+			if (lastPublishedSleepMinutes != static_cast<int16_t>(remainingMinutes)) {
+				publishMqtt(topicSleepTimer, remainingMinutes, false);
+				lastPublishedSleepMinutes = static_cast<int16_t>(remainingMinutes);
+			}
+#endif
 		}
+	} else {
+		// Timer ist nicht aktiv. Beim nächsten Start erneut veröffentlichen.
+		lastPublishedSleepMinutes = -1;
 	}
 }
 
