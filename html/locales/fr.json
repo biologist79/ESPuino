@@ -19,7 +19,8 @@
 		"success": "Action effectuée avec succès.",
 		"dropout": "flux lent, des interruptions sont possibles.",
 		"saved": "Paramètres enregistrés.",
-		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement."
+		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement.",
+		"settingsInvalid": "Enregistrement impossible : veuillez d'abord corriger ces réglages ({{fields}})."
 	},
 	"status": {
 		"connected": "Connexion à l'ESPuino : OK",

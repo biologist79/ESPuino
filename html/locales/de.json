@@ -19,7 +19,8 @@
 		"success": "Aktion erfolgreich ausgeführt.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
 		"saved": "Einstellungen gespeichert.",
-		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen."
+		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen.",
+		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}})."
 	},
 	"status": {
 		"connected": "Verbindung zum ESPuino: OK",
