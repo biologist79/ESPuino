@@ -3124,7 +3124,12 @@
 					return;
 				}
 				const file = files[idx];
-				const targetPath = (path.endsWith('/') ? path : path + '/') + file.name;
+				// For a folder upload (webkitdirectory) each file carries its subfolder path in
+				// webkitRelativePath (e.g. "album/disc1/track.mp3"); use it so the folder structure is
+				// preserved on the SD card. It is "" for a plain file selection, so fall back to file.name.
+				// The server creates missing parent directories from this path (gFSystem.open(..., create=true)).
+				const relName = file.webkitRelativePath || file.name;
+				const targetPath = (path.endsWith('/') ? path : path + '/') + relName;
 				const xhr = new XMLHttpRequest();
 				xhr.open('POST', '/explorer?path=' + encodeURIComponent(targetPath));
 				xhr.setRequestHeader('Content-Type', 'application/octet-stream');
