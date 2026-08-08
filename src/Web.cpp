@@ -485,7 +485,8 @@ void webserverStart(void) {
 			},
 			handleUpload);
 
-		// OTA-upload
+		// OTA-upload. Gated on BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT: without it there
+		// is no ota_0/ota_1 to write into, so the upload is refused rather than half-done.
 		wServer.on(
 			"/update", HTTP_POST, [](AsyncWebServerRequest *request) {
 #ifdef BOARD_HAS_16MB_FLASH_AND_OTA_SUPPORT

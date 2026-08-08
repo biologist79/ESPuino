@@ -21,8 +21,3 @@ CONFIG_SPIRAM_BOOT_INIT=y
 # Forcing 40MHz makes boot reliable; verified full boot + audio playback.
 # Small PSRAM-bandwidth cost, fine for audio. See wiring.md.
 CONFIG_SPIRAM_SPEED_40M=y
-
-# TEMP (wifi debugging): upstream defaults limit IDF logging to errors; INFO
-# exposes the wifi driver's state machine + 802.11 disconnect reason codes.
-# Remove together with -DCORE_DEBUG_LEVEL=3 in platformio-override.ini.
-CONFIG_LOG_DEFAULT_LEVEL_INFO=y
