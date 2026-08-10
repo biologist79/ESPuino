@@ -90,6 +90,17 @@ sdcard_type_t SdCard_GetType(void) {
 	return cardType;
 }
 
+bool SdCard_IsMounted(void) {
+#ifdef NO_SDCARD
+	return false;
+#elif defined(SD_MMC_1BIT_MODE)
+	return SD_MMC.cardType() != CARD_NONE;
+#else
+	return SD.cardType() != CARD_NONE;
+#endif
+}
+
+
 uint64_t SdCard_GetSize() {
 #ifdef SD_MMC_1BIT_MODE
 	return SD_MMC.cardSize();
@@ -97,6 +108,29 @@ uint64_t SdCard_GetSize() {
 	return SD.cardSize();
 #endif
 }
+
+// Capacity of the mounted FAT filesystem. This is the value that belongs
+// together with usedBytes() when calculating the fill level.
+uint64_t SdCard_GetTotalSize() {
+#ifdef NO_SDCARD
+	return 0;
+#elif defined(SD_MMC_1BIT_MODE)
+	return SD_MMC.totalBytes();
+#else
+	return SD.totalBytes();
+#endif
+}
+
+uint64_t SdCard_GetUsedSize() {
+#ifdef NO_SDCARD
+	return 0;
+#elif defined(SD_MMC_1BIT_MODE)
+	return SD_MMC.usedBytes();
+#else
+	return SD.usedBytes();
+#endif
+}
+
 
 uint64_t SdCard_GetFreeSize() {
 #ifdef SD_MMC_1BIT_MODE

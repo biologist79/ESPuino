@@ -22,7 +22,10 @@ enum class SearchDirection {
 void SdCard_Init(void);
 void SdCard_Exit(void);
 sdcard_type_t SdCard_GetType(void);
+bool SdCard_IsMounted(void);
 uint64_t SdCard_GetSize();
+uint64_t SdCard_GetTotalSize();
+uint64_t SdCard_GetUsedSize();
 uint64_t SdCard_GetFreeSize();
 void SdCard_PrintInfo();
 std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint32_t _playMode, const uint8_t _maxRecursionDepth, bool _recursionMode);

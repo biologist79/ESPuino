@@ -54,6 +54,17 @@
 			height: 200px;
 		}
 
+		.sd-card-info {
+			border: 1px solid var(--bs-border-color, #dee2e6);
+			border-radius: 0.5rem;
+			padding: 0.75rem 1rem;
+			background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.03));
+		}
+
+		.sd-card-progress {
+			height: 0.75rem;
+		}
+
 		.slider-container {
 			width: 100%;
 			display: flex;
@@ -910,6 +921,19 @@
 			<div class="container" id="filetreeContainer">
 				<fieldset>
 					<legend id="fileslegend" data-i18n="files.title"></legend>
+					<div id="sdCardInfo" class="sd-card-info mb-3" aria-live="polite">
+						<div class="d-flex justify-content-between align-items-center mb-1">
+							<span class="fw-semibold"><i class="fas fa-sd-card"></i><span id="sdCardName"
+									data-i18n="files.storage.title"></span></span>
+							<span id="sdCardPercent" class="fw-semibold">--</span>
+						</div>
+						<div class="progress sd-card-progress">
+							<div id="sdCardProgressBar" class="progress-bar" role="progressbar" style="width: 0%"
+								aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+						<div id="sdCardDetails" class="small text-body-secondary mt-1"
+							data-i18n="files.storage.loading"></div>
+					</div>
 					<div class="filetree-container">
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
@@ -2437,6 +2461,7 @@
 		// last known-saved led count, to detect a change on save (device restarts to apply it)
 		var lastNumIndicatorLeds = null;
 		var lastNumControlLeds = null;
+		var lastSdCardInfo = null;
 		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
@@ -2447,6 +2472,9 @@
 			console.log("ActiveTab: " + ActiveTab);
 			if (ActiveTab == 'nav-control-tab') {
 				getTrackProgress();
+			}
+			if (ActiveTab == 'nav-rfid-tab') {
+				updateSdCardInfo();
 			}
 			localStorage.setItem("active-tab", ActiveTab);
 		});
@@ -2556,6 +2584,9 @@
 						new bootstrap.Popover(popoverButton, { html: true, trigger: 'focus' })
 					});
 			}
+			if (lastSdCardInfo !== null) {
+				renderSdCardInfo(lastSdCardInfo);
+			}
 			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
 		document.querySelector('#langSel').addEventListener('change', (e) => {
@@ -2606,6 +2637,119 @@
 			});
 		}
 		/* File Explorer functions begin*/
+		function formatStorageBytes(bytes) {
+			var value = Number(bytes);
+			if (!Number.isFinite(value) || value < 0) {
+				return "--";
+			}
+
+			var units = ["B", "KB", "MB", "GB", "TB"];
+			var unitIndex = 0;
+			while (value >= 1000 && unitIndex < units.length - 1) {
+				value /= 1000;
+				unitIndex++;
+			}
+
+			var maximumFractionDigits = 2;
+			if (unitIndex === 0 || value >= 100) {
+				maximumFractionDigits = 0;
+			} else if (value >= 10) {
+				maximumFractionDigits = 1;
+			}
+
+			return value.toLocaleString(i18next.language || undefined, {
+				maximumFractionDigits: maximumFractionDigits
+			}) + " " + units[unitIndex];
+		}
+
+		function renderSdCardInfo(sdCard) {
+			var nameElement = document.getElementById('sdCardName');
+			var percentElement = document.getElementById('sdCardPercent');
+			var detailsElement = document.getElementById('sdCardDetails');
+			var progressElement = document.getElementById('sdCardProgressBar');
+			if (!nameElement || !percentElement || !detailsElement || !progressElement) {
+				return;
+			}
+
+			var title = i18next.t('files.storage.title');
+			nameElement.textContent = title;
+
+			if (sdCard && sdCard.error) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.error');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			if (!sdCard || !sdCard.available) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.unavailable');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			var totalBytes = Number(sdCard.totalBytes);
+			if (sdCard.statsAvailable === false || !Number.isFinite(totalBytes) || totalBytes <= 0) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.statsUnavailable');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			var usedBytes = Number(sdCard.usedBytes);
+			var freeBytes = Number(sdCard.freeBytes);
+			if (!Number.isFinite(usedBytes)) {
+				usedBytes = 0;
+			}
+			if (!Number.isFinite(freeBytes)) {
+				freeBytes = Math.max(0, totalBytes - usedBytes);
+			}
+			usedBytes = Math.min(Math.max(0, usedBytes), totalBytes);
+			freeBytes = Math.min(Math.max(0, freeBytes), totalBytes);
+
+			var fillRatio = Math.min(1, Math.max(0, usedBytes / totalBytes));
+			var fillPercent = fillRatio * 100;
+			percentElement.textContent = fillRatio.toLocaleString(i18next.language || undefined, {
+				style: 'percent',
+				maximumFractionDigits: 1
+			});
+			detailsElement.textContent = i18next.t('files.storage.usage', {
+				used: formatStorageBytes(usedBytes),
+				total: formatStorageBytes(totalBytes),
+				free: formatStorageBytes(freeBytes)
+			});
+			progressElement.style.width = fillPercent.toFixed(1) + "%";
+			progressElement.setAttribute('aria-valuenow', fillPercent.toFixed(1));
+			progressElement.setAttribute('aria-valuetext', detailsElement.textContent);
+		}
+
+		async function updateSdCardInfo() {
+			try {
+				var response = await fetch("http://" + host + "/info?section=sdcard&_=" + Date.now(), {
+					cache: 'no-store'
+				});
+				if (!response.ok) {
+					throw new Error("HTTP " + response.status);
+				}
+				var info = await response.json();
+				if (!info || typeof info !== 'object' || !Object.prototype.hasOwnProperty.call(info, 'sdcard')) {
+					throw new Error("SD card information missing");
+				}
+
+				lastSdCardInfo = info.sdcard;
+				renderSdCardInfo(lastSdCardInfo);
+			} catch (error) {
+				console.warn("Could not load SD card usage:", error);
+				lastSdCardInfo = {
+					error: true
+				};
+				renderSdCardInfo(lastSdCardInfo);
+			}
+		}
+
 		var lastSelectedNodePath = "";
 		$('#explorerTree').on('select_node.jstree', function (e, data) {
 			$('input[name=fileOrUrl]').val(data.node.data.path);
@@ -2686,7 +2830,10 @@
 		function deleteData(path, callback, _data) {
 			doRest(path, callback, {
 				method: "DELETE",
-				data: _data
+				data: _data,
+				complete: function () {
+					updateSdCardInfo();
+				}
 			});
 		} /* deleteData */
 		function patchData(path, callback, _data) {
@@ -2704,7 +2851,10 @@
 		function putData(path, callback, _data) {
 			doRest(path, callback, {
 				method: "PUT",
-				data: _data
+				data: _data,
+				complete: function () {
+					updateSdCardInfo();
+				}
 			});
 		} /* putData */
 		async function restartDevice() {
@@ -3112,6 +3262,7 @@
 					addFileDirectory(sel, data);
 					ref.open_node(sel);
 				});
+				updateSdCardInfo();
 			}
 
 			// Files upload one at a time (the shared double-buffer/writer-task
@@ -3371,6 +3522,7 @@
 							icon: "fas fa-sync",
 							action: function (x) {
 								refreshNode(nodeId);
+								updateSdCardInfo();
 							}
 						};
 						/* Delete */
@@ -4892,6 +5044,7 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			updateSdCardInfo();
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
 				var preview = $('<fieldset class="mt-5 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><div class="settings-group-card"><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></div></fieldset>');
