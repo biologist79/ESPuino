@@ -100,7 +100,6 @@ bool SdCard_IsMounted(void) {
 #endif
 }
 
-
 uint64_t SdCard_GetSize() {
 #ifdef SD_MMC_1BIT_MODE
 	return SD_MMC.cardSize();
@@ -130,7 +129,6 @@ uint64_t SdCard_GetUsedSize() {
 	return SD.usedBytes();
 #endif
 }
-
 
 uint64_t SdCard_GetFreeSize() {
 #ifdef SD_MMC_1BIT_MODE
