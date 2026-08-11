@@ -40,6 +40,7 @@
 	"settingsex": {
 		"led": {
 			"title": "Réglages des LED",
+			"hueTitle": "Couleurs",
 			"numindicator": "Nombre d'indicateurs LED",
 			"numcontrol": "Nombre de LED de contrôle",
 			"controlled": "LED de contrôle",
@@ -461,9 +462,11 @@
 		"volume": {
 			"title": "Volume",
 			"restart": "Après le redémarrage",
+			"min": "Minimum",
 			"speakerMax": "Volume maximal (haut-parleur)",
 			"headphoneMax": "Volume maximal (écouteurs)",
 			"restartExp": "Volume avec lequel ESPuino démarre après la mise sous tension (sauf si 'Mémoriser le dernier volume' est activé).",
+			"minExp": "Volume minimal réglable. Empêche de couper complètement le son d'ESPuino - par exemple pour que les enfants ne puissent pas le rendre muet par accident. Doit être inférieur aux deux volumes maximum. Prend effet après un redémarrage.",
 			"speakerMaxExp": "Volume maximal autorisé lors de la lecture via le haut-parleur.",
 			"headphoneMaxExp": "Volume maximal autorisé lors de la lecture via un casque."
 		},
@@ -488,6 +491,8 @@
 			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Définit la sensibilité du lecteur RFID MFRC522. Les valeurs possibles sont de 0 (sensibilité la plus faible) à 7 (sensibilité la plus élevée). La valeur par défaut est 7.",
+			"mfrc522ScanInterval": "Intervalle de scan MFRC522",
+			"mfrc522ScanIntervalExp": "Durée en millisecondes entre deux interrogations du lecteur RFID MFRC522. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 100ms.",
 			"pn5180Debounce": "Anti-rebond PN5180",
 			"pn5180DebounceExp": "Durée en millisecondes pendant laquelle une carte doit rester non détectée avant d'être considérée comme retirée. Évite que de brèves pertes de lecture (par ex. avec un écart plus important entre la carte et le lecteur) soient interprétées à tort comme un retrait de carte. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 500ms."
 		},
@@ -503,13 +508,13 @@
 			"savePlayPosIntervalSecs": "secondes",
 			"savePlayPosIntervalExp": "Enregistre régulièrement la position de lecture des livres audio longs (fichiers de 5 minutes ou plus) dans la mémoire flash pendant la lecture, afin qu'une coupure de courant soudaine (batterie vide, débranchement, plantage) ne fasse reculer que du nombre de secondes défini au maximum au lieu de redémarrer le fichier. Concerne uniquement les modes livre audio ; les pistes courtes ou fractionnées sont déjà enregistrées à chaque changement de piste. Un intervalle plus court sollicite le flash plus souvent ; 30 à 60 secondes sont recommandées, car des valeurs bien plus basses n'apportent presque rien et usent le flash plus vite.",
 			"pauseIfRfidRemoved": "Mettre en pause si la balise RFID est retirée",
-			"pauseIfRfidRemovedExp": "Mettre en pause la lecture si la balise RFID est retirée. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PAUSE_IF_RFID_REMOVED</code>.",
+			"pauseIfRfidRemovedExp": "Mettre en pause la lecture si la balise RFID est retirée.",
 			"dontAcceptRfidTwice": "Ne pas accepter la balise RFID deux fois",
 			"dontAcceptRfidTwiceExp": "Ne pas accepter la même balise RFID deux fois. Ne peut pas être utilisé avec <em>Mettre en pause si la balise RFID est retirée</em>.",
 			"resumeOnSameRfid": "Reprendre la lecture si la même RFID est reposée",
 			"resumeOnSameRfidExp": "Si la lecture est en pause et que la même balise RFID est reposée, la lecture reprend. Actif uniquement si <em>Ne pas accepter la balise RFID deux fois</em> est activé.",
 			"playLastRfidOnReboot": "Lire la dernière balise RFID au redémarrage",
-			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage. Plus d'informations <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>ici</a> sous <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage.",
 			"pauseOnMinVolume": "Pause au volume minimal",
 			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum. Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>.",
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
@@ -533,17 +538,18 @@
 		},
 		"battery": {
 			"title": "Batterie",
-			"desc": "Afficher l'état de tension via Neopixel",
 			"lowWarning": "Afficher un avertissement en dessous de ce seuil (en volt)",
 			"lowCritical": "Tension la plus basse (en volt), indiquée par une LED",
 			"criticalShutoff": "En dessous de cette tension (en volt), ESPuino s'éteint",
 			"high": "Tension indiquée par toutes les LED (en volt)",
 			"measureInterval": "Intervalle entre les mesures (en minutes)",
+			"shutdownOnCritical": "Éteindre automatiquement en cas de tension critique",
 			"lowWarningExp": "Tension en dessous de laquelle un avertissement visuel (LED) de batterie faible est déclenché.",
 			"lowCriticalExp": "Tension considérée comme 0% de charge de la batterie (batterie vide).",
 			"highExp": "Tension considérée comme 100% de charge de la batterie (batterie pleine).",
 			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
-			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée."
+			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée.",
+			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V."
 		},
 		"playlist": {
 			"title": "Playlist",

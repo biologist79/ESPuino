@@ -6,6 +6,9 @@ constexpr uint8_t cardIdStringSize = (cardIdSize * 3u) + 1u;
 extern char gCurrentRfidTagId[cardIdStringSize];
 
 void Rfid_ResetOldRfid(void);
+void Rfid_ResetLastTag(void);
+// Reader-task internal: returns true once after Rfid_ResetLastTag() was called.
+bool Rfid_ConsumeLastTagReset(void);
 void Rfid_Init(void);
 void Rfid_WakeupHandling(void);
 void Rfid_StartTask(void);

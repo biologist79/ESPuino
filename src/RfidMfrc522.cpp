@@ -26,6 +26,10 @@ extern unsigned long Rfid_LastRfidCheckTimestamp;
 extern TaskHandle_t rfidTaskHandle;
 static void RfidMfrc522_Task(void *parameter);
 
+// Cached once at init rather than read from NVS on every task-loop iteration; a restart is required
+// for a change to take effect, same as the other MFRC522/PN5180-specific settings.
+static uint16_t rfidScanInterval = 100;
+
 	#if defined(RFID_READER_TYPE_RUNTIME)
 extern TwoWire i2cBusTwo;
 static MFRC522_I2C mfrc522I2C(MFRC522_ADDR, RST_PIN, &i2cBusTwo);
@@ -33,6 +37,7 @@ static MFRC522 mfrc522(RFID_CS, RST_PIN);
 	#endif
 
 void RfidMfrc522_Init(uint8_t readerType) {
+	rfidScanInterval = gPrefsRfid.getUShort("rfidScanIntv", 100);
 	uint8_t rfidGain = gPrefsRfid.getUChar("mfrc522Gain", 7u); // default to maximum gain
 	rfidGain = (rfidGain & 0x07) << 4; // only lower 3 bits are valid, shift to correct position for register
 	if (readerType == RfidReaderType::TYPE_MFRC522_SPI) {
@@ -76,21 +81,53 @@ void RfidMfrc522_TaskReset(void) {
 	Rfid_LastRfidCheckTimestamp = millis();
 }
 
+// Deterministic "is a card still on the antenna?" poll used by pauseIfRfidRemoved
+// mode. The card is kept parked in the ISO-14443 HALT state between polls; WUPA
+// (PICC_WakeupA, 0x52) is the only REQ-family command that wakes a HALTed card,
+// so each poll is a clean yes/no. This replaces the old REQA-based detection
+// (PICC_IsNewCardPresent sends REQA, 0x26, which only invites cards in the IDLE
+// state) whose non-deterministic misses on a perfectly stationary card forced an
+// ever-growing miss debounce. Templated because Reader is either the SPI MFRC522
+// or the I2C MFRC522_I2C class; the Reader:: register/status constants and the
+// PICC_WakeupA return type both differ between the two libraries, so we let the
+// compiler pick the right ones per instantiation.
+template <typename Reader>
+static bool RfidMfrc522_CardStillPresent(Reader &reader) {
+	byte bufferATQA[2];
+	byte bufferSize = sizeof(bufferATQA);
+	// Reset baud-rate / modulation-width registers exactly like
+	// PICC_IsNewCardPresent() does internally; some readers won't answer WUPA
+	// reliably otherwise. Reader::* resolves to the correct (SPI-shifted vs I2C)
+	// register addresses for whichever library this is instantiated with.
+	reader.PCD_WriteRegister(Reader::TxModeReg, 0x00);
+	reader.PCD_WriteRegister(Reader::RxModeReg, 0x00);
+	reader.PCD_WriteRegister(Reader::ModWidthReg, 0x26);
+	auto result = reader.PICC_WakeupA(bufferATQA, &bufferSize);
+	// Immediately park the card back in HALT so the next WUPA is meaningful.
+	reader.PICC_HaltA();
+	return (result == Reader::STATUS_OK || result == Reader::STATUS_COLLISION);
+}
+
 template <typename Reader>
 static void RfidMfrc522_TaskImpl(Reader &reader) {
-	uint8_t control = 0x00;
+	byte lastValidcardId[cardIdSize] = {0}; // must outlive loop iterations: "same card reapplied" is decided by comparing against it
 
 	for (;;) {
-		if (RFID_SCAN_INTERVAL / 2 >= 20) {
-			vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+		if (rfidScanInterval / 2 >= 20) {
+			vTaskDelay(portTICK_PERIOD_MS * (rfidScanInterval / 2));
 		} else {
 			vTaskDelay(portTICK_PERIOD_MS * 20);
 		}
+		if (Rfid_ConsumeLastTagReset()) {
+			// An assignment changed (or the web UI started playback): the card on/near the reader may now
+			// mean something else, so it must not be treated as "same card re-applied" any more.
+			memset(lastValidcardId, 0, sizeof(lastValidcardId));
+		}
+
 		byte cardId[cardIdSize];
 		String cardIdString;
-		byte lastValidcardId[cardIdSize];
 		bool sameCardReapplied = false;
-		if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+		if ((millis() - Rfid_LastRfidCheckTimestamp) >= rfidScanInterval) {
 			// Log_Printf(LOGLEVEL_DEBUG, "%u", uxTaskGetStackHighWaterMark(NULL));
 
 			Rfid_LastRfidCheckTimestamp = millis();
@@ -135,11 +172,7 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 			}
 
 			if (gPlayProperties.pauseIfRfidRemoved) {
-	#ifdef ACCEPT_SAME_RFID_AFTER_TRACK_END
 				if (!sameCardReapplied || gPlayProperties.trackFinished || gPlayProperties.playlistFinished) { // Don't allow to send card to queue if it's the same card again if track or playlist is unfnished
-	#else
-				if (!sameCardReapplied) { // Don't allow to send card to queue if it's the same card again...
-	#endif
 					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 				} else {
 					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
@@ -153,36 +186,38 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 			}
 
 			if (gPlayProperties.pauseIfRfidRemoved) {
-				// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
+				// Park the freshly-selected card in the HALT state so the WUPA-based
+				// presence poll below can wake it deterministically. Without this the
+				// card is left ACTIVE and only REQA (which ignores ACTIVE/HALT cards)
+				// was available, causing the notorious pause/resume flap on stationary
+				// cards. See RfidMfrc522_CardStillPresent().
+				reader.PICC_HaltA();
+				reader.PCD_StopCrypto1();
+
+				// Poll until the card is physically removed. Each WUPA poll is a clean
+				// yes/no, so a small debounce is enough to swallow the rare genuinely
+				// dropped poll (RF noise) without the old REQA "voodoo". Set to 1 to
+				// test raw WUPA reliability with zero tolerance for a missed poll.
+				constexpr uint8_t removalDebounceCycles = 2;
+				uint8_t consecutiveMisses = 0;
 				while (true) {
-					if (RFID_SCAN_INTERVAL / 2 >= 20) {
-						vTaskDelay(portTICK_PERIOD_MS * (RFID_SCAN_INTERVAL / 2));
+					if (rfidScanInterval / 2 >= 20) {
+						vTaskDelay(portTICK_PERIOD_MS * (rfidScanInterval / 2));
 					} else {
 						vTaskDelay(portTICK_PERIOD_MS * 20);
 					}
-					control = 0;
-					for (uint8_t i = 0u; i < 3; i++) {
-						if (!reader.PICC_IsNewCardPresent()) {
-							if (reader.PICC_ReadCardSerial()) {
-								control |= 0x16;
-							}
-							if (reader.PICC_ReadCardSerial()) {
-								control |= 0x16;
-							}
-							control += 0x1;
-						}
-						control += 0x4;
-					}
-
-					if (control == 13 || control == 14) {
-						// card is still there
-					} else {
+					if (RfidMfrc522_CardStillPresent(reader)) {
+						consecutiveMisses = 0;
+					} else if (++consecutiveMisses >= removalDebounceCycles) {
 						break;
 					}
 				}
 
 				Log_Println(rfidTagRemoved, LOGLEVEL_NOTICE);
-				if (!gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
+				// Only pause if there's actually something to pause -- otherwise removing a card after the
+				// playlist has already finished naturally queues a PAUSEPLAY that AudioPlayer_Cyclic() then
+				// rejects with "no playmode change while idle", which is a confusing error for a normal action.
+				if (!gPlayProperties.pausePlay && !gPlayProperties.playlistFinished && gPlayProperties.playMode != NO_PLAYLIST && System_GetOperationMode() != OPMODE_BLUETOOTH_SINK) {
 					AudioPlayer_SetTrackControl(PAUSEPLAY);
 					Log_Println(rfidTagReapplied, LOGLEVEL_NOTICE);
 				}

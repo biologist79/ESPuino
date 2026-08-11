@@ -29,7 +29,7 @@ void Port_Test(void);
 	#if (PE_INTERRUPT_PIN >= 0 && PE_INTERRUPT_PIN <= MAX_GPIO)
 		#define PE_INTERRUPT_PIN_ENABLE
 void IRAM_ATTR PORT_ExpanderISR(void);
-bool Port_AllowReadFromPortExpander = false;
+volatile bool Port_AllowReadFromPortExpander = false;
 	#endif
 #endif
 
@@ -399,11 +399,7 @@ void Port_Test(void) {
 }
 
 	#ifdef PE_INTERRUPT_PIN_ENABLE
-		#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 void IRAM_ATTR PORT_ExpanderISR(void) {
-		#else
-void PORT_ExpanderISR(void) {
-		#endif
 	// check if the interrupt pin is actually low and only if it is
 	// trigger the handler (there are a lot of false calls to this ISR
 	// where the interrupt pin isn't low...)

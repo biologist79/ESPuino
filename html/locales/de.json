@@ -40,6 +40,7 @@
 	"settingsex": {
 		"led": {
 			"title": "LED-Einstellungen",
+			"hueTitle": "Farbtöne",
 			"numindicator": "Anzahl Anzeige-LEDs",
 			"numcontrol": "Anzahl Kontroll-LEDs",
 			"controlled": "Kontroll-LED",
@@ -461,9 +462,11 @@
 		"volume": {
 			"title": "Lautstärke",
 			"restart": "Nach dem Einschalten",
+			"min": "Minimal",
 			"speakerMax": "Maximal (Lautsprecher)",
 			"headphoneMax": "Maximal (Kopfhörer)",
 			"restartExp": "Lautstärke, mit der ESPuino nach dem Einschalten startet (sofern 'Letzte Lautstärke merken' nicht aktiviert ist).",
+			"minExp": "Kleinste einstellbare Lautstärke. Verhindert, dass ESPuino ganz stummgeschaltet werden kann - z. B. damit Kinder ihn nicht versehentlich lautlos drehen. Muss kleiner als beide Maximallautstärken sein. Wird erst nach einem Neustart wirksam.",
 			"speakerMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über den Lautsprecher.",
 			"headphoneMaxExp": "Maximal erlaubte Lautstärke bei Wiedergabe über Kopfhörer."
 		},
@@ -475,19 +478,21 @@
 			"info": "Die Frequenzen sind laut Bibliothek (ESP32-audioI2S) 500 Hz LowShelf, 3000 Hz PeakEQ und 6000 Hz HighShelf."
 		},
 		"rfid": {
-			"title": "RFID Reader",
+			"title": "RFID-Reader",
 			"readerType": {
 				"title": "Reader-Typ",
 				"auto": "Auto-detect",
 				"mfrc522_spi": "MFRC522 (SPI)",
 				"mfrc522_i2c": "MFRC522 (I2C)",
 				"pn5180": "PN5180",
-				"description": "Wähle den Typ des RFID readers. Auto-detect wird versuchen den Reader automatisch zu erkennen."
+				"description": "Wähle den Typ des RFID-Readers. Auto-detect wird versuchen, den Reader automatisch zu erkennen."
 			},
 			"pn5180Lpcd": "PN5180 LPCD aktivieren",
-			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind.",
+			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID-Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind.",
 			"mfrc522Gain": "MFRC522 Gain",
-			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7.",
+			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID-Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7.",
+			"mfrc522ScanInterval": "MFRC522 Scan-Intervall",
+			"mfrc522ScanIntervalExp": "Zeit in Millisekunden zwischen zwei Abfragen des MFRC522 RFID-Readers. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 100ms.",
 			"pn5180Debounce": "PN5180 Debounce",
 			"pn5180DebounceExp": "Zeit in Millisekunden, die eine Karte ununterbrochen nicht erkannt werden muss, bevor sie als entfernt gilt. Verhindert, dass kurze Leseaussetzer (z.B. bei größerem Abstand zwischen Karte und Leser) fälschlich als Kartenentfernung gewertet werden. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 500ms."
 		},
@@ -503,13 +508,13 @@
 			"savePlayPosIntervalSecs": "Sekunden",
 			"savePlayPosIntervalExp": "Speichert die Wiedergabeposition langer Hörbücher (Dateien ab 5 Minuten) während der Wiedergabe regelmäßig ins Flash, sodass ein plötzlicher Stromausfall (leerer Akku, ausgesteckt, Absturz) höchstens um die eingestellte Anzahl Sekunden zurückspringt, statt die Datei neu zu starten. Betrifft nur Hörbuch-Modi; kurze oder geteilte Titel werden ohnehin bei jedem Titelwechsel gespeichert. Ein kürzeres Intervall schreibt häufiger ins Flash, daher werden 30-60 Sekunden empfohlen; deutlich niedrigere Werte bringen kaum etwas und nutzen das Flash schneller ab.",
 			"pauseIfRfidRemoved": "Pause wenn RFID-Tag entfernt",
-			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PAUSE_WHEN_RFID_REMOVED</code>.",
+			"pauseIfRfidRemovedExp": "Pausieren wenn RFID-Tag entfernt wird.",
 			"dontAcceptRfidTwice": "Denselben RFID-Tag nicht erneut akzeptieren",
 			"dontAcceptRfidTwiceExp": "Denselben RFID-Tag nicht erneut akzeptieren. Kann nicht zusammen mit <em>Pause wenn RFID-Tag entfernt</em> verwendet werden.",
 			"resumeOnSameRfid": "Wechsel von Pause zu Play bei erneutem Auflegen",
 			"resumeOnSameRfidExp": "Wenn die Wiedergabe pausiert ist und derselbe RFID-Tag erneut aufgelegt wird, wird die Wiedergabe fortgesetzt. Funktioniert nur, wenn <em>Denselben RFID-Tag nicht erneut akzeptieren</em> aktiv ist.",
 			"playLastRfidOnReboot": "Letzten RFID-Tag nach Neustart abspielen",
-			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen. Mehr Infos <a href='https://forum.espuino.de/t/welche-optionen-beim-kompilieren-gibt-es/120' target='_blank'>hier</a> unter <code>PLAY_LAST_RFID_ON_REBOOT</code>.",
+			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
 			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
@@ -533,17 +538,18 @@
 		},
 		"battery": {
 			"title": "Batterie",
-			"desc": "Status über Neopixel anzeigen",
 			"lowWarning": "Unter dieser Spannung (in Volt) wird eine Warnung angezeigt",
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
 			"measureInterval": "Zeitabstand der Messung (in Minuten)",
+			"shutdownOnCritical": "Bei kritischer Spannung automatisch abschalten",
 			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
 			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
 			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
-			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird."
+			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
+			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",

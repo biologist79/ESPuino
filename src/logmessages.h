@@ -211,6 +211,7 @@ extern const char hpOn[];
 extern const char hpOff[];
 extern const char webTxCanceled[];
 extern const char webSaveSettingsError[];
+extern const char webSaveSettingsVolumeMinMaxError[];
 extern const char tryToPickRandomDir[];
 extern const char pickedRandomDir[];
 extern const char wrongWakeUpGpio[];

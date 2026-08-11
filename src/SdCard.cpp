@@ -53,6 +53,7 @@ void SdCard_Init(void) {
 #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
 		if (millis() >= deepsleepTimeAfterBootFails * 1000) {
 			Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
+			Led_Exit();
 			esp_deep_sleep_start();
 		}
 #endif

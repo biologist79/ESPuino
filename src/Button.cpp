@@ -52,17 +52,13 @@ uint8_t gShutdownButton = 99; // Helper used for Neopixel: stores button-number 
 uint16_t gLongPressTime = 0;
 
 #ifdef PORT_EXPANDER_ENABLE
-extern bool Port_AllowReadFromPortExpander;
+extern volatile bool Port_AllowReadFromPortExpander;
 #endif
 
 static std::atomic<SemaphoreHandle_t> Button_TimerSemaphore;
 
 hw_timer_t *Button_Timer = NULL;
-#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 static void IRAM_ATTR onTimer();
-#else
-static void onTimer();
-#endif
 static void Button_DoButtonActions(void);
 
 void Button_Init() {
@@ -451,10 +447,6 @@ void Button_DoButtonActions(void) {
 	}
 }
 
-#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR < 3))
 void IRAM_ATTR onTimer() {
-#else
-void onTimer() {
-#endif
 	xSemaphoreGiveFromISR(Button_TimerSemaphore, NULL);
 }

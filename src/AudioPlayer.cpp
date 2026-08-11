@@ -62,6 +62,9 @@ void AudioPlayer_SeekPreviewStart(void) {
 	}
 	AudioPlayer_SeekPreviewDelayMsCached = gPrefsSettings.getUShort("seekPrevDelay", 2000);
 	AudioPlayer_SeekPreviewSweepCached = gPrefsSettings.getUChar("seekPrevSweep", 40);
+	if (AudioPlayer_SeekPreviewSweepCached < 1) {
+		AudioPlayer_SeekPreviewSweepCached = 1; // guard against divide-by-zero in AudioPlayer_SeekPreviewAdjust
+	}
 	AudioPlayer_SeekPreviewTargetExact = gPlayProperties.currentRelPos; // start from where playback is, not 0
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
@@ -171,7 +174,7 @@ static void AudioPlayer_RememberRfidForWifiRetry(const char *rfidTagId) {
 	gRetryRfidOnWifiConnect = true;
 }
 
-// "Arm" the release of the DONT_ACCEPT_SAME_RFID_TWICE-lock: called by the RFID-handler the moment a new
+// "Arm" the release of the dontAcceptRfidTwice-lock: called by the RFID-handler the moment a new
 // tag is accepted, it records that this playback-attempt happened. The lock is then actually released the
 // next time the player becomes idle (see AudioPlayer_Cyclic()), which re-allows the same tag to be applied
 // again. Arming on acceptance - rather than on playback becoming active - is deliberate: it ensures the
@@ -419,6 +422,12 @@ void AudioPlayer_Init(void) {
 		Log_Println(wroteMaxLoudnessForSpeakerToNvs, LOGLEVEL_ERROR);
 	}
 
+	// Get minimum volume from NVS. Unlike the max values, 0 (= AUDIOPLAYER_VOLUME_MIN) is a perfectly
+	// valid setting and in fact the default, so a plain read-with-default is used instead of the
+	// "0 means unset, write default" pattern above. AudioPlayer_SetVolume() clamps every volume change
+	// to this floor, so a non-zero value takes effect for all volume sources (rotary, buttons, BT, web).
+	AudioPlayer_SetMinVolume(gPrefsSettings.getUInt("minVolume", AUDIOPLAYER_VOLUME_MIN));
+
 #ifdef HEADPHONE_ADJUST_ENABLE
 	#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
 	pinMode(HP_DETECT, INPUT_PULLUP);
@@ -455,23 +464,11 @@ void AudioPlayer_Init(void) {
 	gPlayProperties.SavePlayPosRfidChange = gPrefsSettings.getBool("savePosRfidChge", false); // SAVE_PLAYPOS_WHEN_RFID_CHANGE
 	gPlayProperties.savePosIntervalSecs = gPrefsSettings.getUShort("savePosIntv", 0); // SAVE_PLAYPOS_INTERVAL (periodic checkpoint, 0 = off)
 	gPlayProperties.pauseOnMinVolume = gPrefsSettings.getBool("pauseOnMinVol", false); // PAUSE_ON_MIN_VOLUME
-#ifdef PAUSE_WHEN_RFID_REMOVED
-	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", true);
-#else
-	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false);
-#endif
-#ifdef DONT_ACCEPT_SAME_RFID_TWICE
-	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", true);
-#else
-	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false);
-#endif
-#ifdef RESUME_ON_SAME_RFID
-	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", true);
-#else
-	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", false);
-#endif
+	gPlayProperties.pauseIfRfidRemoved = gPrefsSettings.getBool("pauseRfidRem", false); // PAUSE_WHEN_RFID_REMOVED
+	gPlayProperties.dontAcceptRfidTwice = gPrefsSettings.getBool("dAccRfidTwice", false); // DONT_ACCEPT_SAME_RFID_TWICE
+	gPlayProperties.resumeOnSameRfid = gPrefsSettings.getBool("p2pSameRfid", false); // RESUME_ON_SAME_RFID
 	if (gPlayProperties.pauseIfRfidRemoved) {
-		// ignore feature silently if PAUSE_WHEN_RFID_REMOVED is active
+		// ignore feature silently if pauseIfRfidRemoved is active
 		Log_Println("pauseIfRfidRemoved is enabled -> deactivate dontAcceptRfidTwice", LOGLEVEL_NOTICE);
 		gPlayProperties.dontAcceptRfidTwice = false;
 	}
@@ -480,7 +477,10 @@ void AudioPlayer_Init(void) {
 	audio->setI2SCommFMT_LSB(true);
 #endif
 
-	AudioPlayer_CurrentVolume = AudioPlayer_GetInitVolume();
+	// Raise the boot volume to the configured minimum if it sits below it: the init/remembered volume is
+	// applied directly here (not via AudioPlayer_SetVolume(), which is where the min-clamp lives), so
+	// without this the box could start below its own floor until the first volume change.
+	AudioPlayer_CurrentVolume = std::max(AudioPlayer_GetInitVolume(), AudioPlayer_GetMinVolume());
 	// DMA-settings must be adjusted before setting the pinout
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
 		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);
@@ -781,7 +781,8 @@ void AudioPlayer_Loop() {
 			// If we're in audiobook-mode and apply a modification-card, we don't
 			// want to save lastPlayPosition for the mod-card but for the card that holds the playlist
 			if (strlen(gCurrentRfidTagId) > 0) {
-				strncpy(gPlayProperties.playRfidTag, gCurrentRfidTagId, sizeof(gPlayProperties.playRfidTag) / sizeof(gPlayProperties.playRfidTag[0]));
+				strncpy(gPlayProperties.playRfidTag, gCurrentRfidTagId, sizeof(gPlayProperties.playRfidTag) - 1);
+				gPlayProperties.playRfidTag[sizeof(gPlayProperties.playRfidTag) - 1] = '\0';
 			}
 		}
 		if (gPlayProperties.trackFinished) {
@@ -1193,7 +1194,7 @@ void AudioPlayer_Loop() {
 
 	// Handle seekmodes
 	if (gPlayProperties.seekmode != SEEK_NORMAL) {
-		if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos > 0) && (gPlayProperties.currentRelPos < 100)) {
+		if ((gPlayProperties.seekmode == SEEK_POS_PERCENT) && (gPlayProperties.currentRelPos >= 0) && (gPlayProperties.currentRelPos < 100)) {
 			uint32_t newFileTime = uint32_t((gPlayProperties.currentRelPos / 100.0f) * audio->getAudioFileDuration());
 			if (audio->setAudioPlayTime(newFileTime)) {
 				Log_Printf(LOGLEVEL_NOTICE, JumpToPosition, newFileTime, audio->getAudioFileDuration());

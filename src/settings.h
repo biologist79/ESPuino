@@ -38,27 +38,14 @@
 	#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
 	#define FTP_ENABLE                      // Enables FTP-server; DON'T FORGET TO ACTIVATE AFTER BOOT BY PRESSING PAUSE + NEXT-BUTTONS (IN PARALLEL)!
 	#define NEOPIXEL_ENABLE                 // Don't forget configuration of NUM_LEDS if enabled
-	//#define NEOPIXEL_REVERSE_ROTATION     // Some Neopixels are adressed/soldered counter-clockwise. This can be configured here.
 	#define LANGUAGE DE                     // DE = deutsch; EN = english: FR = french
-	//#define STATIC_IP_ENABLE              // DEPRECATED: Enables static IP-configuration (change static ip-section accordingly)
-	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (if PLAY_MONO_SPEAKER is set)
-	//#define PLAY_MONO_SPEAKER             // If only one speaker is used enabling mono should make sense. Please note: headphones is always stereo (if HEADPHONE_ADJUST_ENABLE is active)
+	#define HEADPHONE_ADJUST_ENABLE         // Used to adjust (lower) volume for optional headphone-pcb (refer maxVolumeSpeaker / maxVolumeHeadphone) and to enable stereo (headphones are always stereo, even if mono-playback is enabled via GUI)
 	#define SHUTDOWN_IF_SD_BOOT_FAILS       // Will put ESP to deepsleep if boot fails due to SD. Really recommend this if there's in battery-mode no other way to restart ESP! Interval adjustable via deepsleepTimeAfterBootFails.
 	#define MEASURE_BATTERY_VOLTAGE         // Enables battery-measurement via GPIO (ADC) and voltage-divider
-	//#define SHUTDOWN_ON_BAT_CRITICAL      // Whether to turn off on critical battery-level (only used if MEASURE_BATTERY_VOLTAGE is active)
-	//#define PLAY_LAST_RFID_AFTER_REBOOT   // When restarting ESPuino, the last RFID that was active before, is recalled and played
 	#define USEROTARY_ENABLE                // If rotary-encoder is used (don't forget to review WAKEUP_BUTTON if you disable this feature!)
 	#define BLUETOOTH_ENABLE                // If enabled and bluetooth-mode is active, you can stream to your ESPuino or to a headset via bluetooth (a2dp-sink & a2dp-source). Note: This feature consumes a lot of resources and the available flash/ram might not be sufficient.
 	//#define IR_CONTROL_ENABLE             // Enables remote control (https://forum.espuino.de/t/neues-feature-fernsteuerung-per-infrarot-fernbedienung/265)
-	//#define PAUSE_WHEN_RFID_REMOVED       // Playback starts when card is applied and pauses automatically, when card is removed (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541)
-	//#define DONT_ACCEPT_SAME_RFID_TWICE   // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if PAUSE_WHEN_RFID_REMOVED is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
-	//#define RESUME_ON_SAME_RFID          // If playback is paused and the same RFID is detected again, playback resumes (only in combination with DONT_ACCEPT_SAME_RFID_TWICE)
 	//#define HALLEFFECT_SENSOR_ENABLE      // Support for hallsensor. For fine-tuning please adjust HallEffectSensor.h Please note: only user-support provided (https://forum.espuino.de/t/magnetische-hockey-tags/1449/35)
-
-	//################## set PAUSE_WHEN_RFID_REMOVED behaviour #############################
-	#ifdef PAUSE_WHEN_RFID_REMOVED
-		#define ACCEPT_SAME_RFID_AFTER_TRACK_END           // Accepts same RFID after playback has ended (https://forum.espuino.de/t/neues-feature-pausieren-wenn-rfid-karte-entfernt-wurde/541/2)
-	#endif
 
 	//################## select SD card mode #############################
 	#define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
@@ -162,16 +149,6 @@
 	// Serial-logging-configuration
 	#define SERIAL_LOGLEVEL LOGLEVEL_DEBUG              // Current loglevel for serial console
 
-    // DEPRECATED: This is now done using dynamic network configuration.
-    //              If left, it is used for the automatic migration exactly once
-	// Static ip-configuration
-	#ifdef STATIC_IP_ENABLE
-		#define LOCAL_IP   192,168,2,100                // ESPuino's IP
-		#define GATEWAY_IP 192,168,2,1                  // IP of the gateway/router
-		#define SUBNET_IP  255,255,255,0                // Netmask of your network (/24 => 255.255.255.0)
-		#define DNS_IP     192,168,2,1                  // DNS-server of your network; in private networks it's usually the gatewy's IP
-	#endif
-
 	// Buttons (better leave unchanged if in doubts :-))
 	constexpr uint8_t buttonDebounceInterval = 50;                // Interval in ms to software-debounce buttons
 	constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of buttons
@@ -186,9 +163,6 @@
 
 	//#define CONTROLS_LOCKED_BY_DEFAULT			// If set the controls are locked at boot
 	#define INCLUDE_ROTARY_IN_CONTROLS_LOCK			// If set the rotary encoder is locked if controls are locked
-
-	// RFID-RC522
-	#define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
 
 	// Automatic restart
 	#ifdef SHUTDOWN_IF_SD_BOOT_FAILS
@@ -214,19 +188,8 @@
 	//#################### Settings for optional Modules##############################
 	// (optinal) Neopixel
 	#ifdef NEOPIXEL_ENABLE
-		#define NUM_INDICATOR_LEDS		24          	// number of Neopixel LEDs (formerly NUM_LEDS)
-		#define NUM_CONTROL_LEDS		0		// optional control leds (https://forum.espuino.de/t/statische-ws2812-leds/1703)
-                #define CONTROL_LEDS_COLORS		{}		// Colors for the control LEDs. Make sure it lists at least NUM_CONTROL_LEDS colors, e.g. for three control LEDs define: CONTROL_LEDS_COLORS {CRGB::Yellow, CRGB::Blue, 0xFFFFFF} (predefined colors: http://fastled.io/docs/3.1/struct_c_r_g_b.html)
 		#define CHIPSET					WS2812B     	// type of Neopixel
 		#define COLOR_ORDER				GRB
-		#define NUM_LEDS_IDLE_DOTS		4           	// count of LEDs, which are shown when Idle
-		#define OFFSET_PAUSE_LEDS		false		// if true the pause-leds are centered in the mid of the LED-Strip
-		#define PROGRESS_HUE_START		85          	// Start and end hue of mulitple-LED progress indicator. Hue ranges from basically 0 - 255, but you can also set numbers outside this range to get the desired effect (e.g. 85-215 will go from green to purple via blue, 341-215 start and end at exactly the same color but go from green to purple via yellow and red)
-		#define PROGRESS_HUE_END		-1
-		#define ATMO_HUE				10
-		#define ATMO_SATURATION			180
-		#define DIMMABLE_STATES			50		// Number of dimmed values between two full LEDs (https://forum.espuino.de/t/led-verbesserungen-rework/1739)
-		//#define LED_OFFSET                		0           	// shifts the starting LED in the original direction of the neopixel ring
 	#endif
 
 	#ifdef MEASURE_BATTERY_VOLTAGE
@@ -235,7 +198,7 @@
 
 		// (optional) Default-voltages for battery-monitoring via Neopixel; can be changed later via WebGUI
 		constexpr float s_warningLowVoltage = 3.0;                      // If battery-voltage is <= this value, a cyclic warning will be indicated by Neopixel (can be changed via GUI!)
-		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Set to 0V to disable.
+		constexpr float s_warningCriticalVoltage = 2.9;                 // If battery-voltage is <= this value, assume battery near-empty. Whether this triggers a shutdown is a separate GUI-toggle (off by default).
 		constexpr float s_voltageIndicatorLow = 2.9;                    // Lower range for Neopixel-voltage-indication (0 leds) (can be changed via GUI!)
 		constexpr float s_voltageIndicatorHigh = 3.3;                   // Upper range for Neopixel-voltage-indication (all leds) (can be changed via GUI!)
 	#endif

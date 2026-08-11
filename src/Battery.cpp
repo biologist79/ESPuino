@@ -25,8 +25,7 @@ void Battery_Init(void) {
 
 	Battery_InitInner();
 
-	#ifdef SHUTDOWN_ON_BAT_CRITICAL
-	if (Battery_IsCritical()) {
+	if (gPrefsSettings.getBool("shutdownBatCrit", false) && Battery_IsCritical()) {
 		Battery_LogStatus();
 
 		Log_Println(batteryCriticalMsg, LOGLEVEL_NOTICE);
@@ -39,7 +38,6 @@ void Battery_Init(void) {
 		delay(200);
 		esp_deep_sleep_start();
 	}
-	#endif
 }
 
 // Measures battery as per interval or after bootup (after allowing a few seconds to settle down)
@@ -55,12 +53,10 @@ void Battery_Cyclic(void) {
 			Led_Indicate(LedIndicatorType::VoltageWarning);
 		}
 
-	#ifdef SHUTDOWN_ON_BAT_CRITICAL
-		if (Battery_IsCritical()) {
+		if (gPrefsSettings.getBool("shutdownBatCrit", false) && Battery_IsCritical()) {
 			Log_Println(batteryCriticalMsg, LOGLEVEL_ERROR);
 			System_RequestSleep();
 		}
-	#endif
 
 		lastBatteryCheckTimestamp = millis();
 	}
