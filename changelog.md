@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 13.08.2026: Reduce audio-decode CPU load so buttons/rotary stay responsive with heavy codecs (AAC/m4a) - the decode task shares core 1 with `loop()` (which polls the controls), and a CPU-hungry decoder could starve it, making input sporadic and playback stutter (forum #4675). The audio library's per-sample VU-meter computation is now disabled outright (ESPuino never reads it), and its per-sample IIR tone filter is only enabled while the equalizer is actually non-flat (all gains 0 by default), so the common case runs neither. No functional change; the equalizer re-enables the filter automatically as soon as a gain is set.
+
 ## Version 2.10 (11.08.2026)
 
 * 11.08.2026: Fix build failing when `NEOPIXEL_ENABLE` is disabled - `LED_BRIGHTNESS_STEP`/`LED_BRIGHTNESS_MIN` were only defined inside the `#ifdef NEOPIXEL_ENABLE` block in Led.h, but Cmd.cpp references them in the always-compiled `CMD_BRIGHTNESS_UP/DOWN` handler (the LED functions it calls are already no-op stubs without NEOPIXEL). Both constants are now defined unconditionally, so a build without Neopixels compiles again (#453), thanks to @z3ky for reporting.
