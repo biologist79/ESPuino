@@ -22,3 +22,4 @@ html/locales/*.min.json
 html/js/*.min.min.js
 html/js/swaggerInitializer.min.js
 managed_components/
+compile_commands.json
