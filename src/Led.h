@@ -69,9 +69,18 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
-	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
-
+	#pragma push_macro("BUSY")
+	#undef BUSY
 	#include <FastLED.h>
+
+	#if defined(CONFIG_IDF_TARGET_ESP32)
+		#include <platforms/esp/32/drivers/i2s_spi/bus_traits.h>
+		#define LED_USE_FASTLED_FLEX_IO 1
+	#elif defined(CONFIG_IDF_TARGET_ESP32S3)
+		#include <platforms/esp/32/drivers/lcd_spi/bus_traits.h>
+		#define LED_USE_FASTLED_FLEX_IO 1
+	#endif
+	#pragma pop_macro("BUSY")
 
 struct LedSettings {
 	uint8_t numIndicatorLeds = 24;

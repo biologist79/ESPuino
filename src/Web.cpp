@@ -352,7 +352,7 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request) {
 			json += ",\"channel\":" + String(WiFi.channel(i));
 			json += ",\"secure\":" + String(WiFi.encryptionType(i));
 			json += ",\"quality\":" + String(quality); // WiFi strength in percent
-			json += ",\"wico\":\"w" + String(int(round(map(quality, 0, 100, 1, 4)))) + "\""; // WiFi strength icon ("w1"-"w4")
+			json += ",\"wico\":\"w" + String(int(std::round(map(quality, 0, 100, 1, 4)))) + "\""; // WiFi strength icon ("w1"-"w4")
 			json += ",\"pico\":\"" + String((WIFI_AUTH_OPEN == WiFi.encryptionType(i)) ? "" : "pw") + "\""; // auth icon ("p1" for secured)
 			json += "}";
 		}
