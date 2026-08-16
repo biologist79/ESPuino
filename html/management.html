@@ -133,6 +133,78 @@
 			padding: 1rem 1.25rem;
 		}
 
+		/* File upload controls must be allowed to shrink inside flex layouts.
+		   On phones, stack file selector and submit button so they never overflow the card. */
+		.file-upload-row {
+			display: flex;
+			gap: 0.5rem;
+			min-width: 0;
+		}
+
+		.file-upload-row > input[type="file"] {
+			flex: 1 1 0;
+			min-width: 0;
+			max-width: 100%;
+		}
+
+		.file-upload-row > button {
+			flex: 0 0 auto;
+		}
+
+		@media (max-width: 575.98px) {
+			.file-upload-row {
+				flex-direction: column;
+			}
+
+			.file-upload-row > input[type="file"],
+			.file-upload-row > button {
+				width: 100%;
+			}
+
+			/* Keep the long auto-save description readable on phones.
+			   The interval control moves to a second row instead of forcing
+			   label, number, unit and help icon into one over-wide flex row. */
+			.save-play-pos-interval-row {
+				display: grid !important;
+				grid-template-columns: auto auto auto minmax(0, 1fr);
+				align-items: center;
+				column-gap: 0.5rem;
+				row-gap: 0.35rem;
+				min-width: 0;
+			}
+
+			.save-play-pos-interval-row > #savePlayPosIntervalEnabled {
+				grid-column: 1;
+				grid-row: 1;
+				align-self: start;
+				margin-top: 0.3rem;
+			}
+
+			.save-play-pos-interval-row > label[for="savePlayPosIntervalEnabled"] {
+				grid-column: 2 / -1;
+				grid-row: 1;
+				min-width: 0;
+			}
+
+			.save-play-pos-interval-row > #savePlayPosInterval {
+				grid-column: 2;
+				grid-row: 2;
+				width: 4.25em !important;
+				max-width: 4.25em;
+			}
+
+			.save-play-pos-interval-row > label[for="savePlayPosInterval"] {
+				grid-column: 3;
+				grid-row: 2;
+			}
+
+			.save-play-pos-interval-row > a {
+				grid-column: 4;
+				grid-row: 2;
+				justify-self: start;
+			}
+		}
+
 		.slider-step-row > .slider-container,
 		.slider-step-row > .hue-slider,
 		.slider-step-row > .sat-slider {
@@ -1483,7 +1555,7 @@
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
-							<div class="d-flex gap-2 align-items-center">
+							<div class="d-flex gap-2 align-items-center save-play-pos-interval-row">
 								<input type="checkbox" id="savePlayPosIntervalEnabled"
 									name="savePlayPosIntervalEnabled" value="false">
 								<label for="savePlayPosIntervalEnabled"
@@ -2370,7 +2442,7 @@
 							onsubmit="uploadNVSRFID('nvsUpload'); return false">
 							<div class="mb-3">
 								<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-								<div class="d-flex gap-2">
+								<div class="file-upload-row">
 									<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
 										name="nvsUpload" accept=".txt">
 									<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
@@ -2399,7 +2471,7 @@
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<div class="d-flex gap-2">
+						<div class="file-upload-row">
 							<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
 								name="firmwareUpload" accept=".bin">
 							<button type="submit" class="btn btn-primary" data-i18n="tools.fwupdate.button"></button>
