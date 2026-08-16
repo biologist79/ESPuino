@@ -214,6 +214,14 @@
 	"files": {
 		"title": "Fichiers",
 		"loading": "Veuillez patienter...",
+		"storage": {
+			"title": "Stockage",
+			"loading": "Chargement de l’utilisation du stockage...",
+			"usage": "{{used}} utilisés sur {{total}} · {{free}} libres",
+			"unavailable": "Aucune carte SD disponible",
+			"statsUnavailable": "Carte SD détectée, mais la capacité n’a pas pu être déterminée",
+			"error": "Impossible de charger l’utilisation du stockage"
+		},
 		"context": {
 			"newFolder": "Nouveau dossier",
 			"play": "Lire",

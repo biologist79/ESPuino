@@ -214,6 +214,14 @@
 	"files": {
 		"title": "Dateien",
 		"loading": "Wird geladen...",
+		"storage": {
+			"title": "Speicherplatz",
+			"loading": "Speicherbelegung wird geladen...",
+			"usage": "{{used}} von {{total}} belegt · {{free}} frei",
+			"unavailable": "Keine SD-Karte verfügbar",
+			"statsUnavailable": "SD-Karte erkannt, Speichergröße konnte nicht ermittelt werden",
+			"error": "Speicherbelegung konnte nicht geladen werden"
+		},
 		"context": {
 			"newFolder": "Neuer Ordner",
 			"play": "Abspielen",

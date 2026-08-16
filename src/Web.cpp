@@ -1504,6 +1504,32 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		memoryObj["freePSRam"] = ESP.getFreePsram();
 		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
 	}
+	// SD card
+	if ((section == "") || (section == "sdcard")) {
+		JsonObject sdCardObj = infoObj["sdcard"].to<JsonObject>();
+		const bool available = SdCard_IsMounted();
+		const uint64_t totalBytes = available ? SdCard_GetTotalSize() : 0;
+		const uint64_t usedBytesRaw = available ? SdCard_GetUsedSize() : 0;
+		const bool statsAvailable = totalBytes > 0 && usedBytesRaw <= totalBytes;
+		const uint64_t usedBytes = statsAvailable ? usedBytesRaw : 0;
+		const uint64_t freeBytes = statsAvailable ? totalBytes - usedBytes : 0;
+
+		// Send byte counts as decimal strings. This keeps all 64 bits intact,
+		// independent of JSON-number configuration; the browser converts them
+		// with Number(...) before formatting.
+		char totalBytesText[24];
+		char usedBytesText[24];
+		char freeBytesText[24];
+		snprintf(totalBytesText, sizeof(totalBytesText), "%llu", static_cast<unsigned long long>(totalBytes));
+		snprintf(usedBytesText, sizeof(usedBytesText), "%llu", static_cast<unsigned long long>(usedBytes));
+		snprintf(freeBytesText, sizeof(freeBytesText), "%llu", static_cast<unsigned long long>(freeBytes));
+
+		sdCardObj["available"] = available;
+		sdCardObj["statsAvailable"] = statsAvailable;
+		sdCardObj["totalBytes"] = totalBytesText;
+		sdCardObj["usedBytes"] = usedBytesText;
+		sdCardObj["freeBytes"] = freeBytesText;
+	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
 		JsonObject wifiObj = infoObj["wifi"].to<JsonObject>();
