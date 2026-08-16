@@ -1315,7 +1315,8 @@
 			<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
 				aria-labelledby="nav-general-tab">
 				<div class="container" id="generalConfig">
-					<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+					<form action="#generalConfig" method="POST" novalidate
+						onsubmit="if (validateSettingsForm(this)) { genSettings('generalConfig'); } return false">
 					<div class="nav nav-tabs" id="GeneralSubTab" role="tablist">
 						<a class="nav-item nav-link active" id="general-playback-tab" data-bs-toggle="tab"
 							href="#general-playback" role="tab"><i class="fas fa-volume-up"></i><span
@@ -1891,7 +1892,7 @@
 						</div>
 						<div class="tab-pane fade" id="general-led" role="tabpanel">
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
-						<fieldset>
+						<fieldset disabled>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
 							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
@@ -2168,7 +2169,7 @@
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
-						<fieldset>
+						<fieldset disabled>
 							<legend data-i18n="general.battery.title">Batterie</legend>
 							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
@@ -2277,7 +2278,7 @@
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
-							<div id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false">
+							<fieldset id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false" disabled>
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
 										data-i18n="general.battery.criticalShutoff"></label>
@@ -2301,7 +2302,7 @@
 										</div>
 									</div>
 								</div>
-							</div>
+							</fieldset>
 							</div>
 						</fieldset>
 					</div>
@@ -2525,6 +2526,57 @@
 			error: msg => toaster.toast(msg, 'text-bg-danger')
 		}
 
+
+		/* The settings form spans several tab-panes, and a browser refuses to report a
+		   validation error on a control it cannot focus -- which includes everything in a
+		   hidden pane. Native validation therefore blocks the submit *silently*: the Save
+		   button looks dead and the only clue is "An invalid form control ... is not
+		   focusable" in the console. So the form carries `novalidate` and we check it here
+		   instead: name the offending settings, then open the tab holding the first one so
+		   it can actually be seen and corrected. */
+		function validateSettingsForm(form) {
+			const invalid = Array.from(form.elements)
+				.filter((control) => control.willValidate && !control.validity.valid);
+			if (invalid.length === 0) {
+				return true;
+			}
+
+			const describe = (el) => {
+				const label = el.id ? form.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
+				const text = label ? label.textContent.trim() : '';
+				return text || el.name || el.id;
+			};
+			const fields = invalid.map(describe).filter((name, i, all) => name && all.indexOf(name) === i);
+
+			/* Reveal the first offender: show every tab-pane ancestor, outermost first, so
+			   both the main tab and its sub-tab end up active. */
+			const panes = [];
+			for (let pane = invalid[0].closest('.tab-pane'); pane; pane = pane.parentElement ? pane.parentElement.closest('.tab-pane') : null) {
+				panes.unshift(pane);
+			}
+			panes.forEach((pane) => {
+				const link = document.querySelector('[href="#' + pane.id + '"], [data-bs-target="#' + pane.id + '"]');
+				if (link) {
+					bootstrap.Tab.getOrCreateInstance(link).show();
+				}
+			});
+
+			toaster.error(i18next.t("toast.settingsInvalid", { fields: fields.join(', ') }));
+			/* after the tab transition, so the control is visible and focusable */
+			setTimeout(() => {
+				invalid[0].focus();
+				invalid[0].reportValidity();
+			}, 250);
+			return false;
+		}
+
+		function setSettingsSectionActive(section, active) {
+			section.setAttribute('data-visible', active);
+			const fieldset = section.matches('fieldset') ? section : section.querySelector('fieldset');
+			if (fieldset) {
+				fieldset.disabled = !active;
+			}
+		}
 
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
@@ -3875,7 +3927,7 @@
 			// led
 			let ledSettings = settings.led;
 			if (ledSettings) {
-				document.getElementById('neopixelConfig').setAttribute('data-visible', true);
+				setSettingsSectionActive(document.getElementById('neopixelConfig'), true);
 				$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
 				$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
 				$('#atmoBrightness').bootstrapSlider('setValue', ledSettings.atmoBrightness);
@@ -3955,12 +4007,12 @@
 			// battery
 			let batSettings = settings.battery;
 			if (batSettings) {
-				document.getElementById('batteryConfig').setAttribute('data-visible', true);
+				setSettingsSectionActive(document.getElementById('batteryConfig'), true);
 				$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
 				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', batSettings.shutdownOnCritical);
+				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), batSettings.shutdownOnCritical);
 				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 			}
@@ -5027,7 +5079,7 @@
 			   bootstrap-slider mismeasures its width while display:none, so relayout it now that it's visible. */
 			$('#shutdownOnCritical').on('change', function () {
 				const checked = $(this).prop('checked');
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', checked);
+				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), checked);
 				if (checked) {
 					$('#criticalVoltage').bootstrapSlider('relayout');
 				}
