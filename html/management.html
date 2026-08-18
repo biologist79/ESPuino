@@ -1683,68 +1683,101 @@
 						<fieldset>
 							<legend class="w-auto" data-i18n="general.rfid.title"></legend><br>
 							<div class="settings-group-card">
-							<div class="d-flex gap-2">
-								<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
-								<label for="pn5180Lpcd" data-i18n="general.rfid.pn5180Lpcd"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<label for="rfidReaderType" class="col-sm-4 col-form-label"
-									data-i18n="general.rfid.readerType.title"></label>
-								<div class="col-sm-8">
-									<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
-										<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
-										<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
-										<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
-										<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
-									</select>
-								</div>
-								<div class="col-sm-8 offset-sm-4">
-									<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+								<div class="row mb-2 align-items-center">
+									<label for="rfidReaderType" class="col-sm-4 col-form-label"
+										data-i18n="general.rfid.readerType.title"></label>
+									<div class="col-sm-8">
+										<select class="form-control form-select" id="rfidReaderType" name="rfidReaderType">
+											<option value="0" data-i18n="general.rfid.readerType.auto">Auto-detect</option>
+											<option value="1" data-i18n="general.rfid.readerType.mfrc522_spi">MFRC522 (SPI)</option>
+											<option value="2" data-i18n="general.rfid.readerType.mfrc522_i2c">MFRC522 (I2C)</option>
+											<option value="3" data-i18n="general.rfid.readerType.pn5180">PN5180</option>
+										</select>
+									</div>
+									<div class="col-sm-8 offset-sm-4">
+										<small class="form-text text-muted" data-i18n="general.rfid.readerType.description"></small>
+									</div>
 								</div>
 							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="mfrc522Gain" class="col-form-label"
-										data-i18n="general.rfid.mfrc522Gain"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
-										<i class="fas fa-circle-question"></i></a>
+
+							<div class="settings-group-card mt-3" id="mfrc522Settings" style="display:none">
+								<h5 class="mb-3">MFRC522</h5>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="mfrc522Gain" class="col-form-label"
+											data-i18n="general.rfid.mfrc522Gain"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain" min="0" max="7">
+									</div>
 								</div>
-								<div class="col-sm-8">
-									<input type="number" class="form-control" id="mfrc522Gain" name="mfrc522Gain"
-										min="0" max="7">
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="mfrc522ScanInterval" class="col-form-label"
-										data-i18n="general.rfid.mfrc522ScanInterval"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
-										<i class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<input type="number" class="form-control" id="mfrc522ScanInterval"
-										name="mfrc522ScanInterval" min="20" max="2000" step="10">
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="pn5180Debounce" class="col-form-label"
-										data-i18n="general.rfid.pn5180Debounce"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
-										<i class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<input type="number" class="form-control" id="pn5180Debounce" name="pn5180Debounce"
-										min="0" max="2000" step="10">
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="mfrc522ScanInterval" class="col-form-label"
+											data-i18n="general.rfid.mfrc522ScanInterval"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="mfrc522ScanInterval"
+											name="mfrc522ScanInterval" min="20" max="2000" step="10">
+									</div>
 								</div>
 							</div>
-						</div>
+
+							<div class="settings-group-card mt-3" id="pn5180Settings" style="display:none">
+								<h5 class="mb-3">PN5180</h5>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 col-form-label" data-i18n="general.rfid.pn5180Firmware"></div>
+									<div class="col-sm-8">
+										<div class="form-control-plaintext" id="pn5180FirmwareValue">—</div>
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="pn5180Lpcd" class="col-form-label" data-i18n="general.rfid.pn5180Lpcd"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="checkbox" id="pn5180Lpcd" name="pn5180Lpcd" value="false">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="pn5180Debounce" class="col-form-label"
+											data-i18n="general.rfid.pn5180Debounce"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="pn5180Debounce" name="pn5180Debounce"
+											min="0" max="2000" step="10">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-start">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="slixPrivacyPassword0" class="col-form-label" data-i18n="general.rfid.slixPrivacyPassword"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.rfid.slixPrivacyPasswordExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<div class="row g-2">
+											<div class="col-3"><input type="text" class="form-control slix-password-byte text-uppercase" id="slixPrivacyPassword0" maxlength="2" pattern="[0-9A-Fa-f]{2}" autocomplete="off" spellcheck="false"></div>
+											<div class="col-3"><input type="text" class="form-control slix-password-byte text-uppercase" id="slixPrivacyPassword1" maxlength="2" pattern="[0-9A-Fa-f]{2}" autocomplete="off" spellcheck="false"></div>
+											<div class="col-3"><input type="text" class="form-control slix-password-byte text-uppercase" id="slixPrivacyPassword2" maxlength="2" pattern="[0-9A-Fa-f]{2}" autocomplete="off" spellcheck="false"></div>
+											<div class="col-3"><input type="text" class="form-control slix-password-byte text-uppercase" id="slixPrivacyPassword3" maxlength="2" pattern="[0-9A-Fa-f]{2}" autocomplete="off" spellcheck="false"></div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</fieldset>
 					</div>
 					<div>
@@ -2569,6 +2602,10 @@
 			$($(e.target).attr('href')).find('[data-provide="slider"]').each(function () {
 				$(this).bootstrapSlider('relayout');
 			});
+			if ($(e.target).attr('id') === 'general-rfidreader-tab') {
+				// Refresh only the RAM-cached PN5180 firmware value. This request never touches SPI.
+				updatePn5180FirmwareInfo();
+			}
 		});
 		if (host == "") { // Not running on the device -> use the remote host
 			host = remoteHost;
@@ -4077,6 +4114,59 @@
 			});
 		}
 
+		function normalizeSlixPasswordByte(value) {
+			const clean = String(value == null ? '' : value).toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 2);
+			return ('00' + clean).slice(-2);
+		}
+
+		function setSlixPrivacyPassword(value) {
+			let password = String(value == null ? '' : value).toUpperCase().replace(/[^0-9A-F]/g, '');
+			while (password.length < 8) password += '0';
+			password = password.slice(0, 8);
+			for (let i = 0; i < 4; i++) {
+				$('#slixPrivacyPassword' + i).val(password.slice(i * 2, i * 2 + 2));
+			}
+		}
+
+		function getSlixPrivacyPassword() {
+			let password = '';
+			for (let i = 0; i < 4; i++) {
+				const input = $('#slixPrivacyPassword' + i);
+				const value = normalizeSlixPasswordByte(input.val());
+				input.val(value);
+				password += value;
+			}
+			return password;
+		}
+
+		async function updatePn5180FirmwareInfo() {
+			const firmwareValue = $('#pn5180FirmwareValue');
+			try {
+				const response = await fetch("http://" + host + "/settings?section=rfidstatus");
+				if (!response.ok) throw new Error(response.statusText);
+				const data = await response.json();
+				const firmware = data.rfidStatus && data.rfidStatus.pn5180Firmware;
+				firmwareValue.text(firmware || '—');
+			} catch (err) {
+				firmwareValue.text('—');
+			}
+		}
+
+		function updateRfidReaderSettings() {
+			const readerType = Number($('#rfidReaderType').val());
+			const isAutoDetect = readerType === 0;
+			const isMfrc522 = readerType === 1 || readerType === 2;
+			const isPn5180 = readerType === 3;
+
+			$('#mfrc522Settings').toggle(isAutoDetect || isMfrc522);
+			$('#pn5180Settings').toggle(isAutoDetect || isPn5180);
+
+			// LPCD only applies to PN5180.
+			if (isMfrc522) {
+				$('#pn5180Lpcd').prop('checked', false);
+			}
+		}
+
 		async function fillSettings(settings) {
 			if (!settings) {
 				return false;
@@ -4111,10 +4201,11 @@
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
 				$('#rfidReaderType').val(genSettings.rfidReaderType);
 				$('#pn5180Lpcd').prop('checked', genSettings.pn5180Lpcd);
-				$('#pn5180Lpcd').prop('disabled', genSettings.rfidReaderType == 1 || genSettings.rfidReaderType == 2);
 				$('#mfrc522Gain').val(genSettings.mfrc522Gain);
 				$('#mfrc522ScanInterval').val(genSettings.mfrc522ScanInterval);
 				$('#pn5180Debounce').val(genSettings.pn5180Debounce);
+				setSlixPrivacyPassword(genSettings.slixPrivacyPassword);
+				updateRfidReaderSettings();
 			}
 			// current values
 			let currSettings = settings.current;
@@ -4599,7 +4690,8 @@
 					pn5180Lpcd: $('#pn5180Lpcd').prop('checked'),
 					mfrc522Gain: Number($('#mfrc522Gain').val()),
 					mfrc522ScanInterval: Number($('#mfrc522ScanInterval').val()),
-					pn5180Debounce: Number($('#pn5180Debounce').val())
+					pn5180Debounce: Number($('#pn5180Debounce').val()),
+					slixPrivacyPassword: getSlixPrivacyPassword()
 				},
 				"led": {
 					initBrightness: Number($('#initBrightness').val()),
@@ -5320,14 +5412,14 @@
 				}
 			});
 
-			/* PN5180 LPCD only applies to the PN5180 reader - disable it (and clear it) for MFRC522. */
-			$('#rfidReaderType').on('change', function () {
-				const pn5180Lpcd = $('#pn5180Lpcd');
-				if (this.value === '1' || this.value === '2') {
-					pn5180Lpcd.prop('checked', false).prop('disabled', true);
-				} else {
-					pn5180Lpcd.prop('disabled', false);
-				}
+			/* Show only the settings that belong to the selected RFID reader. */
+			$('#rfidReaderType').on('change', updateRfidReaderSettings);
+
+			/* ICODE-SLIX2 privacy password: four bytes, hexadecimal only. */
+			$('.slix-password-byte').on('input', function () {
+				this.value = String(this.value).toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 2);
+			}).on('blur', function () {
+				this.value = normalizeSlixPasswordByte(this.value);
 			});
 
 			/* Enable/disable "resumeOnSameRfid" depending on dontAcceptRfidTwice. */
