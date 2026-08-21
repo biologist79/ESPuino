@@ -894,7 +894,7 @@ bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples) {
 		}
 
 		const TickType_t sendTimeout = pdMS_TO_TICKS(50); // Reduced timeout for non-blocking feel
-		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, validSamples * 2 * sizeof(int16_t), sendTimeout));
+		return (pdTRUE == xRingbufferSend(audioSourceRingBuffer, outBuff, validSamples * sizeof(int16_t), sendTimeout));
 	} else {
 		return false;
 	}
