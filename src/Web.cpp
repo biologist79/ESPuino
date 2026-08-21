@@ -746,14 +746,16 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		// so reject it before writing anything. The HTML input already constrains this, but a direct
 		// REST/websocket POST could bypass that.
 		const uint8_t minVolume = generalObj["minVolume"].as<uint8_t>();
-		if (minVolume >= generalObj["maxVolumeSp"].as<uint8_t>() || minVolume >= generalObj["maxVolumeHp"].as<uint8_t>()) {
+		const uint8_t maxVolumeSp = generalObj["maxVolumeSp"].as<uint8_t>();
+		const uint8_t maxVolumeHp = generalObj["maxVolumeHp"].as<uint8_t>();
+		if (minVolume >= maxVolumeSp || minVolume >= maxVolumeHp) {
 			Log_Println(webSaveSettingsVolumeMinMaxError, LOGLEVEL_ERROR);
 			return WebsocketCodeType::Error;
 		}
 		bool success = (gPrefsSettings.putUInt("initVolume", generalObj["initVolume"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("minVolume", minVolume) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeSp", maxVolumeSp) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeHp", maxVolumeHp) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
 		if (generalObj["rotSeekStep"].is<uint8_t>()) {
 			success = success && (gPrefsSettings.putUChar("rotSeekStep", generalObj["rotSeekStep"].as<uint8_t>()) != 0);
@@ -783,6 +785,10 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return WebsocketCodeType::Error;
 		}
+
+		// Apply the new maximum-volume limits immediately; no reboot is required.
+		AudioPlayer_ApplyMaxVolumes(maxVolumeSp, maxVolumeHp);
+
 		gPlayProperties.newPlayMono = generalObj["playMono"].as<bool>();
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();
 		gPlayProperties.pauseOnMinVolume = generalObj["pauseOnMinVol"].as<bool>();
@@ -1503,6 +1509,32 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 		memoryObj["freePSRam"] = ESP.getFreePsram();
 		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
+	}
+	// SD card
+	if ((section == "") || (section == "sdcard")) {
+		JsonObject sdCardObj = infoObj["sdcard"].to<JsonObject>();
+		const bool available = SdCard_IsMounted();
+		const uint64_t totalBytes = available ? SdCard_GetTotalSize() : 0;
+		const uint64_t usedBytesRaw = available ? SdCard_GetUsedSize() : 0;
+		const bool statsAvailable = totalBytes > 0 && usedBytesRaw <= totalBytes;
+		const uint64_t usedBytes = statsAvailable ? usedBytesRaw : 0;
+		const uint64_t freeBytes = statsAvailable ? totalBytes - usedBytes : 0;
+
+		// Send byte counts as decimal strings. This keeps all 64 bits intact,
+		// independent of JSON-number configuration; the browser converts them
+		// with Number(...) before formatting.
+		char totalBytesText[24];
+		char usedBytesText[24];
+		char freeBytesText[24];
+		snprintf(totalBytesText, sizeof(totalBytesText), "%llu", static_cast<unsigned long long>(totalBytes));
+		snprintf(usedBytesText, sizeof(usedBytesText), "%llu", static_cast<unsigned long long>(usedBytes));
+		snprintf(freeBytesText, sizeof(freeBytesText), "%llu", static_cast<unsigned long long>(freeBytes));
+
+		sdCardObj["available"] = available;
+		sdCardObj["statsAvailable"] = statsAvailable;
+		sdCardObj["totalBytes"] = totalBytesText;
+		sdCardObj["usedBytes"] = usedBytesText;
+		sdCardObj["freeBytes"] = freeBytesText;
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {

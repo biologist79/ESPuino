@@ -19,7 +19,8 @@
 		"success": "Action effectuée avec succès.",
 		"dropout": "flux lent, des interruptions sont possibles.",
 		"saved": "Paramètres enregistrés.",
-		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement."
+		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement.",
+		"settingsInvalid": "Enregistrement impossible : veuillez d'abord corriger ces réglages ({{fields}})."
 	},
 	"status": {
 		"connected": "Connexion à l'ESPuino : OK",
@@ -213,6 +214,14 @@
 	"files": {
 		"title": "Fichiers",
 		"loading": "Veuillez patienter...",
+		"storage": {
+			"title": "Stockage",
+			"loading": "Chargement de l’utilisation du stockage...",
+			"usage": "{{used}} utilisés sur {{total}} · {{free}} libres",
+			"unavailable": "Aucune carte SD disponible",
+			"statsUnavailable": "Carte SD détectée, mais la capacité n’a pas pu être déterminée",
+			"error": "Impossible de charger l’utilisation du stockage"
+		},
 		"context": {
 			"newFolder": "Nouveau dossier",
 			"play": "Lire",

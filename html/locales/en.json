@@ -19,7 +19,8 @@
 		"success": "Action performed successfully.",
 		"dropout": "slow stream, dropouts are possible.",
 		"saved": "Settings saved.",
-		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it."
+		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it.",
+		"settingsInvalid": "Cannot save: please correct these settings first ({{fields}})."
 	},
 	"status": {
 		"connected": "Connection to ESPuino: OK",
@@ -213,6 +214,14 @@
 	"files": {
 		"title": "Files",
 		"loading": "Please wait...",
+		"storage": {
+			"title": "Storage",
+			"loading": "Loading storage usage...",
+			"usage": "{{used}} of {{total}} used · {{free}} free",
+			"unavailable": "No SD card available",
+			"statsUnavailable": "SD card detected, but storage size could not be determined",
+			"error": "Storage usage could not be loaded"
+		},
 		"context": {
 			"newFolder": "New Folder",
 			"play": "Play",

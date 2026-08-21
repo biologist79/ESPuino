@@ -54,6 +54,17 @@
 			height: 200px;
 		}
 
+		.sd-card-info {
+			border: 1px solid var(--bs-border-color, #dee2e6);
+			border-radius: 0.5rem;
+			padding: 0.75rem 1rem;
+			background: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.03));
+		}
+
+		.sd-card-progress {
+			height: 0.75rem;
+		}
+
 		.slider-container {
 			width: 100%;
 			display: flex;
@@ -120,6 +131,78 @@
 			border: 1px solid var(--bs-border-color);
 			border-radius: 0.75rem;
 			padding: 1rem 1.25rem;
+		}
+
+		/* File upload controls must be allowed to shrink inside flex layouts.
+		   On phones, stack file selector and submit button so they never overflow the card. */
+		.file-upload-row {
+			display: flex;
+			gap: 0.5rem;
+			min-width: 0;
+		}
+
+		.file-upload-row > input[type="file"] {
+			flex: 1 1 0;
+			min-width: 0;
+			max-width: 100%;
+		}
+
+		.file-upload-row > button {
+			flex: 0 0 auto;
+		}
+
+		@media (max-width: 575.98px) {
+			.file-upload-row {
+				flex-direction: column;
+			}
+
+			.file-upload-row > input[type="file"],
+			.file-upload-row > button {
+				width: 100%;
+			}
+
+			/* Keep the long auto-save description readable on phones.
+			   The interval control moves to a second row instead of forcing
+			   label, number, unit and help icon into one over-wide flex row. */
+			.save-play-pos-interval-row {
+				display: grid !important;
+				grid-template-columns: auto auto auto minmax(0, 1fr);
+				align-items: center;
+				column-gap: 0.5rem;
+				row-gap: 0.35rem;
+				min-width: 0;
+			}
+
+			.save-play-pos-interval-row > #savePlayPosIntervalEnabled {
+				grid-column: 1;
+				grid-row: 1;
+				align-self: start;
+				margin-top: 0.3rem;
+			}
+
+			.save-play-pos-interval-row > label[for="savePlayPosIntervalEnabled"] {
+				grid-column: 2 / -1;
+				grid-row: 1;
+				min-width: 0;
+			}
+
+			.save-play-pos-interval-row > #savePlayPosInterval {
+				grid-column: 2;
+				grid-row: 2;
+				width: 4.25em !important;
+				max-width: 4.25em;
+			}
+
+			.save-play-pos-interval-row > label[for="savePlayPosInterval"] {
+				grid-column: 3;
+				grid-row: 2;
+			}
+
+			.save-play-pos-interval-row > a {
+				grid-column: 4;
+				grid-row: 2;
+				justify-self: start;
+			}
 		}
 
 		.slider-step-row > .slider-container,
@@ -910,6 +993,19 @@
 			<div class="container" id="filetreeContainer">
 				<fieldset>
 					<legend id="fileslegend" data-i18n="files.title"></legend>
+					<div id="sdCardInfo" class="sd-card-info mb-3" aria-live="polite">
+						<div class="d-flex justify-content-between align-items-center mb-1">
+							<span class="fw-semibold"><i class="fas fa-sd-card"></i><span id="sdCardName"
+									data-i18n="files.storage.title"></span></span>
+							<span id="sdCardPercent" class="fw-semibold">--</span>
+						</div>
+						<div class="progress sd-card-progress">
+							<div id="sdCardProgressBar" class="progress-bar" role="progressbar" style="width: 0%"
+								aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+						<div id="sdCardDetails" class="small text-body-secondary mt-1"
+							data-i18n="files.storage.loading"></div>
+					</div>
 					<div class="filetree-container">
 						<div id="filebrowser">
 							<div class="filetree filetree-size" id="explorerTree"></div>
@@ -1315,7 +1411,8 @@
 			<div class="tab-pane main-tab-pane fade mb-4" id="nav-general" role="tabpanel"
 				aria-labelledby="nav-general-tab">
 				<div class="container" id="generalConfig">
-					<form action="#generalConfig" method="POST" onsubmit="genSettings('generalConfig'); return false">
+					<form action="#generalConfig" method="POST" novalidate
+						onsubmit="if (validateSettingsForm(this)) { genSettings('generalConfig'); } return false">
 					<div class="nav nav-tabs" id="GeneralSubTab" role="tablist">
 						<a class="nav-item nav-link active" id="general-playback-tab" data-bs-toggle="tab"
 							href="#general-playback" role="tab"><i class="fas fa-volume-up"></i><span
@@ -1458,7 +1555,7 @@
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
-							<div class="d-flex gap-2 align-items-center">
+							<div class="d-flex gap-2 align-items-center save-play-pos-interval-row">
 								<input type="checkbox" id="savePlayPosIntervalEnabled"
 									name="savePlayPosIntervalEnabled" value="false">
 								<label for="savePlayPosIntervalEnabled"
@@ -1891,7 +1988,7 @@
 						</div>
 						<div class="tab-pane fade" id="general-led" role="tabpanel">
 					<div class="col-md-12 mb-4" id="neopixelConfig" data-visible="false">
-						<fieldset>
+						<fieldset disabled>
 							<legend class="w-auto" data-i18n="general.neopixel.title"></legend>
 							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
@@ -2168,7 +2265,7 @@
 						</fieldset>
 					</div>
 					<div class="col-md-12 mb-4" id="batteryConfig" data-visible="false">
-						<fieldset>
+						<fieldset disabled>
 							<legend data-i18n="general.battery.title">Batterie</legend>
 							<div class="settings-group-card">
 							<div class="row mb-2 align-items-center">
@@ -2277,7 +2374,7 @@
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
-							<div id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false">
+							<fieldset id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false" disabled>
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
 										data-i18n="general.battery.criticalShutoff"></label>
@@ -2301,7 +2398,7 @@
 										</div>
 									</div>
 								</div>
-							</div>
+							</fieldset>
 							</div>
 						</fieldset>
 					</div>
@@ -2345,7 +2442,7 @@
 							onsubmit="uploadNVSRFID('nvsUpload'); return false">
 							<div class="mb-3">
 								<label for="nvsUpload" data-i18n="tools.nvs.import.desc"></label><br><br>
-								<div class="d-flex gap-2">
+								<div class="file-upload-row">
 									<input type="file" class="form-control-file btn btn-primary" id="nvsUpload"
 										name="nvsUpload" accept=".txt">
 									<button type="submit" class="btn btn-primary" data-i18n="tools.nvs.import.button"></button>
@@ -2374,7 +2471,7 @@
 				<form id="firmwareUploadForm" method="POST" enctype="multipart/form-data" action="/update">
 					<div class="mb-3">
 						<label for="firmwareUpload" data-i18n="tools.fwupdate.desc"></label><br><br>
-						<div class="d-flex gap-2">
+						<div class="file-upload-row">
 							<input type="file" class="form-control-file btn btn-primary" id="firmwareUpload"
 								name="firmwareUpload" accept=".bin">
 							<button type="submit" class="btn btn-primary" data-i18n="tools.fwupdate.button"></button>
@@ -2437,6 +2534,7 @@
 		// last known-saved led count, to detect a change on save (device restarts to apply it)
 		var lastNumIndicatorLeds = null;
 		var lastNumControlLeds = null;
+		var lastSdCardInfo = null;
 		var host = $(location).attr('hostname');
 		var currentOpMode = 0;
 		var language = navigator.language || navigator.userLanguage;
@@ -2447,6 +2545,9 @@
 			console.log("ActiveTab: " + ActiveTab);
 			if (ActiveTab == 'nav-control-tab') {
 				getTrackProgress();
+			}
+			if (ActiveTab == 'nav-rfid-tab') {
+				updateSdCardInfo();
 			}
 			localStorage.setItem("active-tab", ActiveTab);
 		});
@@ -2526,6 +2627,57 @@
 		}
 
 
+		/* The settings form spans several tab-panes, and a browser refuses to report a
+		   validation error on a control it cannot focus -- which includes everything in a
+		   hidden pane. Native validation therefore blocks the submit *silently*: the Save
+		   button looks dead and the only clue is "An invalid form control ... is not
+		   focusable" in the console. So the form carries `novalidate` and we check it here
+		   instead: name the offending settings, then open the tab holding the first one so
+		   it can actually be seen and corrected. */
+		function validateSettingsForm(form) {
+			const invalid = Array.from(form.elements)
+				.filter((control) => control.willValidate && !control.validity.valid);
+			if (invalid.length === 0) {
+				return true;
+			}
+
+			const describe = (el) => {
+				const label = el.id ? form.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
+				const text = label ? label.textContent.trim() : '';
+				return text || el.name || el.id;
+			};
+			const fields = invalid.map(describe).filter((name, i, all) => name && all.indexOf(name) === i);
+
+			/* Reveal the first offender: show every tab-pane ancestor, outermost first, so
+			   both the main tab and its sub-tab end up active. */
+			const panes = [];
+			for (let pane = invalid[0].closest('.tab-pane'); pane; pane = pane.parentElement ? pane.parentElement.closest('.tab-pane') : null) {
+				panes.unshift(pane);
+			}
+			panes.forEach((pane) => {
+				const link = document.querySelector('[href="#' + pane.id + '"], [data-bs-target="#' + pane.id + '"]');
+				if (link) {
+					bootstrap.Tab.getOrCreateInstance(link).show();
+				}
+			});
+
+			toaster.error(i18next.t("toast.settingsInvalid", { fields: fields.join(', ') }));
+			/* after the tab transition, so the control is visible and focusable */
+			setTimeout(() => {
+				invalid[0].focus();
+				invalid[0].reportValidity();
+			}, 250);
+			return false;
+		}
+
+		function setSettingsSectionActive(section, active) {
+			section.setAttribute('data-visible', active);
+			const fieldset = section.matches('fieldset') ? section : section.querySelector('fieldset');
+			if (fieldset) {
+				fieldset.disabled = !active;
+			}
+		}
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -2555,6 +2707,9 @@
 					.forEach(popoverButton => {
 						new bootstrap.Popover(popoverButton, { html: true, trigger: 'focus' })
 					});
+			}
+			if (lastSdCardInfo !== null) {
+				renderSdCardInfo(lastSdCardInfo);
 			}
 			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
@@ -2606,6 +2761,119 @@
 			});
 		}
 		/* File Explorer functions begin*/
+		function formatStorageBytes(bytes) {
+			var value = Number(bytes);
+			if (!Number.isFinite(value) || value < 0) {
+				return "--";
+			}
+
+			var units = ["B", "KB", "MB", "GB", "TB"];
+			var unitIndex = 0;
+			while (value >= 1000 && unitIndex < units.length - 1) {
+				value /= 1000;
+				unitIndex++;
+			}
+
+			var maximumFractionDigits = 2;
+			if (unitIndex === 0 || value >= 100) {
+				maximumFractionDigits = 0;
+			} else if (value >= 10) {
+				maximumFractionDigits = 1;
+			}
+
+			return value.toLocaleString(i18next.language || undefined, {
+				maximumFractionDigits: maximumFractionDigits
+			}) + " " + units[unitIndex];
+		}
+
+		function renderSdCardInfo(sdCard) {
+			var nameElement = document.getElementById('sdCardName');
+			var percentElement = document.getElementById('sdCardPercent');
+			var detailsElement = document.getElementById('sdCardDetails');
+			var progressElement = document.getElementById('sdCardProgressBar');
+			if (!nameElement || !percentElement || !detailsElement || !progressElement) {
+				return;
+			}
+
+			var title = i18next.t('files.storage.title');
+			nameElement.textContent = title;
+
+			if (sdCard && sdCard.error) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.error');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			if (!sdCard || !sdCard.available) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.unavailable');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			var totalBytes = Number(sdCard.totalBytes);
+			if (sdCard.statsAvailable === false || !Number.isFinite(totalBytes) || totalBytes <= 0) {
+				percentElement.textContent = "--";
+				detailsElement.textContent = i18next.t('files.storage.statsUnavailable');
+				progressElement.style.width = "0%";
+				progressElement.setAttribute('aria-valuenow', '0');
+				return;
+			}
+
+			var usedBytes = Number(sdCard.usedBytes);
+			var freeBytes = Number(sdCard.freeBytes);
+			if (!Number.isFinite(usedBytes)) {
+				usedBytes = 0;
+			}
+			if (!Number.isFinite(freeBytes)) {
+				freeBytes = Math.max(0, totalBytes - usedBytes);
+			}
+			usedBytes = Math.min(Math.max(0, usedBytes), totalBytes);
+			freeBytes = Math.min(Math.max(0, freeBytes), totalBytes);
+
+			var fillRatio = Math.min(1, Math.max(0, usedBytes / totalBytes));
+			var fillPercent = fillRatio * 100;
+			percentElement.textContent = fillRatio.toLocaleString(i18next.language || undefined, {
+				style: 'percent',
+				maximumFractionDigits: 1
+			});
+			detailsElement.textContent = i18next.t('files.storage.usage', {
+				used: formatStorageBytes(usedBytes),
+				total: formatStorageBytes(totalBytes),
+				free: formatStorageBytes(freeBytes)
+			});
+			progressElement.style.width = fillPercent.toFixed(1) + "%";
+			progressElement.setAttribute('aria-valuenow', fillPercent.toFixed(1));
+			progressElement.setAttribute('aria-valuetext', detailsElement.textContent);
+		}
+
+		async function updateSdCardInfo() {
+			try {
+				var response = await fetch("http://" + host + "/info?section=sdcard&_=" + Date.now(), {
+					cache: 'no-store'
+				});
+				if (!response.ok) {
+					throw new Error("HTTP " + response.status);
+				}
+				var info = await response.json();
+				if (!info || typeof info !== 'object' || !Object.prototype.hasOwnProperty.call(info, 'sdcard')) {
+					throw new Error("SD card information missing");
+				}
+
+				lastSdCardInfo = info.sdcard;
+				renderSdCardInfo(lastSdCardInfo);
+			} catch (error) {
+				console.warn("Could not load SD card usage:", error);
+				lastSdCardInfo = {
+					error: true
+				};
+				renderSdCardInfo(lastSdCardInfo);
+			}
+		}
+
 		var lastSelectedNodePath = "";
 		$('#explorerTree').on('select_node.jstree', function (e, data) {
 			$('input[name=fileOrUrl]').val(data.node.data.path);
@@ -2686,7 +2954,10 @@
 		function deleteData(path, callback, _data) {
 			doRest(path, callback, {
 				method: "DELETE",
-				data: _data
+				data: _data,
+				complete: function () {
+					updateSdCardInfo();
+				}
 			});
 		} /* deleteData */
 		function patchData(path, callback, _data) {
@@ -2704,7 +2975,10 @@
 		function putData(path, callback, _data) {
 			doRest(path, callback, {
 				method: "PUT",
-				data: _data
+				data: _data,
+				complete: function () {
+					updateSdCardInfo();
+				}
 			});
 		} /* putData */
 		async function restartDevice() {
@@ -3112,6 +3386,7 @@
 					addFileDirectory(sel, data);
 					ref.open_node(sel);
 				});
+				updateSdCardInfo();
 			}
 
 			// Files upload one at a time (the shared double-buffer/writer-task
@@ -3371,6 +3646,7 @@
 							icon: "fas fa-sync",
 							action: function (x) {
 								refreshNode(nodeId);
+								updateSdCardInfo();
 							}
 						};
 						/* Delete */
@@ -3875,7 +4151,7 @@
 			// led
 			let ledSettings = settings.led;
 			if (ledSettings) {
-				document.getElementById('neopixelConfig').setAttribute('data-visible', true);
+				setSettingsSectionActive(document.getElementById('neopixelConfig'), true);
 				$('#initBrightness').bootstrapSlider('setValue', ledSettings.initBrightness);
 				$('#nightBrightness').bootstrapSlider('setValue', ledSettings.nightBrightness);
 				$('#atmoBrightness').bootstrapSlider('setValue', ledSettings.atmoBrightness);
@@ -3955,12 +4231,12 @@
 			// battery
 			let batSettings = settings.battery;
 			if (batSettings) {
-				document.getElementById('batteryConfig').setAttribute('data-visible', true);
+				setSettingsSectionActive(document.getElementById('batteryConfig'), true);
 				$('#warningLowVoltage').bootstrapSlider('setValue', batSettings.warnLowVoltage);
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
 				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', batSettings.shutdownOnCritical);
+				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), batSettings.shutdownOnCritical);
 				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 			}
@@ -4892,6 +5168,7 @@
 		$(document).ready(function () {
 			connect();
 			buildFileSystemTree("/");
+			updateSdCardInfo();
 			// insert MQTT topics preview if not present
 			if ($('#mqttTopicsPreview').length === 0) {
 				var preview = $('<fieldset class="mt-5 mb-3"><legend data-i18n="mqtt.topics.preview"></legend><div class="settings-group-card"><pre id="mqttTopicsPreview" style="white-space:pre-wrap;"></pre></div></fieldset>');
@@ -5027,7 +5304,7 @@
 			   bootstrap-slider mismeasures its width while display:none, so relayout it now that it's visible. */
 			$('#shutdownOnCritical').on('change', function () {
 				const checked = $(this).prop('checked');
-				document.getElementById('criticalVoltageSection').setAttribute('data-visible', checked);
+				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), checked);
 				if (checked) {
 					$('#criticalVoltage').bootstrapSlider('relayout');
 				}

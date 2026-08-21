@@ -19,7 +19,8 @@
 		"success": "Aktion erfolgreich ausgeführt.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
 		"saved": "Einstellungen gespeichert.",
-		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen."
+		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen.",
+		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}})."
 	},
 	"status": {
 		"connected": "Verbindung zum ESPuino: OK",
@@ -213,6 +214,14 @@
 	"files": {
 		"title": "Dateien",
 		"loading": "Wird geladen...",
+		"storage": {
+			"title": "Speicherplatz",
+			"loading": "Speicherbelegung wird geladen...",
+			"usage": "{{used}} von {{total}} belegt · {{free}} frei",
+			"unavailable": "Keine SD-Karte verfügbar",
+			"statsUnavailable": "SD-Karte erkannt, Speichergröße konnte nicht ermittelt werden",
+			"error": "Speicherbelegung konnte nicht geladen werden"
+		},
 		"context": {
 			"newFolder": "Neuer Ordner",
 			"play": "Abspielen",

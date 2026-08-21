@@ -377,6 +377,16 @@ float Audio_GetVolume(float t) {
 	return val1 + (val2 - val1) * fraction;
 }
 
+// Applies the tone/equalizer gains and keeps the audio library's per-sample IIR tone filter enabled
+// only while the equalizer is actually non-flat. With a flat EQ (all gains 0, the default) the filter
+// would just pass the signal through unchanged, so running it per output sample is wasted CPU on core 1
+// -- the same core loop() polls buttons/rotary on, which is why heavy decoders (AAC/m4a) starve input.
+// See https://forum.espuino.de/t/keine-bedienung-bei-bestimmten-dateien-moeglich/4675
+static void AudioPlayer_ApplyTone(int8_t gainLowPass, int8_t gainBandPass, int8_t gainHighPass) {
+	audio->settings.IIR_FILTER = (gainLowPass != 0 || gainBandPass != 0 || gainHighPass != 0);
+	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
+}
+
 void AudioPlayer_Init(void) {
 	// create audio object
 	audio = new AudioCustom();
@@ -497,10 +507,14 @@ void AudioPlayer_Init(void) {
 	audio->setVolumeCurve(Audio_GetVolume);
 	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
-	audio->setTone(
+	AudioPlayer_ApplyTone(
 		gPrefsSettings.getChar("gainLowPass", 0),
 		gPrefsSettings.getChar("gainBandPass", 0),
 		gPrefsSettings.getChar("gainHighPass", 0));
+
+	// ESPuino never reads the audio library's VU level, so skip its per-sample computation entirely
+	// (frees CPU on the shared core -- see AudioPlayer_ApplyTone() and forum thread #4675).
+	audio->settings.VU_LEVEL = false;
 
 	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
@@ -606,6 +620,22 @@ uint8_t AudioPlayer_GetMaxVolumeSpeaker(void) {
 
 void AudioPlayer_SetMaxVolumeSpeaker(uint8_t value) {
 	AudioPlayer_MaxVolumeSpeaker = value;
+}
+
+void AudioPlayer_ApplyMaxVolumes(uint8_t speaker, uint8_t headphone) {
+	AudioPlayer_MaxVolumeSpeaker = speaker;
+
+#ifdef HEADPHONE_ADJUST_ENABLE
+	AudioPlayer_MaxVolumeHeadphone = headphone;
+	AudioPlayer_MaxVolume = AudioPlayer_IsHeadphoneModeActive() ? AudioPlayer_MaxVolumeHeadphone : AudioPlayer_MaxVolumeSpeaker;
+#else
+	(void) headphone;
+	AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
+#endif
+
+	if (AudioPlayer_CurrentVolume > AudioPlayer_MaxVolume) {
+		AudioPlayer_SetVolume(AudioPlayer_MaxVolume);
+	}
 }
 
 uint8_t AudioPlayer_GetMinVolume(void) {
@@ -1270,7 +1300,7 @@ void AudioPlayer_Loop() {
 		} else {
 			Log_Println(newPlayModeStereo, LOGLEVEL_NOTICE);
 		}
-		audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
+		AudioPlayer_ApplyTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 	}
 
 	audio->loop(); // Call audio-loop function to process incoming data
@@ -1361,7 +1391,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 
 // Adds equalizer settings low, band and high pass and readjusts the equalizer
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
-	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
+	AudioPlayer_ApplyTone(gainLowPass, gainBandPass, gainHighPass);
 }
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
