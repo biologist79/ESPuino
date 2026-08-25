@@ -21,6 +21,7 @@
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Rfid.h"
+#include "RfidPn5180.h"
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
@@ -113,6 +114,20 @@ static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *clien
 static void settingsToJSON(JsonObject obj, const String section);
 static WebsocketCodeType JSONToSettings(JsonObject obj);
 static void webserverStart(void);
+
+static String slixPrivacyPasswordToHex(const SlixPrivacyPassword &password) {
+	char hex[9];
+	snprintf(hex, sizeof(hex), "%02X%02X%02X%02X", password[0], password[1], password[2], password[3]);
+	return String(hex);
+}
+
+static SlixPrivacyPassword slixPrivacyPasswordFromPrefs(void) {
+	SlixPrivacyPassword password = SLIX_PRIVACY_PASSWORD_DEFAULT;
+	if (gPrefsRfid.getBytesLength(SLIX_PRIVACY_PASSWORD_NVS_KEY) == password.size()) {
+		gPrefsRfid.getBytes(SLIX_PRIVACY_PASSWORD_NVS_KEY, password.data(), password.size());
+	}
+	return password;
+}
 
 // IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
 void convertFromJson(JsonVariantConst src, IPAddress &dst) {
@@ -781,6 +796,45 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsRfid.putUChar("mfrc522Gain", generalObj["mfrc522Gain"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putUShort("rfidScanIntv", generalObj["mfrc522ScanInterval"].as<uint16_t>()) != 0);
 		success = success && (gPrefsRfid.putUShort("pn5180Debounce", generalObj["pn5180Debounce"].as<uint16_t>()) != 0);
+
+		// Keep compatibility with older cached management pages: if the field is missing,
+		// preserve the password already stored in NVS instead of overwriting it.
+		String slixPrivacyPassword = generalObj["slixPrivacyPassword"].as<String>();
+		if (slixPrivacyPassword.length() > 0) {
+			SlixPrivacyPassword slixPassword = {};
+			bool validPassword = (slixPrivacyPassword.length() == slixPassword.size() * 2);
+			for (size_t i = 0; validPassword && i < slixPassword.size(); i++) {
+				auto hexNibble = [](char c) -> int8_t {
+					if ((c >= '0') && (c <= '9')) {
+						return c - '0';
+					}
+					if ((c >= 'A') && (c <= 'F')) {
+						return c - 'A' + 10;
+					}
+					if ((c >= 'a') && (c <= 'f')) {
+						return c - 'a' + 10;
+					}
+					return -1;
+				};
+				const int8_t high = hexNibble(slixPrivacyPassword[i * 2]);
+				const int8_t low = hexNibble(slixPrivacyPassword[i * 2 + 1]);
+				if ((high < 0) || (low < 0)) {
+					validPassword = false;
+				} else {
+					slixPassword[i] = static_cast<uint8_t>((high << 4) | low);
+				}
+			}
+			if (validPassword) {
+				const bool passwordStored = success && (gPrefsRfid.putBytes(SLIX_PRIVACY_PASSWORD_NVS_KEY, slixPassword.data(), slixPassword.size()) == slixPassword.size());
+				success = passwordStored;
+				if (passwordStored) {
+					RfidPn5180_SetSlixPrivacyPassword(slixPassword);
+				}
+			} else {
+				success = false;
+				Log_Println("Invalid ICODE-SLIX2 privacy password in web settings", LOGLEVEL_ERROR);
+			}
+		}
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return WebsocketCodeType::Error;
@@ -1173,9 +1227,24 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["mfrc522Gain"].set(gPrefsRfid.getUChar("mfrc522Gain", 7)); // MFRC522_GAIN
 		generalObj["mfrc522ScanInterval"].set(gPrefsRfid.getUShort("rfidScanIntv", 100)); // RFID_SCAN_INTERVAL
 		generalObj["pn5180Debounce"].set(gPrefsRfid.getUShort("pn5180Debounce", 500)); // PN5180 debounce (ms)
+
+		const String slixPasswordHex = slixPrivacyPasswordToHex(slixPrivacyPasswordFromPrefs());
+		generalObj["slixPrivacyPassword"].set(slixPasswordHex);
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
+	}
+	if (section == "rfidstatus") {
+		JsonObject rfidStatusObj = obj["rfidStatus"].to<JsonObject>();
+		uint8_t firmwareMajor = 0;
+		uint8_t firmwareMinor = 0;
+		if (RfidPn5180_GetFirmwareVersion(firmwareMajor, firmwareMinor)) {
+			char firmwareVersion[8];
+			snprintf(firmwareVersion, sizeof(firmwareVersion), "%u.%u", firmwareMajor, firmwareMinor);
+			rfidStatusObj["pn5180Firmware"].set(firmwareVersion);
+		} else {
+			rfidStatusObj["pn5180Firmware"].set("");
+		}
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
@@ -1335,6 +1404,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
 		genSettings["mfrc522ScanInterval"].set(100u); // RFID_SCAN_INTERVAL default
 		genSettings["pn5180Debounce"].set(500u); // PN5180 debounce (ms) default
+		genSettings["slixPrivacyPassword"].set(slixPrivacyPasswordToHex(SLIX_PRIVACY_PASSWORD_DEFAULT));
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);

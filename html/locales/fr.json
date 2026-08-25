@@ -497,13 +497,16 @@
 				"description": "Sélectionnez le type de lecteur RFID connecté à votre ESPuino. La détection automatique tentera de déterminer le type de lecteur connecté automatiquement."
 			},
 			"pn5180Lpcd": "Activer PN5180 LPCD",
-			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées.",
+			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Le firmware du PN5180 doit être en version 4.0 ou plus récente et les ponts de soudure nécessaires doivent être configurés correctement. Plus d’informations <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>ici</a>.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Définit la sensibilité du lecteur RFID MFRC522. Les valeurs possibles sont de 0 (sensibilité la plus faible) à 7 (sensibilité la plus élevée). La valeur par défaut est 7.",
 			"mfrc522ScanInterval": "Intervalle de scan MFRC522",
 			"mfrc522ScanIntervalExp": "Durée en millisecondes entre deux interrogations du lecteur RFID MFRC522. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 100ms.",
 			"pn5180Debounce": "Anti-rebond PN5180",
-			"pn5180DebounceExp": "Durée en millisecondes pendant laquelle une carte doit rester non détectée avant d'être considérée comme retirée. Évite que de brèves pertes de lecture (par ex. avec un écart plus important entre la carte et le lecteur) soient interprétées à tort comme un retrait de carte. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 500ms."
+			"pn5180DebounceExp": "Durée en millisecondes pendant laquelle une carte doit rester non détectée avant d'être considérée comme retirée. Évite que de brèves pertes de lecture (par ex. avec un écart plus important entre la carte et le lecteur) soient interprétées à tort comme un retrait de carte. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 500ms.",
+			"slixPrivacyPassword": "Mot de passe de confidentialité ICODE-SLIX2",
+			"slixPrivacyPasswordExp": "Mot de passe de quatre octets utilisé pour désactiver le mode confidentialité des tags ICODE-SLIX2 protégés. Seules les valeurs hexadécimales de 00 à FF sont acceptées.",
+			"pn5180Firmware": "Firmware PN5180 lue"
 		},
 		"options": {
 			"title": "Options",
