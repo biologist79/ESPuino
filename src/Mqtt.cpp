@@ -356,7 +356,10 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicTrack, gPlayProperties.title, false);
 			publishMqtt(topicCoverChanged, "", false);
 			publishMqtt(topicLoudness, static_cast<uint32_t>(AudioPlayer_GetCurrentVolume()), false);
-			publishMqtt(topicSleepTimer, System_GetSleepTimerTimeStamp(), false);
+			// Publish the configured minutes if a minute-timer is running, else 0. The previous code published
+			// System_GetSleepTimerTimeStamp() here -- the internal millis() start-timestamp, a meaningless huge
+			// number for consumers. (The track-based modes EOT/EOP/EO5T are conveyed via topicSleepTimerState.)
+			publishMqtt(topicSleepTimer, System_GetSleepTimerTimeStamp() > 0 ? static_cast<uint32_t>(System_GetSleepTimer()) : static_cast<uint32_t>(0), false);
 			publishMqtt(topicLockControls, static_cast<uint32_t>(System_AreControlsLocked()), false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // idle
@@ -474,7 +477,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		else if (reduced_topic_str == topicSleepTimer) {
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // Don't allow sleep-modications if no playlist is active
 				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
-				publishMqtt(topicSleep, static_cast<uint32_t>(0), false);
+				publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 				System_IndicateError();
 				return;
 			}
@@ -514,7 +517,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
 					System_IndicateOk();
 					Led_SetNightmode(false);
-					publishMqtt(topicSleep, static_cast<uint32_t>(0), false);
+					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;
 					gPlayProperties.playUntilTrackNumber = 0;
