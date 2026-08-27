@@ -142,6 +142,21 @@ uint8_t System_GetSleepTimer(void) {
 	return System_SleepTimer;
 }
 
+// Whole minutes left until the minute-based sleep timer fires, rounded up so a fresh 30-minute timer
+// reads 30 (not 29). Returns 0 when no minute-timer is running (the track-based modes have no time).
+uint8_t System_GetSleepTimerRemainingMinutes(void) {
+	const uint32_t sleepStart = System_SleepTimerStartTimestamp.load();
+	if (sleepStart == 0u) {
+		return 0u;
+	}
+	const uint32_t totalMs = static_cast<uint32_t>(System_SleepTimer) * 60000u;
+	const uint32_t elapsedMs = millis() - sleepStart; // unsigned: correct across millis() rollover
+	if (elapsedMs >= totalMs) {
+		return 0u;
+	}
+	return static_cast<uint8_t>((totalMs - elapsedMs + 59999u) / 60000u);
+}
+
 void System_SetLockControls(bool value) {
 	System_LockControls = value;
 }
@@ -206,6 +221,13 @@ void System_SleepHandler(void) {
 			System_RequestSleep();
 		}
 	}
+
+#ifdef MQTT_ENABLE
+	// Single publisher for the sleep-timer status JSON: self-deduplicates, so calling it every loop
+	// keeps the minute/track countdown live and reflects a timer set from any source, without
+	// instrumenting each set-site. Publishes only when the state actually changed.
+	Mqtt_PublishSleepTimerState();
+#endif
 }
 
 // prepare power down

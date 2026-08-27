@@ -20,6 +20,10 @@ void Mqtt_Init(void);
 void Mqtt_Exit(void);
 void Mqtt_OnWifiConnected(void);
 bool Mqtt_IsEnabled(void);
+// Publishes the sleep-timer status JSON on topicSleepTimerState, but only when it changed since the
+// last publish (self-deduplicating) so it can be called every loop. Pass force=true to publish
+// regardless (e.g. on MQTT reconnect, so a fresh subscriber gets the current state).
+void Mqtt_PublishSleepTimerState(bool force = false);
 
 bool publishMqtt(const char *topic, const char *payload, bool retained);
 bool publishMqtt(const char *topic, int32_t payload, bool retained);

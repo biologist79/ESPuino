@@ -516,6 +516,7 @@ described as follows.
 | topicCoverChanged       | (flag)          | State: indicates cover image may have changed (load only if visible)                                                                                |
 | topicLoudness           | Cmnd/State: 0 -> 21 | Set/report loudness (depends on minVolume / maxVolume)                                                                                               |
 | topicSleepTimer         | Cmnd/State: EOP / EOT / EO5T / 1->2^32 / 0 | Cmnd: set sleep timer (EOP/EOT/EO5T or minutes; 0 to deactivate). State: current timer value (e.g. `EOP`, `EOT`, `EO5T`, `0`, ...) |
+| topicSleepTimerState    | State: JSON     | State: live sleep-timer status as JSON, e.g. `{"mode":"MINUTES","remainingMinutes":29,"remainingTracks":0}`. `mode` is `OFF`/`MINUTES`/`EOT`/`EOP`/`EO5T`; `remainingMinutes` counts down for a minute-timer, `remainingTracks` for `EOT`/`EO5T`/`EOP`. Read-only companion to `topicSleepTimer` |
 | topicState              | Online, Offline | `Online` when powering on, `Offline` when powering off                                                                                                 |
 | topicCurrentIPv4IP      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                                                                                                       |
 | topicPausePlay          | idle, play, pause | Sends playback state: `idle` (no playback), `play` (playing), `pause` (paused)                                                                         |

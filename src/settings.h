@@ -232,6 +232,7 @@
 		constexpr const char topicTrackControl[] = "trackcontrol"; // Cmnd: playback control (1=stop,3=play/pause,4=next,5=prev,6=first,7=last,8=next folder,9=prev folder)
 		constexpr const char topicLoudness[] = "loudness";    // Cmnd/State: set / report volume (numeric)
 		constexpr const char topicSleepTimer[] = "sleep_timer"; // Cmnd/State: sleep timer commands (EOP/EOT/EO5T, minutes, or 0 to deactivate)
+		constexpr const char topicSleepTimerState[] = "sleep_timer_state"; // State: JSON {mode,remainingMinutes,remainingTracks}; mode = OFF/MINUTES/EOT/EOP/EO5T
 		constexpr const char topicLockControls[] ="lock_controls"; // Cmnd/State: lock or unlock physical controls (ON/OFF)
 		constexpr const char topicRepeatMode[] = "repeatmode"; // Cmnd/State: set repeat mode (0=no,1=track,2=playlist,3=both)
 		constexpr const char topicLedBrightness[] = "led_brightness"; // Cmnd/State: set LED brightness 0..255
