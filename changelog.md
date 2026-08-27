@@ -2,6 +2,7 @@
 
 ## DEV-branch
 
+* 27.08.2026: Fix MQTT topics using an all-zero MAC (`ESPuino-000000000000`) instead of the real one - the `<MAC>` token in the device id is resolved in `Mqtt_Init()` at early boot, before the WiFi driver is up, and `WiFi.macAddress()` returns zeros until then. `Wlan_GetMacAddress()` now reads the MAC straight from eFuse via `esp_read_mac()`, which is always available and yields the same value; the web interface already showed the correct MAC because it reads it later at request time.
 * 16.08.2026: Apply the configured maximum volume (speaker / headphone) immediately after saving instead of only after the next restart - lowering the limit in the web UI now takes effect right away, and a currently-higher volume is clamped down to the new maximum (#454), thanks to @joker-mik.
 * 16.08.2026: Web-UI: fix horizontal overflow on narrow/mobile screens - file-selector and submit buttons now stack on small screens (RFID/NVS import and firmware upload), the audiobook auto-save-interval control moves to its own row, and the RFID-assignment list renders better on mobile (#452), thanks to @joker-mik.
 * 16.08.2026: Web-UI: show SD-card storage usage (used / total / free / percentage with a progress bar, in decimal MB/GB) above the file browser, refreshed when opening the Files/RFID tab and after file operations; includes DE/EN/FR translations (#451), thanks to @joker-mik.
