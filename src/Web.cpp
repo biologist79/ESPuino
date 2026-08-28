@@ -209,7 +209,17 @@ void handleUploadError(AsyncWebServerRequest *request, int code) {
 }
 
 static void serveProgmemFiles(const String &uri, const String &contentType, const uint8_t *content, size_t len) {
-	wServer.on(uri.c_str(), HTTP_GET, [contentType, content, len](AsyncWebServerRequest *request) {
+	wServer.on(uri.c_str(), HTTP_GET, [uri, contentType, content, len](AsyncWebServerRequest *request) {
+#ifndef NO_SDCARD
+		// Live-development override: if a same-named file exists under /.html on the SD card, serve that
+		// instead of the firmware-embedded version. Lets html/ changes be uploaded and viewed without a
+		// full reflash (see .vscode/watch-and-upload.py). Generalises the pre-existing index.htm/logo override.
+		const String sdPath = "/.html" + uri;
+		if (gFSystem.exists(sdPath.c_str())) {
+			request->send(gFSystem, sdPath, contentType);
+			return;
+		}
+#endif
 		AsyncWebServerResponse *response;
 
 		const bool etag = request->hasHeader("If-None-Match") && request->getHeader("If-None-Match")->value().equals(gitRevShort);
