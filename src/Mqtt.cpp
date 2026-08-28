@@ -344,6 +344,24 @@ static SleepTimerMode Mqtt_CurrentSleepTimerMode(void) {
 	return SleepTimerMode::Off;
 }
 
+// Single source for the mode <-> string mapping. The EOT/EOP/EO5T strings double as the legacy
+// topicSleepTimer values, so both the JSON status and the legacy topic reuse this.
+static const char *Mqtt_SleepTimerModeToString(SleepTimerMode mode) {
+	switch (mode) {
+		case SleepTimerMode::Minutes:
+			return "MINUTES";
+		case SleepTimerMode::EOT:
+			return "EOT";
+		case SleepTimerMode::EOP:
+			return "EOP";
+		case SleepTimerMode::EO5T:
+			return "EO5T";
+		case SleepTimerMode::Off:
+			return "OFF";
+	}
+	return "OFF";
+}
+
 // Publishes the sleep-timer status as a single JSON object on topicSleepTimerState, e.g.
 // {"mode":"MINUTES","remainingMinutes":29,"remainingTracks":0}. One topic instead of several scalars
 // keeps the flat topic scheme uncluttered. Published non-retained, like every other ESPuino state
@@ -352,28 +370,27 @@ static SleepTimerMode Mqtt_CurrentSleepTimerMode(void) {
 // the payload changed (or force=true), which is what drives the minute/track countdown and reflects a
 // timer set from any source (MQTT, RFID modification card, button) within one loop iteration.
 void Mqtt_PublishSleepTimerState(bool force) {
-	const char *mode = "OFF";
-	uint32_t remainingMinutes = 0;
-	uint32_t remainingTracks = 0;
+	const SleepTimerMode mode = Mqtt_CurrentSleepTimerMode();
+	unsigned remainingMinutes = 0; // unsigned (not uint32_t) to match the %u in snprintf below
+	unsigned remainingTracks = 0;
 
-	switch (Mqtt_CurrentSleepTimerMode()) {
+	switch (mode) {
 		case SleepTimerMode::Minutes:
-			mode = "MINUTES";
 			remainingMinutes = System_GetSleepTimerRemainingMinutes();
 			break;
 		case SleepTimerMode::EOT:
-			mode = "EOT";
 			remainingTracks = 1; // sleep after the current track
 			break;
 		case SleepTimerMode::EO5T:
-			mode = "EO5T";
-			if (gPlayProperties.playUntilTrackNumber > gPlayProperties.currentTrackNumber) {
+			// Guard on !playlistFinished: at the end of the playlist AudioPlayer_Loop() resets
+			// currentTrackNumber to 0 while the sleep flag is still set (until the device actually
+			// sleeps), which would otherwise make the difference report the full track count.
+			if (!gPlayProperties.playlistFinished && gPlayProperties.playUntilTrackNumber > gPlayProperties.currentTrackNumber) {
 				remainingTracks = gPlayProperties.playUntilTrackNumber - gPlayProperties.currentTrackNumber;
 			}
 			break;
 		case SleepTimerMode::EOP:
-			mode = "EOP";
-			if (gPlayProperties.playlist && gPlayProperties.playlist->size() > gPlayProperties.currentTrackNumber) {
+			if (!gPlayProperties.playlistFinished && gPlayProperties.playlist && gPlayProperties.playlist->size() > gPlayProperties.currentTrackNumber) {
 				remainingTracks = gPlayProperties.playlist->size() - gPlayProperties.currentTrackNumber;
 			}
 			break;
@@ -382,7 +399,7 @@ void Mqtt_PublishSleepTimerState(bool force) {
 	}
 
 	char payload[96];
-	snprintf(payload, sizeof(payload), "{\"mode\":\"%s\",\"remainingMinutes\":%u,\"remainingTracks\":%u}", mode, remainingMinutes, remainingTracks);
+	snprintf(payload, sizeof(payload), "{\"mode\":\"%s\",\"remainingMinutes\":%u,\"remainingTracks\":%u}", Mqtt_SleepTimerModeToString(mode), remainingMinutes, remainingTracks);
 
 	static char lastPayload[96] = "";
 	if (!force && strcmp(payload, lastPayload) == 0) {
@@ -442,18 +459,16 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			// Legacy topicSleepTimer: re-publish the current mode/value. The previous code published
 			// System_GetSleepTimerTimeStamp() here -- the internal millis() start-timestamp, a meaningless
 			// huge number for consumers.
-			switch (Mqtt_CurrentSleepTimerMode()) {
+			const SleepTimerMode reconnectMode = Mqtt_CurrentSleepTimerMode();
+			switch (reconnectMode) {
 				case SleepTimerMode::Minutes:
 					publishMqtt(topicSleepTimer, static_cast<uint32_t>(System_GetSleepTimer()), false);
 					break;
 				case SleepTimerMode::EOT:
-					publishMqtt(topicSleepTimer, "EOT", false);
-					break;
 				case SleepTimerMode::EOP:
-					publishMqtt(topicSleepTimer, "EOP", false);
-					break;
 				case SleepTimerMode::EO5T:
-					publishMqtt(topicSleepTimer, "EO5T", false);
+					// The mode string is the legacy topic value for these three.
+					publishMqtt(topicSleepTimer, Mqtt_SleepTimerModeToString(reconnectMode), false);
 					break;
 				case SleepTimerMode::Off:
 					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
