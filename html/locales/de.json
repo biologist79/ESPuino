@@ -36,6 +36,7 @@
 		"general": "Allgemein",
 		"updates": "Updates",
 		"tools": "Tools",
+		"mediahub": "MediaHub",
 		"help": "Hilfe"
 	},
 	"settingsex": {
@@ -284,9 +285,30 @@
 					"13": "🎲📁 Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
 					"14": "🎲📁🔀 Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei",
+					"18": "🌐 MediaHub (Inhalt/Modus kommt vom gewählten Mediaserver)"
 				},
 				"error": "Kein gültiger Abspielmodus"
+			},
+			"mediahub": {
+				"serverSelect": {
+					"title": "Mediaserver"
+				},
+				"name": {
+					"title": "Anzeigename",
+					"explanation": "Frei wählbarer Name, unter dem dieser Mediaserver im Auswahl-Dropdown erscheint."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Host und Port des MediaHub-Servers, z.B. 192.168.1.50:8080.",
+					"placeholder": "z.B. 192.168.1.50:8080"
+				},
+				"addButton": "Mediaserver speichern",
+				"openButton": "MediaHub öffnen",
+				"delete": {
+					"title": "Mediaserver löschen?",
+					"prompt": "Soll der Mediaserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				}
 			},
 			"mod": {
 				"title": "Modifikation",
@@ -630,6 +652,12 @@
 				"fetchError": "Firmware-Liste konnte nicht abgerufen werden."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub ist eine optionale, separat betriebene Zusatzkomponente: ein kleiner lokaler Server, der als Docker-Container im eigenen Netzwerk läuft. Damit lassen sich RFID-Kartenzuweisungen zentral für mehrere ESPuinos verwalten - Inhalt und Abspielmodus kommen dann vom Server statt aus der lokalen NVS-Konfiguration. Ohne einen laufenden MediaHub-Server bringt diese Seite nichts. Hier registrierst du die Adresse(n) deiner MediaHub-Server, damit sie beim Zuweisen einer Karte im Dropdown zur Auswahl stehen. Den MediaHub-Server selbst findest du auf GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
+		"serversTitle": "Mediaserver hinzufügen",
+		"registeredServersTitle": "Registrierte Mediaserver"
 	},
 	"help": {
 		"forum": {

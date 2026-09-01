@@ -10,6 +10,12 @@ void System_Cyclic(void);
 void System_UpdateActivityTimer(void);
 void System_RequestSleep(void);
 void System_Restart(void);
+// True once a restart or sleep/shutdown has been requested but not yet acted
+// on (System_Cyclic() only runs the actual restart/sleep from loop() - a
+// long-running blocking operation elsewhere, e.g. a MediaHub download, must
+// poll this itself and bail out early so the request doesn't just sit there
+// until that operation finishes on its own).
+bool System_IsRestartOrSleepPending(void);
 bool System_SetSleepTimer(uint8_t minutes);
 void System_DisableSleepTimer();
 bool System_IsSleepTimerEnabled(void);
