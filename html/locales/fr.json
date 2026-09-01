@@ -304,6 +304,7 @@
 					"placeholder": "par ex. 192.168.1.50:8080"
 				},
 				"addButton": "Enregistrer le serveur média",
+				"openButton": "Ouvrir MediaHub",
 				"delete": {
 					"title": "Supprimer le serveur média ?",
 					"prompt": "Vraiment supprimer le serveur média \"{{name}}\" ? Les cartes déjà assignées à ce serveur restent inchangées."
@@ -654,7 +655,7 @@
 	},
 	"mediahub": {
 		"title": "MediaHub",
-		"intro": "MediaHub est un composant optionnel, exécuté séparément : un petit serveur local fonctionnant comme conteneur Docker sur votre propre réseau. Il permet de gérer de façon centralisée les assignations de cartes RFID pour plusieurs ESPuino - le contenu et le mode de lecture proviennent alors du serveur plutôt que de la configuration NVS locale. Sans serveur MediaHub en cours d'exécution, cette page ne sert à rien. Vous enregistrez ici l'adresse (ou les adresses) de votre/vos serveur(s) MediaHub afin qu'ils apparaissent dans le menu déroulant lors de l'assignation d'une carte.",
+		"intro": "MediaHub est un composant optionnel, exécuté séparément : un petit serveur local fonctionnant comme conteneur Docker sur votre propre réseau. Il permet de gérer de façon centralisée les assignations de cartes RFID pour plusieurs ESPuino - le contenu et le mode de lecture proviennent alors du serveur plutôt que de la configuration NVS locale. Sans serveur MediaHub en cours d'exécution, cette page ne sert à rien. Vous enregistrez ici l'adresse (ou les adresses) de votre/vos serveur(s) MediaHub afin qu'ils apparaissent dans le menu déroulant lors de l'assignation d'une carte. Le serveur MediaHub lui-même est disponible sur GitHub : <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
 		"serversTitle": "Ajouter un serveur média",
 		"registeredServersTitle": "Serveurs média enregistrés"
 	},
