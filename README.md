@@ -477,6 +477,20 @@ handy. Every time you change or add a new assignment between a RFID tag and an a
 backup file is saved on the SD card. The file's name can be changed via `backupFile`. So better
 don't delete it! Using the web interface you can use the upload form to import such a file.
 
+### MediaHub (optional)
+
+MediaHub is an optional way to manage the RFID-tag assignments of one or more ESPuinos
+**centrally**, instead of configuring each device's SD card and NVS individually. It's a small,
+self-hosted server (a Docker container running on your own network) that holds the assignments. A
+card assigned to a MediaHub server fetches its content and playback mode from the server when
+tapped, and downloads the referenced files to its own SD card on first use - kept in sync
+afterwards, with force-refresh and integrity checks. Webradio/webstream assignments work too. You
+register your MediaHub server(s) in the web interface (Files/RFID → MediaHub); the hub itself runs
+separately, see [ESPuino-MediaHub](https://github.com/biologist79/ESPuino-Mediahub).
+
+For a full description, setup and discussion, refer to the [MediaHub thread in the
+forum](https://forum.espuino.de/t/espuino-mediahub/4607).
+
 ### Smarthome/MQTT (optional)
 
 Everything that can be controlled via RFID tags and buttons, can also be controlled via MQTT
