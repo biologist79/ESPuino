@@ -37,4 +37,5 @@ bool Bluetooth_Device_Connected();
 void Bluetooth_StartScan();
 void Bluetooth_ConnectToAddress(esp_bd_addr_t address);
 std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices();
+bool Bluetooth_GetConnectedSourceInfo(String &name, String &address);
 #endif

@@ -416,7 +416,18 @@
 		#connectionStatusIndicator.connection-lost {
 			color: #ff6b6b;
 		}
-	</style>
+	
+		.bt-device-item { min-width: 0; }
+		.bt-device-main { min-width: 0; flex: 1 1 auto; }
+		.bt-device-name, .bt-device-address { overflow-wrap: anywhere; word-break: break-word; }
+		.bt-device-actions { flex: 0 0 auto; }
+		@media (max-width: 575.98px) {
+			.bt-mode-selector .btn { padding-left: .35rem; padding-right: .35rem; white-space: normal; }
+			.bt-mode-selector .btn i { display: block; margin-bottom: .25rem; }
+			.bt-device-item { flex-direction: column; align-items: stretch !important; }
+			.bt-device-actions { width: 100%; display: flex; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+		}
+</style>
 </head>
 
 <body>
@@ -1342,103 +1353,58 @@
 		</div>
 		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
-			<div class="container" id="btBackToNormal" style="display: none;">
+			<div class="container mt-4" id="btModeConfig">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
-					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
-							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
+					<legend data-i18n="bt.mode.title"></legend>
+					<div class="settings-group-card">
+						<div class="btn-group w-100 bt-mode-selector" role="group" aria-label="Bluetooth mode">
+							<button type="button" id="btModeOff" class="btn btn-outline-primary" onclick="setOperationMode(0)"><i class="fas fa-power-off"></i> <span data-i18n="bt.mode.off"></span></button>
+							<button type="button" id="btModeSource" class="btn btn-outline-primary" onclick="setOperationMode(2)"><i class="fas fa-headphones"></i> <span data-i18n="bt.mode.headphones"></span></button>
+							<button type="button" id="btModeSink" class="btn btn-outline-primary" onclick="setOperationMode(1)"><i class="fas fa-volume-up"></i> <span data-i18n="bt.mode.speaker"></span></button>
+						</div>
+						<div class="text-muted small mt-3"><i class="fas fa-rotate-right me-1"></i> <span data-i18n="bt.mode.restartNotice"></span></div>
 					</div>
 				</div>
 			</div>
-			<div class="container mt-5" id="btConfig">
+
+			<div class="container mt-5" id="btConfig" style="display:none;">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<div class="settings-group-card">
-						<div class="row mb-2 align-items-center">
-							<div class="col-sm-4 d-flex align-items-center gap-2">
-								<label for="btDeviceName" class="col-form-label"
-									data-i18n="[prepend]bt.device.title">:</label>
-								<a class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
+							<div id="btConnectionStatus" class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
+								<span id="btConnectionDot" class="rounded-circle bg-secondary" style="width:14px;height:14px;flex:0 0 14px;"></span>
+								<span id="btConnectionText" class="text-muted" data-i18n="bt.connection.disconnected"></span>
 							</div>
-							<div class="col-sm-8">
-								<input type="text" class="form-control" id="btDeviceName"
-									data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+
+							<div class="row mb-3 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="btDeviceName" class="col-form-label" data-i18n="bt.device.title"></label>
+									<a class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="input-group">
+										<input type="text" class="form-control" id="btDeviceName" data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+										<button type="button" class="btn btn-outline-primary" id="bt-scan-btn" onclick="startBtScan()"><i class="fas fa-search"></i> <span data-i18n="bt.scan.button"></span></button>
+									</div>
+								</div>
 							</div>
-						</div>
-						<div class="row mb-2 align-items-center">
-							<div class="col-sm-4 d-flex align-items-center gap-2">
-								<label for="btPinCode" class="col-form-label"
-									data-i18n="[prepend]bt.pincode.title">:</label>
-								<a class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
+							<div class="row mb-3 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="btPinCode" class="col-form-label" data-i18n="bt.pincode.title"></label>
+									<a class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8"><input type="text" class="form-control" id="btPinCode" data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value=""></div>
 							</div>
-							<div class="col-sm-8">
-								<input type="text" class="form-control" id="btPinCode"
-									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+
+							<div id="bt-scan-results" class="mt-3 d-none">
+								<div id="bt-scan-list" class="bt-device-list"></div>
 							</div>
-						</div>
-					<div class="mb-3 col-md-12">
-						<div class="row mb-2 align-items-center">
-							<label class="col-sm-4 col-form-label" data-i18n="bt.scan.title"></label>
-							<div class="col-sm-8">
-								<button type="button" class="btn btn-outline-primary" id="bt-scan-btn"
-									onclick="startBtScan()"><i class="fas fa-search"></i> <span
-										data-i18n="bt.scan.button"></span></button>
-							</div>
+
+							<div class="mt-3"><button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button></div>
 						</div>
 					</div>
-					<div id="bt-scan-results" class="mt-3 d-none">
-						<table class="table table-sm table-striped table-hover">
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Address</th>
-									<th>RSSI</th>
-									<th class="text-end">Action</th>
-								</tr>
-							</thead>
-							<tbody id="bt-scan-list"></tbody>
-						</table>
-					</div>
-					<div>
-						<button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button>
-					</div>
-						</div>
-						</div>
 				</form>
-			</div>
-			<div class="container mt-5" id="btStartSource">
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.source.title"></legend>
-					<div class="settings-group-card">
-					<div data-i18n="bt.source.desc"></div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
-							data-i18n="bt.source.button"></button>
-					</div>
-					</div>
-				</div>
-			</div>
-			<div class="container mt-5" id="btStartSink">
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.sink.title"></legend>
-					<div class="settings-group-card">
-					<div data-i18n="bt.sink.desc"></div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
-							data-i18n="bt.sink.button"></button>
-					</div>
-					</div>
-				</div>
 			</div>
 		</div>
 			<!-- ### Tab General ### -->
@@ -3965,30 +3931,68 @@
 		document.getElementById('setVolume').remove();
 
 		function updateOperationModeIndicator(opmode) {
-			const btStartSource = document.getElementById('btStartSource');
-			const btStartSink = document.getElementById('btStartSink');
+			currentOpMode = Number(opmode);
+			const buttons = [
+				[document.getElementById('btModeOff'), 0],
+				[document.getElementById('btModeSink'), 1],
+				[document.getElementById('btModeSource'), 2]
+			];
+			buttons.forEach(([button, mode]) => {
+				if (!button) return;
+				button.classList.toggle('btn-primary', currentOpMode === mode);
+				button.classList.toggle('btn-outline-primary', currentOpMode !== mode);
+			});
+			const config = document.getElementById('btConfig');
+			if (config) config.style.display = currentOpMode === 2 ? '' : 'none';
+			if (currentOpMode === 2) refreshBtConnectionStatus();
+		}
 
-			// OPMODE_NORMAL = 0, OPMODE_BLUETOOTH_SINK = 1, OPMODE_BLUETOOTH_SOURCE = 2
-			if (opmode === 0) {
-				// Normal mode - no active panel
-				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Hide back to normal section
-				document.getElementById('btBackToNormal').style.display = 'none';
-			} else if (opmode === 1) {
-				// Bluetooth Sink - highlight sink panel
-				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSink.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
-			} else if (opmode === 2) {
-				// Bluetooth Source - highlight source panel
-				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
+		let btConnectionState = { connected: false, name: '', address: '' };
+
+		function renderBtConnectionStatus() {
+			const dot = document.getElementById('btConnectionDot');
+			const text = document.getElementById('btConnectionText');
+			if (!dot || !text) return;
+			text.removeAttribute('data-i18n');
+			if (btConnectionState.connected) {
+				dot.classList.remove('bg-secondary');
+				dot.classList.add('bg-success');
+				text.classList.remove('text-muted');
+				text.classList.add('text-success');
+				const name = (btConnectionState.name || '').trim();
+				const address = (btConnectionState.address || '').trim();
+				let label = name || address || '---';
+				if (name && address && name.toUpperCase() !== address.toUpperCase()) {
+					label = `${name} (${address})`;
+				}
+				text.textContent = i18next.t('bt.connection.connected', { device: label });
+			} else {
+				dot.classList.remove('bg-success');
+				dot.classList.add('bg-secondary');
+				text.classList.remove('text-success');
+				text.classList.add('text-muted');
+				text.textContent = i18next.t('bt.connection.disconnected');
 			}
-		} function connect() {
+		}
+
+		async function refreshBtConnectionStatus() {
+			if (currentOpMode !== 2) return;
+			try {
+				const response = await fetch('/bluetoothstatus', { cache: 'no-store' });
+				if (!response.ok) return;
+				const status = await response.json();
+				btConnectionState = {
+					connected: !!status.connected,
+					name: status.name || '',
+					address: status.address || ''
+				};
+				renderBtConnectionStatus();
+			} catch (error) {
+				console.debug('Bluetooth status unavailable:', error);
+			}
+		}
+
+		function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
 				clearInterval(pingInterval);
@@ -4004,6 +4008,7 @@
 				socket.send('{"ssids":{"ssids":"ssids"}}'); // get ssids
 				socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}'); // get trackinfo
 				socket.send('{"coverimg":{"coverimg":"coverimg"}}'); // get cover image
+				refreshBtConnectionStatus();
 			};
 			socket.onclose = function (e) {
 				console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
@@ -4106,6 +4111,16 @@
 			};
 		}
 
+		document.getElementById('nav-bt-tab').addEventListener('shown.bs.tab', function () {
+			refreshBtConnectionStatus();
+		});
+
+		setInterval(function () {
+			if (currentOpMode === 2 && document.getElementById('nav-bt')?.classList.contains('active')) {
+				refreshBtConnectionStatus();
+			}
+		}, 3000);
+
 		function getHexColor(number) {
 			return "#" + ('000000' + ((number) >>> 0).toString(16)).slice(-6);
 		}
@@ -4155,35 +4170,64 @@
 					list.empty();
 					if (devices.length > 0) {
 						devices.forEach(dev => {
-							const displayName = (dev.name && dev.name !== 'Unknown') ? dev.name : `<i>Device ${dev.address}</i>`;
-							const row = `<tr>
-								<td>${displayName}</td>
-								<td><code>${dev.address}</code></td>
-								<td>${dev.rssi} dBm</td>
-								<td class="text-end">
-									<button class="btn btn-sm btn-success" onclick="saveBtDevice('${dev.name}', '${dev.address}')" title="${i18next.t('bt.scan.save')}"><i class="fas fa-save"></i></button>
-									<button class="btn btn-sm btn-primary" onclick="connectBt('${dev.address}')">${i18next.t('bt.scan.connect')}</button>
-								</td>
-							</tr>`;
-							list.append(row);
+							const rawName = String(dev.name ?? '');
+							const realName = rawName && rawName !== 'Unknown' && rawName !== 'Connected Device' ? rawName : '';
+							const displayName = realName || i18next.t('bt.scan.unknownDevice');
+							const address = String(dev.address ?? '');
+
+							// Build the result row as DOM nodes instead of interpolating device data into
+							// HTML/onclick strings. Bluetooth names are untrusted input and may contain
+							// quotes or JavaScript syntax. text() and event handlers keep data as data.
+							const item = $('<div>', {
+								class: 'bt-device-item d-flex align-items-center gap-3 py-3 border-bottom'
+							});
+							const main = $('<div>', { class: 'bt-device-main' });
+							main.append($('<div>', { class: 'bt-device-name fw-semibold', text: displayName }));
+
+							const details = $('<div>', { class: 'small text-muted bt-device-address' });
+							details.append($('<code>').text(address));
+							details.append(document.createTextNode(` · ${dev.rssi ?? ''} dBm`));
+							main.append(details);
+
+							const actions = $('<div>', { class: 'bt-device-actions d-flex gap-2' });
+							const saveButton = $('<button>', {
+								type: 'button',
+								class: 'btn btn-sm btn-success',
+								title: i18next.t('bt.scan.save')
+							}).append($('<i>', { class: 'fas fa-save' }));
+							saveButton.on('click', () => saveBtDevice(realName, address));
+
+							const connectButton = $('<button>', {
+								type: 'button',
+								class: 'btn btn-sm btn-primary',
+								text: i18next.t('bt.scan.connect')
+							});
+							connectButton.on('click', () => connectBt(address));
+
+							actions.append(saveButton, connectButton);
+							item.append(main, actions);
+							list.append(item);
 						});
 					} else {
-						list.append('<tr><td colspan="4" class="text-center text-muted"><i>' + i18next.t('bt.scan.noDevices') + '</i></td></tr>');
+						const empty = $('<div>', { class: 'text-center text-muted py-3' });
+						empty.append($('<i>').text(i18next.t('bt.scan.noDevices')));
+						list.append(empty);
 					}
 					container.removeClass('d-none');
 				});
 		}
 
 		function saveBtDevice(name, address) {
-			// Prefer name if available, otherwise use address for better reliability
-			const identifier = (name && name !== 'Unknown') ? name : address;
+			const identifier = name || address;
 			document.getElementById('btDeviceName').value = identifier;
 			btSettings('btConfig');
 		}
 
 		function connectBt(address) {
 			postData('/bluetoothconnect', null, JSON.stringify({ address: address }));
-			toaster.info("Connecting to " + address + "...");
+			toaster.info(i18next.t('bt.scan.connecting', { device: address }));
+			setTimeout(refreshBtConnectionStatus, 1000);
+			setTimeout(refreshBtConnectionStatus, 3000);
 		}
 
 		// Adds a live value badge and circular +/- step buttons around a bootstrap-slider input.

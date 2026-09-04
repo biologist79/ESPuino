@@ -56,9 +56,15 @@ static std::atomic<bool> manualConnectPending = false;
 // Track whether we registered our interceptor so we always restore correctly.
 static std::atomic<bool> interceptorRegistered = false;
 
-// Peer address cached at the moment connection_state_changed fires CONNECTED.
+// Peer address/name cached for the currently connected A2DP source device.
 static esp_bd_addr_t cachedPeerAddress = {0};
+static char cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 static portMUX_TYPE cachedPeerAddressMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Remote-name lookup state. A connected device may not be present in the last
+// discovery result, so request its friendly name directly via GAP when needed.
+static std::atomic<bool> peerNameLookupPending = false;
+static esp_bd_addr_t peerNameLookupAddress = {0};
 
 // Returns true if addr is non-zero (i.e. a valid BT address).
 static inline bool isValidBdAddr(const esp_bd_addr_t addr) {
@@ -68,6 +74,18 @@ static inline bool isValidBdAddr(const esp_bd_addr_t addr) {
 		}
 	}
 	return false;
+}
+
+// Returns true when a string is a canonical Bluetooth MAC address.
+// Such a value is a connection target, not a friendly device name.
+static bool isMacAddressString(const char *value) {
+	if (value == nullptr || strlen(value) != 17) {
+		return false;
+	}
+
+	esp_bd_addr_t parsed = {0};
+	return sscanf(value, "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+		&parsed[0], &parsed[1], &parsed[2], &parsed[3], &parsed[4], &parsed[5]) == 6;
 }
 
 // ── connect-retry state ────────────────────────────────────────────────────
@@ -153,7 +171,10 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		}
 
 		if (existing) {
-			if (strlen(ssid) > 0 && strcmp(existing->name, "Unknown") == 0) {
+			if (strlen(ssid) > 0 &&
+				(strcmp(existing->name, "Unknown") == 0 ||
+				 strcmp(existing->name, "Connected Device") == 0 ||
+				 isMacAddressString(existing->name))) {
 				strncpy(existing->name, ssid, ESP_BT_GAP_MAX_BDNAME_LEN);
 				existing->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			}
@@ -174,18 +195,47 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		}
 		portEXIT_CRITICAL_ISR(&scannedDevicesMux);
 
-	} else if (event == ESP_BT_GAP_READ_REMOTE_NAME_EVT && param->read_rmt_name.stat == ESP_BT_STATUS_SUCCESS) {
-		portENTER_CRITICAL_ISR(&scannedDevicesMux);
-		for (auto &d : scannedDevices) {
-			if (memcmp(d.address, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
-				if (strcmp(d.name, "Unknown") == 0) {
-					strncpy(d.name, (char *) param->read_rmt_name.rmt_name, ESP_BT_GAP_MAX_BDNAME_LEN);
-					d.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+	} else if (event == ESP_BT_GAP_READ_REMOTE_NAME_EVT) {
+		const bool success = (param->read_rmt_name.stat == ESP_BT_STATUS_SUCCESS);
+
+		if (success) {
+			portENTER_CRITICAL_ISR(&scannedDevicesMux);
+			for (auto &d : scannedDevices) {
+				if (memcmp(d.address, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+					if (strcmp(d.name, "Unknown") == 0) {
+						strncpy(d.name, (char *) param->read_rmt_name.rmt_name, ESP_BT_GAP_MAX_BDNAME_LEN);
+						d.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+					}
+					break;
 				}
-				break;
+			}
+			portEXIT_CRITICAL_ISR(&scannedDevicesMux);
+		}
+
+		// A remote-name request may also have been started specifically for the
+		// currently connected peer (outside a normal discovery scan). Cache the
+		// result so /bluetoothstatus can return a friendly name.
+		if (peerNameLookupPending &&
+			memcmp(peerNameLookupAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+			if (success) {
+				portENTER_CRITICAL_ISR(&cachedPeerAddressMux);
+				if (bluetoothSourceConnected &&
+					memcmp(cachedPeerAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+					strncpy(cachedPeerName, (char *) param->read_rmt_name.rmt_name, ESP_BT_GAP_MAX_BDNAME_LEN);
+					cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				}
+				portEXIT_CRITICAL_ISR(&cachedPeerAddressMux);
+			}
+
+			memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
+			peerNameLookupPending = false;
+
+			// If the interceptor was installed only for this lookup, hand GAP callback
+			// ownership back to the library; this event is still forwarded explicitly below.
+			if (!scanInProgress) {
+				Bluetooth_RestoreLibraryCallback();
 			}
 		}
-		portEXIT_CRITICAL_ISR(&scannedDevicesMux);
 
 	} else if (event == ESP_BT_GAP_DISC_STATE_CHANGED_EVT) {
 		if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED) {
@@ -193,7 +243,11 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 			// callback BEFORE calling ccall_app_gap_callback so the library sees
 			// itself as the registered handler again.
 			scanInProgress = false;
-			Bluetooth_RestoreLibraryCallback();
+			// Keep the interceptor installed while a targeted remote-name request is
+			// still pending; otherwise its completion event would bypass our cache.
+			if (!peerNameLookupPending) {
+				Bluetooth_RestoreLibraryCallback();
+			}
 			Log_Println("Bluetooth => Device discovery stopped (natural).", LOGLEVEL_NOTICE);
 			Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanComplete);
 		} else if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STARTED) {
@@ -215,6 +269,34 @@ static void Bluetooth_RestoreLibraryCallback() {
 		esp_bt_gap_register_callback(ccall_app_gap_callback);
 	}
 }
+
+// Starts an asynchronous GAP remote-name request for the connected peer.
+// The result is received by gap_callback_interceptor and cached in
+// cachedPeerName. The management page already polls /bluetoothstatus, so the
+// friendly name appears automatically as soon as the request completes.
+static void Bluetooth_RequestPeerName(esp_bd_addr_t address) {
+	if (!isValidBdAddr(address) || peerNameLookupPending) {
+		return;
+	}
+
+	memcpy(peerNameLookupAddress, address, ESP_BD_ADDR_LEN);
+	peerNameLookupPending = true;
+
+	if (!interceptorRegistered) {
+		interceptorRegistered = true;
+		esp_bt_gap_register_callback(gap_callback_interceptor);
+	}
+
+	const esp_err_t err = esp_bt_gap_read_remote_name(address);
+	if (err != ESP_OK) {
+		Log_Printf(LOGLEVEL_NOTICE, "Bluetooth => remote-name request failed: %s", esp_err_to_name(err));
+		memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
+		peerNameLookupPending = false;
+		if (!scanInProgress) {
+			Bluetooth_RestoreLibraryCallback();
+		}
+	}
+}
 #endif
 
 #ifdef BLUETOOTH_ENABLE
@@ -231,30 +313,50 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		if (!connected && wasConnected) {
 			Bluetooth_Source_FlushRingbuffer();
 		}
-		bluetoothSourceConnected = connected;
 
 		if (connected) {
 			AudioPlayer_SetupVolumeAndAmps();
-			// Cache the peer address NOW while the library state is guaranteed valid.
-			// get_last_peer_address() can return all-zeros if called later (e.g. from
-			// Bluetooth_StartScan or Bluetooth_GetScannedDevices) at a moment when the
-			// library's internal peer-address field hasn't settled yet.
+			// Read the library-owned address before entering the critical section, then
+			// publish address + connection state together. This prevents readers from
+			// observing connected=true while cachedPeerAddress is still all-zero.
+			esp_bd_addr_t peerAddress = {0};
+			memcpy(peerAddress, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+
 			portENTER_CRITICAL(&cachedPeerAddressMux);
-			memcpy(cachedPeerAddress, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+			memcpy(cachedPeerAddress, peerAddress, ESP_BD_ADDR_LEN);
+			cachedPeerName[0] = '\0';
+			bluetoothSourceConnected = true;
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth => connected, cached peer: %02X:%02X:%02X:%02X:%02X:%02X",
-				cachedPeerAddress[0], cachedPeerAddress[1], cachedPeerAddress[2],
-				cachedPeerAddress[3], cachedPeerAddress[4], cachedPeerAddress[5]);
+				peerAddress[0], peerAddress[1], peerAddress[2],
+				peerAddress[3], peerAddress[4], peerAddress[5]);
 			// Connection succeeded — clear retry and manual-connect state
 			manualConnectPending = false;
 			connectRetryPending = false;
 			connectRetryCount = 0;
 			Bluetooth_StopScan();
+
+			// Resolve the friendly name again for every new connection. This is
+			// especially important after the headphones were powered off, because
+			// cachedPeerName is intentionally cleared on disconnect.
+			Bluetooth_RequestPeerName(peerAddress);
 		} else {
-			// Clear the cached peer address on disconnect so stale data is never used.
+			// Publish disconnect + cleared address atomically to status readers.
 			portENTER_CRITICAL(&cachedPeerAddressMux);
+			bluetoothSourceConnected = false;
 			memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
+			cachedPeerName[0] = '\0';
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
+
+			// A remote-name request may never complete when the peer disappears.
+			// Reset it here so the next reconnect can start a fresh lookup.
+			if (peerNameLookupPending) {
+				peerNameLookupPending = false;
+				memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
+				if (!scanInProgress) {
+					Bluetooth_RestoreLibraryCallback();
+				}
+			}
 			// If this was a manual connect attempt that failed, schedule a retry.
 			// Do NOT call AudioPlayer_SetupVolumeAndAmps() here: the library's own
 			// auto-reconnect (set_auto_reconnect(true)) fires Connecting→Disconnected
@@ -489,16 +591,22 @@ void Bluetooth_StartScan() {
 	// Use cachedPeerAddress (set in connection_state_changed) rather than
 	// get_last_peer_address() which can return all-zeros at this point.
 	ScannedBluetoothDevice connectedDev;
+	char connectedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 	bool wasConnected = bluetoothSourceConnected;
 	if (wasConnected) {
 		portENTER_CRITICAL(&cachedPeerAddressMux);
 		memcpy(connectedDev.address, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		strncpy(connectedPeerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		connectedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 		portEXIT_CRITICAL(&cachedPeerAddressMux);
 		if (!isValidBdAddr(connectedDev.address)) {
 			Log_Println("Bluetooth_StartScan => WARNING: connected but cachedPeerAddress is all-zeros, skipping pre-population", LOGLEVEL_NOTICE);
 			wasConnected = false; // treat as not connected to avoid inserting a zero-address entry
 		} else {
-			strncpy(connectedDev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+			// Never use btDeviceName blindly here: it may contain the configured
+			// target MAC address, which must not be presented as a friendly name.
+			const char *displayName = connectedPeerName[0] != '\0' ? connectedPeerName : "Connected Device";
+			strncpy(connectedDev.name, displayName, ESP_BT_GAP_MAX_BDNAME_LEN);
 			connectedDev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			connectedDev.rssi = 0;
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth_StartScan => pre-populating connected device: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
@@ -550,8 +658,11 @@ static void Bluetooth_StopScan() {
 	esp_bt_gap_cancel_discovery();
 
 	// Restore callback here as a safety net in case cancel fires no callback
-	// (e.g. inquiry already ended between our flag-check and cancel call).
-	Bluetooth_RestoreLibraryCallback();
+	// (e.g. inquiry already ended between our flag-check and cancel call). Keep
+	// the interceptor installed if a connected-peer name lookup is still pending.
+	if (!peerNameLookupPending) {
+		Bluetooth_RestoreLibraryCallback();
+	}
 
 	Log_Println("Bluetooth => Device discovery stopped (forced).", LOGLEVEL_NOTICE);
 	Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanComplete);
@@ -596,8 +707,11 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE && bluetoothSourceConnected) {
 		esp_bd_addr_t currentAddr;
+		char currentPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 		portENTER_CRITICAL(&cachedPeerAddressMux);
 		memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		strncpy(currentPeerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		currentPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 		portEXIT_CRITICAL(&cachedPeerAddressMux);
 
 		if (!isValidBdAddr(currentAddr)) {
@@ -613,18 +727,34 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 			if (it == scannedDevices.end()) {
 				ScannedBluetoothDevice dev;
 				memcpy(dev.address, currentAddr, ESP_BD_ADDR_LEN);
-				strncpy(dev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+				const char *displayName = currentPeerName[0] != '\0' ? currentPeerName : "Connected Device";
+				strncpy(dev.name, displayName, ESP_BT_GAP_MAX_BDNAME_LEN);
 				dev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 				dev.rssi = 0;
 				scannedDevices.insert(scannedDevices.begin(), dev);
 				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => injected connected device at top: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
 					dev.name, currentAddr[0], currentAddr[1], currentAddr[2],
 					currentAddr[3], currentAddr[4], currentAddr[5]);
-			} else if (it != scannedDevices.begin()) {
-				ScannedBluetoothDevice dev = *it;
-				scannedDevices.erase(it);
-				scannedDevices.insert(scannedDevices.begin(), dev);
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => moved connected device to top: %s", dev.name);
+			} else {
+				// Repair stale placeholder/MAC-as-name entries from a previous
+				// connection before returning them to the UI.
+				if (currentPeerName[0] != '\0' &&
+					(strcmp(it->name, "Unknown") == 0 ||
+					 strcmp(it->name, "Connected Device") == 0 ||
+					 isMacAddressString(it->name))) {
+					strncpy(it->name, currentPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+					it->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				} else if (isMacAddressString(it->name)) {
+					strncpy(it->name, "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+					it->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				}
+
+				if (it != scannedDevices.begin()) {
+					ScannedBluetoothDevice dev = *it;
+					scannedDevices.erase(it);
+					scannedDevices.insert(scannedDevices.begin(), dev);
+					Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => moved connected device to top: %s", dev.name);
+				}
 			}
 			portEXIT_CRITICAL(&scannedDevicesMux);
 		}
@@ -638,6 +768,94 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 
 	Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => returning %u device(s)", snapshot.size());
 	return snapshot;
+}
+
+bool Bluetooth_GetConnectedSourceInfo(String &name, String &address) {
+	name = "";
+	address = "";
+
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		return false;
+	}
+
+	// Read connection state and peer address under the same lock used by the
+	// callback so the returned status is a consistent snapshot.
+	bool connected = false;
+	esp_bd_addr_t peerAddress = {0};
+	portENTER_CRITICAL(&cachedPeerAddressMux);
+	connected = bluetoothSourceConnected;
+	if (connected) {
+		memcpy(peerAddress, cachedPeerAddress, ESP_BD_ADDR_LEN);
+	}
+	portEXIT_CRITICAL(&cachedPeerAddressMux);
+
+	if (!connected) {
+		return false;
+	}
+
+	if (isValidBdAddr(peerAddress)) {
+		char addrStr[18];
+		snprintf(addrStr, sizeof(addrStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+			peerAddress[0], peerAddress[1], peerAddress[2],
+			peerAddress[3], peerAddress[4], peerAddress[5]);
+		address = addrStr;
+
+		// First use a name already resolved for this connected peer. Copy into a
+		// fixed buffer while holding the lock; construct String afterwards.
+		char peerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+		portENTER_CRITICAL(&cachedPeerAddressMux);
+		strncpy(peerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		peerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+		portEXIT_CRITICAL(&cachedPeerAddressMux);
+		if (peerName[0] != '\0') {
+			name = peerName;
+		}
+
+		// Otherwise prefer a friendly name already learned during discovery.
+		if (name.length() == 0) {
+			char scannedName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+			portENTER_CRITICAL(&scannedDevicesMux);
+			for (const auto &d : scannedDevices) {
+				if (memcmp(d.address, peerAddress, ESP_BD_ADDR_LEN) == 0 &&
+					strcmp(d.name, "Unknown") != 0 &&
+					strcmp(d.name, "Connected Device") != 0 &&
+					!isMacAddressString(d.name)) {
+					strncpy(scannedName, d.name, ESP_BT_GAP_MAX_BDNAME_LEN);
+					scannedName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+					break;
+				}
+			}
+			portEXIT_CRITICAL(&scannedDevicesMux);
+			if (scannedName[0] != '\0') {
+				name = scannedName;
+			}
+		}
+	}
+
+	// If discovery did not provide a friendly name, use the currently persisted
+	// target as a fallback when it is a name rather than a MAC address. Read NVS
+	// here instead of relying only on btDeviceName, because Bluetooth settings can
+	// be changed from the web UI while the source is already running.
+	if (name.length() == 0) {
+		const String configuredTarget = gPrefsSettings.getString("btDeviceName", btDeviceName);
+		if (configuredTarget.length() > 0) {
+			esp_bd_addr_t configuredAddress;
+			if (sscanf(configuredTarget.c_str(), "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+				&configuredAddress[0], &configuredAddress[1], &configuredAddress[2],
+				&configuredAddress[3], &configuredAddress[4], &configuredAddress[5]) != 6) {
+				name = configuredTarget;
+			}
+		}
+	}
+
+	// If the connected peer was not part of the scan cache and the configured
+	// target is only a MAC address, ask the controller for its friendly name.
+	// The request is asynchronous; the next /bluetoothstatus poll will return it.
+	if (name.length() == 0 && isValidBdAddr(peerAddress)) {
+		Bluetooth_RequestPeerName(peerAddress);
+	}
+
+	return true;
 }
 #endif
 
