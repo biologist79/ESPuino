@@ -576,11 +576,13 @@
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
+			"offset": "Korrekturwert für die gemessene Akkuspannung (in Volt, ± in Hundertstel)",
 			"measureInterval": "Zeitabstand der Messung (in Minuten)",
 			"shutdownOnCritical": "Bei kritischer Spannung automatisch abschalten",
 			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
 			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
 			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
+			"offsetExp": "Feinkorrektur der gemessenen Akkuspannung. Weicht die angezeigte Spannung von einer Messung per Multimeter ab, trage hier die Differenz ein (positiv oder negativ). Standardwert der Complete: -0,04 V.",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
 			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
 			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."

@@ -2427,6 +2427,31 @@
 									</div>
 								</div>
 							</div>
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="offsetVoltage" class="col-form-label"
+										data-i18n="general.battery.offset"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.offsetExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-minus fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.01" data-slider-min="-0.5"
+												data-slider-max="0.5" min="-0.5" max="0.5" type="text" class="form-control"
+												id="offsetVoltage" name="offsetVoltage" data-slider-value=""
+												value="" pattern="^-?\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-plus fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</div>
 							<div class="d-flex gap-2 mt-3">
 								<input type="checkbox" id="shutdownOnCritical" name="shutdownOnCritical" value="false">
 								<label for="shutdownOnCritical" data-i18n="general.battery.shutdownOnCritical"></label>
@@ -4437,6 +4462,7 @@
 				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
 				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), batSettings.shutdownOnCritical);
 				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
+				$('#offsetVoltage').bootstrapSlider('setValue', batSettings.offsetVoltage);
 				$('#voltageCheckInterval').bootstrapSlider('setValue', batSettings.voltageCheckInterval);
 			}
 			// ftp
@@ -4914,6 +4940,7 @@
 					indicatorLow: Number($('#voltageIndicatorLow').val()),
 					indicatorHi: Number($('#voltageIndicatorHigh').val()),
 					criticalVoltage: Number($('#criticalVoltage').val()),
+					offsetVoltage: Number($('#offsetVoltage').val()),
 					shutdownOnCritical: $('#shutdownOnCritical').prop('checked'),
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
@@ -5586,6 +5613,7 @@
 			Slider_AddStepper('voltageIndicatorLow', 0.05);
 			Slider_AddStepper('voltageIndicatorHigh', 0.05);
 			Slider_AddStepper('criticalVoltage', 0.05);
+			Slider_AddStepper('offsetVoltage', 0.01);
 
 			/* Disable dontAcceptRfidTwice if pauseIfRfidRemoved enabled. */
 			$('#pauseIfRfidRemoved').on('change', function () {

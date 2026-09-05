@@ -1006,7 +1006,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	}
 	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putBool("shutdownBatCrit", doc["battery"]["shutdownOnCritical"].as<bool>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("offsetVoltage", doc["battery"]["offsetVoltage"].as<float>()) == 0 || gPrefsSettings.putBool("shutdownBatCrit", doc["battery"]["shutdownOnCritical"].as<bool>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return WebsocketCodeType::Error;
 		}
@@ -1383,6 +1383,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
 		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
 		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
+		batteryObj["offsetVoltage"].set(gPrefsSettings.getFloat("offsetVoltage", s_offsetVoltage));
 		batteryObj["shutdownOnCritical"].set(gPrefsSettings.getBool("shutdownBatCrit", false)); // SHUTDOWN_ON_BAT_CRITICAL
 	#endif
 

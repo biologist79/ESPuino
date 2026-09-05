@@ -15,6 +15,7 @@ float warningLowVoltage = s_warningLowVoltage;
 float warningCriticalVoltage = s_warningCriticalVoltage;
 float voltageIndicatorLow = s_voltageIndicatorLow;
 float voltageIndicatorHigh = s_voltageIndicatorHigh;
+float offsetVoltage = s_offsetVoltage;
 
 void Battery_InitInner() {
 	// Get voltages from NVS for Neopixel
@@ -48,6 +49,15 @@ void Battery_InitInner() {
 		Log_Printf(LOGLEVEL_INFO, warningCriticalVoltageFromNVS, vCriticalWarning);
 	} else {
 		gPrefsSettings.putFloat("wCritVoltage", warningCriticalVoltage);
+	}
+
+	// Voltage-measurement correction offset (calibration). Sentinel 999.99 = "not set in NVS yet".
+	float vOffset = gPrefsSettings.getFloat("offsetVoltage", 999.99);
+	if (vOffset <= 999) {
+		offsetVoltage = vOffset;
+		Log_Printf(LOGLEVEL_INFO, offsetVoltageFromNVS, vOffset);
+	} else { // preseed if not set
+		gPrefsSettings.putFloat("offsetVoltage", offsetVoltage);
 	}
 }
 

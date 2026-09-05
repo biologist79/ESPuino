@@ -106,7 +106,7 @@
 	// (optional) Monitoring of battery-voltage via ADC
 	#ifdef MEASURE_BATTERY_VOLTAGE
 		#define VOLTAGE_READ_PIN			35				// GPIO used to monitor battery-voltage.
-		constexpr float offsetVoltage = -0.04;		// If voltage measured by ESP isn't 100% accurate, you can add a correction-value here
+		constexpr float s_offsetVoltage = -0.04;		// Default battery-voltage correction if ESP measurement isn't 100% accurate (can be changed via GUI!)
 		constexpr uint16_t rdiv1 = 300;				// Rdiv1 of voltage-divider (kOhms)
 		constexpr uint16_t rdiv2 = 100;				// Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
 		constexpr adc_attenuation_t inputAttenuation = ADC_0db;		// ADC_0db (0.1->0.95V) // ADC_2_5db (0.1->1.25V) // ADC_6db (0.15->1.75V) // ADC_11db (0.14->2.45V)

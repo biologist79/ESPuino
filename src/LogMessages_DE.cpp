@@ -148,6 +148,7 @@ const char sdBootFailedDeepsleep[] = "Bootgang wegen SD fehlgeschlagen. Gehe in 
 const char wifiEnabledMsg[] = "WLAN wird aktiviert.";
 const char wifiDisabledMsg[] = "WLAN wird deaktiviert.";
 const char voltageIndicatorLowFromNVS[] = "Unterer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
+const char offsetVoltageFromNVS[] = "Batterie-Korrekturwert (offsetVoltage) aus NVS geladen: %.2fV";
 const char voltageIndicatorHighFromNVS[] = "Oberer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
 const char batteryCheckIntervalFromNVS[] = "Zyklus für Batteriemessung fuer Neopixel-Anzeige aus NVS geladen: %u Minuten";
 const char warningLowVoltageFromNVS[] = "Spannungslevel (Batterie) fuer Niedrig-Warnung via Neopixel aus NVS geladen: %.2fV";

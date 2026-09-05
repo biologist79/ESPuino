@@ -576,11 +576,13 @@
 			"lowCritical": "Lowest voltage (in volt), that is indicated by one LED",
 			"criticalShutoff": "Below this voltage (in volt), ESPuino turns off",
 			"high": "Voltage (in volt), that is indicated by all LEDs",
+			"offset": "Correction value for the measured battery voltage (in volt, ± in hundredths)",
 			"measureInterval": "Interval between measurements (in minutes)",
 			"shutdownOnCritical": "Automatically shut down on critical voltage",
 			"lowWarningExp": "Voltage below which a visual (LED) low-battery warning is triggered.",
 			"lowCriticalExp": "Voltage that is shown as 0% battery charge (empty battery).",
 			"highExp": "Voltage that is shown as 100% battery charge (full battery).",
+			"offsetExp": "Fine-correction of the measured battery voltage. If the displayed voltage differs from a multimeter reading, enter the difference here (positive or negative). Default for the Complete: -0.04 V.",
 			"criticalShutoffExp": "Voltage at which ESPuino automatically shuts down to protect the battery from deep discharge.",
 			"measureIntervalExp": "Time interval in minutes at which the battery voltage is measured.",
 			"shutdownOnCriticalExp": "Automatically shuts ESPuino down once the battery voltage drops below the critical threshold set below. Can help protect the battery from deep discharge to some extent, but does not replace a battery management system! Recommended values are: LFP: 2.7 V, LiPo: 3.0 V."

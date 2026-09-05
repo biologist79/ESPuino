@@ -147,6 +147,7 @@ extern const char batteryCriticalMsg[];
 extern const char wifiEnabledMsg[];
 extern const char wifiDisabledMsg[];
 extern const char voltageIndicatorLowFromNVS[];
+extern const char offsetVoltageFromNVS[];
 extern const char voltageIndicatorHighFromNVS[];
 extern const char batteryCheckIntervalFromNVS[];
 extern const char warningLowVoltageFromNVS[];

@@ -147,6 +147,7 @@ const char sdBootFailedDeepsleep[] = "Échec du démarrage en raison de la carte
 const char wifiEnabledMsg[] = "Le WiFi sera activé.";
 const char wifiDisabledMsg[] = "Le WiFi sera désactivé.";
 const char voltageIndicatorLowFromNVS[] = "Niveau de tension inférieur restauré pour l'affichage Neopixel depuis NVS : %.2fV";
+const char offsetVoltageFromNVS[] = "Correction de tension de la batterie (offsetVoltage) restaurée depuis NVS : %.2fV";
 const char voltageIndicatorHighFromNVS[] = "Niveau de tension supérieur restauré pour l'affichage Neopixel depuis NVS : %.2fV";
 const char batteryCheckIntervalFromNVS[] = "Intervalle de mesure de la batterie ou de l'affichage Neopixel restauré depuis NVS : %u minutes";
 const char warningLowVoltageFromNVS[] = "Niveau de tension de la batterie bas restauré pour l'avertissement via Neopixel depuis NVS : %.2fV";

@@ -149,6 +149,7 @@ const char sdBootFailedDeepsleep[] = "Failed to boot due to SD. Will go to deeps
 const char wifiEnabledMsg[] = "WiFi will be enabled.";
 const char wifiDisabledMsg[] = "WiFi will be disabled .";
 const char voltageIndicatorLowFromNVS[] = "Restored lower voltage-level for Neopixel-display from NVS: %.2fV";
+const char offsetVoltageFromNVS[] = "Restored battery voltage-correction (offsetVoltage) from NVS: %.2fV";
 const char voltageIndicatorHighFromNVS[] = "Restored upper voltage-level for Neopixel-display from NVS: %.2fV";
 const char batteryCheckIntervalFromNVS[] = "Restored interval of battery-measurement or Neopixel-display from NVS: %u minutes";
 const char warningLowVoltageFromNVS[] = "Restored low battery-voltage-level for warning via Neopixel from NVS: %.2fV";
