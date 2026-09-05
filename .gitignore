@@ -4,8 +4,11 @@ venv/
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+.vscode/espuino-device
+.vscode/.venv
 .DS_Store
 .idea/
+.cache/
 CMakeListsPrivate.txt
 cmake-build-az-delivery-devkit-v4/
 cmake-build-debug/
