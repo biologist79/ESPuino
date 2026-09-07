@@ -1,6 +1,6 @@
 # Changelog
 
-## DEV-branch
+## Version 3.0 (07.09.2026)
 
 * 05.09.2026: Make the battery-voltage correction (`offsetVoltage`) configurable in the web UI (General -> Battery) instead of only via `settings-*.h`. The ADC calibration offset was previously a compile-time constant; it is now stored in NVS and adjustable in hundredth-volt steps, positive or negative. It takes effect immediately on save (`Battery_Init()` re-reads it) and the per-board compile-time value is kept as the default fallback (Complete: -0.04 V). Handbook: [Feinjustierung](https://biologist79.github.io/ESPuino-Docs/hardware/aufbau/#nach-dem-zusammenbau-die-feinjustierung).
 
