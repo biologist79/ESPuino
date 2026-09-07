@@ -47,7 +47,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          # NB: the key must actually vary with the dependencies. The old key hashed
+          # '**/lockfiles' (a file that does not exist), so it was a constant and the
+          # cache never busted - a once-poisoned ~/.platformio (a broken SCons pulled in
+          # by an earlier "pio upgrade --dev") got restored on every run, causing
+          # "ModuleNotFoundError: No module named 'SCons.Tool.FortranCommon'" at link time.
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini', 'dependencies.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
 
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
@@ -56,9 +63,13 @@ jobs:
 
       - name: Install PlatformIO Core
         run: |
-          pip install -U setuptools platformio
-          # Stick to the stable PlatformIO core: "pio upgrade --dev" pulled an unreleased core whose
-          # bundled SCons broke the link step (ModuleNotFoundError: SCons.Tool.FortranCommon).
+          # Pin PlatformIO Core. The latest core (6.2.0) requires tool-scons ~4.11.1, which
+          # installs over the platform's tool-scons 4.8.1 and no longer ships
+          # SCons.Tool.FortranCommon, so the pioarduino link step dies with
+          # "ModuleNotFoundError: No module named 'SCons.Tool.FortranCommon'". 6.1.19 pulls
+          # tool-scons 4.8.1 (the combination that builds cleanly locally). Revisit once the
+          # pioarduino platform is compatible with the newer SCons.
+          pip install -U setuptools "platformio==6.1.19"
           pio pkg update --global
           mkdir binaries
 
