@@ -240,6 +240,10 @@ void Mqtt_Exit(void) {
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
 	publishMqtt(topicTrack, "---", false);
+	// Publish a clean OFF before going down (deep sleep / restart / power off) so a live consumer does
+	// not sit on the last "MINUTES, 1" value. Explicit literal, not Mqtt_PublishSleepTimerState(): the
+	// sleep-mode flags are still set at this point (we are shutting down *because* the timer fired).
+	publishMqtt(topicSleepTimerState, "{\"mode\":\"OFF\",\"remainingMinutes\":0,\"remainingTracks\":0}", false);
 	// Allow some time for messages to be sent before stopping the client
 	vTaskDelay(pdMS_TO_TICKS(10));
 
@@ -313,6 +317,102 @@ static NumberType toNumber(const std::string str) {
 	return 0;
 }
 
+// The mutually-exclusive sleep-timer modes, in the priority order the state topics report them.
+enum class SleepTimerMode {
+	Off,
+	Minutes,
+	EOT,
+	EOP,
+	EO5T
+};
+
+// Detects which sleep mode is currently active. The track-based flags take precedence over the
+// minute-timer, matching how the command handler sets them (setting a track mode disables the others).
+static SleepTimerMode Mqtt_CurrentSleepTimerMode(void) {
+	if (gPlayProperties.sleepAfterCurrentTrack) {
+		return SleepTimerMode::EOT;
+	}
+	if (gPlayProperties.playUntilTrackNumber > 0) {
+		return SleepTimerMode::EO5T;
+	}
+	if (gPlayProperties.sleepAfterPlaylist) {
+		return SleepTimerMode::EOP;
+	}
+	if (System_GetSleepTimerTimeStamp() > 0) {
+		return SleepTimerMode::Minutes;
+	}
+	return SleepTimerMode::Off;
+}
+
+// Single source for the mode <-> string mapping. The EOT/EOP/EO5T strings double as the legacy
+// topicSleepTimer values, so both the JSON status and the legacy topic reuse this.
+static const char *Mqtt_SleepTimerModeToString(SleepTimerMode mode) {
+	switch (mode) {
+		case SleepTimerMode::Minutes:
+			return "MINUTES";
+		case SleepTimerMode::EOT:
+			return "EOT";
+		case SleepTimerMode::EOP:
+			return "EOP";
+		case SleepTimerMode::EO5T:
+			return "EO5T";
+		case SleepTimerMode::Off:
+			return "OFF";
+	}
+	return "OFF";
+}
+
+// Publishes the sleep-timer status as a single JSON object on topicSleepTimerState, e.g.
+// {"mode":"MINUTES","remainingMinutes":29,"remainingTracks":0}. One topic instead of several scalars
+// keeps the flat topic scheme uncluttered. Published non-retained, like every other ESPuino state
+// topic (the broker keeps nothing stale; the reconnect handler re-publishes current state).
+// Self-deduplicating so System_SleepHandler() can call it every loop: it only actually publishes when
+// the payload changed (or force=true), which is what drives the minute/track countdown and reflects a
+// timer set from any source (MQTT, RFID modification card, button) within one loop iteration.
+void Mqtt_PublishSleepTimerState(bool force) {
+	const SleepTimerMode mode = Mqtt_CurrentSleepTimerMode();
+	unsigned remainingMinutes = 0; // unsigned (not uint32_t) to match the %u in snprintf below
+	unsigned remainingTracks = 0;
+
+	switch (mode) {
+		case SleepTimerMode::Minutes:
+			remainingMinutes = System_GetSleepTimerRemainingMinutes();
+			break;
+		case SleepTimerMode::EOT:
+			remainingTracks = 1; // sleep after the current track
+			break;
+		case SleepTimerMode::EO5T:
+			// Guard on !playlistFinished: at the end of the playlist AudioPlayer_Loop() resets
+			// currentTrackNumber to 0 while the sleep flag is still set (until the device actually
+			// sleeps), which would otherwise make the difference report the full track count.
+			if (!gPlayProperties.playlistFinished && gPlayProperties.playUntilTrackNumber > gPlayProperties.currentTrackNumber) {
+				remainingTracks = gPlayProperties.playUntilTrackNumber - gPlayProperties.currentTrackNumber;
+			}
+			break;
+		case SleepTimerMode::EOP:
+			if (!gPlayProperties.playlistFinished && gPlayProperties.playlist && gPlayProperties.playlist->size() > gPlayProperties.currentTrackNumber) {
+				remainingTracks = gPlayProperties.playlist->size() - gPlayProperties.currentTrackNumber;
+			}
+			break;
+		case SleepTimerMode::Off:
+			break;
+	}
+
+	char payload[96];
+	snprintf(payload, sizeof(payload), "{\"mode\":\"%s\",\"remainingMinutes\":%u,\"remainingTracks\":%u}", Mqtt_SleepTimerModeToString(mode), remainingMinutes, remainingTracks);
+
+	static char lastPayload[96] = "";
+	if (!force && strcmp(payload, lastPayload) == 0) {
+		return;
+	}
+	// Remember only what actually went out: if the publish fails (e.g. not connected yet), leave
+	// lastPayload so the next loop retries; the reconnect handler additionally forces a fresh publish.
+	if (publishMqtt(topicSleepTimerState, payload, false)) {
+		strncpy(lastPayload, payload, sizeof(lastPayload) - 1);
+		lastPayload[sizeof(lastPayload) - 1] = '\0';
+	}
+}
+
 // Is called if there's a new MQTT-message for us
 #ifdef MQTT_ENABLE
 void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
@@ -356,7 +456,25 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			publishMqtt(topicTrack, gPlayProperties.title, false);
 			publishMqtt(topicCoverChanged, "", false);
 			publishMqtt(topicLoudness, static_cast<uint32_t>(AudioPlayer_GetCurrentVolume()), false);
-			publishMqtt(topicSleepTimer, System_GetSleepTimerTimeStamp(), false);
+			// Legacy topicSleepTimer: re-publish the current mode/value. The previous code published
+			// System_GetSleepTimerTimeStamp() here -- the internal millis() start-timestamp, a meaningless
+			// huge number for consumers.
+			const SleepTimerMode reconnectMode = Mqtt_CurrentSleepTimerMode();
+			switch (reconnectMode) {
+				case SleepTimerMode::Minutes:
+					publishMqtt(topicSleepTimer, static_cast<uint32_t>(System_GetSleepTimer()), false);
+					break;
+				case SleepTimerMode::EOT:
+				case SleepTimerMode::EOP:
+				case SleepTimerMode::EO5T:
+					// The mode string is the legacy topic value for these three.
+					publishMqtt(topicSleepTimer, Mqtt_SleepTimerModeToString(reconnectMode), false);
+					break;
+				case SleepTimerMode::Off:
+					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
+					break;
+			}
+			Mqtt_PublishSleepTimerState(true);
 			publishMqtt(topicLockControls, static_cast<uint32_t>(System_AreControlsLocked()), false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // idle
@@ -474,7 +592,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 		else if (reduced_topic_str == topicSleepTimer) {
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // Don't allow sleep-modications if no playlist is active
 				Log_Println(modificatorNotallowedWhenIdle, LOGLEVEL_INFO);
-				publishMqtt(topicSleep, static_cast<uint32_t>(0), false);
+				publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 				System_IndicateError();
 				return;
 			}
@@ -514,7 +632,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
 					System_IndicateOk();
 					Led_SetNightmode(false);
-					publishMqtt(topicSleep, static_cast<uint32_t>(0), false);
+					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;
 					gPlayProperties.playUntilTrackNumber = 0;

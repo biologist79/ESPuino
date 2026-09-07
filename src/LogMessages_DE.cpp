@@ -148,6 +148,7 @@ const char sdBootFailedDeepsleep[] = "Bootgang wegen SD fehlgeschlagen. Gehe in 
 const char wifiEnabledMsg[] = "WLAN wird aktiviert.";
 const char wifiDisabledMsg[] = "WLAN wird deaktiviert.";
 const char voltageIndicatorLowFromNVS[] = "Unterer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
+const char offsetVoltageFromNVS[] = "Batterie-Korrekturwert (offsetVoltage) aus NVS geladen: %.2fV";
 const char voltageIndicatorHighFromNVS[] = "Oberer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";
 const char batteryCheckIntervalFromNVS[] = "Zyklus für Batteriemessung fuer Neopixel-Anzeige aus NVS geladen: %u Minuten";
 const char warningLowVoltageFromNVS[] = "Spannungslevel (Batterie) fuer Niedrig-Warnung via Neopixel aus NVS geladen: %.2fV";
@@ -237,4 +238,28 @@ const char wifiSetLastSSID[] = "Schreibe letzte erfolgreiche SSID in NVS für WL
 const char mDNSStarted[] = "mDNS gestartet: http://%s.local";
 const char mDNSFailed[] = "mDNS Start fehlgeschlagen, Hostname: %s";
 const char restartAfterOperationModeChange[] = "Operation Mode geändert. ESPuino wird neu gestartet...";
+
+// MediaHub
+const char mediaHubPlayingFromCache[] = "MediaHub: Alle Dateien lokal vorhanden, spiele ohne Netzwerkzugriff.";
+const char mediaHubNotReachable[] = "MediaHub nicht erreichbar.";
+const char mediaHubInvalidPath[] = "MediaHub: ungültige Hub-Adresse im NVS.";
+const char mediaHubCardPending[] = "MediaHub: Karte ist (noch) nicht zugewiesen.";
+const char mediaHubUnexpectedStatus[] = "MediaHub: unerwarteter Status-Code %d.";
+const char mediaHubInvalidManifest[] = "MediaHub: Manifest ungültig oder unvollständig.";
+const char mediaHubWebstreamFromManifest[] = "MediaHub: Starte Webstream aus Manifest.";
+const char mediaHubBusy[] = "MediaHub: Download läuft bereits, Karte wird ignoriert.";
+const char mediaHubSdFull[] = "MediaHub: nicht genug freier SD-Speicherplatz für Download.";
+const char mediaHubDownloadingFile[] = "MediaHub: lade %s herunter.";
+const char mediaHubDownloadFailed[] = "MediaHub: Download von %s fehlgeschlagen.";
+const char mediaHubDownloadHttpError[] = "MediaHub: HTTP-Status %d beim Download von %s.";
+const char mediaHubDownloadFileError[] = "MediaHub: Konnte Zieldatei für %s nicht öffnen (SD voll oder defekt?).";
+const char mediaHubDownloadTransferError[] = "MediaHub: Verbindung beim Download von %s unterbrochen (%u von %u Bytes erhalten).";
+const char mediaHubDownloadRenameError[] = "MediaHub: Konnte heruntergeladene Datei für %s nicht verschieben (SD-Fehler?).";
+const char mediaHubDownloadRate[] = "MediaHub: %s heruntergeladen (%u Bytes, %.1f KB/s).";
+const char mediaHubDownloadAbortedForRestart[] = "MediaHub: Download wegen Neustart/Ruhezustand abgebrochen.";
+const char mediaHubResyncComplete[] = "MediaHub: Synchronisierung abgeschlossen. Erneut auflegen zum Abspielen.";
+const char mediaHubVerifyFailed[] = "MediaHub: SHA-256-Prüfung von %s fehlgeschlagen.";
+const char mediaHubPlayingAfterSync[] = "MediaHub: Synchronisierung abgeschlossen, starte Wiedergabe.";
+const char mediaHubMarkedStale[] = "MediaHub: Änderung erkannt, Karte wird beim nächsten Auflegen aktualisiert.";
+const char mediaHubResyncing[] = "MediaHub: Karte hat sich geändert, synchronisiere neu.";
 #endif

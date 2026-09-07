@@ -19,7 +19,8 @@
 		"success": "Aktion erfolgreich ausgeführt.",
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
 		"saved": "Einstellungen gespeichert.",
-		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen."
+		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen.",
+		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}})."
 	},
 	"status": {
 		"connected": "Verbindung zum ESPuino: OK",
@@ -35,6 +36,7 @@
 		"general": "Allgemein",
 		"updates": "Updates",
 		"tools": "Tools",
+		"mediahub": "MediaHub",
 		"help": "Hilfe"
 	},
 	"settingsex": {
@@ -213,6 +215,14 @@
 	"files": {
 		"title": "Dateien",
 		"loading": "Wird geladen...",
+		"storage": {
+			"title": "Speicherplatz",
+			"loading": "Speicherbelegung wird geladen...",
+			"usage": "{{used}} von {{total}} belegt · {{free}} frei",
+			"unavailable": "Keine SD-Karte verfügbar",
+			"statsUnavailable": "SD-Karte erkannt, Speichergröße konnte nicht ermittelt werden",
+			"error": "Speicherbelegung konnte nicht geladen werden"
+		},
 		"context": {
 			"newFolder": "Neuer Ordner",
 			"play": "Abspielen",
@@ -275,9 +285,30 @@
 					"13": "🎲📁 Alle Titel aus einem zufälligen Unterverzeichnis (sortiert)",
 					"14": "🎲📁🔀 Alle Titel aus einem zufälligen Unterverzeichnis (zufällig)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei"
+					"11": "📃 Liste (Dateien von SD und/oder Webstreams) aus lokaler .m3u-Datei",
+					"18": "🌐 MediaHub (Inhalt/Modus kommt vom gewählten Mediaserver)"
 				},
 				"error": "Kein gültiger Abspielmodus"
+			},
+			"mediahub": {
+				"serverSelect": {
+					"title": "Mediaserver"
+				},
+				"name": {
+					"title": "Anzeigename",
+					"explanation": "Frei wählbarer Name, unter dem dieser Mediaserver im Auswahl-Dropdown erscheint."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Host und Port des MediaHub-Servers, z.B. 192.168.1.50:8080.",
+					"placeholder": "z.B. 192.168.1.50:8080"
+				},
+				"addButton": "Mediaserver speichern",
+				"openButton": "MediaHub öffnen",
+				"delete": {
+					"title": "Mediaserver löschen?",
+					"prompt": "Soll der Mediaserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				}
 			},
 			"mod": {
 				"title": "Modifikation",
@@ -488,13 +519,16 @@
 				"description": "Wähle den Typ des RFID-Readers. Auto-detect wird versuchen, den Reader automatisch zu erkennen."
 			},
 			"pn5180Lpcd": "PN5180 LPCD aktivieren",
-			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID-Reader. Nur möglich, wenn Lötbrücken richtig gesetzt sind.",
+			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID-Reader. Dafür muss die PN5180-Firmware mindestens Version 4.0 sein und die erforderlichen Lötbrücken müssen korrekt gesetzt sein. Mehr Infos <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>hier</a>.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID-Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7.",
 			"mfrc522ScanInterval": "MFRC522 Scan-Intervall",
 			"mfrc522ScanIntervalExp": "Zeit in Millisekunden zwischen zwei Abfragen des MFRC522 RFID-Readers. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 100ms.",
 			"pn5180Debounce": "PN5180 Debounce",
-			"pn5180DebounceExp": "Zeit in Millisekunden, die eine Karte ununterbrochen nicht erkannt werden muss, bevor sie als entfernt gilt. Verhindert, dass kurze Leseaussetzer (z.B. bei größerem Abstand zwischen Karte und Leser) fälschlich als Kartenentfernung gewertet werden. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 500ms."
+			"pn5180DebounceExp": "Zeit in Millisekunden, die eine Karte ununterbrochen nicht erkannt werden muss, bevor sie als entfernt gilt. Verhindert, dass kurze Leseaussetzer (z.B. bei größerem Abstand zwischen Karte und Leser) fälschlich als Kartenentfernung gewertet werden. Ein Neustart ist nötig, damit eine Änderung wirksam wird. Standard ist 500ms.",
+			"slixPrivacyPassword": "ICODE-SLIX2 Privacy-Passwort",
+			"slixPrivacyPasswordExp": "Vier-Byte-Passwort zum Deaktivieren des Privacy-Modus geschützter ICODE-SLIX2-Tags. Es sind ausschließlich Hexadezimalwerte von 00 bis FF zulässig.",
+			"pn5180Firmware": "Ausgelesene PN5180 Firmware"
 		},
 		"options": {
 			"title": "Optionen",
@@ -542,11 +576,13 @@
 			"lowCritical": "Eine LED leuchtet bei dieser Spannung (in Volt)",
 			"criticalShutoff": "Unter dieser Spannung (in Volt) schaltet der ESPuino ab",
 			"high": "Alle LEDs leuchten bei dieser Spannung (in Volt)",
+			"offset": "Korrekturwert für die gemessene Akkuspannung (in Volt, ± in Hundertstel)",
 			"measureInterval": "Zeitabstand der Messung (in Minuten)",
 			"shutdownOnCritical": "Bei kritischer Spannung automatisch abschalten",
 			"lowWarningExp": "Spannung, unterhalb derer eine optische Warnung (LED) für niedrigen Akkustand ausgelöst wird.",
 			"lowCriticalExp": "Spannung, die als 0% Akkuladung in der Anzeige gilt (leerer Akku).",
 			"highExp": "Spannung, die als 100% Akkuladung in der Anzeige gilt (voller Akku).",
+			"offsetExp": "Feinkorrektur der gemessenen Akkuspannung. Weicht die angezeigte Spannung von einer Messung per Multimeter ab, trage hier die Differenz ein (positiv oder negativ). Standardwert der Complete: -0,04 V.",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
 			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
 			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."
@@ -618,6 +654,12 @@
 				"fetchError": "Firmware-Liste konnte nicht abgerufen werden."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub ist eine optionale, separat betriebene Zusatzkomponente: ein kleiner lokaler Server, der als Docker-Container im eigenen Netzwerk läuft. Damit lassen sich RFID-Kartenzuweisungen zentral für mehrere ESPuinos verwalten - Inhalt und Abspielmodus kommen dann vom Server statt aus der lokalen NVS-Konfiguration. Ohne einen laufenden MediaHub-Server bringt diese Seite nichts. Hier registrierst du die Adresse(n) deiner MediaHub-Server, damit sie beim Zuweisen einer Karte im Dropdown zur Auswahl stehen. Den MediaHub-Server selbst findest du auf GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
+		"serversTitle": "Mediaserver hinzufügen",
+		"registeredServersTitle": "Registrierte Mediaserver"
 	},
 	"help": {
 		"forum": {

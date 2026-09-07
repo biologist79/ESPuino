@@ -19,7 +19,8 @@
 		"success": "Action performed successfully.",
 		"dropout": "slow stream, dropouts are possible.",
 		"saved": "Settings saved.",
-		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it."
+		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it.",
+		"settingsInvalid": "Cannot save: please correct these settings first ({{fields}})."
 	},
 	"status": {
 		"connected": "Connection to ESPuino: OK",
@@ -35,6 +36,7 @@
 		"general": "General",
 		"updates": "Updates",
 		"tools": "Tools",
+		"mediahub": "MediaHub",
 		"help": "Help"
 	},
 	"settingsex": {
@@ -213,6 +215,14 @@
 	"files": {
 		"title": "Files",
 		"loading": "Please wait...",
+		"storage": {
+			"title": "Storage",
+			"loading": "Loading storage usage...",
+			"usage": "{{used}} of {{total}} used · {{free}} free",
+			"unavailable": "No SD card available",
+			"statsUnavailable": "SD card detected, but storage size could not be determined",
+			"error": "Storage usage could not be loaded"
+		},
 		"context": {
 			"newFolder": "New Folder",
 			"play": "Play",
@@ -275,9 +285,30 @@
 					"13": "🎲📁 All tracks of a random subdirectory (sorted)",
 					"14": "🎲📁🔀 All tracks of a random subdirectory (random)",
 					"8": "📻 Webradio",
-					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File"
+					"11": "📃 List (files from SD and/or webstreams) from local .m3u-File",
+					"18": "🌐 MediaHub (content/mode comes from the selected media server)"
 				},
 				"error": "Invalid playmode"
+			},
+			"mediahub": {
+				"serverSelect": {
+					"title": "Media server"
+				},
+				"name": {
+					"title": "Display name",
+					"explanation": "Freely chosen name shown for this media server in the selection dropdown."
+				},
+				"hostPort": {
+					"title": "Address",
+					"explanation": "Host and port of the MediaHub server, e.g. 192.168.1.50:8080.",
+					"placeholder": "e.g. 192.168.1.50:8080"
+				},
+				"addButton": "Save media server",
+				"openButton": "Open MediaHub",
+				"delete": {
+					"title": "Delete media server?",
+					"prompt": "Really delete the media server \"{{name}}\"? Cards already assigned to it are left unchanged."
+				}
 			},
 			"mod": {
 				"title": "Modification",
@@ -488,13 +519,16 @@
 				"description": "Select the type of RFID reader connected to your ESPuino. Auto-detect will try to determine the connected reader type automatically."
 			},
 			"pn5180Lpcd": "Enable PN5180 LPCD",
-			"pn5180LpcdExp": "Enable Low Power Card Detection for PN5180 RFID reader. Only possible if solder-pins are set correctly.",
+			"pn5180LpcdExp": "Enables Low Power Card Detection for the PN5180 RFID reader. PN5180 firmware version 4.0 or newer is required, and the required solder bridges must be configured correctly. More information <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>here</a>.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Sets the sensitivity of the MFRC522 RFID reader. Possible values are 0 (lowest sensitivity) to 7 (highest sensitivity). Default is 7.",
 			"mfrc522ScanInterval": "MFRC522 scan interval",
 			"mfrc522ScanIntervalExp": "Time in milliseconds between two polls of the MFRC522 RFID reader. A restart is required for a change to take effect. Default is 100ms.",
 			"pn5180Debounce": "PN5180 debounce",
-			"pn5180DebounceExp": "Time in milliseconds a card must go undetected before it's considered removed. Prevents brief read dropouts (e.g. with a larger gap between card and reader) from being mistaken for card removal. A restart is required for a change to take effect. Default is 500ms."
+			"pn5180DebounceExp": "Time in milliseconds a card must go undetected before it's considered removed. Prevents brief read dropouts (e.g. with a larger gap between card and reader) from being mistaken for card removal. A restart is required for a change to take effect. Default is 500ms.",
+			"slixPrivacyPassword": "ICODE-SLIX2 privacy password",
+			"slixPrivacyPasswordExp": "Four-byte password used to disable privacy mode on protected ICODE-SLIX2 tags. Only hexadecimal values from 00 to FF are accepted.",
+			"pn5180Firmware": "PN5180 firmware readout"
 		},
 		"options": {
 			"title": "Options",
@@ -542,11 +576,13 @@
 			"lowCritical": "Lowest voltage (in volt), that is indicated by one LED",
 			"criticalShutoff": "Below this voltage (in volt), ESPuino turns off",
 			"high": "Voltage (in volt), that is indicated by all LEDs",
+			"offset": "Correction value for the measured battery voltage (in volt, ± in hundredths)",
 			"measureInterval": "Interval between measurements (in minutes)",
 			"shutdownOnCritical": "Automatically shut down on critical voltage",
 			"lowWarningExp": "Voltage below which a visual (LED) low-battery warning is triggered.",
 			"lowCriticalExp": "Voltage that is shown as 0% battery charge (empty battery).",
 			"highExp": "Voltage that is shown as 100% battery charge (full battery).",
+			"offsetExp": "Fine-correction of the measured battery voltage. If the displayed voltage differs from a multimeter reading, enter the difference here (positive or negative). Default for the Complete: -0.04 V.",
 			"criticalShutoffExp": "Voltage at which ESPuino automatically shuts down to protect the battery from deep discharge.",
 			"measureIntervalExp": "Time interval in minutes at which the battery voltage is measured.",
 			"shutdownOnCriticalExp": "Automatically shuts ESPuino down once the battery voltage drops below the critical threshold set below. Can help protect the battery from deep discharge to some extent, but does not replace a battery management system! Recommended values are: LFP: 2.7 V, LiPo: 3.0 V."
@@ -618,6 +654,12 @@
 				"fetchError": "Could not fetch the firmware list."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub is an optional, separately-run add-on: a small local server running as a Docker container on your own network. It lets you manage RFID card assignments centrally for multiple ESPuinos - content and playback mode then come from the server instead of the local NVS configuration. Without a running MediaHub server, this page doesn't do anything useful. Here you register the address(es) of your MediaHub server(s) so they show up in the dropdown when assigning a card. The MediaHub server itself is available on GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
+		"serversTitle": "Add media server",
+		"registeredServersTitle": "Registered media servers"
 	},
 	"help": {
 		"forum": {

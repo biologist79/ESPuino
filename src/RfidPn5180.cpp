@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "settings.h"
 
+#include "RfidPn5180.h"
+
 #include "AudioPlayer.h"
 #include "HallEffectSensor.h"
 #include "Log.h"
@@ -12,6 +14,7 @@
 
 #include <SPI.h>
 #include <Wire.h>
+#include <atomic>
 #include <driver/gpio.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
@@ -53,6 +56,42 @@ extern TaskHandle_t rfidTaskHandle;
 #if (defined(PORT_EXPANDER_ENABLE) && (RFID_IRQ > 99))
 extern TwoWire i2cBusTwo;
 #endif
+
+namespace {
+uint32_t PackSlixPrivacyPassword(const SlixPrivacyPassword &password) {
+	return (static_cast<uint32_t>(password[0]) << 24) | (static_cast<uint32_t>(password[1]) << 16) | (static_cast<uint32_t>(password[2]) << 8) | password[3];
+}
+
+SlixPrivacyPassword UnpackSlixPrivacyPassword(uint32_t password) {
+	return {
+		{static_cast<uint8_t>(password >> 24), static_cast<uint8_t>(password >> 16), static_cast<uint8_t>(password >> 8),
+			static_cast<uint8_t>(password)}
+	   };
+}
+
+std::atomic<uint32_t> slixPrivacyPassword {PackSlixPrivacyPassword(SLIX_PRIVACY_PASSWORD_DEFAULT)};
+
+// Stored as major << 8 | minor. This value is RAM-only and is never written to NVS.
+std::atomic<uint16_t> pn5180FirmwareVersion {0};
+} // namespace
+
+SlixPrivacyPassword RfidPn5180_GetSlixPrivacyPassword(void) {
+	return UnpackSlixPrivacyPassword(slixPrivacyPassword.load(std::memory_order_relaxed));
+}
+
+void RfidPn5180_SetSlixPrivacyPassword(const SlixPrivacyPassword &password) {
+	slixPrivacyPassword.store(PackSlixPrivacyPassword(password), std::memory_order_relaxed);
+}
+
+bool RfidPn5180_GetFirmwareVersion(uint8_t &major, uint8_t &minor) {
+	const uint16_t version = pn5180FirmwareVersion.load(std::memory_order_relaxed);
+	if (version == 0) {
+		return false;
+	}
+	major = static_cast<uint8_t>(version >> 8);
+	minor = static_cast<uint8_t>(version & 0xFF);
+	return true;
+}
 
 #if defined(RFID_READER_TYPE_RUNTIME)
 static void RfidPn5180_Task(void *parameter);
@@ -205,6 +244,11 @@ void RfidPn5180_Task(void *parameter) {
 	uint32_t lastTimeDetected14443 = 0;
 	uint32_t lastTimeDetected15693 = 0;
 	const uint16_t debounceMs = gPrefsRfid.getUShort("pn5180Debounce", 500);
+	SlixPrivacyPassword configuredSlixPrivacyPassword = SLIX_PRIVACY_PASSWORD_DEFAULT;
+	if (gPrefsRfid.getBytesLength(SLIX_PRIVACY_PASSWORD_NVS_KEY) == configuredSlixPrivacyPassword.size()) {
+		gPrefsRfid.getBytes(SLIX_PRIVACY_PASSWORD_NVS_KEY, configuredSlixPrivacyPassword.data(), configuredSlixPrivacyPassword.size());
+	}
+	RfidPn5180_SetSlixPrivacyPassword(configuredSlixPrivacyPassword);
 	byte lastValidcardId[cardIdSize] = {0}; // "same card reapplied" is decided by comparing against it
 	bool cardAppliedCurrentRun = false;
 	bool cardAppliedLastRun = false;
@@ -247,10 +291,13 @@ void RfidPn5180_Task(void *parameter) {
 			// genuinely unresponsive instead of stalling the polling loop for half a second.
 			nfc14443.commandTimeout = 100;
 			nfc15693.commandTimeout = 100;
-			// show PN5180 reader version
-			// uint8_t firmwareVersion[2];
-			// nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion));
-			// Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
+			// Read the PN5180 firmware once during normal reader initialization and keep it in RAM
+			// for the management UI. This code only runs in the PN5180 task.
+			uint8_t firmwareVersion[2] = {0, 0};
+			if (nfc14443.readEEprom(FIRMWARE_VERSION, firmwareVersion, sizeof(firmwareVersion))) {
+				pn5180FirmwareVersion.store((static_cast<uint16_t>(firmwareVersion[1]) << 8) | firmwareVersion[0], std::memory_order_relaxed);
+				Log_Printf(LOGLEVEL_DEBUG, "PN5180 firmware version=%d.%d", firmwareVersion[1], firmwareVersion[0]);
+			}
 
 			// activate RF field
 			delay(4u);
@@ -325,14 +372,10 @@ void RfidPn5180_Task(void *parameter) {
 		} else if (RFID_PN5180_NFC15693_STATE_SETUPRF == stateMachine) {
 			nfc15693.setupRF();
 		} else if (RFID_PN5180_NFC15693_STATE_DISABLEPRIVACYMODE == stateMachine) {
-			// check for ICODE-SLIX2 password protected tag
-			// put your privacy password here, e.g.:
-			// https://de.ifixit.com/Antworten/Ansehen/513422/nfc+Chips+f%C3%BCr+tonies+kaufen
-			//
-			// default factory password for ICODE-SLIX2 is {0x0F, 0x0F, 0x0F, 0x0F}
-			//
-			const uint8_t password[] = {0x0F, 0x0F, 0x0F, 0x0F};
-			ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(password);
+			// Check for an ICODE-SLIX2 password protected tag using the currently configured
+			// password. Take a snapshot so a password saved via the web UI is used immediately.
+			const SlixPrivacyPassword currentSlixPrivacyPassword = RfidPn5180_GetSlixPrivacyPassword();
+			ISO15693ErrorCode myrc = nfc15693.disablePrivacyMode(currentSlixPrivacyPassword.data());
 			if (ISO15693_EC_OK == myrc) {
 				if (showDisablePrivacyNotification) {
 					showDisablePrivacyNotification = false;

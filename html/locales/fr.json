@@ -19,7 +19,8 @@
 		"success": "Action effectuée avec succès.",
 		"dropout": "flux lent, des interruptions sont possibles.",
 		"saved": "Paramètres enregistrés.",
-		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement."
+		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement.",
+		"settingsInvalid": "Enregistrement impossible : veuillez d'abord corriger ces réglages ({{fields}})."
 	},
 	"status": {
 		"connected": "Connexion à l'ESPuino : OK",
@@ -35,6 +36,7 @@
 		"general": "Général",
 		"updates": "Mises à jour",
 		"tools": "Outils",
+		"mediahub": "MediaHub",
 		"help": "Aide"
 	},
 	"settingsex": {
@@ -213,6 +215,14 @@
 	"files": {
 		"title": "Fichiers",
 		"loading": "Veuillez patienter...",
+		"storage": {
+			"title": "Stockage",
+			"loading": "Chargement de l’utilisation du stockage...",
+			"usage": "{{used}} utilisés sur {{total}} · {{free}} libres",
+			"unavailable": "Aucune carte SD disponible",
+			"statsUnavailable": "Carte SD détectée, mais la capacité n’a pas pu être déterminée",
+			"error": "Impossible de charger l’utilisation du stockage"
+		},
 		"context": {
 			"newFolder": "Nouveau dossier",
 			"play": "Lire",
@@ -275,9 +285,30 @@
 					"13": "🎲📁 Toutes les pistes d'un sous-répertoire aléatoire (triées)",
 					"14": "🎲📁🔀 Toutes les pistes d'un sous-répertoire aléatoire (aléatoire)",
 					"8": "📻 Webradio",
-					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local"
+					"11": "📃 Liste (fichiers de la carte SD et/ou flux web) à partir d'un fichier .m3u local",
+					"18": "🌐 MediaHub (contenu/mode fourni par le serveur média sélectionné)"
 				},
 				"error": "Mode de lecture invalide"
+			},
+			"mediahub": {
+				"serverSelect": {
+					"title": "Serveur média"
+				},
+				"name": {
+					"title": "Nom affiché",
+					"explanation": "Nom librement choisi affiché pour ce serveur média dans le menu déroulant."
+				},
+				"hostPort": {
+					"title": "Adresse",
+					"explanation": "Hôte et port du serveur MediaHub, par ex. 192.168.1.50:8080.",
+					"placeholder": "par ex. 192.168.1.50:8080"
+				},
+				"addButton": "Enregistrer le serveur média",
+				"openButton": "Ouvrir MediaHub",
+				"delete": {
+					"title": "Supprimer le serveur média ?",
+					"prompt": "Vraiment supprimer le serveur média \"{{name}}\" ? Les cartes déjà assignées à ce serveur restent inchangées."
+				}
 			},
 			"mod": {
 				"title": "Modification",
@@ -488,13 +519,16 @@
 				"description": "Sélectionnez le type de lecteur RFID connecté à votre ESPuino. La détection automatique tentera de déterminer le type de lecteur connecté automatiquement."
 			},
 			"pn5180Lpcd": "Activer PN5180 LPCD",
-			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Uniquement possible si les broches de soudure sont correctement configurées.",
+			"pn5180LpcdExp": "Active la détection de carte à faible puissance pour le lecteur RFID PN5180. Le firmware du PN5180 doit être en version 4.0 ou plus récente et les ponts de soudure nécessaires doivent être configurés correctement. Plus d’informations <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>ici</a>.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Définit la sensibilité du lecteur RFID MFRC522. Les valeurs possibles sont de 0 (sensibilité la plus faible) à 7 (sensibilité la plus élevée). La valeur par défaut est 7.",
 			"mfrc522ScanInterval": "Intervalle de scan MFRC522",
 			"mfrc522ScanIntervalExp": "Durée en millisecondes entre deux interrogations du lecteur RFID MFRC522. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 100ms.",
 			"pn5180Debounce": "Anti-rebond PN5180",
-			"pn5180DebounceExp": "Durée en millisecondes pendant laquelle une carte doit rester non détectée avant d'être considérée comme retirée. Évite que de brèves pertes de lecture (par ex. avec un écart plus important entre la carte et le lecteur) soient interprétées à tort comme un retrait de carte. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 500ms."
+			"pn5180DebounceExp": "Durée en millisecondes pendant laquelle une carte doit rester non détectée avant d'être considérée comme retirée. Évite que de brèves pertes de lecture (par ex. avec un écart plus important entre la carte et le lecteur) soient interprétées à tort comme un retrait de carte. Un redémarrage est nécessaire pour qu'une modification prenne effet. La valeur par défaut est 500ms.",
+			"slixPrivacyPassword": "Mot de passe de confidentialité ICODE-SLIX2",
+			"slixPrivacyPasswordExp": "Mot de passe de quatre octets utilisé pour désactiver le mode confidentialité des tags ICODE-SLIX2 protégés. Seules les valeurs hexadécimales de 00 à FF sont acceptées.",
+			"pn5180Firmware": "Firmware PN5180 lue"
 		},
 		"options": {
 			"title": "Options",
@@ -542,11 +576,13 @@
 			"lowCritical": "Tension la plus basse (en volt), indiquée par une LED",
 			"criticalShutoff": "En dessous de cette tension (en volt), ESPuino s'éteint",
 			"high": "Tension indiquée par toutes les LED (en volt)",
+			"offset": "Valeur de correction pour la tension mesurée de la batterie (en volt, ± au centième)",
 			"measureInterval": "Intervalle entre les mesures (en minutes)",
 			"shutdownOnCritical": "Éteindre automatiquement en cas de tension critique",
 			"lowWarningExp": "Tension en dessous de laquelle un avertissement visuel (LED) de batterie faible est déclenché.",
 			"lowCriticalExp": "Tension considérée comme 0% de charge de la batterie (batterie vide).",
 			"highExp": "Tension considérée comme 100% de charge de la batterie (batterie pleine).",
+			"offsetExp": "Correction fine de la tension mesurée de la batterie. Si la tension affichée diffère d'une mesure au multimètre, saisissez ici la différence (positive ou négative). Valeur par défaut de la Complete : -0,04 V.",
 			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
 			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée.",
 			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V."
@@ -618,6 +654,12 @@
 				"fetchError": "Impossible de récupérer la liste des micrologiciels."
 			}
 		}
+	},
+	"mediahub": {
+		"title": "MediaHub",
+		"intro": "MediaHub est un composant optionnel, exécuté séparément : un petit serveur local fonctionnant comme conteneur Docker sur votre propre réseau. Il permet de gérer de façon centralisée les assignations de cartes RFID pour plusieurs ESPuino - le contenu et le mode de lecture proviennent alors du serveur plutôt que de la configuration NVS locale. Sans serveur MediaHub en cours d'exécution, cette page ne sert à rien. Vous enregistrez ici l'adresse (ou les adresses) de votre/vos serveur(s) MediaHub afin qu'ils apparaissent dans le menu déroulant lors de l'assignation d'une carte. Le serveur MediaHub lui-même est disponible sur GitHub : <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
+		"serversTitle": "Ajouter un serveur média",
+		"registeredServersTitle": "Serveurs média enregistrés"
 	},
 	"help": {
 		"forum": {

@@ -49,15 +49,16 @@ jobs:
           path: ~/.platformio
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
-      - name: Setup Python 3.13
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"
 
       - name: Install PlatformIO Core
         run: |
           pip install -U setuptools platformio
-          pio upgrade --dev
+          # Stick to the stable PlatformIO core: "pio upgrade --dev" pulled an unreleased core whose
+          # bundled SCons broke the link step (ModuleNotFoundError: SCons.Tool.FortranCommon).
           pio pkg update --global
           mkdir binaries
 

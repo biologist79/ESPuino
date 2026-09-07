@@ -18,9 +18,11 @@
 #include "HallEffectSensor.h"
 #include "Led.h"
 #include "Log.h"
+#include "MediaHub.h"
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Rfid.h"
+#include "RfidPn5180.h"
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
@@ -102,6 +104,9 @@ static void handleWiFiScanRequest(AsyncWebServerRequest *request);
 static void handleGetRFIDRequest(AsyncWebServerRequest *request);
 static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &json);
 static void handleDeleteRFIDRequest(AsyncWebServerRequest *request);
+static void handleGetMediaHubServers(AsyncWebServerRequest *request);
+static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVariant &json);
+static void handleDeleteMediaHubServers(AsyncWebServerRequest *request);
 static void handleGetInfo(AsyncWebServerRequest *request);
 static void handleGetSettings(AsyncWebServerRequest *request);
 static void handlePostSettings(AsyncWebServerRequest *request, JsonVariant &json);
@@ -113,6 +118,20 @@ static void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *clien
 static void settingsToJSON(JsonObject obj, const String section);
 static WebsocketCodeType JSONToSettings(JsonObject obj);
 static void webserverStart(void);
+
+static String slixPrivacyPasswordToHex(const SlixPrivacyPassword &password) {
+	char hex[9];
+	snprintf(hex, sizeof(hex), "%02X%02X%02X%02X", password[0], password[1], password[2], password[3]);
+	return String(hex);
+}
+
+static SlixPrivacyPassword slixPrivacyPasswordFromPrefs(void) {
+	SlixPrivacyPassword password = SLIX_PRIVACY_PASSWORD_DEFAULT;
+	if (gPrefsRfid.getBytesLength(SLIX_PRIVACY_PASSWORD_NVS_KEY) == password.size()) {
+		gPrefsRfid.getBytes(SLIX_PRIVACY_PASSWORD_NVS_KEY, password.data(), password.size());
+	}
+	return password;
+}
 
 // IPAddress converters, for a description see: https://arduinojson.org/news/2021/05/04/version-6-18-0/
 void convertFromJson(JsonVariantConst src, IPAddress &dst) {
@@ -606,6 +625,12 @@ void webserverStart(void) {
 		wServer.addRewrite(new OneParamRewrite("/rfid/{id}", "/rfid?id={id}"));
 		wServer.on("/rfid", HTTP_DELETE, handleDeleteRFIDRequest);
 
+		// MediaHub registered servers (concept §5.1)
+		wServer.on("/mediahubservers", HTTP_GET, handleGetMediaHubServers);
+		wServer.addHandler(new AsyncCallbackJsonWebHandler("/mediahubservers", handlePostMediaHubServers));
+		wServer.addRewrite(new OneParamRewrite("/mediahubservers/{name}", "/mediahubservers?name={name}"));
+		wServer.on("/mediahubservers", HTTP_DELETE, handleDeleteMediaHubServers);
+
 		// WiFi scan
 		wServer.on("/wifiscan", HTTP_GET, handleWiFiScanRequest);
 
@@ -746,14 +771,16 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		// so reject it before writing anything. The HTML input already constrains this, but a direct
 		// REST/websocket POST could bypass that.
 		const uint8_t minVolume = generalObj["minVolume"].as<uint8_t>();
-		if (minVolume >= generalObj["maxVolumeSp"].as<uint8_t>() || minVolume >= generalObj["maxVolumeHp"].as<uint8_t>()) {
+		const uint8_t maxVolumeSp = generalObj["maxVolumeSp"].as<uint8_t>();
+		const uint8_t maxVolumeHp = generalObj["maxVolumeHp"].as<uint8_t>();
+		if (minVolume >= maxVolumeSp || minVolume >= maxVolumeHp) {
 			Log_Println(webSaveSettingsVolumeMinMaxError, LOGLEVEL_ERROR);
 			return WebsocketCodeType::Error;
 		}
 		bool success = (gPrefsSettings.putUInt("initVolume", generalObj["initVolume"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUInt("minVolume", minVolume) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeSp", generalObj["maxVolumeSp"].as<uint8_t>()) != 0);
-		success = success && (gPrefsSettings.putUInt("maxVolumeHp", generalObj["maxVolumeHp"].as<uint8_t>()) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeSp", maxVolumeSp) != 0);
+		success = success && (gPrefsSettings.putUInt("maxVolumeHp", maxVolumeHp) != 0);
 		success = success && (gPrefsSettings.putUInt("mInactiviyT", generalObj["sleepInactivity"].as<uint8_t>()) != 0);
 		if (generalObj["rotSeekStep"].is<uint8_t>()) {
 			success = success && (gPrefsSettings.putUChar("rotSeekStep", generalObj["rotSeekStep"].as<uint8_t>()) != 0);
@@ -779,10 +806,53 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsRfid.putUChar("mfrc522Gain", generalObj["mfrc522Gain"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putUShort("rfidScanIntv", generalObj["mfrc522ScanInterval"].as<uint16_t>()) != 0);
 		success = success && (gPrefsRfid.putUShort("pn5180Debounce", generalObj["pn5180Debounce"].as<uint16_t>()) != 0);
+
+		// Keep compatibility with older cached management pages: if the field is missing,
+		// preserve the password already stored in NVS instead of overwriting it.
+		String slixPrivacyPassword = generalObj["slixPrivacyPassword"].as<String>();
+		if (slixPrivacyPassword.length() > 0) {
+			SlixPrivacyPassword slixPassword = {};
+			bool validPassword = (slixPrivacyPassword.length() == slixPassword.size() * 2);
+			for (size_t i = 0; validPassword && i < slixPassword.size(); i++) {
+				auto hexNibble = [](char c) -> int8_t {
+					if ((c >= '0') && (c <= '9')) {
+						return c - '0';
+					}
+					if ((c >= 'A') && (c <= 'F')) {
+						return c - 'A' + 10;
+					}
+					if ((c >= 'a') && (c <= 'f')) {
+						return c - 'a' + 10;
+					}
+					return -1;
+				};
+				const int8_t high = hexNibble(slixPrivacyPassword[i * 2]);
+				const int8_t low = hexNibble(slixPrivacyPassword[i * 2 + 1]);
+				if ((high < 0) || (low < 0)) {
+					validPassword = false;
+				} else {
+					slixPassword[i] = static_cast<uint8_t>((high << 4) | low);
+				}
+			}
+			if (validPassword) {
+				const bool passwordStored = success && (gPrefsRfid.putBytes(SLIX_PRIVACY_PASSWORD_NVS_KEY, slixPassword.data(), slixPassword.size()) == slixPassword.size());
+				success = passwordStored;
+				if (passwordStored) {
+					RfidPn5180_SetSlixPrivacyPassword(slixPassword);
+				}
+			} else {
+				success = false;
+				Log_Println("Invalid ICODE-SLIX2 privacy password in web settings", LOGLEVEL_ERROR);
+			}
+		}
 		if (!success) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "general");
 			return WebsocketCodeType::Error;
 		}
+
+		// Apply the new maximum-volume limits immediately; no reboot is required.
+		AudioPlayer_ApplyMaxVolumes(maxVolumeSp, maxVolumeHp);
+
 		gPlayProperties.newPlayMono = generalObj["playMono"].as<bool>();
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();
 		gPlayProperties.pauseOnMinVolume = generalObj["pauseOnMinVol"].as<bool>();
@@ -936,7 +1006,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	}
 	if (doc["battery"].is<JsonObject>()) {
 		// Battery settings
-		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putBool("shutdownBatCrit", doc["battery"]["shutdownOnCritical"].as<bool>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
+		if (gPrefsSettings.putFloat("wLowVoltage", doc["battery"]["warnLowVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorLow", doc["battery"]["indicatorLow"].as<float>()) == 0 || gPrefsSettings.putFloat("vIndicatorHigh", doc["battery"]["indicatorHi"].as<float>()) == 0 || gPrefsSettings.putFloat("wCritVoltage", doc["battery"]["criticalVoltage"].as<float>()) == 0 || gPrefsSettings.putFloat("offsetVoltage", doc["battery"]["offsetVoltage"].as<float>()) == 0 || gPrefsSettings.putBool("shutdownBatCrit", doc["battery"]["shutdownOnCritical"].as<bool>()) == 0 || gPrefsSettings.putUInt("vCheckIntv", doc["battery"]["voltageCheckInterval"].as<uint8_t>()) == 0) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return WebsocketCodeType::Error;
 		}
@@ -1167,9 +1237,24 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["mfrc522Gain"].set(gPrefsRfid.getUChar("mfrc522Gain", 7)); // MFRC522_GAIN
 		generalObj["mfrc522ScanInterval"].set(gPrefsRfid.getUShort("rfidScanIntv", 100)); // RFID_SCAN_INTERVAL
 		generalObj["pn5180Debounce"].set(gPrefsRfid.getUShort("pn5180Debounce", 500)); // PN5180 debounce (ms)
+
+		const String slixPasswordHex = slixPrivacyPasswordToHex(slixPrivacyPasswordFromPrefs());
+		generalObj["slixPrivacyPassword"].set(slixPasswordHex);
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
+	}
+	if (section == "rfidstatus") {
+		JsonObject rfidStatusObj = obj["rfidStatus"].to<JsonObject>();
+		uint8_t firmwareMajor = 0;
+		uint8_t firmwareMinor = 0;
+		if (RfidPn5180_GetFirmwareVersion(firmwareMajor, firmwareMinor)) {
+			char firmwareVersion[8];
+			snprintf(firmwareVersion, sizeof(firmwareVersion), "%u.%u", firmwareMajor, firmwareMinor);
+			rfidStatusObj["pn5180Firmware"].set(firmwareVersion);
+		} else {
+			rfidStatusObj["pn5180Firmware"].set("");
+		}
 	}
 	if ((section == "") || (section == "equalizer")) {
 		// equalizer settings
@@ -1298,6 +1383,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batteryObj["indicatorLow"].set(gPrefsSettings.getFloat("vIndicatorLow", s_voltageIndicatorLow));
 		batteryObj["indicatorHi"].set(gPrefsSettings.getFloat("vIndicatorHigh", s_voltageIndicatorHigh));
 		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
+		batteryObj["offsetVoltage"].set(gPrefsSettings.getFloat("offsetVoltage", s_offsetVoltage));
 		batteryObj["shutdownOnCritical"].set(gPrefsSettings.getBool("shutdownBatCrit", false)); // SHUTDOWN_ON_BAT_CRITICAL
 	#endif
 
@@ -1329,6 +1415,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["mfrc522Gain"].set(7u); // MFRC522_GAIN default (max gain)
 		genSettings["mfrc522ScanInterval"].set(100u); // RFID_SCAN_INTERVAL default
 		genSettings["pn5180Debounce"].set(500u); // PN5180 debounce (ms) default
+		genSettings["slixPrivacyPassword"].set(slixPrivacyPasswordToHex(SLIX_PRIVACY_PASSWORD_DEFAULT));
 		JsonObject eqSettings = defaultsObj["equalizer"].to<JsonObject>();
 		eqSettings["gainHighPass"].set(0);
 		eqSettings["gainBandPass"].set(0);
@@ -1503,6 +1590,32 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 		memoryObj["freePSRam"] = ESP.getFreePsram();
 		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
+	}
+	// SD card
+	if ((section == "") || (section == "sdcard")) {
+		JsonObject sdCardObj = infoObj["sdcard"].to<JsonObject>();
+		const bool available = SdCard_IsMounted();
+		const uint64_t totalBytes = available ? SdCard_GetTotalSize() : 0;
+		const uint64_t usedBytesRaw = available ? SdCard_GetUsedSize() : 0;
+		const bool statsAvailable = totalBytes > 0 && usedBytesRaw <= totalBytes;
+		const uint64_t usedBytes = statsAvailable ? usedBytesRaw : 0;
+		const uint64_t freeBytes = statsAvailable ? totalBytes - usedBytes : 0;
+
+		// Send byte counts as decimal strings. This keeps all 64 bits intact,
+		// independent of JSON-number configuration; the browser converts them
+		// with Number(...) before formatting.
+		char totalBytesText[24];
+		char usedBytesText[24];
+		char freeBytesText[24];
+		snprintf(totalBytesText, sizeof(totalBytesText), "%llu", static_cast<unsigned long long>(totalBytes));
+		snprintf(usedBytesText, sizeof(usedBytesText), "%llu", static_cast<unsigned long long>(usedBytes));
+		snprintf(freeBytesText, sizeof(freeBytesText), "%llu", static_cast<unsigned long long>(freeBytes));
+
+		sdCardObj["available"] = available;
+		sdCardObj["statsAvailable"] = statsAvailable;
+		sdCardObj["totalBytes"] = totalBytesText;
+		sdCardObj["usedBytes"] = usedBytesText;
+		sdCardObj["freeBytes"] = freeBytesText;
 	}
 	// wifi
 	if ((section == "") || (section == "wifi")) {
@@ -2685,7 +2798,18 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 			// stop playback, tag to delete is in use
 			Cmd_Action(CMD_STOP);
 		}
-		if (gPrefsRfid.remove(tagId.c_str())) {
+		// MediaHub cascade (concept §13.1): the NVS entry's path field starts
+		// with "mediahub://" for MediaHub-managed cards. Checked - and cleaned
+		// up - before the NVS entry itself is removed below: if the cleanup
+		// fails, the NVS entry is deliberately left in place so a retry can
+		// still recognize the card as MediaHub-managed and try again. Removing
+		// the NVS entry unconditionally would lose that marker on a partial
+		// failure, orphaning the local media/manifest files forever.
+		const String nvsValue = gPrefsRfid.getString(tagId.c_str(), "");
+		const bool isMediaHubCard = nvsValue.startsWith(String(stringDelimiter) + MediaHub_PathPrefix);
+		const bool mediaHubCleanupOk = !isMediaHubCard || MediaHub_DeleteCard(tagId.c_str());
+
+		if (mediaHubCleanupOk && gPrefsRfid.remove(tagId.c_str())) {
 			Rfid_ResetLastTag(); // The tag means nothing now: make sure re-applying it is not deduped away
 			Log_Printf(LOGLEVEL_INFO, "/rfid (DELETE): tag %s removed successfuly", tagId);
 			request->send(200, "text/plain; charset=utf-8", tagId + " removed successfuly");
@@ -2696,6 +2820,46 @@ static void handleDeleteRFIDRequest(AsyncWebServerRequest *request) {
 	} else {
 		Log_Printf(LOGLEVEL_DEBUG, "/rfid (DELETE): tag %s not exists", tagId);
 		request->send(404, "text/plain; charset=utf-8", "error removing tag from NVS: Tag not exists");
+	}
+}
+
+// Registered MediaHub servers (concept §5.1): pure Web-UI enrollment
+// convenience, never read by the runtime playback flow.
+static void handleGetMediaHubServers(AsyncWebServerRequest *request) {
+	AsyncJsonResponse *response = new AsyncJsonResponse(true);
+	JsonArray arr = response->getRoot();
+	for (const MediaHubServer &server : MediaHub_GetServers()) {
+		JsonObject obj = arr.add<JsonObject>();
+		obj["name"] = server.name;
+		obj["hostPort"] = server.hostPort;
+		obj["https"] = server.https;
+	}
+	response->setLength();
+	request->send(response);
+}
+
+static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVariant &json) {
+	const char *name = json["name"].as<const char *>();
+	const char *hostPort = json["hostPort"].as<const char *>();
+	const bool https = json["https"] | false;
+	if (!name || !hostPort || strlen(name) == 0 || strlen(hostPort) == 0) {
+		request->send(400, "text/plain; charset=utf-8", "error adding media server");
+		return;
+	}
+	if (MediaHub_SaveServer(name, hostPort, https)) {
+		request->send(200, "text/plain; charset=utf-8", name);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error adding media server");
+	}
+}
+
+static void handleDeleteMediaHubServers(AsyncWebServerRequest *request) {
+	const AsyncWebParameter *p = request->getParam("name");
+	const String name = p->value();
+	if (MediaHub_DeleteServer(name)) {
+		request->send(200, "text/plain; charset=utf-8", name);
+	} else {
+		request->send(500, "text/plain; charset=utf-8", "error deleting media server");
 	}
 }
 

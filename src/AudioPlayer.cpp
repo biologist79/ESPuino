@@ -10,6 +10,7 @@
 #include "EnumUtils.h"
 #include "Led.h"
 #include "Log.h"
+#include "MediaHub.h"
 #include "MemX.h"
 #include "Mqtt.h"
 #include "Port.h"
@@ -335,9 +336,9 @@ void Audio_InfoCallback(Audio::msg_t m) {
 			char fileType[4];
 			if (file.readBytes(fileType, 4) == 4) {
 				if (strncmp(fileType, "OggS", 4) == 0) {
-					audio_oggimage(file, m.vec);
+					audio_oggimage(file, m.vec1);
 				} else {
-					audio_id3image(file, m.vec[0], m.vec[1]);
+					audio_id3image(file, m.vec1[0], m.vec1[1]);
 				}
 			}
 			file.close();
@@ -375,6 +376,16 @@ float Audio_GetVolume(float t) {
 	float val2 = pgm_read_float(&(VOLUME_TABLE[curve_type][index + 1]));
 
 	return val1 + (val2 - val1) * fraction;
+}
+
+// Applies the tone/equalizer gains and keeps the audio library's per-sample IIR tone filter enabled
+// only while the equalizer is actually non-flat. With a flat EQ (all gains 0, the default) the filter
+// would just pass the signal through unchanged, so running it per output sample is wasted CPU on core 1
+// -- the same core loop() polls buttons/rotary on, which is why heavy decoders (AAC/m4a) starve input.
+// See https://forum.espuino.de/t/keine-bedienung-bei-bestimmten-dateien-moeglich/4675
+static void AudioPlayer_ApplyTone(int8_t gainLowPass, int8_t gainBandPass, int8_t gainHighPass) {
+	audio->settings.IIR_FILTER = (gainLowPass != 0 || gainBandPass != 0 || gainHighPass != 0);
+	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
 }
 
 void AudioPlayer_Init(void) {
@@ -482,24 +493,31 @@ void AudioPlayer_Init(void) {
 	// without this the box could start below its own floor until the first volume change.
 	AudioPlayer_CurrentVolume = std::max(AudioPlayer_GetInitVolume(), AudioPlayer_GetMinVolume());
 	// DMA-settings must be adjusted before setting the pinout
-	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
-		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);
-		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
-	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE || System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
 	} else {
 		// just use default-values
 	}
 
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
+
+	// must be called after setPinout() to take effect
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		audio->setOutputSampleRate(Audio::OutputSR_t::SR_44100);
+	}
+
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
 	audio->setVolumeCurve(Audio_GetVolume);
 	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
-	audio->setTone(
+	AudioPlayer_ApplyTone(
 		gPrefsSettings.getChar("gainLowPass", 0),
 		gPrefsSettings.getChar("gainBandPass", 0),
 		gPrefsSettings.getChar("gainHighPass", 0));
+
+	// ESPuino never reads the audio library's VU level, so skip its per-sample computation entirely
+	// (frees CPU on the shared core -- see AudioPlayer_ApplyTone() and forum thread #4675).
+	audio->settings.VU_LEVEL = false;
 
 	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
@@ -605,6 +623,22 @@ uint8_t AudioPlayer_GetMaxVolumeSpeaker(void) {
 
 void AudioPlayer_SetMaxVolumeSpeaker(uint8_t value) {
 	AudioPlayer_MaxVolumeSpeaker = value;
+}
+
+void AudioPlayer_ApplyMaxVolumes(uint8_t speaker, uint8_t headphone) {
+	AudioPlayer_MaxVolumeSpeaker = speaker;
+
+#ifdef HEADPHONE_ADJUST_ENABLE
+	AudioPlayer_MaxVolumeHeadphone = headphone;
+	AudioPlayer_MaxVolume = AudioPlayer_IsHeadphoneModeActive() ? AudioPlayer_MaxVolumeHeadphone : AudioPlayer_MaxVolumeSpeaker;
+#else
+	(void) headphone;
+	AudioPlayer_MaxVolume = AudioPlayer_MaxVolumeSpeaker;
+#endif
+
+	if (AudioPlayer_CurrentVolume > AudioPlayer_MaxVolume) {
+		AudioPlayer_SetVolume(AudioPlayer_MaxVolume);
+	}
 }
 
 uint8_t AudioPlayer_GetMinVolume(void) {
@@ -1269,7 +1303,7 @@ void AudioPlayer_Loop() {
 		} else {
 			Log_Println(newPlayModeStereo, LOGLEVEL_NOTICE);
 		}
-		audio->setTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
+		AudioPlayer_ApplyTone(gPlayProperties.gainLowPass, gPlayProperties.gainBandPass, gPlayProperties.gainHighPass);
 	}
 
 	audio->loop(); // Call audio-loop function to process incoming data
@@ -1360,7 +1394,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 
 // Adds equalizer settings low, band and high pass and readjusts the equalizer
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass) {
-	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
+	AudioPlayer_ApplyTone(gainLowPass, gainBandPass, gainHighPass);
 }
 
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
@@ -1606,10 +1640,19 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _
 		*pos = '\0'; // Terminate the string at this position
 	}
 
-	// Build the new string with the preserved first part (which already contains the track)
-	snprintf(prefBuf, sizeof(prefBuf), "%s%s%" PRIu32 "%s%d%s%" PRIu16, firstPart, stringDelimiter, _playPosition, stringDelimiter, _playMode, stringDelimiter, _trackLastPlayed);
+	// MediaHub-managed cards (concept §8.1) store MEDIAHUB as a marker in this
+	// field, not the real playmode; gPlayProperties.playMode is the manifest's
+	// real mode by the time playback reaches this wrapper, so writing it back
+	// verbatim would silently overwrite the marker on the first position-save.
+	uint8_t playModeToStore = _playMode;
+	if (MediaHub_IsMediaHubPath(firstPart + strlen(stringDelimiter))) {
+		playModeToStore = MEDIAHUB;
+	}
 
-	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, _playMode, _trackLastPlayed);
+	// Build the new string with the preserved first part (which already contains the track)
+	snprintf(prefBuf, sizeof(prefBuf), "%s%s%" PRIu32 "%s%d%s%" PRIu16, firstPart, stringDelimiter, _playPosition, stringDelimiter, playModeToStore, stringDelimiter, _trackLastPlayed);
+
+	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, playModeToStore, _trackLastPlayed);
 	Log_Println(prefBuf, LOGLEVEL_INFO);
 	Led_SetPause(false);
 	return gPrefsRfid.putString(_rfidCardId, prefBuf);
@@ -1790,10 +1833,11 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 // record audiodata or send via BT
 void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
-		// do downsamling to 16bit and send via BT
+		// audioI2S provides signed 32-bit, left-aligned PCM; A2DP expects interleaved signed 16-bit PCM.
 		int16_t *outBuff16 = reinterpret_cast<int16_t *>(outBuff);
-		for (int16_t i = 0; i < validSamples * 2; i++) {
-			outBuff16[i] = outBuff16[i * 2 + 1];
+		for (int16_t i = 0; i < validSamples; i++) {
+			const int32_t sample = outBuff[i];
+			outBuff16[i] = static_cast<int16_t>(sample >> 16);
 		}
 
 		Bluetooth_Source_SendAudioData(outBuff16, validSamples);

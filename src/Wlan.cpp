@@ -11,6 +11,7 @@
 #include "RotaryEncoder.h"
 #include "System.h"
 #include "Web.h"
+#include "esp_mac.h"
 #include "esp_sntp.h"
 #include "main.h"
 
@@ -861,7 +862,15 @@ const String Wlan_GetHostname() {
 }
 
 const String Wlan_GetMacAddress() {
-	return WiFi.macAddress();
+	// Read the STA MAC from eFuse instead of WiFi.macAddress(): the latter returns all-zeros until the
+	// WiFi driver is up, so Mqtt_Init() (which resolves the <MAC> token in the device id at early boot,
+	// before WiFi starts) produced topics like ESPuino-000000000000. esp_read_mac() reads the hardware
+	// MAC directly and always yields the same value as WiFi.macAddress() would once connected.
+	uint8_t mac[6] = {0};
+	esp_read_mac(mac, ESP_MAC_WIFI_STA);
+	char buf[18];
+	snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return String(buf);
 }
 
 bool Wlan_DeleteNetwork(String ssid) {

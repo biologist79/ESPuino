@@ -83,16 +83,19 @@ void RfidMfrc522_TaskReset(void) {
 
 // Deterministic "is a card still on the antenna?" poll used by pauseIfRfidRemoved
 // mode. The card is kept parked in the ISO-14443 HALT state between polls; WUPA
-// (PICC_WakeupA, 0x52) is the only REQ-family command that wakes a HALTed card,
-// so each poll is a clean yes/no. This replaces the old REQA-based detection
-// (PICC_IsNewCardPresent sends REQA, 0x26, which only invites cards in the IDLE
-// state) whose non-deterministic misses on a perfectly stationary card forced an
-// ever-growing miss debounce. Templated because Reader is either the SPI MFRC522
+// (PICC_WakeupA, 0x52) is the only REQ-family command that wakes a HALTed card.
+// Returns the raw MFRC522 status so the caller can tell the two failure modes
+// apart: STATUS_TIMEOUT means nobody answered (the field is empty), while a
+// transmission error means a card did answer and the frame was mangled.
+// This replaces the old REQA-based detection (PICC_IsNewCardPresent sends REQA,
+// 0x26, which only invites cards in the IDLE state) whose non-deterministic
+// misses on a perfectly stationary card forced an ever-growing miss debounce.
+// Templated because Reader is either the SPI MFRC522
 // or the I2C MFRC522_I2C class; the Reader:: register/status constants and the
 // PICC_WakeupA return type both differ between the two libraries, so we let the
 // compiler pick the right ones per instantiation.
 template <typename Reader>
-static bool RfidMfrc522_CardStillPresent(Reader &reader) {
+static uint8_t RfidMfrc522_PollCardPresence(Reader &reader) {
 	byte bufferATQA[2];
 	byte bufferSize = sizeof(bufferATQA);
 	// Reset baud-rate / modulation-width registers exactly like
@@ -105,7 +108,7 @@ static bool RfidMfrc522_CardStillPresent(Reader &reader) {
 	auto result = reader.PICC_WakeupA(bufferATQA, &bufferSize);
 	// Immediately park the card back in HALT so the next WUPA is meaningful.
 	reader.PICC_HaltA();
-	return (result == Reader::STATUS_OK || result == Reader::STATUS_COLLISION);
+	return static_cast<uint8_t>(result);
 }
 
 template <typename Reader>
@@ -190,7 +193,7 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 				// presence poll below can wake it deterministically. Without this the
 				// card is left ACTIVE and only REQA (which ignores ACTIVE/HALT cards)
 				// was available, causing the notorious pause/resume flap on stationary
-				// cards. See RfidMfrc522_CardStillPresent().
+				// cards. See RfidMfrc522_PollCardPresence().
 				reader.PICC_HaltA();
 				reader.PCD_StopCrypto1();
 
@@ -199,16 +202,37 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 				// dropped poll (RF noise) without the old REQA "voodoo". Set to 1 to
 				// test raw WUPA reliability with zero tolerance for a missed poll.
 				constexpr uint8_t removalDebounceCycles = 2;
+				// Backstop for the case below where a card is lifted while the reader keeps
+				// reporting transmission errors rather than clean timeouts: long enough that a
+				// noise burst over a resting card never trips it, short enough that a real
+				// removal is still noticed promptly.
+				constexpr uint32_t noAnswerTimeoutMs = 1500;
 				uint8_t consecutiveMisses = 0;
+				uint32_t lastAnswerAt = millis();
 				while (true) {
 					if (rfidScanInterval / 2 >= 20) {
 						vTaskDelay(portTICK_PERIOD_MS * (rfidScanInterval / 2));
 					} else {
 						vTaskDelay(portTICK_PERIOD_MS * 20);
 					}
-					if (RfidMfrc522_CardStillPresent(reader)) {
+					const uint8_t wupaStatus = RfidMfrc522_PollCardPresence(reader);
+					if (wupaStatus == static_cast<uint8_t>(Reader::STATUS_OK) || wupaStatus == static_cast<uint8_t>(Reader::STATUS_COLLISION)) {
 						consecutiveMisses = 0;
+						lastAnswerAt = millis();
+					} else if (wupaStatus != static_cast<uint8_t>(Reader::STATUS_TIMEOUT)) {
+						// A transmission error (parity/protocol/CRC out of the MFRC522's ErrorReg)
+						// means something *did* reply and the frame was mangled -- which is evidence
+						// the card is still on the antenna, not that it left. An empty field yields
+						// STATUS_TIMEOUT instead, because there is nobody to answer at all. Counting
+						// these as misses is what makes a card pause every few seconds on a build
+						// with any RF noise near the reader.
 					} else if (++consecutiveMisses >= removalDebounceCycles) {
+						break;
+					}
+
+					if ((millis() - lastAnswerAt) >= noAnswerTimeoutMs) {
+						// Nothing has answered cleanly for a while: the card is gone even though we
+						// are seeing errors rather than timeouts.
 						break;
 					}
 				}
@@ -223,6 +247,17 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 				}
 				reader.PICC_HaltA();
 				reader.PCD_StopCrypto1();
+
+				// Re-detection above goes through PICC_IsNewCardPresent() -> REQA (0x26), which
+				// cards in the HALT state ignore by design. Every card we have seen is parked in
+				// HALT by the poll, so if the removal was spurious -- the card never actually
+				// left -- it sits halted in a live field and REQA can never see it again:
+				// playback stays paused until the user physically lifts and re-applies the card.
+				// Dropping the field briefly makes any card still on the antenna lose power and
+				// come back up in IDLE, where REQA finds it.
+				reader.PCD_AntennaOff();
+				vTaskDelay(portTICK_PERIOD_MS * 10);
+				reader.PCD_AntennaOn();
 			}
 		}
 	}
