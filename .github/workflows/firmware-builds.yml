@@ -63,9 +63,13 @@ jobs:
 
       - name: Install PlatformIO Core
         run: |
-          pip install -U setuptools platformio
-          # Stick to the stable PlatformIO core: "pio upgrade --dev" pulled an unreleased core whose
-          # bundled SCons broke the link step (ModuleNotFoundError: SCons.Tool.FortranCommon).
+          # Pin PlatformIO Core. The latest core (6.2.0) requires tool-scons ~4.11.1, which
+          # installs over the platform's tool-scons 4.8.1 and no longer ships
+          # SCons.Tool.FortranCommon, so the pioarduino link step dies with
+          # "ModuleNotFoundError: No module named 'SCons.Tool.FortranCommon'". 6.1.19 pulls
+          # tool-scons 4.8.1 (the combination that builds cleanly locally). Revisit once the
+          # pioarduino platform is compatible with the newer SCons.
+          pip install -U setuptools "platformio==6.1.19"
           pio pkg update --global
           mkdir binaries
 
