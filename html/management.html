@@ -133,6 +133,13 @@
 			padding: 1rem 1.25rem;
 		}
 
+		/* Help icons are anchors without href (an href="#" made every click jump the page back to
+		   the top). They stay focusable via tabindex="0", which is what the popover's focus trigger
+		   needs -- they just need the pointer cursor back. */
+		a[data-bs-toggle="popover"] {
+			cursor: pointer;
+		}
+
 		/* File upload controls must be allowed to shrink inside flex layouts.
 		   On phones, stack file selector and submit button so they never overflow the card. */
 		.file-upload-row {
@@ -729,7 +736,7 @@
 							<div class="d-flex gap-2 mb-2">
 								<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
 								<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -737,7 +744,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="hostname" class="col-form-label"
 										data-i18n="[prepend]wifi.hostname.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -751,7 +758,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apSSID" class="col-form-label"
 										data-i18n="[prepend]wifi.apSSID.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -765,7 +772,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apPassword" class="col-form-label"
 										data-i18n="[prepend]wifi.apPassword.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -779,7 +786,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apTimeout" class="col-form-label"
 										data-i18n="[prepend]wifi.apTimeout.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -808,7 +815,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="ssid" class="col-form-label"
 										data-i18n="[prepend]wifi.ssid.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -824,7 +831,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="pwd" class="col-form-label"
 										data-i18n="[prepend]wifi.password.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -836,7 +843,7 @@
 							<div class="d-flex gap-2 mb-2">
 								<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
 								<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -845,7 +852,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_addr" class="col-form-label"
 											data-i18n="[prepend]wifi.static.addr">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.addrExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -857,7 +864,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_gateway" class="col-form-label"
 											data-i18n="[prepend]wifi.static.gateway">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.gatewayExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -870,7 +877,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_subnet" class="col-form-label"
 											data-i18n="[prepend]wifi.static.subnet">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.subnetExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -883,7 +890,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_dns1" class="col-form-label"
 											data-i18n="[prepend]wifi.static.dns1">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.dns1Exp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -895,7 +902,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_dns2" class="col-form-label"
 											data-i18n="[prepend]wifi.static.dns2">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.dns2Exp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -1174,7 +1181,7 @@
 					<div class="form-check col-md-12 d-flex align-items-center gap-2">
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
-						<a href="#" class="link-secondary" data-bs-toggle="popover"
+						<a class="link-secondary" data-bs-toggle="popover"
 							data-i18n="[data-bs-content]mqtt.enableExp" tabindex="0"><i
 								class="fas fa-circle-question"></i></a>
 					</div>
@@ -1183,7 +1190,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttClientId" class="col-form-label"
 									data-i18n="[prepend]mqtt.clientId.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.clientId.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1196,7 +1203,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttBaseTopic" class="col-form-label"
 									data-i18n="[prepend]mqtt.baseTopic.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.baseTopic.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1209,7 +1216,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttDeviceId" class="col-form-label"
 									data-i18n="[prepend]mqtt.deviceId.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.deviceId.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1222,7 +1229,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttServer" class="col-form-label"
 									data-i18n="[prepend]mqtt.server.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.server.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1235,7 +1242,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttUser" class="col-form-label"
 									data-i18n="[prepend]mqtt.user.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.user.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1248,7 +1255,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttPwd" class="col-form-label"
 									data-i18n="[prepend]mqtt.pwd.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.pwd.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1261,7 +1268,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttPort" class="col-form-label"
 									data-i18n="[prepend]mqtt.port.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.port.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1290,7 +1297,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="ftpUser" class="col-form-label"
 									data-i18n="[prepend]ftp.user.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]ftp.user.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1302,7 +1309,7 @@
 						<div class="row mb-2 align-items-center">
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="pwd" class="col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]ftp.pwd.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1355,7 +1362,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="btDeviceName" class="col-form-label"
 									data-i18n="[prepend]bt.device.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1368,7 +1375,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="btPinCode" class="col-form-label"
 									data-i18n="[prepend]bt.pincode.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1465,7 +1472,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initialVolume" class="col-form-label"
 										data-i18n="general.volume.restart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1489,7 +1496,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="minVolume" class="col-form-label"
 										data-i18n="general.volume.min"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.minExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1513,7 +1520,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="maxVolumeSpeaker" class="col-form-label"
 										data-i18n="general.volume.speakerMax"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1537,7 +1544,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="maxVolumeHeadphone" class="col-form-label"
 										data-i18n="general.volume.headphoneMax"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1569,7 +1576,7 @@
 									value="false">
 								<label for="savePlayPosShutdown"
 									data-i18n="general.options.savePlayPosShutdown"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1578,7 +1585,7 @@
 									value="false">
 								<label for="savePlayPosRfidChange"
 									data-i18n="general.options.savePlayPosRfidChange"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
@@ -1592,7 +1599,7 @@
 									value="60" disabled>
 								<label for="savePlayPosInterval"
 									data-i18n="general.options.savePlayPosIntervalSecs"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosIntervalExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
@@ -1601,14 +1608,14 @@
 									value="false">
 								<label for="playLastRfidOnReboot"
 									data-i18n="general.options.playLastRfidOnReboot"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.playLastRfidOnRebootExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseIfRfidRemoved" name="pauseIfRfidRemoved" value="false">
 								<label for="pauseIfRfidRemoved" data-i18n="general.options.pauseIfRfidRemoved"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.pauseIfRfidRemovedExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1617,42 +1624,42 @@
 									value="false">
 								<label for="dontAcceptRfidTwice"
 									data-i18n="general.options.dontAcceptRfidTwice"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.dontAcceptRfidTwiceExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 						<div class="d-flex gap-2 ms-4">
 							<input type="checkbox" id="resumeOnSameRfid" name="resumeOnSameRfid" value="false">
 							<label for="resumeOnSameRfid" data-i18n="general.options.resumeOnSameRfid"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
+							<a class="link-secondary" data-bs-toggle="popover"
 								data-i18n="[data-bs-content]general.options.resumeOnSameRfidExp" tabindex="0"><i
 									class="fas fa-circle-question"></i></a>
 						</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.pauseOnMinVolumeExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="recoverVolBoot" name="recoverVolBoot" value="false">
 								<label for="recoverVolBoot" data-i18n="general.options.recoverVolBoot"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.recoverVolBootExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="playMono" name="playMono" value="false">
 								<label for="playMono" data-i18n="general.options.playMono"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="volumeCurve" name="volumeCurve" value="false">
 								<label for="volumeCurve" data-i18n="general.options.volumeCurve"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.volumeCurveExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1667,7 +1674,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="playlistSortMode" class="col-form-label"
 										data-i18n="general.playlist.sortMode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1683,7 +1690,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="playlistRecDepth" class="col-form-label"
 										data-i18n="general.playlist.recDepth"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1733,7 +1740,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="mfrc522Gain" class="col-form-label"
 											data-i18n="general.rfid.mfrc522Gain"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1745,7 +1752,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="mfrc522ScanInterval" class="col-form-label"
 											data-i18n="general.rfid.mfrc522ScanInterval"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1767,7 +1774,7 @@
 								<div class="row mb-2 align-items-center">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="pn5180Lpcd" class="col-form-label" data-i18n="general.rfid.pn5180Lpcd"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -1779,7 +1786,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="pn5180Debounce" class="col-form-label"
 											data-i18n="general.rfid.pn5180Debounce"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1791,7 +1798,7 @@
 								<div class="row mb-2 align-items-start">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="slixPrivacyPassword0" class="col-form-label" data-i18n="general.rfid.slixPrivacyPassword"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.slixPrivacyPasswordExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1820,7 +1827,7 @@
 						<div class="settings-group-card">
 							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
 							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
+							<a class="link-secondary" data-bs-toggle="popover"
 								data-i18n="[data-bs-content]settingsex.rotary.reverseExp" tabindex="0"><i
 									class="fas fa-circle-question"></i></a>
 						</div>
@@ -1828,7 +1835,7 @@
 					</div>
 					<div class="col-md-12 mb-4" id="seekButtonsConfig">
 						<fieldset>
-							<legend class="w-auto"><span data-i18n="settingsex.seek.title"></span>&nbsp;<a href="#"
+							<legend class="w-auto"><span data-i18n="settingsex.seek.title"></span>&nbsp;<a
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.seek.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
@@ -1837,7 +1844,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="jumpOffset" class="col-form-label"
 										data-i18n="settingsex.seek.jumpOffset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.seek.jumpOffsetExp" tabindex="0">
 										<i class="fas fa-circle-question"></i></a>
 								</div>
@@ -1851,7 +1858,7 @@
 					</div>
 					<div class="col-md-12 mb-4" id="buttonsConfig">
 						<fieldset>
-							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
+							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.buttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
@@ -1903,7 +1910,7 @@
 						</fieldset>
 						<div id="rotaryGesturesConfig" class="mt-5" style="display:none">
 							<fieldset>
-								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a href="#"
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.gesturesExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
@@ -1954,7 +1961,7 @@
 							</div>
 							</fieldset>
 							<fieldset class="mt-5">
-								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a href="#"
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.seekPreviewTitleExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
@@ -1966,7 +1973,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevDelay" class="col-form-label"
 											data-i18n="settingsex.rotary.seekPrevDelay"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]settingsex.rotary.seekPrevDelayExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1979,7 +1986,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevSweep" class="col-form-label"
 											data-i18n="settingsex.rotary.seekPrevSweep"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]settingsex.rotary.seekPrevSweepExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1997,7 +2004,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="rotSeekStep" class="col-form-label"
 											data-i18n="settingsex.rotary.rotSeekStep"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]settingsex.rotary.rotSeekStepExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -2010,7 +2017,7 @@
 							</fieldset>
 						</div>
 						<fieldset class="mt-5">
-							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a href="#"
+							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.multibuttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
@@ -2099,7 +2106,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initBrightness" class="col-form-label"
 										data-i18n="general.neopixel.restart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2123,7 +2130,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="nightBrightness" class="col-form-label"
 										data-i18n="general.neopixel.nightmode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2147,7 +2154,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="atmoBrightness" class="col-form-label"
 										data-i18n="general.neopixel.atmomode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2178,7 +2185,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_numIndicator" class="col-form-label"
 										data-i18n="settingsex.led.numindicator"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2191,7 +2198,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_numControl" class="col-form-label"
 										data-i18n="settingsex.led.numcontrol"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2211,7 +2218,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_idleDots" class="col-form-label"
 										data-i18n="settingsex.led.numidledots"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2224,7 +2231,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_dimStates" class="col-form-label"
 										data-i18n="settingsex.led.dimmablestates"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2236,7 +2243,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_offsetStart" class="col-form-label"
 										data-i18n="settingsex.led.offset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2247,14 +2254,14 @@
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
 								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
 								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -2267,7 +2274,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueStart" class="col-form-label"
 										data-i18n="settingsex.led.huestart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2283,7 +2290,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueEnd" class="col-form-label"
 										data-i18n="settingsex.led.hueend"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2299,7 +2306,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueAtmo" class="col-form-label"
 										data-i18n="settingsex.led.hueatmo"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2315,7 +2322,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_satAtmo" class="col-form-label"
 										data-i18n="settingsex.led.satatmo"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2345,7 +2352,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="inactivityTime" class="col-form-label"
 										data-i18n="general.sleep.inactivity"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2376,7 +2383,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageCheckInterval" class="col-form-label"
 										data-i18n="general.battery.measureInterval"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2400,7 +2407,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="warningLowVoltage" class="col-form-label"
 										data-i18n="general.battery.lowWarning"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2425,7 +2432,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageIndicatorLow" class="col-form-label"
 										data-i18n="general.battery.lowCritical"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2450,7 +2457,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageIndicatorHigh" class="col-form-label"
 										data-i18n="general.battery.high"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2475,7 +2482,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="offsetVoltage" class="col-form-label"
 										data-i18n="general.battery.offset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.offsetExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2499,7 +2506,7 @@
 							<div class="d-flex gap-2 mt-3">
 								<input type="checkbox" id="shutdownOnCritical" name="shutdownOnCritical" value="false">
 								<label for="shutdownOnCritical" data-i18n="general.battery.shutdownOnCritical"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -2507,7 +2514,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
 										data-i18n="general.battery.criticalShutoff"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2661,7 +2668,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="mediaHubServerName" class="col-form-label"
 										data-i18n="[prepend]files.rfid.mediahub.name.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]files.rfid.mediahub.name.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2674,7 +2681,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="mediaHubServerHostPort" class="col-form-label"
 										data-i18n="[prepend]files.rfid.mediahub.hostPort.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]files.rfid.mediahub.hostPort.explanation"
 										tabindex="0"><i class="fas fa-circle-question"></i></a>
 								</div>

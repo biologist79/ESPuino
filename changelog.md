@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 13.09.2026: Web-UI: clicking a help question mark no longer scrolls the page back to the top. The help icons were anchors with `href="#"`; they are focusable via `tabindex="0"` anyway, which is all the focus-triggered popover needs.
+
 * 13.09.2026: Make both seek step sizes configurable in the web UI (Encoder/buttons tab) instead of only at compile time. The **button** seek step (`jumpOffset`, default 30s) was a compile-time constant in `settings.h` with no runtime override, so changing how far "seek forwards"/"seek backwards" jumps required rebuilding the firmware; it is now stored in NVS and adjustable from 1 to 120 seconds. The **rotary** seek step (`rotSeekStep`, default 10s per detent, used when a turn action is mapped directly to seek instead of the seek preview) already existed in the settings API but had no control in the web interface at all, so it could only be changed with a raw REST call - it now has one too (1 to 60 seconds). Both are read per use, so a change applies immediately without a restart. The compile-time knobs are gone: `jumpOffset` and `JUMP_OFFSET_ROTARY` no longer live in `settings.h` (nor in `settings-override.h.sample`) but as internal defaults `SEEK_STEP_BUTTON_DEFAULT` / `SEEK_STEP_ROTARY_DEFAULT` in `values.h`, so nobody is misled into configuring them at compile time. **Breaking for custom builds**: a `settings-override.h` that still defines `jumpOffset` or `JUMP_OFFSET_ROTARY` has no effect any more - set the values in the web interface instead.
 
 ## Version 3.0 (07.09.2026)
