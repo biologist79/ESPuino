@@ -39,11 +39,6 @@
 #include <esp_task_wdt.h>
 #include <nvs.h>
 
-// An override written before this feature existed does not define it (settings-override.h replaces
-// settings.h wholesale), so fall back rather than break those builds.
-#ifndef JUMP_OFFSET_ROTARY
-	#define JUMP_OFFSET_ROTARY 10
-#endif
 
 typedef struct {
 	char nvsKey[cardIdStringSize];
@@ -785,6 +780,9 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		if (generalObj["rotSeekStep"].is<uint8_t>()) {
 			success = success && (gPrefsSettings.putUChar("rotSeekStep", generalObj["rotSeekStep"].as<uint8_t>()) != 0);
 		}
+		if (generalObj["jumpOffset"].is<uint8_t>()) {
+			success = success && (gPrefsSettings.putUChar("jumpOffset", generalObj["jumpOffset"].as<uint8_t>()) != 0);
+		}
 		success = success && (gPrefsSettings.putBool("playMono", generalObj["playMono"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosShutdown", generalObj["savePosShutdown"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("savePosRfidChge", generalObj["savePosRfidChge"].as<bool>()) != 0);
@@ -1223,7 +1221,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["maxVolumeSp"].set(gPrefsSettings.getUInt("maxVolumeSp", 21));
 		generalObj["maxVolumeHp"].set(gPrefsSettings.getUInt("maxVolumeHp", 21));
 		generalObj["sleepInactivity"].set(gPrefsSettings.getUInt("mInactiviyT", 10));
-		generalObj["rotSeekStep"].set(gPrefsSettings.getUChar("rotSeekStep", JUMP_OFFSET_ROTARY)); // seconds per detent when seeking via a rotary gesture
+		generalObj["rotSeekStep"].set(gPrefsSettings.getUChar("rotSeekStep", SEEK_STEP_ROTARY_DEFAULT)); // seconds per detent when seeking via a rotary gesture
+		generalObj["jumpOffset"].set(gPrefsSettings.getUChar("jumpOffset", SEEK_STEP_BUTTON_DEFAULT)); // seconds to jump per button press when seeking
 		generalObj["playMono"].set(gPrefsSettings.getBool("playMono", false));
 		generalObj["savePosShutdown"].set(gPrefsSettings.getBool("savePosShutdown", false)); // SAVE_PLAYPOS_BEFORE_SHUTDOWN
 		generalObj["savePosRfidChge"].set(gPrefsSettings.getBool("savePosRfidChge", false)); // SAVE_PLAYPOS_WHEN_RFID_CHANGE

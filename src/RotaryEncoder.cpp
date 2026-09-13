@@ -14,11 +14,6 @@
 	#include <ESP32Encoder.h>
 #endif
 
-// An override written before this feature existed does not define it (settings-override.h replaces
-// settings.h wholesale), so fall back rather than break those builds.
-#ifndef JUMP_OFFSET_ROTARY
-	#define JUMP_OFFSET_ROTARY 10
-#endif
 
 // Rotary encoder-configuration
 #ifdef USEROTARY_ENABLE
@@ -121,11 +116,11 @@ void RotaryEncoder_Cyclic(void) {
 				Button_MarkModifierUsed(modifier);
 
 				if (cmd == CMD_SEEK_FORWARDS || cmd == CMD_SEEK_BACKWARDS) {
-					// Seek is a magnitude, not a step: firing the command once per detent would jump jumpOffset
-					// (30s by default) *each time*, so a flick of the encoder scrubs minutes. Apply the smaller
+					// Seek is a magnitude, not a step: firing the command once per detent would jump the full
+					// button step *each time*, so a flick of the encoder scrubs minutes. Apply the smaller
 					// per-detent rotary step directly instead. Direction comes from the configured command, so
 					// a user who maps CW to backwards still gets backwards.
-					const int32_t step = gPrefsSettings.getUChar("rotSeekStep", JUMP_OFFSET_ROTARY);
+					const int32_t step = gPrefsSettings.getUChar("rotSeekStep", SEEK_STEP_ROTARY_DEFAULT);
 					const int32_t magnitude = abs(detents) * step;
 					AudioPlayer_AddSeekOffset(static_cast<int16_t>((cmd == CMD_SEEK_FORWARDS) ? magnitude : -magnitude));
 					return;

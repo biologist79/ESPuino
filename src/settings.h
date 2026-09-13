@@ -213,13 +213,6 @@
 		constexpr uint16_t headphoneLastDetectionDebounce = 1000; // Debounce-interval in ms when plugging in headphone
 	#endif
 
-	// Seekmode-configuration
-	constexpr uint8_t jumpOffset = 30;                            // Offset in seconds to jump for commands CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
-	#define JUMP_OFFSET_ROTARY 10                                 // Offset in seconds per encoder-detent when seeking via a rotary gesture. A button press is a
-	                                                              // deliberate act and can afford jumpOffset; a flick of the encoder is many detents at once, so
-	                                                              // reusing jumpOffset there scrubs minutes at a time. Overridable at runtime via NVS "rotSeekStep".
-	                                                              // A macro (not constexpr) so Button/RotaryEncoder can #ifndef-default it for older overrides.
-
 	// Topics for MQTT: used to build actual topics in webinterface. So normally there's no need to apply any changes here 
 	// MQTT configuration available via webinterface: https://forum.espuino.de/t/dokumentation-webinterface/2807.
 	#ifdef MQTT_ENABLE

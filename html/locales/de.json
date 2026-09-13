@@ -107,12 +107,20 @@
 			"gesturesExp": "Solange eine dieser Tasten gehalten wird, löst Drehen am Drehimpulsgeber die zugewiesene Aktion aus, statt die Lautstärke zu ändern. 'Rechts drehen' ist die Richtung, die sonst lauter stellt. Die Lang-Aktion einer solchen Taste wird erst beim Loslassen ausgelöst - und gar nicht, wenn gedreht wurde.",
 			"ccw": "links drehen",
 			"cw": "rechts drehen",
-			"seekPreviewTitle": "Positionsvorschau-Einstellungen",
-			"seekPreviewTitleExp": "Feineinstellungen für die 🎯 Positionsvorschau-Geste (siehe Tabelle oben): wie lange gewartet wird, bis eine Vorschau automatisch übernommen wird, und wie fein sich die Zielposition per Drehung steuern lässt.",
+			"seekPreviewTitle": "Spulen mit dem Drehimpulsgeber",
+			"seekPreviewTitleExp": "Feineinstellungen fürs Spulen per Drehimpulsgeber: die 🎯 Positionsvorschau-Geste (siehe Tabelle oben) und das direkte Spulen, wenn eine Dreh-Aktion auf Vor-/Zurückspulen gelegt ist.",
 			"seekPrevDelay": "Verzögerung bis zur Übernahme [ms]",
 			"seekPrevDelayExp": "Wie lange (in ms) der Drehimpulsgeber stillstehen muss, bevor eine 🎯 Positionsvorschau-Geste von selbst zur vorgeschauten Position springt. Loslassen der gehaltenen Taste übernimmt die Position immer sofort, unabhängig von dieser Verzögerung. 0-3000, Standard 2000.",
 			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",
-			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40."
+			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40.",
+			"rotSeekStep": "Sprungweite pro Rastung [s]",
+			"rotSeekStepExp": "Um wie viele Sekunden pro Rasterung gesprungen wird, wenn eine Dreh-Aktion direkt auf Vor-/Zurückspulen gelegt ist (nicht die Positionsvorschau). Klein halten: Eine schnelle Drehung sind viele Rasterungen auf einmal. 1-60, Standard 10."
+		},
+		"seek": {
+			"title": "Spulen mit den Tasten",
+			"titleExp": "Sprungweite für die Tasten-Aktionen 'Vorspulen' und 'Zurückspulen'.",
+			"jumpOffset": "Sprungweite pro Tastendruck [s]",
+			"jumpOffsetExp": "Um wie viele Sekunden ein Tastendruck auf 'Vorspulen' bzw. 'Zurückspulen' im laufenden Titel springt. Wirkt sofort nach dem Speichern. 1-120, Standard 30."
 		}
 	},
 	"wifi": {

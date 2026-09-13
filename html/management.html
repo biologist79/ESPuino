@@ -1826,6 +1826,29 @@
 						</div>
 						</fieldset>
 					</div>
+					<div class="col-md-12 mb-4" id="seekButtonsConfig">
+						<fieldset>
+							<legend class="w-auto"><span data-i18n="settingsex.seek.title"></span>&nbsp;<a href="#"
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.seek.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
+						<div class="settings-group-card">
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="jumpOffset" class="col-form-label"
+										data-i18n="settingsex.seek.jumpOffset"></label>
+									<a href="#" class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.seek.jumpOffsetExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="jumpOffset" name="jumpOffset"
+										min="1" max="120" step="1">
+								</div>
+							</div>
+						</div>
+						</fieldset>
+					</div>
 					<div class="col-md-12 mb-4" id="buttonsConfig">
 						<fieldset>
 							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
@@ -1960,6 +1983,19 @@
 									<div class="col-sm-8">
 										<input type="number" class="form-control" id="seekPrevSweep" name="seekPrevSweep"
 											min="4" max="250" step="1">
+									</div>
+								</div>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="rotSeekStep" class="col-form-label"
+											data-i18n="settingsex.rotary.rotSeekStep"></label>
+										<a href="#" class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.rotSeekStepExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="rotSeekStep" name="rotSeekStep"
+											min="1" max="60" step="1">
 									</div>
 								</div>
 							</div>
@@ -4318,6 +4354,8 @@
 				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+				$('#jumpOffset').val(genSettings.jumpOffset);
+				$('#rotSeekStep').val(genSettings.rotSeekStep);
 				$('#playMono').prop('checked', genSettings.playMono);
 				$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 				$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChge);
@@ -4900,6 +4938,8 @@
 					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
 					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 					sleepInactivity: Number($('#inactivityTime').val()),
+					jumpOffset: Number($('#jumpOffset').val()),
+					rotSeekStep: Number($('#rotSeekStep').val()),
 					playMono: $('#playMono').prop('checked'),
 					savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 					savePosRfidChge: $('#savePlayPosRfidChange').prop('checked'),
