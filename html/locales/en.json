@@ -114,7 +114,11 @@
 			"seekPrevSweep": "Turns for full sweep",
 			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40.",
 			"rotSeekStep": "Seek step per detent [s]",
-			"rotSeekStepExp": "How many seconds each detent seeks when a turn action is mapped directly to seek forwards/backwards (not the seek preview). Keep it small: a quick flick is many detents at once. 1-60, default 10."
+			"rotSeekStepExp": "How many seconds each detent seeks when a turn action is mapped directly to seek forwards/backwards (not the seek preview). Keep it small: a quick flick is many detents at once. 1-60, default 10.",
+			"directSeekTitle": "Direct seeking",
+			"directSeekHint": "The simple variant: every detent jumps forwards or backwards by the configured amount straight away - no display, no waiting. That is more immediate but also coarser, because a quick flick is many detents at once and you land correspondingly far away. In exchange it works even when your ESPuino has no Neopixels and a preview would therefore have nothing to show. This is how the rotary encoder is set up out of the box. Applies when you assign 'seek forwards' or 'seek backwards' to a turn action above.",
+			"previewSeekTitle": "Seek preview",
+			"previewSeekHint": "The more comfortable variant and the better choice for most people. As soon as you hold the assigned button down, the LED ring turns yellow - before you even start turning. That is the signal that the preview is running. Turning then does not move the actual playback at first; instead only a blue marker (cursor) travels to the spot that would be jumped to (if you have a single LED instead of a ring, it simply lights up blue while the preview is running). Playback only jumps there once you release the button or stop turning for a moment. That lets you take your time aiming at a spot and watch what you are doing, instead of feeling your way back and forth blindly. The two values below set how long ESPuino waits after the last turn and how many detents it takes to sweep across the whole track. Applies when you assign 'seek preview' to a turn action above."
 		},
 		"seek": {
 			"title": "Seeking with the buttons",

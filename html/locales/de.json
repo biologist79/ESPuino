@@ -114,7 +114,11 @@
 			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",
 			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40.",
 			"rotSeekStep": "Sprungweite pro Rastung [s]",
-			"rotSeekStepExp": "Um wie viele Sekunden pro Rasterung gesprungen wird, wenn eine Dreh-Aktion direkt auf Vor-/Zurückspulen gelegt ist (nicht die Positionsvorschau). Klein halten: Eine schnelle Drehung sind viele Rasterungen auf einmal. 1-60, Standard 10."
+			"rotSeekStepExp": "Um wie viele Sekunden pro Rasterung gesprungen wird, wenn eine Dreh-Aktion direkt auf Vor-/Zurückspulen gelegt ist (nicht die Positionsvorschau). Klein halten: Eine schnelle Drehung sind viele Rasterungen auf einmal. 1-60, Standard 10.",
+			"directSeekTitle": "Direktes Spulen",
+			"directSeekHint": "Die einfache Variante: Jede Rasterung springt sofort um die eingestellte Zeit vor oder zurück - ohne Anzeige, ohne Wartezeit. Das ist unmittelbarer, aber auch gröber, denn eine schnelle Drehung sind viele Rasterungen auf einmal und entsprechend weit landest du. Dafür funktioniert es auch dann, wenn dein ESPuino keine Neopixel hat und eine Vorschau folglich nichts anzeigen könnte. So ist der Drehimpulsgeber ab Werk belegt. Greift, wenn du einer Dreh-Aktion oben 'Vorspulen' oder 'Zurückspulen' zuweist.",
+			"previewSeekTitle": "Positionsvorschau",
+			"previewSeekHint": "Die komfortablere Variante und für die meisten die bessere Wahl. Sobald du die zugewiesene Taste gedrückt hältst, färbt sich der LED-Ring gelb - noch bevor du überhaupt drehst. Das ist das Zeichen, dass die Vorschau läuft. Beim Drehen springt die eigentliche Wiedergabe dann zunächst gar nicht; stattdessen wandert nur eine blaue Markierung (Cursor) auf die Stelle, zu der gesprungen würde (hast du nur eine einzelne LED statt eines Rings, leuchtet sie währenddessen einfach blau). Erst wenn du die Taste loslässt oder eine Weile nicht mehr drehst, springt die Wiedergabe dorthin. So kannst du eine Stelle in Ruhe ansteuern und dabei zusehen, statt dich blind vor- und zurückzutasten. Die beiden Werte darunter bestimmen, wie lange ESPuino nach der letzten Drehung wartet und wie viele Rasterungen einmal über den ganzen Titel führen. Greift, wenn du einer Dreh-Aktion oben 'Positionsvorschau' zuweist."
 		},
 		"seek": {
 			"title": "Spulen mit den Tasten",
