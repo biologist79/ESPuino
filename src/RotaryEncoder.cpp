@@ -14,7 +14,6 @@
 	#include <ESP32Encoder.h>
 #endif
 
-
 // Rotary encoder-configuration
 #ifdef USEROTARY_ENABLE
 ESP32Encoder encoder;

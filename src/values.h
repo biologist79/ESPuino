@@ -96,8 +96,8 @@
 // Change the values in the web interface, not here.
 #define SEEK_STEP_BUTTON_DEFAULT 30 // NVS "jumpOffset":  per press of CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
 #define SEEK_STEP_ROTARY_DEFAULT 10 // NVS "rotSeekStep": per encoder detent when a turn action is mapped to seek.
-                                    // Deliberately smaller than the button step: a flick of the encoder is many
-                                    // detents at once, so reusing the button step there would scrub minutes.
+									// Deliberately smaller than the button step: a flick of the encoder is many
+									// detents at once, so reusing the button step there would scrub minutes.
 
 // Repeat-Modes
 #define NO_REPEAT		 0 // No repeat
