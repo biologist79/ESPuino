@@ -72,8 +72,8 @@
 #define CMD_VOLUMEDOWN	   177 // Command: lower volume by 1
 #define CMD_MEASUREBATTERY 178 // Command: Measure battery-voltage
 #define CMD_SLEEPMODE	   179 // Command: Go to deepsleep
-#define CMD_SEEK_FORWARDS  180 // Command: jump forwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
-#define CMD_SEEK_BACKWARDS 181 // Command: jump backwards (time period to jump (in seconds) is configured via settings.h: jumpOffset)
+#define CMD_SEEK_FORWARDS  180 // Command: jump forwards (seconds per press: web interface, NVS "jumpOffset")
+#define CMD_SEEK_BACKWARDS 181 // Command: jump backwards (seconds per press: web interface, NVS "jumpOffset")
 #define CMD_STOP		   182 // Command: stops playback
 #define CMD_RESTARTSYSTEM  183 // Command: restart System
 #define CMD_NEXTFOLDER	   184 // Command: jump forwards to next folder (only applicable for recursive playmodes)
@@ -90,6 +90,14 @@
 #define CMD_VIRTUAL_RFID_CARD_08 248 // Command: Virtual RFID-Card 900000000008
 #define CMD_VIRTUAL_RFID_CARD_09 249 // Command: Virtual RFID-Card 900000000009
 #define CMD_VIRTUAL_RFID_CARD_10 250 // Command: Virtual RFID-Card 900000000010
+
+// Seek step sizes (seconds). These are internal defaults only: they seed the matching
+// web-interface settings before their first save and are read from NVS afterwards.
+// Change the values in the web interface, not here.
+#define SEEK_STEP_BUTTON_DEFAULT 30 // NVS "jumpOffset":  per press of CMD_SEEK_FORWARDS / CMD_SEEK_BACKWARDS
+#define SEEK_STEP_ROTARY_DEFAULT 10 // NVS "rotSeekStep": per encoder detent when a turn action is mapped to seek.
+                                    // Deliberately smaller than the button step: a flick of the encoder is many
+                                    // detents at once, so reusing the button step there would scrub minutes.
 
 // Repeat-Modes
 #define NO_REPEAT		 0 // No repeat

@@ -1,5 +1,9 @@
 # Changelog
 
+## DEV-branch
+
+* 13.09.2026: Make both seek step sizes configurable in the web UI (Encoder/buttons tab) instead of only at compile time. The **button** seek step (`jumpOffset`, default 30s) was a compile-time constant in `settings.h` with no runtime override, so changing how far "seek forwards"/"seek backwards" jumps required rebuilding the firmware; it is now stored in NVS and adjustable from 1 to 120 seconds. The **rotary** seek step (`rotSeekStep`, default 10s per detent, used when a turn action is mapped directly to seek instead of the seek preview) already existed in the settings API but had no control in the web interface at all, so it could only be changed with a raw REST call - it now has one too (1 to 60 seconds). Both are read per use, so a change applies immediately without a restart. The compile-time knobs are gone: `jumpOffset` and `JUMP_OFFSET_ROTARY` no longer live in `settings.h` (nor in `settings-override.h.sample`) but as internal defaults `SEEK_STEP_BUTTON_DEFAULT` / `SEEK_STEP_ROTARY_DEFAULT` in `values.h`, so nobody is misled into configuring them at compile time. **Breaking for custom builds**: a `settings-override.h` that still defines `jumpOffset` or `JUMP_OFFSET_ROTARY` has no effect any more - set the values in the web interface instead.
+
 ## Version 3.0 (07.09.2026)
 
 * 05.09.2026: Make the battery-voltage correction (`offsetVoltage`) configurable in the web UI (General -> Battery) instead of only via `settings-*.h`. The ADC calibration offset was previously a compile-time constant; it is now stored in NVS and adjustable in hundredth-volt steps, positive or negative. It takes effect immediately on save (`Battery_Init()` re-reads it) and the per-board compile-time value is kept as the default fallback (Complete: -0.04 V). Handbook: [Feinjustierung](https://biologist79.github.io/ESPuino-Docs/hardware/aufbau/#nach-dem-zusammenbau-die-feinjustierung).

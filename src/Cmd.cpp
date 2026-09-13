@@ -377,12 +377,13 @@ void Cmd_Action(const uint16_t mod) {
 		case CMD_SEEK_FORWARDS: {
 			// Accumulate rather than set a flag: the flag was a single overwrite-able enum consumed once per
 			// audio-loop iteration, so N detents of a fast rotary spin collapsed into a single jump.
-			AudioPlayer_AddSeekOffset(jumpOffset);
+			// Read per use (like rotSeekStep in RotaryEncoder.cpp) so a change in the web UI applies at once.
+			AudioPlayer_AddSeekOffset(static_cast<int16_t>(gPrefsSettings.getUChar("jumpOffset", SEEK_STEP_BUTTON_DEFAULT)));
 			break;
 		}
 
 		case CMD_SEEK_BACKWARDS: {
-			AudioPlayer_AddSeekOffset(-static_cast<int16_t>(jumpOffset));
+			AudioPlayer_AddSeekOffset(-static_cast<int16_t>(gPrefsSettings.getUChar("jumpOffset", SEEK_STEP_BUTTON_DEFAULT)));
 			break;
 		}
 

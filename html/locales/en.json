@@ -107,12 +107,20 @@
 			"gesturesExp": "While one of these buttons is held down, turning the encoder triggers the assigned action instead of changing the volume. 'Turn right' is the direction that raises the volume. The long-press action of such a button fires when it is released - and not at all if the encoder was turned.",
 			"ccw": "turn left",
 			"cw": "turn right",
-			"seekPreviewTitle": "Seek preview settings",
-			"seekPreviewTitleExp": "Fine-tuning for the 🎯 seek preview gesture (see table above): how long to wait before a preview auto-commits, and how finely the target position can be steered by turning.",
+			"seekPreviewTitle": "Seeking with the rotary encoder",
+			"seekPreviewTitleExp": "Fine-tuning for seeking with the rotary encoder: the 🎯 seek-preview gesture (see table above) and direct seeking when a turn action is mapped to seek forwards/backwards.",
 			"seekPrevDelay": "Auto-commit delay [ms]",
 			"seekPrevDelayExp": "How long (in ms) the encoder must stay idle before a 🎯 seek-preview gesture jumps to the previewed position on its own. Releasing the held button always commits immediately, regardless of this delay. 0-3000, default 2000.",
 			"seekPrevSweep": "Turns for full sweep",
-			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40."
+			"seekPrevSweepExp": "How many encoder detents move the seek-preview target from 0% to 100% (blue LED) of the track. Lower = coarser/faster scrubbing, higher = finer control. Default 40.",
+			"rotSeekStep": "Seek step per detent [s]",
+			"rotSeekStepExp": "How many seconds each detent seeks when a turn action is mapped directly to seek forwards/backwards (not the seek preview). Keep it small: a quick flick is many detents at once. 1-60, default 10."
+		},
+		"seek": {
+			"title": "Seeking with the buttons",
+			"titleExp": "Seek step for the button actions 'seek forwards' and 'seek backwards'.",
+			"jumpOffset": "Seek step per button press [s]",
+			"jumpOffsetExp": "How many seconds a press of 'seek forwards' / 'seek backwards' jumps within the current track. Applies immediately after saving. 1-120, default 30."
 		}
 	},
 	"wifi": {
