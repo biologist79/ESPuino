@@ -93,6 +93,12 @@ bool Led_LoadSettings(LedSettings &settings) {
 	uint8_t nvsNLedBrightness = gPrefsSettings.getUChar("nLedBrightness", 255);
 	if (nvsNLedBrightness != 255) {
 		settings.Led_NightBrightness = nvsNLedBrightness;
+		if (System_GetNightmode()) {
+			// Reloading the settings must not undo the dimming while night mode is still on -- the
+			// initial brightness was already written to Led_Brightness above. Same handling as for the
+			// ambient light below.
+			settings.Led_Brightness = nvsNLedBrightness;
+		}
 		Log_Printf(LOGLEVEL_INFO, restoredInitialBrightnessForNmFromNvs, nvsNLedBrightness);
 	} else {
 		gPrefsSettings.putUChar("nLedBrightness", settings.Led_NightBrightness);
