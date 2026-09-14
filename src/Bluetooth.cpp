@@ -53,6 +53,9 @@ static portMUX_TYPE scannedDevicesMux = portMUX_INITIALIZER_UNLOCKED;
 // Suppresses auto-connect via scan_bluetooth_device_callback while a manual
 // connect is pending (i.e. user picked a device from a scan result).
 static std::atomic<bool> manualConnectPending = false;
+// True only while disconnecting the currently connected peer so a queued manual
+// connection can start. That expected disconnect must not consume a retry.
+static std::atomic<bool> manualDisconnectPending = false;
 
 // Track whether we registered our interceptor so we always restore correctly.
 static std::atomic<bool> interceptorRegistered = false;
@@ -96,15 +99,16 @@ static bool isMacAddressString(const char *value) {
 	}
 
 	esp_bd_addr_t parsed = {0};
-	return sscanf(value, "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
-		&parsed[0], &parsed[1], &parsed[2], &parsed[3], &parsed[4], &parsed[5]) == 6;
+	const int parsedParts = sscanf(value, "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+		&parsed[0], &parsed[1], &parsed[2], &parsed[3], &parsed[4], &parsed[5]);
+	return parsedParts == 6;
 }
 
 static bool isFriendlyPeerName(const char *value) {
-	return value != nullptr && value[0] != '\0' &&
-		strcmp(value, "Unknown") != 0 &&
-		strcmp(value, "Connected Device") != 0 &&
-		!isMacAddressString(value);
+	return value != nullptr && value[0] != '\0'
+		&& strcmp(value, "Unknown") != 0
+		&& strcmp(value, "Connected Device") != 0
+		&& !isMacAddressString(value);
 }
 
 static void Bluetooth_SetConnectionTarget(const esp_bd_addr_t address, const char *name) {
@@ -146,7 +150,7 @@ static void Bluetooth_ClearConnectionTarget() {
 	portEXIT_CRITICAL(&connectionTargetMux);
 }
 
-// ── connect-retry state ────────────────────────────────────────────────────
+// ── connect-retry state ───────────────────────────────────────────────────
 static constexpr uint8_t CONNECT_MAX_RETRIES = 3u;
 static constexpr uint32_t CONNECT_RETRY_DELAY_MS = 1500u;
 static uint8_t connectRetryCount = 0;
@@ -232,10 +236,10 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		}
 
 		if (existing) {
-			if (strlen(ssid) > 0 &&
-				(strcmp(existing->name, "Unknown") == 0 ||
-				 strcmp(existing->name, "Connected Device") == 0 ||
-				 isMacAddressString(existing->name))) {
+			if (strlen(ssid) > 0
+				&& (strcmp(existing->name, "Unknown") == 0
+					|| strcmp(existing->name, "Connected Device") == 0
+					|| isMacAddressString(existing->name))) {
 				strncpy(existing->name, ssid, ESP_BT_GAP_MAX_BDNAME_LEN);
 				existing->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			} else if (strlen(ssid) == 0 && !isFriendlyPeerName(existing->name)) {
@@ -285,8 +289,8 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		// peer we requested. This is independent from configured btDeviceName.
 		bool completesPeerLookup = false;
 		portENTER_CRITICAL_ISR(&peerNameLookupMux);
-		if (peerNameLookupPending &&
-			memcmp(peerNameLookupAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+		if (peerNameLookupPending
+			&& memcmp(peerNameLookupAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
 			memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
 			peerNameLookupPending = false;
 			completesPeerLookup = true;
@@ -296,8 +300,8 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		if (completesPeerLookup && success && isFriendlyPeerName(resolvedName)) {
 			// Cache only if that exact address is still the connected peer.
 			portENTER_CRITICAL_ISR(&cachedPeerAddressMux);
-			if (bluetoothSourceConnected &&
-				memcmp(cachedPeerAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+			if (bluetoothSourceConnected
+				&& memcmp(cachedPeerAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
 				strncpy(cachedPeerName, resolvedName, ESP_BT_GAP_MAX_BDNAME_LEN);
 				cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			}
@@ -448,6 +452,7 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 
 			// Connection succeeded — clear retry/manual target state.
 			manualConnectPending = false;
+			manualDisconnectPending = false;
 			connectRetryPending = false;
 			connectRetryCount = 0;
 			Bluetooth_ClearConnectionTarget();
@@ -471,18 +476,25 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 			cachedPeerName[0] = '\0';
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
 
-			// If this was a manual connect attempt that failed, schedule a retry.
-			// Do NOT call AudioPlayer_SetupVolumeAndAmps() here: the library's own
-			// auto-reconnect (set_auto_reconnect(true)) fires Connecting→Disconnected
-			// repeatedly every ~5 s while searching for the device, so calling
-			// SetupVolumeAndAmps() on each transient disconnect spams the log and
-			// needlessly toggles the speaker/amp on every cycle.
-			if (manualConnectPending && connectRetryCount < CONNECT_MAX_RETRIES) {
-				connectRetryPending = true;
-				connectRetryTimestamp = millis();
-				connectRetryCount++;
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth => connection failed, retry %u/%u in %u ms",
-					connectRetryCount, CONNECT_MAX_RETRIES, CONNECT_RETRY_DELAY_MS);
+			// Disconnecting the old peer before a user-selected device is expected
+			// and must not be counted as a failed connection attempt. The queued
+			// request will start its initial connect from Bluetooth_Cyclic().
+			if (manualDisconnectPending.exchange(false)) {
+				connectRetryPending = false;
+				connectRetryCount = 0;
+				Bluetooth_ClearConnectionTarget();
+				Log_Println("Bluetooth => current device disconnected, manual connection remains queued", LOGLEVEL_INFO);
+			} else if (manualConnectPending && connectRetryCount < CONNECT_MAX_RETRIES) {
+				// Count retries when connect_to() is actually issued, not when the
+				// preceding attempt fails. This keeps CONNECT_MAX_RETRIES equal to the
+				// number of real retry attempts. Ignore duplicate disconnect callbacks
+				// while the same retry is already pending.
+				if (!connectRetryPending) {
+					connectRetryPending = true;
+					connectRetryTimestamp = millis();
+					Log_Printf(LOGLEVEL_INFO, "Bluetooth => connection failed, retry %u/%u in %u ms",
+						connectRetryCount + 1, CONNECT_MAX_RETRIES, CONNECT_RETRY_DELAY_MS);
+				}
 			} else if (manualConnectPending && connectRetryCount >= CONNECT_MAX_RETRIES) {
 				Log_Println("Bluetooth => all connection retries exhausted, giving up", LOGLEVEL_NOTICE);
 				manualConnectPending = false;
@@ -881,10 +893,10 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 			} else {
 				// Repair stale placeholder/MAC-as-name entries from a previous
 				// connection before returning them to the UI.
-				if (currentPeerName[0] != '\0' &&
-					(strcmp(it->name, "Unknown") == 0 ||
-					 strcmp(it->name, "Connected Device") == 0 ||
-					 isMacAddressString(it->name))) {
+				if (currentPeerName[0] != '\0'
+					&& (strcmp(it->name, "Unknown") == 0
+						|| strcmp(it->name, "Connected Device") == 0
+						|| isMacAddressString(it->name))) {
 					strncpy(it->name, currentPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
 					it->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 				} else if (isMacAddressString(it->name)) {
@@ -1066,6 +1078,10 @@ void Bluetooth_Exit(void) {
 		memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
 		cachedPeerName[0] = '\0';
 		portEXIT_CRITICAL(&cachedPeerAddressMux);
+		manualConnectPending = false;
+		manualDisconnectPending = false;
+		connectRetryPending = false;
+		connectRetryCount = 0;
 		Bluetooth_ClearConnectionTarget();
 		Bluetooth_CancelPeerNameLookup();
 	}
@@ -1080,7 +1096,7 @@ void Bluetooth_Cyclic(void) {
 	char connectName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 
 	portENTER_CRITICAL(&pendingConnectMux);
-	if (pendingConnect) {
+	if (pendingConnect && !manualDisconnectPending) {
 		doConnect = true;
 		memcpy(connectAddress, pendingConnectAddress, ESP_BD_ADDR_LEN);
 		strncpy(connectName, pendingConnectName, ESP_BT_GAP_MAX_BDNAME_LEN);
@@ -1126,23 +1142,25 @@ void Bluetooth_Cyclic(void) {
 				doConnect = false;
 			} else {
 				Log_Println("Bluetooth => disconnecting current device before new connection", LOGLEVEL_INFO);
-				// Publish retry state before disconnect(): some stack callbacks can be
-				// delivered immediately, and they must already see the new manual attempt.
-				manualConnectPending = true;
-				memcpy(connectRetryAddress, connectAddress, ESP_BD_ADDR_LEN);
-				connectRetryCount = 0;
-				a2dp_source->disconnect();
 
-				// Activate the new target only after disconnect() has been issued, so a
-				// late CONNECTED event for the previous peer cannot be mislabeled.
-				Bluetooth_SetConnectionTarget(connectAddress, connectName);
-				connectRetryPending = true;
-				connectRetryTimestamp = millis();
+				// Keep the user request queued while the old peer disconnects. Do not
+				// mark the new connection as started yet: the resulting DISCONNECTED
+				// event belongs to the old peer and must not consume a retry.
+				portENTER_CRITICAL(&pendingConnectMux);
+				memcpy(pendingConnectAddress, connectAddress, ESP_BD_ADDR_LEN);
+				strncpy(pendingConnectName, connectName, ESP_BT_GAP_MAX_BDNAME_LEN);
+				pendingConnectName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				pendingConnect = true;
+				portEXIT_CRITICAL(&pendingConnectMux);
+
+				manualDisconnectPending = true;
+				a2dp_source->disconnect();
 				doConnect = false;
 			}
 		}
 
 		if (doConnect) {
+			manualDisconnectPending = false;
 			manualConnectPending = true;
 			memcpy(connectRetryAddress, connectAddress, ESP_BD_ADDR_LEN);
 			connectRetryCount = 0;
@@ -1154,7 +1172,7 @@ void Bluetooth_Cyclic(void) {
 		}
 	}
 
-	// ── Handle connection retries ─────────────────────────────────────────────
+	// ── Handle connection retries ────────────────────────────────────────────
 	if (connectRetryPending && !bluetoothSourceConnected) {
 		if (millis() - connectRetryTimestamp >= CONNECT_RETRY_DELAY_MS) {
 			connectRetryPending = false;
