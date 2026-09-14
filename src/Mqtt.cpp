@@ -317,6 +317,7 @@ static NumberType toNumber(const std::string str) {
 	return 0;
 }
 
+#ifdef MQTT_ENABLE
 // The mutually-exclusive sleep-timer modes, in the priority order the state topics report them.
 enum class SleepTimerMode {
 	Off,
@@ -412,6 +413,13 @@ void Mqtt_PublishSleepTimerState(bool force) {
 		lastPayload[sizeof(lastPayload) - 1] = '\0';
 	}
 }
+#else
+// Mqtt.h declares this unconditionally, so keep a no-op for builds without MQTT. Today's only caller
+// in System_SleepHandler() is guarded itself, but a future unguarded one should link instead of
+// re-opening the gap this #ifdef closes -- same idea as the #else branch of publishMqtt() above.
+void Mqtt_PublishSleepTimerState(bool) {
+}
+#endif
 
 // Is called if there's a new MQTT-message for us
 #ifdef MQTT_ENABLE
