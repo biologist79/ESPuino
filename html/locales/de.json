@@ -563,6 +563,8 @@
 			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
 			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
+			"nightVolumeLimit": "Lautstärke im Nachtmodus begrenzen",
+			"nightVolumeLimitExp": "Beim Einschalten des Nachtmodus wird die gerade eingestellte Lautstärke zur vorübergehenden Obergrenze (plus eine Stufe Spielraum) – praktisch, wenn ESPuino mit ins Bett genommen wird. Beim Verlassen des Nachtmodus wird die Begrenzung wieder aufgehoben.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
 			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
 			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",

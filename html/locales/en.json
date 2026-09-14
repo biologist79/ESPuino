@@ -563,6 +563,8 @@
 			"playLastRfidOnRebootExp": "Play last RFID tag on restart.",
 			"pauseOnMinVolume": "Pause at minimum volume",
 			"pauseOnMinVolumeExp": "Playback is paused when the volume reaches the minimum level. More information <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>here</a>",
+			"nightVolumeLimit": "Limit volume in night mode",
+			"nightVolumeLimitExp": "When night mode is switched on, the volume currently set becomes a temporary upper limit (plus one step of headroom) – handy when ESPuino is taken to bed. The limit is lifted again when night mode ends.",
 			"recoverVolBoot": "Use last volume at restart",
 			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
 			"volumeCurve": "Finer gradations at low volume",
