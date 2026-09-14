@@ -31,7 +31,12 @@ extern t_button gButtons[7]; // next + prev + pplay + rotEnc + button4 + button5
 extern uint8_t gShutdownButton;
 
 static std::atomic<uint32_t> Led_Indicators = 0u;
-static uint8_t Led_savedBrightness;
+// Brightness to restore once night mode / ambient light is switched off again. Deliberately two
+// variables: both modes can be active at the same time, and with a single shared slot the one entered
+// last overwrote the other's value -- leaving the brightness stuck at the inner mode's level after
+// both had been switched off again.
+static uint8_t Led_savedBrightnessNightmode;
+static uint8_t Led_savedBrightnessAmbient;
 
 // global led settings
 static LedSettings gLedSettings;
@@ -252,38 +257,20 @@ void Led_SetBrightness(uint8_t value) {
 #endif
 }
 
-void Led_SetNightmode(bool enabled) {
+// Only called by System_SetNightmode() on an actual state change, so saving the previous brightness
+// unconditionally is safe -- see Led.h.
+void Led_ApplyNightmode(bool enabled) {
 #ifdef NEOPIXEL_ENABLE
-	if (gLedSettings.Led_NightMode == enabled) {
-		// we don't need to do anything
-		return;
-	}
-
 	const char *msg = ledsBrightnessRestored;
-	uint8_t newValue = Led_savedBrightness;
+	uint8_t newValue = Led_savedBrightnessNightmode;
 	if (enabled) {
 		// we are switching to night mode
-		Led_savedBrightness = gLedSettings.Led_Brightness;
+		Led_savedBrightnessNightmode = gLedSettings.Led_Brightness;
 		msg = ledsDimmedToNightmode;
 		newValue = gLedSettings.Led_NightBrightness;
 	}
-	gLedSettings.Led_NightMode = enabled;
 	Led_SetBrightness(newValue);
 	Log_Println(msg, LOGLEVEL_INFO);
-#endif
-}
-
-bool Led_GetNightmode() {
-#ifdef NEOPIXEL_ENABLE
-	return gLedSettings.Led_NightMode;
-#else
-	return false;
-#endif
-}
-
-void Led_ToggleNightmode() {
-#ifdef NEOPIXEL_ENABLE
-	Led_SetNightmode(!gLedSettings.Led_NightMode);
 #endif
 }
 
@@ -296,12 +283,12 @@ void Led_SetAmbientLight(bool enabled) {
 
 	if (enabled) {
 		gLedSettings.Led_AmbientLight = true;
-		Led_savedBrightness = gLedSettings.Led_Brightness;
+		Led_savedBrightnessAmbient = gLedSettings.Led_Brightness;
 		Led_SetBrightness(gLedSettings.Led_AmbientBrightness);
 		gPrefsSettings.putBool("atmoActive", true);
 	} else {
 		gLedSettings.Led_AmbientLight = false;
-		Led_SetBrightness(Led_savedBrightness);
+		Led_SetBrightness(Led_savedBrightnessAmbient);
 		gPrefsSettings.putBool("atmoActive", false);
 	}
 #endif

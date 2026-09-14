@@ -608,14 +608,14 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				gPlayProperties.sleepAfterPlaylist = true;
 				Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOP", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "EOT") {
 				gPlayProperties.sleepAfterCurrentTrack = true;
 				Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOT", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "EO5T") {
@@ -631,7 +631,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				}
 				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EO5T", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "0") { // Disable sleep after it was active previously
@@ -639,7 +639,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 					System_DisableSleepTimer();
 					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
 					System_IndicateOk();
-					Led_SetNightmode(false);
+					System_SetNightmode(false);
 					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;

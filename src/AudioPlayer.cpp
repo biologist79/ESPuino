@@ -1512,7 +1512,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 		case SINGLE_TRACK_OF_DIR_RANDOM: {
 			gPlayProperties.sleepAfterCurrentTrack = true;
 			gPlayProperties.playUntilTrackNumber = 0;
-			Led_SetNightmode(true);
+			System_SetNightmode(true);
 			Log_Println(modeSingleTrackRandom, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizePlaylist(list);
 			// we have a random order, so pick the first entry and scrap the rest
