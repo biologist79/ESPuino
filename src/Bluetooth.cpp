@@ -456,7 +456,21 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 			connectRetryPending = false;
 			connectRetryCount = 0;
 			Bluetooth_ClearConnectionTarget();
-			Bluetooth_StopScan();
+
+			// The A2DP library can keep its own GAP inquiry running during auto-reconnect.
+			// Stop discovery as soon as the source is connected so inquiry traffic does
+			// not compete with the newly started audio stream. Manual web scans still
+			// use Bluetooth_StopScan() so their UI/callback state is cleaned up as before.
+			if (scanInProgress) {
+				Bluetooth_StopScan();
+			} else {
+				const esp_err_t cancelResult = esp_bt_gap_cancel_discovery();
+				if (cancelResult == ESP_OK) {
+					Log_Println("Bluetooth => Device discovery stopped after connect.", LOGLEVEL_NOTICE);
+				} else if (cancelResult != ESP_ERR_INVALID_STATE) {
+					Log_Printf(LOGLEVEL_NOTICE, "Bluetooth => failed to stop discovery after connect: %s", esp_err_to_name(cancelResult));
+				}
+			}
 
 			// If discovery/selection did not already give us a trustworthy friendly
 			// name, resolve it once from this exact connected MAC. The result is
