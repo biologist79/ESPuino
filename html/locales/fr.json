@@ -563,6 +563,8 @@
 			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage.",
 			"pauseOnMinVolume": "Pause au volume minimal",
 			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum. Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>.",
+			"nightVolumeLimit": "Limiter le volume en mode nuit",
+			"nightVolumeLimitExp": "À l'activation du mode nuit, le volume réglé à ce moment devient une limite supérieure temporaire (plus un cran de marge) – pratique lorsque l'ESPuino est emporté au lit. La limite est levée à la sortie du mode nuit.",
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
 			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
 			"volumeCurve": "Des nuances plus fines à faible volume",

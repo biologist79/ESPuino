@@ -111,6 +111,11 @@ static uint8_t AudioPlayer_MaxVolume = AUDIOPLAYER_VOLUME_MAX;
 static uint8_t AudioPlayer_MaxVolumeSpeaker = AUDIOPLAYER_VOLUME_MAX;
 static uint8_t AudioPlayer_MinVolume = AUDIOPLAYER_VOLUME_MIN;
 static uint8_t AudioPlayer_InitVolume = AUDIOPLAYER_VOLUME_INIT;
+// Night-mode volume limit, see AudioPlayer_ApplyNightVolumeCap(). The cap is purely transient: armed
+// when night mode starts, dropped when it ends, never persisted -- night mode is always off after a
+// restart anyway.
+static uint8_t AudioPlayer_NightVolumeCap = 0u; // 0 = no cap active
+static bool AudioPlayer_NightVolumeLimitEnabled = false;
 
 // current playtime
 uint32_t AudioPlayer_CurrentTime = 0;
@@ -439,6 +444,9 @@ void AudioPlayer_Init(void) {
 	// to this floor, so a non-zero value takes effect for all volume sources (rotary, buttons, BT, web).
 	AudioPlayer_SetMinVolume(gPrefsSettings.getUInt("minVolume", AUDIOPLAYER_VOLUME_MIN));
 
+	// Night-mode volume limit: off by default, so nothing changes for existing devices.
+	AudioPlayer_NightVolumeLimitEnabled = gPrefsSettings.getBool("nightVolLimit", false);
+
 #ifdef HEADPHONE_ADJUST_ENABLE
 	#if (HP_DETECT >= 0 && HP_DETECT <= MAX_GPIO)
 	pinMode(HP_DETECT, INPUT_PULLUP);
@@ -610,6 +618,13 @@ void AudioPlayer_SetCurrentVolume(uint8_t value) {
 }
 
 uint8_t AudioPlayer_GetMaxVolume(void) {
+	// The night cap is deliberately a separate layer on top of AudioPlayer_MaxVolume instead of a write
+	// into it: that variable is recomputed from the speaker/headphone limits whenever the settings are
+	// saved, a headphone is (un)plugged or the amps are set up, which would silently drop the cap.
+	// Taking the minimum also keeps the lower headphone limit winning while headphones are connected.
+	if (AudioPlayer_NightVolumeCap) {
+		return std::min(AudioPlayer_MaxVolume, AudioPlayer_NightVolumeCap);
+	}
 	return AudioPlayer_MaxVolume;
 }
 
@@ -639,6 +654,29 @@ void AudioPlayer_ApplyMaxVolumes(uint8_t speaker, uint8_t headphone) {
 	if (AudioPlayer_CurrentVolume > AudioPlayer_MaxVolume) {
 		AudioPlayer_SetVolume(AudioPlayer_MaxVolume);
 	}
+}
+
+// Arms or lifts the night-mode volume ceiling; called by System_SetNightmode() on an actual state
+// change. The ceiling is taken once, on activation, and then frozen: letting it follow the volume down
+// would pin the user to whatever level they briefly dialled in during a quiet passage. A fixed limit
+// configured up front was the obvious alternative, but audiobooks differ so much in loudness that it
+// would have to be set very low -- and then corrected in the web interface all the time.
+void AudioPlayer_ApplyNightVolumeCap(bool enabled) {
+	if (!enabled) {
+		AudioPlayer_NightVolumeCap = 0u;
+		return;
+	}
+	if (!AudioPlayer_NightVolumeLimitEnabled) {
+		return;
+	}
+	// No clamping needed at either end: the headroom keeps the cap at 1 or above, and a cap beyond the
+	// regular maximum is folded away by the std::min() in AudioPlayer_GetMaxVolume().
+	AudioPlayer_NightVolumeCap = AudioPlayer_GetCurrentVolume() + AUDIOPLAYER_NIGHT_VOLUME_HEADROOM;
+	Log_Printf(LOGLEVEL_INFO, nightVolumeCapSet, AudioPlayer_NightVolumeCap);
+}
+
+void AudioPlayer_SetNightVolumeLimitEnabled(bool enabled) {
+	AudioPlayer_NightVolumeLimitEnabled = enabled;
 }
 
 uint8_t AudioPlayer_GetMinVolume(void) {
@@ -1512,7 +1550,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 		case SINGLE_TRACK_OF_DIR_RANDOM: {
 			gPlayProperties.sleepAfterCurrentTrack = true;
 			gPlayProperties.playUntilTrackNumber = 0;
-			Led_SetNightmode(true);
+			System_SetNightmode(true);
 			Log_Println(modeSingleTrackRandom, LOGLEVEL_NOTICE);
 			AudioPlayer_RandomizePlaylist(list);
 			// we have a random order, so pick the first entry and scrap the rest

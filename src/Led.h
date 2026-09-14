@@ -95,7 +95,6 @@ struct LedSettings {
 	bool neopixelReverseRotation;
 	uint8_t ledOffset;
 	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
-	bool Led_NightMode = false;
 	bool Led_AmbientLight = false;
 	uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
@@ -117,9 +116,10 @@ void Led_TaskResume(void);
 void Led_ShowOtaProgress(uint8_t percent);
 void Led_SetDownloadProgress(bool active, uint8_t percent = 0);
 
-void Led_SetNightmode(bool enabled);
-bool Led_GetNightmode();
-void Led_ToggleNightmode();
+// Applies or reverts the night-mode brightness. The night-mode state itself is owned by System.cpp
+// (System_SetNightmode()), which holds the flag and the idempotence check -- so this is only ever
+// called on an actual state change and must not be called directly.
+void Led_ApplyNightmode(bool enabled);
 void Led_SetAmbientLight(bool enabled);
 bool Led_GetAmbientLight();
 void Led_ToggleAmbientLight();

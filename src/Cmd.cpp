@@ -17,7 +17,7 @@
 #include <algorithm>
 
 static void Cmd_HandleSleepAction(bool enable, const char *enLogMsg, const char *enMqttMsg) {
-	Led_SetNightmode(enable);
+	System_SetNightmode(enable);
 	if (enable) {
 		Log_Println(enLogMsg, LOGLEVEL_INFO);
 #ifdef MQTT_ENABLE
@@ -188,7 +188,7 @@ void Cmd_Action(const uint16_t mod) {
 		}
 
 		case CMD_DIMM_LEDS_NIGHTMODE: {
-			Led_ToggleNightmode();
+			System_ToggleNightmode();
 			System_IndicateOk();
 			break;
 		}
