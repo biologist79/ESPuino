@@ -70,7 +70,14 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
-	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	// FastLED's clockless-SPI backend claims SPI2_HOST (== Arduino's HSPI) via its own private
+	// bookkeeping, which knows nothing about hosts Arduino already took. That only works out while the
+	// SD card stays off HSPI, i.e. in SD-MMC mode. With SPI-SD, SdCard.cpp's spiSD(HSPI) and FastLED
+	// end up driving the same peripheral concurrently -- an SPI HAL assert plus LED-refresh timeouts,
+	// i.e. a reboot loop (forum #4758). Leaving the macro undefined falls back to the RMT driver.
+	#ifdef SD_MMC_1BIT_MODE
+		#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	#endif
 
 	#include <FastLED.h>
 
