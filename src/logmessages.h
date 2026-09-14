@@ -123,6 +123,7 @@ extern const char restoredMaxLoudnessForHeadphoneFromNvs[];
 extern const char wroteMaxLoudnessForSpeakerToNvs[];
 extern const char wroteMaxLoudnessForHeadphoneToNvs[];
 extern const char maxVolumeSet[];
+extern const char nightVolumeCapSet[];
 extern const char wroteMqttFlagToNvs[];
 extern const char restoredMqttActiveFromNvs[];
 extern const char restoredMqttDeactiveFromNvs[];

@@ -11,6 +11,9 @@
 #define AUDIOPLAYER_VOLUME_MAX	21u
 #define AUDIOPLAYER_VOLUME_MIN	0u
 #define AUDIOPLAYER_VOLUME_INIT 3u
+// Headroom the night-mode volume limit leaves above the volume that was in effect when night mode
+// started, so an audiobook that turns out a touch too quiet can still be nudged up one step.
+#define AUDIOPLAYER_NIGHT_VOLUME_HEADROOM 1u
 
 enum class playlistSortMode : uint8_t {
 	STRCMP = 1,
@@ -97,6 +100,11 @@ void AudioPlayer_SetMaxVolume(uint8_t value);
 uint8_t AudioPlayer_GetMaxVolumeSpeaker(void);
 void AudioPlayer_SetMaxVolumeSpeaker(uint8_t value);
 void AudioPlayer_ApplyMaxVolumes(uint8_t speaker, uint8_t headphone);
+// Night-mode volume limit: when night mode starts, the volume in effect becomes a temporary ceiling
+// (plus AUDIOPLAYER_NIGHT_VOLUME_HEADROOM) that is lifted again when night mode ends. Driven by
+// System_SetNightmode(); does nothing unless the user enabled the limit in the web interface.
+void AudioPlayer_ApplyNightVolumeCap(bool enabled);
+void AudioPlayer_SetNightVolumeLimitEnabled(bool enabled);
 uint8_t AudioPlayer_GetMinVolume(void);
 void AudioPlayer_SetMinVolume(uint8_t value);
 uint8_t AudioPlayer_GetInitVolume(void);

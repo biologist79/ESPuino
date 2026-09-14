@@ -125,6 +125,7 @@ const char restoredMaxLoudnessForHeadphoneFromNvs[] = "Maximale Lautstärke für
 const char wroteMaxLoudnessForSpeakerToNvs[] = "Maximale Lautstärke für Lautsprecher wurde ins NVS geschrieben.";
 const char wroteMaxLoudnessForHeadphoneToNvs[] = "Maximale Lautstärke für Kopfhörer wurde ins NVS geschrieben.";
 const char maxVolumeSet[] = "Maximale Lautstärke wurde gesetzt auf: %u";
+const char nightVolumeCapSet[] = "Nachtmodus: Lautstärke vorübergehend begrenzt auf: %u";
 const char wroteMqttFlagToNvs[] = "MQTT-Flag wurde ins NVS geschrieben.";
 const char restoredMqttActiveFromNvs[] = "MQTT-Flag (aktiviert) wurde aus NVS geladen: %u";
 const char restoredMqttDeactiveFromNvs[] = "MQTT-Flag (deaktiviert) wurde aus NVS geladen: %u";

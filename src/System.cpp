@@ -136,6 +136,7 @@ void System_SetNightmode(bool enabled) {
 	}
 	System_Nightmode = enabled;
 	Led_ApplyNightmode(enabled);
+	AudioPlayer_ApplyNightVolumeCap(enabled);
 }
 
 bool System_GetNightmode(void) {
