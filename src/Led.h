@@ -87,6 +87,7 @@ struct LedSettings {
 	std::vector<uint32_t> controlLedColors;
 	uint8_t numIdleDots = 4;
 	bool offsetLedPause = false;
+	bool indicateRfidTag = false;
 	int16_t progressHueStart = 85;
 	int16_t progressHueEnd = -1;
 	int16_t atmoHue = 10;
@@ -106,6 +107,9 @@ struct LedSettings {
 void Led_Init(void);
 void Led_Exit(void);
 void Led_Indicate(LedIndicatorType value);
+// Acknowledges an accepted RFID tag by flashing all LEDs, if the user asked for that feedback.
+// Checks the setting itself, so callers don't have to.
+void Led_IndicateRfidTagAccepted(void);
 void Led_SetPause(boolean value);
 void Led_ResetToInitialBrightness(void);
 void Led_ResetToNightBrightness(void);

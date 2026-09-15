@@ -65,7 +65,9 @@
 			"dimmablestatesExp": "Nombre d'étapes intermédiaires par LED, utilisées pour rendre les transitions (par ex. volume ou progression) plus douces/fines.",
 			"offsetExp": "Décale la première LED de l'indicateur de ce nombre de positions - utile si l'anneau LED ne doit pas commencer à la position 0.",
 			"offsetpauseExp": "Décale l'indicateur de pause d'un demi-espacement de LED par rapport à l'indicateur de repos normal, afin de distinguer visuellement la pause du repos.",
-			"reverserotationExp": "Inverse le sens de défilement de l'indicateur LED, par ex. pour les anneaux montés dans le sens antihoraire au lieu du sens horaire."
+			"reverserotationExp": "Inverse le sens de défilement de l'indicateur LED, par ex. pour les anneaux montés dans le sens antihoraire au lieu du sens horaire.",
+			"rfidflash": "Bref clignotement de toutes les LED à la reconnaissance d'une carte",
+			"rfidflashExp": "Accuse réception d'une carte RFID assignée par un bref clignotement vert – tu vois ainsi que la carte a été acceptée. Une carte inconnue reste signalée en rouge."
 		},
 		"buttons": {
 			"title": "Attribution des boutons",

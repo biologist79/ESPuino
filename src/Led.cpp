@@ -134,6 +134,9 @@ bool Led_LoadSettings(LedSettings &settings) {
 	// Get offset LED pause from NVS
 	settings.offsetLedPause = gPrefsSettings.getBool("offsetPause", false); // OFFSET_PAUSE_LEDS
 
+	// Flash all LEDs when an RFID tag was accepted? Off by default.
+	settings.indicateRfidTag = gPrefsSettings.getBool("ledRfidFlash", false);
+
 	// get dimmableStates from NVS
 	settings.dimmableStates = gPrefsSettings.getUChar("dimStates", 50); // DIMMABLE_STATES
 	if (settings.dimmableStates == 0) {
@@ -210,6 +213,19 @@ void Led_Exit(void) {
 void Led_Indicate(LedIndicatorType value) {
 #ifdef NEOPIXEL_ENABLE
 	LED_INDICATOR_SET(value);
+#endif
+}
+
+// Deliberately hooked to an *accepted* tag rather than to the reader detecting one: in
+// pauseIfRfidRemoved-mode a card resting on the antenna can be re-detected when a poll is lost to RF
+// noise, which would otherwise flash the ring at random. Such a re-detection never reaches the card
+// queue (RfidMfrc522.cpp keeps it as a silent play/pause), so hooking in here makes it invisible.
+void Led_IndicateRfidTagAccepted(void) {
+#ifdef NEOPIXEL_ENABLE
+	if (!gLedSettings.indicateRfidTag) {
+		return;
+	}
+	Led_Indicate(LedIndicatorType::Ok);
 #endif
 }
 

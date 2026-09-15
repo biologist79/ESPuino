@@ -65,7 +65,9 @@
 			"dimmablestatesExp": "Number of intermediate steps per LED, used to make transitions (e.g. volume or progress indicator) smoother/finer.",
 			"offsetExp": "Shifts the first LED of the indicator by this many positions - useful if the LED ring shouldn't start at position 0.",
 			"offsetpauseExp": "Offsets the pause indicator by half an LED spacing compared to the normal idle indicator, so pause is visually distinguishable from idle.",
-			"reverserotationExp": "Reverses the direction the LED indicator runs in, e.g. for rings mounted counter-clockwise instead of clockwise."
+			"reverserotationExp": "Reverses the direction the LED indicator runs in, e.g. for rings mounted counter-clockwise instead of clockwise.",
+			"rfidflash": "Briefly flash all LEDs when a tag is recognized",
+			"rfidflashExp": "Acknowledges an assigned RFID tag with a brief green flash, so you can see that the tag was accepted. An unknown tag is still acknowledged in red."
 		},
 		"buttons": {
 			"title": "Button assignments",

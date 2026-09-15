@@ -2258,6 +2258,7 @@
 									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
 								</div>
 							</div>
+							<hr>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
 								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
@@ -2270,6 +2271,13 @@
 								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
 								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_rfidFlash" name="led_rfidFlash" value="false">
+								<label for="led_rfidFlash" data-i18n="settingsex.led.rfidflash"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.rfidflashExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 						</div>
@@ -4452,6 +4460,7 @@
 				$('#led_satAtmo').bootstrapSlider('setValue', ledSettings.satAtmo);
 				document.getElementById('led_dimStates').value = ledSettings.dimStates;
 				$('#led_offsetPause').prop('checked', ledSettings.offsetPause);
+				$('#led_rfidFlash').prop('checked', ledSettings.rfidFlash);
 				$('#led_reverseRotation').prop('checked', ledSettings.reverseRot);
 				document.getElementById('led_offsetStart').value = ledSettings.offsetStart;
 			}
@@ -4996,6 +5005,7 @@
 					satAtmo: Number($('#led_satAtmo').val()),
 					dimStates: Number(document.getElementById("led_dimStates").value),
 					offsetPause: $('#led_offsetPause').prop('checked'),
+					rfidFlash: $('#led_rfidFlash').prop('checked'),
 					reverseRot: $('#led_reverseRotation').prop('checked'),
 					offsetStart: Number(document.getElementById("led_offsetStart").value),
 				},

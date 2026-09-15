@@ -65,7 +65,9 @@
 			"dimmablestatesExp": "Anzahl der Zwischenschritte pro LED, mit denen Übergänge (z.B. Lautstärke- oder Fortschrittsanzeige) feiner/weicher dargestellt werden.",
 			"offsetExp": "Verschiebt die erste LED der Anzeige um die angegebene Anzahl Positionen - nützlich, wenn der LED-Ring nicht bei Position 0 beginnen soll.",
 			"offsetpauseExp": "Versetzt die Pause-Anzeige um einen halben LED-Abstand gegenüber der normalen Ruhezustand-Anzeige, damit Pause optisch von Idle unterscheidbar ist.",
-			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind."
+			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind.",
+			"rfidflash": "Kurzes Aufleuchten aller LEDs bei erkannter Karte",
+			"rfidflashExp": "Quittiert eine zugewiesene RFID-Karte mit einem kurzen grünen Aufleuchten – so siehst du, dass die Karte angenommen wurde. Eine unbekannte Karte wird weiterhin rot quittiert."
 		},
 		"buttons": {
 			"title": "Taster-Zuordnungen",
