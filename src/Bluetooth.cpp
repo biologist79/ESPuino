@@ -43,6 +43,7 @@ std::vector<ScannedBluetoothDevice> scannedDevices;
 static std::atomic<bool> scanInProgress = false;
 static uint32_t scanStartTimestamp = 0;
 static esp_bd_addr_t pendingConnectAddress = {0};
+static char pendingConnectName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 static std::atomic<bool> pendingConnect = false;
 static portMUX_TYPE pendingConnectMux = portMUX_INITIALIZER_UNLOCKED;
 RingbufHandle_t audioSourceRingBuffer;
@@ -52,13 +53,33 @@ static portMUX_TYPE scannedDevicesMux = portMUX_INITIALIZER_UNLOCKED;
 // Suppresses auto-connect via scan_bluetooth_device_callback while a manual
 // connect is pending (i.e. user picked a device from a scan result).
 static std::atomic<bool> manualConnectPending = false;
+// True only while disconnecting the currently connected peer so a queued manual
+// connection can start. That expected disconnect must not consume a retry.
+static std::atomic<bool> manualDisconnectPending = false;
 
 // Track whether we registered our interceptor so we always restore correctly.
 static std::atomic<bool> interceptorRegistered = false;
 
-// Peer address cached at the moment connection_state_changed fires CONNECTED.
+// One targeted GAP remote-name lookup may be active for the currently connected
+// peer. The address and pending flag are updated together under the mux so a
+// completion event can never be associated with a different connection.
+static std::atomic<bool> peerNameLookupPending = false;
+static esp_bd_addr_t peerNameLookupAddress = {0};
+static portMUX_TYPE peerNameLookupMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Peer address/name cached for the currently connected A2DP source device.
 static esp_bd_addr_t cachedPeerAddress = {0};
+static char cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 static portMUX_TYPE cachedPeerAddressMux = portMUX_INITIALIZER_UNLOCKED;
+
+// Address/name of the peer that ESPuino explicitly selected for the next
+// connection.  ESP32-A2DP's get_last_peer_address() is not updated by every
+// connect_to(address) path, so the selected target is the authoritative source
+// for manual connections and for auto-connect decisions made by our callback.
+static esp_bd_addr_t connectionTargetAddress = {0};
+static char connectionTargetName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+static bool connectionTargetValid = false;
+static portMUX_TYPE connectionTargetMux = portMUX_INITIALIZER_UNLOCKED;
 
 // Returns true if addr is non-zero (i.e. a valid BT address).
 static inline bool isValidBdAddr(const esp_bd_addr_t addr) {
@@ -70,7 +91,66 @@ static inline bool isValidBdAddr(const esp_bd_addr_t addr) {
 	return false;
 }
 
-// ── connect-retry state ────────────────────────────────────────────────────
+// Returns true when a string is a canonical Bluetooth MAC address.
+// Such a value is a connection target, not a friendly device name.
+static bool isMacAddressString(const char *value) {
+	if (value == nullptr || strlen(value) != 17) {
+		return false;
+	}
+
+	esp_bd_addr_t parsed = {0};
+	const int parsedParts = sscanf(value, "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX",
+		&parsed[0], &parsed[1], &parsed[2], &parsed[3], &parsed[4], &parsed[5]);
+	return parsedParts == 6;
+}
+
+static bool isFriendlyPeerName(const char *value) {
+	return value != nullptr && value[0] != '\0'
+		&& strcmp(value, "Unknown") != 0
+		&& strcmp(value, "Connected Device") != 0
+		&& !isMacAddressString(value);
+}
+
+static void Bluetooth_SetConnectionTarget(const esp_bd_addr_t address, const char *name) {
+	const bool validAddress = isValidBdAddr(address);
+	char friendlyName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+	if (isFriendlyPeerName(name)) {
+		strncpy(friendlyName, name, ESP_BT_GAP_MAX_BDNAME_LEN);
+		friendlyName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+	}
+
+	portENTER_CRITICAL(&connectionTargetMux);
+	memcpy(connectionTargetAddress, address, ESP_BD_ADDR_LEN);
+	strncpy(connectionTargetName, friendlyName, ESP_BT_GAP_MAX_BDNAME_LEN);
+	connectionTargetName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+	connectionTargetValid = validAddress;
+	portEXIT_CRITICAL(&connectionTargetMux);
+}
+
+static bool Bluetooth_GetConnectionTarget(esp_bd_addr_t address, char *name, size_t nameSize) {
+	bool valid = false;
+	portENTER_CRITICAL(&connectionTargetMux);
+	valid = connectionTargetValid;
+	if (valid) {
+		memcpy(address, connectionTargetAddress, ESP_BD_ADDR_LEN);
+		if (name != nullptr && nameSize > 0) {
+			strncpy(name, connectionTargetName, nameSize - 1);
+			name[nameSize - 1] = '\0';
+		}
+	}
+	portEXIT_CRITICAL(&connectionTargetMux);
+	return valid;
+}
+
+static void Bluetooth_ClearConnectionTarget() {
+	portENTER_CRITICAL(&connectionTargetMux);
+	memset(connectionTargetAddress, 0, ESP_BD_ADDR_LEN);
+	connectionTargetName[0] = '\0';
+	connectionTargetValid = false;
+	portEXIT_CRITICAL(&connectionTargetMux);
+}
+
+// ── connect-retry state ───────────────────────────────────────────────────
 static constexpr uint8_t CONNECT_MAX_RETRIES = 3u;
 static constexpr uint32_t CONNECT_RETRY_DELAY_MS = 1500u;
 static uint8_t connectRetryCount = 0;
@@ -106,6 +186,8 @@ static void Bluetooth_Source_FlushRingbuffer(void) {
 // Forward declarations
 static void Bluetooth_StopScan();
 static void Bluetooth_RestoreLibraryCallback();
+static void Bluetooth_RequestPeerName(const esp_bd_addr_t address);
+static void Bluetooth_CancelPeerNameLookup();
 #endif
 
 #ifdef BLUETOOTH_ENABLE
@@ -143,6 +225,7 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 			}
 		}
 
+		bool requestRemoteName = false;
 		portENTER_CRITICAL_ISR(&scannedDevicesMux);
 		ScannedBluetoothDevice *existing = nullptr;
 		for (auto &d : scannedDevices) {
@@ -153,9 +236,14 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		}
 
 		if (existing) {
-			if (strlen(ssid) > 0 && strcmp(existing->name, "Unknown") == 0) {
+			if (strlen(ssid) > 0
+				&& (strcmp(existing->name, "Unknown") == 0
+					|| strcmp(existing->name, "Connected Device") == 0
+					|| isMacAddressString(existing->name))) {
 				strncpy(existing->name, ssid, ESP_BT_GAP_MAX_BDNAME_LEN);
 				existing->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+			} else if (strlen(ssid) == 0 && !isFriendlyPeerName(existing->name)) {
+				requestRemoteName = true;
 			}
 			existing->rssi = rssi;
 		} else {
@@ -166,32 +254,68 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 			memcpy(device.address, bda, ESP_BD_ADDR_LEN);
 			device.rssi = rssi;
 			scannedDevices.push_back(device);
-
-			// Actively request the remote name for devices that arrived without one
-			if (strlen(ssid) == 0) {
-				esp_bt_gap_read_remote_name(bda);
-			}
+			requestRemoteName = (strlen(ssid) == 0);
 		}
 		portEXIT_CRITICAL_ISR(&scannedDevicesMux);
 
-	} else if (event == ESP_BT_GAP_READ_REMOTE_NAME_EVT && param->read_rmt_name.stat == ESP_BT_STATUS_SUCCESS) {
-		portENTER_CRITICAL_ISR(&scannedDevicesMux);
-		for (auto &d : scannedDevices) {
-			if (memcmp(d.address, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
-				if (strcmp(d.name, "Unknown") == 0) {
-					strncpy(d.name, (char *) param->read_rmt_name.rmt_name, ESP_BT_GAP_MAX_BDNAME_LEN);
-					d.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+		// Keep stack calls outside the spinlock. This lookup is scoped to an
+		// active discovery scan and therefore uses the already installed interceptor.
+		if (requestRemoteName) {
+			esp_bt_gap_read_remote_name(bda);
+		}
+
+	} else if (event == ESP_BT_GAP_READ_REMOTE_NAME_EVT) {
+		const bool success = (param->read_rmt_name.stat == ESP_BT_STATUS_SUCCESS);
+		char resolvedName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+		if (success) {
+			strncpy(resolvedName, (char *) param->read_rmt_name.rmt_name, ESP_BT_GAP_MAX_BDNAME_LEN);
+			resolvedName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+
+			// Keep scan results up to date as before.
+			portENTER_CRITICAL_ISR(&scannedDevicesMux);
+			for (auto &d : scannedDevices) {
+				if (memcmp(d.address, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+					if (!isFriendlyPeerName(d.name) && isFriendlyPeerName(resolvedName)) {
+						strncpy(d.name, resolvedName, ESP_BT_GAP_MAX_BDNAME_LEN);
+						d.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+					}
+					break;
 				}
-				break;
 			}
+			portEXIT_CRITICAL_ISR(&scannedDevicesMux);
 		}
-		portEXIT_CRITICAL_ISR(&scannedDevicesMux);
+
+		// Complete a targeted lookup only when the result belongs to exactly the
+		// peer we requested. This is independent from configured btDeviceName.
+		bool completesPeerLookup = false;
+		portENTER_CRITICAL_ISR(&peerNameLookupMux);
+		if (peerNameLookupPending
+			&& memcmp(peerNameLookupAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+			memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
+			peerNameLookupPending = false;
+			completesPeerLookup = true;
+		}
+		portEXIT_CRITICAL_ISR(&peerNameLookupMux);
+
+		if (completesPeerLookup && success && isFriendlyPeerName(resolvedName)) {
+			// Cache only if that exact address is still the connected peer.
+			portENTER_CRITICAL_ISR(&cachedPeerAddressMux);
+			if (bluetoothSourceConnected
+				&& memcmp(cachedPeerAddress, param->read_rmt_name.bda, ESP_BD_ADDR_LEN) == 0) {
+				strncpy(cachedPeerName, resolvedName, ESP_BT_GAP_MAX_BDNAME_LEN);
+				cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+			}
+			portEXIT_CRITICAL_ISR(&cachedPeerAddressMux);
+		}
+
+		if (completesPeerLookup) {
+			Bluetooth_RestoreLibraryCallback();
+		}
 
 	} else if (event == ESP_BT_GAP_DISC_STATE_CHANGED_EVT) {
 		if (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED) {
-			// Inquiry stopped naturally — clear our flag and restore the library
-			// callback BEFORE calling ccall_app_gap_callback so the library sees
-			// itself as the registered handler again.
+			// Inquiry stopped naturally. Release the scan's need for the interceptor;
+			// a targeted peer-name lookup may intentionally keep it installed.
 			scanInProgress = false;
 			Bluetooth_RestoreLibraryCallback();
 			Log_Println("Bluetooth => Device discovery stopped (natural).", LOGLEVEL_NOTICE);
@@ -201,19 +325,71 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 		}
 	}
 
-	// Always forward to the library's own handler to keep its internal state consistent.
-	// Note: after Bluetooth_RestoreLibraryCallback() the library IS the registered
-	// callback again, but we still call it directly here for this final event.
+	// Always forward to the library's own handler to keep its internal state
+	// consistent, regardless of whether our interceptor remains installed.
 	ccall_app_gap_callback(event, param);
 }
 
-// Restores the library callback and clears our interceptor-registered flag.
-// Safe to call multiple times (idempotent).
+// Restores the library callback when neither a manual discovery scan nor a
+// targeted peer-name lookup still needs our interceptor. Safe to call multiple
+// times (idempotent).
 static void Bluetooth_RestoreLibraryCallback() {
-	if (interceptorRegistered) {
-		interceptorRegistered = false;
+	if (scanInProgress || peerNameLookupPending) {
+		return;
+	}
+
+	if (interceptorRegistered.exchange(false)) {
 		esp_bt_gap_register_callback(ccall_app_gap_callback);
 	}
+}
+
+// Resolve the friendly name for one exact connected MAC. Unlike the HTTP status
+// getter this runs only as part of the Bluetooth connection lifecycle.
+static void Bluetooth_RequestPeerName(const esp_bd_addr_t address) {
+	if (!isValidBdAddr(address)) {
+		return;
+	}
+
+	bool startLookup = false;
+	portENTER_CRITICAL(&peerNameLookupMux);
+	if (!peerNameLookupPending) {
+		memcpy(peerNameLookupAddress, address, ESP_BD_ADDR_LEN);
+		peerNameLookupPending = true;
+		startLookup = true;
+	}
+	portEXIT_CRITICAL(&peerNameLookupMux);
+
+	if (!startLookup) {
+		return;
+	}
+
+	if (!interceptorRegistered.exchange(true)) {
+		const esp_err_t callbackErr = esp_bt_gap_register_callback(gap_callback_interceptor);
+		if (callbackErr != ESP_OK) {
+			Log_Printf(LOGLEVEL_NOTICE, "Bluetooth => failed to install GAP interceptor for remote name: %s", esp_err_to_name(callbackErr));
+			Bluetooth_CancelPeerNameLookup();
+			return;
+		}
+	}
+
+	// ESP-IDF declares esp_bt_gap_read_remote_name() with a mutable
+	// esp_bd_addr_t parameter. Keep this helper const-correct and pass a
+	// local copy to the IDF API instead of casting away constness.
+	esp_bd_addr_t remoteAddress = {0};
+	memcpy(remoteAddress, address, ESP_BD_ADDR_LEN);
+	const esp_err_t err = esp_bt_gap_read_remote_name(remoteAddress);
+	if (err != ESP_OK) {
+		Log_Printf(LOGLEVEL_NOTICE, "Bluetooth => remote-name request failed: %s", esp_err_to_name(err));
+		Bluetooth_CancelPeerNameLookup();
+	}
+}
+
+static void Bluetooth_CancelPeerNameLookup() {
+	portENTER_CRITICAL(&peerNameLookupMux);
+	memset(peerNameLookupAddress, 0, ESP_BD_ADDR_LEN);
+	peerNameLookupPending = false;
+	portEXIT_CRITICAL(&peerNameLookupMux);
+	Bluetooth_RestoreLibraryCallback();
 }
 #endif
 
@@ -225,63 +401,129 @@ void connection_state_changed(esp_a2d_connection_state_t state, void *ptr) {
 		gPlayProperties.pausePlay = false;
 		gPlayProperties.playlistFinished = true;
 	} else if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		// CONNECTING/DISCONNECTING are transient states. Treating them as a real
+		// disconnect would clear peer identity and schedule retries while the stack
+		// is still completing the current operation.
+		if (state != ESP_A2D_CONNECTION_STATE_CONNECTED && state != ESP_A2D_CONNECTION_STATE_DISCONNECTED) {
+			return;
+		}
+
 		const bool connected = (state == ESP_A2D_CONNECTION_STATE_CONNECTED);
 		const bool wasConnected = bluetoothSourceConnected;
 
 		if (!connected && wasConnected) {
 			Bluetooth_Source_FlushRingbuffer();
 		}
-		bluetoothSourceConnected = connected;
 
 		if (connected) {
 			AudioPlayer_SetupVolumeAndAmps();
-			// Cache the peer address NOW while the library state is guaranteed valid.
-			// get_last_peer_address() can return all-zeros if called later (e.g. from
-			// Bluetooth_StartScan or Bluetooth_GetScannedDevices) at a moment when the
-			// library's internal peer-address field hasn't settled yet.
+
+			// connect_to(address) does not reliably update ESP32-A2DP's
+			// get_last_peer_address(). Prefer the exact target selected by ESPuino;
+			// fall back to the library address for reconnect paths where no target
+			// was selected by us.
+			esp_bd_addr_t peerAddress = {0};
+			esp_bd_addr_t targetAddress = {0};
+			char targetName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+			const bool hasTarget = Bluetooth_GetConnectionTarget(targetAddress, targetName, sizeof(targetName));
+			if (hasTarget) {
+				memcpy(peerAddress, targetAddress, ESP_BD_ADDR_LEN);
+			} else {
+				memcpy(peerAddress, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+			}
+
 			portENTER_CRITICAL(&cachedPeerAddressMux);
-			memcpy(cachedPeerAddress, a2dp_source->get_last_peer_address(), ESP_BD_ADDR_LEN);
+			memcpy(cachedPeerAddress, peerAddress, ESP_BD_ADDR_LEN);
+			cachedPeerName[0] = '\0';
+			if (hasTarget && memcmp(targetAddress, peerAddress, ESP_BD_ADDR_LEN) == 0 && isFriendlyPeerName(targetName)) {
+				strncpy(cachedPeerName, targetName, ESP_BT_GAP_MAX_BDNAME_LEN);
+				cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+			}
+			bluetoothSourceConnected = true;
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
-			Log_Printf(LOGLEVEL_INFO, "Bluetooth => connected, cached peer: %02X:%02X:%02X:%02X:%02X:%02X",
-				cachedPeerAddress[0], cachedPeerAddress[1], cachedPeerAddress[2],
-				cachedPeerAddress[3], cachedPeerAddress[4], cachedPeerAddress[5]);
-			// Connection succeeded — clear retry and manual-connect state
+
+			if (isValidBdAddr(peerAddress)) {
+				Log_Printf(LOGLEVEL_INFO, "Bluetooth => connected, cached peer: %02X:%02X:%02X:%02X:%02X:%02X",
+					peerAddress[0], peerAddress[1], peerAddress[2],
+					peerAddress[3], peerAddress[4], peerAddress[5]);
+			} else {
+				Log_Println("Bluetooth => connected, but peer address is unavailable", LOGLEVEL_NOTICE);
+			}
+
+			// Connection succeeded — clear retry/manual target state.
 			manualConnectPending = false;
+			manualDisconnectPending = false;
 			connectRetryPending = false;
 			connectRetryCount = 0;
-			Bluetooth_StopScan();
+			Bluetooth_ClearConnectionTarget();
+
+			// The A2DP library can keep its own GAP inquiry running during auto-reconnect.
+			// Stop discovery as soon as the source is connected so inquiry traffic does
+			// not compete with the newly started audio stream. Manual web scans still
+			// use Bluetooth_StopScan() so their UI/callback state is cleaned up as before.
+			if (scanInProgress) {
+				Bluetooth_StopScan();
+			} else {
+				const esp_err_t cancelResult = esp_bt_gap_cancel_discovery();
+				if (cancelResult == ESP_OK) {
+					Log_Println("Bluetooth => Device discovery stopped after connect.", LOGLEVEL_NOTICE);
+				} else if (cancelResult != ESP_ERR_INVALID_STATE) {
+					Log_Printf(LOGLEVEL_NOTICE, "Bluetooth => failed to stop discovery after connect: %s", esp_err_to_name(cancelResult));
+				}
+			}
+
+			// If discovery/selection did not already give us a trustworthy friendly
+			// name, resolve it once from this exact connected MAC. The result is
+			// cached asynchronously and will appear on the next status poll.
+			if (!(hasTarget && isFriendlyPeerName(targetName)) && isValidBdAddr(peerAddress)) {
+				Bluetooth_RequestPeerName(peerAddress);
+			}
 		} else {
-			// Clear the cached peer address on disconnect so stale data is never used.
+			// A lookup for a peer that is no longer connected must not survive into
+			// the next connection and accidentally populate its name.
+			Bluetooth_CancelPeerNameLookup();
+
+			// Publish disconnect + cleared peer data atomically to status readers.
 			portENTER_CRITICAL(&cachedPeerAddressMux);
+			bluetoothSourceConnected = false;
 			memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
+			cachedPeerName[0] = '\0';
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
-			// If this was a manual connect attempt that failed, schedule a retry.
-			// Do NOT call AudioPlayer_SetupVolumeAndAmps() here: the library's own
-			// auto-reconnect (set_auto_reconnect(true)) fires Connecting→Disconnected
-			// repeatedly every ~5 s while searching for the device, so calling
-			// SetupVolumeAndAmps() on each transient disconnect spams the log and
-			// needlessly toggles the speaker/amp on every cycle.
-			// Only restore the amp once we have truly given up all retries, or when
-			// the device was previously connected and has now genuinely dropped.
-			if (manualConnectPending && connectRetryCount < CONNECT_MAX_RETRIES) {
-				connectRetryPending = true;
-				connectRetryTimestamp = millis();
-				connectRetryCount++;
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth => connection failed, retry %u/%u in %u ms",
-					connectRetryCount, CONNECT_MAX_RETRIES, CONNECT_RETRY_DELAY_MS);
+
+			// Disconnecting the old peer before a user-selected device is expected
+			// and must not be counted as a failed connection attempt. The queued
+			// request will start its initial connect from Bluetooth_Cyclic().
+			if (manualDisconnectPending.exchange(false)) {
+				connectRetryPending = false;
+				connectRetryCount = 0;
+				Bluetooth_ClearConnectionTarget();
+				Log_Println("Bluetooth => current device disconnected, manual connection remains queued", LOGLEVEL_INFO);
+			} else if (manualConnectPending && connectRetryCount < CONNECT_MAX_RETRIES) {
+				// Count retries when connect_to() is actually issued, not when the
+				// preceding attempt fails. This keeps CONNECT_MAX_RETRIES equal to the
+				// number of real retry attempts. Ignore duplicate disconnect callbacks
+				// while the same retry is already pending.
+				if (!connectRetryPending) {
+					connectRetryPending = true;
+					connectRetryTimestamp = millis();
+					Log_Printf(LOGLEVEL_INFO, "Bluetooth => connection failed, retry %u/%u in %u ms",
+						connectRetryCount + 1, CONNECT_MAX_RETRIES, CONNECT_RETRY_DELAY_MS);
+				}
 			} else if (manualConnectPending && connectRetryCount >= CONNECT_MAX_RETRIES) {
 				Log_Println("Bluetooth => all connection retries exhausted, giving up", LOGLEVEL_NOTICE);
 				manualConnectPending = false;
 				connectRetryPending = false;
 				connectRetryCount = 0;
-				// Retries exhausted — now it is appropriate to restore the amp
+				Bluetooth_ClearConnectionTarget();
 				AudioPlayer_SetupVolumeAndAmps();
-			} else if (wasConnected) {
-				// Device was genuinely connected and has now dropped — restore amp
-				AudioPlayer_SetupVolumeAndAmps();
+			} else {
+				// A non-manual attempt either failed or a real connection dropped.
+				// Do not leave a stale auto-connect target behind for a future peer.
+				Bluetooth_ClearConnectionTarget();
+				if (wasConnected) {
+					AudioPlayer_SetupVolumeAndAmps();
+				}
 			}
-			// else: library auto-reconnect cycle (wasConnected==false, no manual
-			// connect pending) — do nothing, avoid spam
 		}
 	}
 }
@@ -430,24 +672,31 @@ void rssi(esp_bt_gap_cb_param_t::read_rssi_delta_param &rssiParam) {
 // Returns true to auto-connect, false to keep scanning.
 // Suppressed while a manual scan or manual connect is in progress.
 bool scan_bluetooth_device_callback(const char *ssid, esp_bd_addr_t address, int rssi) {
-	if (scanInProgress || manualConnectPending) {
+	if (scanInProgress || pendingConnect || manualConnectPending) {
 		return false;
 	}
 
 	Log_Printf(LOGLEVEL_INFO, "Bluetooth source => Device found: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
 		ssid, address[0], address[1], address[2], address[3], address[4], address[5]);
 
+	bool shouldConnect = false;
 	if (btDeviceName == "") {
-		return true;
+		shouldConnect = true;
 	} else {
 		esp_bd_addr_t addr;
 		if (sscanf(btDeviceName.c_str(), "%hhX:%hhX:%hhX:%hhX:%hhX:%hhX", &addr[0], &addr[1], &addr[2], &addr[3], &addr[4], &addr[5]) == 6) {
-			if (memcmp(address, addr, ESP_BD_ADDR_LEN) == 0) {
-				return true;
-			}
+			shouldConnect = (memcmp(address, addr, ESP_BD_ADDR_LEN) == 0);
+		} else {
+			shouldConnect = (ssid != nullptr && startsWith(ssid, btDeviceName.c_str()));
 		}
-		return (ssid != nullptr && startsWith(ssid, btDeviceName.c_str()));
 	}
+
+	if (shouldConnect) {
+		// Bind the exact address (and name, if available) to the upcoming
+		// connection. This is more reliable than consulting last_peer_address later.
+		Bluetooth_SetConnectionTarget(address, ssid);
+	}
+	return shouldConnect;
 }
 #endif
 
@@ -489,16 +738,25 @@ void Bluetooth_StartScan() {
 	// Use cachedPeerAddress (set in connection_state_changed) rather than
 	// get_last_peer_address() which can return all-zeros at this point.
 	ScannedBluetoothDevice connectedDev;
-	bool wasConnected = bluetoothSourceConnected;
+	char connectedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+	bool wasConnected = false;
+	portENTER_CRITICAL(&cachedPeerAddressMux);
+	wasConnected = bluetoothSourceConnected;
 	if (wasConnected) {
-		portENTER_CRITICAL(&cachedPeerAddressMux);
 		memcpy(connectedDev.address, cachedPeerAddress, ESP_BD_ADDR_LEN);
-		portEXIT_CRITICAL(&cachedPeerAddressMux);
+		strncpy(connectedPeerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		connectedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+	}
+	portEXIT_CRITICAL(&cachedPeerAddressMux);
+	if (wasConnected) {
 		if (!isValidBdAddr(connectedDev.address)) {
 			Log_Println("Bluetooth_StartScan => WARNING: connected but cachedPeerAddress is all-zeros, skipping pre-population", LOGLEVEL_NOTICE);
 			wasConnected = false; // treat as not connected to avoid inserting a zero-address entry
 		} else {
-			strncpy(connectedDev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+			// Never use btDeviceName blindly here: it may contain the configured
+			// target MAC address, which must not be presented as a friendly name.
+			const char *displayName = connectedPeerName[0] != '\0' ? connectedPeerName : "Connected Device";
+			strncpy(connectedDev.name, displayName, ESP_BT_GAP_MAX_BDNAME_LEN);
 			connectedDev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			connectedDev.rssi = 0;
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth_StartScan => pre-populating connected device: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
@@ -515,10 +773,21 @@ void Bluetooth_StartScan() {
 	}
 	portEXIT_CRITICAL(&scannedDevicesMux);
 
-	interceptorRegistered = true;
-	esp_bt_gap_register_callback(gap_callback_interceptor);
-
+	// Publish the scan state before touching callback ownership. If a targeted
+	// remote-name result completes concurrently, it must see that the scan still
+	// needs the interceptor and therefore must not restore the library callback.
 	scanInProgress = true;
+	if (!interceptorRegistered.exchange(true)) {
+		const esp_err_t callbackErr = esp_bt_gap_register_callback(gap_callback_interceptor);
+		if (callbackErr != ESP_OK) {
+			interceptorRegistered = false;
+			scanInProgress = false;
+			Log_Printf(LOGLEVEL_ERROR, "Bluetooth => failed to install GAP interceptor: %s", esp_err_to_name(callbackErr));
+			Web_SendWebsocketData(0, WebsocketCodeType::BluetoothScanComplete);
+			return;
+		}
+	}
+
 	scanStartTimestamp = millis();
 
 	Log_Println("Bluetooth => Starting device discovery...", LOGLEVEL_NOTICE);
@@ -563,27 +832,34 @@ void Bluetooth_ConnectToAddress(esp_bd_addr_t address) {
 		return;
 	}
 
-	// Update stored device name from scan results if available
+	// Capture the friendly name for this exact address while it is still present
+	// in the scan snapshot. Do not use the persisted btDeviceName as peer identity.
+	char selectedName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 	portENTER_CRITICAL(&scannedDevicesMux);
 	for (const auto &d : scannedDevices) {
 		if (memcmp(d.address, address, ESP_BD_ADDR_LEN) == 0) {
-			if (strcmp(d.name, "Unknown") != 0 && strcmp(d.name, "Connected Device") != 0) {
-				btDeviceName = d.name;
-				gPrefsSettings.putString("btDeviceName", btDeviceName);
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth => set preferred device name: %s", btDeviceName.c_str());
+			if (isFriendlyPeerName(d.name)) {
+				strncpy(selectedName, d.name, ESP_BT_GAP_MAX_BDNAME_LEN);
+				selectedName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 			}
 			break;
 		}
 	}
 	portEXIT_CRITICAL(&scannedDevicesMux);
 
-	// Reset retry state for this fresh manual connect request
-	connectRetryCount = 0;
-	connectRetryPending = false;
+	if (selectedName[0] != '\0') {
+		btDeviceName = selectedName;
+		gPrefsSettings.putString("btDeviceName", btDeviceName);
+		Log_Printf(LOGLEVEL_INFO, "Bluetooth => set preferred device name: %s", btDeviceName.c_str());
+	}
 
+	// Queue address + name together. Retry/connection state is changed only by
+	// Bluetooth_Cyclic() and the Bluetooth callback, not from the web-server task.
+	// The connection target becomes active only when the attempt actually starts.
 	portENTER_CRITICAL(&pendingConnectMux);
 	memcpy(pendingConnectAddress, address, ESP_BD_ADDR_LEN);
-	manualConnectPending = true;
+	strncpy(pendingConnectName, selectedName, ESP_BT_GAP_MAX_BDNAME_LEN);
+	pendingConnectName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 	pendingConnect = true;
 	portEXIT_CRITICAL(&pendingConnectMux);
 }
@@ -594,15 +870,22 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 	// it is always consistent.  Callers must NOT hold scannedDevicesMux when
 	// calling this function.
 
-	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE && bluetoothSourceConnected) {
-		esp_bd_addr_t currentAddr;
+	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+		bool connected = false;
+		esp_bd_addr_t currentAddr = {0};
+		char currentPeerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 		portENTER_CRITICAL(&cachedPeerAddressMux);
-		memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		connected = bluetoothSourceConnected;
+		if (connected) {
+			memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
+			strncpy(currentPeerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+			currentPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+		}
 		portEXIT_CRITICAL(&cachedPeerAddressMux);
 
-		if (!isValidBdAddr(currentAddr)) {
+		if (connected && !isValidBdAddr(currentAddr)) {
 			Log_Println("Bluetooth_GetScannedDevices => WARNING: bluetoothSourceConnected=true but cachedPeerAddress is all-zeros", LOGLEVEL_NOTICE);
-		} else {
+		} else if (connected) {
 			// Inject / promote the connected device under the spinlock so the
 			// snapshot below always includes it at position 0.
 			portENTER_CRITICAL(&scannedDevicesMux);
@@ -613,18 +896,34 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 			if (it == scannedDevices.end()) {
 				ScannedBluetoothDevice dev;
 				memcpy(dev.address, currentAddr, ESP_BD_ADDR_LEN);
-				strncpy(dev.name, btDeviceName.length() > 0 ? btDeviceName.c_str() : "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+				const char *displayName = currentPeerName[0] != '\0' ? currentPeerName : "Connected Device";
+				strncpy(dev.name, displayName, ESP_BT_GAP_MAX_BDNAME_LEN);
 				dev.name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 				dev.rssi = 0;
 				scannedDevices.insert(scannedDevices.begin(), dev);
 				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => injected connected device at top: %s (%02X:%02X:%02X:%02X:%02X:%02X)",
 					dev.name, currentAddr[0], currentAddr[1], currentAddr[2],
 					currentAddr[3], currentAddr[4], currentAddr[5]);
-			} else if (it != scannedDevices.begin()) {
-				ScannedBluetoothDevice dev = *it;
-				scannedDevices.erase(it);
-				scannedDevices.insert(scannedDevices.begin(), dev);
-				Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => moved connected device to top: %s", dev.name);
+			} else {
+				// Repair stale placeholder/MAC-as-name entries from a previous
+				// connection before returning them to the UI.
+				if (currentPeerName[0] != '\0'
+					&& (strcmp(it->name, "Unknown") == 0
+						|| strcmp(it->name, "Connected Device") == 0
+						|| isMacAddressString(it->name))) {
+					strncpy(it->name, currentPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+					it->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				} else if (isMacAddressString(it->name)) {
+					strncpy(it->name, "Connected Device", ESP_BT_GAP_MAX_BDNAME_LEN);
+					it->name[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				}
+
+				if (it != scannedDevices.begin()) {
+					ScannedBluetoothDevice dev = *it;
+					scannedDevices.erase(it);
+					scannedDevices.insert(scannedDevices.begin(), dev);
+					Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => moved connected device to top: %s", dev.name);
+				}
 			}
 			portEXIT_CRITICAL(&scannedDevicesMux);
 		}
@@ -639,11 +938,75 @@ std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices() {
 	Log_Printf(LOGLEVEL_INFO, "Bluetooth_GetScannedDevices => returning %u device(s)", snapshot.size());
 	return snapshot;
 }
+
+bool Bluetooth_GetConnectedSourceInfo(String &name, String &address) {
+	name = "";
+	address = "";
+
+	if (System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) {
+		return false;
+	}
+
+	// Take connection state, address and cached name in one critical section.
+	// Everything below is read-only; this getter never changes GAP callbacks,
+	// starts lookups or reads/writes Bluetooth preferences.
+	bool connected = false;
+	esp_bd_addr_t peerAddress = {0};
+	char peerName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+	portENTER_CRITICAL(&cachedPeerAddressMux);
+	connected = bluetoothSourceConnected;
+	if (connected) {
+		memcpy(peerAddress, cachedPeerAddress, ESP_BD_ADDR_LEN);
+		strncpy(peerName, cachedPeerName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		peerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+	}
+	portEXIT_CRITICAL(&cachedPeerAddressMux);
+
+	if (!connected) {
+		return false;
+	}
+
+	if (isValidBdAddr(peerAddress)) {
+		char addrStr[18];
+		snprintf(addrStr, sizeof(addrStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+			peerAddress[0], peerAddress[1], peerAddress[2],
+			peerAddress[3], peerAddress[4], peerAddress[5]);
+		address = addrStr;
+	}
+
+	if (isFriendlyPeerName(peerName)) {
+		name = peerName;
+	} else if (isValidBdAddr(peerAddress)) {
+		// A scan may have learned the name after the connection snapshot was
+		// created. Only accept a name associated with this exact MAC address.
+		char scannedName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
+		portENTER_CRITICAL(&scannedDevicesMux);
+		for (const auto &d : scannedDevices) {
+			if (memcmp(d.address, peerAddress, ESP_BD_ADDR_LEN) == 0 && isFriendlyPeerName(d.name)) {
+				strncpy(scannedName, d.name, ESP_BT_GAP_MAX_BDNAME_LEN);
+				scannedName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				break;
+			}
+		}
+		portEXIT_CRITICAL(&scannedDevicesMux);
+		if (scannedName[0] != '\0') {
+			name = scannedName;
+		}
+	}
+
+	return true;
+}
 #endif
 
 void Bluetooth_Init(void) {
 #ifdef BLUETOOTH_ENABLE
+	portENTER_CRITICAL(&cachedPeerAddressMux);
 	bluetoothSourceConnected = false;
+	memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
+	cachedPeerName[0] = '\0';
+	portEXIT_CRITICAL(&cachedPeerAddressMux);
+	Bluetooth_ClearConnectionTarget();
+	Bluetooth_CancelPeerNameLookup();
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
 		a2dp_sink = new BluetoothA2DPSink();
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
@@ -706,7 +1069,7 @@ void Bluetooth_Init(void) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "connect to first device found" : btDeviceName.c_str());
 		a2dp_source->set_on_connection_state_changed(connection_state_changed, a2dp_source);
 		a2dp_source->set_on_audio_state_changed(audio_state_changed, a2dp_source);
-		a2dp_source->set_volume(127);
+		Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume());
 	} else {
 		esp_bt_mem_release(ESP_BT_MODE_BTDM);
 	}
@@ -724,7 +1087,17 @@ void Bluetooth_Exit(void) {
 			Log_Println("shutdown Bluetooth source..", LOGLEVEL_NOTICE);
 			a2dp_source = nullptr; // abandon, do NOT delete or call end()
 		}
+		portENTER_CRITICAL(&cachedPeerAddressMux);
 		bluetoothSourceConnected = false;
+		memset(cachedPeerAddress, 0, ESP_BD_ADDR_LEN);
+		cachedPeerName[0] = '\0';
+		portEXIT_CRITICAL(&cachedPeerAddressMux);
+		manualConnectPending = false;
+		manualDisconnectPending = false;
+		connectRetryPending = false;
+		connectRetryCount = 0;
+		Bluetooth_ClearConnectionTarget();
+		Bluetooth_CancelPeerNameLookup();
 	}
 #endif
 }
@@ -733,44 +1106,79 @@ void Bluetooth_Cyclic(void) {
 #ifdef BLUETOOTH_ENABLE
 	// ── Handle pending manual connect (deferred from Bluetooth_ConnectToAddress) ──
 	bool doConnect = false;
-	esp_bd_addr_t connectAddress;
+	esp_bd_addr_t connectAddress = {0};
+	char connectName[ESP_BT_GAP_MAX_BDNAME_LEN + 1] = {0};
 
 	portENTER_CRITICAL(&pendingConnectMux);
-	if (pendingConnect) {
+	if (pendingConnect && !manualDisconnectPending) {
 		doConnect = true;
 		memcpy(connectAddress, pendingConnectAddress, ESP_BD_ADDR_LEN);
+		strncpy(connectName, pendingConnectName, ESP_BT_GAP_MAX_BDNAME_LEN);
+		connectName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
 		memset(pendingConnectAddress, 0, ESP_BD_ADDR_LEN);
+		pendingConnectName[0] = '\0';
 		pendingConnect = false;
 	}
 	portEXIT_CRITICAL(&pendingConnectMux);
 
 	if (doConnect) {
-		// Stop any ongoing scan first so inquiry doesn't compete with paging
+		// A newly queued request supersedes any previous manual attempt. Keep these
+		// state transitions in the main Bluetooth cycle instead of the web task.
+		connectRetryPending = false;
+		connectRetryCount = 0;
+		manualConnectPending = false;
+		Bluetooth_ClearConnectionTarget();
+
+		// Stop any ongoing scan first so inquiry doesn't compete with paging.
 		if (scanInProgress) {
 			Bluetooth_StopScan();
 		}
+
 		if (a2dp_source->is_connected()) {
-			esp_bd_addr_t currentAddr;
+			esp_bd_addr_t currentAddr = {0};
 			portENTER_CRITICAL(&cachedPeerAddressMux);
 			memcpy(currentAddr, cachedPeerAddress, ESP_BD_ADDR_LEN);
 			portEXIT_CRITICAL(&cachedPeerAddressMux);
-			if (memcmp(connectAddress, currentAddr, ESP_BD_ADDR_LEN) != 0) {
-				Log_Println("Bluetooth => disconnecting current device before new connection", LOGLEVEL_INFO);
-				a2dp_source->disconnect();
-				// ── FIX: don't block the main loop with vTaskDelay here ───────
-				// Store address for retry and let the disconnect callback (which
-				// sets bluetoothSourceConnected=false) naturally trigger the retry
-				// path via connectRetryPending below.
-				memcpy(connectRetryAddress, connectAddress, ESP_BD_ADDR_LEN);
-				connectRetryPending = true;
-				connectRetryTimestamp = millis() + 400; // short settle time after disconnect
+
+			if (isValidBdAddr(currentAddr) && memcmp(connectAddress, currentAddr, ESP_BD_ADDR_LEN) == 0) {
+				Log_Println("Bluetooth => requested device is already connected", LOGLEVEL_INFO);
+				// Refresh the cached friendly name if the scan learned one later.
+				if (isFriendlyPeerName(connectName)) {
+					portENTER_CRITICAL(&cachedPeerAddressMux);
+					strncpy(cachedPeerName, connectName, ESP_BT_GAP_MAX_BDNAME_LEN);
+					cachedPeerName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+					portEXIT_CRITICAL(&cachedPeerAddressMux);
+				}
+				manualConnectPending = false;
+				connectRetryPending = false;
 				connectRetryCount = 0;
-				doConnect = false; // skip the immediate connect_to below
+				Bluetooth_ClearConnectionTarget();
+				doConnect = false;
+			} else {
+				Log_Println("Bluetooth => disconnecting current device before new connection", LOGLEVEL_INFO);
+
+				// Keep the user request queued while the old peer disconnects. Do not
+				// mark the new connection as started yet: the resulting DISCONNECTED
+				// event belongs to the old peer and must not consume a retry.
+				portENTER_CRITICAL(&pendingConnectMux);
+				memcpy(pendingConnectAddress, connectAddress, ESP_BD_ADDR_LEN);
+				strncpy(pendingConnectName, connectName, ESP_BT_GAP_MAX_BDNAME_LEN);
+				pendingConnectName[ESP_BT_GAP_MAX_BDNAME_LEN] = '\0';
+				pendingConnect = true;
+				portEXIT_CRITICAL(&pendingConnectMux);
+
+				manualDisconnectPending = true;
+				a2dp_source->disconnect();
+				doConnect = false;
 			}
 		}
+
 		if (doConnect) {
+			manualDisconnectPending = false;
+			manualConnectPending = true;
 			memcpy(connectRetryAddress, connectAddress, ESP_BD_ADDR_LEN);
 			connectRetryCount = 0;
+			Bluetooth_SetConnectionTarget(connectAddress, connectName);
 			Log_Printf(LOGLEVEL_INFO, "Bluetooth => connecting to %02X:%02X:%02X:%02X:%02X:%02X",
 				connectAddress[0], connectAddress[1], connectAddress[2],
 				connectAddress[3], connectAddress[4], connectAddress[5]);
@@ -778,7 +1186,7 @@ void Bluetooth_Cyclic(void) {
 		}
 	}
 
-	// ── Handle connection retries ─────────────────────────────────────────────
+	// ── Handle connection retries ────────────────────────────────────────────
 	if (connectRetryPending && !bluetoothSourceConnected) {
 		if (millis() - connectRetryTimestamp >= CONNECT_RETRY_DELAY_MS) {
 			connectRetryPending = false;
@@ -794,6 +1202,7 @@ void Bluetooth_Cyclic(void) {
 				Log_Println("Bluetooth => all retries exhausted", LOGLEVEL_NOTICE);
 				manualConnectPending = false;
 				connectRetryCount = 0;
+				Bluetooth_ClearConnectionTarget();
 			}
 		}
 	}
@@ -851,17 +1260,20 @@ void Bluetooth_PreviousTrack(void) {
 
 void Bluetooth_SetVolume(const int32_t _newVolume) {
 #ifdef BLUETOOTH_ENABLE
-	if (!a2dp_sink) {
-		return;
-	}
 	if (_newVolume < int32_t(AUDIOPLAYER_VOLUME_MIN)) {
 		return;
 	} else if (_newVolume > AUDIOPLAYER_VOLUME_MAX) {
 		return;
 	} else {
-		uint8_t _volume = mapRounded(_newVolume, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX);
-		a2dp_sink->set_volume(_volume);
-		Bluetooth_VolumeChanged(_volume);
+		const uint8_t volume = mapRounded(_newVolume, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX);
+		if (a2dp_sink) {
+			a2dp_sink->set_volume(volume);
+			Bluetooth_VolumeChanged(volume);
+		} else if (a2dp_source) {
+			// Source mode bypasses AudioPlayer::Gain(), so the A2DP library
+			// must scale the outgoing raw PCM itself.
+			a2dp_source->set_volume(volume);
+		}
 	}
 #endif
 }
@@ -872,11 +1284,15 @@ uint8_t Bluetooth_GetCurrentVolume() {
 		auto current_volume = a2dp_sink->get_volume();
 		return mapRounded(current_volume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
 	}
+	if (a2dp_source) {
+		auto current_volume = a2dp_source->get_volume();
+		return mapRounded(current_volume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
+	}
 #endif
 	return 0;
 }
 
-bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples) {
+bool Bluetooth_Source_SendAudioData(const int16_t *outBuff, int16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		if (audioSourceRingBuffer == nullptr) {

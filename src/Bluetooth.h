@@ -30,11 +30,12 @@ void Bluetooth_PreviousTrack(void);
 void Bluetooth_SetVolume(const int32_t _newVolume);
 uint8_t Bluetooth_GetCurrentVolume();
 
-bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples);
+bool Bluetooth_Source_SendAudioData(const int16_t *outBuff, int16_t validSamples);
 bool Bluetooth_Device_Connected();
 
 #ifdef BLUETOOTH_ENABLE
 void Bluetooth_StartScan();
 void Bluetooth_ConnectToAddress(esp_bd_addr_t address);
 std::vector<ScannedBluetoothDevice> Bluetooth_GetScannedDevices();
+bool Bluetooth_GetConnectedSourceInfo(String &name, String &address);
 #endif

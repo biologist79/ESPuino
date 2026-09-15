@@ -483,7 +483,9 @@
 			"save": "Gerät speichern",
 			"inProgress": "Suche nach Geräten...",
 			"noDevices": "Keine Bluetooth-Geräte gefunden",
-			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus."
+			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus.",
+			"unknownDevice": "Unbekanntes Gerät",
+			"connecting": "Verbinde mit {{device}}..."
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
@@ -499,6 +501,17 @@
 			"title": "Wechsel zu WiFi-Modus",
 			"prompt": "Der aktuelle Modus unterstützt keine Steuerung über die Webseite. Möchtest du zum WiFi-Modus wechseln, um die Steuerung über die Webseite zu ermöglichen? Das Gerät wird dabei neu gestartet.",
 			"button": "Zum WiFi-Modus wechseln"
+		},
+		"mode": {
+			"title": "Bluetooth-Modus",
+			"off": "Aus",
+			"headphones": "Kopfhörer",
+			"speaker": "Lautsprecher",
+			"restartNotice": "Die Auswahl eines anderen Modus startet den ESPuino neu."
+		},
+		"connection": {
+			"connected": "Verbunden mit: {{device}}",
+			"disconnected": "Nicht verbunden"
 		}
 	},
 	"general": {

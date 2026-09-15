@@ -483,7 +483,9 @@
 			"save": "Save Device",
 			"inProgress": "Scanning for devices...",
 			"noDevices": "No Bluetooth devices found",
-			"notAllowed": "Bluetooth device scan not allowed in current mode. Please switch to Bluetooth headphone mode first."
+			"notAllowed": "Bluetooth device scan not allowed in current mode. Please switch to Bluetooth headphone mode first.",
+			"unknownDevice": "Unknown device",
+			"connecting": "Connecting to {{device}}..."
 		},
 		"device": {
 			"title": "Bluetooth device (headphone)",
@@ -499,6 +501,17 @@
 			"title": "Bluetooth Mode Active",
 			"prompt": "Control via website is restricted in Bluetooth mode. Would you like to switch back to WiFi mode and restart?",
 			"button": "Switch to WiFi Mode"
+		},
+		"mode": {
+			"title": "Bluetooth mode",
+			"off": "Off",
+			"headphones": "Headphones",
+			"speaker": "Speaker",
+			"restartNotice": "Selecting a different mode restarts ESPuino."
+		},
+		"connection": {
+			"connected": "Connected to: {{device}}",
+			"disconnected": "Not connected"
 		}
 	},
 	"general": {
