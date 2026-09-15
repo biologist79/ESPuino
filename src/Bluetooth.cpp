@@ -1069,7 +1069,7 @@ void Bluetooth_Init(void) {
 		Log_Printf(LOGLEVEL_INFO, "Bluetooth source started, connect to device: '%s'", (btDeviceName == "") ? "connect to first device found" : btDeviceName.c_str());
 		a2dp_source->set_on_connection_state_changed(connection_state_changed, a2dp_source);
 		a2dp_source->set_on_audio_state_changed(audio_state_changed, a2dp_source);
-		a2dp_source->set_volume(127);
+		Bluetooth_SetVolume(AudioPlayer_GetCurrentVolume());
 	} else {
 		esp_bt_mem_release(ESP_BT_MODE_BTDM);
 	}
@@ -1260,17 +1260,20 @@ void Bluetooth_PreviousTrack(void) {
 
 void Bluetooth_SetVolume(const int32_t _newVolume) {
 #ifdef BLUETOOTH_ENABLE
-	if (!a2dp_sink) {
-		return;
-	}
 	if (_newVolume < int32_t(AUDIOPLAYER_VOLUME_MIN)) {
 		return;
 	} else if (_newVolume > AUDIOPLAYER_VOLUME_MAX) {
 		return;
 	} else {
-		uint8_t _volume = mapRounded(_newVolume, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX);
-		a2dp_sink->set_volume(_volume);
-		Bluetooth_VolumeChanged(_volume);
+		const uint8_t volume = mapRounded(_newVolume, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX);
+		if (a2dp_sink) {
+			a2dp_sink->set_volume(volume);
+			Bluetooth_VolumeChanged(volume);
+		} else if (a2dp_source) {
+			// Source mode bypasses AudioPlayer::Gain(), so the A2DP library
+			// must scale the outgoing raw PCM itself.
+			a2dp_source->set_volume(volume);
+		}
 	}
 #endif
 }
@@ -1281,11 +1284,15 @@ uint8_t Bluetooth_GetCurrentVolume() {
 		auto current_volume = a2dp_sink->get_volume();
 		return mapRounded(current_volume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
 	}
+	if (a2dp_source) {
+		auto current_volume = a2dp_source->get_volume();
+		return mapRounded(current_volume, BLUETOOTH_A2DP_VOLUME_MIN, BLUETOOTH_A2DP_VOLUME_MAX, AUDIOPLAYER_VOLUME_MIN, AUDIOPLAYER_VOLUME_MAX);
+	}
 #endif
 	return 0;
 }
 
-bool Bluetooth_Source_SendAudioData(int16_t *outBuff, int16_t validSamples) {
+bool Bluetooth_Source_SendAudioData(const int16_t *outBuff, int16_t validSamples) {
 #ifdef BLUETOOTH_ENABLE
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && (a2dp_source) && bluetoothSourceConnected && (validSamples > 0)) {
 		if (audioSourceRingBuffer == nullptr) {

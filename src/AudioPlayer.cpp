@@ -1422,6 +1422,9 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
 		audio->setVolume(_volume);
+		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
+			Bluetooth_SetVolume(_volume);
+		}
 		Web_SendWebsocketData(0, WebsocketCodeType::Volume);
 #ifdef MQTT_ENABLE
 		publishMqtt(topicLoudness, static_cast<uint32_t>(_volume), false);
@@ -1868,8 +1871,9 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 #endif
 }
 
-// record audiodata or send via BT
-void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
+// Send raw decoded samples to Bluetooth before the local output processing
+// applies EQ, mono conversion, or the ESPuino volume curve.
+void audio_process_raw_samples(int32_t *outBuff, int16_t validSamples) {
 	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
 		// audioI2S provides signed 32-bit, left-aligned PCM; A2DP expects interleaved signed 16-bit PCM.
 		int16_t *outBuff16 = reinterpret_cast<int16_t *>(outBuff);
@@ -1879,6 +1883,14 @@ void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S
 		}
 
 		Bluetooth_Source_SendAudioData(outBuff16, validSamples);
+	}
+}
+
+// record audiodata or send via BT
+void audio_process_i2s(int32_t *outBuff, int16_t validSamples, bool *continueI2S) {
+	if ((System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) && Bluetooth_Device_Connected()) {
+		// Bluetooth already received the raw samples in audio_process_raw_samples().
+		// Do not write the locally processed copy to the physical I2S output.
 		*continueI2S = false;
 		return;
 	}
