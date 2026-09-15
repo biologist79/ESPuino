@@ -908,6 +908,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putUChar("numControl", ledObj["numControl"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putUChar("numIdleDots", ledObj["numIdleDots"].as<uint8_t>()) != 0);
 		success = success && (gPrefsSettings.putBool("offsetPause", ledObj["offsetPause"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putBool("ledRfidFlash", ledObj["rfidFlash"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueStart", ledObj["hueStart"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueEnd", ledObj["hueEnd"].as<int16_t>()) != 0);
 		success = success && (gPrefsSettings.putShort("hueAtmo", ledObj["hueAtmo"].as<int16_t>()) != 0);
@@ -1315,6 +1316,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		}
 		ledObj["numIdleDots"].set(gPrefsSettings.getUChar("numIdleDots", 4)); // NUM_LEDS_IDLE_DOTS
 		ledObj["offsetPause"].set(gPrefsSettings.getBool("offsetPause", false)); // OFFSET_PAUSE_LEDS
+		ledObj["rfidFlash"].set(gPrefsSettings.getBool("ledRfidFlash", false)); // LED_FLASH_ON_RFID
 		ledObj["hueStart"].set(gPrefsSettings.getShort("hueStart", 85)); // PROGRESS_HUE_START
 		ledObj["hueEnd"].set(gPrefsSettings.getShort("hueEnd", -1)); // PROGRESS_HUE_END
 		ledObj["hueAtmo"].set(gPrefsSettings.getShort("hueAtmo", 10)); // ATMO_HUE
@@ -1433,6 +1435,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ledSettings["numControl"].set(0u); // NUM_CONTROL_LEDS
 		ledSettings["numIdleDots"].set(4u); // NUM_LEDS_IDLE_DOTS
 		ledSettings["offsetPause"].set(false); // OFFSET_PAUSE_LEDS
+		ledSettings["rfidFlash"].set(false); // LED_FLASH_ON_RFID
 		ledSettings["hueStart"].set(85); // PROGRESS_HUE_START
 		ledSettings["hueEnd"].set(-1); // PROGRESS_HUE_END
 		ledSettings["hueAtmo"].set(10); // ATMO_HUE
