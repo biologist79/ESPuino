@@ -3,6 +3,7 @@
 
 #include "Battery.h"
 
+#include "AudioPlayer.h"
 #include "Led.h"
 #include "Log.h"
 #include "Mqtt.h"
@@ -12,6 +13,9 @@
 
 #ifdef BATTERY_MEASURE_ENABLE
 uint8_t batteryCheckInterval = s_batteryCheckInterval;
+// True once the spoken low-battery warning was issued for the current discharge; only consulted when
+// the user asked for a single announcement instead of one per measurement interval.
+static bool batteryWarnAnnounced = false;
 
 void Battery_Init(void) {
 	analogSetPinAttenuation(VOLTAGE_READ_PIN, inputAttenuation);
@@ -51,6 +55,23 @@ void Battery_Cyclic(void) {
 		if (Battery_IsLow()) {
 			Log_Println(batteryLowMsg, LOGLEVEL_ERROR);
 			Led_Indicate(LedIndicatorType::VoltageWarning);
+			// Spoken warning on top of the blinking LEDs: while a story is playing nobody looks at the
+			// ring, and children least of all. Off by default; the file is whatever the user points at.
+			if (gPrefsSettings.getBool("batWarnSound", false)) {
+				if (!batteryWarnAnnounced || !gPrefsSettings.getBool("batWarnOnce", false)) {
+					const String warnFile = gPrefsSettings.getString("batWarnFile", "");
+					// Only count it as announced when it actually played. A paused or idle player is a bad
+					// moment, not a job done -- marking it here would silently use up the single
+					// announcement and leave the user wondering why nothing ever came. A missing file logs
+					// an error at every interval instead, which is the right outcome for a typo in the path.
+					if (AudioPlayer_PlayAnnouncement(warnFile.c_str())) {
+						batteryWarnAnnounced = true;
+					}
+				}
+			}
+		} else {
+			// Re-arm for the next discharge once the battery is back above the warning threshold.
+			batteryWarnAnnounced = false;
 		}
 
 		if (gPrefsSettings.getBool("shutdownBatCrit", false) && Battery_IsCritical()) {

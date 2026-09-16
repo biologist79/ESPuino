@@ -243,7 +243,9 @@
 			"refresh": "Aktualisieren",
 			"delete": "Löschen",
 			"rename": "Umbenennen",
-			"download": "Herunterladen"
+			"download": "Herunterladen",
+			"useAsBatteryWarning": "Als Akku-Warnung festlegen",
+			"useAsBatteryWarningDone": "Als Akku-Warnung übernommen"
 		},
 		"files": {
 			"title": "Dateien",
@@ -614,7 +616,13 @@
 			"offsetExp": "Feinkorrektur der gemessenen Akkuspannung. Weicht die angezeigte Spannung von einer Messung per Multimeter ab, trage hier die Differenz ein (positiv oder negativ). Standardwert der Complete: -0,04 V.",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
 			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
-			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."
+			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V.",
+			"warnSound": "Warnung bei leerem Akku ansagen",
+			"warnSoundExp": "Spielt bei niedrigem Akkustand eine Audiodatei von der SD-Karte ab – die Wiedergabe wird dafür kurz unterbrochen und danach an genau derselben Stelle fortgesetzt. Sinnvoll, weil die blinkenden LEDs beim Hören leicht übersehen werden, von Kindern ohnehin.",
+			"warnSoundFile": "Datei für die Ansage",
+			"warnSoundFileExp": "Pfad zur Audiodatei auf der SD-Karte. Am bequemsten wählst du sie im Dateibrowser per Rechtsklick über „Als Akku-Warnung festlegen“ aus. Fehlt die Datei, wird nichts unterbrochen und nur ein Fehler protokolliert.",
+			"warnSoundOnce": "Nur einmal ansagen",
+			"warnSoundOnceExp": "Ohne diese Option wird die Ansage bei jeder Messung wiederholt, solange der Akku unter der Warnschwelle liegt – also im Takt des eingestellten Messintervalls. Ist diese Option aktiv, so erfolgt die Ansage nur einmal und wird erst wieder erneut abgespielt, wenn die Warnschwelle nach vorheriger Überschreitung im Anschluss erneut unterschritten wird."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",

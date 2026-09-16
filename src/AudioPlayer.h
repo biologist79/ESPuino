@@ -42,6 +42,7 @@ typedef struct { // Bit field
 	bool newPlayMono			 : 1; // true if mono; false if stereo (helper)
 	bool currentPlayMono		 : 1; // true if mono; false if stereo
 	bool isWebstream			 : 1; // Indicates if track currenty played is a webstream
+	bool announcementActive		 : 1; // An announcement is interrupting playback (see AudioPlayer_PlayAnnouncement)
 	uint8_t tellMode			 : 2; // Tell mode for text to speech announcments
 	bool currentSpeechActive	 : 1; // If speech-play is active
 	bool lastSpeechActive		 : 1; // If speech-play was active
@@ -110,6 +111,12 @@ void AudioPlayer_SetMinVolume(uint8_t value);
 uint8_t AudioPlayer_GetInitVolume(void);
 void AudioPlayer_SetInitVolume(uint8_t value);
 void AudioPlayer_SetupVolumeAndAmps(void);
+// Interrupts playback to play a single local file (e.g. "battery low"), then returns to the exact
+// position it interrupted. The playlist, track number and play mode are left untouched, and while the
+// announcement runs nothing about it is reported to the web interface or MQTT -- from the outside the
+// interruption is invisible. Returns false (and changes nothing) when there is nothing to interrupt,
+// the file is missing, or it cannot be opened. Call from the main loop task, like AudioPlayer_Cyclic().
+bool AudioPlayer_PlayAnnouncement(const char *path);
 bool Audio_Detect_Mode_HP(bool _state);
 void Audio_setTitle(const char *format, ...);
 time_t AudioPlayer_GetPlayTimeSinceStart(void);

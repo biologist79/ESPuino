@@ -2491,6 +2491,36 @@
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+							<hr>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="batWarnSound" name="batWarnSound" value="false">
+								<label for="batWarnSound" data-i18n="general.battery.warnSound"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.battery.warnSoundExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<fieldset id="batWarnSoundSection" class="mb-2" data-visible="false" disabled>
+								<div class="row align-items-center mb-2">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="batWarnFile" class="col-form-label"
+											data-i18n="general.battery.warnSoundFile"></label>
+										<a class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.battery.warnSoundFileExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="batWarnFile" name="batWarnFile"
+											maxlength="255" placeholder="/ESPuino/announcements/battery-low_de.mp3">
+									</div>
+								</div>
+								<div class="d-flex gap-2 ms-4">
+									<input type="checkbox" id="batWarnOnce" name="batWarnOnce" value="false">
+									<label for="batWarnOnce" data-i18n="general.battery.warnSoundOnce"></label>
+									<a class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.warnSoundOnceExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+							</fieldset>
 							<fieldset id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false" disabled>
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
@@ -3842,6 +3872,22 @@
 								postData("http://" + host + "/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
+						/* Use as the spoken low-battery warning (files only) */
+						if (!node.data.directory && (/\.(mp3|m4a|wav|flac|ogg|opus|aac)$/i).test(node.data.path)) {
+							items.batWarnSound = {
+								label: () => i18next.t("files.context.useAsBatteryWarning"),
+								icon: "fas fa-battery-quarter",
+								action: function (x) {
+									// Mirrors what selecting a node does for an RFID assignment: drop the path into
+									// the field and jump to where it is configured, so it is obvious where it landed.
+									$('#batWarnFile').val(node.data.path);
+									$('#batWarnSound').prop('checked', true).trigger('change');
+									$('#nav-general-tab').tab('show');
+									$('#general-power-tab').tab('show');
+									toaster.info(i18next.t("files.context.useAsBatteryWarningDone"));
+								}
+							};
+						}
 						/* Refresh */
 						items.refresh = {
 							label: () => i18next.t("files.context.refresh"),
@@ -4574,6 +4620,10 @@
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
 				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
+				$('#batWarnSound').prop('checked', batSettings.warnSound);
+				$('#batWarnOnce').prop('checked', batSettings.warnSoundOnce);
+				$('#batWarnFile').val(batSettings.warnSoundFile);
+				setSettingsSectionActive(document.getElementById('batWarnSoundSection'), batSettings.warnSound);
 				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), batSettings.shutdownOnCritical);
 				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#offsetVoltage').bootstrapSlider('setValue', batSettings.offsetVoltage);
@@ -5060,6 +5110,9 @@
 					criticalVoltage: Number($('#criticalVoltage').val()),
 					offsetVoltage: Number($('#offsetVoltage').val()),
 					shutdownOnCritical: $('#shutdownOnCritical').prop('checked'),
+					warnSound: $('#batWarnSound').prop('checked'),
+					warnSoundOnce: $('#batWarnOnce').prop('checked'),
+					warnSoundFile: $('#batWarnFile').val(),
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
@@ -5754,6 +5807,11 @@
 				if (checked) {
 					$('#criticalVoltage').bootstrapSlider('relayout');
 				}
+			});
+
+			/* The spoken low-battery warning gates its own file/repeat settings. */
+			$('#batWarnSound').on('change', function () {
+				setSettingsSectionActive(document.getElementById('batWarnSoundSection'), $(this).prop('checked'));
 			});
 
 			/* Auto-save playback position: the checkbox gates the interval input; default it when enabling. */

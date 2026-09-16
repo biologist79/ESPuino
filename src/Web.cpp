@@ -1014,6 +1014,12 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "battery");
 			return WebsocketCodeType::Error;
 		}
+		// Kept out of the "== 0 means failure" chain above: putString() returns strlen(), so clearing the
+		// path to "" would be misread as an error even though the write succeeded.
+		gPrefsSettings.putBool("batWarnSound", doc["battery"]["warnSound"].as<bool>());
+		gPrefsSettings.putBool("batWarnOnce", doc["battery"]["warnSoundOnce"].as<bool>());
+		const char *warnSoundFile = doc["battery"]["warnSoundFile"].as<const char *>();
+		gPrefsSettings.putString("batWarnFile", warnSoundFile ? warnSoundFile : "");
 		Battery_Init();
 	}
 	if (doc["playlist"].is<JsonObject>()) {
@@ -1392,6 +1398,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batteryObj["criticalVoltage"].set(gPrefsSettings.getFloat("wCritVoltage", s_warningCriticalVoltage));
 		batteryObj["offsetVoltage"].set(gPrefsSettings.getFloat("offsetVoltage", s_offsetVoltage));
 		batteryObj["shutdownOnCritical"].set(gPrefsSettings.getBool("shutdownBatCrit", false)); // SHUTDOWN_ON_BAT_CRITICAL
+		batteryObj["warnSound"].set(gPrefsSettings.getBool("batWarnSound", false)); // spoken low-battery warning
+		batteryObj["warnSoundOnce"].set(gPrefsSettings.getBool("batWarnOnce", false));
+		batteryObj["warnSoundFile"].set(gPrefsSettings.getString("batWarnFile", ""));
 	#endif
 
 		batteryObj["voltageCheckInterval"].set(gPrefsSettings.getUInt("vCheckIntv", s_batteryCheckInterval));
@@ -1503,6 +1512,9 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batSettings["indicatorHi"].set(s_voltageIndicatorHigh);
 		batSettings["criticalVoltage"].set(s_warningCriticalVoltage);
 		batSettings["shutdownOnCritical"].set(false); // SHUTDOWN_ON_BAT_CRITICAL
+		batSettings["warnSound"].set(false);
+		batSettings["warnSoundOnce"].set(false);
+		batSettings["warnSoundFile"].set("");
 	#endif
 		batSettings["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif
