@@ -2491,6 +2491,31 @@
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
+							<fieldset id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false" disabled>
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="criticalVoltage" class="col-form-label"
+										data-i18n="general.battery.criticalShutoff"></label>
+									<a class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="slider-container">
+										<div class="float-end" style="padding-left: 30px">
+											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
+										</div>
+										<div class="slider-container-inner">
+											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.8"
+												data-slider-max="5.0" min="2.8" max="5.0" type="text" class="form-control"
+												id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
+												pattern="^\d{1,2}(\.\d{1,3})?" required>
+										</div>
+										<div class="float-end" style="padding-left: 10px">
+											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
+										</div>
+									</div>
+								</div>
+							</fieldset>
 							<hr>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="batWarnSound" name="batWarnSound" value="false">
@@ -2519,31 +2544,6 @@
 									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.warnSoundOnceExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
-								</div>
-							</fieldset>
-							<fieldset id="criticalVoltageSection" class="row mb-2 align-items-center" data-visible="false" disabled>
-								<div class="col-sm-4 d-flex align-items-center gap-2">
-									<label for="criticalVoltage" class="col-form-label"
-										data-i18n="general.battery.criticalShutoff"></label>
-									<a class="link-secondary" data-bs-toggle="popover"
-										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
-											class="fas fa-circle-question"></i></a>
-								</div>
-								<div class="col-sm-8">
-									<div class="slider-container">
-										<div class="float-end" style="padding-left: 30px">
-											<i class="fas fa-battery-quarter fa-2x icon-pos"></i>
-										</div>
-										<div class="slider-container-inner">
-											<input data-provide="slider" data-slider-step="0.05" data-slider-min="2.8"
-												data-slider-max="5.0" min="2.8" max="5.0" type="text" class="form-control"
-												id="criticalVoltage" name="criticalVoltage" data-slider-value="" value=""
-												pattern="^\d{1,2}(\.\d{1,3})?" required>
-										</div>
-										<div class="float-end" style="padding-left: 10px">
-											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
-										</div>
-									</div>
 								</div>
 							</fieldset>
 							</div>
