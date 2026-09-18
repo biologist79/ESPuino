@@ -164,6 +164,15 @@ BaseType_t trackQStatus = pdFAIL;
 uint8_t trackCommand = NO_ACTION;
 bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
+// Announcement state (see AudioPlayer_PlayAnnouncement). The decoder is briefly pointed at another
+// file while gPlayProperties -- playlist, track number, play mode -- stays exactly as it is, so the
+// only thing that has to be remembered is the position inside the interrupted track.
+static uint32_t AudioPlayer_announcementResumePos = 0; // seconds into the interrupted track
+static uint32_t AudioPlayer_announcementStartedAt = 0; // millis() when it started, for the watchdog
+// Backstop in case evt_eof never arrives (a file that opens but decodes to nothing): without it the
+// music would stay silent forever, which is worse than a crash because nothing points at the cause.
+static constexpr uint32_t announcementTimeoutMs = 30000;
+
 static uint32_t AudioPlayer_resumeSeekPendingSecs = 0; // deferred resume-seek target (seconds); 0 = none pending (declared early: used by the audio_info evt_bitrate callback above AudioPlayer_Loop)
 Playlist *newPlayList = nullptr;
 bool newPlayListAvailable = false;
@@ -716,6 +725,10 @@ String AudioPlayer_GetStationLogoUrl(void) {
 }
 
 void Audio_setTitle(const char *format, ...) {
+	if (gPlayProperties.announcementActive) {
+		// Leave the interrupted track's title in place: the announcement must not show up anywhere.
+		return;
+	}
 	va_list args;
 	va_start(args, format);
 	vsnprintf(gPlayProperties.title, sizeof(gPlayProperties.title) / sizeof(gPlayProperties.title[0]), format, args);
@@ -726,6 +739,47 @@ void Audio_setTitle(const char *format, ...) {
 #ifdef MQTT_ENABLE
 	publishMqtt(topicTrack, gPlayProperties.title, false);
 #endif
+}
+
+// Interrupts playback with a single local file and returns to the exact position afterwards; see
+// AudioPlayer.h. Everything the outside world reads -- title, position, progress -- is frozen for the
+// duration, and the playlist is never touched, so the interruption leaves no trace anywhere.
+bool AudioPlayer_PlayAnnouncement(const char *path) {
+	if (audio == nullptr || path == nullptr || path[0] == '\0' || gPlayProperties.announcementActive) {
+		return false;
+	}
+	// Deliberately checked before the "is anything playing" guard below: a wrong path has to be reported
+	// even while the player sits idle, otherwise a typo stays invisible until someone happens to be
+	// listening -- and the user is left searching. Still evaluated before stopSong(), so a missing file
+	// never costs the listener a gap of silence either.
+	if (!gFSystem.exists(path)) {
+		Log_Printf(LOGLEVEL_ERROR, announcementFileMissing, path);
+		System_IndicateError();
+		return false;
+	}
+	// Only interrupt something that is actually playing. Idle or paused there is nothing to return to,
+	// and in Bluetooth-sink mode ESPuino does not drive the decoder at all.
+	if (gPlayProperties.playMode == NO_PLAYLIST || gPlayProperties.playlistFinished || gPlayProperties.pausePlay) {
+		return false;
+	}
+	if (System_GetOperationMode() != OPMODE_NORMAL) {
+		return false;
+	}
+
+	AudioPlayer_announcementResumePos = audio->stopSong(); // stops the decoder and yields the position
+	AudioPlayer_announcementStartedAt = millis();
+	gPlayProperties.announcementActive = true;
+
+	if (!audio->connecttoFS(gFSystem, gFSystem.rawPath(path).c_str())) {
+		// Nothing is playing now, so evt_eof would never arrive on its own. Hand it to the loop, which
+		// takes the announcement branch and puts the interrupted track straight back on.
+		Log_Printf(LOGLEVEL_ERROR, announcementFailed, path);
+		System_IndicateError();
+		gPlayProperties.trackFinished = true;
+		return false;
+	}
+	Log_Printf(LOGLEVEL_NOTICE, announcementPlaying, path);
+	return true;
 }
 
 // Set maxVolume depending on headphone-adjustment is enabled and headphone is/is not connected
@@ -807,8 +861,9 @@ void AudioPlayer_HeadphoneVolumeManager(void) {
 
 // Function to play music as task
 void AudioPlayer_Loop() {
-	// Update playtime stats every 250 ms
-	if ((millis() - AudioPlayer_LastPlaytimeStatsTimestamp) > 250) {
+	// Update playtime stats every 250 ms. Frozen while an announcement runs, so the web interface keeps
+	// showing the interrupted track's position instead of the announcement's.
+	if (!gPlayProperties.announcementActive && (millis() - AudioPlayer_LastPlaytimeStatsTimestamp) > 250) {
 		AudioPlayer_LastPlaytimeStatsTimestamp = millis();
 		// Update current playtime and duration
 		AudioPlayer_CurrentTime = audio->getAudioCurrentTime();
@@ -830,9 +885,18 @@ void AudioPlayer_Loop() {
 		}
 	}
 
+	if (gPlayProperties.announcementActive && (millis() - AudioPlayer_announcementStartedAt) > announcementTimeoutMs) {
+		Log_Println(announcementTimeout, LOGLEVEL_ERROR);
+		System_IndicateError();
+		gPlayProperties.trackFinished = true; // handed to the branch below, which restores playback
+	}
+
 	if (newPlayListAvailable || gPlayProperties.trackFinished || trackCommand != NO_ACTION) {
 		if (newPlayListAvailable) {
 			newPlayListAvailable = false;
+			// A freshly tapped card supersedes a running announcement: there is no longer anything to
+			// return to, so drop it without restoring.
+			gPlayProperties.announcementActive = false;
 			audio->stopSong();
 
 			// destroy the old playlist and assign the new one
@@ -857,6 +921,20 @@ void AudioPlayer_Loop() {
 				gPlayProperties.playRfidTag[sizeof(gPlayProperties.playRfidTag) - 1] = '\0';
 			}
 		}
+		// An announcement that ran to its end raises the same evt_eof as a finished track. It has to be
+		// caught before the regular handling below, which would write the announcement's position to
+		// NVS, evaluate the sleep flags and, above all, advance the track number.
+		if (gPlayProperties.trackFinished && gPlayProperties.announcementActive) {
+			gPlayProperties.trackFinished = false;
+			gPlayProperties.announcementActive = false;
+			// Execution continues into the regular track-open path at the end of this block:
+			// currentTrackNumber was never touched, so it re-opens the very same track, and
+			// startAtFilePos seeks back into it through the normal resume machinery (including the
+			// deferred seek for headerless CBR files).
+			gPlayProperties.startAtFilePos = AudioPlayer_announcementResumePos;
+			Log_Println(announcementFinished, LOGLEVEL_INFO);
+		}
+
 		if (gPlayProperties.trackFinished) {
 			gPlayProperties.trackFinished = false;
 			if (gPlayProperties.playMode == NO_PLAYLIST || gPlayProperties.playlist == nullptr) {

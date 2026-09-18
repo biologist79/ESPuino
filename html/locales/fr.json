@@ -243,7 +243,9 @@
 			"refresh": "Actualiser",
 			"delete": "Supprimer",
 			"rename": "Renommer",
-			"download": "Télécharger"
+			"download": "Télécharger",
+			"useAsBatteryWarning": "Définir comme alerte batterie",
+			"useAsBatteryWarningDone": "Défini comme alerte batterie"
 		},
 		"files": {
 			"title": "Fichiers",
@@ -614,7 +616,13 @@
 			"offsetExp": "Correction fine de la tension mesurée de la batterie. Si la tension affichée diffère d'une mesure au multimètre, saisissez ici la différence (positive ou négative). Valeur par défaut de la Complete : -0,04 V.",
 			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
 			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée.",
-			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V."
+			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V.",
+			"warnSound": "Annoncer une batterie faible",
+			"warnSoundExp": "Joue un fichier audio depuis la carte SD lorsque la batterie est faible – la lecture est brièvement interrompue puis reprend exactement au même endroit. Utile car les LED clignotantes passent facilement inaperçues à l'écoute, et à plus forte raison pour les enfants.",
+			"warnSoundFile": "Fichier de l'annonce",
+			"warnSoundFileExp": "Chemin du fichier audio sur la carte SD. Le plus simple est de le choisir dans l'explorateur de fichiers par un clic droit, « Définir comme alerte batterie ». Si le fichier manque, rien n'est interrompu et seule une erreur est journalisée.",
+			"warnSoundOnce": "N'annoncer qu'une fois",
+			"warnSoundOnceExp": "Sans cette option, l'annonce est répétée à chaque mesure tant que la batterie reste sous le seuil d'alerte – donc au rythme de l'intervalle de mesure configuré. Avec cette option, l'annonce n'a lieu qu'une seule fois et n'est rejouée que si la tension repasse au-dessus du seuil d'alerte puis redescend en dessous."
 		},
 		"playlist": {
 			"title": "Playlist",

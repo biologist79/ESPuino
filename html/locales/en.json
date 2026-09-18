@@ -243,7 +243,9 @@
 			"refresh": "Refresh",
 			"delete": "Delete",
 			"rename": "Rename",
-			"download": "Download"
+			"download": "Download",
+			"useAsBatteryWarning": "Use as battery warning",
+			"useAsBatteryWarningDone": "Set as the battery warning"
 		},
 		"files": {
 			"title": "Files",
@@ -614,7 +616,13 @@
 			"offsetExp": "Fine-correction of the measured battery voltage. If the displayed voltage differs from a multimeter reading, enter the difference here (positive or negative). Default for the Complete: -0.04 V.",
 			"criticalShutoffExp": "Voltage at which ESPuino automatically shuts down to protect the battery from deep discharge.",
 			"measureIntervalExp": "Time interval in minutes at which the battery voltage is measured.",
-			"shutdownOnCriticalExp": "Automatically shuts ESPuino down once the battery voltage drops below the critical threshold set below. Can help protect the battery from deep discharge to some extent, but does not replace a battery management system! Recommended values are: LFP: 2.7 V, LiPo: 3.0 V."
+			"shutdownOnCriticalExp": "Automatically shuts ESPuino down once the battery voltage drops below the critical threshold set below. Can help protect the battery from deep discharge to some extent, but does not replace a battery management system! Recommended values are: LFP: 2.7 V, LiPo: 3.0 V.",
+			"warnSound": "Announce a low battery",
+			"warnSoundExp": "Plays an audio file from the SD card when the battery runs low – playback is briefly interrupted and then resumes at exactly the same spot. Useful because the blinking LEDs are easily missed while listening, and by children in any case.",
+			"warnSoundFile": "Announcement file",
+			"warnSoundFileExp": "Path to the audio file on the SD card. The easiest way to pick it is a right-click in the file browser, \"Use as battery warning\". If the file is missing, nothing is interrupted and only an error is logged.",
+			"warnSoundOnce": "Announce only once",
+			"warnSoundOnceExp": "Without this option the announcement is repeated at every measurement while the battery stays below the warning threshold – so at the rate of the configured measurement interval. With this option it is announced only once, and is played again only after the voltage has risen above the warning threshold and then drops below it once more."
 		},
 		"playlist": {
 			"title": "Playlist",
