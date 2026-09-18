@@ -483,7 +483,9 @@
 			"save": "Enregistrer l'appareil",
 			"inProgress": "Recherche d'appareils...",
 			"noDevices": "Aucun appareil Bluetooth trouvé",
-			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth."
+			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth.",
+			"unknownDevice": "Appareil inconnu",
+			"connecting": "Connexion à {{device}}..."
 		},
 		"device": {
 			"title": "Périphérique Bluetooth (casque)",
@@ -499,6 +501,17 @@
 			"title": "Basculer vers le mode WiFi",
 			"prompt": "Le mode actuel ne prend pas en charge le contrôle via le site web. Voulez-vous basculer vers le mode WiFi pour permettre le contrôle via le site web ? L'appareil sera redémarré.",
 			"button": "Basculer vers le mode WiFi"
+		},
+		"mode": {
+			"title": "Mode Bluetooth",
+			"off": "Désactivé",
+			"headphones": "Casque",
+			"speaker": "Haut-parleur",
+			"restartNotice": "La sélection d’un autre mode redémarre ESPuino."
+		},
+		"connection": {
+			"connected": "Connecté à : {{device}}",
+			"disconnected": "Non connecté"
 		}
 	},
 	"general": {
