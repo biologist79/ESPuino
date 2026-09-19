@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+## Version 3.1 (19.09.2026)
+
 * 18.09.2026: Optionally speak a warning when the battery runs low, instead of only blinking the LEDs - nobody looks at the ring while a story is playing. Playback is interrupted for the announcement and resumes at exactly the position it left off, while title, position and progress stay frozen so neither the web interface nor MQTT sees the interruption. Off by default; set it up under General -> Power, ready-made announcements in German, English and French ship in `announcements/` (#463). Idea and discussion: [forum #4766](https://forum.espuino.de/t/ansage-wenn-akku-fast-leer/4766).
 
 * 18.09.2026: Bluetooth: the tab is now a single mode switch (off / headphones / speaker) with a live connection indicator instead of three separate panels, connect and reconnect handling is more robust, and the volume finally reaches Bluetooth headphones - rotary encoder, buttons and web interface now control the headset (#461), thanks to @joker-mik.
