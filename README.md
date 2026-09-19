@@ -12,6 +12,15 @@
   dort mit eurem Github-Login einloggen, jedoch auch "normal" anmelden. Dokumentation findet ihr
   insbesondere hier: <https://forum.espuino.de/c/dokumentation/anleitungen/10>.
 
+## Handbook
+
+- EN: A comprehensive handbook (German, English, French) covering setup, hardware, the web
+  interface, and troubleshooting is available at <https://biologist79.github.io/ESPuino-Docs/>. It
+  always describes the current state of the `dev` branch.
+- DE: Ein ausführliches Handbuch (Deutsch, Englisch, Französisch) zu Aufbau, Hardware, Webinterface
+  und Troubleshooting gibt es unter <https://biologist79.github.io/ESPuino-Docs/>. Es beschreibt
+  immer den aktuellen Stand des `dev`-Branches.
+
 ## Firmwares
 
 Ready-to-use firmwares are available for [download](https://github.com/biologist79/ESPuino-Firmware) for several
@@ -20,8 +29,6 @@ HALs with or without bluetooth support enabled. These are provided for
 [dev-branch](https://github.com/biologist79/ESPuino-Firmware/tree/main/Firmwares/dev).
 
 ## News
-
-> :warning: Type to rfid (PN5180, RC522-spi, RC522-i2c is now being autodetected at start)
 
 > :warning: Due to memory restrictions and complexity, ESPuino doesn't run safely on ESP32
 without PSRAM. So please make sure to use an ESP32-WROVER!

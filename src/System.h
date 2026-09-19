@@ -23,6 +23,12 @@ uint32_t System_GetSleepTimerTimeStamp(void);
 bool System_IsSleepPending(void);
 uint8_t System_GetSleepTimer(void);
 uint8_t System_GetSleepTimerRemainingMinutes(void);
+// Night mode: dims the LEDs and is the hook further "it's bedtime" behaviour hangs off. Set by the
+// long-press command, by every sleep trigger (timer, modification cards, MQTT) and by the
+// single-random-track play mode.
+void System_SetNightmode(bool enabled);
+bool System_GetNightmode(void);
+void System_ToggleNightmode(void);
 void System_SetLockControls(bool value);
 void System_ToggleLockControls(void);
 bool System_AreControlsLocked(void);

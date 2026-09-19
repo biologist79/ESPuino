@@ -38,6 +38,9 @@ std::atomic<bool> System_Rebooting = false; // Flag for rebooting is in progress
 std::atomic<bool> System_LockControls = false; // Flag if buttons and rotary encoder is locked
 uint8_t System_MaxInactivityTime = 10u; // Time in minutes, after uC is put to deep sleep because of inactivity (and modified later via GUI)
 uint8_t System_SleepTimer = 30u; // Sleep timer in minutes that can be optionally used (and modified later via MQTT or RFID)
+// Night mode used to live in Led.cpp inside #ifdef NEOPIXEL_ENABLE, which made it invisible to
+// everything else on builds without Neopixels. It is a device-wide state, so it belongs here.
+static bool System_Nightmode = false;
 
 // Operation Mode
 std::atomic<uint8_t> System_OperationMode;
@@ -95,14 +98,14 @@ bool System_SetSleepTimer(uint8_t minutes) {
 	if (minutes == 0 || (System_SleepTimerStartTimestamp.load() > 0 && (System_SleepTimer == minutes))) {
 		System_SleepTimerStartTimestamp.store(0u);
 		System_SleepTimer = 0u;
-		Led_SetNightmode(false);
+		System_SetNightmode(false);
 		Log_Println(modificatorSleepd, LOGLEVEL_NOTICE);
 	} else {
 		System_SleepTimerStartTimestamp.store(millis());
 		System_SleepTimer = minutes;
 		sleepTimerEnabled = true;
 
-		Led_SetNightmode(true);
+		System_SetNightmode(true);
 		if (minutes == 15) {
 			Log_Println(modificatorSleepTimer15, LOGLEVEL_NOTICE);
 		} else if (minutes == 30) {
@@ -123,7 +126,25 @@ bool System_SetSleepTimer(uint8_t minutes) {
 
 void System_DisableSleepTimer(void) {
 	System_SleepTimerStartTimestamp.store(0u);
-	Led_SetNightmode(false);
+	System_SetNightmode(false);
+}
+
+void System_SetNightmode(bool enabled) {
+	if (System_Nightmode == enabled) {
+		// we don't need to do anything
+		return;
+	}
+	System_Nightmode = enabled;
+	Led_ApplyNightmode(enabled);
+	AudioPlayer_ApplyNightVolumeCap(enabled);
+}
+
+bool System_GetNightmode(void) {
+	return System_Nightmode;
+}
+
+void System_ToggleNightmode(void) {
+	System_SetNightmode(!System_Nightmode);
 }
 
 bool System_IsSleepTimerEnabled(void) {

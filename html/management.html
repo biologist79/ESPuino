@@ -133,6 +133,13 @@
 			padding: 1rem 1.25rem;
 		}
 
+		/* Help icons are anchors without href (an href="#" made every click jump the page back to
+		   the top). They stay focusable via tabindex="0", which is what the popover's focus trigger
+		   needs -- they just need the pointer cursor back. */
+		a[data-bs-toggle="popover"] {
+			cursor: pointer;
+		}
+
 		/* File upload controls must be allowed to shrink inside flex layouts.
 		   On phones, stack file selector and submit button so they never overflow the card. */
 		.file-upload-row {
@@ -409,7 +416,18 @@
 		#connectionStatusIndicator.connection-lost {
 			color: #ff6b6b;
 		}
-	</style>
+	
+		.bt-device-item { min-width: 0; }
+		.bt-device-main { min-width: 0; flex: 1 1 auto; }
+		.bt-device-name, .bt-device-address { overflow-wrap: anywhere; word-break: break-word; }
+		.bt-device-actions { flex: 0 0 auto; }
+		@media (max-width: 575.98px) {
+			.bt-mode-selector .btn { padding-left: .35rem; padding-right: .35rem; white-space: normal; }
+			.bt-mode-selector .btn i { display: block; margin-bottom: .25rem; }
+			.bt-device-item { flex-direction: column; align-items: stretch !important; }
+			.bt-device-actions { width: 100%; display: flex; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+		}
+</style>
 </head>
 
 <body>
@@ -729,7 +747,7 @@
 							<div class="d-flex gap-2 mb-2">
 								<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
 								<label for="scan_wifi_on_start" data-i18n="wifi.scan.enabled"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]wifi.scan.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -737,7 +755,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="hostname" class="col-form-label"
 										data-i18n="[prepend]wifi.hostname.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.hostname.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -751,7 +769,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apSSID" class="col-form-label"
 										data-i18n="[prepend]wifi.apSSID.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apSSID.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -765,7 +783,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apPassword" class="col-form-label"
 										data-i18n="[prepend]wifi.apPassword.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apPassword.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -779,7 +797,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="apTimeout" class="col-form-label"
 										data-i18n="[prepend]wifi.apTimeout.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.apTimeout.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -808,7 +826,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="ssid" class="col-form-label"
 										data-i18n="[prepend]wifi.ssid.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.ssid.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -824,7 +842,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="pwd" class="col-form-label"
 										data-i18n="[prepend]wifi.password.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]wifi.password.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -836,7 +854,7 @@
 							<div class="d-flex gap-2 mb-2">
 								<input type="checkbox" id="static_enabled" name="static_enabled" value="false">
 								<label for="static_enabled" data-i18n="[prepend]wifi.static.enabled">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]wifi.static.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -845,7 +863,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_addr" class="col-form-label"
 											data-i18n="[prepend]wifi.static.addr">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.addrExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -857,7 +875,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_gateway" class="col-form-label"
 											data-i18n="[prepend]wifi.static.gateway">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.gatewayExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -870,7 +888,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_subnet" class="col-form-label"
 											data-i18n="[prepend]wifi.static.subnet">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.subnetExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -883,7 +901,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_dns1" class="col-form-label"
 											data-i18n="[prepend]wifi.static.dns1">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.dns1Exp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -895,7 +913,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="static_dns2" class="col-form-label"
 											data-i18n="[prepend]wifi.static.dns2">:</label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]wifi.static.dns2Exp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -1174,7 +1192,7 @@
 					<div class="form-check col-md-12 d-flex align-items-center gap-2">
 						<input class="form-check-input" type="checkbox" value="1" id="mqttEnable" name="mqttEnable">
 						<label class="form-check-label" for="mqttEnable" data-i18n="mqtt.enable"></label>
-						<a href="#" class="link-secondary" data-bs-toggle="popover"
+						<a class="link-secondary" data-bs-toggle="popover"
 							data-i18n="[data-bs-content]mqtt.enableExp" tabindex="0"><i
 								class="fas fa-circle-question"></i></a>
 					</div>
@@ -1183,7 +1201,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttClientId" class="col-form-label"
 									data-i18n="[prepend]mqtt.clientId.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.clientId.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1196,7 +1214,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttBaseTopic" class="col-form-label"
 									data-i18n="[prepend]mqtt.baseTopic.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.baseTopic.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1209,7 +1227,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttDeviceId" class="col-form-label"
 									data-i18n="[prepend]mqtt.deviceId.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.deviceId.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1222,7 +1240,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttServer" class="col-form-label"
 									data-i18n="[prepend]mqtt.server.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.server.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1235,7 +1253,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttUser" class="col-form-label"
 									data-i18n="[prepend]mqtt.user.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.user.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1248,7 +1266,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttPwd" class="col-form-label"
 									data-i18n="[prepend]mqtt.pwd.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.pwd.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1261,7 +1279,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="mqttPort" class="col-form-label"
 									data-i18n="[prepend]mqtt.port.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]mqtt.port.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1290,7 +1308,7 @@
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="ftpUser" class="col-form-label"
 									data-i18n="[prepend]ftp.user.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]ftp.user.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1302,7 +1320,7 @@
 						<div class="row mb-2 align-items-center">
 							<div class="col-sm-4 d-flex align-items-center gap-2">
 								<label for="pwd" class="col-form-label" data-i18n="[prepend]ftp.pwd.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]ftp.pwd.explanation" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1335,103 +1353,58 @@
 		</div>
 		<!-- ### Tab Bluetooth ### -->
 		<div class="tab-pane main-tab-pane fade mb-4" id="nav-bt" role="tabpanel" aria-labelledby="nav-bt-tab">
-			<div class="container" id="btBackToNormal" style="display: none;">
+			<div class="container mt-4" id="btModeConfig">
 				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.normal.title">Zurück zum Normal-Modus</legend>
-					<div data-i18n="bt.normal.desc">Kehrt zum normalen Modus mit WiFi zurück</div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(0)"
-							data-i18n="bt.normal.button">Zu Normal-Modus wechseln</button>
+					<legend data-i18n="bt.mode.title"></legend>
+					<div class="settings-group-card">
+						<div class="btn-group w-100 bt-mode-selector" role="group" aria-label="Bluetooth mode">
+							<button type="button" id="btModeOff" class="btn btn-outline-primary" onclick="setOperationMode(0)"><i class="fas fa-power-off"></i> <span data-i18n="bt.mode.off"></span></button>
+							<button type="button" id="btModeSource" class="btn btn-outline-primary" onclick="setOperationMode(2)"><i class="fas fa-headphones"></i> <span data-i18n="bt.mode.headphones"></span></button>
+							<button type="button" id="btModeSink" class="btn btn-outline-primary" onclick="setOperationMode(1)"><i class="fas fa-volume-up"></i> <span data-i18n="bt.mode.speaker"></span></button>
+						</div>
+						<div class="text-muted small mt-3"><i class="fas fa-rotate-right me-1"></i> <span data-i18n="bt.mode.restartNotice"></span></div>
 					</div>
 				</div>
 			</div>
-			<div class="container mt-5" id="btConfig">
+
+			<div class="container mt-5" id="btConfig" style="display:none;">
 				<form action="#btConfig" method="POST" onsubmit="btSettings('btConfig'); return false">
 					<div class="mb-3 col-md-12">
 						<legend data-i18n="bt.source.configtitle"></legend>
 						<div class="settings-group-card">
-						<div class="row mb-2 align-items-center">
-							<div class="col-sm-4 d-flex align-items-center gap-2">
-								<label for="btDeviceName" class="col-form-label"
-									data-i18n="[prepend]bt.device.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
+							<div id="btConnectionStatus" class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
+								<span id="btConnectionDot" class="rounded-circle bg-secondary" style="width:14px;height:14px;flex:0 0 14px;"></span>
+								<span id="btConnectionText" class="text-muted" data-i18n="bt.connection.disconnected"></span>
 							</div>
-							<div class="col-sm-8">
-								<input type="text" class="form-control" id="btDeviceName"
-									data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+
+							<div class="row mb-3 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="btDeviceName" class="col-form-label" data-i18n="bt.device.title"></label>
+									<a class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]bt.device.explanation" tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<div class="input-group">
+										<input type="text" class="form-control" id="btDeviceName" data-i18n="[placeholder]bt.device.placeholder" name="btDeviceName" value="">
+										<button type="button" class="btn btn-outline-primary" id="bt-scan-btn" onclick="startBtScan()"><i class="fas fa-search"></i> <span data-i18n="bt.scan.button"></span></button>
+									</div>
+								</div>
 							</div>
-						</div>
-						<div class="row mb-2 align-items-center">
-							<div class="col-sm-4 d-flex align-items-center gap-2">
-								<label for="btPinCode" class="col-form-label"
-									data-i18n="[prepend]bt.pincode.title">:</label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
-									data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i
-										class="fas fa-circle-question"></i></a>
+							<div class="row mb-3 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="btPinCode" class="col-form-label" data-i18n="bt.pincode.title"></label>
+									<a class="link-secondary" data-bs-toggle="popover" data-i18n="[data-bs-content]bt.pincode.explanation" tabindex="0"><i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8"><input type="text" class="form-control" id="btPinCode" data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value=""></div>
 							</div>
-							<div class="col-sm-8">
-								<input type="text" class="form-control" id="btPinCode"
-									data-i18n="[placeholder]bt.pincode.placeholder" name="btPinCode" value="">
+
+							<div id="bt-scan-results" class="mt-3 d-none">
+								<div id="bt-scan-list" class="bt-device-list"></div>
 							</div>
-						</div>
-					<div class="mb-3 col-md-12">
-						<div class="row mb-2 align-items-center">
-							<label class="col-sm-4 col-form-label" data-i18n="bt.scan.title"></label>
-							<div class="col-sm-8">
-								<button type="button" class="btn btn-outline-primary" id="bt-scan-btn"
-									onclick="startBtScan()"><i class="fas fa-search"></i> <span
-										data-i18n="bt.scan.button"></span></button>
-							</div>
+
+							<div class="mt-3"><button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button></div>
 						</div>
 					</div>
-					<div id="bt-scan-results" class="mt-3 d-none">
-						<table class="table table-sm table-striped table-hover">
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Address</th>
-									<th>RSSI</th>
-									<th class="text-end">Action</th>
-								</tr>
-							</thead>
-							<tbody id="bt-scan-list"></tbody>
-						</table>
-					</div>
-					<div>
-						<button type="submit" class="btn btn-primary" data-i18n="bt.saveButton"></button>
-					</div>
-						</div>
-						</div>
 				</form>
-			</div>
-			<div class="container mt-5" id="btStartSource">
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.source.title"></legend>
-					<div class="settings-group-card">
-					<div data-i18n="bt.source.desc"></div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(2)"
-							data-i18n="bt.source.button"></button>
-					</div>
-					</div>
-				</div>
-			</div>
-			<div class="container mt-5" id="btStartSink">
-				<div class="mb-3 col-md-12">
-					<legend data-i18n="bt.sink.title"></legend>
-					<div class="settings-group-card">
-					<div data-i18n="bt.sink.desc"></div>
-					<br>
-					<div>
-						<button type="button" class="btn btn-primary" onclick="setOperationMode(1)"
-							data-i18n="bt.sink.button"></button>
-					</div>
-					</div>
-				</div>
 			</div>
 		</div>
 			<!-- ### Tab General ### -->
@@ -1465,7 +1438,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initialVolume" class="col-form-label"
 										data-i18n="general.volume.restart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.restartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1489,7 +1462,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="minVolume" class="col-form-label"
 										data-i18n="general.volume.min"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.minExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1513,7 +1486,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="maxVolumeSpeaker" class="col-form-label"
 										data-i18n="general.volume.speakerMax"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.speakerMaxExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1537,7 +1510,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="maxVolumeHeadphone" class="col-form-label"
 										data-i18n="general.volume.headphoneMax"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.volume.headphoneMaxExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1569,7 +1542,7 @@
 									value="false">
 								<label for="savePlayPosShutdown"
 									data-i18n="general.options.savePlayPosShutdown"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosShutdownExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1578,7 +1551,7 @@
 									value="false">
 								<label for="savePlayPosRfidChange"
 									data-i18n="general.options.savePlayPosRfidChange"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosRfidChangeExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
@@ -1592,7 +1565,7 @@
 									value="60" disabled>
 								<label for="savePlayPosInterval"
 									data-i18n="general.options.savePlayPosIntervalSecs"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.savePlayPosIntervalExp"
 									tabindex="0"><i class="fas fa-circle-question"></i></a>
 							</div>
@@ -1601,14 +1574,14 @@
 									value="false">
 								<label for="playLastRfidOnReboot"
 									data-i18n="general.options.playLastRfidOnReboot"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.playLastRfidOnRebootExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseIfRfidRemoved" name="pauseIfRfidRemoved" value="false">
 								<label for="pauseIfRfidRemoved" data-i18n="general.options.pauseIfRfidRemoved"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.pauseIfRfidRemovedExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1617,42 +1590,49 @@
 									value="false">
 								<label for="dontAcceptRfidTwice"
 									data-i18n="general.options.dontAcceptRfidTwice"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.dontAcceptRfidTwiceExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 						<div class="d-flex gap-2 ms-4">
 							<input type="checkbox" id="resumeOnSameRfid" name="resumeOnSameRfid" value="false">
 							<label for="resumeOnSameRfid" data-i18n="general.options.resumeOnSameRfid"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
+							<a class="link-secondary" data-bs-toggle="popover"
 								data-i18n="[data-bs-content]general.options.resumeOnSameRfidExp" tabindex="0"><i
 									class="fas fa-circle-question"></i></a>
 						</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="pauseOnMinVolume" name="pauseOnMinVolume" value="false">
 								<label for="pauseOnMinVolume" data-i18n="general.options.pauseOnMinVolume"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.pauseOnMinVolumeExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="nightVolumeLimit" name="nightVolumeLimit" value="false">
+								<label for="nightVolumeLimit" data-i18n="general.options.nightVolumeLimit"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.options.nightVolumeLimitExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="recoverVolBoot" name="recoverVolBoot" value="false">
 								<label for="recoverVolBoot" data-i18n="general.options.recoverVolBoot"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.recoverVolBootExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="playMono" name="playMono" value="false">
 								<label for="playMono" data-i18n="general.options.playMono"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.playMonoExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="volumeCurve" name="volumeCurve" value="false">
 								<label for="volumeCurve" data-i18n="general.options.volumeCurve"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.options.volumeCurveExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -1667,7 +1647,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="playlistSortMode" class="col-form-label"
 										data-i18n="general.playlist.sortMode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.playlist.sortModeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1683,7 +1663,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="playlistRecDepth" class="col-form-label"
 										data-i18n="general.playlist.recDepth"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.playlist.recDepthExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -1733,7 +1713,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="mfrc522Gain" class="col-form-label"
 											data-i18n="general.rfid.mfrc522Gain"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.mfrc522GainExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1745,7 +1725,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="mfrc522ScanInterval" class="col-form-label"
 											data-i18n="general.rfid.mfrc522ScanInterval"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.mfrc522ScanIntervalExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1767,7 +1747,7 @@
 								<div class="row mb-2 align-items-center">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="pn5180Lpcd" class="col-form-label" data-i18n="general.rfid.pn5180Lpcd"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.pn5180LpcdExp" tabindex="0"><i
 												class="fas fa-circle-question"></i></a>
 									</div>
@@ -1779,7 +1759,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="pn5180Debounce" class="col-form-label"
 											data-i18n="general.rfid.pn5180Debounce"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.pn5180DebounceExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1791,7 +1771,7 @@
 								<div class="row mb-2 align-items-start">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="slixPrivacyPassword0" class="col-form-label" data-i18n="general.rfid.slixPrivacyPassword"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]general.rfid.slixPrivacyPasswordExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1820,15 +1800,38 @@
 						<div class="settings-group-card">
 							<input type="checkbox" id="rotaryReverse" name="rotaryReverse" value="false">&nbsp;
 							<label for="rotaryReverse" data-i18n="settingsex.rotary.reverse"></label>
-							<a href="#" class="link-secondary" data-bs-toggle="popover"
+							<a class="link-secondary" data-bs-toggle="popover"
 								data-i18n="[data-bs-content]settingsex.rotary.reverseExp" tabindex="0"><i
 									class="fas fa-circle-question"></i></a>
 						</div>
 						</fieldset>
 					</div>
+					<div class="col-md-12 mb-4" id="seekButtonsConfig">
+						<fieldset>
+							<legend class="w-auto"><span data-i18n="settingsex.seek.title"></span>&nbsp;<a
+									class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.seek.titleExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a></legend>
+						<div class="settings-group-card">
+							<div class="row mb-2 align-items-center">
+								<div class="col-sm-4 d-flex align-items-center gap-2">
+									<label for="jumpOffset" class="col-form-label"
+										data-i18n="settingsex.seek.jumpOffset"></label>
+									<a class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]settingsex.seek.jumpOffsetExp" tabindex="0">
+										<i class="fas fa-circle-question"></i></a>
+								</div>
+								<div class="col-sm-8">
+									<input type="number" class="form-control" id="jumpOffset" name="jumpOffset"
+										min="1" max="120" step="1">
+								</div>
+							</div>
+						</div>
+						</fieldset>
+					</div>
 					<div class="col-md-12 mb-4" id="buttonsConfig">
 						<fieldset>
-							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a href="#"
+							<legend class="w-auto"><span data-i18n="settingsex.buttons.title"></span>&nbsp;<a
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.buttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
@@ -1880,7 +1883,7 @@
 						</fieldset>
 						<div id="rotaryGesturesConfig" class="mt-5" style="display:none">
 							<fieldset>
-								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a href="#"
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.gestures"></span>&nbsp;<a
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.gesturesExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
@@ -1931,16 +1934,19 @@
 							</div>
 							</fieldset>
 							<fieldset class="mt-5">
-								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a href="#"
+								<legend class="w-auto"><span data-i18n="settingsex.rotary.seekPreviewTitle"></span>&nbsp;<a
 										class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.rotary.seekPreviewTitleExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a></legend>
 							<div class="settings-group-card">
+								<div class="fw-semibold" data-i18n="settingsex.rotary.previewSeekTitle"></div>
+								<small class="form-text text-muted d-block mb-2"
+									data-i18n="settingsex.rotary.previewSeekHint"></small>
 								<div class="row mb-2 align-items-center">
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevDelay" class="col-form-label"
 											data-i18n="settingsex.rotary.seekPrevDelay"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]settingsex.rotary.seekPrevDelayExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1953,7 +1959,7 @@
 									<div class="col-sm-4 d-flex align-items-center gap-2">
 										<label for="seekPrevSweep" class="col-form-label"
 											data-i18n="settingsex.rotary.seekPrevSweep"></label>
-										<a href="#" class="link-secondary" data-bs-toggle="popover"
+										<a class="link-secondary" data-bs-toggle="popover"
 											data-i18n="[data-bs-content]settingsex.rotary.seekPrevSweepExp" tabindex="0">
 											<i class="fas fa-circle-question"></i></a>
 									</div>
@@ -1963,10 +1969,28 @@
 									</div>
 								</div>
 							</div>
+							<div class="settings-group-card mt-3">
+								<div class="fw-semibold" data-i18n="settingsex.rotary.directSeekTitle"></div>
+								<small class="form-text text-muted d-block mb-2"
+									data-i18n="settingsex.rotary.directSeekHint"></small>
+								<div class="row mb-2 align-items-center">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="rotSeekStep" class="col-form-label"
+											data-i18n="settingsex.rotary.rotSeekStep"></label>
+										<a class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]settingsex.rotary.rotSeekStepExp" tabindex="0">
+											<i class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="number" class="form-control" id="rotSeekStep" name="rotSeekStep"
+											min="1" max="60" step="1">
+									</div>
+								</div>
+							</div>
 							</fieldset>
 						</div>
 						<fieldset class="mt-5">
-							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a href="#"
+							<legend class="w-auto"><span data-i18n="settingsex.multibuttons.title"></span>&nbsp;<a
 									class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.multibuttons.titleExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a></legend>
@@ -2055,7 +2079,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="initBrightness" class="col-form-label"
 										data-i18n="general.neopixel.restart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.restartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2079,7 +2103,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="nightBrightness" class="col-form-label"
 										data-i18n="general.neopixel.nightmode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.nightmodeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2103,7 +2127,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="atmoBrightness" class="col-form-label"
 										data-i18n="general.neopixel.atmomode"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.neopixel.atmomodeExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2134,7 +2158,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_numIndicator" class="col-form-label"
 										data-i18n="settingsex.led.numindicator"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numindicatorExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2147,7 +2171,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_numControl" class="col-form-label"
 										data-i18n="settingsex.led.numcontrol"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numcontrolExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2167,7 +2191,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_idleDots" class="col-form-label"
 										data-i18n="settingsex.led.numidledots"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.numidledotsExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2180,7 +2204,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_dimStates" class="col-form-label"
 										data-i18n="settingsex.led.dimmablestates"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.dimmablestatesExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2192,7 +2216,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_offsetStart" class="col-form-label"
 										data-i18n="settingsex.led.offset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.offsetExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2200,18 +2224,26 @@
 									<input type="number" class="form-control" id="led_offsetStart" name="led_offsetStart">
 								</div>
 							</div>
+							<hr>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="led_offsetPause" name="led_offsetPause" value="false">
 								<label for="led_offsetPause" data-i18n="settingsex.led.offsetpause"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.offsetpauseExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 							<div class="d-flex gap-2">
 								<input type="checkbox" id="led_reverseRotation" name="led_reverseRotation" value="false">
 								<label for="led_reverseRotation" data-i18n="settingsex.led.reverserotation"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]settingsex.led.reverserotationExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="led_rfidFlash" name="led_rfidFlash" value="false">
+								<label for="led_rfidFlash" data-i18n="settingsex.led.rfidflash"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]settingsex.led.rfidflashExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
 						</div>
@@ -2223,7 +2255,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueStart" class="col-form-label"
 										data-i18n="settingsex.led.huestart"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.huestartExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2239,7 +2271,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueEnd" class="col-form-label"
 										data-i18n="settingsex.led.hueend"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.hueendExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2255,7 +2287,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_hueAtmo" class="col-form-label"
 										data-i18n="settingsex.led.hueatmo"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.hueatmoExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2271,7 +2303,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="led_satAtmo" class="col-form-label"
 										data-i18n="settingsex.led.satatmo"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]settingsex.led.satatmoExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2301,7 +2333,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="inactivityTime" class="col-form-label"
 										data-i18n="general.sleep.inactivity"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.sleep.inactivityExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2332,7 +2364,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageCheckInterval" class="col-form-label"
 										data-i18n="general.battery.measureInterval"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.measureIntervalExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2356,7 +2388,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="warningLowVoltage" class="col-form-label"
 										data-i18n="general.battery.lowWarning"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.lowWarningExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2381,7 +2413,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageIndicatorLow" class="col-form-label"
 										data-i18n="general.battery.lowCritical"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.lowCriticalExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2406,7 +2438,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="voltageIndicatorHigh" class="col-form-label"
 										data-i18n="general.battery.high"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.highExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2431,7 +2463,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="offsetVoltage" class="col-form-label"
 										data-i18n="general.battery.offset"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.offsetExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2455,7 +2487,7 @@
 							<div class="d-flex gap-2 mt-3">
 								<input type="checkbox" id="shutdownOnCritical" name="shutdownOnCritical" value="false">
 								<label for="shutdownOnCritical" data-i18n="general.battery.shutdownOnCritical"></label>
-								<a href="#" class="link-secondary" data-bs-toggle="popover"
+								<a class="link-secondary" data-bs-toggle="popover"
 									data-i18n="[data-bs-content]general.battery.shutdownOnCriticalExp" tabindex="0"><i
 										class="fas fa-circle-question"></i></a>
 							</div>
@@ -2463,7 +2495,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="criticalVoltage" class="col-form-label"
 										data-i18n="general.battery.criticalShutoff"></label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]general.battery.criticalShutoffExp" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2482,6 +2514,36 @@
 											<i class="fas fa-battery-three-quarters fa-2x icon-pos"></i>
 										</div>
 									</div>
+								</div>
+							</fieldset>
+							<hr>
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="batWarnSound" name="batWarnSound" value="false">
+								<label for="batWarnSound" data-i18n="general.battery.warnSound"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]general.battery.warnSoundExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<fieldset id="batWarnSoundSection" class="mb-2" data-visible="false" disabled>
+								<div class="row align-items-center mb-2">
+									<div class="col-sm-4 d-flex align-items-center gap-2">
+										<label for="batWarnFile" class="col-form-label"
+											data-i18n="general.battery.warnSoundFile"></label>
+										<a class="link-secondary" data-bs-toggle="popover"
+											data-i18n="[data-bs-content]general.battery.warnSoundFileExp" tabindex="0"><i
+												class="fas fa-circle-question"></i></a>
+									</div>
+									<div class="col-sm-8">
+										<input type="text" class="form-control" id="batWarnFile" name="batWarnFile"
+											maxlength="255" placeholder="/ESPuino/announcements/battery-low_de.mp3">
+									</div>
+								</div>
+								<div class="d-flex gap-2 ms-4">
+									<input type="checkbox" id="batWarnOnce" name="batWarnOnce" value="false">
+									<label for="batWarnOnce" data-i18n="general.battery.warnSoundOnce"></label>
+									<a class="link-secondary" data-bs-toggle="popover"
+										data-i18n="[data-bs-content]general.battery.warnSoundOnceExp" tabindex="0"><i
+											class="fas fa-circle-question"></i></a>
 								</div>
 							</fieldset>
 							</div>
@@ -2617,7 +2679,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="mediaHubServerName" class="col-form-label"
 										data-i18n="[prepend]files.rfid.mediahub.name.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]files.rfid.mediahub.name.explanation" tabindex="0"><i
 											class="fas fa-circle-question"></i></a>
 								</div>
@@ -2630,7 +2692,7 @@
 								<div class="col-sm-4 d-flex align-items-center gap-2">
 									<label for="mediaHubServerHostPort" class="col-form-label"
 										data-i18n="[prepend]files.rfid.mediahub.hostPort.title">:</label>
-									<a href="#" class="link-secondary" data-bs-toggle="popover"
+									<a class="link-secondary" data-bs-toggle="popover"
 										data-i18n="[data-bs-content]files.rfid.mediahub.hostPort.explanation"
 										tabindex="0"><i class="fas fa-circle-question"></i></a>
 								</div>
@@ -3810,6 +3872,22 @@
 								postData("http://" + host + "/exploreraudio?path=" + encodeURIComponent(node.data.path) + "&playmode=" + playMode);
 							}
 						};
+						/* Use as the spoken low-battery warning (files only) */
+						if (!node.data.directory && (/\.(mp3|m4a|wav|flac|ogg|opus|aac)$/i).test(node.data.path)) {
+							items.batWarnSound = {
+								label: () => i18next.t("files.context.useAsBatteryWarning"),
+								icon: "fas fa-battery-quarter",
+								action: function (x) {
+									// Mirrors what selecting a node does for an RFID assignment: drop the path into
+									// the field and jump to where it is configured, so it is obvious where it landed.
+									$('#batWarnFile').val(node.data.path);
+									$('#batWarnSound').prop('checked', true).trigger('change');
+									$('#nav-general-tab').tab('show');
+									$('#general-power-tab').tab('show');
+									toaster.info(i18next.t("files.context.useAsBatteryWarningDone"));
+								}
+							};
+						}
 						/* Refresh */
 						items.refresh = {
 							label: () => i18next.t("files.context.refresh"),
@@ -3907,30 +3985,68 @@
 		document.getElementById('setVolume').remove();
 
 		function updateOperationModeIndicator(opmode) {
-			const btStartSource = document.getElementById('btStartSource');
-			const btStartSink = document.getElementById('btStartSink');
+			currentOpMode = Number(opmode);
+			const buttons = [
+				[document.getElementById('btModeOff'), 0],
+				[document.getElementById('btModeSink'), 1],
+				[document.getElementById('btModeSource'), 2]
+			];
+			buttons.forEach(([button, mode]) => {
+				if (!button) return;
+				button.classList.toggle('btn-primary', currentOpMode === mode);
+				button.classList.toggle('btn-outline-primary', currentOpMode !== mode);
+			});
+			const config = document.getElementById('btConfig');
+			if (config) config.style.display = currentOpMode === 2 ? '' : 'none';
+			if (currentOpMode === 2) refreshBtConnectionStatus();
+		}
 
-			// OPMODE_NORMAL = 0, OPMODE_BLUETOOTH_SINK = 1, OPMODE_BLUETOOTH_SOURCE = 2
-			if (opmode === 0) {
-				// Normal mode - no active panel
-				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Hide back to normal section
-				document.getElementById('btBackToNormal').style.display = 'none';
-			} else if (opmode === 1) {
-				// Bluetooth Sink - highlight sink panel
-				btStartSource.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSink.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
-			} else if (opmode === 2) {
-				// Bluetooth Source - highlight source panel
-				btStartSink.classList.remove('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				btStartSource.classList.add('border', 'border-primary', 'border-3', 'rounded', 'p-3', 'bg-body-secondary');
-				// Show back to normal section
-				document.getElementById('btBackToNormal').style.display = 'block';
+		let btConnectionState = { connected: false, name: '', address: '' };
+
+		function renderBtConnectionStatus() {
+			const dot = document.getElementById('btConnectionDot');
+			const text = document.getElementById('btConnectionText');
+			if (!dot || !text) return;
+			text.removeAttribute('data-i18n');
+			if (btConnectionState.connected) {
+				dot.classList.remove('bg-secondary');
+				dot.classList.add('bg-success');
+				text.classList.remove('text-muted');
+				text.classList.add('text-success');
+				const name = (btConnectionState.name || '').trim();
+				const address = (btConnectionState.address || '').trim();
+				let label = name || address || '---';
+				if (name && address && name.toUpperCase() !== address.toUpperCase()) {
+					label = `${name} (${address})`;
+				}
+				text.textContent = i18next.t('bt.connection.connected', { device: label });
+			} else {
+				dot.classList.remove('bg-success');
+				dot.classList.add('bg-secondary');
+				text.classList.remove('text-success');
+				text.classList.add('text-muted');
+				text.textContent = i18next.t('bt.connection.disconnected');
 			}
-		} function connect() {
+		}
+
+		async function refreshBtConnectionStatus() {
+			if (currentOpMode !== 2) return;
+			try {
+				const response = await fetch('/bluetoothstatus', { cache: 'no-store' });
+				if (!response.ok) return;
+				const status = await response.json();
+				btConnectionState = {
+					connected: !!status.connected,
+					name: status.name || '',
+					address: status.address || ''
+				};
+				renderBtConnectionStatus();
+			} catch (error) {
+				console.debug('Bluetooth status unavailable:', error);
+			}
+		}
+
+		function connect() {
 			socket = new WebSocket("ws://" + host + "/ws");
 			socket.onopen = function () {
 				clearInterval(pingInterval);
@@ -3946,6 +4062,7 @@
 				socket.send('{"ssids":{"ssids":"ssids"}}'); // get ssids
 				socket.send('{"trackinfo":{"trackinfo":"trackinfo"}}'); // get trackinfo
 				socket.send('{"coverimg":{"coverimg":"coverimg"}}'); // get cover image
+				refreshBtConnectionStatus();
 			};
 			socket.onclose = function (e) {
 				console.log('Socket is closed. Reconnect will be attempted in 5 seconds.', e.reason);
@@ -4048,6 +4165,16 @@
 			};
 		}
 
+		document.getElementById('nav-bt-tab').addEventListener('shown.bs.tab', function () {
+			refreshBtConnectionStatus();
+		});
+
+		setInterval(function () {
+			if (currentOpMode === 2 && document.getElementById('nav-bt')?.classList.contains('active')) {
+				refreshBtConnectionStatus();
+			}
+		}, 3000);
+
 		function getHexColor(number) {
 			return "#" + ('000000' + ((number) >>> 0).toString(16)).slice(-6);
 		}
@@ -4097,35 +4224,64 @@
 					list.empty();
 					if (devices.length > 0) {
 						devices.forEach(dev => {
-							const displayName = (dev.name && dev.name !== 'Unknown') ? dev.name : `<i>Device ${dev.address}</i>`;
-							const row = `<tr>
-								<td>${displayName}</td>
-								<td><code>${dev.address}</code></td>
-								<td>${dev.rssi} dBm</td>
-								<td class="text-end">
-									<button class="btn btn-sm btn-success" onclick="saveBtDevice('${dev.name}', '${dev.address}')" title="${i18next.t('bt.scan.save')}"><i class="fas fa-save"></i></button>
-									<button class="btn btn-sm btn-primary" onclick="connectBt('${dev.address}')">${i18next.t('bt.scan.connect')}</button>
-								</td>
-							</tr>`;
-							list.append(row);
+							const rawName = String(dev.name ?? '');
+							const realName = rawName && rawName !== 'Unknown' && rawName !== 'Connected Device' ? rawName : '';
+							const displayName = realName || i18next.t('bt.scan.unknownDevice');
+							const address = String(dev.address ?? '');
+
+							// Build the result row as DOM nodes instead of interpolating device data into
+							// HTML/onclick strings. Bluetooth names are untrusted input and may contain
+							// quotes or JavaScript syntax. text() and event handlers keep data as data.
+							const item = $('<div>', {
+								class: 'bt-device-item d-flex align-items-center gap-3 py-3 border-bottom'
+							});
+							const main = $('<div>', { class: 'bt-device-main' });
+							main.append($('<div>', { class: 'bt-device-name fw-semibold', text: displayName }));
+
+							const details = $('<div>', { class: 'small text-muted bt-device-address' });
+							details.append($('<code>').text(address));
+							details.append(document.createTextNode(` · ${dev.rssi ?? ''} dBm`));
+							main.append(details);
+
+							const actions = $('<div>', { class: 'bt-device-actions d-flex gap-2' });
+							const saveButton = $('<button>', {
+								type: 'button',
+								class: 'btn btn-sm btn-success',
+								title: i18next.t('bt.scan.save')
+							}).append($('<i>', { class: 'fas fa-save' }));
+							saveButton.on('click', () => saveBtDevice(realName, address));
+
+							const connectButton = $('<button>', {
+								type: 'button',
+								class: 'btn btn-sm btn-primary',
+								text: i18next.t('bt.scan.connect')
+							});
+							connectButton.on('click', () => connectBt(address));
+
+							actions.append(saveButton, connectButton);
+							item.append(main, actions);
+							list.append(item);
 						});
 					} else {
-						list.append('<tr><td colspan="4" class="text-center text-muted"><i>' + i18next.t('bt.scan.noDevices') + '</i></td></tr>');
+						const empty = $('<div>', { class: 'text-center text-muted py-3' });
+						empty.append($('<i>').text(i18next.t('bt.scan.noDevices')));
+						list.append(empty);
 					}
 					container.removeClass('d-none');
 				});
 		}
 
 		function saveBtDevice(name, address) {
-			// Prefer name if available, otherwise use address for better reliability
-			const identifier = (name && name !== 'Unknown') ? name : address;
+			const identifier = name || address;
 			document.getElementById('btDeviceName').value = identifier;
 			btSettings('btConfig');
 		}
 
 		function connectBt(address) {
 			postData('/bluetoothconnect', null, JSON.stringify({ address: address }));
-			toaster.info("Connecting to " + address + "...");
+			toaster.info(i18next.t('bt.scan.connecting', { device: address }));
+			setTimeout(refreshBtConnectionStatus, 1000);
+			setTimeout(refreshBtConnectionStatus, 3000);
 		}
 
 		// Adds a live value badge and circular +/- step buttons around a bootstrap-slider input.
@@ -4318,6 +4474,8 @@
 				$('#maxVolumeSpeaker').bootstrapSlider('setValue', genSettings.maxVolumeSp);
 				$('#maxVolumeHeadphone').bootstrapSlider('setValue', genSettings.maxVolumeHp);
 				$('#inactivityTime').bootstrapSlider('setValue', genSettings.sleepInactivity);
+				$('#jumpOffset').val(genSettings.jumpOffset);
+				$('#rotSeekStep').val(genSettings.rotSeekStep);
 				$('#playMono').prop('checked', genSettings.playMono);
 				$('#savePlayPosShutdown').prop('checked', genSettings.savePosShutdown);
 				$('#savePlayPosRfidChange').prop('checked', genSettings.savePosRfidChge);
@@ -4330,6 +4488,7 @@
 				$('#resumeOnSameRfid').prop('checked', genSettings.resumeOnSameRfid);
 				$('#resumeOnSameRfid').prop('disabled', genSettings.pauseIfRfidRemoved || !genSettings.dontAcceptRfidTwice);
 				$('#pauseOnMinVolume').prop('checked', genSettings.pauseOnMinVol);
+				$('#nightVolumeLimit').prop('checked', genSettings.nightVolLimit);
 				$('#recoverVolBoot').prop('checked', genSettings.recoverVolBoot);
 				$('#volumeCurve').prop('checked', genSettings.volumeCurve > 0);
 				$('#rfidReaderType').val(genSettings.rfidReaderType);
@@ -4391,6 +4550,7 @@
 				$('#led_satAtmo').bootstrapSlider('setValue', ledSettings.satAtmo);
 				document.getElementById('led_dimStates').value = ledSettings.dimStates;
 				$('#led_offsetPause').prop('checked', ledSettings.offsetPause);
+				$('#led_rfidFlash').prop('checked', ledSettings.rfidFlash);
 				$('#led_reverseRotation').prop('checked', ledSettings.reverseRot);
 				document.getElementById('led_offsetStart').value = ledSettings.offsetStart;
 			}
@@ -4460,6 +4620,10 @@
 				$('#voltageIndicatorLow').bootstrapSlider('setValue', batSettings.indicatorLow);
 				$('#voltageIndicatorHigh').bootstrapSlider('setValue', batSettings.indicatorHi);
 				$('#shutdownOnCritical').prop('checked', batSettings.shutdownOnCritical);
+				$('#batWarnSound').prop('checked', batSettings.warnSound);
+				$('#batWarnOnce').prop('checked', batSettings.warnSoundOnce);
+				$('#batWarnFile').val(batSettings.warnSoundFile);
+				setSettingsSectionActive(document.getElementById('batWarnSoundSection'), batSettings.warnSound);
 				setSettingsSectionActive(document.getElementById('criticalVoltageSection'), batSettings.shutdownOnCritical);
 				$('#criticalVoltage').bootstrapSlider('setValue', batSettings.criticalVoltage);
 				$('#offsetVoltage').bootstrapSlider('setValue', batSettings.offsetVoltage);
@@ -4900,6 +5064,8 @@
 					maxVolumeSp: Number($('#maxVolumeSpeaker').val()),
 					maxVolumeHp: Number($('#maxVolumeHeadphone').val()),
 					sleepInactivity: Number($('#inactivityTime').val()),
+					jumpOffset: Number($('#jumpOffset').val()),
+					rotSeekStep: Number($('#rotSeekStep').val()),
 					playMono: $('#playMono').prop('checked'),
 					savePosShutdown: $('#savePlayPosShutdown').prop('checked'),
 					savePosRfidChge: $('#savePlayPosRfidChange').prop('checked'),
@@ -4909,6 +5075,7 @@
 					dontAcceptRfidTwice: $('#dontAcceptRfidTwice').prop('checked'),
 					resumeOnSameRfid: $('#resumeOnSameRfid').prop('checked'),
 					pauseOnMinVol: $('#pauseOnMinVolume').prop('checked'),
+					nightVolLimit: $('#nightVolumeLimit').prop('checked'),
 					recoverVolBoot: $('#recoverVolBoot').prop('checked'),
 					volumeCurve: $("#volumeCurve").prop('checked') ? 1 : 0,
 					rfidReaderType: Number($('#rfidReaderType').val()),
@@ -4932,6 +5099,7 @@
 					satAtmo: Number($('#led_satAtmo').val()),
 					dimStates: Number(document.getElementById("led_dimStates").value),
 					offsetPause: $('#led_offsetPause').prop('checked'),
+					rfidFlash: $('#led_rfidFlash').prop('checked'),
 					reverseRot: $('#led_reverseRotation').prop('checked'),
 					offsetStart: Number(document.getElementById("led_offsetStart").value),
 				},
@@ -4942,6 +5110,9 @@
 					criticalVoltage: Number($('#criticalVoltage').val()),
 					offsetVoltage: Number($('#offsetVoltage').val()),
 					shutdownOnCritical: $('#shutdownOnCritical').prop('checked'),
+					warnSound: $('#batWarnSound').prop('checked'),
+					warnSoundOnce: $('#batWarnOnce').prop('checked'),
+					warnSoundFile: $('#batWarnFile').val(),
 					voltageCheckInterval: Number($('#voltageCheckInterval').val())
 				},
 				"playlist": {
@@ -5636,6 +5807,11 @@
 				if (checked) {
 					$('#criticalVoltage').bootstrapSlider('relayout');
 				}
+			});
+
+			/* The spoken low-battery warning gates its own file/repeat settings. */
+			$('#batWarnSound').on('change', function () {
+				setSettingsSectionActive(document.getElementById('batWarnSoundSection'), $(this).prop('checked'));
 			});
 
 			/* Auto-save playback position: the checkbox gates the interval input; default it when enabling. */

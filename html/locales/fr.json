@@ -65,7 +65,9 @@
 			"dimmablestatesExp": "Nombre d'étapes intermédiaires par LED, utilisées pour rendre les transitions (par ex. volume ou progression) plus douces/fines.",
 			"offsetExp": "Décale la première LED de l'indicateur de ce nombre de positions - utile si l'anneau LED ne doit pas commencer à la position 0.",
 			"offsetpauseExp": "Décale l'indicateur de pause d'un demi-espacement de LED par rapport à l'indicateur de repos normal, afin de distinguer visuellement la pause du repos.",
-			"reverserotationExp": "Inverse le sens de défilement de l'indicateur LED, par ex. pour les anneaux montés dans le sens antihoraire au lieu du sens horaire."
+			"reverserotationExp": "Inverse le sens de défilement de l'indicateur LED, par ex. pour les anneaux montés dans le sens antihoraire au lieu du sens horaire.",
+			"rfidflash": "Bref clignotement de toutes les LED à la reconnaissance d'une carte",
+			"rfidflashExp": "Accuse réception d'une carte RFID assignée par un bref clignotement vert – tu vois ainsi que la carte a été acceptée. Une carte inconnue reste signalée en rouge."
 		},
 		"buttons": {
 			"title": "Attribution des boutons",
@@ -107,12 +109,24 @@
 			"gesturesExp": "Tant qu'un de ces boutons est maintenu, tourner le codeur rotatif déclenche l'action attribuée au lieu de changer le volume. « Tourner à droite » est le sens qui augmente le volume. L'appui long d'un tel bouton ne se déclenche qu'au relâchement - et pas du tout si le codeur a été tourné.",
 			"ccw": "tourner à gauche",
 			"cw": "tourner à droite",
-			"seekPreviewTitle": "Réglages de l'aperçu de recherche",
-			"seekPreviewTitleExp": "Réglages fins pour le geste 🎯 d'aperçu de recherche (voir tableau ci-dessus) : combien de temps attendre avant qu'un aperçu ne se valide automatiquement, et avec quelle précision la position cible peut être ajustée en tournant.",
+			"seekPreviewTitle": "Recherche avec le codeur rotatif",
+			"seekPreviewTitleExp": "Réglages fins pour la recherche avec le codeur rotatif : le geste d'aperçu 🎯 (voir tableau ci-dessus) et la recherche directe lorsqu'une action de rotation est affectée à avancer/reculer.",
 			"seekPrevDelay": "Délai avant validation [ms]",
 			"seekPrevDelayExp": "Durée (en ms) pendant laquelle le codeur doit rester immobile avant qu'un geste 🎯 d'aperçu de recherche ne saute de lui-même à la position prévisualisée. Relâcher le bouton maintenu valide toujours immédiatement, indépendamment de ce délai. 0-3000, par défaut 2000.",
 			"seekPrevSweep": "Crans pour un balayage complet",
-			"seekPrevSweepExp": "Nombre de crans du codeur nécessaires pour déplacer la cible de l'aperçu de recherche de 0% à 100% (LED bleue) du morceau. Plus bas = défilement plus grossier/rapide, plus haut = contrôle plus fin. Par défaut 40."
+			"seekPrevSweepExp": "Nombre de crans du codeur nécessaires pour déplacer la cible de l'aperçu de recherche de 0% à 100% (LED bleue) du morceau. Plus bas = défilement plus grossier/rapide, plus haut = contrôle plus fin. Par défaut 40.",
+			"rotSeekStep": "Pas de recherche par cran [s]",
+			"rotSeekStepExp": "Nombre de secondes parcourues par cran lorsqu'une action de rotation est affectée directement à avancer/reculer (et non à l'aperçu). À garder petit : une rotation rapide représente de nombreux crans d'un coup. 1-60, par défaut 10.",
+			"directSeekTitle": "Recherche directe",
+			"directSeekHint": "La variante simple : chaque cran avance ou recule immédiatement de la durée configurée - sans affichage ni attente. C'est plus direct, mais aussi plus grossier, car une rotation rapide représente de nombreux crans d'un coup et vous atterrissez d'autant plus loin. En contrepartie, cela fonctionne même si votre ESPuino n'a pas de Neopixels et qu'un aperçu n'aurait donc rien à montrer. C'est la configuration d'usine du codeur rotatif. S'applique lorsqu'une action de rotation ci-dessus est affectée à « avancer » ou « reculer ».",
+			"previewSeekTitle": "Aperçu de position",
+			"previewSeekHint": "La variante la plus confortable et le meilleur choix pour la plupart des gens. Dès que vous maintenez la touche affectée, l'anneau LED devient jaune - avant même que vous ne tourniez. C'est le signe que l'aperçu est actif. En tournant, la lecture proprement dite ne bouge alors pas du tout ; seul un repère bleu (curseur) se déplace vers l'endroit visé (si vous avez une seule LED au lieu d'un anneau, elle s'allume simplement en bleu pendant ce temps). La lecture n'y saute qu'au relâchement de la touche ou après un court arrêt de la rotation. Vous pouvez ainsi viser tranquillement en voyant ce que vous faites, au lieu d'avancer et reculer à l'aveugle. Les deux valeurs ci-dessous déterminent le délai d'attente après la dernière rotation et le nombre de crans nécessaires pour parcourir tout le morceau. S'applique lorsqu'une action de rotation ci-dessus est affectée à « aperçu de recherche »."
+		},
+		"seek": {
+			"title": "Recherche avec les touches",
+			"titleExp": "Pas de recherche pour les actions de touche « avancer » et « reculer ».",
+			"jumpOffset": "Pas de recherche par appui [s]",
+			"jumpOffsetExp": "Nombre de secondes parcourues à chaque appui sur « avancer » / « reculer » dans le morceau en cours. Effet immédiat après enregistrement. 1-120, par défaut 30."
 		}
 	},
 	"wifi": {
@@ -229,7 +243,9 @@
 			"refresh": "Actualiser",
 			"delete": "Supprimer",
 			"rename": "Renommer",
-			"download": "Télécharger"
+			"download": "Télécharger",
+			"useAsBatteryWarning": "Définir comme alerte batterie",
+			"useAsBatteryWarningDone": "Défini comme alerte batterie"
 		},
 		"files": {
 			"title": "Fichiers",
@@ -469,7 +485,9 @@
 			"save": "Enregistrer l'appareil",
 			"inProgress": "Recherche d'appareils...",
 			"noDevices": "Aucun appareil Bluetooth trouvé",
-			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth."
+			"notAllowed": "La recherche d'appareils Bluetooth n'est pas autorisée dans le mode actuel. Veuillez d'abord basculer en mode casque Bluetooth.",
+			"unknownDevice": "Appareil inconnu",
+			"connecting": "Connexion à {{device}}..."
 		},
 		"device": {
 			"title": "Périphérique Bluetooth (casque)",
@@ -485,6 +503,17 @@
 			"title": "Basculer vers le mode WiFi",
 			"prompt": "Le mode actuel ne prend pas en charge le contrôle via le site web. Voulez-vous basculer vers le mode WiFi pour permettre le contrôle via le site web ? L'appareil sera redémarré.",
 			"button": "Basculer vers le mode WiFi"
+		},
+		"mode": {
+			"title": "Mode Bluetooth",
+			"off": "Désactivé",
+			"headphones": "Casque",
+			"speaker": "Haut-parleur",
+			"restartNotice": "La sélection d’un autre mode redémarre ESPuino."
+		},
+		"connection": {
+			"connected": "Connecté à : {{device}}",
+			"disconnected": "Non connecté"
 		}
 	},
 	"general": {
@@ -551,6 +580,8 @@
 			"playLastRfidOnRebootExp": "La dernière balise RFID lue est lue après le redémarrage.",
 			"pauseOnMinVolume": "Pause au volume minimal",
 			"pauseOnMinVolumeExp": "La lecture est mise en pause lorsque le volume atteint le minimum. Plus d'infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>ici</a>.",
+			"nightVolumeLimit": "Limiter le volume en mode nuit",
+			"nightVolumeLimitExp": "À l'activation du mode nuit, le volume réglé à ce moment devient une limite supérieure temporaire (plus un cran de marge) – pratique lorsque l'ESPuino est emporté au lit. La limite est levée à la sortie du mode nuit.",
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
 			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
 			"volumeCurve": "Des nuances plus fines à faible volume",
@@ -585,7 +616,13 @@
 			"offsetExp": "Correction fine de la tension mesurée de la batterie. Si la tension affichée diffère d'une mesure au multimètre, saisissez ici la différence (positive ou négative). Valeur par défaut de la Complete : -0,04 V.",
 			"criticalShutoffExp": "Tension à laquelle ESPuino s'éteint automatiquement pour protéger la batterie d'une décharge profonde.",
 			"measureIntervalExp": "Intervalle de temps en minutes auquel la tension de la batterie est mesurée.",
-			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V."
+			"shutdownOnCriticalExp": "Éteint automatiquement ESPuino lorsque la tension de la batterie descend en dessous du seuil critique défini ci-dessous. Peut protéger la batterie dans une certaine mesure d'une décharge profonde, mais ne remplace pas un système de gestion de batterie (BMS) ! Valeurs recommandées : LFP : 2,7 V, LiPo : 3,0 V.",
+			"warnSound": "Annoncer une batterie faible",
+			"warnSoundExp": "Joue un fichier audio depuis la carte SD lorsque la batterie est faible – la lecture est brièvement interrompue puis reprend exactement au même endroit. Utile car les LED clignotantes passent facilement inaperçues à l'écoute, et à plus forte raison pour les enfants.",
+			"warnSoundFile": "Fichier de l'annonce",
+			"warnSoundFileExp": "Chemin du fichier audio sur la carte SD. Le plus simple est de le choisir dans l'explorateur de fichiers par un clic droit, « Définir comme alerte batterie ». Si le fichier manque, rien n'est interrompu et seule une erreur est journalisée.",
+			"warnSoundOnce": "N'annoncer qu'une fois",
+			"warnSoundOnceExp": "Sans cette option, l'annonce est répétée à chaque mesure tant que la batterie reste sous le seuil d'alerte – donc au rythme de l'intervalle de mesure configuré. Avec cette option, l'annonce n'a lieu qu'une seule fois et n'est rejouée que si la tension repasse au-dessus du seuil d'alerte puis redescend en dessous."
 		},
 		"playlist": {
 			"title": "Playlist",

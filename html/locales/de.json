@@ -65,7 +65,9 @@
 			"dimmablestatesExp": "Anzahl der Zwischenschritte pro LED, mit denen Übergänge (z.B. Lautstärke- oder Fortschrittsanzeige) feiner/weicher dargestellt werden.",
 			"offsetExp": "Verschiebt die erste LED der Anzeige um die angegebene Anzahl Positionen - nützlich, wenn der LED-Ring nicht bei Position 0 beginnen soll.",
 			"offsetpauseExp": "Versetzt die Pause-Anzeige um einen halben LED-Abstand gegenüber der normalen Ruhezustand-Anzeige, damit Pause optisch von Idle unterscheidbar ist.",
-			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind."
+			"reverserotationExp": "Kehrt die Laufrichtung der LED-Anzeige um, z.B. für Ringe, die gegen den Uhrzeigersinn statt im Uhrzeigersinn montiert sind.",
+			"rfidflash": "Kurzes Aufleuchten aller LEDs bei erkannter Karte",
+			"rfidflashExp": "Quittiert eine zugewiesene RFID-Karte mit einem kurzen grünen Aufleuchten – so siehst du, dass die Karte angenommen wurde. Eine unbekannte Karte wird weiterhin rot quittiert."
 		},
 		"buttons": {
 			"title": "Taster-Zuordnungen",
@@ -107,12 +109,24 @@
 			"gesturesExp": "Solange eine dieser Tasten gehalten wird, löst Drehen am Drehimpulsgeber die zugewiesene Aktion aus, statt die Lautstärke zu ändern. 'Rechts drehen' ist die Richtung, die sonst lauter stellt. Die Lang-Aktion einer solchen Taste wird erst beim Loslassen ausgelöst - und gar nicht, wenn gedreht wurde.",
 			"ccw": "links drehen",
 			"cw": "rechts drehen",
-			"seekPreviewTitle": "Positionsvorschau-Einstellungen",
-			"seekPreviewTitleExp": "Feineinstellungen für die 🎯 Positionsvorschau-Geste (siehe Tabelle oben): wie lange gewartet wird, bis eine Vorschau automatisch übernommen wird, und wie fein sich die Zielposition per Drehung steuern lässt.",
+			"seekPreviewTitle": "Spulen mit dem Drehimpulsgeber",
+			"seekPreviewTitleExp": "Feineinstellungen fürs Spulen per Drehimpulsgeber: die 🎯 Positionsvorschau-Geste (siehe Tabelle oben) und das direkte Spulen, wenn eine Dreh-Aktion auf Vor-/Zurückspulen gelegt ist.",
 			"seekPrevDelay": "Verzögerung bis zur Übernahme [ms]",
 			"seekPrevDelayExp": "Wie lange (in ms) der Drehimpulsgeber stillstehen muss, bevor eine 🎯 Positionsvorschau-Geste von selbst zur vorgeschauten Position springt. Loslassen der gehaltenen Taste übernimmt die Position immer sofort, unabhängig von dieser Verzögerung. 0-3000, Standard 2000.",
 			"seekPrevSweep": "Anzahl Rasterungen für 0 bis 100 %",
-			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40."
+			"seekPrevSweepExp": "Wie viele Encoder-Rasterungen das Positionsvorschau-Ziel von 0% auf 100% (blaue LED) des Titels bewegen. Niedriger = grober/schnelleres Positionieren, höher = feinere Kontrolle. Standard 40.",
+			"rotSeekStep": "Sprungweite pro Rastung [s]",
+			"rotSeekStepExp": "Um wie viele Sekunden pro Rasterung gesprungen wird, wenn eine Dreh-Aktion direkt auf Vor-/Zurückspulen gelegt ist (nicht die Positionsvorschau). Klein halten: Eine schnelle Drehung sind viele Rasterungen auf einmal. 1-60, Standard 10.",
+			"directSeekTitle": "Direktes Spulen",
+			"directSeekHint": "Die einfache Variante: Jede Rasterung springt sofort um die eingestellte Zeit vor oder zurück - ohne Anzeige, ohne Wartezeit. Das ist unmittelbarer, aber auch gröber, denn eine schnelle Drehung sind viele Rasterungen auf einmal und entsprechend weit landest du. Dafür funktioniert es auch dann, wenn dein ESPuino keine Neopixel hat und eine Vorschau folglich nichts anzeigen könnte. So ist der Drehimpulsgeber ab Werk belegt. Greift, wenn du einer Dreh-Aktion oben 'Vorspulen' oder 'Zurückspulen' zuweist.",
+			"previewSeekTitle": "Positionsvorschau",
+			"previewSeekHint": "Die komfortablere Variante und für die meisten die bessere Wahl. Sobald du die zugewiesene Taste gedrückt hältst, färbt sich der LED-Ring gelb - noch bevor du überhaupt drehst. Das ist das Zeichen, dass die Vorschau läuft. Beim Drehen springt die eigentliche Wiedergabe dann zunächst gar nicht; stattdessen wandert nur eine blaue Markierung (Cursor) auf die Stelle, zu der gesprungen würde (hast du nur eine einzelne LED statt eines Rings, leuchtet sie währenddessen einfach blau). Erst wenn du die Taste loslässt oder eine Weile nicht mehr drehst, springt die Wiedergabe dorthin. So kannst du eine Stelle in Ruhe ansteuern und dabei zusehen, statt dich blind vor- und zurückzutasten. Die beiden Werte darunter bestimmen, wie lange ESPuino nach der letzten Drehung wartet und wie viele Rasterungen einmal über den ganzen Titel führen. Greift, wenn du einer Dreh-Aktion oben 'Positionsvorschau' zuweist."
+		},
+		"seek": {
+			"title": "Spulen mit den Tasten",
+			"titleExp": "Sprungweite für die Tasten-Aktionen 'Vorspulen' und 'Zurückspulen'.",
+			"jumpOffset": "Sprungweite pro Tastendruck [s]",
+			"jumpOffsetExp": "Um wie viele Sekunden ein Tastendruck auf 'Vorspulen' bzw. 'Zurückspulen' im laufenden Titel springt. Wirkt sofort nach dem Speichern. 1-120, Standard 30."
 		}
 	},
 	"wifi": {
@@ -229,7 +243,9 @@
 			"refresh": "Aktualisieren",
 			"delete": "Löschen",
 			"rename": "Umbenennen",
-			"download": "Herunterladen"
+			"download": "Herunterladen",
+			"useAsBatteryWarning": "Als Akku-Warnung festlegen",
+			"useAsBatteryWarningDone": "Als Akku-Warnung übernommen"
 		},
 		"files": {
 			"title": "Dateien",
@@ -469,7 +485,9 @@
 			"save": "Gerät speichern",
 			"inProgress": "Suche nach Geräten...",
 			"noDevices": "Keine Bluetooth-Geräte gefunden",
-			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus."
+			"notAllowed": "Scan im aktuellen Modus nicht erlaubt. Bitte wechseln Sie zum Bluetooth-Kopfhörer-Modus.",
+			"unknownDevice": "Unbekanntes Gerät",
+			"connecting": "Verbinde mit {{device}}..."
 		},
 		"device": {
 			"title": "Bluetooth-Gerät (Kopfhörer)",
@@ -485,6 +503,17 @@
 			"title": "Wechsel zu WiFi-Modus",
 			"prompt": "Der aktuelle Modus unterstützt keine Steuerung über die Webseite. Möchtest du zum WiFi-Modus wechseln, um die Steuerung über die Webseite zu ermöglichen? Das Gerät wird dabei neu gestartet.",
 			"button": "Zum WiFi-Modus wechseln"
+		},
+		"mode": {
+			"title": "Bluetooth-Modus",
+			"off": "Aus",
+			"headphones": "Kopfhörer",
+			"speaker": "Lautsprecher",
+			"restartNotice": "Die Auswahl eines anderen Modus startet den ESPuino neu."
+		},
+		"connection": {
+			"connected": "Verbunden mit: {{device}}",
+			"disconnected": "Nicht verbunden"
 		}
 	},
 	"general": {
@@ -551,6 +580,8 @@
 			"playLastRfidOnRebootExp": "Letzten RFID-Tag nach Neustart wieder abspielen.",
 			"pauseOnMinVolume": "Pause bei minimaler Lautstärke",
 			"pauseOnMinVolumeExp": "Die Wiedergabe wird pausiert, wenn die Lautstärke das Minimum erreicht. Mehr Infos <a href='https://forum.espuino.de/t/lautstaerke-0-pause/1631' target='_blank'>hier</a>.",
+			"nightVolumeLimit": "Lautstärke im Nachtmodus begrenzen",
+			"nightVolumeLimitExp": "Beim Einschalten des Nachtmodus wird die gerade eingestellte Lautstärke zur vorübergehenden Obergrenze (plus eine Stufe Spielraum) – praktisch, wenn ESPuino mit ins Bett genommen wird. Beim Verlassen des Nachtmodus wird die Begrenzung wieder aufgehoben.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
 			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
 			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",
@@ -585,7 +616,13 @@
 			"offsetExp": "Feinkorrektur der gemessenen Akkuspannung. Weicht die angezeigte Spannung von einer Messung per Multimeter ab, trage hier die Differenz ein (positiv oder negativ). Standardwert der Complete: -0,04 V.",
 			"criticalShutoffExp": "Spannung, bei der ESPuino automatisch herunterfährt, um den Akku vor Tiefentladung zu schützen.",
 			"measureIntervalExp": "Zeitabstand in Minuten, in dem die Akkuspannung gemessen wird.",
-			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V."
+			"shutdownOnCriticalExp": "Schaltet ESPuino automatisch ab, sobald die Akkuspannung den unten eingestellten kritischen Wert unterschreitet. Kann den Akku ein Stück weit vor Tiefentladung schützen, ersetzt jedoch kein Batterie-Management-System! Empfohlene Werte sind: LFP: 2,7 V, LiPo: 3,0 V.",
+			"warnSound": "Warnung bei leerem Akku ansagen",
+			"warnSoundExp": "Spielt bei niedrigem Akkustand eine Audiodatei von der SD-Karte ab – die Wiedergabe wird dafür kurz unterbrochen und danach an genau derselben Stelle fortgesetzt. Sinnvoll, weil die blinkenden LEDs beim Hören leicht übersehen werden, von Kindern ohnehin.",
+			"warnSoundFile": "Datei für die Ansage",
+			"warnSoundFileExp": "Pfad zur Audiodatei auf der SD-Karte. Am bequemsten wählst du sie im Dateibrowser per Rechtsklick über „Als Akku-Warnung festlegen“ aus. Fehlt die Datei, wird nichts unterbrochen und nur ein Fehler protokolliert.",
+			"warnSoundOnce": "Nur einmal ansagen",
+			"warnSoundOnceExp": "Ohne diese Option wird die Ansage bei jeder Messung wiederholt, solange der Akku unter der Warnschwelle liegt – also im Takt des eingestellten Messintervalls. Ist diese Option aktiv, so erfolgt die Ansage nur einmal und wird erst wieder erneut abgespielt, wenn die Warnschwelle nach vorheriger Überschreitung im Anschluss erneut unterschritten wird."
 		},
 		"playlist": {
 			"title": "Wiedergabeliste",

@@ -577,6 +577,31 @@ paths:
                       type: integer
         "400":
           description: Bluetooth not enabled in this build.
+  /bluetoothstatus:
+    get:
+      summary: Get Bluetooth source connection status.
+      description: >-
+        Returns the current Bluetooth source connection state. When connected,
+        the response also contains the peer MAC address and, when known, its
+        friendly device name.
+      responses:
+        "200":
+          description: Current Bluetooth connection status.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - connected
+                properties:
+                  connected:
+                    type: boolean
+                  address:
+                    type: string
+                    description: "Peer MAC address, formatted as XX:XX:XX:XX:XX:XX. Present only when connected."
+                  name:
+                    type: string
+                    description: "Friendly peer name when known. Present only when connected."
   /bluetoothconnect:
     post:
       summary: Connect to a Bluetooth device.

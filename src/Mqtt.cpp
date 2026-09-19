@@ -317,6 +317,7 @@ static NumberType toNumber(const std::string str) {
 	return 0;
 }
 
+#ifdef MQTT_ENABLE
 // The mutually-exclusive sleep-timer modes, in the priority order the state topics report them.
 enum class SleepTimerMode {
 	Off,
@@ -412,6 +413,13 @@ void Mqtt_PublishSleepTimerState(bool force) {
 		lastPayload[sizeof(lastPayload) - 1] = '\0';
 	}
 }
+#else
+// Mqtt.h declares this unconditionally, so keep a no-op for builds without MQTT. Today's only caller
+// in System_SleepHandler() is guarded itself, but a future unguarded one should link instead of
+// re-opening the gap this #ifdef closes -- same idea as the #else branch of publishMqtt() above.
+void Mqtt_PublishSleepTimerState(bool) {
+}
+#endif
 
 // Is called if there's a new MQTT-message for us
 #ifdef MQTT_ENABLE
@@ -600,14 +608,14 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				gPlayProperties.sleepAfterPlaylist = true;
 				Log_Println(sleepTimerEOP, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOP", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "EOT") {
 				gPlayProperties.sleepAfterCurrentTrack = true;
 				Log_Println(sleepTimerEOT, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EOT", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "EO5T") {
@@ -623,7 +631,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 				}
 				Log_Println(sleepTimerEO5, LOGLEVEL_NOTICE);
 				publishMqtt(topicSleepTimer, "EO5T", false);
-				Led_SetNightmode(true);
+				System_SetNightmode(true);
 				System_IndicateOk();
 				return;
 			} else if (payload_str == "0") { // Disable sleep after it was active previously
@@ -631,7 +639,7 @@ void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const cha
 					System_DisableSleepTimer();
 					Log_Println(sleepTimerStop, LOGLEVEL_NOTICE);
 					System_IndicateOk();
-					Led_SetNightmode(false);
+					System_SetNightmode(false);
 					publishMqtt(topicSleepTimer, static_cast<uint32_t>(0), false);
 					gPlayProperties.sleepAfterPlaylist = false;
 					gPlayProperties.sleepAfterCurrentTrack = false;

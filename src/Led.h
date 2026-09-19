@@ -70,7 +70,14 @@ struct AnimationReturnType {
 	#define LED_INITIAL_BRIGHTNESS		 16u
 	#define LED_INITIAL_NIGHT_BRIGHTNESS 2u
 
-	#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	// FastLED's clockless-SPI backend claims SPI2_HOST (== Arduino's HSPI) via its own private
+	// bookkeeping, which knows nothing about hosts Arduino already took. That only works out while the
+	// SD card stays off HSPI, i.e. in SD-MMC mode. With SPI-SD, SdCard.cpp's spiSD(HSPI) and FastLED
+	// end up driving the same peripheral concurrently -- an SPI HAL assert plus LED-refresh timeouts,
+	// i.e. a reboot loop (forum #4758). Leaving the macro undefined falls back to the RMT driver.
+	#ifdef SD_MMC_1BIT_MODE
+		#define FASTLED_ESP32_USE_CLOCKLESS_SPI 1
+	#endif
 
 	#include <FastLED.h>
 
@@ -80,6 +87,7 @@ struct LedSettings {
 	std::vector<uint32_t> controlLedColors;
 	uint8_t numIdleDots = 4;
 	bool offsetLedPause = false;
+	bool indicateRfidTag = false;
 	int16_t progressHueStart = 85;
 	int16_t progressHueEnd = -1;
 	int16_t atmoHue = 10;
@@ -88,7 +96,6 @@ struct LedSettings {
 	bool neopixelReverseRotation;
 	uint8_t ledOffset;
 	bool Led_Pause = false; // Used to pause Neopixel-signalisation (while NVS-writes as this leads to exceptions; don't know why)
-	bool Led_NightMode = false;
 	bool Led_AmbientLight = false;
 	uint8_t Led_InitialBrightness = LED_INITIAL_BRIGHTNESS;
 	uint8_t Led_Brightness = LED_INITIAL_BRIGHTNESS;
@@ -100,6 +107,9 @@ struct LedSettings {
 void Led_Init(void);
 void Led_Exit(void);
 void Led_Indicate(LedIndicatorType value);
+// Acknowledges an accepted RFID tag by flashing all LEDs, if the user asked for that feedback.
+// Checks the setting itself, so callers don't have to.
+void Led_IndicateRfidTagAccepted(void);
 void Led_SetPause(boolean value);
 void Led_ResetToInitialBrightness(void);
 void Led_ResetToNightBrightness(void);
@@ -110,9 +120,10 @@ void Led_TaskResume(void);
 void Led_ShowOtaProgress(uint8_t percent);
 void Led_SetDownloadProgress(bool active, uint8_t percent = 0);
 
-void Led_SetNightmode(bool enabled);
-bool Led_GetNightmode();
-void Led_ToggleNightmode();
+// Applies or reverts the night-mode brightness. The night-mode state itself is owned by System.cpp
+// (System_SetNightmode()), which holds the flag and the idempotence check -- so this is only ever
+// called on an actual state change and must not be called directly.
+void Led_ApplyNightmode(bool enabled);
 void Led_SetAmbientLight(bool enabled);
 bool Led_GetAmbientLight();
 void Led_ToggleAmbientLight();
