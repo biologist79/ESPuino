@@ -16,8 +16,22 @@
 #include "Web.h"
 
 #include <atomic>
+#include <inttypes.h>
 
 unsigned long Rfid_LastRfidCheckTimestamp = 0;
+
+// The one place that writes the linear NVS format Rfid_PreferenceLookupHandler()
+// parses: #<fileOrUrl>#<lastPlayPos>#<playMode>#<trackLastPlayed>, with "0" as
+// fileOrUrl for modification cards. Assembling it per call site is how a field
+// like the MEDIAHUB marker gets overwritten by accident. Reads the value back,
+// since putString()'s return value alone doesn't prove it landed.
+bool Rfid_SaveAssignment(const char *cardId, const char *fileOrUrl, uint8_t playModeOrModId, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	char rfidString[275]; // longest path the web interface accepts, plus the numeric fields
+	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s%" PRIu32 "%s%u%s%" PRIu16,
+		stringDelimiter, fileOrUrl, stringDelimiter, lastPlayPos, stringDelimiter, (unsigned) playModeOrModId, stringDelimiter, trackLastPlayed);
+	gPrefsRfid.putString(cardId, rfidString);
+	return gPrefsRfid.getString(cardId, "-1") == rfidString;
+}
 char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
 

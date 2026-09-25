@@ -19,3 +19,6 @@ void Rfid_TaskResume(void);
 void Rfid_TaskReset(void);
 void Rfid_WakeupCheck(void);
 void Rfid_PreferenceLookupHandler(void);
+// Writes one card assignment to NVS, see RfidCommon.cpp.
+bool Rfid_SaveAssignment(const char *cardId, const char *fileOrUrl, uint8_t playModeOrModId,
+	uint32_t lastPlayPos = 0, uint16_t trackLastPlayed = 0);

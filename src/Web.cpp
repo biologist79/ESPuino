@@ -1133,12 +1133,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		if (_modId <= 0) {
 			gPrefsRfid.remove(_rfidIdModId);
 		} else {
-			char rfidString[12];
-			snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
-			gPrefsRfid.putString(_rfidIdModId, rfidString);
-
-			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
-			if (s.compareTo(rfidString)) {
+			if (!Rfid_SaveAssignment(_rfidIdModId, "0", _modId)) {
 				return WebsocketCodeType::Error;
 			}
 		}
@@ -1152,13 +1147,9 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			Log_Println("rfidAssign: Invalid playmode", LOGLEVEL_ERROR);
 			return WebsocketCodeType::Error;
 		}
-		char rfidString[275];
-		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
-		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
+		const bool assignmentSaved = Rfid_SaveAssignment(_rfidIdAssinId, _fileOrUrlAscii, _playMode);
 		Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
-
-		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
-		if (s.compareTo(rfidString)) {
+		if (!assignmentSaved) {
 			return WebsocketCodeType::Error;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
@@ -2797,13 +2788,9 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 		request->send(500, "text/plain; charset=utf-8", "/rfid (POST): Invalid playMode or modId");
 		return;
 	}
-	char rfidString[275];
-	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playModeOrModId, stringDelimiter);
-	gPrefsRfid.putString(tagId.c_str(), rfidString);
+	const bool assignmentSaved = Rfid_SaveAssignment(tagId.c_str(), _fileOrUrlAscii, _playModeOrModId);
 	Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
-
-	String s = gPrefsRfid.getString(tagId.c_str(), "-1");
-	if (s.compareTo(rfidString)) {
+	if (!assignmentSaved) {
 		request->send(500, "text/plain; charset=utf-8", "/rfid (POST): cannot save assignment to NVS");
 		return;
 	}

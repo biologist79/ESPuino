@@ -7,6 +7,7 @@
 #include "Common.h"
 #include "Led.h"
 #include "Log.h"
+#include "Rfid.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
@@ -1211,10 +1212,7 @@ bool MediaHub_TryAdoptUnknownCard(const char *cardId) {
 		// into the log, and into the assignment itself -- visible in the web
 		// interface from here on.
 		const String nvsPath = String(MediaHub_PathPrefix) + base;
-		char rfidString[275];
-		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0",
-			stringDelimiter, nvsPath.c_str(), stringDelimiter, stringDelimiter, (unsigned) MEDIAHUB, stringDelimiter);
-		if (!gPrefsRfid.putString(cardId, rfidString)) {
+		if (!Rfid_SaveAssignment(cardId, nvsPath.c_str(), MEDIAHUB)) {
 			Log_Println(mediaHubAdoptWriteFailed, LOGLEVEL_ERROR);
 			System_IndicateError();
 			return true; // handled: reporting it as "unknown card" on top would only confuse
