@@ -696,7 +696,12 @@
 		"title": "MediaHub",
 		"intro": "MediaHub is an optional, separately-run add-on: a small local server running as a Docker container on your own network. It lets you manage RFID card assignments centrally for multiple ESPuinos - content and playback mode then come from the server instead of the local NVS configuration. Without a running MediaHub server, this page doesn't do anything useful. Here you register the address(es) of your MediaHub server(s) so they show up in the dropdown when assigning a card. The MediaHub server itself is available on GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
 		"serversTitle": "Add media server",
-		"registeredServersTitle": "Registered media servers"
+		"registeredServersTitle": "Registered media servers",
+		"optionsTitle": "Options",
+		"askUnknown": "Ask the MediaHub about unknown cards",
+		"askUnknownExp": "When a card ESPuino doesn't know is placed on the reader, it asks the registered MediaHub servers whether an assignment for it already exists there. If one is found, the card is adopted automatically and played - no need to assign it in the web interface first. If no server knows the card, you get the usual “card unknown” message; the servers remember it as pending in that case, so all that's left is to assign it there.",
+		"saveOptions": "Save options",
+		"orderHint": "With several servers they are asked top to bottom; the first one that knows the card wins. A server that cannot be reached is skipped until the next restart - saving the options lifts that."
 	},
 	"help": {
 		"forum": {

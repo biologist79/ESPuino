@@ -1033,6 +1033,13 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			return WebsocketCodeType::Error;
 		}
 	}
+	if (doc["mediahub"].is<JsonObject>()) {
+		MediaHub_SetAskUnknownEnabled(doc["mediahub"]["askUnknown"].as<bool>());
+		// Saving here is also the escape hatch for the session-long skip list of
+		// unreachable hubs (see MediaHub.cpp): this is exactly where someone sits
+		// when a hub came back but the box hasn't slept since.
+		MediaHub_ClearSkippedHubs();
+	}
 	if (doc["ftp"].is<JsonObject>()) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
@@ -1518,6 +1525,11 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	#endif
 		batSettings["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif
+	}
+	// MediaHub
+	if ((section == "") || (section == "mediahub")) {
+		JsonObject mediaHubObj = obj["mediahub"].to<JsonObject>();
+		mediaHubObj["askUnknown"].set(MediaHub_IsAskUnknownEnabled());
 	}
 // FTP
 #ifdef FTP_ENABLE

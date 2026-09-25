@@ -42,6 +42,15 @@ void Rfid_PreferenceLookupHandler(void) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 		}
 		if (!s.compareTo("-1")) {
+			// Not in NVS -- but a registered MediaHub may already know this card,
+			// in which case it's adopted here instead of having to be assigned by
+			// hand first (forum #4779). Only in normal mode: in the Bluetooth
+			// modes an unknown card means "get me out of here", which is exactly
+			// what the escape below does, and there's no decoder of ours to play
+			// anything with anyway.
+			if (System_GetOperationMode() == OPMODE_NORMAL && MediaHub_TryAdoptUnknownCard(gCurrentRfidTagId)) {
+				return;
+			}
 			Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 			System_IndicateError();
 			// allow to escape from bluetooth mode with an unknown card, switch back to normal mode

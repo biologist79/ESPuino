@@ -268,4 +268,8 @@ const char mediaHubVerifyFailed[] = "MediaHub: SHA-256-Prüfung von %s fehlgesch
 const char mediaHubPlayingAfterSync[] = "MediaHub: Synchronisierung abgeschlossen, starte Wiedergabe.";
 const char mediaHubMarkedStale[] = "MediaHub: Änderung erkannt, Karte wird beim nächsten Auflegen aktualisiert.";
 const char mediaHubResyncing[] = "MediaHub: Karte hat sich geändert, synchronisiere neu.";
+const char mediaHubCardAdopted[] = "MediaHub: unbekannte Karte %s bei %s gefunden und zugewiesen.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub: Zuweisung der Karte konnte nicht ins NVS geschrieben werden.";
+const char mediaHubHubSkipped[] = "MediaHub %s nicht erreichbar, wird bis zum Neustart nicht erneut angefragt.";
+const char mediaHubReportedPending[] = "MediaHub %s: Karte %s ist dort noch nicht zugewiesen, wurde aber zum Zuweisen vorgemerkt.";
 #endif

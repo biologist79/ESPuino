@@ -71,3 +71,20 @@ std::vector<MediaHubServer> MediaHub_GetServers();
 // Adds a new server, or updates the hostPort/https of an existing one with the same name.
 bool MediaHub_SaveServer(const String &name, const String &hostPort, bool https);
 bool MediaHub_DeleteServer(const String &name);
+
+// Adopting unknown cards (forum #4779): when enabled, a card that isn't in NVS
+// is offered to the registered hubs (in list order) before it's reported as
+// unknown. The first hub that returns a manifest wins; its address is written
+// to NVS as a regular MEDIAHUB assignment and playback starts as usual, so the
+// card behaves like any other MediaHub card from the next tap on. Returns true
+// if the tap was handled here (adopted, or failed in a way already reported),
+// false to let the caller fall back to its normal "unknown card" handling.
+// Hubs that don't know the card register it as "pending" as a side effect of
+// the very same request, which is what makes "tap on any device, assign once in
+// the hub" work. Off by default.
+bool MediaHub_TryAdoptUnknownCard(const char *cardId);
+bool MediaHub_IsAskUnknownEnabled();
+bool MediaHub_SetAskUnknownEnabled(bool enabled);
+// Forgets the hubs skipped after a failed contact this session (see
+// MediaHub.cpp); called when the MediaHub settings are saved.
+void MediaHub_ClearSkippedHubs();

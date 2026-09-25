@@ -2668,6 +2668,27 @@
 				<legend data-i18n="mediahub.title"></legend>
 				<p data-i18n="[html]mediahub.intro"></p>
 			</div>
+			<div class="container mt-5" id="mediaHubOptions">
+				<fieldset>
+					<legend data-i18n="mediahub.optionsTitle"></legend>
+					<form action="#mediaHubOptions" method="POST"
+						onsubmit="mediaHubOptions('mediaHubOptions'); return false">
+						<div class="settings-group-card">
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="mediaHubAskUnknown" name="mediaHubAskUnknown" value="false">
+								<label for="mediaHubAskUnknown" data-i18n="mediahub.askUnknown"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mediahub.askUnknownExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="mt-3">
+								<button type="submit" class="btn btn-primary"
+									data-i18n="mediahub.saveOptions"></button>
+							</div>
+						</div>
+					</form>
+				</fieldset>
+			</div>
 			<div class="container mt-5" id="mediaHubServers">
 				<fieldset>
 					<legend data-i18n="mediahub.serversTitle"></legend>
@@ -2721,6 +2742,7 @@
 						<legend data-i18n="mediahub.registeredServersTitle"></legend>
 						<div class="settings-group-card">
 						<ul class="list-group" id="mediaHubServerListManaged"></ul>
+						<small class="form-text text-muted d-block mt-2" data-i18n="mediahub.orderHint"></small>
 						</div>
 					</div>
 				</fieldset>
@@ -4750,6 +4772,9 @@
 		const mediaHubServerListManaged = document.getElementById("mediaHubServerListManaged");
 		const mediaHubServerSelect = document.getElementById("mediaHubServerSelect");
 		async function rebuildMediaHubServerList() {
+			let options = await (await fetch("http://" + host + "/settings?section=mediahub")).json();
+			document.getElementById('mediaHubAskUnknown').checked = !!(options.mediahub && options.mediahub.askUnknown);
+
 			let servers = await (await fetch("http://" + host + "/mediahubservers")).json();
 
 			mediaHubServerSelect.innerHTML = "";
@@ -4807,6 +4832,20 @@
 				method: "DELETE"
 			});
 			await rebuildMediaHubServerList();
+		}
+		async function mediaHubOptions(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"mediahub": {
+					askUnknown: document.getElementById('mediaHubAskUnknown').checked
+				}
+			};
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(myObj)
+			});
+			toaster.info(i18next.t("toast.saved"));
 		}
 		async function mediaHubServerConfig(clickedId) {
 			lastIdclicked = clickedId;

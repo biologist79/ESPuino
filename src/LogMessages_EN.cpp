@@ -269,4 +269,8 @@ const char mediaHubVerifyFailed[] = "MediaHub: SHA-256 check of %s failed.";
 const char mediaHubPlayingAfterSync[] = "MediaHub: sync complete, starting playback.";
 const char mediaHubMarkedStale[] = "MediaHub: change detected, card will be refreshed on next tap.";
 const char mediaHubResyncing[] = "MediaHub: card changed, re-syncing.";
+const char mediaHubCardAdopted[] = "MediaHub: unknown card %s found on %s and assigned.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub: could not write the card assignment to NVS.";
+const char mediaHubHubSkipped[] = "MediaHub %s not reachable, will not be asked again until the next restart.";
+const char mediaHubReportedPending[] = "MediaHub %s: card %s is not assigned there yet, but has been noted for assignment.";
 #endif

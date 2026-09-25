@@ -267,4 +267,8 @@ const char mediaHubVerifyFailed[] = "MediaHub : échec de la vérification SHA-2
 const char mediaHubPlayingAfterSync[] = "MediaHub : synchronisation terminée, démarrage de la lecture.";
 const char mediaHubMarkedStale[] = "MediaHub : changement détecté, la carte sera mise à jour au prochain passage.";
 const char mediaHubResyncing[] = "MediaHub : la carte a changé, resynchronisation en cours.";
+const char mediaHubCardAdopted[] = "MediaHub : carte inconnue %s trouvée sur %s et assignée.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub : impossible d'écrire l'assignation de la carte dans la NVS.";
+const char mediaHubHubSkipped[] = "MediaHub %s inaccessible, ne sera plus interrogé jusqu'au prochain redémarrage.";
+const char mediaHubReportedPending[] = "MediaHub %s : la carte %s n'y est pas encore assignée, mais a été notée en attente d'assignation.";
 #endif
