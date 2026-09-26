@@ -1176,6 +1176,20 @@ bool MediaHub_SetAskUnknownEnabled(bool enabled) {
 	return gPrefsSettings.putBool(MediaHub_AskUnknownNvsKey, enabled);
 }
 
+// Everything MediaHub keeps locally lives under one hidden folder, which the
+// file browser filters out along with the macOS leftovers. Showing it is
+// opt-in, for looking at what actually got synced for a card.
+const char *const MediaHub_RootDir = "/.mediahub";
+static constexpr const char *MediaHub_ShowDirNvsKey = "mhShowDir";
+
+bool MediaHub_IsShowDirEnabled() {
+	return gPrefsSettings.getBool(MediaHub_ShowDirNvsKey, false);
+}
+
+bool MediaHub_SetShowDirEnabled(bool enabled) {
+	return gPrefsSettings.putBool(MediaHub_ShowDirNvsKey, enabled);
+}
+
 enum class MediaHubProbeResult {
 	Found, // hub has an assigned card and returned its manifest
 	NotAssigned, // hub answered, but doesn't have this card (it's pending there now)

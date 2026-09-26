@@ -85,6 +85,12 @@ bool MediaHub_DeleteServer(const String &name);
 bool MediaHub_TryAdoptUnknownCard(const char *cardId);
 bool MediaHub_IsAskUnknownEnabled();
 bool MediaHub_SetAskUnknownEnabled(bool enabled);
+
+// The hidden folder holding the manifest cache and the synced media, and the
+// opt-in that makes the file browser show it (off by default).
+extern const char *const MediaHub_RootDir;
+bool MediaHub_IsShowDirEnabled();
+bool MediaHub_SetShowDirEnabled(bool enabled);
 // What the locally cached manifest knows about a MediaHub card, for display in
 // the assignment list. Read straight off the SD card, no network involved.
 struct MediaHubCardInfo {

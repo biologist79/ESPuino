@@ -1035,6 +1035,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	}
 	if (doc["mediahub"].is<JsonObject>()) {
 		MediaHub_SetAskUnknownEnabled(doc["mediahub"]["askUnknown"].as<bool>());
+		MediaHub_SetShowDirEnabled(doc["mediahub"]["showDir"].as<bool>());
 		// Saving here is also the escape hatch for the session-long skip list of
 		// unreachable hubs (see MediaHub.cpp): this is exactly where someone sits
 		// when a hub came back but the box hasn't slept since.
@@ -1521,6 +1522,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	if ((section == "") || (section == "mediahub")) {
 		JsonObject mediaHubObj = obj["mediahub"].to<JsonObject>();
 		mediaHubObj["askUnknown"].set(MediaHub_IsAskUnknownEnabled());
+		mediaHubObj["showDir"].set(MediaHub_IsShowDirEnabled());
 	}
 // FTP
 #ifdef FTP_ENABLE
@@ -2210,13 +2212,20 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		}
 	}
 
+	const bool showMediaHubDir = MediaHub_IsShowDirEnabled();
 	bool isDir = false;
 	String MyfileName = gFSystem.nextFileName(root, &isDir);
 	while (MyfileName != "") {
-		// ignore hidden folders, e.g. MacOS spotlight files
-		if (!MyfileName.startsWith("/.")) {
+		// Ignore hidden entries, e.g. MacOS spotlight files. Tested on the entry's own
+		// name, not the full path MyfileName holds: a path-based test only ever caught
+		// the top level, so a dot-entry inside a folder slipped through while the
+		// contents of a revealed folder stayed hidden. MediaHub's folder is the one
+		// exception, and only when asked for - it holds the manifest cache and the
+		// synced media and is worth looking into.
+		const String entryName = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
+		if (!entryName.startsWith(".") || (showMediaHubDir && MyfileName.startsWith(MediaHub_RootDir))) {
 			JsonObject entry = obj.add<JsonObject>();
-			entry["name"] = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
+			entry["name"] = entryName;
 			if (isDir) {
 				entry["dir"].set(true);
 			}
