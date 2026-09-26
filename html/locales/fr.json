@@ -707,7 +707,7 @@
 		"askUnknown": "Interroger le MediaHub sur les cartes inconnues",
 		"askUnknownExp": "Lorsqu'une carte qu'ESPuino ne connaît pas est posée sur le lecteur, il demande aux serveurs MediaHub enregistrés si une assignation existe déjà pour elle. S'il en trouve une, la carte est reprise automatiquement et jouée – inutile de l'assigner au préalable dans l'interface web. Si aucun serveur ne connaît la carte, le message habituel « carte inconnue » reste ; les serveurs la retiennent alors comme en attente, il ne reste qu'à l'assigner là-bas.",
 		"showDir": "Afficher le dossier interne MediaHub dans l'explorateur de fichiers",
-		"showDirExp": "Rend visible le dossier /.mediahub, normalement masqué, dans l'explorateur de fichiers. Il contient les manifestes mis en cache et les fichiers médias téléchargés pour chaque carte – pratique pour vérifier ce qui a réellement été synchronisé. Tu peux y supprimer ce que tu veux : ESPuino retéléchargera ce qui manque à la prochaine pose de la carte. En revanche, ne renomme pas le dossier, sinon l'espace occupé le reste pour rien.",
+		"showDirExp": "Rend visible le dossier /.mediahub, normalement masqué, dans l'explorateur de fichiers. Il contient les manifestes mis en cache et les fichiers médias téléchargés pour chaque carte – pratique pour vérifier ce qui a réellement été synchronisé. Ce dossier est fait pour être consulté, pas modifié. Sache que toute manipulation de son contenu peut avoir des effets indésirables.",
 		"saveOptions": "Enregistrer les options",
 		"orderHint": "Avec plusieurs serveurs, l'interrogation se fait de haut en bas ; le premier qui connaît la carte l'emporte. Un serveur injoignable est ignoré jusqu'au prochain redémarrage – enregistrer les options annule cela."
 	},
