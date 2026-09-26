@@ -2949,6 +2949,9 @@
 			if (lastSdCardInfo !== null) {
 				renderSdCardInfo(lastSdCardInfo);
 			}
+			// The assignment list is built from plain text nodes without data-i18n, so
+			// localize() above can't reach it - it has to be rendered again.
+			rebuildRFIDList();
 			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
 		document.querySelector('#langSel').addEventListener('change', (e) => {
