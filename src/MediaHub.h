@@ -85,6 +85,18 @@ bool MediaHub_DeleteServer(const String &name);
 bool MediaHub_TryAdoptUnknownCard(const char *cardId);
 bool MediaHub_IsAskUnknownEnabled();
 bool MediaHub_SetAskUnknownEnabled(bool enabled);
+// What the locally cached manifest knows about a MediaHub card, for display in
+// the assignment list. Read straight off the SD card, no network involved.
+struct MediaHubCardInfo {
+	String name; // the card's name as given in the hub
+	uint8_t playMode = 0; // the real play mode from the manifest, not the MEDIAHUB marker
+	bool isWebstream = false;
+	bool stale = false; // a re-sync is pending for the next tap
+};
+// Fills info from the cached manifest of cardId. False when this device has
+// never played the card, so nothing is cached yet.
+bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info);
+
 // Forgets the hubs skipped after a failed contact this session (see
 // MediaHub.cpp); called when the MediaHub settings are saved.
 void MediaHub_ClearSkippedHubs();

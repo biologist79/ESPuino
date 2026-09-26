@@ -2672,6 +2672,25 @@ static bool tagIdToJSON(const String tagId, JsonObject entry) {
 		entry["playMode"] = _mode;
 		entry["lastPlayPos"] = _lastPlayPos;
 		entry["trackLastPlayed"] = _trackLastPlayed;
+		if (_mode == MEDIAHUB) {
+			// A MEDIAHUB assignment holds nothing but the hub address, so on its own
+			// it tells the user nothing about what the card actually plays. The
+			// manifest cached from the last successful play does - add what it knows,
+			// and split the raw "mediahub://http://host:port" into the plain base URL
+			// so the web interface can match it against the registered hubs and show
+			// their name instead.
+			JsonObject hubObj = entry["mediahub"].to<JsonObject>();
+			if (MediaHub_IsMediaHubPath(_file)) {
+				hubObj["base"] = _file + strlen(MediaHub_PathPrefix);
+			}
+			MediaHubCardInfo info;
+			if (MediaHub_GetCachedCardInfo(tagId.c_str(), info)) {
+				hubObj["name"] = info.name;
+				hubObj["playMode"] = info.playMode;
+				hubObj["isWebstream"] = info.isWebstream;
+				hubObj["stale"] = info.stale;
+			}
+		}
 	}
 	return true;
 }

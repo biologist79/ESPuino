@@ -324,6 +324,12 @@
 				"delete": {
 					"title": "Delete media server?",
 					"prompt": "Really delete the media server \"{{name}}\"? Cards already assigned to it are left unchanged."
+				},
+				"list": {
+					"webradio": "web radio",
+					"synced": "synced",
+					"stale": "update pending",
+					"notCached": "not played on this device yet"
 				}
 			},
 			"mod": {

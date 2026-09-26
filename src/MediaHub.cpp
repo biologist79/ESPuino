@@ -1119,6 +1119,33 @@ bool MediaHub_DeleteServer(const String &name) {
 	return MediaHub_SaveServers(servers);
 }
 
+bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info) {
+	File file = gFSystem.open(MediaHub_ManifestCachePath(cardId));
+	if (!file || file.isDirectory()) {
+		return false;
+	}
+	// Filtered on purpose: the files[] array with its SHA-256 sums is the bulk of
+	// a manifest and none of it is shown, so it never even reaches memory. That
+	// keeps this a few hundred bytes per card regardless of how big the audiobook
+	// behind it is - which is what makes it affordable for every entry of the
+	// assignment list.
+	JsonDocument filter;
+	filter["name"] = true;
+	filter["playMode"] = true;
+	JsonDocument doc;
+	const DeserializationError err = deserializeJson(doc, file, DeserializationOption::Filter(filter));
+	file.close();
+	if (err) {
+		return false;
+	}
+
+	info.name = doc["name"] | "";
+	info.playMode = doc["playMode"] | 0;
+	info.isWebstream = (info.playMode == WEBSTREAM);
+	info.stale = MediaHub_IsStale(cardId);
+	return true;
+}
+
 // ── Adopting unknown cards (forum #4779) ──────────────────────────────────
 // A card that isn't in NVS is normally just an error. With this enabled, the
 // registered hubs get asked first: if one of them already has the card

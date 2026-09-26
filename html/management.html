@@ -4771,11 +4771,15 @@
 		// never reads it, it only ever fills in the "mediahub://<host:port>" fileOrUrl value.
 		const mediaHubServerListManaged = document.getElementById("mediaHubServerListManaged");
 		const mediaHubServerSelect = document.getElementById("mediaHubServerSelect");
+		// Kept from the last list rebuild so the RFID assignment list can show a
+		// registered hub's name instead of its bare address, without fetching again.
+		let knownMediaHubServers = [];
 		async function rebuildMediaHubServerList() {
 			let options = await (await fetch("http://" + host + "/settings?section=mediahub")).json();
 			document.getElementById('mediaHubAskUnknown').checked = !!(options.mediahub && options.mediahub.askUnknown);
 
 			let servers = await (await fetch("http://" + host + "/mediahubservers")).json();
+			knownMediaHubServers = servers;
 
 			mediaHubServerSelect.innerHTML = "";
 			for (let server of servers) {
@@ -4901,7 +4905,46 @@
 				if (rfidActive && rfidActive === rfid.id) {
 					rfidElem.classList.add("active");
 				}
-				if (rfid.fileOrUrl) {
+				if (rfid.mediahub) {
+					// A MediaHub assignment stores only the hub address; show that in
+					// readable form (by registered name where we know it) plus whatever
+					// the locally cached manifest tells us about the card itself.
+					let parts = [];
+					let base = rfid.mediahub.base || "";
+					let server = knownMediaHubServers.find(s =>
+						((s.https ? "https://" : "http://") + s.hostPort) === base);
+					parts.push(server ? server.name + " (" + server.hostPort + ")" : base);
+					rfidElem.appendChild(document.createElement("br"));
+					rfidElem.appendChild(document.createTextNode(parts.join("")));
+
+					let detail = [];
+					if (rfid.mediahub.name) {
+						detail.push("\u201e" + rfid.mediahub.name + "\u201c");
+					}
+					if (rfid.mediahub.isWebstream) {
+						detail.push(i18next.t("files.rfid.mediahub.list.webradio"));
+					} else if (rfid.mediahub.playMode) {
+						detail.push(i18next.t("files.rfid.playmode.mode." + rfid.mediahub.playMode));
+					}
+					if (rfid.mediahub.playMode !== undefined) {
+						detail.push(i18next.t(rfid.mediahub.stale
+							? "files.rfid.mediahub.list.stale"
+							: "files.rfid.mediahub.list.synced"));
+					}
+					if (detail.length) {
+						rfidElem.appendChild(document.createElement("br"));
+						let small = document.createElement("small");
+						small.classList.add("text-muted");
+						small.appendChild(document.createTextNode(detail.join(" \u00b7 ")));
+						rfidElem.appendChild(small);
+					} else {
+						rfidElem.appendChild(document.createElement("br"));
+						let small = document.createElement("small");
+						small.classList.add("text-muted");
+						small.appendChild(document.createTextNode(i18next.t("files.rfid.mediahub.list.notCached")));
+						rfidElem.appendChild(small);
+					}
+				} else if (rfid.fileOrUrl) {
 					rfidElem.appendChild(document.createElement("br"));
 					rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
 				}

@@ -324,6 +324,12 @@
 				"delete": {
 					"title": "Supprimer le serveur média ?",
 					"prompt": "Vraiment supprimer le serveur média \"{{name}}\" ? Les cartes déjà assignées à ce serveur restent inchangées."
+				},
+				"list": {
+					"webradio": "webradio",
+					"synced": "synchronisé",
+					"stale": "mise à jour en attente",
+					"notCached": "jamais lue sur cet appareil"
 				}
 			},
 			"mod": {

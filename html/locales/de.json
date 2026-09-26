@@ -324,6 +324,12 @@
 				"delete": {
 					"title": "Mediaserver löschen?",
 					"prompt": "Soll der Mediaserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				},
+				"list": {
+					"webradio": "Webradio",
+					"synced": "synchronisiert",
+					"stale": "Aktualisierung ausstehend",
+					"notCached": "noch nicht von diesem Gerät abgespielt"
 				}
 			},
 			"mod": {
