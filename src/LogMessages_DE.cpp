@@ -228,7 +228,7 @@ const char secondsJumpBackward[] = "%d Sekunden zurück gesprungen";
 const char jumpForwardsToFolder[] = "Springe vorwärts ordnerweise: %s/";
 const char jumpBackwardsToFolder[] = "Springe rückwärts ordnerweise: %s/";
 const char JumpToPosition[] = "Sprung zu Position %u/%u";
-const char wroteLastTrackToNvs[] = "Schreibe '%s' in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u";
+const char wroteLastTrackToNvs[] = "Schreibe '%s' (Position %u) in NVS für RFID-Card-ID %s mit Abspielmodus %d und letzter Track %u";
 const char wifiConnectionInProgress[] = "Versuche mit WLAN '%s' zu verbinden...";
 const char wifiConnectionSuccess[] = "Verbunden mit WLAN '%s' (Signalstärke: %d dBm, Kanal: %d, MAC-Adresse: %s)";
 const char wifiCurrentIp[] = "Aktuelle IP: %s";
@@ -268,4 +268,8 @@ const char mediaHubVerifyFailed[] = "MediaHub: SHA-256-Prüfung von %s fehlgesch
 const char mediaHubPlayingAfterSync[] = "MediaHub: Synchronisierung abgeschlossen, starte Wiedergabe.";
 const char mediaHubMarkedStale[] = "MediaHub: Änderung erkannt, Karte wird beim nächsten Auflegen aktualisiert.";
 const char mediaHubResyncing[] = "MediaHub: Karte hat sich geändert, synchronisiere neu.";
+const char mediaHubCardAdopted[] = "MediaHub: unbekannte Karte %s bei %s gefunden und zugewiesen.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub: Zuweisung der Karte konnte nicht ins NVS geschrieben werden.";
+const char mediaHubHubSkipped[] = "MediaHub %s nicht erreichbar, wird bis zum Neustart nicht erneut angefragt.";
+const char mediaHubReportedPending[] = "MediaHub %s: Karte %s ist dort noch nicht zugewiesen, wurde aber zum Zuweisen vorgemerkt.";
 #endif

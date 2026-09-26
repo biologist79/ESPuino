@@ -1033,6 +1033,14 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			return WebsocketCodeType::Error;
 		}
 	}
+	if (doc["mediahub"].is<JsonObject>()) {
+		MediaHub_SetAskUnknownEnabled(doc["mediahub"]["askUnknown"].as<bool>());
+		MediaHub_SetShowDirEnabled(doc["mediahub"]["showDir"].as<bool>());
+		// Saving here is also the escape hatch for the session-long skip list of
+		// unreachable hubs (see MediaHub.cpp): this is exactly where someone sits
+		// when a hub came back but the box hasn't slept since.
+		MediaHub_ClearSkippedHubs();
+	}
 	if (doc["ftp"].is<JsonObject>()) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
@@ -1126,12 +1134,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		if (_modId <= 0) {
 			gPrefsRfid.remove(_rfidIdModId);
 		} else {
-			char rfidString[12];
-			snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s0%s0%s%u%s0", stringDelimiter, stringDelimiter, stringDelimiter, _modId, stringDelimiter);
-			gPrefsRfid.putString(_rfidIdModId, rfidString);
-
-			String s = gPrefsRfid.getString(_rfidIdModId, "-1");
-			if (s.compareTo(rfidString)) {
+			if (!Rfid_SaveAssignment(_rfidIdModId, "0", _modId)) {
 				return WebsocketCodeType::Error;
 			}
 		}
@@ -1145,13 +1148,9 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 			Log_Println("rfidAssign: Invalid playmode", LOGLEVEL_ERROR);
 			return WebsocketCodeType::Error;
 		}
-		char rfidString[275];
-		snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playMode, stringDelimiter);
-		gPrefsRfid.putString(_rfidIdAssinId, rfidString);
+		const bool assignmentSaved = Rfid_SaveAssignment(_rfidIdAssinId, _fileOrUrlAscii, _playMode);
 		Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
-
-		String s = gPrefsRfid.getString(_rfidIdAssinId, "-1");
-		if (s.compareTo(rfidString)) {
+		if (!assignmentSaved) {
 			return WebsocketCodeType::Error;
 		}
 		Web_DumpNvsToSd("rfidTags", backupFile); // Store backup-file every time when a new rfid-tag is programmed
@@ -1518,6 +1517,12 @@ static void settingsToJSON(JsonObject obj, const String section) {
 	#endif
 		batSettings["voltageCheckInterval"].set(s_batteryCheckInterval);
 #endif
+	}
+	// MediaHub
+	if ((section == "") || (section == "mediahub")) {
+		JsonObject mediaHubObj = obj["mediahub"].to<JsonObject>();
+		mediaHubObj["askUnknown"].set(MediaHub_IsAskUnknownEnabled());
+		mediaHubObj["showDir"].set(MediaHub_IsShowDirEnabled());
 	}
 // FTP
 #ifdef FTP_ENABLE
@@ -2207,13 +2212,20 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 		}
 	}
 
+	const bool showMediaHubDir = MediaHub_IsShowDirEnabled();
 	bool isDir = false;
 	String MyfileName = gFSystem.nextFileName(root, &isDir);
 	while (MyfileName != "") {
-		// ignore hidden folders, e.g. MacOS spotlight files
-		if (!MyfileName.startsWith("/.")) {
+		// Ignore hidden entries, e.g. MacOS spotlight files. Tested on the entry's own
+		// name, not the full path MyfileName holds: a path-based test only ever caught
+		// the top level, so a dot-entry inside a folder slipped through while the
+		// contents of a revealed folder stayed hidden. MediaHub's folder is the one
+		// exception, and only when asked for - it holds the manifest cache and the
+		// synced media and is worth looking into.
+		const String entryName = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
+		if (!entryName.startsWith(".") || (showMediaHubDir && MyfileName.startsWith(MediaHub_RootDir))) {
 			JsonObject entry = obj.add<JsonObject>();
-			entry["name"] = MyfileName.substring(MyfileName.lastIndexOf('/') + 1);
+			entry["name"] = entryName;
 			if (isDir) {
 				entry["dir"].set(true);
 			}
@@ -2669,6 +2681,25 @@ static bool tagIdToJSON(const String tagId, JsonObject entry) {
 		entry["playMode"] = _mode;
 		entry["lastPlayPos"] = _lastPlayPos;
 		entry["trackLastPlayed"] = _trackLastPlayed;
+		if (_mode == MEDIAHUB) {
+			// A MEDIAHUB assignment holds nothing but the hub address, so on its own
+			// it tells the user nothing about what the card actually plays. The
+			// manifest cached from the last successful play does - add what it knows,
+			// and split the raw "mediahub://http://host:port" into the plain base URL
+			// so the web interface can match it against the registered hubs and show
+			// their name instead.
+			JsonObject hubObj = entry["mediahub"].to<JsonObject>();
+			if (MediaHub_IsMediaHubPath(_file)) {
+				hubObj["base"] = _file + strlen(MediaHub_PathPrefix);
+			}
+			MediaHubCardInfo info;
+			if (MediaHub_GetCachedCardInfo(tagId.c_str(), info)) {
+				hubObj["name"] = info.name;
+				hubObj["playMode"] = info.playMode;
+				hubObj["isWebstream"] = info.isWebstream;
+				hubObj["stale"] = info.stale;
+			}
+		}
 	}
 	return true;
 }
@@ -2785,13 +2816,9 @@ static void handlePostRFIDRequest(AsyncWebServerRequest *request, JsonVariant &j
 		request->send(500, "text/plain; charset=utf-8", "/rfid (POST): Invalid playMode or modId");
 		return;
 	}
-	char rfidString[275];
-	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s0%s%u%s0", stringDelimiter, _fileOrUrlAscii, stringDelimiter, stringDelimiter, _playModeOrModId, stringDelimiter);
-	gPrefsRfid.putString(tagId.c_str(), rfidString);
+	const bool assignmentSaved = Rfid_SaveAssignment(tagId.c_str(), _fileOrUrlAscii, _playModeOrModId);
 	Rfid_ResetLastTag(); // The tag means something else now: make sure re-applying it is not deduped away
-
-	String s = gPrefsRfid.getString(tagId.c_str(), "-1");
-	if (s.compareTo(rfidString)) {
+	if (!assignmentSaved) {
 		request->send(500, "text/plain; charset=utf-8", "/rfid (POST): cannot save assignment to NVS");
 		return;
 	}

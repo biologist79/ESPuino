@@ -324,6 +324,12 @@
 				"delete": {
 					"title": "Mediaserver löschen?",
 					"prompt": "Soll der Mediaserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				},
+				"list": {
+					"webradio": "Webradio",
+					"synced": "synchronisiert",
+					"stale": "Aktualisierung ausstehend",
+					"notCached": "noch nicht von diesem Gerät abgespielt"
 				}
 			},
 			"mod": {
@@ -696,7 +702,14 @@
 		"title": "MediaHub",
 		"intro": "MediaHub ist eine optionale, separat betriebene Zusatzkomponente: ein kleiner lokaler Server, der als Docker-Container im eigenen Netzwerk läuft. Damit lassen sich RFID-Kartenzuweisungen zentral für mehrere ESPuinos verwalten - Inhalt und Abspielmodus kommen dann vom Server statt aus der lokalen NVS-Konfiguration. Ohne einen laufenden MediaHub-Server bringt diese Seite nichts. Hier registrierst du die Adresse(n) deiner MediaHub-Server, damit sie beim Zuweisen einer Karte im Dropdown zur Auswahl stehen. Den MediaHub-Server selbst findest du auf GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
 		"serversTitle": "Mediaserver hinzufügen",
-		"registeredServersTitle": "Registrierte Mediaserver"
+		"registeredServersTitle": "Registrierte Mediaserver",
+		"optionsTitle": "Optionen",
+		"askUnknown": "Unbekannte Karten ohne Anlernen direkt beim MediaHub nachfragen",
+		"askUnknownExp": "Wird eine Karte aufgelegt, die ESPuino nicht kennt, fragt er die registrierten MediaHub-Server, ob dort bereits eine Zuweisung für sie existiert. Wird er fündig, übernimmt er die Karte automatisch und spielt sie ab – das Anlernen im Webinterface entfällt dann. Kennt kein Server die Karte, bleibt es bei der bisherigen Meldung „Karte unbekannt“; die Server merken sie sich in diesem Fall als offen, sodass du sie dort nur noch zuweisen musst.",
+		"showDir": "Internes MediaHub-Verzeichnis im Dateibrowser anzeigen",
+		"showDirExp": "Blendet den sonst versteckten Ordner /.mediahub im Dateibrowser ein. Darin liegen die zwischengespeicherten Manifeste und die heruntergeladenen Mediendateien je Karte – nützlich, um nachzusehen, was für eine Karte tatsächlich synchronisiert wurde. Der Ordner ist zum Anschauen gedacht, nicht zum Bearbeiten. Sei dir bewusst, dass Manipulationen in diesem Ordner potentiell zu ungewünschten Effekten führen können.",
+		"saveOptions": "Optionen speichern",
+		"orderHint": "Bei mehreren Servern wird von oben nach unten gefragt; der erste, der die Karte kennt, erhält den Zuschlag. Ein nicht erreichbarer Server wird bis zum nächsten Neustart übersprungen – Speichern der Optionen hebt das auf."
 	},
 	"help": {
 		"forum": {

@@ -4,8 +4,10 @@
 #include "MediaHub.h"
 
 #include "AudioPlayer.h"
+#include "Common.h"
 #include "Led.h"
 #include "Log.h"
+#include "Rfid.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
@@ -1115,4 +1117,156 @@ bool MediaHub_DeleteServer(const String &name) {
 		return false; // nothing to delete
 	}
 	return MediaHub_SaveServers(servers);
+}
+
+bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info) {
+	File file = gFSystem.open(MediaHub_ManifestCachePath(cardId));
+	if (!file || file.isDirectory()) {
+		return false;
+	}
+	// Filtered on purpose: the files[] array with its SHA-256 sums is the bulk of
+	// a manifest and none of it is shown, so it never even reaches memory. That
+	// keeps this a few hundred bytes per card regardless of how big the audiobook
+	// behind it is - which is what makes it affordable for every entry of the
+	// assignment list.
+	JsonDocument filter;
+	filter["name"] = true;
+	filter["playMode"] = true;
+	JsonDocument doc;
+	const DeserializationError err = deserializeJson(doc, file, DeserializationOption::Filter(filter));
+	file.close();
+	if (err) {
+		return false;
+	}
+
+	info.name = doc["name"] | "";
+	info.playMode = doc["playMode"] | 0;
+	info.isWebstream = (info.playMode == WEBSTREAM);
+	info.stale = MediaHub_IsStale(cardId);
+	return true;
+}
+
+// ── Adopting unknown cards (forum #4779) ──────────────────────────────────
+// A card that isn't in NVS is normally just an error. With this enabled, the
+// registered hubs get asked first: if one of them already has the card
+// assigned, it's adopted here instead of having to be assigned by hand in the
+// web interface beforehand. The very same request also announces the card to
+// every hub that doesn't know it -- the hub registers it as "pending" on a
+// miss (concept §5.3) -- so one round trip does both jobs.
+static constexpr const char *MediaHub_AskUnknownNvsKey = "mhAskUnknown";
+
+// Hubs that failed at transport level, remembered for this session only. No
+// timer, no expiry: an idle ESPuino goes to deep sleep, and waking from deep
+// sleep *is* a restart (System.cpp, esp_deep_sleep_start()), so in practice
+// the list clears itself several times a day -- and "until the next restart"
+// is a rule a user can actually hold in their head. Saving the MediaHub
+// settings clears it too, for the box that plays all afternoon without ever
+// going to sleep.
+static std::vector<String> MediaHub_SkippedHubs;
+
+void MediaHub_ClearSkippedHubs() {
+	MediaHub_SkippedHubs.clear();
+}
+
+bool MediaHub_IsAskUnknownEnabled() {
+	return gPrefsSettings.getBool(MediaHub_AskUnknownNvsKey, false);
+}
+
+bool MediaHub_SetAskUnknownEnabled(bool enabled) {
+	return gPrefsSettings.putBool(MediaHub_AskUnknownNvsKey, enabled);
+}
+
+// Everything MediaHub keeps locally lives under one hidden folder, which the
+// file browser filters out along with the macOS leftovers. Showing it is
+// opt-in, for looking at what actually got synced for a card.
+const char *const MediaHub_RootDir = "/.mediahub";
+static constexpr const char *MediaHub_ShowDirNvsKey = "mhShowDir";
+
+bool MediaHub_IsShowDirEnabled() {
+	return gPrefsSettings.getBool(MediaHub_ShowDirNvsKey, false);
+}
+
+bool MediaHub_SetShowDirEnabled(bool enabled) {
+	return gPrefsSettings.putBool(MediaHub_ShowDirNvsKey, enabled);
+}
+
+enum class MediaHubProbeResult {
+	Found, // hub has an assigned card and returned its manifest
+	NotAssigned, // hub answered, but doesn't have this card (it's pending there now)
+	Unreachable, // no answer at all -- transport level
+};
+
+static MediaHubProbeResult MediaHub_ProbeCard(const String &base, const char *cardId) {
+	const String url = MediaHub_BuildBaseUrl(base) + "/" + MediaHub_GetEspId() + "/card/" + String(cardId) + "/manifest.json";
+
+	HTTPClient http;
+	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
+	http.setTimeout(MediaHub_ReadTimeoutMs);
+	if (!http.begin(url)) {
+		return MediaHubProbeResult::Unreachable;
+	}
+	const int httpCode = http.GET();
+	http.end();
+
+	if (httpCode <= 0) {
+		return MediaHubProbeResult::Unreachable;
+	}
+	// Only a transport failure counts as "unreachable". A 404 is the hub
+	// answering properly -- it just doesn't have this card (yet) -- and must
+	// never get the hub skipped for the rest of the session.
+	return (httpCode == HTTP_CODE_OK) ? MediaHubProbeResult::Found : MediaHubProbeResult::NotAssigned;
+}
+
+bool MediaHub_TryAdoptUnknownCard(const char *cardId) {
+	if (!MediaHub_IsAskUnknownEnabled() || !Wlan_IsConnected() || MediaHub_DownloadBusy) {
+		return false;
+	}
+	const std::vector<MediaHubServer> servers = MediaHub_GetServers();
+	if (servers.empty()) {
+		return false;
+	}
+
+	for (const MediaHubServer &server : servers) {
+		const String base = String(server.https ? "https://" : "http://") + server.hostPort;
+		if (std::find(MediaHub_SkippedHubs.begin(), MediaHub_SkippedHubs.end(), base) != MediaHub_SkippedHubs.end()) {
+			continue;
+		}
+
+		const MediaHubProbeResult probe = MediaHub_ProbeCard(base, cardId);
+		if (probe == MediaHubProbeResult::Unreachable) {
+			Log_Printf(LOGLEVEL_NOTICE, mediaHubHubSkipped, base.c_str());
+			MediaHub_SkippedHubs.push_back(base);
+			continue;
+		}
+		if (probe == MediaHubProbeResult::NotAssigned) {
+			// The hub answered but doesn't have this card - and in doing so it has
+			// just put it on its own pending list, which is the whole point of
+			// asking even when we expect a miss.
+			Log_Printf(LOGLEVEL_NOTICE, mediaHubReportedPending, base.c_str(), cardId);
+			continue;
+		}
+
+		// First hub that answers wins, and the remaining ones are deliberately
+		// left unasked: two hubs holding the same card is a configuration
+		// error, and paying one round trip per hub on every tap to detect it
+		// would slow down the case that actually happens. Which hub it was goes
+		// into the log, and into the assignment itself -- visible in the web
+		// interface from here on.
+		const String nvsPath = String(MediaHub_PathPrefix) + base;
+		if (!Rfid_SaveAssignment(cardId, nvsPath.c_str(), MEDIAHUB)) {
+			Log_Println(mediaHubAdoptWriteFailed, LOGLEVEL_ERROR);
+			System_IndicateError();
+			return true; // handled: reporting it as "unknown card" on top would only confuse
+		}
+		Log_Printf(LOGLEVEL_NOTICE, mediaHubCardAdopted, cardId, base.c_str());
+
+		// Hand over to the regular path, which fetches the manifest again and
+		// does the caching, syncing and playback. That costs one extra (small)
+		// manifest request compared to reusing the probe's response, and buys
+		// not having a second copy of all that logic here.
+		MediaHub_HandleCardTapped(cardId, nvsPath.c_str(), 0, 0);
+		return true;
+	}
+
+	return false;
 }

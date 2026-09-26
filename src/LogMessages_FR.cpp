@@ -227,7 +227,7 @@ const char secondsJumpBackward[] = "Reculé de %d secondes";
 const char jumpForwardsToFolder[] = "Avancer par dossiers: %s/";
 const char jumpBackwardsToFolder[] = "Reculer par dossiers: %s/";
 const char JumpToPosition[] = "Aller à la position %u/%u";
-const char wroteLastTrackToNvs[] = "Écriture de '%s' dans NVS pour l'ID de carte RFID %s avec le mode de lecture %d et la dernière piste %u";
+const char wroteLastTrackToNvs[] = "Écriture de '%s' (position %u) dans NVS pour l'ID de carte RFID %s avec le mode de lecture %d et la dernière piste %u";
 const char wifiConnectionInProgress[] = "Tentative de connexion au WiFi avec le SSID '%s'...";
 const char wifiConnectionSuccess[] = "Connecté au WiFi '%s' (force du signal : %d dBm, canal : %d, BSSID : %s)";
 const char wifiCurrentIp[] = "Adresse IP actuelle : %s";
@@ -267,4 +267,8 @@ const char mediaHubVerifyFailed[] = "MediaHub : échec de la vérification SHA-2
 const char mediaHubPlayingAfterSync[] = "MediaHub : synchronisation terminée, démarrage de la lecture.";
 const char mediaHubMarkedStale[] = "MediaHub : changement détecté, la carte sera mise à jour au prochain passage.";
 const char mediaHubResyncing[] = "MediaHub : la carte a changé, resynchronisation en cours.";
+const char mediaHubCardAdopted[] = "MediaHub : carte inconnue %s trouvée sur %s et assignée.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub : impossible d'écrire l'assignation de la carte dans la NVS.";
+const char mediaHubHubSkipped[] = "MediaHub %s inaccessible, ne sera plus interrogé jusqu'au prochain redémarrage.";
+const char mediaHubReportedPending[] = "MediaHub %s : la carte %s n'y est pas encore assignée, mais a été notée en attente d'assignation.";
 #endif

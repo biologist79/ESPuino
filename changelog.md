@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 26.09.2026: MediaHub: a card unknown to this ESPuino is now offered to the registered hubs before it's rejected - if one of them already has it assigned, it's adopted and played right away, so a card taught on one device no longer has to be assigned by hand on every other one. Off by default (MediaHub tab). The assignment list also shows what a MediaHub card actually plays now (name, real play mode, sync state, hub by its registered name), and the hidden `/.mediahub` folder can optionally be made visible in the file browser to see what got synced. Idea and discussion: [forum #4779](https://forum.espuino.de/t/espuino-mediahub-feature-requests/4779).
+
+* 26.09.2026: Fix the RFID assignment list staying in the fallback language: the locale files arrive after the page has loaded, and unlike everything carrying `data-i18n`, the list is built from plain text nodes that the re-translation can't reach - so on a fresh load it stayed English while the rest of the page was German. Also hides dot-entries in subfolders of the file browser, which the hidden-file filter always meant to do but only ever managed at the top level (a `.DS_Store` inside a folder was listed).
+
 ## Version 3.1 (19.09.2026)
 
 * 18.09.2026: Optionally speak a warning when the battery runs low, instead of only blinking the LEDs - nobody looks at the ring while a story is playing. Playback is interrupted for the announcement and resumes at exactly the position it left off, while title, position and progress stay frozen so neither the web interface nor MQTT sees the interruption. Off by default; set it up under General -> Power, ready-made announcements in German, English and French ship in `announcements/` (#463). Idea and discussion: [forum #4766](https://forum.espuino.de/t/ansage-wenn-akku-fast-leer/4766).

@@ -71,3 +71,38 @@ std::vector<MediaHubServer> MediaHub_GetServers();
 // Adds a new server, or updates the hostPort/https of an existing one with the same name.
 bool MediaHub_SaveServer(const String &name, const String &hostPort, bool https);
 bool MediaHub_DeleteServer(const String &name);
+
+// Adopting unknown cards (forum #4779): when enabled, a card that isn't in NVS
+// is offered to the registered hubs (in list order) before it's reported as
+// unknown. The first hub that returns a manifest wins; its address is written
+// to NVS as a regular MEDIAHUB assignment and playback starts as usual, so the
+// card behaves like any other MediaHub card from the next tap on. Returns true
+// if the tap was handled here (adopted, or failed in a way already reported),
+// false to let the caller fall back to its normal "unknown card" handling.
+// Hubs that don't know the card register it as "pending" as a side effect of
+// the very same request, which is what makes "tap on any device, assign once in
+// the hub" work. Off by default.
+bool MediaHub_TryAdoptUnknownCard(const char *cardId);
+bool MediaHub_IsAskUnknownEnabled();
+bool MediaHub_SetAskUnknownEnabled(bool enabled);
+
+// The hidden folder holding the manifest cache and the synced media, and the
+// opt-in that makes the file browser show it (off by default).
+extern const char *const MediaHub_RootDir;
+bool MediaHub_IsShowDirEnabled();
+bool MediaHub_SetShowDirEnabled(bool enabled);
+// What the locally cached manifest knows about a MediaHub card, for display in
+// the assignment list. Read straight off the SD card, no network involved.
+struct MediaHubCardInfo {
+	String name; // the card's name as given in the hub
+	uint8_t playMode = 0; // the real play mode from the manifest, not the MEDIAHUB marker
+	bool isWebstream = false;
+	bool stale = false; // a re-sync is pending for the next tap
+};
+// Fills info from the cached manifest of cardId. False when this device has
+// never played the card, so nothing is cached yet.
+bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info);
+
+// Forgets the hubs skipped after a failed contact this session (see
+// MediaHub.cpp); called when the MediaHub settings are saved.
+void MediaHub_ClearSkippedHubs();

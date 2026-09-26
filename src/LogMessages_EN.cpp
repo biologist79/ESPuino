@@ -229,7 +229,7 @@ const char secondsJumpBackward[] = "Jumped %d seconds backwards";
 const char jumpForwardsToFolder[] = "Jump forwards folderwise: %s/";
 const char jumpBackwardsToFolder[] = "Jump backwards folderwise: %s/";
 const char JumpToPosition[] = "Jumped to position %u/%u";
-const char wroteLastTrackToNvs[] = "Write '%s' to NVS for RFID-Card-ID %s with playmode %d and last track %u";
+const char wroteLastTrackToNvs[] = "Write '%s' (position %u) to NVS for RFID-Card-ID %s with playmode %d and last track %u";
 const char wifiConnectionInProgress[] = "Try to connect to WiFi with SSID '%s'...";
 const char wifiConnectionSuccess[] = "Connected with WiFi '%s' (signal strength: %d dBm, channel: %d, BSSID: %s)";
 const char wifiCurrentIp[] = "Current IP: %s";
@@ -269,4 +269,8 @@ const char mediaHubVerifyFailed[] = "MediaHub: SHA-256 check of %s failed.";
 const char mediaHubPlayingAfterSync[] = "MediaHub: sync complete, starting playback.";
 const char mediaHubMarkedStale[] = "MediaHub: change detected, card will be refreshed on next tap.";
 const char mediaHubResyncing[] = "MediaHub: card changed, re-syncing.";
+const char mediaHubCardAdopted[] = "MediaHub: unknown card %s found on %s and assigned.";
+const char mediaHubAdoptWriteFailed[] = "MediaHub: could not write the card assignment to NVS.";
+const char mediaHubHubSkipped[] = "MediaHub %s not reachable, will not be asked again until the next restart.";
+const char mediaHubReportedPending[] = "MediaHub %s: card %s is not assigned there yet, but has been noted for assignment.";
 #endif
