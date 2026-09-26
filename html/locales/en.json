@@ -704,7 +704,7 @@
 		"serversTitle": "Add media server",
 		"registeredServersTitle": "Registered media servers",
 		"optionsTitle": "Options",
-		"askUnknown": "Ask the MediaHub about unknown cards",
+		"askUnknown": "Ask the MediaHub about unknown cards directly, without teaching them first",
 		"askUnknownExp": "When a card ESPuino doesn't know is placed on the reader, it asks the registered MediaHub servers whether an assignment for it already exists there. If one is found, the card is adopted automatically and played - no need to assign it in the web interface first. If no server knows the card, you get the usual “card unknown” message; the servers remember it as pending in that case, so all that's left is to assign it there.",
 		"showDir": "Show the internal MediaHub folder in the file browser",
 		"showDirExp": "Reveals the otherwise hidden /.mediahub folder in the file browser. It holds the cached manifests and the downloaded media files per card - useful for checking what actually got synced for a card. The folder is meant for looking, not for editing. Be aware that meddling with its contents can have unintended effects.",

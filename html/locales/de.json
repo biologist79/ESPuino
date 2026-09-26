@@ -704,7 +704,7 @@
 		"serversTitle": "Mediaserver hinzufügen",
 		"registeredServersTitle": "Registrierte Mediaserver",
 		"optionsTitle": "Optionen",
-		"askUnknown": "Unbekannte Karten beim MediaHub nachfragen",
+		"askUnknown": "Unbekannte Karten ohne Anlernen direkt beim MediaHub nachfragen",
 		"askUnknownExp": "Wird eine Karte aufgelegt, die ESPuino nicht kennt, fragt er die registrierten MediaHub-Server, ob dort bereits eine Zuweisung für sie existiert. Wird er fündig, übernimmt er die Karte automatisch und spielt sie ab – das Anlernen im Webinterface entfällt dann. Kennt kein Server die Karte, bleibt es bei der bisherigen Meldung „Karte unbekannt“; die Server merken sie sich in diesem Fall als offen, sodass du sie dort nur noch zuweisen musst.",
 		"showDir": "Internes MediaHub-Verzeichnis im Dateibrowser anzeigen",
 		"showDirExp": "Blendet den sonst versteckten Ordner /.mediahub im Dateibrowser ein. Darin liegen die zwischengespeicherten Manifeste und die heruntergeladenen Mediendateien je Karte – nützlich, um nachzusehen, was für eine Karte tatsächlich synchronisiert wurde. Der Ordner ist zum Anschauen gedacht, nicht zum Bearbeiten. Sei dir bewusst, dass Manipulationen in diesem Ordner potentiell zu ungewünschten Effekten führen können.",
