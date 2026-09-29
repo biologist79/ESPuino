@@ -8,12 +8,14 @@ on:
       - master
   pull_request:
     paths:
-      - "src/*"
-      - "html/*"
-      - "test/*"
+      - "src/**"
+      - "html/**"
+      - "test/**"
       - "**.ini"
       - "**.py"
       - "**.csv"
+      - "sdkconfig*"
+      - "CMakeLists.txt"
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
