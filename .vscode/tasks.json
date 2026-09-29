@@ -1,0 +1,45 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Watch & upload html/ to ESPuino",
+            "type": "shell",
+            "command": "${workspaceFolder}/.vscode/.venv/bin/python",
+            "args": ["${workspaceFolder}/.vscode/watch-and-upload.py"],
+            "windows": {
+                "command": "${workspaceFolder}/.vscode/.venv/Scripts/python",
+                "args": ["${workspaceFolder}/.vscode/watch-and-upload.py"]
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "showReuseMessage": false
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^\\s*✗\\s+(.*)$",
+                    "message": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^Watching",
+                    "endsPattern": "^__never__"
+                }
+            }
+        },
+        {
+            "label": "Install watchdog (ESPuino upload dependency)",
+            "type": "shell",
+            "command": "python3 -m venv ${workspaceFolder}/.vscode/.venv && ${workspaceFolder}/.vscode/.venv/bin/pip install watchdog",
+            "windows": {
+                "command": "python -m venv ${workspaceFolder}/.vscode/.venv && ${workspaceFolder}/.vscode/.venv/Scripts/pip install watchdog"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
