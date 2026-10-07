@@ -6,6 +6,18 @@ on:
     branches:
       - dev
       - master
+    # Same filter as for pull requests below: a commit that only touches
+    # documentation has no effect on the binaries, so it shouldn't start
+    # three variants in three languages.
+    paths:
+      - "src/**"
+      - "html/**"
+      - "test/**"
+      - "**.ini"
+      - "**.py"
+      - "**.csv"
+      - "sdkconfig*"
+      - "CMakeLists.txt"
   pull_request:
     paths:
       - "src/**"
@@ -16,6 +28,16 @@ on:
       - "**.csv"
       - "sdkconfig*"
       - "CMakeLists.txt"
+
+# Two pushes in quick succession used to race each other in the commit job
+# below: both checked out ESPuino-Firmware at the same revision, the slower
+# one then found the ref moved and died with "cannot lock ref
+# 'refs/heads/main'". Cancelling the older run is also the right outcome on
+# its own - publishing the older commit's firmware after the newer one's
+# would leave the wrong binaries behind.
+concurrency:
+  group: firmware-builds-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
