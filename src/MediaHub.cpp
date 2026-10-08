@@ -617,6 +617,17 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 // (concept §13) so a card is never left half-downloaded due to running out
 // of space mid-way through.
 static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &mediaDir, JsonArrayConst files) {
+	// On a first sync the card's folder doesn't exist yet, so none of the
+	// per-file checks can find anything - asking once beats asking per entry.
+	// It is not a micro-optimisation: each check opens a file on the SD card,
+	// and this runs in the Arduino main loop, so a hundred-track audiobook
+	// freezes the LED ring, the buttons and the web interface for the whole
+	// futile pass. Once the folder exists the checks are meaningful again and
+	// run as before. Stale afterwards (the first downloaded file creates the
+	// folder), but only in the safe direction: "there was no folder" means
+	// "fetch everything", which is exactly right for a first sync.
+	const bool haveFolder = gFSystem.exists(mediaDir);
+
 	// Total-vs-missing split doubles as the progress-bar baseline (concept
 	// §7.1): a card that already has some files from an earlier partial sync
 	// starts the bar accordingly, instead of jumping back to 0.
@@ -625,7 +636,7 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 	for (JsonVariantConst f : files) {
 		const uint32_t size = f["size"] | 0;
 		totalBytes += size;
-		if (!MediaHub_FileFullySynced(mediaDir, f)) {
+		if (!haveFolder || !MediaHub_FileFullySynced(mediaDir, f)) {
 			missingBytes += size;
 		}
 	}
@@ -643,7 +654,7 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 		Led_SetDownloadProgress(true, (uint8_t) ((completedBytes * 100) / totalBytes));
 	}
 	for (JsonVariantConst f : files) {
-		if (MediaHub_FileFullySynced(mediaDir, f)) {
+		if (haveFolder && MediaHub_FileFullySynced(mediaDir, f)) {
 			continue;
 		}
 		const char *path = f["path"] | "";
