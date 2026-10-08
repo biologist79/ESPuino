@@ -61,6 +61,28 @@ struct MediaHub_BusyGuard {
 	}
 };
 
+// Manifests are the largest JSON this firmware parses: a hundred-track
+// audiobook is ~18 KB of text and lands at roughly twice that once parsed,
+// because ArduinoJson copies every path and SHA-256 out of the input. In
+// internal RAM that competes directly with the TLS handshake of the download
+// that follows, which needs 32-40 KB *contiguous* (§13) - and malloc() serves
+// internal RAM first, so the manifest takes it even while PSRAM sits idle.
+//
+// Prefers PSRAM, falls back to internal RAM, same order as MemX_Malloc() -
+// a board without PSRAM keeps working, it just pays what it paid before.
+struct MediaHub_JsonAllocator : ArduinoJson::Allocator {
+	void *allocate(size_t size) override {
+		return heap_caps_malloc_prefer(size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+	}
+	void deallocate(void *pointer) override {
+		free(pointer);
+	}
+	void *reallocate(void *ptr, size_t new_size) override {
+		return heap_caps_realloc_prefer(ptr, new_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+	}
+};
+static MediaHub_JsonAllocator MediaHub_JsonAlloc;
+
 // Fixed, hidden storage layout (concept §13.1) — MediaHub is the only thing
 // that ever touches this tree.
 static String MediaHub_ManifestCachePath(const char *cardId) {
@@ -765,10 +787,10 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 		http.end();
 		return false;
 	}
-	const String body = http.getString();
+	String body = http.getString();
 	http.end();
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	if (deserializeJson(doc, body)) {
 		return false;
 	}
@@ -836,7 +858,7 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	// apart "same file" from "changed file" needs the manifest cached at the
 	// last sync; without it there is no record of what is down there, and
 	// wiping everything stays the only safe thing to do.
-	JsonDocument cachedDoc;
+	JsonDocument cachedDoc(&MediaHub_JsonAlloc);
 	JsonArrayConst cachedFiles;
 	uint32_t cachedForceEpoch = 0;
 	if (MediaHub_LoadCachedSyncState(cardId, cachedDoc)) {
@@ -930,6 +952,11 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	// resumes rather than starting over.
 
 	MediaHub_WriteManifestCache(cardId, body);
+	// Nothing reads it after this, and an Arduino String cannot live in PSRAM
+	// (plain realloc), so a hundred-track manifest would otherwise hold ~18 KB
+	// of internal RAM for the whole transfer - the very memory each file's TLS
+	// handshake needs contiguous (§13).
+	body = String();
 	if (!MediaHub_SyncMissingFiles(filesBaseUrl, mediaDir, files)) {
 		return false;
 	}
@@ -962,11 +989,19 @@ struct MediaHub_VersionCheckArgs {
 static void MediaHub_VersionCheckTask(void *pvParameters) {
 	auto *args = static_cast<MediaHub_VersionCheckArgs *>(pvParameters);
 
+	// Two strings are all this task needs. Filtering them out keeps a
+	// hundred-track manifest's files[] - the bulk of it, and the only part
+	// that scales - out of memory entirely, which matters here more than
+	// anywhere: this runs while a card is playing.
+	JsonDocument filter;
+	filter["cardId"] = true;
+	filter["version"] = true;
+
 	String cachedVersion;
 	File cacheFile = gFSystem.open(MediaHub_ManifestCachePath(args->cardId.c_str()));
 	if (cacheFile && !cacheFile.isDirectory()) {
-		JsonDocument cachedDoc;
-		if (!deserializeJson(cachedDoc, cacheFile)) {
+		JsonDocument cachedDoc(&MediaHub_JsonAlloc);
+		if (!deserializeJson(cachedDoc, cacheFile, DeserializationOption::Filter(filter))) {
 			cachedVersion = String((const char *) (cachedDoc["version"] | ""));
 		}
 		cacheFile.close();
@@ -982,9 +1017,13 @@ static void MediaHub_VersionCheckTask(void *pvParameters) {
 		if (http.begin(url)) {
 			const int httpCode = http.GET();
 			if (httpCode == HTTP_CODE_OK) {
-				const String body = http.getString();
-				JsonDocument doc;
-				if (!deserializeJson(doc, body)) {
+				JsonDocument doc(&MediaHub_JsonAlloc);
+				// Parsed straight off the socket: http.getString() would first
+				// build the whole manifest as an Arduino String, and a String
+				// cannot live in PSRAM (plain realloc), so those ~18 KB would
+				// sit in internal RAM for no reason - nothing here caches the
+				// body.
+				if (!deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter))) {
 					const char *manifestCardId = doc["cardId"] | "";
 					const char *freshVersion = doc["version"] | "";
 					if (strcmp(manifestCardId, args->cardId.c_str()) == 0 && strlen(freshVersion) > 0 && cachedVersion != freshVersion) {
@@ -1020,7 +1059,7 @@ static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlay
 		return false;
 	}
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	const DeserializationError jsonError = deserializeJson(doc, manifestFile);
 	manifestFile.close();
 	if (jsonError) {
@@ -1126,7 +1165,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	const String body = http.getString();
+	String body = http.getString();
 	http.end();
 
 	if (httpCode == 404) {
@@ -1144,7 +1183,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	const DeserializationError jsonError = deserializeJson(doc, body);
 	if (jsonError) {
 		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, jsonError.c_str());
@@ -1161,6 +1200,10 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 	MediaHub_WriteManifestCache(cardId, body);
+	// Released here for the same reason as in MediaHub_TryReSync(): the sync
+	// below allocates per file, and these ~18 KB of internal RAM are not
+	// needed by anything past this point.
+	body = String();
 
 	const uint32_t manifestPlayMode = doc["playMode"] | 0;
 	if (manifestPlayMode == WEBSTREAM) {
