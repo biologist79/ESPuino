@@ -1724,6 +1724,7 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		delete response; // never handed to send(), so nobody else frees it
 		request->send(500);
 		return;
 	}
@@ -1747,6 +1748,7 @@ void handleGetSettings(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		delete response; // never handed to send(), so nobody else frees it
 		request->send(500);
 		return;
 	}
@@ -1825,6 +1827,7 @@ void handleDebugRequest(AsyncWebServerRequest *request) {
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		delete response; // never handed to send(), so nobody else frees it
 		request->send(500);
 		return;
 	}
@@ -1965,14 +1968,13 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 			// the whole message is in a single frame and we got all of it's data
 			// Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
-			WebsocketCodeType result = processJsonRequest((char *) data);
-			if (result != WebsocketCodeType::Error && result != WebsocketCodeType::Silent) {
-				Web_SendWebsocketData(client->id(), result);
-			}
-
 			if (info->opcode == WS_TEXT) {
-				data[len] = 0;
+				data[len] = 0; // processJsonRequest() expects a C string
 				// Serial.printf("%s\n", (char *)data);
+				WebsocketCodeType result = processJsonRequest((char *) data);
+				if (result != WebsocketCodeType::Error && result != WebsocketCodeType::Silent) {
+					Web_SendWebsocketData(client->id(), result);
+				}
 			} else {
 				for (size_t i = 0; i < info->len; i++) {
 					Serial.printf("%02x ", data[i]);
@@ -2232,11 +2234,14 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 
 	if (!root) {
 		Log_Println(failedToOpenDirectory, LOGLEVEL_DEBUG);
+		request->send(404);
 		return;
 	}
 
 	if (!root.isDirectory()) {
 		Log_Println(notADirectory, LOGLEVEL_DEBUG);
+		root.close();
+		request->send(400);
 		return;
 	}
 
@@ -2272,12 +2277,14 @@ void explorerHandleListRequest(AsyncWebServerRequest *request) {
 			}
 		}
 		MyfileName = gFSystem.nextFileName(root, &isDir);
+		esp_task_wdt_reset(); // async_tcp is watchdog-subscribed; large folders on a slow card take a while
 	}
 	root.close();
 
 	if (response->overflowed()) {
 		// JSON buffer too small for data
 		Log_Println(jsonbufferOverflow, LOGLEVEL_ERROR);
+		delete response; // never handed to send(), so nobody else frees it
 		request->send(500);
 		return;
 	}
@@ -2601,6 +2608,10 @@ void handlePostSavedSSIDs(AsyncWebServerRequest *request, JsonVariant &json) {
 }
 
 void handleDeleteSavedSSIDs(AsyncWebServerRequest *request) {
+	if (!request->hasParam("ssid")) {
+		request->send(400, "text/plain; charset=utf-8", "missing parameter: ssid");
+		return;
+	}
 	const AsyncWebParameter *p = request->getParam("ssid");
 	const String ssid = p->value();
 
@@ -2948,6 +2959,10 @@ static void handlePostMediaHubServers(AsyncWebServerRequest *request, JsonVarian
 }
 
 static void handleDeleteMediaHubServers(AsyncWebServerRequest *request) {
+	if (!request->hasParam("name")) {
+		request->send(400, "text/plain; charset=utf-8", "missing parameter: name");
+		return;
+	}
 	const AsyncWebParameter *p = request->getParam("name");
 	const String name = p->value();
 	if (MediaHub_DeleteServer(name)) {

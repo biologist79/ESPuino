@@ -497,9 +497,11 @@ void ntpTimeAvailable(struct timeval *t) {
 		return;
 	}
 	char *timeStringBuff = (char *) x_malloc(255);
-	snprintf(timeStringBuff, sizeof(char) * 255, ntpGotTime, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-	Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
-	free(timeStringBuff);
+	if (timeStringBuff) { // only the log line depends on it - firstStart below must still be stored
+		snprintf(timeStringBuff, sizeof(char) * 255, ntpGotTime, timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+		Log_Println(timeStringBuff, LOGLEVEL_NOTICE);
+		free(timeStringBuff);
+	}
 	// set ESPuino's very first start date
 	if (!gPrefsSettings.isKey("firstStart")) {
 		gPrefsSettings.putULong("firstStart", t->tv_sec);
