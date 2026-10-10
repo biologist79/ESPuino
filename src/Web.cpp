@@ -740,10 +740,13 @@ void webserverStart(void) {
 
 		wServer.onNotFound(notFound);
 
-		// allow cors for local debug (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080)
+#ifdef ENABLE_CORS_FOR_DEBUG
+		// allow cors for local debug only (https://github.com/me-no-dev/ESPAsyncWebServer/issues/1080):
+		// with these headers any web page in the browser can read and drive the whole API
 		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization");
 		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
 		DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+#endif
 		wServer.begin();
 		webserverStarted = true;
 		Log_Println(httpReady, LOGLEVEL_NOTICE);
