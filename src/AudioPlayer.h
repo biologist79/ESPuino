@@ -21,36 +21,39 @@ enum class playlistSortMode : uint8_t {
 	STRNATCASECMP = 3,
 };
 
-typedef struct { // Bit field
+typedef struct {
+	// No bitfields: the flags are written from several tasks (loop(), async_tcp, MQTT, Bluetooth). A bitfield
+	// write is a read-modify-write of the whole word and loses a neighbouring flag set in between. std::atomic
+	// is no option, the struct lives in PSRAM where the ESP32 has no atomic read-modify-write.
 	uint8_t playMode; // playMode
 	Playlist *playlist; // playlist
 	char title[255]; // current title
-	bool repeatCurrentTrack		: 1; // If current track should be looped
-	bool repeatPlaylist			: 1; // If whole playlist should be looped
-	uint16_t currentTrackNumber : 9; // Current tracknumber
+	bool repeatCurrentTrack; // If current track should be looped
+	bool repeatPlaylist; // If whole playlist should be looped
+	uint16_t currentTrackNumber; // Current tracknumber
 	unsigned long startAtFilePos; // Offset to start play (in seconds)
 	double currentRelPos; // Current relative playPosition (in %)
-	bool sleepAfterCurrentTrack : 1; // If uC should go to sleep after current track
-	bool sleepAfterPlaylist		: 1; // If uC should go to sleep after whole playlist
-	bool saveLastPlayPosition	: 1; // If playposition/current track should be saved (for AUDIOBOOK)
+	bool sleepAfterCurrentTrack; // If uC should go to sleep after current track
+	bool sleepAfterPlaylist; // If uC should go to sleep after whole playlist
+	bool saveLastPlayPosition; // If playposition/current track should be saved (for AUDIOBOOK)
 	char playRfidTag[13]; // ID of RFID-tag that started playlist
-	bool pausePlay				 : 1; // If pause is active
-	bool trackFinished			 : 1; // If current track is finished
-	bool playlistFinished		 : 1; // If whole playlist is finished
-	uint8_t playUntilTrackNumber : 6; // Number of tracks to play after which uC goes to sleep
-	uint8_t seekmode			 : 2; // If seekmode is active and if yes: forward or backwards?
-	bool newPlayMono			 : 1; // true if mono; false if stereo (helper)
-	bool currentPlayMono		 : 1; // true if mono; false if stereo
-	bool isWebstream			 : 1; // Indicates if track currenty played is a webstream
-	bool announcementActive		 : 1; // An announcement is interrupting playback (see AudioPlayer_PlayAnnouncement)
-	uint8_t tellMode			 : 2; // Tell mode for text to speech announcments
-	bool currentSpeechActive	 : 1; // If speech-play is active
-	bool lastSpeechActive		 : 1; // If speech-play was active
-	bool SavePlayPosRfidChange	 : 1; // Save last play-position
-	bool pauseOnMinVolume		 : 1; // When playback is active and volume is changed to zero, playback is paused automatically.
-	bool pauseIfRfidRemoved		 : 1; // When playback is active and RFID is removed, playback is paused automatically.
-	bool dontAcceptRfidTwice	 : 1; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if pauseIfRfidRemoved is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
-	bool resumeOnSameRfid		 : 1; // If pause is active and same RFID is put on again, playback continues (only effective if dontAcceptRfidTwice is enabled)
+	bool pausePlay; // If pause is active
+	bool trackFinished; // If current track is finished
+	bool playlistFinished; // If whole playlist is finished
+	uint16_t playUntilTrackNumber; // Number of tracks to play after which uC goes to sleep
+	uint8_t seekmode; // If seekmode is active and if yes: forward or backwards?
+	bool newPlayMono; // true if mono; false if stereo (helper)
+	bool currentPlayMono; // true if mono; false if stereo
+	bool isWebstream; // Indicates if track currenty played is a webstream
+	bool announcementActive; // An announcement is interrupting playback (see AudioPlayer_PlayAnnouncement)
+	uint8_t tellMode; // Tell mode for text to speech announcments
+	bool currentSpeechActive; // If speech-play is active
+	bool lastSpeechActive; // If speech-play was active
+	bool SavePlayPosRfidChange; // Save last play-position
+	bool pauseOnMinVolume; // When playback is active and volume is changed to zero, playback is paused automatically.
+	bool pauseIfRfidRemoved; // When playback is active and RFID is removed, playback is paused automatically.
+	bool dontAcceptRfidTwice; // RFID-reader doesn't accept the same RFID-tag twice in a row (unless it's a modification-card or RFID-tag is unknown in NVS). Flag will be ignored silently if pauseIfRfidRemoved is active. (https://forum.espuino.de/t/neues-feature-dont-accept-same-rfid-twice/1247)
+	bool resumeOnSameRfid; // If pause is active and same RFID is put on again, playback continues (only effective if dontAcceptRfidTwice is enabled)
 	int16_t jumpToFolderTrack = -1; // track to jump to
 	int8_t gainLowPass = 0; // Low Pass for EQ Control
 	int8_t gainBandPass = 0; // Band Pass for EQ Control
