@@ -519,6 +519,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 				transferError = true;
 				break;
 			}
+			esp_task_wdt_reset(); // a stalled hub is handled by the timeout above, not by the watchdog
 			delay(1);
 			continue;
 		}
@@ -532,6 +533,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 				restartRequested = true;
 				break;
 			}
+			esp_task_wdt_reset();
 			vTaskDelay(pdMS_TO_TICKS(1));
 		}
 		if (transferError || restartRequested) {

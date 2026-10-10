@@ -169,6 +169,11 @@
 		constexpr uint32_t deepsleepTimeAfterBootFails = 20;      // Automatic restart takes place if boot was not successful after this period (in seconds)
 	#endif
 
+	// Watchdog for loop(): restarts ESPuino if loop() is stuck for this long (in seconds; 0 = off). Single calls in
+	// loop() may legitimately block for a while (MediaHub transfers, probing unreachable hubs), so keep it generous.
+	// Applies to the task watchdog as a whole, i.e. also to the webserver task (IDF default there: 5 s).
+	constexpr uint32_t loopWatchdogTimeout = 30;
+
 	// FTP
 	// Nothing to be configured here...
 	// Default user/password is esp32/esp32 but can be changed via webgui

@@ -30,6 +30,7 @@
 #include "gitrevision.h"
 
 #include <Wire.h>
+#include <esp_task_wdt.h>
 
 bool gRetryRfidOnWifiConnect = false;
 char gRetryRfidTagId[cardIdStringSize] = "";
@@ -110,6 +111,38 @@ void recoverLastRfidPlayedFromNvs(bool force) {
 			Log_Printf(LOGLEVEL_INFO, restoredLastRfidFromNVS, lastRfidPlayed.c_str());
 		}
 	}
+}
+
+// The Arduino core subscribes loop() to the task watchdog only on request; without this a hang in loop()
+// stays a silent hang (no sleep, no restart, battery drained) and the esp_task_wdt_reset() calls in code
+// running there are no-ops. Called at the end of setup() so the SD retry loop at boot cannot trip it.
+// The RFID and LED tasks stay unwatched: they are suspended during uploads.
+static void enableLoopWatchdog(void) {
+	if (loopWatchdogTimeout == 0) {
+		return;
+	}
+	// Only the timeout changes; idle-task checks and panic behaviour stay as configured in sdkconfig.
+	esp_task_wdt_config_t wdtConfig = {
+		.timeout_ms = loopWatchdogTimeout * 1000,
+		.idle_core_mask = 0,
+#ifdef CONFIG_ESP_TASK_WDT_PANIC
+		.trigger_panic = true,
+#else
+		.trigger_panic = false,
+#endif
+	};
+#ifdef CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0
+	wdtConfig.idle_core_mask |= (1 << 0);
+#endif
+#ifdef CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1
+	wdtConfig.idle_core_mask |= (1 << 1);
+#endif
+	if (esp_task_wdt_reconfigure(&wdtConfig) != ESP_OK) {
+		Log_Println(watchdogReconfigureFailed, LOGLEVEL_ERROR);
+		return;
+	}
+	enableLoopWDT();
+	Log_Printf(LOGLEVEL_NOTICE, watchdogLoopEnabled, loopWatchdogTimeout);
 }
 
 void setup() {
@@ -218,6 +251,8 @@ void setup() {
 #ifdef CONTROLS_LOCKED_BY_DEFAULT
 	System_SetLockControls(true);
 #endif
+
+	enableLoopWatchdog();
 }
 
 void loop() {

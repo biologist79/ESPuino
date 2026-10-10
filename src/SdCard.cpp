@@ -10,6 +10,7 @@
 #include "System.h"
 
 #include <esp_random.h>
+#include <esp_task_wdt.h>
 #include <esp_vfs_fat.h>
 
 #ifdef SD_MMC_1BIT_MODE
@@ -397,6 +398,7 @@ std::optional<Playlist *> SdCard_ReturnPlaylist(const char *fileName, const uint
 		if (name.isEmpty()) {
 			break;
 		}
+		esp_task_wdt_reset(); // huge folders on a slow card take a while
 		if (isDir) {
 			//  Jump into directory if recursion is allowed
 			if (currentRecDepth < _maxRecursionDepth) {

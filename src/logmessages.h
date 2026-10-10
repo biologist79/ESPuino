@@ -273,3 +273,5 @@ extern const char mediaHubAdoptWriteFailed[];
 extern const char mediaHubHubUnreachable[];
 extern const char mediaHubReportedPending[];
 extern const char trackCommandQueueFull[];
+extern const char watchdogReconfigureFailed[];
+extern const char watchdogLoopEnabled[];

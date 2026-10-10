@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 24.10.2026: Player: track commands and playback from the file browser are handed to the main loop via queues, and the player flags are no longer bitfields shared between tasks, so quick presses and flags no longer get lost. The main loop is now watched by the task watchdog (`loopWatchdogTimeout` in settings.h, 30 s, 0 = off).
+
 * 24.10.2026: Web: CORS headers are only sent when built with `-DENABLE_CORS_FOR_DEBUG`, so other web pages in the network can no longer use the REST API from the browser.
 
 * 24.10.2026: Web: fix crashes, leaks and hangs in some request handlers (missing query parameters, unterminated WebSocket messages, large or unreadable folders, unchecked allocations).

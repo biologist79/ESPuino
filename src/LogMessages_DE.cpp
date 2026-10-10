@@ -273,4 +273,6 @@ const char mediaHubAdoptWriteFailed[] = "MediaHub: Zuweisung der Karte konnte ni
 const char mediaHubHubUnreachable[] = "MediaHub %s nicht erreichbar.";
 const char mediaHubReportedPending[] = "MediaHub %s: Karte %s ist dort noch nicht zugewiesen, wurde aber zum Zuweisen vorgemerkt.";
 const char trackCommandQueueFull[] = "Track-Kommando %u verworfen: Queue voll.";
+const char watchdogReconfigureFailed[] = "Watchdog: Umkonfigurieren fehlgeschlagen, loop() bleibt unüberwacht.";
+const char watchdogLoopEnabled[] = "Watchdog: loop() wird überwacht, Timeout %u s.";
 #endif
