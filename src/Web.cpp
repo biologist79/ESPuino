@@ -2469,8 +2469,14 @@ void explorerHandleAudioRequest(AsyncWebServerRequest *request) {
 		playModeString = param->value();
 
 		playMode = atoi(playModeString.c_str());
+		// Only queued here: building the playlist scans the SD card, which must not run in this
+		// watchdog-subscribed async_tcp task, nor in parallel to the loop() task doing the same.
+		if (!AudioPlayer_RequestPlaylist(filePath, playMode)) {
+			Log_Printf(LOGLEVEL_ERROR, "AUDIO: Cannot play %s", filePath);
+			request->send(400);
+			return;
+		}
 		Rfid_ResetLastTag(); // Another playlist is loaded now: re-applying the last tag must reload it, not toggle pause
-		AudioPlayer_SetPlaylist(filePath, 0, playMode, 0);
 	} else {
 		Log_Println("AUDIO: No path variable set", LOGLEVEL_ERROR);
 	}

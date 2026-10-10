@@ -76,8 +76,12 @@ void AudioPlayer_Loop(void);
 uint8_t AudioPlayer_GetRepeatMode(void);
 void AudioPlayer_SetVolume(const int32_t _newVolume);
 void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPass, const int8_t gainHighPass);
-void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed);
+void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed); // loop() task only
+// From any other task: queues the request, AudioPlayer_Cyclic() starts it. False if the path is too long.
+bool AudioPlayer_RequestPlaylist(const char *_itemToPlay, const uint32_t _playMode);
 void AudioPlayer_SetTrackControl(const uint8_t trackCommand);
+// loop() task only: picked up by the very next AudioPlayer_Loop() instead of queueing up behind pending commands
+void AudioPlayer_SetTrackControlNow(const uint8_t trackCommand);
 // Queue a relative seek. Accumulates, so one call per rotary detent scrubs proportionally.
 void AudioPlayer_AddSeekOffset(const int16_t seconds);
 // Seek-preview (CMD_SEEK_PREVIEW rotary gesture): moves a not-yet-committed target position instead of
