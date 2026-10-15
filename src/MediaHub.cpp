@@ -231,15 +231,27 @@ static String MediaHub_CommonDirectory(JsonArrayConst files) {
 }
 
 // SINGLE_TRACK/SINGLE_TRACK_LOOP point at one specific file. Every other mode
-// points at the folder the files actually share (see MediaHub_CommonDirectory())
-// and leaves scanning/sorting/recursion from there to SdCard_ReturnPlaylist()
-// (same reasoning as in AudioPlayer_SetPlaylist()) - pointing at mediaDir
-// itself would be wrong whenever files[].path carries subdirectories
-// (recursive selections, or any folder that isn't the media library root).
-static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files) {
+// points at the folder the card is meant to play and leaves
+// scanning/sorting/recursion from there to SdCard_ReturnPlaylist() (same
+// reasoning as in AudioPlayer_SetPlaylist()) - pointing at mediaDir itself
+// would be wrong whenever files[].path carries subdirectories (recursive
+// selections, or any folder that isn't the media library root).
+//
+// `playRoot` is the folder the admin picked, when the manifest names one, and
+// wins over the common prefix of files[].path. That prefix is only a guess:
+// for a folder holding a single subfolder it lands a level too deep, where
+// "random subfolder" finds nothing (forum #4779). Older hubs and hand-picked
+// selections send no playRoot, so the prefix stays the fallback.
+static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files, const char *playRoot) {
 	if (MediaHub_IsSingleFilePlayMode(playMode)) {
 		const char *singleFilePath = files[0]["path"] | "";
 		return mediaDir + "/" + singleFilePath;
+	}
+	// Refuse anything that could climb out of the card's folder: this arrives
+	// over the network and is about to be concatenated onto mediaDir.
+	const String root = String(playRoot ? playRoot : "");
+	if (root.length() > 0 && root.indexOf("..") < 0 && !root.startsWith("/")) {
+		return mediaDir + "/" + root;
 	}
 	const String commonDir = MediaHub_CommonDirectory(files);
 	if (commonDir.length() == 0) {
@@ -703,7 +715,7 @@ static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t
 		return false;
 	}
 
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
 	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
 	return true;
@@ -981,7 +993,7 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	// actually changed, and the stop above means the listener is standing in
 	// silence they did not ask for. Leaving them to tap again is the worse of
 	// the two surprises.
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
 	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
 	return true;
@@ -1089,7 +1101,7 @@ static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlay
 		return false;
 	}
 
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
 
 	Log_Println(mediaHubPlayingFromCache, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
