@@ -1041,6 +1041,17 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		const char *_ftpUser = doc["ftp"]["username"];
 		const char *_ftpPwd = doc["ftp"]["password"];
 
+		// The web interface already limits both to the lengths published below, so this only
+		// catches requests made directly against /settings.
+		if (String(_ftpUser).length() >= ftpUserLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp.username too long");
+			return WebsocketCodeType::Error;
+		}
+		if (String(_ftpPwd).length() >= ftpPasswordLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "ftp.password too long");
+			return WebsocketCodeType::Error;
+		}
+
 		gPrefsSettings.putString("ftpuser", (String) _ftpUser);
 		gPrefsSettings.putString("ftppassword", (String) _ftpPwd);
 		// Check if settings were written successfully
@@ -1094,6 +1105,21 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		}
 		if (mqttDeviceIdStr.length() >= mqttDeviceIdLength) {
 			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.deviceId too long");
+			return WebsocketCodeType::Error;
+		}
+
+		// validate the remaining free-text fields. The web interface already limits them to the
+		// lengths published above, so this only catches requests made directly against /settings.
+		if (String(_mqttServer).length() >= mqttServerLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.server too long");
+			return WebsocketCodeType::Error;
+		}
+		if (String(_mqttUser).length() >= mqttUserLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.username too long");
+			return WebsocketCodeType::Error;
+		}
+		if (String(_mqttPwd).length() >= mqttPasswordLength) {
+			Log_Printf(LOGLEVEL_ERROR, webSaveSettingsError, "mqtt.password too long");
 			return WebsocketCodeType::Error;
 		}
 
@@ -1527,7 +1553,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		ftpObj["username"] = gPrefsSettings.getString("ftpuser", "-1");
 		ftpObj["password"] = gPrefsSettings.getString("ftppassword", "-1");
 		ftpObj["maxUserLength"].set(ftpUserLength - 1);
-		ftpObj["maxPwdLength"].set(ftpUserLength - 1);
+		ftpObj["maxPwdLength"].set(ftpPasswordLength - 1);
 	}
 #endif
 // MQTT
