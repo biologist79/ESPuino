@@ -9,6 +9,8 @@
 	"delete": "Delete",
 	"cancel": "Cancel",
 	"refresh": "Refresh",
+	"maxLengthReached": "At most {{max}} characters - the limit is reached.",
+	"maxLengthCut": "{{dropped}} characters were cut off: at most {{max}} characters are allowed.",
 	"ok": "OK",
 	"infos": "Information",
 	"darkmode": "Dark Mode",

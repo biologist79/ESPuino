@@ -9,6 +9,8 @@
 	"delete": "Löschen",
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
+	"maxLengthReached": "Maximal {{max}} Zeichen - die Grenze ist erreicht.",
+	"maxLengthCut": "{{dropped}} Zeichen wurden abgeschnitten: maximal {{max}} Zeichen sind möglich.",
 	"ok": "OK",
 	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",

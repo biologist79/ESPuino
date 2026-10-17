@@ -2924,6 +2924,75 @@
 			}
 		}
 
+		/* A browser enforces maxlength silently: surplus characters are dropped while typing and
+		   cut off when pasting, without a word to the user (issue #465). Say so instead. A paste
+		   that actually loses characters is worth the red border and the exact count; merely
+		   filling a field to its limit is just a note. One delegated pair of listeners covers
+		   every input that gets a maxlength from the settings JSON, so no field has to be wired
+		   up by hand. This never blocks saving - a value at the limit is a valid value. */
+		/* The types where a maxlength applies and the selection API works at the same time. A
+		   number field ignores maxlength altogether, and asking it for selectionStart throws. */
+		const maxLengthTypes = new Set(['text', 'search', 'url', 'tel', 'password']);
+		let maxLengthPasteOverflow = 0;
+
+		function limitedInput(target) {
+			if (!(target instanceof HTMLInputElement) || target.maxLength <= 0 || !maxLengthTypes.has(target.type)) {
+				return null;
+			}
+			return target;
+		}
+
+		function maxLengthNote(field, message, isError) {
+			let note = field.nextElementSibling;
+			if (!note || !note.hasAttribute('data-maxlen-note')) {
+				note = null;
+			}
+			field.classList.toggle('is-invalid', isError);
+			if (!message) {
+				if (note) {
+					note.remove();
+				}
+				return;
+			}
+			if (!note) {
+				note = document.createElement('div');
+				note.setAttribute('data-maxlen-note', '');
+				field.after(note);
+			}
+			note.className = isError ? 'form-text text-danger' : 'form-text';
+			note.textContent = message;
+		}
+
+		document.addEventListener('paste', function (event) {
+			/* Only measure here - the input event right after this one puts up the note, so that
+			   every outcome is decided in one place. */
+			maxLengthPasteOverflow = 0;
+			const field = limitedInput(event.target);
+			if (!field) {
+				return;
+			}
+			const clipboard = event.clipboardData || window.clipboardData;
+			const pasted = clipboard ? clipboard.getData('text') : '';
+			const selected = field.selectionEnd - field.selectionStart;
+			maxLengthPasteOverflow = Math.max(0, field.value.length - selected + pasted.length - field.maxLength);
+		});
+
+		document.addEventListener('input', function (event) {
+			const field = limitedInput(event.target);
+			if (!field) {
+				return;
+			}
+			const dropped = (event.inputType === 'insertFromPaste') ? maxLengthPasteOverflow : 0;
+			maxLengthPasteOverflow = 0;
+			if (dropped > 0) {
+				maxLengthNote(field, i18next.t('maxLengthCut', { dropped: dropped, max: field.maxLength }), true);
+			} else if (field.value.length >= field.maxLength) {
+				maxLengthNote(field, i18next.t('maxLengthReached', { max: field.maxLength }), false);
+			} else {
+				maxLengthNote(field, '', false);
+			}
+		});
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
