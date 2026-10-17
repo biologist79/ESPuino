@@ -1300,6 +1300,8 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		// WiFi settings
 		JsonObject wifiObj = obj["wifi"].to<JsonObject>();
 		wifiObj["hostname"] = Wlan_GetHostname();
+		// a true maximum, so published as-is (the MQTT and FTP lengths above are published n-1)
+		wifiObj["maxHostnameLength"].set(hostnameMaxLength);
 		wifiObj["scanOnStart"].set(gPrefsSettings.getBool("ScanWiFiOnStart", false));
 		wifiObj["apSSID"] = Wlan_GetApSSID();
 		wifiObj["apPassword"] = Wlan_GetApPassword();
@@ -2613,6 +2615,7 @@ void handleGetWiFiConfig(AsyncWebServerRequest *request) {
 	bool scanWifiOnStart = gPrefsSettings.getBool("ScanWiFiOnStart", false);
 
 	obj["hostname"] = Wlan_GetHostname();
+	obj["maxHostnameLength"].set(hostnameMaxLength);
 	obj["scanOnStart"].set(scanWifiOnStart);
 	obj["apSSID"] = Wlan_GetApSSID();
 	obj["apPassword"] = Wlan_GetApPassword();

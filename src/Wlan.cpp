@@ -742,7 +742,7 @@ void Wlan_Cyclic(void) {
 bool Wlan_ValidateHostname(String newHostname) {
 	// correct lenght check
 	const size_t len = newHostname.length();
-	if (len < 2 || len > 32) {
+	if (len < hostnameMinLength || len > hostnameMaxLength) {
 		return false;
 	}
 

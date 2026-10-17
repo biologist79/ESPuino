@@ -100,7 +100,7 @@
 		<br>
 		<label for="hostname" data-i18n="wifi.hostname.title"></label>: <br>
 		<input type="text" id="hostname" name="hostname" value="espuino"
-			pattern="^[0-9a-zA-Z][0-9a-zA-Z\\-]{0,30}[0-9a-zA-Z]" required>
+			pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]*[0-9a-zA-Z]" required>
 		<br>
 		<br>
 		<input type="checkbox" id="scan_wifi_on_start" name="scan_wifi_on_start" value="false">
@@ -396,6 +396,7 @@
 			let hostnameElem = document.getElementById("hostname");
 			let scanWifiElem = document.getElementById("scan_wifi_on_start");
 			let config = await (await fetch("/wificonfig")).json();
+			hostnameElem.setAttribute('maxlength', config.maxHostnameLength);
 			if (config.hostname && config.hostname !== "") {
 				hostnameElem.value = config.hostname;
 				hostnameElem.defaultValue = config.hostname;

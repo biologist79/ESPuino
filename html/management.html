@@ -762,7 +762,7 @@
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="hostname"
 										data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
-										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
+										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]*[0-9a-zA-Z]" required>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
@@ -4621,6 +4621,7 @@
 			let wifiSettings = settings.wifi;
 			if (wifiSettings) {
 				document.getElementById("hostname").value = wifiSettings.hostname;
+				document.getElementById("hostname").setAttribute('maxlength', wifiSettings.maxHostnameLength);
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 				document.getElementById("apSSID").value = wifiSettings.apSSID;
 				document.getElementById("apPassword").value = wifiSettings.apPassword;
