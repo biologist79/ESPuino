@@ -15,7 +15,6 @@
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
-#include <algorithm>
 #include <atomic>
 #include <esp_heap_caps.h>
 #include <esp_task_wdt.h>
@@ -1401,19 +1400,6 @@ bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info) {
 // miss (concept §5.3) -- so one round trip does both jobs.
 static constexpr const char *MediaHub_AskUnknownNvsKey = "mhAskUnknown";
 
-// Hubs that failed at transport level, remembered for this session only. No
-// timer, no expiry: an idle ESPuino goes to deep sleep, and waking from deep
-// sleep *is* a restart (System.cpp, esp_deep_sleep_start()), so in practice
-// the list clears itself several times a day -- and "until the next restart"
-// is a rule a user can actually hold in their head. Saving the MediaHub
-// settings clears it too, for the box that plays all afternoon without ever
-// going to sleep.
-static std::vector<String> MediaHub_SkippedHubs;
-
-void MediaHub_ClearSkippedHubs() {
-	MediaHub_SkippedHubs.clear();
-}
-
 bool MediaHub_IsAskUnknownEnabled() {
 	return gPrefsSettings.getBool(MediaHub_AskUnknownNvsKey, false);
 }
@@ -1474,14 +1460,14 @@ bool MediaHub_TryAdoptUnknownCard(const char *cardId) {
 
 	for (const MediaHubServer &server : servers) {
 		const String base = String(server.https ? "https://" : "http://") + server.hostPort;
-		if (std::find(MediaHub_SkippedHubs.begin(), MediaHub_SkippedHubs.end(), base) != MediaHub_SkippedHubs.end()) {
-			continue;
-		}
 
 		const MediaHubProbeResult probe = MediaHub_ProbeCard(base, cardId);
 		if (probe == MediaHubProbeResult::Unreachable) {
-			Log_Printf(LOGLEVEL_NOTICE, mediaHubHubSkipped, base.c_str());
-			MediaHub_SkippedHubs.push_back(base);
+			// Asked again on the next unknown card, deliberately. A hub only ever
+			// learns of a new card through this very request, so sidelining one
+			// that failed once would cost exactly the feature this is here for --
+			// and an unknown card has no playback to interrupt anyway.
+			Log_Printf(LOGLEVEL_NOTICE, mediaHubHubUnreachable, base.c_str());
 			continue;
 		}
 		if (probe == MediaHubProbeResult::NotAssigned) {

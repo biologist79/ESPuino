@@ -271,6 +271,6 @@ const char mediaHubMarkedStale[] = "MediaHub: change detected, card will be refr
 const char mediaHubResyncing[] = "MediaHub: card changed, re-syncing.";
 const char mediaHubCardAdopted[] = "MediaHub: unknown card %s found on %s and assigned.";
 const char mediaHubAdoptWriteFailed[] = "MediaHub: could not write the card assignment to NVS.";
-const char mediaHubHubSkipped[] = "MediaHub %s not reachable, will not be asked again until the next restart.";
+const char mediaHubHubUnreachable[] = "MediaHub %s not reachable.";
 const char mediaHubReportedPending[] = "MediaHub %s: card %s is not assigned there yet, but has been noted for assignment.";
 #endif

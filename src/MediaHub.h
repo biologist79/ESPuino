@@ -102,7 +102,3 @@ struct MediaHubCardInfo {
 // Fills info from the cached manifest of cardId. False when this device has
 // never played the card, so nothing is cached yet.
 bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info);
-
-// Forgets the hubs skipped after a failed contact this session (see
-// MediaHub.cpp); called when the MediaHub settings are saved.
-void MediaHub_ClearSkippedHubs();

@@ -1036,10 +1036,6 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 	if (doc["mediahub"].is<JsonObject>()) {
 		MediaHub_SetAskUnknownEnabled(doc["mediahub"]["askUnknown"].as<bool>());
 		MediaHub_SetShowDirEnabled(doc["mediahub"]["showDir"].as<bool>());
-		// Saving here is also the escape hatch for the session-long skip list of
-		// unreachable hubs (see MediaHub.cpp): this is exactly where someone sits
-		// when a hub came back but the box hasn't slept since.
-		MediaHub_ClearSkippedHubs();
 	}
 	if (doc["ftp"].is<JsonObject>()) {
 		const char *_ftpUser = doc["ftp"]["username"];

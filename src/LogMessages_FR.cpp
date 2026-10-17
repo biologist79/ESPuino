@@ -269,6 +269,6 @@ const char mediaHubMarkedStale[] = "MediaHub : changement détecté, la carte se
 const char mediaHubResyncing[] = "MediaHub : la carte a changé, resynchronisation en cours.";
 const char mediaHubCardAdopted[] = "MediaHub : carte inconnue %s trouvée sur %s et assignée.";
 const char mediaHubAdoptWriteFailed[] = "MediaHub : impossible d'écrire l'assignation de la carte dans la NVS.";
-const char mediaHubHubSkipped[] = "MediaHub %s inaccessible, ne sera plus interrogé jusqu'au prochain redémarrage.";
+const char mediaHubHubUnreachable[] = "MediaHub %s inaccessible.";
 const char mediaHubReportedPending[] = "MediaHub %s : la carte %s n'y est pas encore assignée, mais a été notée en attente d'assignation.";
 #endif

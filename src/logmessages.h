@@ -270,5 +270,5 @@ extern const char mediaHubMarkedStale[];
 extern const char mediaHubResyncing[];
 extern const char mediaHubCardAdopted[];
 extern const char mediaHubAdoptWriteFailed[];
-extern const char mediaHubHubSkipped[];
+extern const char mediaHubHubUnreachable[];
 extern const char mediaHubReportedPending[];
