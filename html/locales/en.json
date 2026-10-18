@@ -592,6 +592,8 @@
 			"nightVolumeLimitExp": "When night mode is switched on, the volume currently set becomes a temporary upper limit (plus one step of headroom) – handy when ESPuino is taken to bed. The limit is lifted again when night mode ends.",
 			"recoverVolBoot": "Use last volume at restart",
 			"recoverVolBootExp": "After a restart, the speaker remembers which volume was last used and automatically adjusts it again.",
+			"systemSounds": "Play system sounds (startup, shutdown, volume)",
+			"systemSoundsExp": "Short sounds when switching on and off and when changing the volume while nothing is playing. Each sound is a file in /ESPuino/sounds/ on the SD card (startup.wav, shutdown.wav, volume.wav, volume-limit.wav); a sound that has no file stays silent.",
 			"volumeCurve": "Finer gradations at low volume",
 			"volumeCurveExp": "Use of logarithmic volume calculation. Can help if the gradations in the lower volume range are too coarse."
 		},

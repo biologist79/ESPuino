@@ -592,6 +592,8 @@
 			"nightVolumeLimitExp": "À l'activation du mode nuit, le volume réglé à ce moment devient une limite supérieure temporaire (plus un cran de marge) – pratique lorsque l'ESPuino est emporté au lit. La limite est levée à la sortie du mode nuit.",
 			"recoverVolBoot": "Utiliser le dernier volume au redémarrage",
 			"recoverVolBootExp": "Le boîtier se souvient, après un redémarrage, du dernier volume utilisé et le rétablit automatiquement.",
+			"systemSounds": "Jouer les sons système (démarrage, extinction, volume)",
+			"systemSoundsExp": "Sons brefs à l'allumage, à l'extinction et lors d'un changement de volume tant que rien n'est lu. Chaque son est un fichier dans /ESPuino/sounds/ sur la carte SD (startup.wav, shutdown.wav, volume.wav, volume-limit.wav) ; un son sans fichier reste muet.",
 			"volumeCurve": "Des nuances plus fines à faible volume",
 			"volumeCurveExp": "Utilisation du calcul logarithmique du volume. Peut aider si les nuances sont trop grossières dans la plage de volume inférieure."
 		},

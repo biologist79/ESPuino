@@ -800,6 +800,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		success = success && (gPrefsSettings.putBool("pauseOnMinVol", generalObj["pauseOnMinVol"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("nightVolLimit", generalObj["nightVolLimit"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putBool("recoverVolBoot", generalObj["recoverVolBoot"].as<bool>()) != 0);
+		success = success && (gPrefsSettings.putBool("systemSounds", generalObj["systemSounds"].as<bool>()) != 0);
 		success = success && (gPrefsSettings.putUChar("volumeCurve", generalObj["volumeCurve"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putUChar("rfidReaderType", generalObj["rfidReaderType"].as<uint8_t>()) != 0);
 		success = success && (gPrefsRfid.putBool("pn5180Lpcd", generalObj["pn5180Lpcd"].as<bool>()) != 0);
@@ -1275,6 +1276,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		generalObj["pauseOnMinVol"].set(gPrefsSettings.getBool("pauseOnMinVol", false)); // PAUSE_ON_MIN_VOLUME
 		generalObj["nightVolLimit"].set(gPrefsSettings.getBool("nightVolLimit", false)); // NIGHT_MODE_VOLUME_LIMIT
 		generalObj["recoverVolBoot"].set(gPrefsSettings.getBool("recoverVolBoot", false)); // USE_LAST_VOLUME_AFTER_REBOOT
+		generalObj["systemSounds"].set(gPrefsSettings.getBool("systemSounds", true)); // startup/shutdown/volume sounds, see SystemSounds.h
 		generalObj["volumeCurve"].set(gPrefsSettings.getUChar("volumeCurve", 0)); // VOLUMECURVE
 	}
 	if (section == "rfidstatus") {
@@ -1449,6 +1451,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		genSettings["pauseOnMinVol"].set(false); // PAUSE_ON_MIN_VOLUME
 		genSettings["nightVolLimit"].set(false); // NIGHT_MODE_VOLUME_LIMIT
 		genSettings["recoverVolBoot"].set(false); // USE_LAST_VOLUME_AFTER_REBOOT
+		genSettings["systemSounds"].set(true); // startup/shutdown/volume sounds
 		genSettings["volumeCurve"].set(0u); // VOLUME_CURVE
 		genSettings["rfidReaderType"].set(0u); // RFID_READER_TYPE_RUNTIME (auto-detect)
 		genSettings["pn5180Lpcd"].set(false); // PN5180 LPCD disabled

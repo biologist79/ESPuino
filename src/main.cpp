@@ -25,6 +25,7 @@
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
+#include "SystemSounds.h"
 #include "Web.h"
 #include "Wlan.h"
 #include "gitrevision.h"
@@ -192,6 +193,7 @@ void setup() {
 	IrReceiver_Init();
 	System_UpdateActivityTimer(); // initial set after boot
 	Led_Indicate(LedIndicatorType::BootComplete);
+	SystemSounds_PlayStartup();
 
 	Log_Printf(LOGLEVEL_DEBUG, "%s: %u", freeHeapAfterSetup, ESP.getFreeHeap());
 	if (psramFound()) {
@@ -233,6 +235,7 @@ void loop() {
 	RotaryEncoder_Cyclic();
 	Ftp_Cyclic();
 	AudioPlayer_Cyclic();
+	SystemSounds_Cyclic();
 	Battery_Cyclic();
 	Button_Cyclic();
 	System_Cyclic();
