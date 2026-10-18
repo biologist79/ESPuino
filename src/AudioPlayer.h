@@ -106,6 +106,7 @@ void AudioPlayer_ApplyMaxVolumes(uint8_t speaker, uint8_t headphone);
 // System_SetNightmode(); does nothing unless the user enabled the limit in the web interface.
 void AudioPlayer_ApplyNightVolumeCap(bool enabled);
 void AudioPlayer_SetNightVolumeLimitEnabled(bool enabled);
+void AudioPlayer_SetVolumeCurve(uint8_t curve);
 uint8_t AudioPlayer_GetMinVolume(void);
 void AudioPlayer_SetMinVolume(uint8_t value);
 uint8_t AudioPlayer_GetInitVolume(void);
