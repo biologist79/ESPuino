@@ -855,6 +855,7 @@ WebsocketCodeType JSONToSettings(JsonObject doc) {
 		// Takes effect the next time night mode is switched on; an already running night mode keeps the
 		// ceiling it was armed with (or none), so the setting never changes the limit under way.
 		AudioPlayer_SetNightVolumeLimitEnabled(generalObj["nightVolLimit"].as<bool>());
+		AudioPlayer_SetVolumeCurve(generalObj["volumeCurve"].as<uint8_t>());
 
 		gPlayProperties.newPlayMono = generalObj["playMono"].as<bool>();
 		gPlayProperties.SavePlayPosRfidChange = generalObj["savePosRfidChge"].as<bool>();

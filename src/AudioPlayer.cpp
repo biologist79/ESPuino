@@ -363,8 +363,19 @@ void Audio_InfoCallback(Audio::msg_t m) {
 	}
 }
 
+// Volume curve selected in the web UI, cached in RAM. Audio_GetVolume() is the audio library's volume-curve
+// callback and runs on the library's audio task (e.g. on every gain ramp), so it must not touch NVS: an NVS read
+// takes the global NVS mutex, and if that task is deleted mid-read (setAudioTaskCore() deletes and recreates it)
+// the mutex is never released and the next NVS access anywhere -- e.g. Led_LoadSettings() during boot -- blocks
+// forever. Whether a boot hit that window depended on NVS lookup time, i.e. on how full the partition was.
+static std::atomic<uint8_t> AudioPlayer_VolumeCurve {0};
+
+void AudioPlayer_SetVolumeCurve(uint8_t curve) {
+	AudioPlayer_VolumeCurve = curve;
+}
+
 float Audio_GetVolume(float t) {
-	uint8_t curve_type = gPrefsSettings.getUChar("volumeCurve", 0);
+	uint8_t curve_type = AudioPlayer_VolumeCurve;
 
 	// 1. Safety Checks
 	if (curve_type >= VOL_LUT_CURVES) {
@@ -516,6 +527,11 @@ void AudioPlayer_Init(void) {
 		// just use default-values
 	}
 
+	// Pick the audio task's core before setPinout(), which is what starts that task: called afterwards,
+	// setAudioTaskCore() has to vTaskDelete() the already-running task and immediately rebuild it in the same
+	// static TCB/stack, and if the delete lands while the task is executing it races the kernel's deferred
+	// cleanup (seen as list corruption / a task dying while holding a mutex).
+	audio->setAudioTaskCore(1);
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 
 	// must be called after setPinout() to take effect
@@ -524,6 +540,7 @@ void AudioPlayer_Init(void) {
 	}
 
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
+	AudioPlayer_SetVolumeCurve(gPrefsSettings.getUChar("volumeCurve", 0));
 	audio->setVolumeCurve(Audio_GetVolume);
 	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
@@ -536,7 +553,6 @@ void AudioPlayer_Init(void) {
 	// (frees CPU on the shared core -- see AudioPlayer_ApplyTone() and forum thread #4675).
 	audio->settings.VU_LEVEL = false;
 
-	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
 }
 
