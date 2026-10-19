@@ -19,6 +19,7 @@
 #include "RotaryEncoder.h"
 #include "SdCard.h"
 #include "System.h"
+#include "SystemSounds.h"
 #include "VolumeCurveLut.h"
 #include "Web.h"
 #include "Wlan.h"
@@ -1516,6 +1517,7 @@ void AudioPlayer_SetVolume(const int32_t _newVolume) {
 
 		Log_Printf(LOGLEVEL_INFO, newLoudnessReceived, _volume);
 		audio->setVolume(_volume);
+		SystemSounds_VolumeChanged(clampedVolume != _newVolume);
 		if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE) {
 			Bluetooth_SetVolume(_volume);
 		}

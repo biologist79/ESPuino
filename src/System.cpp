@@ -15,6 +15,7 @@
 #include "Power.h"
 #include "Rfid.h"
 #include "SdCard.h"
+#include "SystemSounds.h"
 #include "Web.h"
 #include "Wlan.h"
 #include "esp_system.h"
@@ -309,6 +310,7 @@ void System_DeepSleepManager(void) {
 
 		System_Sleeping = true;
 		Log_Println(goToSleepNow, LOGLEVEL_NOTICE);
+		SystemSounds_PlayShutdown();
 		// prepare power down (shutdown common modules)
 		System_PreparePowerDown();
 		// switch off power

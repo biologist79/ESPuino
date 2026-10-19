@@ -592,6 +592,8 @@
 			"nightVolumeLimitExp": "Beim Einschalten des Nachtmodus wird die gerade eingestellte Lautstärke zur vorübergehenden Obergrenze (plus eine Stufe Spielraum) – praktisch, wenn ESPuino mit ins Bett genommen wird. Beim Verlassen des Nachtmodus wird die Begrenzung wieder aufgehoben.",
 			"recoverVolBoot": "Letzte Lautstärke bei Neustart verwenden",
 			"recoverVolBootExp": "Die Box erinnert sich über einen Neustart hinweg, welche Lautstärke zuletzt verwendet wurde und stellt diese automatisch wieder ein.",
+			"systemSounds": "Systemtöne abspielen (Start, Ausschalten, Lautstärke)",
+			"systemSoundsExp": "Kurze Töne beim Ein- und Ausschalten sowie beim Ändern der Lautstärke, solange nichts abgespielt wird. Jeder Ton ist eine Datei unter /ESPuino/sounds/ auf der SD-Karte (startup.wav, shutdown.wav, volume.wav, volume-limit.wav); ein Ton ohne Datei bleibt stumm.",
 			"volumeCurve": "Feinere Abstufungen bei niedriger Lautstärke",
 			"volumeCurveExp": "Verwendung von logarithmischer Lautstärkeberechnung. Kann helfen, wenn im unteren Lautstärkebereich die Abstufungen zu grob sind."
 		},
