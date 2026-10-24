@@ -311,7 +311,7 @@
 			});
 			var myObj = {
 				hostname: document.getElementById('hostname').value,
-				scanwifionstart: document.getElementById('scan_wifi_on_start').checked
+				scanOnStart: document.getElementById('scan_wifi_on_start').checked
 			};
 			await fetch("/wificonfig", {
 				method: "POST",
@@ -401,7 +401,7 @@
 				hostnameElem.value = config.hostname;
 				hostnameElem.defaultValue = config.hostname;
 			}
-			scanWifiElem.checked = config.scanwifionstart;
+			scanWifiElem.checked = config.scanOnStart;
 		}
 	</script>
 </body>
