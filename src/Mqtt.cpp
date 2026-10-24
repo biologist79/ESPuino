@@ -139,7 +139,9 @@ void Mqtt_Init() {
 		Log_Println(wroteMqttUserToNvs, LOGLEVEL_ERROR);
 	} else {
 		gMqttUser = nvsMqttUser;
-		Log_Printf(LOGLEVEL_INFO, restoredMqttUserFromNvs, nvsMqttUser.c_str());
+		if (gMqttUser.length() > 0) { // a broker without login has nothing to report here
+			Log_Printf(LOGLEVEL_INFO, restoredMqttUserFromNvs, nvsMqttUser.c_str());
+		}
 	}
 
 	// Get MQTT-password from NVS
@@ -149,7 +151,9 @@ void Mqtt_Init() {
 		Log_Println(wroteMqttPwdToNvs, LOGLEVEL_ERROR);
 	} else {
 		gMqttPassword = nvsMqttPassword;
-		Log_Printf(LOGLEVEL_INFO, restoredMqttPwdFromNvs, nvsMqttPassword.c_str());
+		if (gMqttPassword.length() > 0) {
+			Log_Println(restoredMqttPwdFromNvs, LOGLEVEL_INFO);
+		}
 	}
 
 	// Get MQTT-password from NVS

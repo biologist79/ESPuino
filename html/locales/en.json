@@ -11,6 +11,7 @@
 	"refresh": "Refresh",
 	"maxLengthReached": "At most {{max}} characters - the limit is reached.",
 	"maxLengthCut": "{{dropped}} characters were cut off: at most {{max}} characters are allowed.",
+	"secretStored": "Stored – leave empty to keep it",
 	"ok": "OK",
 	"infos": "Information",
 	"darkmode": "Dark Mode",
@@ -22,7 +23,8 @@
 		"dropout": "slow stream, dropouts are possible.",
 		"saved": "Settings saved.",
 		"ledCountRestart": "The number of LEDs was changed. ESPuino will restart to apply it.",
-		"settingsInvalid": "Cannot save: please correct these settings first ({{fields}})."
+		"settingsInvalid": "Cannot save: please correct these settings first ({{fields}}).",
+		"saveFailed": "Saving failed. The log says why."
 	},
 	"status": {
 		"connected": "Connection to ESPuino: OK",
@@ -163,7 +165,8 @@
 		"apPassword": {
 			"title": "ESPuino access point password",
 			"placeholder": "Password",
-			"explanation": "Password of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range."
+			"explanation": "Password of the WiFi network ESPuino opens when either no WiFi has been configured yet, or no configured WiFi is in range.",
+			"clear": "Remove the password (open WiFi)"
 		},
 		"apTimeout": {
 			"title": "Access point closes after (minutes)",
@@ -436,7 +439,9 @@
 			"title": "MQTT-password (optional)",
 			"placeholder": "password",
 			"validation": "",
-			"explanation": "Password for logging in to the MQTT broker (if it requires authentication)."
+			"explanation": "Password for logging in to the MQTT broker (if it requires authentication).",
+			"clear": "Remove the stored password",
+			"retype": "Server or user changed: please enter the password again."
 		},
 		"port": {
 			"title": "MQTT-port",

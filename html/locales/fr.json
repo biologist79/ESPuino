@@ -11,6 +11,7 @@
 	"refresh": "Actualiser",
 	"maxLengthReached": "Au maximum {{max}} caractères - la limite est atteinte.",
 	"maxLengthCut": "{{dropped}} caractères ont été coupés : au maximum {{max}} caractères sont autorisés.",
+	"secretStored": "Enregistré – laisser vide pour le conserver",
 	"ok": "OK",
 	"infos": "Informations",
 	"darkmode": "Mode sombre",
@@ -22,7 +23,8 @@
 		"dropout": "flux lent, des interruptions sont possibles.",
 		"saved": "Paramètres enregistrés.",
 		"ledCountRestart": "Le nombre de LEDs a été modifié. L'ESPuino va redémarrer pour appliquer ce changement.",
-		"settingsInvalid": "Enregistrement impossible : veuillez d'abord corriger ces réglages ({{fields}})."
+		"settingsInvalid": "Enregistrement impossible : veuillez d'abord corriger ces réglages ({{fields}}).",
+		"saveFailed": "Échec de l'enregistrement. Le journal en indique la raison."
 	},
 	"status": {
 		"connected": "Connexion à l'ESPuino : OK",
@@ -163,7 +165,8 @@
 		"apPassword": {
 			"title": "Mot de passe du point d'accès ESPuino",
 			"placeholder": "Mot de passe",
-			"explanation": "Mot de passe du réseau WiFi qu'ESPuino ouvre lorsqu'aucun WiFi n'a encore été configuré, ou qu'aucun WiFi configuré n'est à portée."
+			"explanation": "Mot de passe du réseau WiFi qu'ESPuino ouvre lorsqu'aucun WiFi n'a encore été configuré, ou qu'aucun WiFi configuré n'est à portée.",
+			"clear": "Supprimer le mot de passe (WiFi ouvert)"
 		},
 		"apTimeout": {
 			"title": "Le point d'accès se ferme après (minutes)",
@@ -436,7 +439,9 @@
 			"title": "Mot de passe MQTT (facultatif)",
 			"placeholder": "mot de passe",
 			"validation": "",
-			"explanation": "Mot de passe pour la connexion au broker MQTT (si celui-ci requiert une authentification)."
+			"explanation": "Mot de passe pour la connexion au broker MQTT (si celui-ci requiert une authentification).",
+			"clear": "Supprimer le mot de passe enregistré",
+			"retype": "Serveur ou utilisateur modifié : veuillez saisir à nouveau le mot de passe."
 		},
 		"port": {
 			"title": "Port MQTT",

@@ -11,6 +11,7 @@
 	"refresh": "Aktualisieren",
 	"maxLengthReached": "Maximal {{max}} Zeichen - die Grenze ist erreicht.",
 	"maxLengthCut": "{{dropped}} Zeichen wurden abgeschnitten: maximal {{max}} Zeichen sind möglich.",
+	"secretStored": "Gespeichert – leer lassen, um es zu behalten",
 	"ok": "OK",
 	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",
@@ -22,7 +23,8 @@
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
 		"saved": "Einstellungen gespeichert.",
 		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen.",
-		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}})."
+		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}}).",
+		"saveFailed": "Speichern fehlgeschlagen. Der Grund steht im Log."
 	},
 	"status": {
 		"connected": "Verbindung zum ESPuino: OK",
@@ -163,7 +165,8 @@
 		"apPassword": {
 			"title": "ESPuino-Accesspoint-Passwort",
 			"placeholder": "Passwort",
-			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
+			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist.",
+			"clear": "Passwort entfernen (offenes WLAN)"
 		},
 		"apTimeout": {
 			"title": "Accesspoint schließt nach (Minuten)",
@@ -436,7 +439,9 @@
 			"title": "MQTT-Passwort (optional)",
 			"placeholder": "Passwort",
 			"validation": "",
-			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
+			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt).",
+			"clear": "Gespeichertes Passwort entfernen",
+			"retype": "Server oder Benutzer wurde geändert: bitte das Passwort erneut eingeben."
 		},
 		"port": {
 			"title": "MQTT-Port",

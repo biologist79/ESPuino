@@ -791,6 +791,10 @@
 									<input type="password" class="form-control" id="apPassword"
 										data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
 										autocomplete="off" minlength="8" maxlength="63">
+									<div class="form-check mt-1 d-none" id="apPasswordClearRow">
+										<input class="form-check-input" type="checkbox" id="apPasswordClear">
+										<label class="form-check-label" for="apPasswordClear" data-i18n="wifi.apPassword.clear"></label>
+									</div>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
@@ -1272,7 +1276,11 @@
 							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="mqttPwd" maxlength=""
-									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="" autocomplete="new-password">
+								<div class="form-check mt-1 d-none" id="mqttPwdClearRow">
+									<input class="form-check-input" type="checkbox" id="mqttPwdClear">
+									<label class="form-check-label" for="mqttPwdClear" data-i18n="mqtt.pwd.clear"></label>
+								</div>
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
@@ -1326,7 +1334,7 @@
 							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="ftpPwd" maxlength="0"
-									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" autocomplete="new-password">
 							</div>
 						</div>
 					<div>
@@ -2993,6 +3001,51 @@
 			}
 		});
 
+		/* Stored passwords are write-only: the box only says whether one is set. Such a field stays
+		   empty and says so in its placeholder, and leaving it empty on save keeps the stored password.
+		   Where "no password" is a valid setting (MQTT, the access point), a switch removes it. */
+		function showStoredSecret(fieldId, isSet, placeholderKey) {
+			const field = document.getElementById(fieldId);
+			const clear = document.getElementById(fieldId + 'Clear');
+			field.value = '';
+			field.disabled = false;
+			field.dataset.secretSet = isSet ? '1' : '';
+			field.setAttribute('data-i18n', '[placeholder]' + (isSet ? 'secretStored' : placeholderKey));
+			if (localize) {
+				localize('#' + fieldId);
+			}
+			if (clear) {
+				clear.checked = false;
+				document.getElementById(fieldId + 'ClearRow').classList.toggle('d-none', !isSet);
+			}
+			maxLengthNote(field, '', false);
+		}
+
+		/* What to send for such a field: undefined to keep the stored password (JSON.stringify then
+		   leaves the key out), '' to remove it, or the new one. */
+		function secretToSend(fieldId) {
+			const field = document.getElementById(fieldId);
+			const clear = document.getElementById(fieldId + 'Clear');
+			if (clear && clear.checked) {
+				return '';
+			}
+			if (field.value === '' && field.dataset.secretSet === '1') {
+				return undefined;
+			}
+			return field.value;
+		}
+
+		['mqttPwd', 'apPassword'].forEach(function (fieldId) {
+			document.getElementById(fieldId + 'Clear').addEventListener('change', function () {
+				const field = document.getElementById(fieldId);
+				field.disabled = this.checked;
+				if (this.checked) {
+					field.value = '';
+					maxLengthNote(field, '', false);
+				}
+			});
+		});
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -4624,7 +4677,7 @@
 				document.getElementById("hostname").setAttribute('maxlength', wifiSettings.maxHostnameLength);
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 				document.getElementById("apSSID").value = wifiSettings.apSSID;
-				document.getElementById("apPassword").value = wifiSettings.apPassword;
+				showStoredSecret("apPassword", wifiSettings.apPasswordSet, "wifi.apPassword.placeholder");
 				document.getElementById("apTimeout").value = wifiSettings.apTimeout;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
@@ -4738,7 +4791,8 @@
 				document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
 				document.getElementById("ftpUser").value = ftpSettings.username;
 				document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
-				document.getElementById("ftpPwd").value = ftpSettings.password;
+				showStoredSecret("ftpPwd", ftpSettings.passwordSet, "ftp.pwd.placeholder");
+				document.getElementById("ftpPwd").required = !ftpSettings.passwordSet;
 				document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
 			}
 			// mqtt
@@ -4757,7 +4811,7 @@
 				document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
 				document.getElementById('mqttUser').value = mqttSettings.username;
 				document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
-				document.getElementById('mqttPwd').value = mqttSettings.password;
+				showStoredSecret('mqttPwd', mqttSettings.passwordSet, 'mqtt.pwd.placeholder');
 				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 				document.getElementById('mqttPort').value = mqttSettings.port;
 				// Hidden field with MAC without colons & uppercase for MQTT preview
@@ -5359,15 +5413,22 @@
 			var myObj = {
 				"ftp": {
 					username: document.getElementById('ftpUser').value,
-					password: document.getElementById('ftpPwd').value
+					password: secretToSend('ftpPwd')
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			const response = await fetch("http://" + host + "/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
+			const ftpPwdSet = (myObj.ftp.password === undefined) || (myObj.ftp.password !== '');
+			showStoredSecret('ftpPwd', ftpPwdSet, 'ftp.pwd.placeholder');
+			document.getElementById('ftpPwd').required = !ftpPwdSet;
 			toaster.info(i18next.t("toast.saved"));
 		}
 
@@ -5397,32 +5458,49 @@
 					baseTopic: document.getElementById('mqttBaseTopic').value,
 					server: document.getElementById('mqttServer').value,
 					username: document.getElementById('mqttUser').value,
-					password: document.getElementById('mqttPwd').value,
+					password: secretToSend('mqttPwd'),
 					port: Number(document.getElementById('mqttPort').value)
 				}
 			};
+			var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
+			var nw = myObj.mqtt;
+			/* The stored password only stays with the broker it was entered for (the box refuses
+			   anything else), so a new server or username needs it typed in again. */
+			if (nw.password === undefined && (nw.server !== old.server || nw.username !== old.username)) {
+				const pwdField = document.getElementById('mqttPwd');
+				maxLengthNote(pwdField, i18next.t('mqtt.pwd.retype'), true);
+				pwdField.focus();
+				return;
+			}
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			const response = await fetch("http://" + host + "/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
 			toaster.info(i18next.t("toast.saved"));
 
 			// If any MQTT setting changed, prompt user to restart to apply changes
 			try {
-				var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
-				var nw = myObj.mqtt;
-				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'password', 'port'];
-				var changed = false;
-				for (var i = 0; i < fields.length; i++) {
+				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'port'];
+				var changed = (nw.password !== undefined);
+				for (var i = 0; i < fields.length && !changed; i++) {
 					var f = fields[i];
-					var ov = old[f];
-					var nv = nw[f];
-					if (String(ov) !== String(nv)) { changed = true; break; }
+					if (String(old[f]) !== String(nw[f])) { changed = true; }
 				}
 				if (changed) showMqttRestartPrompt();
 			} catch (e) { console.log('mqttSettings compare error', e); }
+
+			// what the box has now, so the next save compares against it
+			const passwordSet = (nw.password === undefined) ? old.passwordSet : (nw.password !== '');
+			const stored = { ...nw, passwordSet: passwordSet };
+			delete stored.password;
+			window.settings = { ...window.settings, mqtt: { ...old, ...stored } };
+			showStoredSecret('mqttPwd', passwordSet, 'mqtt.pwd.placeholder');
 		}
 
 		async function btSettings(clickedId) {
@@ -5555,7 +5633,7 @@
 			let hostname = document.getElementById("hostname").value;
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
 			let apSSID = document.getElementById("apSSID").value;
-			let apPassword = document.getElementById("apPassword").value;
+			let apPassword = secretToSend("apPassword");
 			let apTimeout = parseInt(document.getElementById("apTimeout").value, 10);
 			var myObj = {
 				hostname: hostname,
@@ -5566,13 +5644,19 @@
 			};
 			// set title to hostname
 			setTitle(hostname);
-			await fetch("http://" + host + "/wificonfig", {
+			const response = await fetch("http://" + host + "/wificonfig", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
 				},
 				body: JSON.stringify(myObj)
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
+			const apPasswordSet = (apPassword === undefined) || (apPassword !== '');
+			showStoredSecret("apPassword", apPasswordSet, "wifi.apPassword.placeholder");
 			toaster.info(i18next.t("toast.saved"));
 		}
 
