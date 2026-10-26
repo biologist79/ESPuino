@@ -519,6 +519,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 				transferError = true;
 				break;
 			}
+			esp_task_wdt_reset(); // a stalled hub is handled by the timeout above, not by the watchdog
 			delay(1);
 			continue;
 		}
@@ -532,6 +533,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 				restartRequested = true;
 				break;
 			}
+			esp_task_wdt_reset();
 			vTaskDelay(pdMS_TO_TICKS(1));
 		}
 		if (transferError || restartRequested) {
@@ -854,7 +856,7 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	// so the web UI stops claiming a playlist that is being replaced
 	// underneath it.
 	//
-	// AudioPlayer_SetTrackControl() only parks the command; AudioPlayer_Loop()
+	// AudioPlayer_SetTrackControlNow() only parks the command; AudioPlayer_Loop()
 	// acts on it, and that runs in THIS task - main.cpp calls
 	// AudioPlayer_Cyclic() a few lines above the RFID handler that lands here.
 	// So it cannot run again until the download below returns, and the stop
@@ -868,7 +870,7 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint3
 	// is answered with System_IndicateError(), and a red blink for a card that
 	// synced perfectly well would be a bug of its own.
 	if (!gPlayProperties.playlistFinished) {
-		AudioPlayer_SetTrackControl(STOP);
+		AudioPlayer_SetTrackControlNow(STOP);
 		AudioPlayer_Loop();
 	}
 

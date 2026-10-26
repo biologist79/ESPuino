@@ -271,4 +271,7 @@ const char mediaHubCardAdopted[] = "MediaHub : carte inconnue %s trouvée sur %s
 const char mediaHubAdoptWriteFailed[] = "MediaHub : impossible d'écrire l'assignation de la carte dans la NVS.";
 const char mediaHubHubUnreachable[] = "MediaHub %s inaccessible.";
 const char mediaHubReportedPending[] = "MediaHub %s : la carte %s n'y est pas encore assignée, mais a été notée en attente d'assignation.";
+const char trackCommandQueueFull[] = "Commande de piste %u ignorée : file d'attente pleine.";
+const char watchdogReconfigureFailed[] = "Watchdog : reconfiguration échouée, loop() reste sans surveillance.";
+const char watchdogLoopEnabled[] = "Watchdog : loop() est surveillée, délai %u s.";
 #endif

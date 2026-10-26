@@ -273,4 +273,7 @@ const char mediaHubCardAdopted[] = "MediaHub: unknown card %s found on %s and as
 const char mediaHubAdoptWriteFailed[] = "MediaHub: could not write the card assignment to NVS.";
 const char mediaHubHubUnreachable[] = "MediaHub %s not reachable.";
 const char mediaHubReportedPending[] = "MediaHub %s: card %s is not assigned there yet, but has been noted for assignment.";
+const char trackCommandQueueFull[] = "Track command %u dropped: queue full.";
+const char watchdogReconfigureFailed[] = "Watchdog: reconfiguration failed, loop() stays unwatched.";
+const char watchdogLoopEnabled[] = "Watchdog: loop() is watched, timeout %u s.";
 #endif
