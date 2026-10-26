@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 24.10.2026: Web: CORS headers are only sent when built with `-DENABLE_CORS_FOR_DEBUG`, so other web pages in the network can no longer use the REST API from the browser.
+
 * 24.10.2026: Web: fix crashes, leaks and hangs in some request handlers (missing query parameters, unterminated WebSocket messages, large or unreadable folders, unchecked allocations).
 
 * 24.10.2026: Passwords are no longer handed out. The log no longer prints the MQTT and FTP passwords, and `/settings`, `/wificonfig` and the settings sent over the websocket only say whether an MQTT, FTP or access-point password is stored (`passwordSet`, `apPasswordSet`). In the web interface these fields stay empty, and leaving one empty keeps the stored password; a switch removes the MQTT or access-point password. A stored MQTT password only stays with the server and user it was entered for: anyone on the network could otherwise point the box at a broker of their own and read the password at the next connect. `/wificonfig` now keeps every field a request leaves out, which also lets the access-point setup page save the hostname - it used to be rejected there. Reported in [#466](https://github.com/biologist79/ESPuino/issues/466).
