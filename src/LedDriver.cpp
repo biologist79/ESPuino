@@ -190,10 +190,16 @@ bool LedDriver::beginSpi(uint8_t pin) {
 		mSpiBuffer = nullptr;
 		return false;
 	}
+	// the LEDs are the only device on this host: keep the bus instead of locking it for every transfer
+	spi_device_acquire_bus(mSpiDevice, portMAX_DELAY);
 	return true;
 }
 
 bool LedDriver::beginRmt(uint8_t pin) {
+	mRmtBuffer = static_cast<uint8_t *>(heap_caps_calloc(size_t(mNumLeds) * 3, 1, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+	if (mRmtBuffer == nullptr) {
+		return false;
+	}
 	rmt_tx_channel_config_t channelConfig = {};
 	channelConfig.gpio_num = static_cast<gpio_num_t>(pin);
 	channelConfig.clk_src = RMT_CLK_SRC_DEFAULT;
@@ -210,6 +216,8 @@ bool LedDriver::beginRmt(uint8_t pin) {
 		channelConfig.mem_block_symbols = SOC_RMT_MEM_WORDS_PER_CHANNEL;
 		channelConfig.flags.with_dma = false;
 		if (rmt_new_tx_channel(&channelConfig, &mRmtChannel) != ESP_OK) {
+			heap_caps_free(mRmtBuffer);
+			mRmtBuffer = nullptr;
 			return false;
 		}
 	}
@@ -231,6 +239,8 @@ bool LedDriver::beginRmt(uint8_t pin) {
 		}
 		rmt_del_channel(mRmtChannel);
 		mRmtChannel = nullptr;
+		heap_caps_free(mRmtBuffer);
+		mRmtBuffer = nullptr;
 		return false;
 	}
 	return true;
@@ -272,17 +282,7 @@ void LedDriver::transmit(bool force) {
 	if (mBackend == Backend::None) {
 		return;
 	}
-	if (mMinIntervalUs) {
-		const uint32_t elapsedUs = micros() - mLastShowUs;
-		if (elapsedUs < mMinIntervalUs) {
-			vTaskDelay(pdMS_TO_TICKS((mMinIntervalUs - elapsedUs + 999) / 1000));
-		}
-	}
-	mLastShowUs = micros();
-
-	// the buffers are read by the hardware until the running transfer has finished
-	waitDone();
-
+	// mFrame is never read by the hardware, so an unchanged frame returns here without any waiting
 	bool changed = force;
 	uint8_t *out = mFrame;
 	for (uint16_t led = 0; led < mNumLeds; led++) {
@@ -296,6 +296,16 @@ void LedDriver::transmit(bool force) {
 	if (!changed && ((millis() - mLastSentMs) < refreshIntervalMs)) {
 		return;
 	}
+
+	if (mMinIntervalUs) {
+		const uint32_t elapsedUs = micros() - mLastShowUs;
+		if (elapsedUs < mMinIntervalUs) {
+			vTaskDelay(pdMS_TO_TICKS((mMinIntervalUs - elapsedUs + 999) / 1000));
+		}
+	}
+	// the send buffers are read by the hardware until the running transfer has finished
+	waitDone();
+	mLastShowUs = micros();
 	mLastSentMs = millis();
 
 	const size_t frameLen = size_t(mNumLeds) * 3;
@@ -312,8 +322,9 @@ void LedDriver::transmit(bool force) {
 		mSpiTransaction.tx_buffer = mSpiBuffer;
 		mTransferPending = (spi_device_queue_trans(mSpiDevice, &mSpiTransaction, transferTimeout) == ESP_OK);
 	} else {
+		memcpy(mRmtBuffer, mFrame, frameLen);
 		rmt_transmit_config_t transmitConfig = {};
-		mTransferPending = (rmt_transmit(mRmtChannel, mRmtEncoder, mFrame, frameLen, &transmitConfig) == ESP_OK);
+		mTransferPending = (rmt_transmit(mRmtChannel, mRmtEncoder, mRmtBuffer, frameLen, &transmitConfig) == ESP_OK);
 	}
 }
 

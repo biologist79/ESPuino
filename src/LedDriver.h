@@ -146,7 +146,8 @@ private:
 	uint32_t mLastShowUs = 0;
 	uint32_t mLastSentMs = 0;
 	bool mTransferPending = false;
-	uint8_t *mFrame = nullptr; // scaled and ordered bytes of the last frame (also the RMT source)
+	uint8_t *mFrame = nullptr; // scaled and ordered bytes of the last frame (only read by the CPU)
+	uint8_t *mRmtBuffer = nullptr; // copy of mFrame being sent via RMT
 	uint8_t *mSpiBuffer = nullptr; // frame encoded as SPI bit stream (DMA capable)
 	size_t mSpiBufferLen = 0;
 	spi_device_handle_t mSpiDevice = nullptr;
