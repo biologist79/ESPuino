@@ -522,7 +522,9 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_CurrentVolume = std::max(AudioPlayer_GetInitVolume(), AudioPlayer_GetMinVolume());
 	// DMA-settings must be adjusted before setting the pinout
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE || System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
+		// 8 x 192 frames x 2ch x 32 bit = 12 KB DMA (default 16 x 256 = 32 KB), keeps internal heap for BT
+		audio->settings.DMA_DESC_NUM = 8;
+		audio->settings.DMA_FRAME_NUM = 192;
 	} else {
 		// just use default-values
 	}
