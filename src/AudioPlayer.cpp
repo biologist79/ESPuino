@@ -216,7 +216,7 @@ void AudioPlayer_NotifyUploadStart(void) {
 		return; // already suspended – ignore nested calls
 	}
 	AudioPlayer_UploadActive = true;
-	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY) {
 		AudioPlayer_WasPausedBeforeUpload = false;
 		audio->pauseResume();
 	} else {
@@ -583,7 +583,7 @@ void AudioPlayer_Cyclic(void) {
 	}
 
 	AudioPlayer_HeadphoneVolumeManager();
-	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !gPlayProperties.pausePlay) {
+	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY && !gPlayProperties.pausePlay) {
 		// audio is playing, update the playtime since start
 		lastPlayingTimestamp = millis();
 		playTimeSecSinceStart += 1;
@@ -980,7 +980,7 @@ void AudioPlayer_Loop() {
 		}
 
 		if (gPlayProperties.playlistFinished && trackCommand != NO_ACTION) {
-			if (gPlayProperties.playMode != BUSY) { // Prevents from staying in mode BUSY forever when error occured (e.g. directory empty that should be played)
+			if (gPlayProperties.playMode != PLAYLIST_BUSY) { // Prevents from staying in mode PLAYLIST_BUSY forever when error occured (e.g. directory empty that should be played)
 				Log_Println(noPlaymodeChangeIfIdle, LOGLEVEL_NOTICE);
 				trackCommand = NO_ACTION;
 				System_IndicateError();
@@ -1452,7 +1452,7 @@ void AudioPlayer_Loop() {
 	}
 
 	// If error occured: move to the next track in the playlist
-	const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY);
+	const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY);
 	const bool noAudio = (!audio->isRunning() && !gPlayProperties.pausePlay);
 	const bool timeout = ((millis() - playbackTimeoutStart) > playbackTimeout);
 	if (activeMode) {
@@ -1537,7 +1537,7 @@ void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPas
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
 	if (gPlayProperties.pauseOnMinVolume) {
-		if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
+		if (gPlayProperties.playMode == PLAYLIST_BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
 			return;
 		}
 
@@ -1602,7 +1602,7 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 		return;
 	}
 
-	gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
+	gPlayProperties.playMode = PLAYLIST_BUSY; // Show @Neopixel, if uC is busy with creating playlist
 	Playlist *list = musicFiles.value();
 	if (!list->size()) {
 		Log_Println(noMp3FilesInDir, LOGLEVEL_NOTICE);
