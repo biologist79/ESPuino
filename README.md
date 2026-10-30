@@ -122,11 +122,13 @@ While headphone's plugged in, speaker is automatically disabled.
 ## Getting started (for developers)
 
 - In case you want (or need) to compile your own firmware, first you need to install Microsoft's [Visual Studio Code](https://code.visualstudio.com/).
-- Install [PlatformIO Plugin](https://platformio.org/install/ide?install=vscode) into [Visual Studio
-  Code](https://code.visualstudio.com/) and make sure to have a look at the
-  [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html).
-  Step-by-step-manual is available
-  [here](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/.)
+- Install the [pioarduino IDE](https://marketplace.visualstudio.com/items?itemName=pioarduino.pioarduino-ide)
+  extension into [Visual Studio Code](https://code.visualstudio.com/). ESPuino is built with the
+  [pioarduino platform](https://github.com/pioarduino/platform-espressif32) (Arduino 3 / ESP-IDF 5),
+  which needs PlatformIO Core 6.2.0 or newer; the extension installs it automatically. Don't run it
+  side by side with the original PlatformIO IDE extension: both manage the same PlatformIO Core and
+  keep overwriting each other's installation. Apart from that, PlatformIO's
+  [documentation](https://docs.platformio.org/en/latest/integration/ide/pioide.html) applies.
 - Install [Git](https://git-scm.com/downloads) and make a copy ("clone") of my repository to your local
   computer using `git clone https://github.com/biologist79/ESPuino.git`. Using Git you can keep your
   local repository easily up to date without doing copy'n'paste. To keep it up to date run `git pull
@@ -166,9 +168,9 @@ While headphone's plugged in, speaker is automatically disabled.
   `src/settings.h`, you can use the hostname configured extended by .local instead the IP. So if you
   configured `espuino` as hostname, you can use `http://espuino.local` for web interface and FTP.
 - Via FTP and web interface you can upload data (expect a throughput of roughly 650 kB/s via the web interface).
-- FTP needs to be activated after boot if you need it! Don't forget to assign action
-  `ENABLE_FTP_SERVER` in `settings.h` to be able to activate it. Neopixel flashes green (1x) if
-  enabling was successful. It'll be disabled automatically after next reboot. Means: you have to
+- FTP needs to be activated after boot if you need it! By default this is done by pressing **Next**
+  and **Pause/Play** together (action `CMD_ENABLE_FTP_SERVER`; button assignments can be changed
+  via web interface). Neopixel flashes green (1x) if enabling was successful. It'll be disabled automatically after next reboot. Means: you have to
   enable it every time you need it (if reboot was in between). Sounds annoying and maybe it is,
   but's running this way in order to have more heap-memory available (for webstream) if FTP isn't
   needed.
@@ -233,7 +235,7 @@ to (re-)enable/disable WiFi:
 
 ESPuino can be used as Bluetooth sink (A2DP sink). In this mode you can stream audio (e.g. from a
 mobile device) via Bluetooth to your ESPuino. This mode can be enabled/disabled via a RFID
-modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_MODE` to a button (or multi-button).
+modification card or by assigning action `CMD_TOGGLE_BLUETOOTH_SINK_MODE` to a button (or multi-button).
 Applying this will restart ESPuino immediately. Activated Bluetooth is indicated by four
 slow rotating _blue-violet_ LEDs. After the Bluetooth device is paired the LEDs turn to blue.
 
@@ -274,7 +276,7 @@ your router (or the configured hostname). Using this interface you can:
 - control player
 - run modifications (like modification card)
 - upload audiofiles (called web transfer)
-- do OTA updates (ESP32-WROVER with 16 MB of flash memory only)
+- do OTA updates (ESP32 with at least 8 MB of flash memory only)
 - import + delete NVS-RFID-assigments
 - restart + shutdown ESPuino
 
@@ -317,8 +319,8 @@ It's not just simply playing music; different playback modes are supported:
 | `Audiobook with subdirectories (recursive)` | Same as audiobook, but with subdirectories |
 | `Folder/playlist (sorted)` | Plays all tracks in order from a folder one time |
 | `Folder/playlist (random order)` | Plays all tracks in random order from a folder one time |
-| `Folder/playlist (sorted)` | Plays all tracks in order from a folder forever|
-| `Folder/playlist (random order)` | Plays all tracks in random order from a folder forever |
+| `Folder/playlist (sorted, loop)` | Plays all tracks in order from a folder forever|
+| `Folder/playlist (random order, loop)` | Plays all tracks in random order from a folder forever |
 | `All tracks of a random subdirectory (sorted)` | Plays of tracks in order of a randomly picked subdirectory of a given directory |
 | `All tracks of a random subdirectory (random order)` | Plays all tracks in random order of a randomly picked subdirectory of a given directory |
 | `All tracks of a directory + subdirectories (random, recursive)` | Same as All tracks of a random subdirectory (random order) but with subdirectories |
@@ -337,7 +339,7 @@ modification:
 | Type      | Action     |
 | ------------- | ------------- |
 | Lock/unlock all buttons | Locks / unlocks all buttons (might be useful for toddlers|
-| Sleep after 5/30/60/120 minutes | ESPuino falls asleep automatically after the given period |
+| Sleep after 15/30/60/120 minutes | ESPuino falls asleep automatically after the given period |
 | Sleep after end of current track | ESPuino falls asleep after the current track |
 | Sleep after end of playlist | ESPuino falls asleep after the current playlist |
 | Sleep after five tracks | ESPuino falls asleep after five tracks |
@@ -345,8 +347,8 @@ modification:
 | Loop track | Loops / unloops current track |
 | Loop playlist | Loops / unloops current playlist |
 | Toggle WiFi (enable/disable) | Enables / disables WiFi. Please note: disabling WiFi while webstream is active will stop a running webstream instantly! |
-| Toggle Bluetooth sink (enable/disable) | Restarts ESPuino immediately. In this mode you can stream to your ESPuino via BT whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino. |
-| Toggle Bluetooth source (enable/disable) | Restarts ESPuino immediately. In this mode your ESPuino can stream via BT to an external device whereas websteam / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino.|
+| Toggle Bluetooth sink (enable/disable) | Restarts ESPuino immediately. In this mode you can stream to your ESPuino via BT whereas webstream / SD is not available. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino. |
+| Toggle Bluetooth source (enable/disable) | Restarts ESPuino immediately. In this mode your ESPuino streams its playback (SD or webstream) via BT to an external device like a headset or speaker. Hint: if you lost this modification card you can 'escape' this mode with an RFID tag that's unknown to ESPuino.|
 | Toggle through the different modes | Normal => BT-Sink => BT-Source => Normal |
 | Speech output of IP-address or current time | Speech output of IP address or current time |
 | Toggle Ambient Light | Enables / disables ambient light |
@@ -359,7 +361,9 @@ modification:
 
 ### Neopixel LEDs (optional)
 
-Indicates various things. Don't forget configuration of number of LEDs via via webinterface.
+Indicates various things. Don't forget configuration of number of LEDs via webinterface.
+Supported are WS2812-compatible LEDs (`WS2812`, `WS2812B`, `WS2813`, `WS2815`, `SK6812`), set via
+`CHIPSET` and `COLOR_ORDER` in `settings.h`.
 Most ESPuino designs make use of Neopixel rings, but a linear strip is also possible. Even a single
 LED can be used.
 
@@ -407,11 +411,12 @@ LED can be used.
 
 ### Buttons
 
-> :warning: This section describes my default-design: 3 buttons + rotary-encoder. Feel free to
-  change number of buttons (up to 5) and button-actions according your needs in `settings.h` and
-  your develboard-specific config-file (e.g. `settings-complete.h`). At maximum you can activate five
-  buttons + rotary-encoder. Minimum duration for long press (to distinguish vom short press) in ms
-  is defined by `intervalToLongPress`. All actions available are listed in `src/values.h`. If using
+> :warning: This section describes my default-design: 3 buttons + rotary-encoder. At maximum you
+  can activate five buttons + rotary-encoder; their GPIOs are set in your develboard-specific
+  config-file (e.g. `settings-complete.h`). Button actions (short, long, multi-button and rotary
+  actions) can be changed via web interface; the values in `settings.h` are just the defaults.
+  Minimum duration for long press (to distinguish from short press) in ms is defined by
+  `intervalToLongPress`. All actions available are listed in `src/values.h`. If using
   GPIO \>= 34 make sure to add a external pullup-resistor (10 k).
 
 - **Previous** (short): previous track / beginning of the first track if pressed while first track
@@ -425,8 +430,10 @@ LED can be used.
 - **Rotary Encoder** (button short): switch on (when switched off)
 - **Rotary Encoder** (button short): show battery-voltage via Neopixel (when switched on and
   `MEASURE_BATTERY_VOLTAGE` is active)
-- **Previous** (long; keep pressed) + **Next** (short) + release (both): toggle WiFi
-  enabled/disabled
+- **Next** + **Pause/Play** (pressed together): enable FTP server
+- **Previous** + **Pause/Play** (pressed together): announce IP address via speech
+- **Next** + **Previous** (pressed together): toggle WiFi enabled/disabled (`CMD_TOGGLE_WIFI_STATUS`;
+  not assigned by default to keep children from disabling WiFi by accident)
 - **Any button** (held) + **Rotary Encoder** (turning): runs that button's own configured rotary
   action (e.g. seek within the track, adjust Neopixel brightness) instead of changing the volume -
   freely assignable per button and turning direction via the web interface, off (`--`) by default
@@ -473,7 +480,7 @@ This mode is different from the others because the last playback position is sav
 
 As already described in the modifications section, there are different sleep modes available.
 Additionally the ESP32 controller will be put to deep sleep after 10 minutes of inactivity
-(configurable via `maxInactivityTime`) unless ESPuino doesn't play music, has a FTP client connected
+(configurable via web interface) unless ESPuino doesn't play music, has a FTP client connected
 and any input via buttons. Every button interaction resets the counter.
 
 ### Backups
@@ -542,7 +549,7 @@ described as follows.
 | topicCurrentIPv4IP      | IPv4-string     | Sends ESPuino's IP-address (e.g. `192.168.2.78`)                                                                                                       |
 | topicPausePlay          | idle, play, pause | Sends playback state: `idle` (no playback), `play` (playing), `pause` (paused)                                                                         |
 | topicLockControls       | Cmnd/State: ON or OFF | Set/report whether physical controls are locked                                                                                                        |
-| topicPlaymode           | 0 - 10          | State: current playback mode (single track, audiobook...; see [playback modes](#playback-modes))                                                        |
+| topicPlaymode           | 0 - 18          | State: current playback mode (single track, audiobook...; see [playback modes](#playback-modes) and `src/values.h`)                                     |
 | topicRepeatMode         | Cmnd/State: 0 - 3 | Set/report repeat mode (`0`=no; `1`=track; `2`=playlist; `3`=both)                                                                                    |
 | topicLedBrightness      | Cmnd/State: 0 - 255 | Set/report Neopixel brightness                                                                                                                         |
 | topicBatteryVoltage     | float           | Voltage (e.g. 3.81)                                                                                                                                    |
