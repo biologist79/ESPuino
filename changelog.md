@@ -2,6 +2,10 @@
 
 ## DEV-branch
 
+* 30.10.2026: LEDs: FastLED is replaced by a small built-in driver for WS2812-type LEDs. Colors, brightness and animations stay the same, but the LED task needs about a fifth of the CPU time it used to: an unchanged picture is no longer sent to the LEDs again (only once a second as a refresh), and sending no longer makes the task wait. As before, the LEDs are driven via SPI with SD-MMC and via RMT with an SD card in SPI mode. Supported chipsets are `WS2812`, `WS2812B`, `WS2813`, `WS2815`, `SK6812` and `NEOPIXEL`; a `settings-override.h` with any other `CHIPSET` no longer builds. [#474](https://github.com/biologist79/ESPuino/pull/474)
+
+* 30.10.2026: Library update: pioarduino platform 55.03.312-1 (Arduino 3.3.12), ESP32-audioI2S 4.0.1 (upstream again instead of the 16-bit fork), ESP32Encoder 5.0.0, ESPAsyncWebServer 3.12.1, arduino-audio-tools 1.2.6. The new platform needs PlatformIO Core 6.2.0 or newer - update it if the build fails. With the new audio library, mono playback no longer corrupts memory, which made the box crash when shutting down ([forum #4902](https://forum.espuino.de/t/ausschalten-klappt-nur-ohne-rfid-tag/4902)). In Bluetooth mode the audio DMA buffer is smaller (12 instead of 32 KB) to leave more internal RAM for Bluetooth. [#473](https://github.com/biologist79/ESPuino/pull/473)
+
 * 24.10.2026: Web: CORS headers are only sent when built with `-DENABLE_CORS_FOR_DEBUG`, so other web pages in the network can no longer use the REST API from the browser.
 
 * 24.10.2026: Web: fix crashes, leaks and hangs in some request handlers (missing query parameters, unterminated WebSocket messages, large or unreadable folders, unchecked allocations).
