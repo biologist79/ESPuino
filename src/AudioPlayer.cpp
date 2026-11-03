@@ -48,6 +48,7 @@ void AudioPlayer_AddSeekOffset(const int16_t seconds) {
 // never be touched before the commit -- it also drives the LED progress ring, and writing the preview
 // target into it early would make played-back position look like it already jumped.
 static std::atomic<bool> AudioPlayer_SeekPreviewActive {false};
+static std::atomic<bool> AudioPlayer_SeekPreviewMoved {false};
 static std::atomic<uint8_t> AudioPlayer_SeekPreviewTargetPercent {0};
 static double AudioPlayer_SeekPreviewTargetExact = 0.0; // full precision; only ever touched by the loop() task
 static uint32_t AudioPlayer_SeekPreviewLastInputMs = 0; // only ever touched by the loop() task
@@ -69,29 +70,35 @@ void AudioPlayer_SeekPreviewStart(void) {
 	AudioPlayer_SeekPreviewTargetExact = gPlayProperties.currentRelPos; // start from where playback is, not 0
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
+	AudioPlayer_SeekPreviewMoved.store(false, std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewActive.store(true, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewAdjust(const int32_t detents) {
-	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed) || detents == 0) {
 		return;
 	}
 	AudioPlayer_SeekPreviewTargetExact = std::clamp(AudioPlayer_SeekPreviewTargetExact + (detents * 100.0 / AudioPlayer_SeekPreviewSweepCached), 0.0, 100.0);
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
+	AudioPlayer_SeekPreviewMoved.store(true, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewCommit(void) {
-	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (!AudioPlayer_SeekPreviewActive.exchange(false, std::memory_order_relaxed)) {
+		return;
+	}
+	// Pressing and releasing a modifier without turning the encoder must not seek.
+	if (!AudioPlayer_SeekPreviewMoved.exchange(false, std::memory_order_relaxed)) {
 		return;
 	}
 	gPlayProperties.currentRelPos = AudioPlayer_SeekPreviewTargetPercent.load(std::memory_order_relaxed);
 	gPlayProperties.seekmode = SEEK_POS_PERCENT;
-	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewCancel(void) {
 	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
+	AudioPlayer_SeekPreviewMoved.store(false, std::memory_order_relaxed);
 }
 
 bool AudioPlayer_IsSeekPreviewActive(void) {
@@ -1354,7 +1361,7 @@ void AudioPlayer_Loop() {
 	// Seek-preview (CMD_SEEK_PREVIEW rotary gesture): commit once the encoder has been idle for the
 	// configured delay. A release-triggered commit happens directly from RotaryEncoder.cpp instead of
 	// waiting for this -- this is only the "held but stopped turning" case.
-	if (AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed) && AudioPlayer_SeekPreviewMoved.load(std::memory_order_relaxed)) {
 		if (millis() - AudioPlayer_SeekPreviewLastInputMs >= AudioPlayer_SeekPreviewDelayMsCached) {
 			AudioPlayer_SeekPreviewCommit();
 		}
