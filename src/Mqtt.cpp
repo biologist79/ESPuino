@@ -60,6 +60,7 @@ static bool Mqtt_Enabled = false;
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const char *payload_buf, uint32_t payload_length);
+const char *Mqtt_GetStateTopic(const char *topic);
 #endif
 
 void Mqtt_Init() {
@@ -177,6 +178,17 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.username = gMqttUser.c_str();
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
+		// Last will: if the connection drops without a clean shutdown (power cut, crash, out of WiFi range),
+		// the broker publishes "Offline" on topicState itself, once the keepalive has run out. Own buffer, as
+		// Mqtt_GetStateTopic() returns a static one that the next call overwrites.
+		static char lastWillTopic[MQTT_TOPIC_MAX_LENGTH];
+		strncpy(lastWillTopic, Mqtt_GetStateTopic(topicState), sizeof(lastWillTopic) - 1);
+		lastWillTopic[sizeof(lastWillTopic) - 1] = '\0';
+		mqtt_cfg.session.last_will.topic = lastWillTopic;
+		mqtt_cfg.session.last_will.msg = "Offline";
+		mqtt_cfg.session.last_will.qos = 0;
+		mqtt_cfg.session.last_will.retain = 0; // non-retained, like every other ESPuino topic
+		mqtt_cfg.session.keepalive = 60; // seconds; the broker notices a dead connection after ~1.5x this
 		mqtt_cfg.task.priority = 1; // default is 5, keep it below the audio
 		mqtt_cfg.buffer.size = 2048; //
 		mqtt_cfg.buffer.out_size = 2048; //
@@ -243,6 +255,7 @@ void Mqtt_Exit(void) {
 	}
 	Log_Println("shutdown MQTT..", LOGLEVEL_NOTICE);
 	publishMqtt(topicState, "Offline", false);
+	publishMqtt(topicSleep, "OFF", false);
 	publishMqtt(topicTrack, "---", false);
 	// Publish a clean OFF before going down (deep sleep / restart / power off) so a live consumer does
 	// not sit on the last "MINUTES, 1" value. Explicit literal, not Mqtt_PublishSleepTimerState(): the
@@ -465,6 +478,7 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 
 			// Publish current state
 			publishMqtt(topicState, "Online", false);
+			publishMqtt(topicSleep, "ON", false);
 			publishMqtt(topicTrack, gPlayProperties.title, false);
 			publishMqtt(topicCoverChanged, "", false);
 			publishMqtt(topicLoudness, static_cast<uint32_t>(AudioPlayer_GetCurrentVolume()), false);
@@ -487,7 +501,8 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 					break;
 			}
 			Mqtt_PublishSleepTimerState(true);
-			publishMqtt(topicLockControls, static_cast<uint32_t>(System_AreControlsLocked()), false);
+			publishMqtt(topicLockControls, System_AreControlsLocked() ? "ON" : "OFF", false);
+			publishMqtt(topicAmbientLight, Led_GetAmbientLight() ? "ON" : "OFF", false);
 			publishMqtt(topicPlaymode, static_cast<uint32_t>(gPlayProperties.playMode), false);
 			if (gPlayProperties.playMode == NO_PLAYLIST) { // idle
 				publishMqtt(topicPausePlay, "idle", false);

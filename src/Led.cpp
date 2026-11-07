@@ -324,6 +324,9 @@ void Led_SetAmbientLight(bool enabled) {
 		Led_SetBrightness(Led_savedBrightnessAmbient);
 		gPrefsSettings.putBool("atmoActive", false);
 	}
+	#ifdef MQTT_ENABLE
+	publishMqtt(topicAmbientLight, enabled ? "ON" : "OFF", false);
+	#endif
 #endif
 }
 

@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 07.11.2026: MQTT: `ambient_light` and `sleep` now report their state (`ON`/`OFF`) as announced, `lock_controls` reports `ON`/`OFF` right after connecting instead of `1`/`0`, and ESPuino registers a last will: if it drops off without a clean shutdown (power cut, crash, out of WiFi range), the broker itself publishes `Offline` on `state` after about 90 seconds (keepalive is now 60 s).
+
 * 07.11.2026: Seek preview: pressing and releasing a button that has the seek preview assigned to it no longer seeks when the rotary encoder wasn't turned. A short press on Next with the seek preview on the same button used to jump to the new track and then try to seek it to the old position, which failed and made the LEDs flash red. Holding such a button without turning no longer seeks after the idle delay either. [#476](https://github.com/biologist79/ESPuino/pull/476)
 
 * 01.11.2026: Player: track commands and playback from the file browser are handed to the main loop via queues, and the player flags are no longer bitfields shared between tasks, so quick presses and flags no longer get lost. This also fixes two overflows: "sleep after five tracks" no longer switches itself off from track 59 on, and playlists with more than 511 tracks no longer wrap around to track 0. Pressing "play" in the file browser no longer builds the playlist in the webserver task, which could corrupt memory together with a card applied at the same time and tripped the webserver's watchdog for big folders. [#472](https://github.com/biologist79/ESPuino/pull/472)
