@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+## Version 3.2 (07.11.2026)
+
 * 07.11.2026: MQTT: `ambient_light` and `sleep` now report their state (`ON`/`OFF`) as announced, `lock_controls` reports `ON`/`OFF` right after connecting instead of `1`/`0`, and ESPuino registers a last will: if it drops off without a clean shutdown (power cut, crash, out of WiFi range), the broker itself publishes `Offline` on `state` after about 90 seconds (keepalive is now 60 s).
 
 * 07.11.2026: Seek preview: pressing and releasing a button that has the seek preview assigned to it no longer seeks when the rotary encoder wasn't turned. A short press on Next with the seek preview on the same button used to jump to the new track and then try to seek it to the old position, which failed and made the LEDs flash red. Holding such a button without turning no longer seeks after the idle delay either. [#476](https://github.com/biologist79/ESPuino/pull/476)
