@@ -48,6 +48,7 @@ void AudioPlayer_AddSeekOffset(const int16_t seconds) {
 // never be touched before the commit -- it also drives the LED progress ring, and writing the preview
 // target into it early would make played-back position look like it already jumped.
 static std::atomic<bool> AudioPlayer_SeekPreviewActive {false};
+static std::atomic<bool> AudioPlayer_SeekPreviewMoved {false};
 static std::atomic<uint8_t> AudioPlayer_SeekPreviewTargetPercent {0};
 static double AudioPlayer_SeekPreviewTargetExact = 0.0; // full precision; only ever touched by the loop() task
 static uint32_t AudioPlayer_SeekPreviewLastInputMs = 0; // only ever touched by the loop() task
@@ -69,29 +70,35 @@ void AudioPlayer_SeekPreviewStart(void) {
 	AudioPlayer_SeekPreviewTargetExact = gPlayProperties.currentRelPos; // start from where playback is, not 0
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
+	AudioPlayer_SeekPreviewMoved.store(false, std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewActive.store(true, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewAdjust(const int32_t detents) {
-	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed) || detents == 0) {
 		return;
 	}
 	AudioPlayer_SeekPreviewTargetExact = std::clamp(AudioPlayer_SeekPreviewTargetExact + (detents * 100.0 / AudioPlayer_SeekPreviewSweepCached), 0.0, 100.0);
 	AudioPlayer_SeekPreviewTargetPercent.store(static_cast<uint8_t>(std::lround(AudioPlayer_SeekPreviewTargetExact)), std::memory_order_relaxed);
 	AudioPlayer_SeekPreviewLastInputMs = millis();
+	AudioPlayer_SeekPreviewMoved.store(true, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewCommit(void) {
-	if (!AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (!AudioPlayer_SeekPreviewActive.exchange(false, std::memory_order_relaxed)) {
+		return;
+	}
+	// Pressing and releasing a modifier without turning the encoder must not seek.
+	if (!AudioPlayer_SeekPreviewMoved.exchange(false, std::memory_order_relaxed)) {
 		return;
 	}
 	gPlayProperties.currentRelPos = AudioPlayer_SeekPreviewTargetPercent.load(std::memory_order_relaxed);
 	gPlayProperties.seekmode = SEEK_POS_PERCENT;
-	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
 }
 
 void AudioPlayer_SeekPreviewCancel(void) {
 	AudioPlayer_SeekPreviewActive.store(false, std::memory_order_relaxed);
+	AudioPlayer_SeekPreviewMoved.store(false, std::memory_order_relaxed);
 }
 
 bool AudioPlayer_IsSeekPreviewActive(void) {
@@ -161,7 +168,10 @@ constexpr uint32_t playbackTimeout = 2000;
 uint32_t playbackTimeoutStart = millis();
 uint8_t currentVolume;
 BaseType_t trackQStatus = pdFAIL;
-uint8_t trackCommand = NO_ACTION;
+uint8_t trackCommand = NO_ACTION; // command being processed; only touched by the loop() task
+// Commands from other tasks (web, MQTT, Bluetooth, RFID task). With a plain shared variable a second
+// command overwrote the first before AudioPlayer_Loop() saw it.
+static QueueHandle_t AudioPlayer_TrackCommandQueue = NULL;
 bool audioReturnCode;
 uint32_t AudioPlayer_LastPlaytimeStatsTimestamp = 0u;
 // Announcement state (see AudioPlayer_PlayAnnouncement). The decoder is briefly pointed at another
@@ -206,7 +216,7 @@ static bool AudioPlayer_ArrSortHelper_strnatcmp(const char *a, const char *b);
 static bool AudioPlayer_ArrSortHelper_strnatcasecmp(const char *a, const char *b);
 static void AudioPlayer_SortPlaylist(Playlist *playlist);
 static void AudioPlayer_RandomizePlaylist(Playlist *playlist);
-static size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed);
+static bool AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed);
 static void AudioPlayer_ClearCover(void);
 static void audio_id3image(File &file, const size_t pos, const size_t size);
 static void audio_oggimage(File &file, std::vector<uint32_t> v);
@@ -216,7 +226,7 @@ void AudioPlayer_NotifyUploadStart(void) {
 		return; // already suspended – ignore nested calls
 	}
 	AudioPlayer_UploadActive = true;
-	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY) {
+	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY) {
 		AudioPlayer_WasPausedBeforeUpload = false;
 		audio->pauseResume();
 	} else {
@@ -363,8 +373,19 @@ void Audio_InfoCallback(Audio::msg_t m) {
 	}
 }
 
+// Volume curve selected in the web UI, cached in RAM. Audio_GetVolume() is the audio library's volume-curve
+// callback and runs on the library's audio task (e.g. on every gain ramp), so it must not touch NVS: an NVS read
+// takes the global NVS mutex, and if that task is deleted mid-read (setAudioTaskCore() deletes and recreates it)
+// the mutex is never released and the next NVS access anywhere -- e.g. Led_LoadSettings() during boot -- blocks
+// forever. Whether a boot hit that window depended on NVS lookup time, i.e. on how full the partition was.
+static std::atomic<uint8_t> AudioPlayer_VolumeCurve {0};
+
+void AudioPlayer_SetVolumeCurve(uint8_t curve) {
+	AudioPlayer_VolumeCurve = curve;
+}
+
 float Audio_GetVolume(float t) {
-	uint8_t curve_type = gPrefsSettings.getUChar("volumeCurve", 0);
+	uint8_t curve_type = AudioPlayer_VolumeCurve;
 
 	// 1. Safety Checks
 	if (curve_type >= VOL_LUT_CURVES) {
@@ -402,9 +423,49 @@ static void AudioPlayer_ApplyTone(int8_t gainLowPass, int8_t gainBandPass, int8_
 	audio->setTone(gainLowPass, gainBandPass, gainHighPass);
 }
 
+// Playlist requests from other tasks (web explorer "play" runs in async_tcp). AudioPlayer_SetPlaylist()
+// is not reentrant (static recursion state in SdCard_ReturnPlaylist(), frees the current playlist, drives
+// AudioPlayer_Loop() itself), so it only ever runs in the loop() task. Length 1 with overwrite: the last
+// click wins.
+struct AudioPlayer_PlaylistRequest {
+	char path[255];
+	uint32_t playMode;
+};
+static QueueHandle_t AudioPlayer_PlaylistRequestQueue = NULL;
+
+bool AudioPlayer_RequestPlaylist(const char *_itemToPlay, const uint32_t _playMode) {
+	if (AudioPlayer_PlaylistRequestQueue == NULL || _itemToPlay == nullptr) {
+		return false;
+	}
+	AudioPlayer_PlaylistRequest request;
+	if (strlen(_itemToPlay) >= sizeof(request.path)) {
+		return false;
+	}
+	strncpy(request.path, _itemToPlay, sizeof(request.path));
+	request.playMode = _playMode;
+	xQueueOverwrite(AudioPlayer_PlaylistRequestQueue, &request);
+	return true;
+}
+
+static void AudioPlayer_HandlePlaylistRequest(void) {
+	AudioPlayer_PlaylistRequest request;
+	if (AudioPlayer_PlaylistRequestQueue != NULL && xQueueReceive(AudioPlayer_PlaylistRequestQueue, &request, 0) == pdPASS) {
+		AudioPlayer_SetPlaylist(request.path, 0, request.playMode, 0);
+	}
+}
+
 void AudioPlayer_Init(void) {
 	// create audio object
 	audio = new AudioCustom();
+
+	AudioPlayer_TrackCommandQueue = xQueueCreate(4, sizeof(uint8_t));
+	if (AudioPlayer_TrackCommandQueue == NULL) {
+		Log_Printf(LOGLEVEL_ERROR, unableToCreateQueue, "Track");
+	}
+	AudioPlayer_PlaylistRequestQueue = xQueueCreate(1, sizeof(AudioPlayer_PlaylistRequest));
+	if (AudioPlayer_PlaylistRequestQueue == NULL) {
+		Log_Printf(LOGLEVEL_ERROR, unableToCreateQueue, "Playlist");
+	}
 
 	// load playtime total from NVS
 	playTimeSecTotal = gPrefsSettings.getULong("playTimeTotal", 0);
@@ -511,11 +572,18 @@ void AudioPlayer_Init(void) {
 	AudioPlayer_CurrentVolume = std::max(AudioPlayer_GetInitVolume(), AudioPlayer_GetMinVolume());
 	// DMA-settings must be adjusted before setting the pinout
 	if (System_GetOperationMode() == OPMODE_BLUETOOTH_SOURCE || System_GetOperationMode() == OPMODE_BLUETOOTH_SINK) {
-		audio->settings.DMA_FRAME_NUM = 192; // not too high, to safe some SRAM
+		// 8 x 192 frames x 2ch x 32 bit = 12 KB DMA (default 16 x 256 = 32 KB), keeps internal heap for BT
+		audio->settings.DMA_DESC_NUM = 8;
+		audio->settings.DMA_FRAME_NUM = 192;
 	} else {
 		// just use default-values
 	}
 
+	// Pick the audio task's core before setPinout(), which is what starts that task: called afterwards,
+	// setAudioTaskCore() has to vTaskDelete() the already-running task and immediately rebuild it in the same
+	// static TCB/stack, and if the delete lands while the task is executing it races the kernel's deferred
+	// cleanup (seen as list corruption / a task dying while holding a mutex).
+	audio->setAudioTaskCore(1);
 	audio->setPinout(I2S_BCLK, I2S_LRC, I2S_DOUT);
 
 	// must be called after setPinout() to take effect
@@ -524,6 +592,7 @@ void AudioPlayer_Init(void) {
 	}
 
 	audio->setVolumeSteps(AUDIOPLAYER_VOLUME_MAX);
+	AudioPlayer_SetVolumeCurve(gPrefsSettings.getUChar("volumeCurve", 0));
 	audio->setVolumeCurve(Audio_GetVolume);
 	audio->setVolume(AudioPlayer_CurrentVolume);
 	audio->forceMono(gPlayProperties.currentPlayMono);
@@ -536,7 +605,6 @@ void AudioPlayer_Init(void) {
 	// (frees CPU on the shared core -- see AudioPlayer_ApplyTone() and forum thread #4675).
 	audio->settings.VU_LEVEL = false;
 
-	audio->setAudioTaskCore(1);
 	audio->audio_info_callback = Audio_InfoCallback;
 }
 
@@ -547,7 +615,7 @@ void AudioPlayer_Exit(void) {
 	gPrefsSettings.putULong("playTimeTotal", playTimeSecTotal);
 	// Make sure last playposition for audiobook is saved when playback is active while shutdown was initiated
 	if (gPrefsSettings.getBool("savePosShutdown", false) && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP || gPlayProperties.playMode == AUDIOBOOK_RECURSIVE)) {
-		AudioPlayer_SetTrackControl(PAUSEPLAY);
+		AudioPlayer_SetTrackControlNow(PAUSEPLAY);
 		// Call the loop explicitely to make sure that PAUSE is set (because this saves the current playpos)
 		AudioPlayer_Loop();
 	}
@@ -565,7 +633,7 @@ void AudioPlayer_Cyclic(void) {
 	}
 
 	AudioPlayer_HeadphoneVolumeManager();
-	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY && !gPlayProperties.pausePlay) {
+	if ((millis() - lastPlayingTimestamp >= 1000) && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY && !gPlayProperties.pausePlay) {
 		// audio is playing, update the playtime since start
 		lastPlayingTimestamp = millis();
 		playTimeSecSinceStart += 1;
@@ -589,6 +657,8 @@ void AudioPlayer_Cyclic(void) {
 			AudioPlayer_lastCheckpointTimestamp = millis();
 		}
 	}
+
+	AudioPlayer_HandlePlaylistRequest();
 
 	// Actual loop stuff
 	AudioPlayer_Loop();
@@ -891,6 +961,10 @@ void AudioPlayer_Loop() {
 		gPlayProperties.trackFinished = true; // handed to the branch below, which restores playback
 	}
 
+	if (trackCommand == NO_ACTION && AudioPlayer_TrackCommandQueue != NULL) {
+		xQueueReceive(AudioPlayer_TrackCommandQueue, &trackCommand, 0);
+	}
+
 	if (newPlayListAvailable || gPlayProperties.trackFinished || trackCommand != NO_ACTION) {
 		if (newPlayListAvailable) {
 			newPlayListAvailable = false;
@@ -962,7 +1036,7 @@ void AudioPlayer_Loop() {
 		}
 
 		if (gPlayProperties.playlistFinished && trackCommand != NO_ACTION) {
-			if (gPlayProperties.playMode != BUSY) { // Prevents from staying in mode BUSY forever when error occured (e.g. directory empty that should be played)
+			if (gPlayProperties.playMode != PLAYLIST_BUSY) { // Prevents from staying in mode PLAYLIST_BUSY forever when error occured (e.g. directory empty that should be played)
 				Log_Println(noPlaymodeChangeIfIdle, LOGLEVEL_NOTICE);
 				trackCommand = NO_ACTION;
 				System_IndicateError();
@@ -1336,7 +1410,7 @@ void AudioPlayer_Loop() {
 	// Seek-preview (CMD_SEEK_PREVIEW rotary gesture): commit once the encoder has been idle for the
 	// configured delay. A release-triggered commit happens directly from RotaryEncoder.cpp instead of
 	// waiting for this -- this is only the "held but stopped turning" case.
-	if (AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed)) {
+	if (AudioPlayer_SeekPreviewActive.load(std::memory_order_relaxed) && AudioPlayer_SeekPreviewMoved.load(std::memory_order_relaxed)) {
 		if (millis() - AudioPlayer_SeekPreviewLastInputMs >= AudioPlayer_SeekPreviewDelayMsCached) {
 			AudioPlayer_SeekPreviewCommit();
 		}
@@ -1434,7 +1508,7 @@ void AudioPlayer_Loop() {
 	}
 
 	// If error occured: move to the next track in the playlist
-	const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != BUSY);
+	const bool activeMode = (gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY);
 	const bool noAudio = (!audio->isRunning() && !gPlayProperties.pausePlay);
 	const bool timeout = ((millis() - playbackTimeoutStart) > playbackTimeout);
 	if (activeMode) {
@@ -1519,7 +1593,7 @@ void AudioPlayer_SetEqualizer(const int8_t gainLowPass, const int8_t gainBandPas
 // Pauses playback if playback is active and volume is changes from minVolume+1 to minVolume (usually 0)
 void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolume) {
 	if (gPlayProperties.pauseOnMinVolume) {
-		if (gPlayProperties.playMode == BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
+		if (gPlayProperties.playMode == PLAYLIST_BUSY || gPlayProperties.playMode == NO_PLAYLIST) {
 			return;
 		}
 
@@ -1541,7 +1615,7 @@ void AudioPlayer_PauseOnMinVolume(const uint8_t oldVolume, const uint8_t newVolu
 void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPos, const uint32_t _playMode, const uint16_t _trackLastPlayed) {
 	// Make sure last playposition for audiobook is saved when new RFID-tag is applied
 	if (gPlayProperties.SavePlayPosRfidChange && !gPlayProperties.pausePlay && (gPlayProperties.playMode == AUDIOBOOK || gPlayProperties.playMode == AUDIOBOOK_LOOP || gPlayProperties.playMode == AUDIOBOOK_RECURSIVE)) {
-		AudioPlayer_SetTrackControl(PAUSEPLAY);
+		AudioPlayer_SetTrackControlNow(PAUSEPLAY);
 		while (!gPlayProperties.pausePlay) { // Make sure to wait until playback is paused in order to be sure that playposition saved in NVS
 			AudioPlayer_Loop();
 			vTaskDelay(portTICK_PERIOD_MS * 100u);
@@ -1579,18 +1653,18 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 		Log_Println(errorOccured, LOGLEVEL_ERROR);
 		System_IndicateError();
 		if (gPlayProperties.playMode != NO_PLAYLIST) {
-			AudioPlayer_SetTrackControl(STOP);
+			AudioPlayer_SetTrackControlNow(STOP);
 		}
 		return;
 	}
 
-	gPlayProperties.playMode = BUSY; // Show @Neopixel, if uC is busy with creating playlist
+	gPlayProperties.playMode = PLAYLIST_BUSY; // Show @Neopixel, if uC is busy with creating playlist
 	Playlist *list = musicFiles.value();
 	if (!list->size()) {
 		Log_Println(noMp3FilesInDir, LOGLEVEL_NOTICE);
 		System_IndicateError();
 		if (!gPlayProperties.pausePlay) {
-			AudioPlayer_SetTrackControl(STOP);
+			AudioPlayer_SetTrackControlNow(STOP);
 			while (!gPlayProperties.pausePlay) {
 				AudioPlayer_Loop();
 				vTaskDelay(portTICK_PERIOD_MS * 10u);
@@ -1739,9 +1813,9 @@ void AudioPlayer_SetPlaylist(const char *_itemToPlay, const uint32_t _lastPlayPo
 	freePlaylist(list);
 }
 
-/* Wraps putString for writing settings into NVS for RFID-cards.
-   Returns number of characters written. */
-size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed) {
+/* Updates the play position of an existing RFID-card assignment, keeping its
+   path. Returns false if the write didn't land. */
+bool AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _playPosition, const uint8_t _playMode, const uint16_t _trackLastPlayed) {
 	if (_playMode == NO_PLAYLIST) {
 		// writing back to NVS with NO_PLAYLIST seems to be a bug - Todo: Find the cause here
 		Log_Printf(LOGLEVEL_ERROR, modeInvalid, _playMode);
@@ -1749,7 +1823,6 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _
 	}
 	Led_SetPause(true); // Workaround to prevent exceptions due to Neopixel-signalisation while NVS-write
 	char firstPart[275] = {0};
-	char prefBuf[275];
 
 	gPrefsRfid.getString(_rfidCardId, firstPart, sizeof(firstPart)); // read back previous value from NVS
 
@@ -1768,13 +1841,13 @@ size_t AudioPlayer_NvsRfidWriteWrapper(const char *_rfidCardId, const uint32_t _
 		playModeToStore = MEDIAHUB;
 	}
 
-	// Build the new string with the preserved first part (which already contains the track)
-	snprintf(prefBuf, sizeof(prefBuf), "%s%s%" PRIu32 "%s%d%s%" PRIu16, firstPart, stringDelimiter, _playPosition, stringDelimiter, playModeToStore, stringDelimiter, _trackLastPlayed);
-
-	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, prefBuf, _rfidCardId, playModeToStore, _trackLastPlayed);
-	Log_Println(prefBuf, LOGLEVEL_INFO);
+	// firstPart is "#<path>" at this point; Rfid_SaveAssignment() adds the
+	// delimiters itself, so hand it the path without the leading one.
+	const char *pathOnly = firstPart + strlen(stringDelimiter);
+	Log_Printf(LOGLEVEL_INFO, wroteLastTrackToNvs, pathOnly, _playPosition, _rfidCardId, playModeToStore, _trackLastPlayed);
+	const bool saved = Rfid_SaveAssignment(_rfidCardId, pathOnly, playModeToStore, _playPosition, _trackLastPlayed);
 	Led_SetPause(false);
-	return gPrefsRfid.putString(_rfidCardId, prefBuf);
+	return saved;
 
 	// Examples for serialized RFID-actions that are stored in NVS
 	// #<file/folder>#<startPlayPositionInBytes>#<playmode>#<trackNumberToStartWith>
@@ -1804,8 +1877,20 @@ std::optional<Playlist *> AudioPlayer_ReturnPlaylistFromWebstream(const char *_w
 	return playlist;
 }
 
-// Adds new control-command to control-queue
+// Adds new control-command to control-queue (any task)
 void AudioPlayer_SetTrackControl(const uint8_t new_trackCommand) {
+	if (AudioPlayer_TrackCommandQueue == NULL) {
+		trackCommand = new_trackCommand; // before AudioPlayer_Init()
+		return;
+	}
+	if (xQueueSend(AudioPlayer_TrackCommandQueue, &new_trackCommand, 0) != pdPASS) {
+		Log_Printf(LOGLEVEL_NOTICE, trackCommandQueueFull, new_trackCommand);
+	}
+}
+
+// For sequences in the loop() task that drive AudioPlayer_Loop() themselves right afterwards and wait for
+// exactly this command (pause before a playlist change, stop on error or before a MediaHub sync).
+void AudioPlayer_SetTrackControlNow(const uint8_t new_trackCommand) {
 	trackCommand = new_trackCommand;
 }
 
@@ -1907,6 +1992,12 @@ void audio_oggimage(File &file, std::vector<uint32_t> v) {
 
 		const size_t chunkSize = 2048; // must be base64 compatible, i.e. a multiple of 4
 		uint8_t *encodedChunk = (uint8_t *) x_malloc(chunkSize);
+		if (!encodedChunk) {
+			// OOM - drop the half-written temp file, playback goes on without a cover
+			coverFile.close();
+			gFSystem.remove(tmpDecodedCover);
+			return;
+		}
 		size_t decodedLength;
 		size_t currentRemainder = 0;
 		size_t currentPosition = file.position(); // save current position in audio file otherwise playback will result in an error

@@ -268,3 +268,8 @@ extern const char mediaHubVerifyFailed[];
 extern const char mediaHubPlayingAfterSync[];
 extern const char mediaHubMarkedStale[];
 extern const char mediaHubResyncing[];
+extern const char mediaHubCardAdopted[];
+extern const char mediaHubAdoptWriteFailed[];
+extern const char mediaHubHubUnreachable[];
+extern const char mediaHubReportedPending[];
+extern const char trackCommandQueueFull[];

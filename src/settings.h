@@ -188,8 +188,8 @@
 	//#################### Settings for optional Modules##############################
 	// (optinal) Neopixel
 	#ifdef NEOPIXEL_ENABLE
-		#define CHIPSET					WS2812B     	// type of Neopixel
-		#define COLOR_ORDER				GRB
+		#define CHIPSET					WS2812B     	// type of Neopixel: WS2812, WS2812B, WS2813, WS2815, SK6812 or NEOPIXEL (others, e.g. WS2811/APA102, are not supported)
+		#define COLOR_ORDER				GRB         	// RGB, RBG, GRB, GBR, BRG or BGR
 	#endif
 
 	#ifdef MEASURE_BATTERY_VOLTAGE

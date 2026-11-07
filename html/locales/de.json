@@ -9,6 +9,9 @@
 	"delete": "Löschen",
 	"cancel": "Abbrechen",
 	"refresh": "Aktualisieren",
+	"maxLengthReached": "Maximal {{max}} Zeichen - die Grenze ist erreicht.",
+	"maxLengthCut": "{{dropped}} Zeichen wurden abgeschnitten: maximal {{max}} Zeichen sind möglich.",
+	"secretStored": "Gespeichert – leer lassen, um es zu behalten",
 	"ok": "OK",
 	"infos": "Informationen",
 	"darkmode": "Dunkelmodus",
@@ -20,7 +23,8 @@
 		"dropout": "Langsamer Stream, Aussetzer möglich.",
 		"saved": "Einstellungen gespeichert.",
 		"ledCountRestart": "Die Anzahl der LEDs wurde geändert. Der ESPuino startet neu, um das zu übernehmen.",
-		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}})."
+		"settingsInvalid": "Speichern nicht möglich: Bitte zuerst diese Einstellungen korrigieren ({{fields}}).",
+		"saveFailed": "Speichern fehlgeschlagen. Der Grund steht im Log."
 	},
 	"status": {
 		"connected": "Verbindung zum ESPuino: OK",
@@ -161,7 +165,8 @@
 		"apPassword": {
 			"title": "ESPuino-Accesspoint-Passwort",
 			"placeholder": "Passwort",
-			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist."
+			"explanation": "Passwort des WLANs, das ESPuino öffnet, wenn entweder bisher kein WLAN konfiguriert wurde oder kein konfiguriertes WLAN in Reichweite ist.",
+			"clear": "Passwort entfernen (offenes WLAN)"
 		},
 		"apTimeout": {
 			"title": "Accesspoint schließt nach (Minuten)",
@@ -324,6 +329,12 @@
 				"delete": {
 					"title": "Mediaserver löschen?",
 					"prompt": "Soll der Mediaserver \"{{name}}\" wirklich gelöscht werden? Bereits zugewiesene Karten bleiben unverändert."
+				},
+				"list": {
+					"webradio": "Webradio",
+					"synced": "synchronisiert",
+					"stale": "Aktualisierung ausstehend",
+					"notCached": "noch nicht von diesem Gerät abgespielt"
 				}
 			},
 			"mod": {
@@ -428,7 +439,9 @@
 			"title": "MQTT-Passwort (optional)",
 			"placeholder": "Passwort",
 			"validation": "",
-			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt)."
+			"explanation": "Passwort für die Anmeldung am MQTT-Broker (falls dieser eine Authentifizierung verlangt).",
+			"clear": "Gespeichertes Passwort entfernen",
+			"retype": "Server oder Benutzer wurde geändert: bitte das Passwort erneut eingeben."
 		},
 		"port": {
 			"title": "MQTT-Port",
@@ -548,7 +561,7 @@
 				"description": "Wähle den Typ des RFID-Readers. Auto-detect wird versuchen, den Reader automatisch zu erkennen."
 			},
 			"pn5180Lpcd": "PN5180 LPCD aktivieren",
-			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID-Reader. Dafür muss die PN5180-Firmware mindestens Version 4.0 sein und die erforderlichen Lötbrücken müssen korrekt gesetzt sein. Mehr Infos <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>hier</a>.",
+			"pn5180LpcdExp": "Aktiviert Low Power Card Detection für PN5180 RFID-Reader. Dafür wird mindestens die PN5180-Firmware-Version 4.1 benötigt und die erforderlichen Lötbrücken müssen korrekt gesetzt sein. Mehr Infos <a href='https://forum.espuino.de/t/was-ist-lpcd-und-wie-funktioniert-es/1664' target='_blank'>hier</a>.",
 			"mfrc522Gain": "MFRC522 Gain",
 			"mfrc522GainExp": "Stellt die Empfindlichkeit des MFRC522 RFID-Readers ein. Mögliche Werte sind 0 (niedrigste Empfindlichkeit) bis 7 (höchste Empfindlichkeit). Standard ist 7.",
 			"mfrc522ScanInterval": "MFRC522 Scan-Intervall",
@@ -696,7 +709,14 @@
 		"title": "MediaHub",
 		"intro": "MediaHub ist eine optionale, separat betriebene Zusatzkomponente: ein kleiner lokaler Server, der als Docker-Container im eigenen Netzwerk läuft. Damit lassen sich RFID-Kartenzuweisungen zentral für mehrere ESPuinos verwalten - Inhalt und Abspielmodus kommen dann vom Server statt aus der lokalen NVS-Konfiguration. Ohne einen laufenden MediaHub-Server bringt diese Seite nichts. Hier registrierst du die Adresse(n) deiner MediaHub-Server, damit sie beim Zuweisen einer Karte im Dropdown zur Auswahl stehen. Den MediaHub-Server selbst findest du auf GitHub: <a href='https://github.com/biologist79/ESPuino-Mediahub' target='_blank'>github.com/biologist79/ESPuino-Mediahub</a>.",
 		"serversTitle": "Mediaserver hinzufügen",
-		"registeredServersTitle": "Registrierte Mediaserver"
+		"registeredServersTitle": "Registrierte Mediaserver",
+		"optionsTitle": "Optionen",
+		"askUnknown": "Unbekannte Karten ohne Anlernen direkt beim MediaHub nachfragen",
+		"askUnknownExp": "Wird eine Karte aufgelegt, die ESPuino nicht kennt, fragt er die registrierten MediaHub-Server, ob dort bereits eine Zuweisung für sie existiert. Wird er fündig, übernimmt er die Karte automatisch und spielt sie ab – das Anlernen im Webinterface entfällt dann. Kennt kein Server die Karte, bleibt es bei der bisherigen Meldung „Karte unbekannt“; die Server merken sie sich in diesem Fall als offen, sodass du sie dort nur noch zuweisen musst.",
+		"showDir": "Internes MediaHub-Verzeichnis im Dateibrowser anzeigen",
+		"showDirExp": "Blendet den sonst versteckten Ordner /.mediahub im Dateibrowser ein. Darin liegen die zwischengespeicherten Manifeste und die heruntergeladenen Mediendateien je Karte – nützlich, um nachzusehen, was für eine Karte tatsächlich synchronisiert wurde. Der Ordner ist zum Anschauen gedacht, nicht zum Bearbeiten. Sei dir bewusst, dass Manipulationen in diesem Ordner potentiell zu ungewünschten Effekten führen können.",
+		"saveOptions": "Optionen speichern",
+		"orderHint": "Bei mehreren Servern wird von oben nach unten gefragt; der erste, der die Karte kennt, erhält den Zuschlag. Ein nicht erreichbarer Server wird bis zum nächsten Neustart übersprungen – Speichern der Optionen hebt das auf."
 	},
 	"help": {
 		"forum": {

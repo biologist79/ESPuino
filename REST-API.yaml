@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: ESPuino API
-  version: 1.0.5
+  version: 1.1.0
   description: >-
     API for the ESPuino, a DIY Smart Speaker project. ESPuino is a DIY Smart
     Speaker that uses software-based audio decoding, supports various music
@@ -213,7 +213,9 @@ paths:
   /wificonfig:
     get:
       summary: Get current common Wi-Fi configuration.
-      description: Get the current common Wi-Fi configuration settings.
+      description: >-
+        Get the current common Wi-Fi configuration settings. The access-point password is never
+        returned; apPasswordSet only tells whether one is stored.
       responses:
         "200":
           description: Successful response with Wi-Fi configuration.
@@ -224,11 +226,26 @@ paths:
                 properties:
                   hostname:
                     type: string
-                  ScanWiFiOnStart:
+                  maxHostnameLength:
+                    type: integer
+                    description: Maximum length of the hostname.
+                  scanOnStart:
                     type: boolean
+                    description: Always scan for Wi-Fi networks on startup.
+                  apSSID:
+                    type: string
+                    description: SSID of the access point ESPuino opens when no known Wi-Fi is available.
+                  apPasswordSet:
+                    type: boolean
+                    description: Whether an access-point password is stored (false = open access point).
+                  apTimeout:
+                    type: integer
+                    description: Minutes the access point stays open; 0 = never close automatically.
     post:
       summary: Save current common Wi-Fi configuration.
-      description: Save the current common Wi-Fi configuration settings.
+      description: >-
+        Save the common Wi-Fi configuration settings. Every field is optional: a field left out keeps
+        its stored value.
       requestBody:
         description: Common Wi-Fi configuration to save.
         required: true
@@ -239,14 +256,33 @@ paths:
               properties:
                 hostname:
                   type: string
-                ScanWiFiOnStart:
+                  description: 2-32 characters, letters, digits and '-', not starting or ending with '-'.
+                scanOnStart:
                   type: boolean
-              required:
-                - hostname
-                - ScanWiFiOnStart
+                apSSID:
+                  type: string
+                  minLength: 1
+                  maxLength: 32
+                apPassword:
+                  type: string
+                  writeOnly: true
+                  description: >-
+                    Write-only. Leave out to keep the stored password, send "" to remove it (open
+                    access point), otherwise 8-63 characters.
+                apTimeout:
+                  type: integer
+                  description: Minutes the access point stays open; 0 = never close automatically.
       responses:
         "200":
-          description: Successful Wi-Fi configuration save.
+          description: Successful Wi-Fi configuration save. The body holds the hostname.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          description: A field failed validation (hostname, apSSID or apPassword); the body says which.
+        "500":
+          description: The configuration could not be stored.
   /mode:
     get:
       summary: Get current operation mode.
@@ -299,7 +335,9 @@ paths:
   /settings:
     get:
       summary: Get common settings.
-      description: "Get common settings, optionally for a specific section."
+      description: >-
+        Get common settings, optionally for a specific section. Stored passwords are never returned:
+        passwordSet and apPasswordSet only tell whether one is stored.
       parameters:
         - in: query
           name: section
@@ -314,11 +352,76 @@ paths:
               schema:
                 type: object
                 properties:
-                  # Include your common settings properties here.
-                  {}
+                  # The remaining sections (general, led, battery, ...) are not documented here yet.
+                  wifi:
+                    type: object
+                    properties:
+                      hostname:
+                        type: string
+                      maxHostnameLength:
+                        type: integer
+                      scanOnStart:
+                        type: boolean
+                      apSSID:
+                        type: string
+                      apPasswordSet:
+                        type: boolean
+                        description: Whether an access-point password is stored (false = open access point).
+                      apTimeout:
+                        type: integer
+                  ftp:
+                    type: object
+                    description: Only present if the firmware was built with FTP support.
+                    properties:
+                      username:
+                        type: string
+                      passwordSet:
+                        type: boolean
+                        description: Whether an FTP password is stored.
+                      maxUserLength:
+                        type: integer
+                      maxPwdLength:
+                        type: integer
+                  mqtt:
+                    type: object
+                    description: Only present if the firmware was built with MQTT support.
+                    properties:
+                      enable:
+                        type: boolean
+                      macAddressPlain:
+                        type: string
+                        description: MAC address without colons, upper case.
+                      clientID:
+                        type: string
+                      deviceId:
+                        type: string
+                      baseTopic:
+                        type: string
+                      server:
+                        type: string
+                      port:
+                        type: integer
+                      username:
+                        type: string
+                      passwordSet:
+                        type: boolean
+                        description: Whether an MQTT password is stored.
+                      maxUserLength:
+                        type: integer
+                      maxPwdLength:
+                        type: integer
+                      maxClientIdLength:
+                        type: integer
+                      maxServerLength:
+                        type: integer
+                      maxBaseTopicLength:
+                        type: integer
+                      maxDeviceIdLength:
+                        type: integer
     post:
       summary: Save settings.
-      description: Save common settings.
+      description: >-
+        Save common settings. Every section is optional; send only the ones to change.
       requestBody:
         description: Settings to save.
         required: true
@@ -335,7 +438,12 @@ paths:
                   # Include all defaults settings properties here
                 wifi:
                   type: object
-                  # Include all Wi-Fi settings properties here
+                  description: The access-point settings are saved through /wificonfig.
+                  properties:
+                    hostname:
+                      type: string
+                    scanOnStart:
+                      type: boolean
                 led:
                   type: object
                   # Include all LED settings properties here
@@ -344,18 +452,59 @@ paths:
                   # Include all battery settings properties here
                 ftp:
                   type: object
-                  # Include all FTP settings properties here
+                  properties:
+                    username:
+                      type: string
+                    password:
+                      type: string
+                      writeOnly: true
+                      description: >-
+                        Write-only. Leave out to keep the stored password, otherwise it is replaced.
+                  required:
+                    - username
                 mqtt:
                   type: object
-                  # Include all MQTT settings properties here
+                  properties:
+                    enable:
+                      type: integer
+                      description: 1 = enabled, 0 = disabled.
+                    clientID:
+                      type: string
+                    deviceId:
+                      type: string
+                      description: Must not be empty and must not contain '/'.
+                    baseTopic:
+                      type: string
+                    server:
+                      type: string
+                    port:
+                      type: integer
+                    username:
+                      type: string
+                    password:
+                      type: string
+                      writeOnly: true
+                      description: >-
+                        Write-only. Leave out to keep the stored password, send "" to remove it,
+                        otherwise it is replaced. The stored password only stays with the server and
+                        username it was entered for: if either changes, the password has to be sent
+                        again, otherwise the request is refused (500).
+                  required:
+                    - enable
+                    - clientID
+                    - deviceId
+                    - baseTopic
+                    - server
+                    - port
+                    - username
                 bluetooth:
                   type: object
                   # Include all Bluetooth settings properties here
-              required:
-                - general
       responses:
         "200":
           description: Successful settings save.
+        "500":
+          description: A setting failed validation or could not be stored; the log says which.
   /rfid:
     get:
       summary: List all saved RFID-tag assignments with details.

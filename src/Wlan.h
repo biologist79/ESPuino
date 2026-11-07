@@ -4,6 +4,13 @@
 #include <functional>
 #include <optional>
 
+// Hostname rules, driven mainly by mDNS. The length is written down here and nowhere else: it
+// is published to both web interfaces, which cap their input field with it, while the character
+// rules live in that field's pattern. Unlike the MQTT and FTP lengths this is a true maximum,
+// not n-1.
+constexpr uint8_t hostnameMinLength = 2u;
+constexpr uint8_t hostnameMaxLength = 32u;
+
 // be very careful changing this struct, as it is used for NVS storage and will corrupt existing entries
 struct WiFiSettings {
 	struct StaticIp {

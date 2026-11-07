@@ -16,8 +16,22 @@
 #include "Web.h"
 
 #include <atomic>
+#include <inttypes.h>
 
 unsigned long Rfid_LastRfidCheckTimestamp = 0;
+
+// The one place that writes the linear NVS format Rfid_PreferenceLookupHandler()
+// parses: #<fileOrUrl>#<lastPlayPos>#<playMode>#<trackLastPlayed>, with "0" as
+// fileOrUrl for modification cards. Assembling it per call site is how a field
+// like the MEDIAHUB marker gets overwritten by accident. Reads the value back,
+// since putString()'s return value alone doesn't prove it landed.
+bool Rfid_SaveAssignment(const char *cardId, const char *fileOrUrl, uint8_t playModeOrModId, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
+	char rfidString[275]; // longest path the web interface accepts, plus the numeric fields
+	snprintf(rfidString, sizeof(rfidString) / sizeof(rfidString[0]), "%s%s%s%" PRIu32 "%s%u%s%" PRIu16,
+		stringDelimiter, fileOrUrl, stringDelimiter, lastPlayPos, stringDelimiter, (unsigned) playModeOrModId, stringDelimiter, trackLastPlayed);
+	gPrefsRfid.putString(cardId, rfidString);
+	return gPrefsRfid.getString(cardId, "-1") == rfidString;
+}
 char gCurrentRfidTagId[cardIdStringSize] = ""; // No crap here as otherwise it could be shown in GUI
 char gOldRfidTagId[cardIdStringSize] = "X"; // Init with crap
 
@@ -42,6 +56,15 @@ void Rfid_PreferenceLookupHandler(void) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 		}
 		if (!s.compareTo("-1")) {
+			// Not in NVS -- but a registered MediaHub may already know this card,
+			// in which case it's adopted here instead of having to be assigned by
+			// hand first (forum #4779). Only in normal mode: in the Bluetooth
+			// modes an unknown card means "get me out of here", which is exactly
+			// what the escape below does, and there's no decoder of ours to play
+			// anything with anyway.
+			if (System_GetOperationMode() == OPMODE_NORMAL && MediaHub_TryAdoptUnknownCard(gCurrentRfidTagId)) {
+				return;
+			}
 			Log_Println(rfidTagUnknownInNvs, LOGLEVEL_ERROR);
 			System_IndicateError();
 			// allow to escape from bluetooth mode with an unknown card, switch back to normal mode

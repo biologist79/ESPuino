@@ -4,8 +4,10 @@
 #include "MediaHub.h"
 
 #include "AudioPlayer.h"
+#include "Common.h"
 #include "Led.h"
 #include "Log.h"
+#include "Rfid.h"
 #include "SdCard.h"
 #include "System.h"
 #include "Wlan.h"
@@ -13,7 +15,6 @@
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
-#include <algorithm>
 #include <atomic>
 #include <esp_heap_caps.h>
 #include <esp_task_wdt.h>
@@ -58,6 +59,28 @@ struct MediaHub_BusyGuard {
 		Led_SetDownloadProgress(false);
 	}
 };
+
+// Manifests are the largest JSON this firmware parses: a hundred-track
+// audiobook is ~18 KB of text and lands at roughly twice that once parsed,
+// because ArduinoJson copies every path and SHA-256 out of the input. In
+// internal RAM that competes directly with the TLS handshake of the download
+// that follows, which needs 32-40 KB *contiguous* (§13) - and malloc() serves
+// internal RAM first, so the manifest takes it even while PSRAM sits idle.
+//
+// Prefers PSRAM, falls back to internal RAM, same order as MemX_Malloc() -
+// a board without PSRAM keeps working, it just pays what it paid before.
+struct MediaHub_JsonAllocator : ArduinoJson::Allocator {
+	void *allocate(size_t size) override {
+		return heap_caps_malloc_prefer(size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+	}
+	void deallocate(void *pointer) override {
+		free(pointer);
+	}
+	void *reallocate(void *ptr, size_t new_size) override {
+		return heap_caps_realloc_prefer(ptr, new_size, 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+	}
+};
+static MediaHub_JsonAllocator MediaHub_JsonAlloc;
 
 // Fixed, hidden storage layout (concept §13.1) — MediaHub is the only thing
 // that ever touches this tree.
@@ -207,15 +230,27 @@ static String MediaHub_CommonDirectory(JsonArrayConst files) {
 }
 
 // SINGLE_TRACK/SINGLE_TRACK_LOOP point at one specific file. Every other mode
-// points at the folder the files actually share (see MediaHub_CommonDirectory())
-// and leaves scanning/sorting/recursion from there to SdCard_ReturnPlaylist()
-// (same reasoning as in AudioPlayer_SetPlaylist()) - pointing at mediaDir
-// itself would be wrong whenever files[].path carries subdirectories
-// (recursive selections, or any folder that isn't the media library root).
-static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files) {
+// points at the folder the card is meant to play and leaves
+// scanning/sorting/recursion from there to SdCard_ReturnPlaylist() (same
+// reasoning as in AudioPlayer_SetPlaylist()) - pointing at mediaDir itself
+// would be wrong whenever files[].path carries subdirectories (recursive
+// selections, or any folder that isn't the media library root).
+//
+// `playRoot` is the folder the admin picked, when the manifest names one, and
+// wins over the common prefix of files[].path. That prefix is only a guess:
+// for a folder holding a single subfolder it lands a level too deep, where
+// "random subfolder" finds nothing (forum #4779). Older hubs and hand-picked
+// selections send no playRoot, so the prefix stays the fallback.
+static String MediaHub_BuildItemToPlay(const String &mediaDir, uint32_t playMode, JsonArrayConst files, const char *playRoot) {
 	if (MediaHub_IsSingleFilePlayMode(playMode)) {
 		const char *singleFilePath = files[0]["path"] | "";
 		return mediaDir + "/" + singleFilePath;
+	}
+	// Refuse anything that could climb out of the card's folder: this arrives
+	// over the network and is about to be concatenated onto mediaDir.
+	const String root = String(playRoot ? playRoot : "");
+	if (root.length() > 0 && root.indexOf("..") < 0 && !root.startsWith("/")) {
+		return mediaDir + "/" + root;
 	}
 	const String commonDir = MediaHub_CommonDirectory(files);
 	if (commonDir.length() == 0) {
@@ -593,6 +628,17 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 // (concept §13) so a card is never left half-downloaded due to running out
 // of space mid-way through.
 static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &mediaDir, JsonArrayConst files) {
+	// On a first sync the card's folder doesn't exist yet, so none of the
+	// per-file checks can find anything - asking once beats asking per entry.
+	// It is not a micro-optimisation: each check opens a file on the SD card,
+	// and this runs in the Arduino main loop, so a hundred-track audiobook
+	// freezes the LED ring, the buttons and the web interface for the whole
+	// futile pass. Once the folder exists the checks are meaningful again and
+	// run as before. Stale afterwards (the first downloaded file creates the
+	// folder), but only in the safe direction: "there was no folder" means
+	// "fetch everything", which is exactly right for a first sync.
+	const bool haveFolder = gFSystem.exists(mediaDir);
+
 	// Total-vs-missing split doubles as the progress-bar baseline (concept
 	// §7.1): a card that already has some files from an earlier partial sync
 	// starts the bar accordingly, instead of jumping back to 0.
@@ -601,7 +647,7 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 	for (JsonVariantConst f : files) {
 		const uint32_t size = f["size"] | 0;
 		totalBytes += size;
-		if (!MediaHub_FileFullySynced(mediaDir, f)) {
+		if (!haveFolder || !MediaHub_FileFullySynced(mediaDir, f)) {
 			missingBytes += size;
 		}
 	}
@@ -619,7 +665,7 @@ static bool MediaHub_SyncMissingFiles(const String &filesBaseUrl, const String &
 		Led_SetDownloadProgress(true, (uint8_t) ((completedBytes * 100) / totalBytes));
 	}
 	for (JsonVariantConst f : files) {
-		if (MediaHub_FileFullySynced(mediaDir, f)) {
+		if (haveFolder && MediaHub_FileFullySynced(mediaDir, f)) {
 			continue;
 		}
 		const char *path = f["path"] | "";
@@ -668,25 +714,87 @@ static bool MediaHub_SyncAndPlay(const char *cardId, JsonDocument &doc, uint32_t
 		return false;
 	}
 
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
 	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
 	return true;
 }
 
+// Loads from the cached manifest exactly what the incremental re-sync below
+// decides on: the force epoch, plus path + sha256 per file. The filter is what
+// makes this affordable - a manifest is mostly SHA-256 sums, and nothing else
+// ever reaches memory (same trick as MediaHub_GetCachedCardInfo()).
+static bool MediaHub_LoadCachedSyncState(const char *cardId, JsonDocument &out) {
+	File file = gFSystem.open(MediaHub_ManifestCachePath(cardId));
+	if (!file || file.isDirectory()) {
+		return false;
+	}
+	JsonDocument filter;
+	filter["forceEpoch"] = true;
+	filter["files"][0]["path"] = true;
+	filter["files"][0]["sha256"] = true;
+	const DeserializationError err = deserializeJson(out, file, DeserializationOption::Filter(filter));
+	file.close();
+	return !err;
+}
+
+// The entry for `path` in a manifest's files[], or a null variant.
+static JsonVariantConst MediaHub_EntryForPath(JsonArrayConst files, const char *path) {
+	for (JsonVariantConst f : files) {
+		if (strcmp(f["path"] | "", path) == 0) {
+			return f;
+		}
+	}
+	return JsonVariantConst();
+}
+
+// True if the copy already on the SD card may stay where it is: the hub
+// reports the same SHA-256 for this path as it did at the last sync, so the
+// bytes down there are the ones the new manifest asks for. Both sums come out
+// of manifests - the one just fetched and the one cached at the last sync -
+// so nothing is read back off the card and nothing is re-hashed here (that is
+// the whole point: hashing a 100 MB file would cost more than fetching it).
+// The size check is only the cheap net against a copy truncated in between.
+static bool MediaHub_MayKeepFile(const String &mediaDir, JsonVariantConst newEntry, JsonArrayConst cachedFiles) {
+	const char *path = newEntry["path"] | "";
+	const char *newSha = newEntry["sha256"] | "";
+	if (strlen(path) == 0 || strlen(newSha) == 0) {
+		return false;
+	}
+	const char *oldSha = MediaHub_EntryForPath(cachedFiles, path)["sha256"] | "";
+	if (strlen(oldSha) == 0 || !String(oldSha).equalsIgnoreCase(newSha)) {
+		return false;
+	}
+	return MediaHub_FileFullySynced(mediaDir, newEntry);
+}
+
+// Drops folders left empty after a file was pruned, walking up towards (but
+// never including) the card's media dir. rmdir only succeeds on an empty
+// folder, so a parent still holding other tracks simply stays.
+static void MediaHub_RemoveEmptyParents(const String &mediaDir, const String &relPath) {
+	int cut = relPath.lastIndexOf('/');
+	while (cut > 0) {
+		if (!gFSystem.rmdir(mediaDir + "/" + relPath.substring(0, cut))) {
+			return;
+		}
+		cut = relPath.lastIndexOf('/', cut - 1);
+	}
+}
+
 // Re-sync flow for a card already marked "stale" (concept §11/§13): fetches
-// the fresh manifest live, then wipes the media folder and re-downloads
-// everything. Deliberately never starts playback on success (unlike the
-// concept's original "RS -> PLAY" flowchart, §11): a re-sync can take
-// minutes, and starting playback of whatever just finished downloading,
-// unprompted, after that long a silent wait surprised more than it helped in
-// practice - the next tap plays it instead, by then straight from the now-
-// fully-synced local cache. Returns false for anything that leaves the OLD,
-// still-complete local copy as the better fallback (hub unreachable, bad
-// manifest, SD too full for the new version) — the caller then plays that
-// old copy instead, and the card stays marked "stale" for the next attempt.
-// Only clears "stale" on full success.
-static bool MediaHub_TryReSync(const char *cardId, const String &hostPort) {
+// the fresh manifest live, stops playback, prunes what the hub changed or
+// dropped, downloads only the difference (forum #4607) and then plays the
+// fresh version - the concept's original "RS -> PLAY" flowchart (§11). That
+// path was abandoned once because a re-sync meant minutes of silence and
+// unprompted audio afterwards startled people; fetching only the difference
+// takes that argument away, and since this function now stops playback
+// itself, not playing would leave the listener in silence they never asked
+// for. Returns false for anything that leaves the OLD, still-complete local
+// copy as the better fallback (hub unreachable, bad manifest, SD too full for
+// the new version) — nothing is stopped or deleted before those checks, so
+// the caller simply plays that old copy and the card stays marked "stale" for
+// the next attempt. Only clears "stale" on full success.
+static bool MediaHub_TryReSync(const char *cardId, const String &hostPort, uint32_t lastPlayPos, uint16_t trackLastPlayed) {
 	String espId = MediaHub_GetEspId();
 	String url = MediaHub_BuildBaseUrl(hostPort) + "/" + espId + "/card/" + String(cardId) + "/manifest.json";
 
@@ -701,10 +809,10 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort) {
 		http.end();
 		return false;
 	}
-	const String body = http.getString();
+	String body = http.getString();
 	http.end();
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	if (deserializeJson(doc, body)) {
 		return false;
 	}
@@ -734,36 +842,159 @@ static bool MediaHub_TryReSync(const char *cardId, const String &hostPort) {
 		return false;
 	}
 
-	uint64_t totalNeeded = 0;
-	for (JsonVariantConst f : files) {
-		totalNeeded += (uint32_t) (f["size"] | 0);
+	// Stop whatever an earlier tap started before the download begins. Nothing
+	// else does: the RFID handler dispatches here without touching playback,
+	// and this function sets its own playlist only at the very end - so the
+	// old card kept playing right through the transfer, competing with it for
+	// SD and CPU, while the web UI went on showing its cover and track count
+	// as if nothing had changed. Deliberately only here, past the manifest
+	// fetch and its checks: an unreachable hub must not cost the listener
+	// their playback, since that stale-but-complete copy is exactly what the
+	// caller falls back to. STOP also clears the cover and sets NO_PLAYLIST,
+	// so the web UI stops claiming a playlist that is being replaced
+	// underneath it.
+	//
+	// AudioPlayer_SetTrackControlNow() only parks the command; AudioPlayer_Loop()
+	// acts on it, and that runs in THIS task - main.cpp calls
+	// AudioPlayer_Cyclic() a few lines above the RFID handler that lands here.
+	// So it cannot run again until the download below returns, and the stop
+	// would arrive *after* the playlist set at the end of this function and
+	// kill the very playback it was meant to precede. Driving the loop once by
+	// hand applies it now instead; AudioPlayer_Exit() uses the same trick to
+	// make its pause take effect. Waiting for it would deadlock - the loop
+	// that would clear it is the one being blocked.
+	//
+	// Only while something is playing: a track command on a finished playlist
+	// is answered with System_IndicateError(), and a red blink for a card that
+	// synced perfectly well would be a bug of its own.
+	if (!gPlayProperties.playlistFinished) {
+		AudioPlayer_SetTrackControlNow(STOP);
+		AudioPlayer_Loop();
 	}
 
 	const String mediaDir = MediaHub_MediaDir(cardId);
-	const uint64_t oldFolderSize = MediaHub_DirSize(mediaDir);
-	if (SdCard_GetFreeSize() + oldFolderSize < totalNeeded) {
-		// Old, working version stays untouched (nothing wiped yet); card
-		// remains "stale" so this is retried on the next tap.
+
+	// Keep what the hub didn't change, instead of wiping the folder and
+	// fetching all of it again (forum #4607): adding one track to a 150 MB
+	// audiobook used to pull all 150 MB over the wire a second time. Telling
+	// apart "same file" from "changed file" needs the manifest cached at the
+	// last sync; without it there is no record of what is down there, and
+	// wiping everything stays the only safe thing to do.
+	JsonDocument cachedDoc(&MediaHub_JsonAlloc);
+	JsonArrayConst cachedFiles;
+	uint32_t cachedForceEpoch = 0;
+	if (MediaHub_LoadCachedSyncState(cardId, cachedDoc)) {
+		cachedFiles = cachedDoc["files"].as<JsonArrayConst>();
+		cachedForceEpoch = cachedDoc["forceEpoch"] | 0;
+	}
+
+	// "Force refresh" on the hub bumps an epoch and changes nothing else, so
+	// the comparison below would find every file unchanged and keep all of
+	// them - the button would do nothing at all. It has to overrule the
+	// comparison rather than pass through it, because it means the one thing
+	// a manifest can never tell us: that the LOCAL copy is not to be trusted.
+	// (A manifest cached before the hub published this field reads 0, so a
+	// card that was force-refreshed in the past gets one full re-sync once.)
+	const bool forced = (uint32_t) (doc["forceEpoch"] | 0) != cachedForceEpoch;
+	const bool incremental = cachedFiles.size() > 0 && !forced;
+
+	// Both sums are settled before anything is deleted: the space check below
+	// is the last moment at which the old copy is still complete, so it must
+	// not depend on a prune that has already happened.
+	uint64_t bytesToDownload = 0;
+	for (JsonVariantConst f : files) {
+		if (!incremental || !MediaHub_MayKeepFile(mediaDir, f, cachedFiles)) {
+			bytesToDownload += (uint32_t) (f["size"] | 0);
+		}
+	}
+
+	std::vector<String> toDelete;
+	uint64_t bytesFreed = 0;
+	if (incremental) {
+		for (JsonVariantConst old : cachedFiles) {
+			const char *path = old["path"] | "";
+			if (strlen(path) == 0) {
+				continue;
+			}
+			// A path the new manifest no longer lists resolves to a null
+			// entry here, which MediaHub_MayKeepFile rejects - so dropped
+			// tracks are pruned just like changed ones. That matters beyond
+			// tidiness: the folder play modes play what lies in the
+			// directory, not what the manifest lists.
+			if (MediaHub_MayKeepFile(mediaDir, MediaHub_EntryForPath(files, path), cachedFiles)) {
+				continue;
+			}
+			toDelete.push_back(String(path));
+			File f = gFSystem.open(mediaDir + "/" + path);
+			if (f) {
+				if (!f.isDirectory()) {
+					bytesFreed += f.size();
+				}
+				f.close();
+			}
+		}
+	} else {
+		bytesFreed = MediaHub_DirSize(mediaDir);
+	}
+
+	if (SdCard_GetFreeSize() + bytesFreed < bytesToDownload) {
+		// Nothing deleted yet, so the old, working version stays untouched;
+		// card remains "stale" so this is retried on the next tap.
 		Log_Println(mediaHubSdFull, LOGLEVEL_ERROR);
 		return false;
 	}
 
-	File oldDir = gFSystem.open(mediaDir);
-	if (oldDir && oldDir.isDirectory()) {
-		MediaHub_DeleteDirRecursive(oldDir);
+	if (incremental) {
+		for (const String &path : toDelete) {
+			gFSystem.remove(mediaDir + "/" + path);
+			gFSystem.remove(mediaDir + "/" + path + ".tmp"); // leftover of an interrupted download
+			MediaHub_RemoveEmptyParents(mediaDir, path);
+		}
+		// Everything not explicitly kept has to be fetched, so clear the way
+		// for it: MediaHub_SyncMissingFiles() decides on size alone, and would
+		// skip an outdated leftover that happens to have the right length.
+		// Deleting first makes "not kept" and "downloaded fresh" the same
+		// thing, which is what the prune above relies on.
+		for (JsonVariantConst f : files) {
+			const char *path = f["path"] | "";
+			if (strlen(path) > 0 && !MediaHub_MayKeepFile(mediaDir, f, cachedFiles)) {
+				gFSystem.remove(mediaDir + "/" + path);
+			}
+		}
+	} else {
+		File oldDir = gFSystem.open(mediaDir);
+		if (oldDir && oldDir.isDirectory()) {
+			MediaHub_DeleteDirRecursive(oldDir);
+		}
 	}
-	// Past this point there's no complete old copy left to fall back to: any
-	// further failure leaves the card marked "stale" ("needs resync") for a
-	// retry on the next tap, exactly like a fresh sync failure would.
+	// Past this point the local copy is no longer the complete old version:
+	// any further failure leaves the card marked "stale" ("needs resync") for
+	// a retry on the next tap, exactly like a fresh sync failure would. What
+	// survived the prune is reused by that retry, so an interrupted re-sync
+	// resumes rather than starting over.
 
 	MediaHub_WriteManifestCache(cardId, body);
+	// Nothing reads it after this, and an Arduino String cannot live in PSRAM
+	// (plain realloc), so a hundred-track manifest would otherwise hold ~18 KB
+	// of internal RAM for the whole transfer - the very memory each file's TLS
+	// handshake needs contiguous (§13).
+	body = String();
 	if (!MediaHub_SyncMissingFiles(filesBaseUrl, mediaDir, files)) {
 		return false;
 	}
 
 	MediaHub_ClearStale(cardId);
-	Log_Println(mediaHubResyncComplete, LOGLEVEL_NOTICE);
 	System_IndicateOk();
+
+	// Play straight away rather than asking for another tap. The old rule
+	// assumed a re-sync meant minutes of silence, after which unprompted audio
+	// startled more than it helped - but a re-sync now fetches only what
+	// actually changed, and the stop above means the listener is standing in
+	// silence they did not ask for. Leaving them to tap again is the worse of
+	// the two surprises.
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
+	Log_Println(mediaHubPlayingAfterSync, LOGLEVEL_NOTICE);
+	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
 	return true;
 }
 
@@ -780,11 +1011,19 @@ struct MediaHub_VersionCheckArgs {
 static void MediaHub_VersionCheckTask(void *pvParameters) {
 	auto *args = static_cast<MediaHub_VersionCheckArgs *>(pvParameters);
 
+	// Two strings are all this task needs. Filtering them out keeps a
+	// hundred-track manifest's files[] - the bulk of it, and the only part
+	// that scales - out of memory entirely, which matters here more than
+	// anywhere: this runs while a card is playing.
+	JsonDocument filter;
+	filter["cardId"] = true;
+	filter["version"] = true;
+
 	String cachedVersion;
 	File cacheFile = gFSystem.open(MediaHub_ManifestCachePath(args->cardId.c_str()));
 	if (cacheFile && !cacheFile.isDirectory()) {
-		JsonDocument cachedDoc;
-		if (!deserializeJson(cachedDoc, cacheFile)) {
+		JsonDocument cachedDoc(&MediaHub_JsonAlloc);
+		if (!deserializeJson(cachedDoc, cacheFile, DeserializationOption::Filter(filter))) {
 			cachedVersion = String((const char *) (cachedDoc["version"] | ""));
 		}
 		cacheFile.close();
@@ -800,9 +1039,13 @@ static void MediaHub_VersionCheckTask(void *pvParameters) {
 		if (http.begin(url)) {
 			const int httpCode = http.GET();
 			if (httpCode == HTTP_CODE_OK) {
-				const String body = http.getString();
-				JsonDocument doc;
-				if (!deserializeJson(doc, body)) {
+				JsonDocument doc(&MediaHub_JsonAlloc);
+				// Parsed straight off the socket: http.getString() would first
+				// build the whole manifest as an Arduino String, and a String
+				// cannot live in PSRAM (plain realloc), so those ~18 KB would
+				// sit in internal RAM for no reason - nothing here caches the
+				// body.
+				if (!deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter))) {
 					const char *manifestCardId = doc["cardId"] | "";
 					const char *freshVersion = doc["version"] | "";
 					if (strcmp(manifestCardId, args->cardId.c_str()) == 0 && strlen(freshVersion) > 0 && cachedVersion != freshVersion) {
@@ -838,7 +1081,7 @@ static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlay
 		return false;
 	}
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	const DeserializationError jsonError = deserializeJson(doc, manifestFile);
 	manifestFile.close();
 	if (jsonError) {
@@ -857,7 +1100,7 @@ static bool MediaHub_TryPlayFromLocalCache(const char *cardId, uint32_t lastPlay
 		return false;
 	}
 
-	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files);
+	const String itemToPlay = MediaHub_BuildItemToPlay(mediaDir, manifestPlayMode, files, doc["playRoot"] | "");
 
 	Log_Println(mediaHubPlayingFromCache, LOGLEVEL_NOTICE);
 	AudioPlayer_SetPlaylist(itemToPlay.c_str(), lastPlayPos, manifestPlayMode, trackLastPlayed);
@@ -900,8 +1143,8 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 	const bool online = Wlan_IsConnected();
 
 	if (MediaHub_IsStale(cardId) && online) {
-		if (MediaHub_TryReSync(cardId, hostPort)) {
-			return; // re-synced; this tap doesn't play, the next one does (see MediaHub_TryReSync())
+		if (MediaHub_TryReSync(cardId, hostPort, lastPlayPos, trackLastPlayed)) {
+			return; // re-synced and playing the fresh version (see MediaHub_TryReSync())
 		}
 		// Re-sync wasn't possible right now (hub unreachable, bad manifest, SD
 		// full for the new version, ...) — fall through and play the old,
@@ -944,7 +1187,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	const String body = http.getString();
+	String body = http.getString();
 	http.end();
 
 	if (httpCode == 404) {
@@ -962,7 +1205,7 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 
-	JsonDocument doc;
+	JsonDocument doc(&MediaHub_JsonAlloc);
 	const DeserializationError jsonError = deserializeJson(doc, body);
 	if (jsonError) {
 		Log_Printf(LOGLEVEL_ERROR, jsonErrorMsg, jsonError.c_str());
@@ -979,6 +1222,10 @@ void MediaHub_HandleCardTapped(const char *cardId, const char *path, uint32_t la
 		return;
 	}
 	MediaHub_WriteManifestCache(cardId, body);
+	// Released here for the same reason as in MediaHub_TryReSync(): the sync
+	// below allocates per file, and these ~18 KB of internal RAM are not
+	// needed by anything past this point.
+	body = String();
 
 	const uint32_t manifestPlayMode = doc["playMode"] | 0;
 	if (manifestPlayMode == WEBSTREAM) {
@@ -1115,4 +1362,143 @@ bool MediaHub_DeleteServer(const String &name) {
 		return false; // nothing to delete
 	}
 	return MediaHub_SaveServers(servers);
+}
+
+bool MediaHub_GetCachedCardInfo(const char *cardId, MediaHubCardInfo &info) {
+	File file = gFSystem.open(MediaHub_ManifestCachePath(cardId));
+	if (!file || file.isDirectory()) {
+		return false;
+	}
+	// Filtered on purpose: the files[] array with its SHA-256 sums is the bulk of
+	// a manifest and none of it is shown, so it never even reaches memory. That
+	// keeps this a few hundred bytes per card regardless of how big the audiobook
+	// behind it is - which is what makes it affordable for every entry of the
+	// assignment list.
+	JsonDocument filter;
+	filter["name"] = true;
+	filter["playMode"] = true;
+	JsonDocument doc;
+	const DeserializationError err = deserializeJson(doc, file, DeserializationOption::Filter(filter));
+	file.close();
+	if (err) {
+		return false;
+	}
+
+	info.name = doc["name"] | "";
+	info.playMode = doc["playMode"] | 0;
+	info.isWebstream = (info.playMode == WEBSTREAM);
+	info.stale = MediaHub_IsStale(cardId);
+	return true;
+}
+
+// ── Adopting unknown cards (forum #4779) ──────────────────────────────────
+// A card that isn't in NVS is normally just an error. With this enabled, the
+// registered hubs get asked first: if one of them already has the card
+// assigned, it's adopted here instead of having to be assigned by hand in the
+// web interface beforehand. The very same request also announces the card to
+// every hub that doesn't know it -- the hub registers it as "pending" on a
+// miss (concept §5.3) -- so one round trip does both jobs.
+static constexpr const char *MediaHub_AskUnknownNvsKey = "mhAskUnknown";
+
+bool MediaHub_IsAskUnknownEnabled() {
+	return gPrefsSettings.getBool(MediaHub_AskUnknownNvsKey, false);
+}
+
+bool MediaHub_SetAskUnknownEnabled(bool enabled) {
+	return gPrefsSettings.putBool(MediaHub_AskUnknownNvsKey, enabled);
+}
+
+// Everything MediaHub keeps locally lives under one hidden folder, which the
+// file browser filters out along with the macOS leftovers. Showing it is
+// opt-in, for looking at what actually got synced for a card.
+const char *const MediaHub_RootDir = "/.mediahub";
+static constexpr const char *MediaHub_ShowDirNvsKey = "mhShowDir";
+
+bool MediaHub_IsShowDirEnabled() {
+	return gPrefsSettings.getBool(MediaHub_ShowDirNvsKey, false);
+}
+
+bool MediaHub_SetShowDirEnabled(bool enabled) {
+	return gPrefsSettings.putBool(MediaHub_ShowDirNvsKey, enabled);
+}
+
+enum class MediaHubProbeResult {
+	Found, // hub has an assigned card and returned its manifest
+	NotAssigned, // hub answered, but doesn't have this card (it's pending there now)
+	Unreachable, // no answer at all -- transport level
+};
+
+static MediaHubProbeResult MediaHub_ProbeCard(const String &base, const char *cardId) {
+	const String url = MediaHub_BuildBaseUrl(base) + "/" + MediaHub_GetEspId() + "/card/" + String(cardId) + "/manifest.json";
+
+	HTTPClient http;
+	http.setConnectTimeout(MediaHub_ConnectTimeoutMs);
+	http.setTimeout(MediaHub_ReadTimeoutMs);
+	if (!http.begin(url)) {
+		return MediaHubProbeResult::Unreachable;
+	}
+	const int httpCode = http.GET();
+	http.end();
+
+	if (httpCode <= 0) {
+		return MediaHubProbeResult::Unreachable;
+	}
+	// Only a transport failure counts as "unreachable". A 404 is the hub
+	// answering properly -- it just doesn't have this card (yet) -- and must
+	// never get the hub skipped for the rest of the session.
+	return (httpCode == HTTP_CODE_OK) ? MediaHubProbeResult::Found : MediaHubProbeResult::NotAssigned;
+}
+
+bool MediaHub_TryAdoptUnknownCard(const char *cardId) {
+	if (!MediaHub_IsAskUnknownEnabled() || !Wlan_IsConnected() || MediaHub_DownloadBusy) {
+		return false;
+	}
+	const std::vector<MediaHubServer> servers = MediaHub_GetServers();
+	if (servers.empty()) {
+		return false;
+	}
+
+	for (const MediaHubServer &server : servers) {
+		const String base = String(server.https ? "https://" : "http://") + server.hostPort;
+
+		const MediaHubProbeResult probe = MediaHub_ProbeCard(base, cardId);
+		if (probe == MediaHubProbeResult::Unreachable) {
+			// Asked again on the next unknown card, deliberately. A hub only ever
+			// learns of a new card through this very request, so sidelining one
+			// that failed once would cost exactly the feature this is here for --
+			// and an unknown card has no playback to interrupt anyway.
+			Log_Printf(LOGLEVEL_NOTICE, mediaHubHubUnreachable, base.c_str());
+			continue;
+		}
+		if (probe == MediaHubProbeResult::NotAssigned) {
+			// The hub answered but doesn't have this card - and in doing so it has
+			// just put it on its own pending list, which is the whole point of
+			// asking even when we expect a miss.
+			Log_Printf(LOGLEVEL_NOTICE, mediaHubReportedPending, base.c_str(), cardId);
+			continue;
+		}
+
+		// First hub that answers wins, and the remaining ones are deliberately
+		// left unasked: two hubs holding the same card is a configuration
+		// error, and paying one round trip per hub on every tap to detect it
+		// would slow down the case that actually happens. Which hub it was goes
+		// into the log, and into the assignment itself -- visible in the web
+		// interface from here on.
+		const String nvsPath = String(MediaHub_PathPrefix) + base;
+		if (!Rfid_SaveAssignment(cardId, nvsPath.c_str(), MEDIAHUB)) {
+			Log_Println(mediaHubAdoptWriteFailed, LOGLEVEL_ERROR);
+			System_IndicateError();
+			return true; // handled: reporting it as "unknown card" on top would only confuse
+		}
+		Log_Printf(LOGLEVEL_NOTICE, mediaHubCardAdopted, cardId, base.c_str());
+
+		// Hand over to the regular path, which fetches the manifest again and
+		// does the caching, syncing and playback. That costs one extra (small)
+		// manifest request compared to reusing the probe's response, and buys
+		// not having a second copy of all that logic here.
+		MediaHub_HandleCardTapped(cardId, nvsPath.c_str(), 0, 0);
+		return true;
+	}
+
+	return false;
 }

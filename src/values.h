@@ -35,7 +35,7 @@
 #define RANDOM_SUBDIRECTORY_OF_DIRECTORY_ALL_TRACKS_OF_DIR_RANDOM 14 // Picks a random subdirectory from a given directory and do ALL_TRACKS_OF_DIR_RANDOM
 #define WEBSTREAM												  8 // Play webradio-stream
 #define LOCAL_M3U												  11 // Plays items (webstream or files) with addresses/paths from a local m3u-file
-#define BUSY													  10 // Used if playlist is created
+#define PLAYLIST_BUSY											  10 // Used if playlist is created
 #define MEDIAHUB												  18 // Card is managed by an external MediaHub (see mediahub-konzept.md); real playMode comes from its manifest, not from here
 
 // RFID-modifcation-types

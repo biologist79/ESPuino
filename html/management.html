@@ -4,7 +4,8 @@
 <head>
 	<script>
 		/* To debug remotely, set the IP of the device and open this file locally on a web browser.
-		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html */
+		 * Make sure to disable CORS, for example using https://mybrowseraddon.com/access-control-allow-origin.html,
+		 * or build the firmware with -DENABLE_CORS_FOR_DEBUG. */
 		var remoteHost = "192.168.1.207";
 	</script>
 	<title data-i18n="title">ESPuino</title>
@@ -762,7 +763,7 @@
 								<div class="col-sm-8">
 									<input type="text" class="form-control" id="hostname"
 										data-i18n="[placeholder]wifi.hostname.placeholder" name="hostname" value=""
-										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]{0,30}[0-9a-zA-Z]" required>
+										pattern="^[0-9a-zA-Z][0-9a-zA-Z\-]*[0-9a-zA-Z]" required>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
@@ -791,6 +792,10 @@
 									<input type="password" class="form-control" id="apPassword"
 										data-i18n="[placeholder]wifi.apPassword.placeholder" name="apPassword" value=""
 										autocomplete="off" minlength="8" maxlength="63">
+									<div class="form-check mt-1 d-none" id="apPasswordClearRow">
+										<input class="form-check-input" type="checkbox" id="apPasswordClear">
+										<label class="form-check-label" for="apPasswordClear" data-i18n="wifi.apPassword.clear"></label>
+									</div>
 								</div>
 							</div>
 							<div class="row mb-2 align-items-center">
@@ -1272,7 +1277,11 @@
 							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="mqttPwd" maxlength=""
-									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="">
+									data-i18n="[placeholder]mqtt.pwd.placeholder" name="mqttPwd" value="" autocomplete="new-password">
+								<div class="form-check mt-1 d-none" id="mqttPwdClearRow">
+									<input class="form-check-input" type="checkbox" id="mqttPwdClear">
+									<label class="form-check-label" for="mqttPwdClear" data-i18n="mqtt.pwd.clear"></label>
+								</div>
 							</div>
 						</div>
 						<div class="row mb-2 align-items-center">
@@ -1326,7 +1335,7 @@
 							</div>
 							<div class="col-sm-8">
 								<input type="password" class="form-control" id="ftpPwd" maxlength="0"
-									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" required>
+									data-i18n="[placeholder]ftp.pwd.placeholder" name="ftpPwd" value="" autocomplete="new-password">
 							</div>
 						</div>
 					<div>
@@ -2668,6 +2677,35 @@
 				<legend data-i18n="mediahub.title"></legend>
 				<p data-i18n="[html]mediahub.intro"></p>
 			</div>
+			<div class="container mt-5" id="mediaHubOptions">
+				<fieldset>
+					<legend data-i18n="mediahub.optionsTitle"></legend>
+					<form action="#mediaHubOptions" method="POST"
+						onsubmit="mediaHubOptions('mediaHubOptions'); return false">
+						<div class="settings-group-card">
+							<div class="d-flex gap-2">
+								<input type="checkbox" id="mediaHubAskUnknown" name="mediaHubAskUnknown" value="false">
+								<label for="mediaHubAskUnknown" data-i18n="mediahub.askUnknown"></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mediahub.askUnknownExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="d-flex gap-2 mt-2">
+								<input type="checkbox" id="mediaHubShowDir" name="mediaHubShowDir" value="false">
+								<label for="mediaHubShowDir"><i class="fas fa-triangle-exclamation text-warning me-1"
+										aria-hidden="true"></i><span data-i18n="mediahub.showDir"></span></label>
+								<a class="link-secondary" data-bs-toggle="popover"
+									data-i18n="[data-bs-content]mediahub.showDirExp" tabindex="0"><i
+										class="fas fa-circle-question"></i></a>
+							</div>
+							<div class="mt-3">
+								<button type="submit" class="btn btn-primary"
+									data-i18n="mediahub.saveOptions"></button>
+							</div>
+						</div>
+					</form>
+				</fieldset>
+			</div>
 			<div class="container mt-5" id="mediaHubServers">
 				<fieldset>
 					<legend data-i18n="mediahub.serversTitle"></legend>
@@ -2721,6 +2759,7 @@
 						<legend data-i18n="mediahub.registeredServersTitle"></legend>
 						<div class="settings-group-card">
 						<ul class="list-group" id="mediaHubServerListManaged"></ul>
+						<small class="form-text text-muted d-block mt-2" data-i18n="mediahub.orderHint"></small>
 						</div>
 					</div>
 				</fieldset>
@@ -2894,6 +2933,120 @@
 			}
 		}
 
+		/* A browser enforces maxlength silently: surplus characters are dropped while typing and
+		   cut off when pasting, without a word to the user (issue #465). Say so instead. A paste
+		   that actually loses characters is worth the red border and the exact count; merely
+		   filling a field to its limit is just a note. One delegated pair of listeners covers
+		   every input that gets a maxlength from the settings JSON, so no field has to be wired
+		   up by hand. This never blocks saving - a value at the limit is a valid value. */
+		/* The types where a maxlength applies and the selection API works at the same time. A
+		   number field ignores maxlength altogether, and asking it for selectionStart throws. */
+		const maxLengthTypes = new Set(['text', 'search', 'url', 'tel', 'password']);
+		let maxLengthPasteOverflow = 0;
+
+		function limitedInput(target) {
+			if (!(target instanceof HTMLInputElement) || target.maxLength <= 0 || !maxLengthTypes.has(target.type)) {
+				return null;
+			}
+			return target;
+		}
+
+		function maxLengthNote(field, message, isError) {
+			let note = field.nextElementSibling;
+			if (!note || !note.hasAttribute('data-maxlen-note')) {
+				note = null;
+			}
+			field.classList.toggle('is-invalid', isError);
+			if (!message) {
+				if (note) {
+					note.remove();
+				}
+				return;
+			}
+			if (!note) {
+				note = document.createElement('div');
+				note.setAttribute('data-maxlen-note', '');
+				field.after(note);
+			}
+			note.className = isError ? 'form-text text-danger' : 'form-text';
+			note.textContent = message;
+		}
+
+		document.addEventListener('paste', function (event) {
+			/* Only measure here - the input event right after this one puts up the note, so that
+			   every outcome is decided in one place. */
+			maxLengthPasteOverflow = 0;
+			const field = limitedInput(event.target);
+			if (!field) {
+				return;
+			}
+			const clipboard = event.clipboardData || window.clipboardData;
+			const pasted = clipboard ? clipboard.getData('text') : '';
+			const selected = field.selectionEnd - field.selectionStart;
+			maxLengthPasteOverflow = Math.max(0, field.value.length - selected + pasted.length - field.maxLength);
+		});
+
+		document.addEventListener('input', function (event) {
+			const field = limitedInput(event.target);
+			if (!field) {
+				return;
+			}
+			const dropped = (event.inputType === 'insertFromPaste') ? maxLengthPasteOverflow : 0;
+			maxLengthPasteOverflow = 0;
+			if (dropped > 0) {
+				maxLengthNote(field, i18next.t('maxLengthCut', { dropped: dropped, max: field.maxLength }), true);
+			} else if (field.value.length >= field.maxLength) {
+				maxLengthNote(field, i18next.t('maxLengthReached', { max: field.maxLength }), false);
+			} else {
+				maxLengthNote(field, '', false);
+			}
+		});
+
+		/* Stored passwords are write-only: the box only says whether one is set. Such a field stays
+		   empty and says so in its placeholder, and leaving it empty on save keeps the stored password.
+		   Where "no password" is a valid setting (MQTT, the access point), a switch removes it. */
+		function showStoredSecret(fieldId, isSet, placeholderKey) {
+			const field = document.getElementById(fieldId);
+			const clear = document.getElementById(fieldId + 'Clear');
+			field.value = '';
+			field.disabled = false;
+			field.dataset.secretSet = isSet ? '1' : '';
+			field.setAttribute('data-i18n', '[placeholder]' + (isSet ? 'secretStored' : placeholderKey));
+			if (localize) {
+				localize('#' + fieldId);
+			}
+			if (clear) {
+				clear.checked = false;
+				document.getElementById(fieldId + 'ClearRow').classList.toggle('d-none', !isSet);
+			}
+			maxLengthNote(field, '', false);
+		}
+
+		/* What to send for such a field: undefined to keep the stored password (JSON.stringify then
+		   leaves the key out), '' to remove it, or the new one. */
+		function secretToSend(fieldId) {
+			const field = document.getElementById(fieldId);
+			const clear = document.getElementById(fieldId + 'Clear');
+			if (clear && clear.checked) {
+				return '';
+			}
+			if (field.value === '' && field.dataset.secretSet === '1') {
+				return undefined;
+			}
+			return field.value;
+		}
+
+		['mqttPwd', 'apPassword'].forEach(function (fieldId) {
+			document.getElementById(fieldId + 'Clear').addEventListener('change', function () {
+				const field = document.getElementById(fieldId);
+				field.disabled = this.checked;
+				if (this.checked) {
+					field.value = '';
+					maxLengthNote(field, '', false);
+				}
+			});
+		});
+
 		i18next.use(i18nextHttpBackend).init({
 			backend: {
 				loadPath: "http://" + host + "/locales/{{lng}}.json"
@@ -2927,6 +3080,9 @@
 			if (lastSdCardInfo !== null) {
 				renderSdCardInfo(lastSdCardInfo);
 			}
+			// The assignment list is built from plain text nodes without data-i18n, so
+			// localize() above can't reach it - it has to be rendered again.
+			rebuildRFIDList();
 			$('#navMenu').removeClass("show"); // Hide the menu again
 		});
 		document.querySelector('#langSel').addEventListener('change', (e) => {
@@ -4519,9 +4675,10 @@
 			let wifiSettings = settings.wifi;
 			if (wifiSettings) {
 				document.getElementById("hostname").value = wifiSettings.hostname;
+				document.getElementById("hostname").setAttribute('maxlength', wifiSettings.maxHostnameLength);
 				document.getElementById("scan_wifi_on_start").checked = wifiSettings.scanOnStart;
 				document.getElementById("apSSID").value = wifiSettings.apSSID;
-				document.getElementById("apPassword").value = wifiSettings.apPassword;
+				showStoredSecret("apPassword", wifiSettings.apPasswordSet, "wifi.apPassword.placeholder");
 				document.getElementById("apTimeout").value = wifiSettings.apTimeout;
 				// set title to hostname
 				setTitle(wifiSettings.hostname);
@@ -4635,7 +4792,8 @@
 				document.getElementById('nav-ftp-tab').setAttribute('data-visible', true);
 				document.getElementById("ftpUser").value = ftpSettings.username;
 				document.getElementById("ftpUser").setAttribute('maxlength', ftpSettings.maxUserLength);
-				document.getElementById("ftpPwd").value = ftpSettings.password;
+				showStoredSecret("ftpPwd", ftpSettings.passwordSet, "ftp.pwd.placeholder");
+				document.getElementById("ftpPwd").required = !ftpSettings.passwordSet;
 				document.getElementById("ftpPwd").setAttribute('maxlength', ftpSettings.maxPwdLength);
 			}
 			// mqtt
@@ -4654,7 +4812,7 @@
 				document.getElementById('mqttServer').setAttribute('maxlength', mqttSettings.maxServerLength);
 				document.getElementById('mqttUser').value = mqttSettings.username;
 				document.getElementById('mqttUser').setAttribute('maxlength', mqttSettings.maxUserLength);
-				document.getElementById('mqttPwd').value = mqttSettings.password;
+				showStoredSecret('mqttPwd', mqttSettings.passwordSet, 'mqtt.pwd.placeholder');
 				document.getElementById('mqttPwd').setAttribute('maxlength', mqttSettings.maxPwdLength);
 				document.getElementById('mqttPort').value = mqttSettings.port;
 				// Hidden field with MAC without colons & uppercase for MQTT preview
@@ -4749,8 +4907,16 @@
 		// never reads it, it only ever fills in the "mediahub://<host:port>" fileOrUrl value.
 		const mediaHubServerListManaged = document.getElementById("mediaHubServerListManaged");
 		const mediaHubServerSelect = document.getElementById("mediaHubServerSelect");
+		// Kept from the last list rebuild so the RFID assignment list can show a
+		// registered hub's name instead of its bare address, without fetching again.
+		let knownMediaHubServers = [];
 		async function rebuildMediaHubServerList() {
+			let options = await (await fetch("http://" + host + "/settings?section=mediahub")).json();
+			document.getElementById('mediaHubAskUnknown').checked = !!(options.mediahub && options.mediahub.askUnknown);
+			document.getElementById('mediaHubShowDir').checked = !!(options.mediahub && options.mediahub.showDir);
+
 			let servers = await (await fetch("http://" + host + "/mediahubservers")).json();
+			knownMediaHubServers = servers;
 
 			mediaHubServerSelect.innerHTML = "";
 			for (let server of servers) {
@@ -4808,6 +4974,21 @@
 			});
 			await rebuildMediaHubServerList();
 		}
+		async function mediaHubOptions(clickedId) {
+			lastIdclicked = clickedId;
+			var myObj = {
+				"mediahub": {
+					askUnknown: document.getElementById('mediaHubAskUnknown').checked,
+					showDir: document.getElementById('mediaHubShowDir').checked
+				}
+			};
+			await fetch("http://" + host + "/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(myObj)
+			});
+			toaster.info(i18next.t("toast.saved"));
+		}
 		async function mediaHubServerConfig(clickedId) {
 			lastIdclicked = clickedId;
 			// Strip a scheme typed into the host field (dropdown already sets it);
@@ -4862,7 +5043,46 @@
 				if (rfidActive && rfidActive === rfid.id) {
 					rfidElem.classList.add("active");
 				}
-				if (rfid.fileOrUrl) {
+				if (rfid.mediahub) {
+					// A MediaHub assignment stores only the hub address; show that in
+					// readable form (by registered name where we know it) plus whatever
+					// the locally cached manifest tells us about the card itself.
+					let parts = [];
+					let base = rfid.mediahub.base || "";
+					let server = knownMediaHubServers.find(s =>
+						((s.https ? "https://" : "http://") + s.hostPort) === base);
+					parts.push(server ? server.name + " (" + server.hostPort + ")" : base);
+					rfidElem.appendChild(document.createElement("br"));
+					rfidElem.appendChild(document.createTextNode(parts.join("")));
+
+					let detail = [];
+					if (rfid.mediahub.name) {
+						detail.push("\u201e" + rfid.mediahub.name + "\u201c");
+					}
+					if (rfid.mediahub.isWebstream) {
+						detail.push(i18next.t("files.rfid.mediahub.list.webradio"));
+					} else if (rfid.mediahub.playMode) {
+						detail.push(i18next.t("files.rfid.playmode.mode." + rfid.mediahub.playMode));
+					}
+					if (rfid.mediahub.playMode !== undefined) {
+						detail.push(i18next.t(rfid.mediahub.stale
+							? "files.rfid.mediahub.list.stale"
+							: "files.rfid.mediahub.list.synced"));
+					}
+					if (detail.length) {
+						rfidElem.appendChild(document.createElement("br"));
+						let small = document.createElement("small");
+						small.classList.add("text-muted");
+						small.appendChild(document.createTextNode(detail.join(" \u00b7 ")));
+						rfidElem.appendChild(small);
+					} else {
+						rfidElem.appendChild(document.createElement("br"));
+						let small = document.createElement("small");
+						small.classList.add("text-muted");
+						small.appendChild(document.createTextNode(i18next.t("files.rfid.mediahub.list.notCached")));
+						rfidElem.appendChild(small);
+					}
+				} else if (rfid.fileOrUrl) {
 					rfidElem.appendChild(document.createElement("br"));
 					rfidElem.appendChild(document.createTextNode(rfid.fileOrUrl));
 				}
@@ -5194,15 +5414,22 @@
 			var myObj = {
 				"ftp": {
 					username: document.getElementById('ftpUser').value,
-					password: document.getElementById('ftpPwd').value
+					password: secretToSend('ftpPwd')
 				}
 			};
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			const response = await fetch("http://" + host + "/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
+			const ftpPwdSet = (myObj.ftp.password === undefined) || (myObj.ftp.password !== '');
+			showStoredSecret('ftpPwd', ftpPwdSet, 'ftp.pwd.placeholder');
+			document.getElementById('ftpPwd').required = !ftpPwdSet;
 			toaster.info(i18next.t("toast.saved"));
 		}
 
@@ -5232,32 +5459,49 @@
 					baseTopic: document.getElementById('mqttBaseTopic').value,
 					server: document.getElementById('mqttServer').value,
 					username: document.getElementById('mqttUser').value,
-					password: document.getElementById('mqttPwd').value,
+					password: secretToSend('mqttPwd'),
 					port: Number(document.getElementById('mqttPort').value)
 				}
 			};
+			var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
+			var nw = myObj.mqtt;
+			/* The stored password only stays with the broker it was entered for (the box refuses
+			   anything else), so a new server or username needs it typed in again. */
+			if (nw.password === undefined && (nw.server !== old.server || nw.username !== old.username)) {
+				const pwdField = document.getElementById('mqttPwd');
+				maxLengthNote(pwdField, i18next.t('mqtt.pwd.retype'), true);
+				pwdField.focus();
+				return;
+			}
 			var myJSON = JSON.stringify(myObj);
-			await fetch("http://" + host + "/settings", {
+			const response = await fetch("http://" + host + "/settings", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: myJSON
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
 			toaster.info(i18next.t("toast.saved"));
 
 			// If any MQTT setting changed, prompt user to restart to apply changes
 			try {
-				var old = (window.settings && window.settings.mqtt) ? window.settings.mqtt : {};
-				var nw = myObj.mqtt;
-				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'password', 'port'];
-				var changed = false;
-				for (var i = 0; i < fields.length; i++) {
+				var fields = ['enable', 'clientID', 'deviceId', 'baseTopic', 'server', 'username', 'port'];
+				var changed = (nw.password !== undefined);
+				for (var i = 0; i < fields.length && !changed; i++) {
 					var f = fields[i];
-					var ov = old[f];
-					var nv = nw[f];
-					if (String(ov) !== String(nv)) { changed = true; break; }
+					if (String(old[f]) !== String(nw[f])) { changed = true; }
 				}
 				if (changed) showMqttRestartPrompt();
 			} catch (e) { console.log('mqttSettings compare error', e); }
+
+			// what the box has now, so the next save compares against it
+			const passwordSet = (nw.password === undefined) ? old.passwordSet : (nw.password !== '');
+			const stored = { ...nw, passwordSet: passwordSet };
+			delete stored.password;
+			window.settings = { ...window.settings, mqtt: { ...old, ...stored } };
+			showStoredSecret('mqttPwd', passwordSet, 'mqtt.pwd.placeholder');
 		}
 
 		async function btSettings(clickedId) {
@@ -5390,7 +5634,7 @@
 			let hostname = document.getElementById("hostname").value;
 			let scanWifi = document.getElementById("scan_wifi_on_start").checked;
 			let apSSID = document.getElementById("apSSID").value;
-			let apPassword = document.getElementById("apPassword").value;
+			let apPassword = secretToSend("apPassword");
 			let apTimeout = parseInt(document.getElementById("apTimeout").value, 10);
 			var myObj = {
 				hostname: hostname,
@@ -5401,13 +5645,19 @@
 			};
 			// set title to hostname
 			setTitle(hostname);
-			await fetch("http://" + host + "/wificonfig", {
+			const response = await fetch("http://" + host + "/wificonfig", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
 				},
 				body: JSON.stringify(myObj)
 			});
+			if (!response.ok) {
+				toaster.error(i18next.t("toast.saveFailed"));
+				return;
+			}
+			const apPasswordSet = (apPassword === undefined) || (apPassword !== '');
+			showStoredSecret("apPassword", apPasswordSet, "wifi.apPassword.placeholder");
 			toaster.info(i18next.t("toast.saved"));
 		}
 
