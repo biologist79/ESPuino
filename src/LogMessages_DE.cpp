@@ -272,4 +272,5 @@ const char mediaHubCardAdopted[] = "MediaHub: unbekannte Karte %s bei %s gefunde
 const char mediaHubAdoptWriteFailed[] = "MediaHub: Zuweisung der Karte konnte nicht ins NVS geschrieben werden.";
 const char mediaHubHubUnreachable[] = "MediaHub %s nicht erreichbar.";
 const char mediaHubReportedPending[] = "MediaHub %s: Karte %s ist dort noch nicht zugewiesen, wurde aber zum Zuweisen vorgemerkt.";
+const char trackCommandQueueFull[] = "Track-Kommando %u verworfen: Queue voll.";
 #endif
