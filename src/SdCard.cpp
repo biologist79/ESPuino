@@ -29,17 +29,17 @@ static constexpr uint32_t sdMountRetriesBeforePowerCycle = 4;
 
 // Takes the power from the peripherals (incl. SD card) for a moment to reset a card that doesn't answer any more
 static void SdCard_PowerCycle(void) {
-	#ifdef POWER
+#ifdef POWER
 	Log_Println(sdPowerCycle, LOGLEVEL_NOTICE);
-		#ifdef SD_MMC_1BIT_MODE
+	#ifdef SD_MMC_1BIT_MODE
 	SD_MMC.end();
-		#else
+	#else
 	SD.end();
-		#endif
+	#endif
 	Power_PeripheralOff();
 	delay(500); // let the supply rail of the card drain
 	Power_PeripheralOn();
-	#endif
+#endif
 }
 
 void SdCard_Init(void) {
