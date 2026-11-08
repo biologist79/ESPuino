@@ -176,18 +176,54 @@ bool Rfid_ConsumeLastTagReset() {
 extern TaskHandle_t rfidTaskHandle;
 #endif
 
+// The reader task is never suspended or deleted from outside while it runs: if that hits it in the middle
+// of an SPI/I2C transfer or while it holds a lock (NVS, log, bus), every later user of that resource blocks
+// until it resumes -- or forever. Instead it is asked to park at the start of its loop, where it holds
+// nothing, and confirms that via Rfid_TaskParked.
+enum class RfidTaskRequest : uint8_t {
+	Run,
+	Pause,
+	Stop
+};
+static std::atomic<RfidTaskRequest> Rfid_TaskRequest {RfidTaskRequest::Run};
+static std::atomic<bool> Rfid_TaskParked {false};
+
+void Rfid_TaskParkIfRequested(void) {
+	if (Rfid_TaskRequest == RfidTaskRequest::Run) {
+		return;
+	}
+	Rfid_TaskParked = true;
+	while (Rfid_TaskRequest != RfidTaskRequest::Run) {
+		vTaskDelay(pdMS_TO_TICKS(20));
+	}
+	Rfid_TaskParked = false;
+}
+
+bool Rfid_TaskStop(uint32_t timeoutMs) {
+	Rfid_TaskRequest = RfidTaskRequest::Stop;
+	const uint32_t start = millis();
+	while (!Rfid_TaskParked) {
+		if ((millis() - start) >= timeoutMs) {
+			return false;
+		}
+		vTaskDelay(pdMS_TO_TICKS(5));
+	}
+	return true;
+}
+
 void Rfid_TaskPause(void) {
 #if defined(RFID_READER_TYPE_RUNTIME)
 	if (rfidTaskHandle != NULL) {
-		vTaskSuspend(rfidTaskHandle);
+		// no need to wait: the task parks after its current pass
+		Rfid_TaskRequest = RfidTaskRequest::Pause;
 	}
 #endif
 }
 void Rfid_TaskResume(void) {
 #if defined(RFID_READER_TYPE_RUNTIME)
-	if (rfidTaskHandle != NULL) {
+	if (rfidTaskHandle != NULL && Rfid_TaskRequest == RfidTaskRequest::Pause) {
 		Rfid_TaskReset(); // Reset state machine to initial state
-		vTaskResume(rfidTaskHandle);
+		Rfid_TaskRequest = RfidTaskRequest::Run;
 	}
 #endif
 }
