@@ -68,6 +68,11 @@ static std::atomic<bool> interceptorRegistered = false;
 // coexistence is set to prefer WiFi and those connection attempts are held.
 static std::atomic<int16_t> wifiPriorityRequests = 0;
 static bool wifiPriorityActive = false; // applied state, only touched by Bluetooth_Cyclic()
+static uint32_t wifiPriorityIdleSince = 0; // millis() when the last request ended
+// Keep the priority this long after the last transfer: FTP clients open a new session per file and
+// browsers upload one file after the other. Resuming in between starts a page (~5 s) that collides
+// with the next transfer.
+static constexpr uint32_t WIFI_PRIORITY_RELEASE_DELAY_MS = 10000u;
 // set while connection attempts are held: the GAP interceptor then swallows the end of an inquiry,
 // which would make the library start the next one right away
 static std::atomic<bool> wifiPriorityHoldConnect = false;
@@ -1032,7 +1037,11 @@ void Bluetooth_RequestWifiPriority(bool request) {
 // Applies a change of the requested WiFi priority. Runs in the loop task only, like all other calls
 // into the A2DP library here.
 static void Bluetooth_ApplyWifiPriority(void) {
-	const bool wanted = (wifiPriorityRequests > 0);
+	const bool requested = (wifiPriorityRequests > 0);
+	if (requested || !wifiPriorityActive) {
+		wifiPriorityIdleSince = millis();
+	}
+	const bool wanted = requested || (wifiPriorityActive && ((millis() - wifiPriorityIdleSince) < WIFI_PRIORITY_RELEASE_DELAY_MS));
 	if (wanted == wifiPriorityActive) {
 		return;
 	}
