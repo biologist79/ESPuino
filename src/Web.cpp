@@ -2414,9 +2414,11 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	String dataType = "application/octet-stream";
 	struct fileBlk {
 		File dataFile;
+		String path;
 	};
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
+	fileObj->path = param->value();
 	request->_tempObject = (void *) fileObj;
 	// A client that goes away before the end left fileObj to the request's destructor, which only free()s
 	// _tempObject: the File inside was never closed, leaking a file handle per aborted download.
@@ -2435,7 +2437,19 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 			return 0;
 		}
 		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
-		if ((index + thisSize) >= fileObj->dataFile.size()) {
+		// A read can fail for a moment, e.g. when the SD driver gets no DMA memory (BT mode, while WiFi is
+		// busy). Returning 0 ends the response, so the client got a truncated file. FatFs keeps a file in
+		// its error state after a disk error, so reopen it and continue where this chunk starts.
+		for (uint8_t attempt = 1; (thisSize == 0) && (index < fileObj->dataFile.size()) && (attempt <= 3); attempt++) {
+			Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD: read error at %u of %s, retry %u", (uint32_t) index, fileObj->path.c_str(), attempt);
+			vTaskDelay(pdMS_TO_TICKS(20 * attempt));
+			fileObj->dataFile.close();
+			fileObj->dataFile = gFSystem.open(fileObj->path.c_str());
+			if (fileObj->dataFile && fileObj->dataFile.seek(index)) {
+				thisSize = fileObj->dataFile.read(buffer, maxlen);
+			}
+		}
+		if (!fileObj->dataFile || ((index + thisSize) >= fileObj->dataFile.size())) {
 			fileObj->dataFile.close();
 			request->_tempObject = NULL;
 			delete fileObj;
