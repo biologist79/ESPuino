@@ -20,6 +20,7 @@
 	#include "BluetoothA2DPSource.h"
 	#include "esp_bt.h"
 	#include "esp_bt_defs.h"
+	#include "esp_coexist.h"
 	#include "esp_gap_bt_api.h"
 	#include "esp_heap_caps.h"
 	#if (defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3))
@@ -59,6 +60,17 @@ static std::atomic<bool> manualDisconnectPending = false;
 
 // Track whether we registered our interceptor so we always restore correctly.
 static std::atomic<bool> interceptorRegistered = false;
+
+// ── WiFi priority (see Bluetooth_RequestWifiPriority()) ───────────────────
+// WiFi and Bluetooth share one radio. While a source has no sink to connect to, the A2DP library pages
+// the last device every 10 s and, once that gives up, runs one 13 s inquiry after the other -- forever.
+// That leaves WiFi only part of the airtime, so uploads crawl and stall. During transfers the radio
+// coexistence is set to prefer WiFi and those connection attempts are held.
+static std::atomic<int16_t> wifiPriorityRequests = 0;
+static bool wifiPriorityActive = false; // applied state, only touched by Bluetooth_Cyclic()
+// set while connection attempts are held: the GAP interceptor then swallows the end of an inquiry,
+// which would make the library start the next one right away
+static std::atomic<bool> wifiPriorityHoldConnect = false;
 
 // One targeted GAP remote-name lookup may be active for the currently connected
 // peer. The address and pending flag are updated together under the mux so a
@@ -194,6 +206,12 @@ static void Bluetooth_CancelPeerNameLookup();
 extern "C" void ccall_app_gap_callback(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param);
 
 static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
+	if (wifiPriorityHoldConnect && !scanInProgress && (event == ESP_BT_GAP_DISC_STATE_CHANGED_EVT)
+		&& (param->disc_st_chg.state == ESP_BT_GAP_DISCOVERY_STOPPED)) {
+		// Connecting is on hold for a WiFi transfer: don't let the library start the next inquiry.
+		// Bluetooth_ApplyWifiPriority() restarts the search when the hold ends.
+		return;
+	}
 	if (event == ESP_BT_GAP_DISC_RES_EVT) {
 		// Accept discovery results regardless of scanInProgress so that results
 		// arriving in the brief window between natural stop and flag-clear are
@@ -334,7 +352,7 @@ static void gap_callback_interceptor(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_
 // targeted peer-name lookup still needs our interceptor. Safe to call multiple
 // times (idempotent).
 static void Bluetooth_RestoreLibraryCallback() {
-	if (scanInProgress || peerNameLookupPending) {
+	if (scanInProgress || peerNameLookupPending || wifiPriorityHoldConnect) {
 		return;
 	}
 
@@ -998,6 +1016,62 @@ bool Bluetooth_GetConnectedSourceInfo(String &name, String &address) {
 }
 #endif
 
+void Bluetooth_RequestWifiPriority(bool request) {
+#ifdef BLUETOOTH_ENABLE
+	if (request) {
+		wifiPriorityRequests++;
+	} else {
+		int16_t current = wifiPriorityRequests.load();
+		while ((current > 0) && !wifiPriorityRequests.compare_exchange_weak(current, current - 1)) {
+		}
+	}
+#endif
+}
+
+#ifdef BLUETOOTH_ENABLE
+// Applies a change of the requested WiFi priority. Runs in the loop task only, like all other calls
+// into the A2DP library here.
+static void Bluetooth_ApplyWifiPriority(void) {
+	const bool wanted = (wifiPriorityRequests > 0);
+	if (wanted == wifiPriorityActive) {
+		return;
+	}
+	wifiPriorityActive = wanted;
+	esp_coex_preference_set(wanted ? ESP_COEX_PREFER_WIFI : ESP_COEX_PREFER_BALANCE);
+	Log_Printf(LOGLEVEL_INFO, "Bluetooth => WiFi priority %s", wanted ? "on" : "off");
+
+	if ((System_GetOperationMode() != OPMODE_BLUETOOTH_SOURCE) || !a2dp_source) {
+		return;
+	}
+	if (wanted) {
+		// An existing connection is kept (only the coexistence prefers WiFi); a user-initiated connect or
+		// scan from the web interface is left alone as well.
+		if (bluetoothSourceConnected || scanInProgress || manualConnectPending) {
+			return;
+		}
+		wifiPriorityHoldConnect = true;
+		if (!interceptorRegistered.exchange(true)) {
+			esp_bt_gap_register_callback(gap_callback_interceptor);
+		}
+		a2dp_source->disconnect(); // ends the library's automatic reconnect (paging every 10 s)
+		esp_bt_gap_cancel_discovery();
+		Log_Println("Bluetooth => connecting paused during transfer", LOGLEVEL_NOTICE);
+	} else if (wifiPriorityHoldConnect) {
+		wifiPriorityHoldConnect = false;
+		Bluetooth_RestoreLibraryCallback();
+		if (!bluetoothSourceConnected) {
+			// reconnect() re-enables the library's reconnect logic; without a known device search again
+			const bool reconnecting = a2dp_source->reconnect();
+			a2dp_source->set_auto_reconnect(true);
+			if (!reconnecting) {
+				esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0);
+			}
+		}
+		Log_Println("Bluetooth => connecting resumed", LOGLEVEL_NOTICE);
+	}
+}
+#endif
+
 void Bluetooth_Init(void) {
 #ifdef BLUETOOTH_ENABLE
 	portENTER_CRITICAL(&cachedPeerAddressMux);
@@ -1097,6 +1171,7 @@ void Bluetooth_Exit(void) {
 		connectRetryPending = false;
 		connectRetryCount = 0;
 		Bluetooth_ClearConnectionTarget();
+		wifiPriorityHoldConnect = false;
 		Bluetooth_CancelPeerNameLookup();
 	}
 #endif
@@ -1104,6 +1179,7 @@ void Bluetooth_Exit(void) {
 
 void Bluetooth_Cyclic(void) {
 #ifdef BLUETOOTH_ENABLE
+	Bluetooth_ApplyWifiPriority();
 	// ── Handle pending manual connect (deferred from Bluetooth_ConnectToAddress) ──
 	bool doConnect = false;
 	esp_bd_addr_t connectAddress = {0};
@@ -1187,7 +1263,7 @@ void Bluetooth_Cyclic(void) {
 	}
 
 	// ── Handle connection retries ────────────────────────────────────────────
-	if (connectRetryPending && !bluetoothSourceConnected) {
+	if (connectRetryPending && !bluetoothSourceConnected && !wifiPriorityHoldConnect) {
 		if (millis() - connectRetryTimestamp >= CONNECT_RETRY_DELAY_MS) {
 			connectRetryPending = false;
 			if (connectRetryCount < CONNECT_MAX_RETRIES) {

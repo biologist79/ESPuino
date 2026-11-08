@@ -330,7 +330,9 @@ void System_PauseTasksDuringUpload(bool pause) {
 		Rfid_TaskPause();
 		Led_TaskPause();
 		Wlan_SetPowerSave(false); // full WiFi power for max upload throughput (restored below when done)
+		Bluetooth_RequestWifiPriority(true);
 	} else {
+		Bluetooth_RequestWifiPriority(false);
 		Wlan_SetPowerSave(true); // restore power-save to keep idle power low (esp. on battery)
 		Led_TaskResume();
 		Rfid_TaskResume();
