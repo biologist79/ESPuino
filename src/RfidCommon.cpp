@@ -56,6 +56,9 @@ void Rfid_PreferenceLookupHandler(void) {
 			s = gPrefsRfid.getString(gCurrentRfidTagId, "-1"); // Try to lookup rfidId in NVS
 		}
 		if (!s.compareTo("-1")) {
+	#ifdef MQTT_ENABLE
+			publishMqtt(topicRfid, gCurrentRfidTagId, false); // Publish unknown RFID to MQTT so that it can be handled by the user
+	#endif
 			// Not in NVS -- but a registered MediaHub may already know this card,
 			// in which case it's adopted here instead of having to be assigned by
 			// hand first (forum #4779). Only in normal mode: in the Bluetooth
