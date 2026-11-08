@@ -66,6 +66,8 @@ uint32_t index_buffer_read = 0;
 static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
 static std::atomic<bool> uploadAborted = false;
+// Counts explorer uploads, so a late disconnect of an earlier request can't abort the current one
+static std::atomic<uint32_t> uploadGeneration = 0;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -648,8 +650,12 @@ void webserverStart(void) {
 
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
-				// clean up buffers
-				request->onDisconnect([]() { destroyDoubleBuffer(); });
+				// clean up buffers -- unless an upload (e.g. the next one) is using them
+				request->onDisconnect([]() {
+					if (fileStorageTaskHandle == NULL) {
+						destroyDoubleBuffer();
+					}
+				});
 				// we are finished with the upload
 				if (!request->_tempObject) {
 					request->send(200);
@@ -2009,8 +2015,25 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 	System_UpdateActivityTimer();
 
+	if (index != 0 && request->_tempObject) {
+		return; // an error was already sent for this request (e.g. rejected below), ignore the rest of its body
+	}
+
 	if (index == 0) {
+		// Buffers and storage task exist once. The web UI uploads one file after the other, but a second
+		// client (or tab) must not start a parallel upload over the running one. Give a just finished
+		// upload's storage task a moment to end first.
+		const uint32_t waitStart = millis();
+		while (fileStorageTaskHandle != NULL && (millis() - waitStart < 1000)) {
+			vTaskDelay(pdMS_TO_TICKS(10));
+		}
+		if (fileStorageTaskHandle != NULL) {
+			Log_Println("Upload rejected: another upload is running", LOGLEVEL_ERROR);
+			handleUploadError(request, 503);
+			return;
+		}
 		uploadAborted = false;
+		const uint32_t generation = ++uploadGeneration;
 
 		String filePath = "/";
 		if (request->hasParam("path")) {
@@ -2052,8 +2075,12 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			1 /* Core where the task should run */
 		);
 
-		request->onDisconnect([]() {
-			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+		// Client gone before the end: the storage task sees the flag and stops. No xTaskNotify() here: the
+		// task may already have ended (e.g. after a write error), and notifying a NULL handle asserts.
+		request->onDisconnect([generation]() {
+			if (generation == uploadGeneration) {
+				uploadAborted = true;
+			}
 		});
 	}
 
@@ -2114,7 +2141,12 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			buffer_full[index_buffer_write] = true;
 		}
 		// notify storage task that last data was stored on the ring buffer
-		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
+		const TaskHandle_t storageTask = fileStorageTaskHandle;
+		if (storageTask == NULL) {
+			handleUploadError(request, 500); // the task ended on its own (error/timeout)
+			return;
+		}
+		xTaskNotify(storageTask, 1u, eSetValueWithOverwrite);
 		// wait until the storage task is sending the signal to finish
 		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
 			// timeout, something went wrong
@@ -2214,6 +2246,17 @@ static void explorerHandleFileStorageTask(void *parameter) {
 			}
 			vTaskDelay(portTICK_PERIOD_MS * 2);
 			continue;
+		}
+	}
+	// every exit path ends here: close the file (an abort used to leave it open, leaking a file handle)
+	if (uploadFile) {
+		uploadFile.close();
+	}
+	if (uploadAborted) {
+		// don't leave a truncated file behind (e.g. a half MP3 that plays until it suddenly stops)
+		if (gFSystem.exists(filePath)) {
+			gFSystem.remove(filePath);
+			Log_Printf(LOGLEVEL_NOTICE, "Removed incomplete upload %s", filePath);
 		}
 	}
 	free(parameter);
