@@ -7,6 +7,8 @@
 #include "Led.h"
 #include "Log.h"
 #include "MemX.h"
+#include "Port.h"
+#include "Power.h"
 #include "System.h"
 
 #include <esp_random.h>
@@ -22,12 +24,31 @@ SanitizedFS gFSystem(HARDWARE_FS);
 
 uint8_t maxRecursionDepth;
 
+// Failed mount attempts after which the card gets a power-cycle before the next attempt
+static constexpr uint32_t sdMountRetriesBeforePowerCycle = 4;
+
+// Takes the power from the peripherals (incl. SD card) for a moment to reset a card that doesn't answer any more
+static void SdCard_PowerCycle(void) {
+	#ifdef POWER
+	Log_Println(sdPowerCycle, LOGLEVEL_NOTICE);
+		#ifdef SD_MMC_1BIT_MODE
+	SD_MMC.end();
+		#else
+	SD.end();
+		#endif
+	Power_PeripheralOff();
+	delay(500); // let the supply rail of the card drain
+	Power_PeripheralOn();
+	#endif
+}
+
 void SdCard_Init(void) {
 #ifdef NO_SDCARD
 	// Initialize without any SD card, e.g. for webplayer only
 	Log_Println("Init without SD card ", LOGLEVEL_NOTICE);
 	return;
 #endif
+	uint32_t failedMounts = 0;
 
 #ifndef SINGLE_SPI_ENABLE
 	#ifdef SD_MMC_1BIT_MODE
@@ -50,10 +71,24 @@ void SdCard_Init(void) {
 #endif
 		Log_Println(unableToMountSd, LOGLEVEL_ERROR);
 		delay(500);
+		failedMounts++;
+		if ((failedMounts % sdMountRetriesBeforePowerCycle) == 0) {
+			// Retrying alone doesn't help a card that browned out while powering up (e.g. the inrush of all
+			// peripherals on a battery that is low after a long standby): it stays stuck until it loses power.
+			SdCard_PowerCycle();
+		}
 #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
 		if (millis() >= deepsleepTimeAfterBootFails * 1000) {
 			Log_Println(sdBootFailedDeepsleep, LOGLEVEL_ERROR);
 			Led_Exit();
+			// Switch the peripherals off like the regular deep-sleep does. Otherwise the stuck card stays
+			// powered (and stuck) through every wake-up until the box is fully switched off, while amp,
+			// RFID-reader and LEDs keep draining the battery.
+			Power_PeripheralOff();
+			delay(200);
+	#ifdef PORT_EXPANDER_ENABLE
+			Port_Exit();
+	#endif
 			esp_deep_sleep_start();
 		}
 #endif
