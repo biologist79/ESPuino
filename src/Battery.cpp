@@ -7,6 +7,7 @@
 #include "Led.h"
 #include "Log.h"
 #include "Mqtt.h"
+#include "Port.h"
 #include "Power.h"
 #include "Rfid.h"
 #include "System.h"
@@ -40,6 +41,12 @@ void Battery_Init(void) {
 		// and also any blinking lights or sounds. The goal is to just stay off.
 		// Additionally, LPCD will not be enabled. This is intentional to avoid battery drain.
 		delay(200);
+	#ifdef PORT_EXPANDER_ENABLE
+		// Like the regular deep-sleep: read the port-expander once more to release its interrupt line. If it is
+		// the wake-up source and still pulled low, the box wakes up right away and boots on a critical battery
+		// again and again.
+		Port_Exit();
+	#endif
 		esp_deep_sleep_start();
 	}
 }
