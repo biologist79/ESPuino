@@ -164,12 +164,26 @@ static void destroyDoubleBuffer() {
 	}
 }
 
+// Frees the upload buffers once the storage task has ended (it ends right after an upload is done or
+// aborted). Runs in the async_tcp task like the upload handler, so the buffers can't be in use there.
+// Buffers left over after an upload used to stay allocated: 32 KB of internal RAM that the SD driver
+// then lacked for its DMA buffer, which made reads fail (seen as a corrupt download in BT mode).
+static void freeUploadBuffersWhenIdle() {
+	const uint32_t start = millis();
+	while (fileStorageTaskHandle != NULL && (millis() - start < 200)) {
+		vTaskDelay(pdMS_TO_TICKS(5));
+	}
+	if (fileStorageTaskHandle == NULL) {
+		destroyDoubleBuffer();
+	}
+}
+
 static bool allocateDoubleBuffer() {
+	// Always start with fresh buffers. Existing ones used to be kept although chunk_size is reset to the
+	// full size below: buffers allocated smaller on low memory (e.g. 8 KB in BT mode) then received 16 KB
+	// chunks -- a heap overflow that crashed the box later in an unrelated task.
+	destroyDoubleBuffer();
 	const auto checkAndAlloc = [](uint8_t *&ptr, const size_t memSize) -> bool {
-		if (ptr) {
-			// memory is there, so nothing to do
-			return true;
-		}
 		// try to allocate buffer in faster internal RAM, not in PSRAM
 		// ptr = (uint8_t *) malloc(memSize);
 		ptr = (uint8_t *) heap_caps_aligned_alloc(32, memSize, MALLOC_CAP_DEFAULT | MALLOC_CAP_INTERNAL);
@@ -651,11 +665,7 @@ void webserverStart(void) {
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
 				// clean up buffers -- unless an upload (e.g. the next one) is using them
-				request->onDisconnect([]() {
-					if (fileStorageTaskHandle == NULL) {
-						destroyDoubleBuffer();
-					}
-				});
+				request->onDisconnect([]() { freeUploadBuffersWhenIdle(); });
 				// we are finished with the upload
 				if (!request->_tempObject) {
 					request->send(200);
@@ -2080,6 +2090,7 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 		request->onDisconnect([generation]() {
 			if (generation == uploadGeneration) {
 				uploadAborted = true;
+				freeUploadBuffersWhenIdle();
 			}
 		});
 	}
@@ -2407,9 +2418,22 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
 	request->_tempObject = (void *) fileObj;
+	// A client that goes away before the end left fileObj to the request's destructor, which only free()s
+	// _tempObject: the File inside was never closed, leaking a file handle per aborted download.
+	request->onDisconnect([request]() {
+		fileBlk *fileObj = (fileBlk *) request->_tempObject;
+		if (fileObj != NULL) {
+			fileObj->dataFile.close();
+			delete fileObj;
+			request->_tempObject = NULL;
+		}
+	});
 
 	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
 		fileBlk *fileObj = (fileBlk *) request->_tempObject;
+		if (fileObj == NULL) {
+			return 0;
+		}
 		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
 		if ((index + thisSize) >= fileObj->dataFile.size()) {
 			fileObj->dataFile.close();
