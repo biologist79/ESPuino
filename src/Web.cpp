@@ -49,6 +49,7 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
+static bool otaTasksPaused = false; // tasks paused by a running firmware upload (only touched by the async_tcp task)
 
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
 static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two. Kept at 2 to save ~16KB heap during uploads.
@@ -521,6 +522,18 @@ void webserverStart(void) {
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
 					System_PauseTasksDuringUpload(true);
+					otaTasksPaused = true;
+					// The tasks are only resumed by the final chunk. If that never comes (browser closed,
+					// WiFi lost), resume them when the connection goes away -- otherwise RFID and LEDs stay
+					// dead until the next restart, and a PN5180 with LPCD can't arm it when going to sleep.
+					request->onDisconnect([]() {
+						if (otaTasksPaused) {
+							otaTasksPaused = false;
+							Update.abort();
+							System_PauseTasksDuringUpload(false);
+							Log_Println("Firmware upload aborted", LOGLEVEL_ERROR);
+						}
+					});
 					System_UpdateActivityTimer();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -537,6 +550,7 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
+					otaTasksPaused = false;
 					System_PauseTasksDuringUpload(false);
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
