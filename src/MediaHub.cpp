@@ -273,6 +273,7 @@ static bool MediaHub_DeleteDirRecursive(File dir) {
 		}
 		entry = dir.openNextFile();
 		esp_task_wdt_reset();
+		System_LoopHeartbeat();
 	}
 	return gFSystem.rmdir(dir) && ok;
 }
@@ -290,6 +291,7 @@ static uint64_t MediaHub_DirSizeRecursive(File dir) {
 		}
 		entry = dir.openNextFile();
 		esp_task_wdt_reset();
+		System_LoopHeartbeat();
 	}
 	return total;
 }
@@ -569,6 +571,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 			writeIndex = (writeIndex + 1) % MediaHub_DownloadNumBuffers;
 		}
 		esp_task_wdt_reset();
+		System_LoopHeartbeat(); // a download keeps the loop task busy for minutes
 	}
 	http.end();
 
