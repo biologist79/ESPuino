@@ -2098,16 +2098,29 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			buffer_full[i] = false;
 		}
 
-		const char *filePathCopy = x_strdup(filePath.c_str());
-		xTaskCreatePinnedToCore(
-			explorerHandleFileStorageTask, /* Function to implement the task */
-			"fileStorageTask", /* Name of the task */
-			4000, /* Stack size in words */
-			(void *) filePathCopy, /* Task input parameter */
-			2 | portPRIVILEGE_BIT, /* Priority of the task */
-			&fileStorageTaskHandle, /* Task handle. */
-			1 /* Core where the task should run */
-		);
+		char *filePathCopy = x_strdup(filePath.c_str());
+		BaseType_t taskCreated = pdFAIL;
+		if (filePathCopy != NULL) {
+			taskCreated = xTaskCreatePinnedToCore(
+				explorerHandleFileStorageTask, /* Function to implement the task */
+				"fileStorageTask", /* Name of the task */
+				4000, /* Stack size in words */
+				(void *) filePathCopy, /* Task input parameter */
+				2 | portPRIVILEGE_BIT, /* Priority of the task */
+				&fileStorageTaskHandle, /* Task handle. */
+				1 /* Core where the task should run */
+			);
+		}
+		if (taskCreated != pdPASS) {
+			// Without the task nobody empties the buffers: the handler would wait for them forever. Happens
+			// when memory is short (e.g. in Bluetooth mode).
+			Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
+			free(filePathCopy);
+			fileStorageTaskHandle = NULL;
+			destroyDoubleBuffer();
+			handleUploadError(request, 500);
+			return;
+		}
 
 		// Client gone before the end: the storage task sees the flag and stops. No xTaskNotify() here: the
 		// task may already have ended (e.g. after a write error), and notifying a NULL handle asserts.
