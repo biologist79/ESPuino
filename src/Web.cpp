@@ -2454,45 +2454,61 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 
 	// ready to serve the file for download.
 	String dataType = "application/octet-stream";
+	// Lives as long as the download runs. WiFi gets priority over Bluetooth for that time, like for an upload:
+	// while a Bluetooth source pages its headset, WiFi sends at less than half the speed and the data waiting
+	// to be sent piles up in internal RAM -- until the SD driver gets no DMA memory any more.
 	struct fileBlk {
 		File dataFile;
 		String path;
+		size_t size = 0;
+		fileBlk() {
+			Bluetooth_RequestWifiPriority(true);
+		}
+		~fileBlk() {
+			dataFile.close();
+			Bluetooth_RequestWifiPriority(false);
+		}
 	};
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
 	fileObj->path = param->value();
+	fileObj->size = file.size();
 	request->_tempObject = (void *) fileObj;
 	// A client that goes away before the end left fileObj to the request's destructor, which only free()s
 	// _tempObject: the File inside was never closed, leaking a file handle per aborted download.
 	request->onDisconnect([request]() {
 		fileBlk *fileObj = (fileBlk *) request->_tempObject;
 		if (fileObj != NULL) {
-			fileObj->dataFile.close();
 			delete fileObj;
 			request->_tempObject = NULL;
 		}
 	});
 
-	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
+	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->size, [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
 		fileBlk *fileObj = (fileBlk *) request->_tempObject;
 		if (fileObj == NULL) {
 			return 0;
 		}
-		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
+		System_UpdateActivityTimer(); // a long download must not end in the inactivity sleep
+		size_t thisSize = fileObj->dataFile ? fileObj->dataFile.read(buffer, maxlen) : 0;
 		// A read can fail for a moment, e.g. when the SD driver gets no DMA memory (BT mode, while WiFi is
 		// busy). Returning 0 ends the response, so the client got a truncated file. FatFs keeps a file in
-		// its error state after a disk error, so reopen it and continue where this chunk starts.
-		for (uint8_t attempt = 1; (thisSize == 0) && (index < fileObj->dataFile.size()) && (attempt <= 3); attempt++) {
+		// its error state after a disk error, so reopen it and continue where this chunk starts. Opening
+		// can fail for the same reason, so that is retried as well; the memory comes back as WiFi sends
+		// its backlog. The waits add up to less than a second (async_tcp is watchdog-subscribed).
+		static constexpr uint8_t maxAttempts = 10;
+		for (uint8_t attempt = 1; (thisSize == 0) && (maxlen > 0) && (index < fileObj->size) && (attempt <= maxAttempts); attempt++) {
 			Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD: read error at %u of %s, retry %u", (uint32_t) index, fileObj->path.c_str(), attempt);
-			vTaskDelay(pdMS_TO_TICKS(20 * attempt));
+			vTaskDelay(pdMS_TO_TICKS(std::min<uint32_t>(20u * attempt, 100u)));
+			esp_task_wdt_reset();
 			fileObj->dataFile.close();
 			fileObj->dataFile = gFSystem.open(fileObj->path.c_str());
 			if (fileObj->dataFile && fileObj->dataFile.seek(index)) {
 				thisSize = fileObj->dataFile.read(buffer, maxlen);
 			}
 		}
-		if (!fileObj->dataFile || ((index + thisSize) >= fileObj->dataFile.size())) {
-			fileObj->dataFile.close();
+		if ((thisSize == 0) || ((index + thisSize) >= fileObj->size)) {
+			// done, or given up: either way the response ends here
 			request->_tempObject = NULL;
 			delete fileObj;
 		}
