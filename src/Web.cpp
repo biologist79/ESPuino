@@ -2186,7 +2186,9 @@ static void explorerHandleFileStorageTask(void *parameter) {
 	System_PauseTasksDuringUpload(true);
 
 	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
-	if (uploadFile) {
+	// only a file this task created/truncated may be removed again on an abort
+	const bool fileOpened = (bool) uploadFile;
+	if (fileOpened) {
 		uploadFile.setBufferSize(chunk_size);
 	} else {
 		Log_Printf(LOGLEVEL_ERROR, "Failed to open file %s for writing!", filePath);
@@ -2263,8 +2265,9 @@ static void explorerHandleFileStorageTask(void *parameter) {
 	if (uploadFile) {
 		uploadFile.close();
 	}
-	if (uploadAborted) {
-		// don't leave a truncated file behind (e.g. a half MP3 that plays until it suddenly stops)
+	if (uploadAborted && fileOpened) {
+		// Don't leave a truncated file behind (e.g. a half MP3 that plays until it suddenly stops). If the
+		// open failed, an existing file of that name is still intact and must stay.
 		if (gFSystem.exists(filePath)) {
 			gFSystem.remove(filePath);
 			Log_Printf(LOGLEVEL_NOTICE, "Removed incomplete upload %s", filePath);
