@@ -178,6 +178,30 @@ static void freeUploadBuffersWhenIdle() {
 	}
 }
 
+// How long the upload handler waits for the storage task (a free buffer, the end of the last write)
+static constexpr uint32_t uploadWaitTimeoutMs = 30000;
+
+// Waits until the storage task has emptied the buffer to write next. Returns false if the upload was
+// aborted or the buffer didn't get free in time (the upload is aborted then).
+// This runs in the async_tcp task, which is watchdog-subscribed (5 s, panic): a card that stalled for
+// longer than that -- well within what a worn or busy SD card does -- used to reboot the box here.
+static bool waitForUploadBuffer() {
+	const uint32_t start = millis();
+	while (buffer_full[index_buffer_write]) {
+		if (uploadAborted) {
+			return false;
+		}
+		if (millis() - start >= uploadWaitTimeoutMs) {
+			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+			uploadAborted = true;
+			return false;
+		}
+		esp_task_wdt_reset();
+		vTaskDelay(2u);
+	}
+	return true;
+}
+
 static bool allocateDoubleBuffer() {
 	// Always start with fresh buffers. Existing ones used to be kept although chunk_size is reset to the
 	// full size below: buffers allocated smaller on low memory (e.g. 8 KB in BT mode) then received 16 KB
@@ -2104,11 +2128,9 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 
 	if (len) {
 		// wait till buffer is ready
-		while (buffer_full[index_buffer_write]) {
-			if (uploadAborted) {
-				return;
-			}
-			vTaskDelay(2u);
+		if (!waitForUploadBuffer()) {
+			handleUploadError(request, 500);
+			return;
 		}
 
 		size_t len_to_write = len;
@@ -2129,11 +2151,9 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			// if still content left, put it into next buffer
 			if (len_to_write < len) {
 				// wait till new buffer is ready
-				while (buffer_full[index_buffer_write]) {
-					if (uploadAborted) {
-						return;
-					}
-					vTaskDelay(2u);
+				if (!waitForUploadBuffer()) {
+					handleUploadError(request, 500);
+					return;
 				}
 				size_t len_left_to_write = len - len_to_write;
 				memcpy(buffer[index_buffer_write], data + len_to_write, len_left_to_write);
@@ -2158,8 +2178,13 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			return;
 		}
 		xTaskNotify(storageTask, 1u, eSetValueWithOverwrite);
-		// wait until the storage task is sending the signal to finish
-		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
+		// wait until the storage task is sending the signal to finish (in slices, to feed the watchdog)
+		bool finished = false;
+		for (uint32_t waitStart = millis(); !finished && (millis() - waitStart < uploadWaitTimeoutMs);) {
+			finished = (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(500)) == pdTRUE);
+			esp_task_wdt_reset();
+		}
+		if (!finished) {
 			// timeout, something went wrong
 			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 			handleUploadError(request, 500);
