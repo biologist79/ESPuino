@@ -437,8 +437,9 @@ void Web_Exit(void) {
 	if (webserverStarted) {
 		// Gracefully abort active file storage task if running
 		if (fileStorageTaskHandle != NULL) {
+			// The flag is enough to stop the task. No xTaskNotify(): the task can end (and delete itself)
+			// between the check above and the call, which would then notify a deleted task.
 			uploadAborted = true;
-			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
 			// Wait for the task to exit and close open file handles
 			uint32_t startWait = millis();
 			while (fileStorageTaskHandle != NULL && (millis() - startWait < 2000)) {
