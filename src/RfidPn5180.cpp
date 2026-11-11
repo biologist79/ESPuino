@@ -558,6 +558,9 @@ void RfidPn5180_Exit(void) {
 		taskIdle = !Rfid_GetLpcdShutdownStatus();
 		if (!taskIdle) {
 			Log_Println("Arming LPCD timed out", LOGLEVEL_ERROR);
+			// Withdraw the request: the task checks it before it parks, so with the flag still set it could
+			// never be stopped below and would arm LPCD later, in the middle of the remaining shutdown.
+			Rfid_SetLpcdShutdownStatus(false);
 		}
 	}
 	if (!taskIdle) {
