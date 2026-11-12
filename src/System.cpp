@@ -254,15 +254,20 @@ void System_IndicateOk(void) {
 	Led_Indicate(LedIndicatorType::Ok);
 }
 
-// Writes to NVS, if bluetooth or "normal" mode is desired
-void System_SetOperationMode(uint8_t opMode) {
+// Writes to NVS, if bluetooth or "normal" mode is desired. A changed mode takes effect with a restart,
+// which is done by the main loop like any other one: an immediate ESP.restart() skipped the shutdown
+// (play position, MQTT, SD card) and, called from the web server, never answered the request.
+// Returns true if that restart is pending; the caller shouldn't start anything else then.
+bool System_SetOperationMode(uint8_t opMode) {
 	uint8_t currentOperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
 	if (currentOperationMode != opMode) {
 		if (gPrefsSettings.putUChar("operationMode", opMode)) {
 			Log_Println(restartAfterOperationModeChange, LOGLEVEL_INFO);
-			ESP.restart();
+			System_Restart();
+			return true;
 		}
 	}
+	return false;
 }
 
 bool System_IsWebControlAllowed(void) {
