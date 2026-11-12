@@ -1712,9 +1712,10 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if ((section == "") || (section == "memory")) {
 		JsonObject memoryObj = infoObj["memory"].to<JsonObject>();
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
-		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+		// internal RAM like freeHeap (MALLOC_CAP_8BIT alone includes the PSRAM and reported its largest block)
+		memoryObj["largestFreeBlock"] = ESP.getMaxAllocHeap();
 		memoryObj["freePSRam"] = ESP.getFreePsram();
-		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
+		memoryObj["largestFreePSRamBlock"] = ESP.getMaxAllocPsram();
 	}
 	// SD card
 	if ((section == "") || (section == "sdcard")) {
