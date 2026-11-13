@@ -49,6 +49,7 @@ AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 static bool webserverStarted = false;
+static bool otaTasksPaused = false; // tasks paused by a running firmware upload (only touched by the async_tcp task)
 
 static const uint32_t start_chunk_size = 16384; // bigger chunks increase write-performance to SD-Card
 static constexpr uint32_t nr_of_buffers = 2; // at least two buffers. No speed improvement yet with more than two. Kept at 2 to save ~16KB heap during uploads.
@@ -65,6 +66,8 @@ uint32_t index_buffer_read = 0;
 static SemaphoreHandle_t explorerFileUploadFinished;
 static TaskHandle_t fileStorageTaskHandle;
 static std::atomic<bool> uploadAborted = false;
+// Counts explorer uploads, so a late disconnect of an earlier request can't abort the current one
+static std::atomic<uint32_t> uploadGeneration = 0;
 
 void Web_DumpSdToNvs(const char *_filename);
 static void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -161,12 +164,50 @@ static void destroyDoubleBuffer() {
 	}
 }
 
-static bool allocateDoubleBuffer() {
-	const auto checkAndAlloc = [](uint8_t *&ptr, const size_t memSize) -> bool {
-		if (ptr) {
-			// memory is there, so nothing to do
-			return true;
+// Frees the upload buffers once the storage task has ended (it ends right after an upload is done or
+// aborted). Runs in the async_tcp task like the upload handler, so the buffers can't be in use there.
+// Buffers left over after an upload used to stay allocated: 32 KB of internal RAM that the SD driver
+// then lacked for its DMA buffer, which made reads fail (seen as a corrupt download in BT mode).
+static void freeUploadBuffersWhenIdle() {
+	const uint32_t start = millis();
+	while (fileStorageTaskHandle != NULL && (millis() - start < 200)) {
+		vTaskDelay(pdMS_TO_TICKS(5));
+	}
+	if (fileStorageTaskHandle == NULL) {
+		destroyDoubleBuffer();
+	}
+}
+
+// How long the upload handler waits for the storage task (a free buffer, the end of the last write)
+static constexpr uint32_t uploadWaitTimeoutMs = 30000;
+
+// Waits until the storage task has emptied the buffer to write next. Returns false if the upload was
+// aborted or the buffer didn't get free in time (the upload is aborted then).
+// This runs in the async_tcp task, which is watchdog-subscribed (5 s, panic): a card that stalled for
+// longer than that -- well within what a worn or busy SD card does -- used to reboot the box here.
+static bool waitForUploadBuffer() {
+	const uint32_t start = millis();
+	while (buffer_full[index_buffer_write]) {
+		if (uploadAborted) {
+			return false;
 		}
+		if (millis() - start >= uploadWaitTimeoutMs) {
+			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
+			uploadAborted = true;
+			return false;
+		}
+		esp_task_wdt_reset();
+		vTaskDelay(2u);
+	}
+	return true;
+}
+
+static bool allocateDoubleBuffer() {
+	// Always start with fresh buffers. Existing ones used to be kept although chunk_size is reset to the
+	// full size below: buffers allocated smaller on low memory (e.g. 8 KB in BT mode) then received 16 KB
+	// chunks -- a heap overflow that crashed the box later in an unrelated task.
+	destroyDoubleBuffer();
+	const auto checkAndAlloc = [](uint8_t *&ptr, const size_t memSize) -> bool {
 		// try to allocate buffer in faster internal RAM, not in PSRAM
 		// ptr = (uint8_t *) malloc(memSize);
 		ptr = (uint8_t *) heap_caps_aligned_alloc(32, memSize, MALLOC_CAP_DEFAULT | MALLOC_CAP_INTERNAL);
@@ -396,8 +437,9 @@ void Web_Exit(void) {
 	if (webserverStarted) {
 		// Gracefully abort active file storage task if running
 		if (fileStorageTaskHandle != NULL) {
+			// The flag is enough to stop the task. No xTaskNotify(): the task can end (and delete itself)
+			// between the check above and the call, which would then notify a deleted task.
 			uploadAborted = true;
-			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
 			// Wait for the task to exit and close open file handles
 			uint32_t startWait = millis();
 			while (fileStorageTaskHandle != NULL && (millis() - startWait < 2000)) {
@@ -521,6 +563,18 @@ void webserverStart(void) {
 				if (!index) {
 					// pause some tasks to get more free CPU time for the upload
 					System_PauseTasksDuringUpload(true);
+					otaTasksPaused = true;
+					// The tasks are only resumed by the final chunk. If that never comes (browser closed,
+					// WiFi lost), resume them when the connection goes away -- otherwise RFID and LEDs stay
+					// dead until the next restart, and a PN5180 with LPCD can't arm it when going to sleep.
+					request->onDisconnect([]() {
+						if (otaTasksPaused) {
+							otaTasksPaused = false;
+							Update.abort();
+							System_PauseTasksDuringUpload(false);
+							Log_Println("Firmware upload aborted", LOGLEVEL_ERROR);
+						}
+					});
 					System_UpdateActivityTimer();
 					Update.begin();
 					Log_Println(fwStart, LOGLEVEL_NOTICE);
@@ -537,6 +591,7 @@ void webserverStart(void) {
 				if (final) {
 					Update.end(true);
 					// resume the paused tasks
+					otaTasksPaused = false;
 					System_PauseTasksDuringUpload(false);
 					Log_Println(fwEnd, LOGLEVEL_NOTICE);
 					if (Update.hasError()) {
@@ -634,8 +689,8 @@ void webserverStart(void) {
 
 		wServer.on(
 			"/explorer", HTTP_POST, [](AsyncWebServerRequest *request) {
-				// clean up buffers
-				request->onDisconnect([]() { destroyDoubleBuffer(); });
+				// clean up buffers -- unless an upload (e.g. the next one) is using them
+				request->onDisconnect([]() { freeUploadBuffersWhenIdle(); });
 				// we are finished with the upload
 				if (!request->_tempObject) {
 					request->send(200);
@@ -1657,9 +1712,10 @@ void handleGetInfo(AsyncWebServerRequest *request) {
 	if ((section == "") || (section == "memory")) {
 		JsonObject memoryObj = infoObj["memory"].to<JsonObject>();
 		memoryObj["freeHeap"] = ESP.getFreeHeap();
-		memoryObj["largestFreeBlock"] = (uint32_t) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+		// internal RAM like freeHeap (MALLOC_CAP_8BIT alone includes the PSRAM and reported its largest block)
+		memoryObj["largestFreeBlock"] = ESP.getMaxAllocHeap();
 		memoryObj["freePSRam"] = ESP.getFreePsram();
-		memoryObj["largestFreePSRamBlock"] = String(ESP.getMaxAllocPsram());
+		memoryObj["largestFreePSRamBlock"] = ESP.getMaxAllocPsram();
 	}
 	// SD card
 	if ((section == "") || (section == "sdcard")) {
@@ -1995,8 +2051,25 @@ void onWebsocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
 	System_UpdateActivityTimer();
 
+	if (index != 0 && request->_tempObject) {
+		return; // an error was already sent for this request (e.g. rejected below), ignore the rest of its body
+	}
+
 	if (index == 0) {
+		// Buffers and storage task exist once. The web UI uploads one file after the other, but a second
+		// client (or tab) must not start a parallel upload over the running one. Give a just finished
+		// upload's storage task a moment to end first.
+		const uint32_t waitStart = millis();
+		while (fileStorageTaskHandle != NULL && (millis() - waitStart < 1000)) {
+			vTaskDelay(pdMS_TO_TICKS(10));
+		}
+		if (fileStorageTaskHandle != NULL) {
+			Log_Println("Upload rejected: another upload is running", LOGLEVEL_ERROR);
+			handleUploadError(request, 503);
+			return;
+		}
 		uploadAborted = false;
+		const uint32_t generation = ++uploadGeneration;
 
 		String filePath = "/";
 		if (request->hasParam("path")) {
@@ -2027,19 +2100,37 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			buffer_full[i] = false;
 		}
 
-		const char *filePathCopy = x_strdup(filePath.c_str());
-		xTaskCreatePinnedToCore(
-			explorerHandleFileStorageTask, /* Function to implement the task */
-			"fileStorageTask", /* Name of the task */
-			4000, /* Stack size in words */
-			(void *) filePathCopy, /* Task input parameter */
-			2 | portPRIVILEGE_BIT, /* Priority of the task */
-			&fileStorageTaskHandle, /* Task handle. */
-			1 /* Core where the task should run */
-		);
+		char *filePathCopy = x_strdup(filePath.c_str());
+		BaseType_t taskCreated = pdFAIL;
+		if (filePathCopy != NULL) {
+			taskCreated = xTaskCreatePinnedToCore(
+				explorerHandleFileStorageTask, /* Function to implement the task */
+				"fileStorageTask", /* Name of the task */
+				4000, /* Stack size in words */
+				(void *) filePathCopy, /* Task input parameter */
+				2 | portPRIVILEGE_BIT, /* Priority of the task */
+				&fileStorageTaskHandle, /* Task handle. */
+				1 /* Core where the task should run */
+			);
+		}
+		if (taskCreated != pdPASS) {
+			// Without the task nobody empties the buffers: the handler would wait for them forever. Happens
+			// when memory is short (e.g. in Bluetooth mode).
+			Log_Println(unableToAllocateMem, LOGLEVEL_ERROR);
+			free(filePathCopy);
+			fileStorageTaskHandle = NULL;
+			destroyDoubleBuffer();
+			handleUploadError(request, 500);
+			return;
+		}
 
-		request->onDisconnect([]() {
-			xTaskNotify(fileStorageTaskHandle, 2u, eSetValueWithOverwrite);
+		// Client gone before the end: the storage task sees the flag and stops. No xTaskNotify() here: the
+		// task may already have ended (e.g. after a write error), and notifying a NULL handle asserts.
+		request->onDisconnect([generation]() {
+			if (generation == uploadGeneration) {
+				uploadAborted = true;
+				freeUploadBuffersWhenIdle();
+			}
 		});
 	}
 
@@ -2052,11 +2143,9 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 
 	if (len) {
 		// wait till buffer is ready
-		while (buffer_full[index_buffer_write]) {
-			if (uploadAborted) {
-				return;
-			}
-			vTaskDelay(2u);
+		if (!waitForUploadBuffer()) {
+			handleUploadError(request, 500);
+			return;
 		}
 
 		size_t len_to_write = len;
@@ -2077,11 +2166,9 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			// if still content left, put it into next buffer
 			if (len_to_write < len) {
 				// wait till new buffer is ready
-				while (buffer_full[index_buffer_write]) {
-					if (uploadAborted) {
-						return;
-					}
-					vTaskDelay(2u);
+				if (!waitForUploadBuffer()) {
+					handleUploadError(request, 500);
+					return;
 				}
 				size_t len_left_to_write = len - len_to_write;
 				memcpy(buffer[index_buffer_write], data + len_to_write, len_left_to_write);
@@ -2100,9 +2187,19 @@ static void explorerHandleFileUpload(AsyncWebServerRequest *request, uint8_t *da
 			buffer_full[index_buffer_write] = true;
 		}
 		// notify storage task that last data was stored on the ring buffer
-		xTaskNotify(fileStorageTaskHandle, 1u, eSetValueWithOverwrite);
-		// wait until the storage task is sending the signal to finish
-		if (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(30000)) != pdTRUE) {
+		const TaskHandle_t storageTask = fileStorageTaskHandle;
+		if (storageTask == NULL) {
+			handleUploadError(request, 500); // the task ended on its own (error/timeout)
+			return;
+		}
+		xTaskNotify(storageTask, 1u, eSetValueWithOverwrite);
+		// wait until the storage task is sending the signal to finish (in slices, to feed the watchdog)
+		bool finished = false;
+		for (uint32_t waitStart = millis(); !finished && (millis() - waitStart < uploadWaitTimeoutMs);) {
+			finished = (xSemaphoreTake(explorerFileUploadFinished, pdMS_TO_TICKS(500)) == pdTRUE);
+			esp_task_wdt_reset();
+		}
+		if (!finished) {
 			// timeout, something went wrong
 			Log_Println(webTxCanceled, LOGLEVEL_ERROR);
 			handleUploadError(request, 500);
@@ -2129,7 +2226,9 @@ static void explorerHandleFileStorageTask(void *parameter) {
 	System_PauseTasksDuringUpload(true);
 
 	uploadFile = gFSystem.open(filePath, "w", true); // open file with create=true to make sure parent directories are created
-	if (uploadFile) {
+	// only a file this task created/truncated may be removed again on an abort
+	const bool fileOpened = (bool) uploadFile;
+	if (fileOpened) {
 		uploadFile.setBufferSize(chunk_size);
 	} else {
 		Log_Printf(LOGLEVEL_ERROR, "Failed to open file %s for writing!", filePath);
@@ -2200,6 +2299,18 @@ static void explorerHandleFileStorageTask(void *parameter) {
 			}
 			vTaskDelay(portTICK_PERIOD_MS * 2);
 			continue;
+		}
+	}
+	// every exit path ends here: close the file (an abort used to leave it open, leaking a file handle)
+	if (uploadFile) {
+		uploadFile.close();
+	}
+	if (uploadAborted && fileOpened) {
+		// Don't leave a truncated file behind (e.g. a half MP3 that plays until it suddenly stops). If the
+		// open failed, an existing file of that name is still intact and must stay.
+		if (gFSystem.exists(filePath)) {
+			gFSystem.remove(filePath);
+			Log_Printf(LOGLEVEL_NOTICE, "Removed incomplete upload %s", filePath);
 		}
 	}
 	free(parameter);
@@ -2344,18 +2455,61 @@ void explorerHandleDownloadRequest(AsyncWebServerRequest *request) {
 
 	// ready to serve the file for download.
 	String dataType = "application/octet-stream";
+	// Lives as long as the download runs. WiFi gets priority over Bluetooth for that time, like for an upload:
+	// while a Bluetooth source pages its headset, WiFi sends at less than half the speed and the data waiting
+	// to be sent piles up in internal RAM -- until the SD driver gets no DMA memory any more.
 	struct fileBlk {
 		File dataFile;
+		String path;
+		size_t size = 0;
+		fileBlk() {
+			Bluetooth_RequestWifiPriority(true);
+		}
+		~fileBlk() {
+			dataFile.close();
+			Bluetooth_RequestWifiPriority(false);
+		}
 	};
 	fileBlk *fileObj = new fileBlk;
 	fileObj->dataFile = file;
+	fileObj->path = param->value();
+	fileObj->size = file.size();
 	request->_tempObject = (void *) fileObj;
-
-	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->dataFile.size(), [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
+	// A client that goes away before the end left fileObj to the request's destructor, which only free()s
+	// _tempObject: the File inside was never closed, leaking a file handle per aborted download.
+	request->onDisconnect([request]() {
 		fileBlk *fileObj = (fileBlk *) request->_tempObject;
-		size_t thisSize = fileObj->dataFile.read(buffer, maxlen);
-		if ((index + thisSize) >= fileObj->dataFile.size()) {
+		if (fileObj != NULL) {
+			delete fileObj;
+			request->_tempObject = NULL;
+		}
+	});
+
+	AsyncWebServerResponse *response = request->beginResponse(dataType, fileObj->size, [request](uint8_t *buffer, size_t maxlen, size_t index) -> size_t {
+		fileBlk *fileObj = (fileBlk *) request->_tempObject;
+		if (fileObj == NULL) {
+			return 0;
+		}
+		System_UpdateActivityTimer(); // a long download must not end in the inactivity sleep
+		size_t thisSize = fileObj->dataFile ? fileObj->dataFile.read(buffer, maxlen) : 0;
+		// A read can fail for a moment, e.g. when the SD driver gets no DMA memory (BT mode, while WiFi is
+		// busy). Returning 0 ends the response, so the client got a truncated file. FatFs keeps a file in
+		// its error state after a disk error, so reopen it and continue where this chunk starts. Opening
+		// can fail for the same reason, so that is retried as well; the memory comes back as WiFi sends
+		// its backlog. The waits add up to less than a second (async_tcp is watchdog-subscribed).
+		static constexpr uint8_t maxAttempts = 10;
+		for (uint8_t attempt = 1; (thisSize == 0) && (maxlen > 0) && (index < fileObj->size) && (attempt <= maxAttempts); attempt++) {
+			Log_Printf(LOGLEVEL_ERROR, "DOWNLOAD: read error at %u of %s, retry %u", (uint32_t) index, fileObj->path.c_str(), attempt);
+			vTaskDelay(pdMS_TO_TICKS(std::min<uint32_t>(20u * attempt, 100u)));
+			esp_task_wdt_reset();
 			fileObj->dataFile.close();
+			fileObj->dataFile = gFSystem.open(fileObj->path.c_str());
+			if (fileObj->dataFile && fileObj->dataFile.seek(index)) {
+				thisSize = fileObj->dataFile.read(buffer, maxlen);
+			}
+		}
+		if ((thisSize == 0) || ((index + thisSize) >= fileObj->size)) {
+			// done, or given up: either way the response ends here
 			request->_tempObject = NULL;
 			delete fileObj;
 		}

@@ -17,6 +17,10 @@ void Rfid_Exit(void);
 void Rfid_TaskPause(void);
 void Rfid_TaskResume(void);
 void Rfid_TaskReset(void);
+// Reader-task internal: parks the calling reader task while a pause/stop is requested.
+void Rfid_TaskParkIfRequested(void);
+// Asks the reader task to park and waits up to timeoutMs for it. Returns true if it is parked.
+bool Rfid_TaskStop(uint32_t timeoutMs);
 void Rfid_WakeupCheck(void);
 void Rfid_PreferenceLookupHandler(void);
 // Writes one card assignment to NVS, see RfidCommon.cpp.

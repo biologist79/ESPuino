@@ -18,6 +18,7 @@
 #include "Web.h"
 #include "Wlan.h"
 #include "esp_system.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -49,6 +50,52 @@ void System_SleepHandler(void);
 void System_DeepSleepManager(void);
 void System_RebootHandler(void);
 
+// ── Loop supervisor ───────────────────────────────────────────────────────
+// Nothing watches the loop task: it isn't subscribed to the task watchdog (its 5 s would be too short
+// for e.g. building the playlist of a big folder), and the idle task of its core isn't checked either.
+// But buttons, RFID lookup, sleep timer, restart and deep-sleep all run in loop(). If it blocks for
+// good, the box stays powered but doesn't react to anything any more and never goes to sleep, so it
+// drains the battery. The supervisor turns that into a restart: loop() reports a heartbeat on every
+// pass, a timer restarts the box when the last one is too old.
+static constexpr uint32_t System_LoopSupervisorTimeoutMs = 120000u; // far beyond the slowest regular loop pass
+static constexpr uint32_t System_LoopSupervisorIntervalMs = 5000u;
+static constexpr uint32_t System_LoopSupervisorMagic = 0x4C6F6F70u;
+static std::atomic<uint32_t> System_LoopHeartbeatTimestamp {0u};
+static esp_timer_handle_t System_LoopSupervisorTimer = nullptr;
+// survives the restart (not a power-cycle), so the next boot can report what happened
+RTC_NOINIT_ATTR static uint32_t System_LoopSupervisorMarker;
+
+// Runs in the esp_timer task, so it still gets CPU time when the loop task is stuck
+static void System_LoopSupervisorCallback(void *) {
+	const uint32_t stuckMs = millis() - System_LoopHeartbeatTimestamp.load();
+	if (stuckMs < System_LoopSupervisorTimeoutMs) {
+		return;
+	}
+	System_LoopSupervisorMarker = System_LoopSupervisorMagic;
+	Log_Printf(LOGLEVEL_ERROR, "Main loop is stuck for %u s, restarting..", (unsigned) (stuckMs / 1000u));
+	Serial.flush();
+	esp_restart();
+}
+
+void System_LoopHeartbeat(void) {
+	System_LoopHeartbeatTimestamp = millis();
+}
+
+// Started with the first pass of loop(): setup() may take long (e.g. while it waits for the SD card)
+static void System_LoopSupervisorStart(void) {
+	const esp_timer_create_args_t timerArgs = {
+		.callback = &System_LoopSupervisorCallback,
+		.arg = nullptr,
+		.dispatch_method = ESP_TIMER_TASK,
+		.name = "loopSupervisor",
+		.skip_unhandled_events = true,
+	};
+	if ((esp_timer_create(&timerArgs, &System_LoopSupervisorTimer) != ESP_OK)
+		|| (esp_timer_start_periodic(System_LoopSupervisorTimer, System_LoopSupervisorIntervalMs * 1000ull) != ESP_OK)) {
+		Log_Println("Failed to start the loop supervisor", LOGLEVEL_ERROR);
+	}
+}
+
 // Init only NVS required for LPCD
 void System_Init_Rfid_Prefs(void) {
 	if (!gPrefsRfid.begin(prefsRfidNamespace)) {
@@ -76,9 +123,18 @@ void System_Init(void) {
 	}
 
 	System_OperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
+
+	if (System_LoopSupervisorMarker == System_LoopSupervisorMagic) {
+		Log_Println("The previous run was restarted because the main loop was stuck", LOGLEVEL_ERROR);
+	}
+	System_LoopSupervisorMarker = 0u;
 }
 
 void System_Cyclic(void) {
+	System_LoopHeartbeat();
+	if (System_LoopSupervisorTimer == nullptr) {
+		System_LoopSupervisorStart();
+	}
 	System_SleepHandler();
 	System_DeepSleepManager();
 	System_RebootHandler();
@@ -198,15 +254,20 @@ void System_IndicateOk(void) {
 	Led_Indicate(LedIndicatorType::Ok);
 }
 
-// Writes to NVS, if bluetooth or "normal" mode is desired
-void System_SetOperationMode(uint8_t opMode) {
+// Writes to NVS, if bluetooth or "normal" mode is desired. A changed mode takes effect with a restart,
+// which is done by the main loop like any other one: an immediate ESP.restart() skipped the shutdown
+// (play position, MQTT, SD card) and, called from the web server, never answered the request.
+// Returns true if that restart is pending; the caller shouldn't start anything else then.
+bool System_SetOperationMode(uint8_t opMode) {
 	uint8_t currentOperationMode = gPrefsSettings.getUChar("operationMode", OPMODE_NORMAL);
 	if (currentOperationMode != opMode) {
 		if (gPrefsSettings.putUChar("operationMode", opMode)) {
 			Log_Println(restartAfterOperationModeChange, LOGLEVEL_INFO);
-			ESP.restart();
+			System_Restart();
+			return true;
 		}
 	}
+	return false;
 }
 
 bool System_IsWebControlAllowed(void) {
@@ -330,7 +391,9 @@ void System_PauseTasksDuringUpload(bool pause) {
 		Rfid_TaskPause();
 		Led_TaskPause();
 		Wlan_SetPowerSave(false); // full WiFi power for max upload throughput (restored below when done)
+		Bluetooth_RequestWifiPriority(true);
 	} else {
+		Bluetooth_RequestWifiPriority(false);
 		Wlan_SetPowerSave(true); // restore power-save to keep idle power low (esp. on battery)
 		Led_TaskResume();
 		Rfid_TaskResume();

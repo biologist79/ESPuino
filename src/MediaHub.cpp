@@ -273,6 +273,7 @@ static bool MediaHub_DeleteDirRecursive(File dir) {
 		}
 		entry = dir.openNextFile();
 		esp_task_wdt_reset();
+		System_LoopHeartbeat();
 	}
 	return gFSystem.rmdir(dir) && ok;
 }
@@ -290,6 +291,7 @@ static uint64_t MediaHub_DirSizeRecursive(File dir) {
 		}
 		entry = dir.openNextFile();
 		esp_task_wdt_reset();
+		System_LoopHeartbeat();
 	}
 	return total;
 }
@@ -490,7 +492,17 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 		xSemaphoreTake(MediaHub_DownloadWriterDone, 0); // make sure it's empty before this run
 	}
 	auto *writerArgs = new MediaHub_WriterTaskArgs {tmpFile};
-	xTaskCreatePinnedToCore(MediaHub_DownloadWriterTask, "MediaHubWriter", 3072, writerArgs, 2, &MediaHub_DownloadWriterTaskHandle, 1);
+	if (xTaskCreatePinnedToCore(MediaHub_DownloadWriterTask, "MediaHubWriter", 3072, writerArgs, 2, &MediaHub_DownloadWriterTaskHandle, 1) != pdPASS) {
+		// no memory for the task: without it nobody writes the buffers, and notifying its handle below would assert
+		Log_Printf(LOGLEVEL_ERROR, mediaHubDownloadFailed, fileUrl.c_str());
+		delete writerArgs;
+		tmpFile.close();
+		gFSystem.remove(tmpPath);
+		mbedtls_sha256_free(&shaCtx);
+		http.end();
+		MediaHub_FreeDownloadBuffers();
+		return false;
+	}
 
 	auto *stream = http.getStreamPtr();
 	size_t totalRead = 0;
@@ -559,6 +571,7 @@ static bool MediaHub_DownloadAndVerifyFile(const String &fileUrl, const String &
 			writeIndex = (writeIndex + 1) % MediaHub_DownloadNumBuffers;
 		}
 		esp_task_wdt_reset();
+		System_LoopHeartbeat(); // a download keeps the loop task busy for minutes
 	}
 	http.end();
 

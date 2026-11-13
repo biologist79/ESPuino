@@ -150,6 +150,7 @@ const char announcementFailed[] = "Impossible de lire l'annonce, reprise de la l
 const char announcementTimeout[] = "L'annonce ne s'est pas terminee, restauration de la lecture";
 const char batteryCriticalMsg[] = "Charge de batterie critique. Va passer en mode veille profonde...";
 const char sdBootFailedDeepsleep[] = "Échec du démarrage en raison de la carte SD. Va passer en mode veille profonde...";
+const char sdPowerCycle[] = "Coupure brève de l'alimentation de la carte SD..";
 const char wifiEnabledMsg[] = "Le WiFi sera activé.";
 const char wifiDisabledMsg[] = "Le WiFi sera désactivé.";
 const char voltageIndicatorLowFromNVS[] = "Niveau de tension inférieur restauré pour l'affichage Neopixel depuis NVS : %.2fV";
