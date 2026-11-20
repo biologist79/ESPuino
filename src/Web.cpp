@@ -1554,6 +1554,7 @@ static void settingsToJSON(JsonObject obj, const String section) {
 		batSettings["indicatorLow"].set(s_voltageIndicatorLow);
 		batSettings["indicatorHi"].set(s_voltageIndicatorHigh);
 		batSettings["criticalVoltage"].set(s_warningCriticalVoltage);
+		batSettings["offsetVoltage"].set(s_offsetVoltage);
 		batSettings["shutdownOnCritical"].set(false); // SHUTDOWN_ON_BAT_CRITICAL
 		batSettings["warnSound"].set(false);
 		batSettings["warnSoundOnce"].set(false);
