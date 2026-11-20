@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 19.11.2026: Battery: the voltage in the web interface, the Neopixel logic and MQTT could jump to about three times the real value - 11.6 V for a 3.7 V cell - and stayed there until the next restart. Saving General -> Battery calls `Battery_Init()` a second time, and that set the ADC attenuation for the pin only. The Arduino core keeps one calibration curve per ADC unit and rebuilds it only when the attenuation changes for all channels, so the pin sampled at `ADC_0db` while the curve created at boot for `ADC_11db` stayed active. The attenuation is now set globally, so channel and calibration stay in sync no matter how often `Battery_Init()` runs.
+
 ## Version 3.2 (07.11.2026)
 
 * 07.11.2026: MQTT: `ambient_light` and `sleep` now report their state (`ON`/`OFF`) as announced, `lock_controls` reports `ON`/`OFF` right after connecting instead of `1`/`0`, and ESPuino registers a last will: if it drops off without a clean shutdown (power cut, crash, out of WiFi range), the broker itself publishes `Offline` on `state` after about 90 seconds (keepalive is now 60 s).
