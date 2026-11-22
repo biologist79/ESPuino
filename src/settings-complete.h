@@ -109,7 +109,12 @@
 		constexpr float s_offsetVoltage = -0.04;		// DEFAULT ONLY - the correction is configured in the web UI (General -> Battery) and stored in NVS. This value is just the first-boot seed / fallback.
 		constexpr uint16_t rdiv1 = 300;				// Rdiv1 of voltage-divider (kOhms)
 		constexpr uint16_t rdiv2 = 100;				// Rdiv2 of voltage-divider (kOhms) => used to measure voltage via ADC!
-		constexpr adc_attenuation_t inputAttenuation = ADC_0db;		// ADC_0db (0.1->0.95V) // ADC_2_5db (0.1->1.25V) // ADC_6db (0.15->1.75V) // ADC_11db (0.14->2.45V)
+		constexpr adc_attenuation_t inputAttenuation = ADC_11db;		// ADC_0db (0.1->0.95V) // ADC_2_5db (0.1->1.25V) // ADC_6db (0.15->1.75V) // ADC_11db (0.14->2.45V)
+		// 11 dB, not 0 dB: with the 300k/100k divider of this board 0 dB would clip at ~3.8 V
+		// battery voltage, and the offset values in the field were all determined at 11 dB.
+		// The Complete has effectively been measuring at 11 dB all along - the old per-pin call
+		// in Battery_Init() was a no-op at boot (the pin wasn't an ADC channel yet). See
+		// changelog, DEV-branch: battery voltage jumping to about three times the real value.
 	#endif
 
 	// (optional) hallsensor. Make sure the GPIO defined doesn't overlap with existing configuration. Please note: only user-support is provided for this feature.

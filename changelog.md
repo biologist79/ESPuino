@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 22.11.2026: Battery: fix the voltage reading jumping to about three times the real value after saving the battery settings (Complete): 11.6 V for a 3.7 V cell, until the next restart. `Battery_Init()` runs again when General -> Battery is saved, and it set the ADC attenuation for the pin only. The Arduino core keeps one calibration curve per ADC unit and rebuilds it only when the attenuation changes for all channels, so the pin sampled at `ADC_0db` while the curve created at boot for `ADC_11db` stayed active. The attenuation is now set globally and `settings-complete.h` asks for that same 11 dB explicitly - 0 dB would clip at ~3.8 V behind this board's 300k/100k divider, and the 11 dB value is what the Complete has been using all along anyway (the old per-pin call was a no-op at boot, as the pin wasn't an ADC channel yet).
+
 * 20.11.2026: Web: "Reset" in the battery settings sets the voltage correction back to the default instead of 0. Reported by sfields.
 
 ## Version 3.2 (07.11.2026)
