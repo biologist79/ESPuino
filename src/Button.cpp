@@ -282,6 +282,9 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 
 	uint8_t Cmd_Short = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyShort, buttonCmdConfig[i].defaultShort);
 	uint8_t Cmd_Long = gPrefsSettings.getUChar(buttonCmdConfig[i].prefsKeyLong, buttonCmdConfig[i].defaultLong);
+	// Long actions that make sense to repeat while the button is held (volume steps, seek steps).
+	bool const isRepeatable = (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN ||
+	                           Cmd_Long == CMD_SEEK_FORWARDS || Cmd_Long == CMD_SEEK_BACKWARDS);
 	unsigned long const pressDuration = currentTimestamp - gButtons[i].lastPressedTimestamp;
 	bool const wasReleased = gButtons[i].lastReleasedTimestamp > gButtons[i].lastPressedTimestamp;
 
@@ -290,7 +293,8 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 	// turning the encoder yet. (Holding NEXT for 700ms to seek would otherwise first fire BUTTON_0_LONG --
 	// CMD_LASTTRACK by default -- and jump straight to the end of the book.) Defer it to release, exactly as
 	// CMD_SLEEPMODE already is, so that a turn in the meantime can cancel it via usedAsModifier. A plain
-	// long-press with no turn still works, it just resolves when the button comes back up.
+	// long-press with no turn still works, it just resolves when the button comes back up -- except for a
+	// repeatable action (volume/seek), which fires while held and is therefore skipped on release.
 	bool const isRotaryModifier = (Button_GetRotaryAction(i, true) != CMD_NOTHING) || (Button_GetRotaryAction(i, false) != CMD_NOTHING);
 
 	// Handle button release (short or long press completed)
@@ -300,9 +304,10 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 
 		if (wasShortPress) {
 			Cmd_Action(Cmd_Short);
-		} else if (Cmd_Long == CMD_SLEEPMODE || isRotaryModifier) {
+		} else if (Cmd_Long == CMD_SLEEPMODE || (isRotaryModifier && !isRepeatable)) {
 			// Sleep-mode only triggers on release to prevent immediate wake-up; modifier buttons defer for
-			// the reason above.
+			// the reason above. A repeatable action has already been firing while the button was held, so
+			// firing it again on release would jump one step too far.
 			Cmd_Action(Cmd_Long);
 		}
 
@@ -310,12 +315,16 @@ static void Button_HandleSinglePress(uint8_t i, unsigned long currentTimestamp) 
 		return;
 	}
 
-	if (isRotaryModifier) {
+	// A modifier button that is held *without* turning the encoder keeps firing its repeatable action
+	// -- that is how "hold next/previous to seek" works next to the rotary gesture. As soon as the
+	// encoder is turned the gesture wins and the repeat stops. Any other long action still waits for
+	// release, as before.
+	if (isRotaryModifier && !(isRepeatable && !gButtons[i].usedAsModifier)) {
 		return; // Still held: wait for release before deciding whether this was a long press or a gesture
 	}
 
-	// Handle volume buttons with repeat functionality
-	if (Cmd_Long == CMD_VOLUMEUP || Cmd_Long == CMD_VOLUMEDOWN) {
+	// Handle volume and seek buttons with repeat functionality
+	if (isRepeatable) {
 		if (pressDuration <= intervalToLongPress) {
 			return;
 		}

@@ -2,6 +2,8 @@
 
 ## DEV-branch
 
+* 23.11.2026: Buttons: holding next/previous now seeks continuously instead of jumping once. The long-press repeat in `Button.cpp` only covered the volume actions, so a hold on a button assigned to `CMD_SEEK_FORWARDS`/`CMD_SEEK_BACKWARDS` fired a single `jumpOffset` jump and then nothing. The seek steps now repeat at the long-press interval for as long as the button is held. On the default assignment the buttons double as rotary modifiers (hold next + turn = fine seek), so an action that repeats is no longer deferred to release: it starts while the button is held *without* the encoder being turned, a turn switches to the gesture, and the release no longer fires the action a second time (which would add one step).
+
 ## Version 3.2 (07.11.2026)
 
 * 07.11.2026: MQTT: `ambient_light` and `sleep` now report their state (`ON`/`OFF`) as announced, `lock_controls` reports `ON`/`OFF` right after connecting instead of `1`/`0`, and ESPuino registers a last will: if it drops off without a clean shutdown (power cut, crash, out of WiFi range), the broker itself publishes `Offline` on `state` after about 90 seconds (keepalive is now 60 s).
