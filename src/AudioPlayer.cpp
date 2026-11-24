@@ -189,6 +189,48 @@ bool newPlayListAvailable = false;
 
 static bool AudioPlayer_UploadActive = false;
 static bool AudioPlayer_WasPausedBeforeUpload = false; // remember pre-upload pause state
+
+// A paused webstream must not keep its connection. Nobody reads from it any more, so the station fills
+// the TCP window and keeps it full: that slows down every other transfer (a web upload ran at 130 instead
+// of 700 kB/s), and on resume the player first plays the seconds buffered before the pause, then stalls
+// until the library gives up on the dead connection and reconnects (~30 s). A live stream can't be
+// resumed where it was paused anyway, so close it on pause and connect anew on resume. Both are done in
+// AudioPlayer_Cyclic(), as the upload start/end notifications come from the web server's tasks.
+static std::atomic<bool> AudioPlayer_WebstreamClosePending {false};
+static std::atomic<bool> AudioPlayer_WebstreamReconnectPending {false};
+
+static void AudioPlayer_PauseAudio(void) {
+	if (gPlayProperties.isWebstream) {
+		AudioPlayer_WebstreamReconnectPending = false;
+		AudioPlayer_WebstreamClosePending = true;
+	} else {
+		audio->pauseResume();
+	}
+}
+
+static void AudioPlayer_ResumeAudio(void) {
+	if (gPlayProperties.isWebstream) {
+		AudioPlayer_WebstreamClosePending = false;
+		AudioPlayer_WebstreamReconnectPending = true;
+	} else {
+		audio->pauseResume();
+	}
+}
+
+static void AudioPlayer_HandleWebstreamPause(void) {
+	if (AudioPlayer_WebstreamClosePending.exchange(false)) {
+		audio->stopSong();
+	}
+	if (AudioPlayer_WebstreamReconnectPending.exchange(false)) {
+		const bool active = gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY && !gPlayProperties.playlistFinished;
+		if (active && gPlayProperties.isWebstream && gPlayProperties.playlist && gPlayProperties.currentTrackNumber < gPlayProperties.playlist->size()) {
+			if (!audio->connecttohost(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber))) {
+				System_IndicateError();
+				gPlayProperties.trackFinished = true;
+			}
+		}
+	}
+}
 static bool gResetOldRfidOnIdle = false; // release the "don't accept same rfid twice"-lock on next idle-state
 
 // Remember an RFID-tag whose webstream could not be started because WiFi is not (yet) connected, so it can
@@ -228,7 +270,7 @@ void AudioPlayer_NotifyUploadStart(void) {
 	AudioPlayer_UploadActive = true;
 	if (!gPlayProperties.pausePlay && gPlayProperties.playMode != NO_PLAYLIST && gPlayProperties.playMode != PLAYLIST_BUSY) {
 		AudioPlayer_WasPausedBeforeUpload = false;
-		audio->pauseResume();
+		AudioPlayer_PauseAudio();
 	} else {
 		AudioPlayer_WasPausedBeforeUpload = true; // was already paused / idle
 	}
@@ -239,7 +281,7 @@ void AudioPlayer_NotifyUploadEnd(void) {
 		return;
 	}
 	if (!AudioPlayer_WasPausedBeforeUpload) {
-		audio->pauseResume();
+		AudioPlayer_ResumeAudio();
 	}
 	AudioPlayer_UploadActive = false;
 }
@@ -628,6 +670,7 @@ static uint32_t AudioPlayer_lastCheckpointTimestamp = 0; // millis() of the last
 static uint32_t AudioPlayer_lastCheckpointPos = 0; // last checkpointed play-position (seconds) for dedup
 
 void AudioPlayer_Cyclic(void) {
+	AudioPlayer_HandleWebstreamPause();
 	if (AudioPlayer_UploadActive) {
 		return;
 	}
@@ -1062,7 +1105,11 @@ void AudioPlayer_Loop() {
 
 			case PAUSEPLAY:
 				trackCommand = NO_ACTION;
-				audio->pauseResume();
+				if (gPlayProperties.pausePlay) {
+					AudioPlayer_ResumeAudio();
+				} else {
+					AudioPlayer_PauseAudio();
+				}
 				if (gPlayProperties.pausePlay) {
 					Log_Println(cmndResumeFromPause, LOGLEVEL_INFO);
 #ifdef MQTT_ENABLE
@@ -1086,7 +1133,7 @@ void AudioPlayer_Loop() {
 			case NEXTTRACK:
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
 					publishMqtt(topicPausePlay, "play", false);
@@ -1124,7 +1171,7 @@ void AudioPlayer_Loop() {
 			case PREVIOUSTRACK:
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
 					publishMqtt(topicPausePlay, "play", false);
@@ -1172,6 +1219,7 @@ void AudioPlayer_Loop() {
 							AudioPlayer_NvsRfidWriteWrapper(gPlayProperties.playRfidTag, 0, gPlayProperties.playMode, gPlayProperties.currentTrackNumber);
 						}
 						audio->stopSong();
+						AudioPlayer_WebstreamReconnectPending = false; // the track is started anew right here
 						Led_Indicate(LedIndicatorType::Rewind);
 						String pathToTrack = gFSystem.rawPath(gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber));
 						audioReturnCode = audio->connecttoFS(gFSystem, pathToTrack.c_str());
@@ -1189,7 +1237,7 @@ void AudioPlayer_Loop() {
 			case FIRSTTRACK:
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
 					publishMqtt(topicPausePlay, "play", false);
@@ -1209,7 +1257,7 @@ void AudioPlayer_Loop() {
 			case LASTTRACK:
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 #ifdef MQTT_ENABLE
 					publishMqtt(topicPausePlay, "play", false);
@@ -1235,7 +1283,7 @@ void AudioPlayer_Loop() {
 			case NEXTFOLDER: // Used for recursive playmodes
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 				}
 				gPlayProperties.jumpToFolderTrack = SdCard_findNextOrPrevDirectoryTrack(*gPlayProperties.playlist, gPlayProperties.currentTrackNumber, SearchDirection::Forward);
@@ -1255,7 +1303,7 @@ void AudioPlayer_Loop() {
 			case PREVIOUSFOLDER: // Used for recursive playmodes
 				trackCommand = NO_ACTION;
 				if (gPlayProperties.pausePlay) {
-					audio->pauseResume();
+					AudioPlayer_ResumeAudio();
 					gPlayProperties.pausePlay = false;
 				}
 
@@ -1326,6 +1374,8 @@ void AudioPlayer_Loop() {
 			}
 		}
 
+		// A track is started below, so a reconnect requested by a resume in the same pass is moot
+		AudioPlayer_WebstreamReconnectPending = false;
 		if (!strncmp("http", gPlayProperties.playlist->at(gPlayProperties.currentTrackNumber), 4)) {
 			gPlayProperties.isWebstream = true;
 		} else {

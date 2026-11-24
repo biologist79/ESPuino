@@ -121,6 +121,7 @@ static void RfidMfrc522_TaskImpl(Reader &reader) {
 		} else {
 			vTaskDelay(portTICK_PERIOD_MS * 20);
 		}
+		Rfid_TaskParkIfRequested();
 		if (Rfid_ConsumeLastTagReset()) {
 			// An assignment changed (or the web UI started playback): the card on/near the reader may now
 			// mean something else, so it must not be treated as "same card re-applied" any more.
@@ -279,12 +280,19 @@ void RfidMfrc522_Cyclic(void) {
 
 void RfidMfrc522_Exit(void) {
 	Log_Println("shutdown MFRC522..", LOGLEVEL_NOTICE);
-	if (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C) {
-		mfrc522.PCD_SoftPowerDown();
-	}
+	bool taskParked = true;
 	if (rfidTaskHandle != NULL) {
-		vTaskDelete(rfidTaskHandle);
+		// stop the task first: it must neither be killed mid-transfer nor talk to the reader concurrently
+		taskParked = Rfid_TaskStop(1000);
+		if (taskParked) {
+			vTaskDelete(rfidTaskHandle);
+		} else {
+			Log_Println("RFID task didn't stop in time", LOGLEVEL_ERROR);
+		}
 		rfidTaskHandle = NULL;
+	}
+	if (taskParked && (RfidConfig_GetReaderType() != RfidReaderType::TYPE_MFRC522_I2C)) {
+		mfrc522.PCD_SoftPowerDown();
 	}
 }
 

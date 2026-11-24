@@ -103,7 +103,8 @@ static bool Rfid_Pn5180LpcdEnabled(void) {
 
 void Rfid_EnableLpcd(void);
 void RfidPn5180_WakeupCheck(void);
-bool enabledLpcdShutdown = false; // Indicates if LPCD should be activated as part of the shutdown-process
+static std::atomic<bool> enabledLpcdShutdown {false}; // Indicates if LPCD should be activated as part of the shutdown-process
+static constexpr uint32_t lpcdShutdownTimeoutMs = 3000; // arming LPCD takes a few PN5180 commands (each with a 100 ms timeout)
 
 void Rfid_SetLpcdShutdownStatus(bool lpcdStatus) {
 	enabledLpcdShutdown = lpcdStatus;
@@ -272,13 +273,15 @@ void RfidPn5180_Task(void *parameter) {
 			// mean something else, so it must not be treated as "same card re-applied" any more.
 			memset(lastValidcardId, 0, sizeof(lastValidcardId));
 		}
-		if (Rfid_Pn5180LpcdEnabled() && Rfid_GetLpcdShutdownStatus()) {
+		// Only the flag here, no NVS read: this runs every 10 ms, and RfidPn5180_Exit() sets it only with LPCD enabled
+		if (Rfid_GetLpcdShutdownStatus()) {
 			Rfid_EnableLpcd();
 			Rfid_SetLpcdShutdownStatus(false); // give feedback that execution is complete
 			while (true) {
 				vTaskDelay(portTICK_PERIOD_MS * 100u); // there's no way back if shutdown was initiated
 			}
 		}
+		Rfid_TaskParkIfRequested();
 		String cardIdString;
 		bool cardReceived = false;
 		bool sameCardReapplied = false;
@@ -537,16 +540,38 @@ void RfidPn5180_Task(void *parameter) {
 
 void RfidPn5180_Exit(void) {
 	Log_Println("shutdown PN5180..", LOGLEVEL_NOTICE);
+	if (rfidTaskHandle == NULL) {
+		return;
+	}
+	bool taskIdle = false;
 	if (Rfid_Pn5180LpcdEnabled()) {
+		// LPCD is armed by the task itself. It must not be paused (upload) for that, and a task that doesn't
+		// get it done must not keep the box from going to sleep: the wait used to be endless, so the box
+		// hung awake -- dark and not reacting to any button -- until it was reset.
+		Rfid_TaskResume();
 		Rfid_SetLpcdShutdownStatus(true);
-		while (Rfid_GetLpcdShutdownStatus()) { // Make sure init of LPCD is complete!
-			vTaskDelay(portTICK_PERIOD_MS * 10u);
+		const uint32_t start = millis();
+		while (Rfid_GetLpcdShutdownStatus() && ((millis() - start) < lpcdShutdownTimeoutMs)) {
+			vTaskDelay(pdMS_TO_TICKS(10));
+		}
+		// done: the task now only idles in vTaskDelay()
+		taskIdle = !Rfid_GetLpcdShutdownStatus();
+		if (!taskIdle) {
+			Log_Println("Arming LPCD timed out", LOGLEVEL_ERROR);
+			// Withdraw the request: the task checks it before it parks, so with the flag still set it could
+			// never be stopped below and would arm LPCD later, in the middle of the remaining shutdown.
+			Rfid_SetLpcdShutdownStatus(false);
 		}
 	}
-	if (rfidTaskHandle != NULL) {
-		vTaskDelete(rfidTaskHandle);
-		rfidTaskHandle = NULL;
+	if (!taskIdle) {
+		taskIdle = Rfid_TaskStop(1000);
 	}
+	if (taskIdle) {
+		vTaskDelete(rfidTaskHandle);
+	} else {
+		Log_Println("RFID task didn't stop in time", LOGLEVEL_ERROR);
+	}
+	rfidTaskHandle = NULL;
 }
 
 // Handles activation of LPCD (while shutdown is in progress)

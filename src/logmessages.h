@@ -142,6 +142,7 @@ extern const char wifiHostnameNotSet[];
 extern const char restoredHostnameFromNvs[];
 extern const char currentVoltageMsg[];
 extern const char sdBootFailedDeepsleep[];
+extern const char sdPowerCycle[];
 extern const char currentChargeMsg[];
 extern const char batteryLowMsg[];
 extern const char announcementPlaying[];

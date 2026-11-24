@@ -42,7 +42,7 @@ static uint8_t Led_savedBrightnessAmbient;
 static LedSettings gLedSettings;
 
 // the strip buffer bound to Led_Strip via begin(); file-scope (rather than local to Led_Task)
-// so Led_ShowOtaProgress() can draw into it directly while Led_Task is suspended during an
+// so Led_ShowOtaProgress() can draw into it directly while Led_Task is paused during an
 // OTA upload (see System_PauseTasksDuringUpload())
 static CRGB *leds = nullptr;
 static LedDriver Led_Strip;
@@ -59,6 +59,33 @@ static constexpr bool Led_PreferSpi = false;
 
 TaskHandle_t Led_TaskHandle;
 static void Led_Task(void *parameter);
+
+// Led_Task is never suspended or deleted from outside while it runs: if that hits it in the middle of a
+// refresh or while it holds a lock (NVS, log, SPI bus), the next user of that resource blocks forever.
+// When the box went to sleep this way, it hung in Led_Exit() instead: dark (or frozen LEDs), not asleep,
+// not reacting to any button until it was reset. Instead the task is asked to park itself at the start of
+// its loop, where it holds nothing, and confirms that via Led_TaskParked.
+enum class LedTaskRequest : uint8_t {
+	Run,
+	Pause,
+	Stop
+};
+static std::atomic<LedTaskRequest> Led_TaskRequest {LedTaskRequest::Run};
+static std::atomic<bool> Led_TaskParked {false};
+static constexpr uint32_t Led_ParkTimeoutMs = 300; // one loop pass takes at most ~20 ms plus a refresh
+
+// Asks Led_Task to park and waits for it. Returns false if it didn't park in time.
+static bool Led_ParkTask(LedTaskRequest request) {
+	Led_TaskRequest = request;
+	const uint32_t start = millis();
+	while (!Led_TaskParked) {
+		if ((millis() - start) >= Led_ParkTimeoutMs) {
+			return false;
+		}
+		vTaskDelay(pdMS_TO_TICKS(5));
+	}
+	return true;
+}
 static uint8_t Led_Address(uint8_t number);
 
 // animation-functions prototypes
@@ -213,7 +240,14 @@ void Led_Exit(void) {
 #ifdef NEOPIXEL_ENABLE
 	Log_Println("shutdown LED..", LOGLEVEL_NOTICE);
 	if (Led_TaskHandle) {
-		vTaskDelete(Led_TaskHandle);
+		if (Led_ParkTask(LedTaskRequest::Stop)) {
+			// parked: it holds nothing and sits in vTaskDelay(), so deleting it is safe now
+			vTaskDelete(Led_TaskHandle);
+		} else {
+			// Don't delete it at an unknown point. It is the lowest-priority task and the LEDs go dark
+			// with the peripheral power anyway; a task left running is harmless before deep-sleep/restart.
+			Log_Println("LED task didn't stop in time", LOGLEVEL_ERROR);
+		}
 		Led_TaskHandle = NULL;
 	}
 	// Turn off LEDs in order to avoid LEDs still glowing when ESP32 is in deepsleep
@@ -445,6 +479,19 @@ static void Led_Task(void *parameter) {
 	uint8_t ledSettingsChanged;
 
 	for (;;) {
+		// pause (upload) or stop (shutdown) requested: park here, where no lock or transfer is held
+		if (Led_TaskRequest != LedTaskRequest::Run) {
+			Led_Strip.clear(true);
+			Led_TaskParked = true;
+			while (Led_TaskRequest != LedTaskRequest::Run) {
+				vTaskDelay(pdMS_TO_TICKS(20));
+			}
+			Led_TaskParked = false;
+			// redraw the current state
+			activeAnimation = LedAnimationType::NoNewAnimation;
+			animationActive = false;
+			animationTimer = 0;
+		}
 
 		if (xQueueReceive(gLedQueue, &ledSettingsChanged, 0) == pdPASS) {
 			// load led settings from NVS
@@ -1398,8 +1445,10 @@ AnimationReturnType Animation_BatteryMeasurement(const bool startNewAnimation, C
 void Led_TaskPause(void) {
 #ifdef NEOPIXEL_ENABLE
 	if (Led_TaskHandle != NULL) {
-		vTaskSuspend(Led_TaskHandle);
-		Led_Strip.clear(true);
+		// Led_ShowOtaProgress() draws into the strip from the uploading task, so wait until Led_Task is out of the way
+		if (!Led_ParkTask(LedTaskRequest::Pause)) {
+			Log_Println("LED task didn't pause in time", LOGLEVEL_ERROR);
+		}
 	}
 #endif
 }
@@ -1407,7 +1456,7 @@ void Led_TaskPause(void) {
 void Led_TaskResume(void) {
 #ifdef NEOPIXEL_ENABLE
 	if (Led_TaskHandle != NULL) {
-		vTaskResume(Led_TaskHandle);
+		Led_TaskRequest = LedTaskRequest::Run;
 	}
 #endif
 }
@@ -1421,7 +1470,7 @@ void Led_SetDownloadProgress(bool active, uint8_t percent) {
 #endif
 }
 
-// Shows OTA-update progress on the indicator LEDs while Led_Task is suspended (see
+// Shows OTA-update progress on the indicator LEDs while Led_Task is paused (see
 // Led_TaskPause(), called from System_PauseTasksDuringUpload()). No-op if Neopixel is
 // disabled or the strip hasn't been initialized yet. With a single indicator LED (which
 // can't show a fill level), blinks it instead, matching how other animations handle that case.

@@ -31,6 +31,10 @@ void Bluetooth_SetVolume(const int32_t _newVolume);
 uint8_t Bluetooth_GetCurrentVolume();
 
 bool Bluetooth_Source_SendAudioData(const int16_t *outBuff, int16_t validSamples);
+
+// Give WiFi priority over Bluetooth while a transfer (web upload, OTA, FTP) runs. Calls are counted:
+// every request(true) needs a matching request(false). Thread-safe; applied by Bluetooth_Cyclic().
+void Bluetooth_RequestWifiPriority(bool request);
 bool Bluetooth_Device_Connected();
 
 #ifdef BLUETOOTH_ENABLE

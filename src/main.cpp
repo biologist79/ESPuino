@@ -54,6 +54,8 @@ bool recoverLastRfid = true;
 bool recoverBootCount = true;
 bool resetBootCount = false;
 uint32_t bootCount = 0;
+// Read once in setup(): the setting is about the boot, and an NVS read costs ~0.2 ms, too much for every loop pass
+static bool playLastRfidOnBoot = false;
 
 ////////////
 
@@ -190,6 +192,7 @@ void setup() {
 	}
 
 	IrReceiver_Init();
+	playLastRfidOnBoot = gPrefsSettings.getBool("playLastOnBoot", false);
 	System_UpdateActivityTimer(); // initial set after boot
 	Led_Indicate(LedIndicatorType::BootComplete);
 
@@ -238,7 +241,7 @@ void loop() {
 	System_Cyclic();
 	Rfid_PreferenceLookupHandler();
 
-	if (gPrefsSettings.getBool("playLastOnBoot", false)) {
+	if (playLastRfidOnBoot) {
 		recoverBootCountFromNvs();
 		recoverLastRfidPlayedFromNvs();
 	}

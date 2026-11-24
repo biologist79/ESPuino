@@ -7,6 +7,10 @@ extern Preferences gPrefsSettings;
 void System_Init_Rfid_Prefs(void);
 void System_Init(void);
 void System_Cyclic(void);
+// Tells the loop supervisor that the loop task is alive. System_Cyclic() does that on every pass of
+// loop(); an operation that legitimately keeps the loop task busy for minutes (e.g. a MediaHub
+// download) has to call it as well, or the supervisor restarts the box after two minutes.
+void System_LoopHeartbeat(void);
 void System_UpdateActivityTimer(void);
 void System_RequestSleep(void);
 void System_Restart(void);
@@ -35,7 +39,7 @@ bool System_AreControlsLocked(void);
 void System_IndicateError(void);
 void System_IndicateOk(void);
 bool System_IsWebControlAllowed(void);
-void System_SetOperationMode(uint8_t opMode);
+bool System_SetOperationMode(uint8_t opMode);
 uint8_t System_GetOperationMode(void);
 uint8_t System_GetOperationModeFromNvs(void);
 void System_esp_print_tasks(void);

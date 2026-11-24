@@ -3,6 +3,7 @@
 
 #include "Ftp.h"
 
+#include "Bluetooth.h"
 #include "Log.h"
 #include "MemX.h"
 #include "SdCard.h"
@@ -24,6 +25,15 @@ String Ftp_Password = "esp32"; // FTP-password (default; can be changed later vi
 FTPServer *ftpSrv; // Heap-alloction takes place later (when needed)
 bool ftpEnableLastStatus = false;
 bool ftpEnableCurrentStatus = false;
+static bool ftpWifiPriority = false; // WiFi priority requested for connected FTP clients
+
+// WiFi gets priority over Bluetooth as long as an FTP client is connected
+static void Ftp_SetWifiPriority(bool active) {
+	if (active != ftpWifiPriority) {
+		ftpWifiPriority = active;
+		Bluetooth_RequestWifiPriority(active);
+	}
+}
 #endif
 
 void ftpManager(void);
@@ -59,6 +69,7 @@ void Ftp_Exit(void) {
 		ftpEnableCurrentStatus = false;
 		ftpEnableLastStatus = false;
 	}
+	Ftp_SetWifiPriority(false);
 #endif
 }
 
@@ -73,9 +84,11 @@ void Ftp_Cyclic(void) {
 	}
 
 	if (ftpEnableLastStatus && ftpEnableCurrentStatus) {
-		if (ftpSrv->countConnections() > 0) {
+		const bool clientConnected = (ftpSrv->countConnections() > 0);
+		if (clientConnected) {
 			System_UpdateActivityTimer(); // Re-adjust timer while client is connected to avoid ESP falling asleep
 		}
+		Ftp_SetWifiPriority(clientConnected);
 	}
 #endif
 }

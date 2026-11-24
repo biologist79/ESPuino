@@ -151,6 +151,7 @@ const char announcementFailed[] = "Ansage konnte nicht abgespielt werden, Wieder
 const char announcementTimeout[] = "Ansage wurde nicht beendet, Wiedergabe wird wiederhergestellt";
 const char batteryCriticalMsg[] = "Batterieladung kritisch. Gehe in Deepsleep...";
 const char sdBootFailedDeepsleep[] = "Bootgang wegen SD fehlgeschlagen. Gehe in Deepsleep...";
+const char sdPowerCycle[] = "Schalte die SD-Karte kurz stromlos..";
 const char wifiEnabledMsg[] = "WLAN wird aktiviert.";
 const char wifiDisabledMsg[] = "WLAN wird deaktiviert.";
 const char voltageIndicatorLowFromNVS[] = "Unterer Spannungslevel (Batterie) fuer Neopixel-Anzeige aus NVS geladen: %.2fV";

@@ -152,6 +152,7 @@ const char announcementFailed[] = "Announcement could not be played, resuming pl
 const char announcementTimeout[] = "Announcement did not finish, restoring playback";
 const char batteryCriticalMsg[] = "Battery charge critical. Will go to deepsleep...";
 const char sdBootFailedDeepsleep[] = "Failed to boot due to SD. Will go to deepsleep...";
+const char sdPowerCycle[] = "Power-cycling the SD card..";
 const char wifiEnabledMsg[] = "WiFi will be enabled.";
 const char wifiDisabledMsg[] = "WiFi will be disabled .";
 const char voltageIndicatorLowFromNVS[] = "Restored lower voltage-level for Neopixel-display from NVS: %.2fV";

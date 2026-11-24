@@ -60,7 +60,15 @@ static bool Mqtt_Enabled = false;
 #ifdef MQTT_ENABLE
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static void Mqtt_ClientCallback(const char *topic_buf, uint32_t topic_length, const char *payload_buf, uint32_t payload_length);
-const char *Mqtt_GetStateTopic(const char *topic);
+// Returned by value: topics are built from several tasks at once (main loop, MQTT event task, web
+// server). With a shared static buffer one of them could get the other's topic, e.g. the subscriptions
+// at connect raced the main loop publishing sleep_timer_state, and the box subscribed to its own state
+// topic instead of one of its command topics.
+struct MqttTopic {
+	char str[MQTT_TOPIC_MAX_LENGTH];
+};
+static MqttTopic Mqtt_GetStateTopic(const char *topic);
+static MqttTopic Mqtt_GetCommandTopic(const char *topic);
 #endif
 
 void Mqtt_Init() {
@@ -179,12 +187,11 @@ void Mqtt_Init() {
 			mqtt_cfg.credentials.authentication.password = gMqttPassword.c_str();
 		}
 		// Last will: if the connection drops without a clean shutdown (power cut, crash, out of WiFi range),
-		// the broker publishes "Offline" on topicState itself, once the keepalive has run out. Own buffer, as
-		// Mqtt_GetStateTopic() returns a static one that the next call overwrites.
-		static char lastWillTopic[MQTT_TOPIC_MAX_LENGTH];
-		strncpy(lastWillTopic, Mqtt_GetStateTopic(topicState), sizeof(lastWillTopic) - 1);
-		lastWillTopic[sizeof(lastWillTopic) - 1] = '\0';
-		mqtt_cfg.session.last_will.topic = lastWillTopic;
+		// the broker publishes "Offline" on topicState itself, once the keepalive has run out. Static, as the
+		// client keeps the pointer.
+		static MqttTopic lastWillTopic;
+		lastWillTopic = Mqtt_GetStateTopic(topicState);
+		mqtt_cfg.session.last_will.topic = lastWillTopic.str;
 		mqtt_cfg.session.last_will.msg = "Offline";
 		mqtt_cfg.session.last_will.qos = 0;
 		mqtt_cfg.session.last_will.retain = 0; // non-retained, like every other ESPuino topic
@@ -219,8 +226,9 @@ void Mqtt_OnWifiConnected(void) {
 }
 
 #ifdef MQTT_ENABLE
-const char *Mqtt_GetTopic(const char *topic, bool isStateTopic) {
-	static char out_string[MQTT_TOPIC_MAX_LENGTH]; // Static buffer to hold the result
+static MqttTopic Mqtt_GetTopic(const char *topic, bool isStateTopic) {
+	MqttTopic result;
+	char *out_string = result.str;
 
 	// Build the topic string with schema: base_topic/device_id/keyword[/set]
 	if (gBaseTopic.length() > 0) {
@@ -237,13 +245,13 @@ const char *Mqtt_GetTopic(const char *topic, bool isStateTopic) {
 		}
 	}
 
-	return out_string; // Return the static buffer
+	return result;
 }
 
-const char *Mqtt_GetStateTopic(const char *topic) {
+static MqttTopic Mqtt_GetStateTopic(const char *topic) {
 	return Mqtt_GetTopic(topic, true);
 }
-const char *Mqtt_GetCommandTopic(const char *topic) {
+static MqttTopic Mqtt_GetCommandTopic(const char *topic) {
 	return Mqtt_GetTopic(topic, false);
 }
 #endif
@@ -283,7 +291,7 @@ bool publishMqtt(const char *topic, const char *payload, bool retained) {
 	}
 	if (strcmp(topic, "") != 0) {
 		int qos = 0;
-		int ret = esp_mqtt_client_publish(mqtt_client, Mqtt_GetStateTopic(topic), payload, 0, qos, retained);
+		int ret = esp_mqtt_client_publish(mqtt_client, Mqtt_GetStateTopic(topic).str, payload, 0, qos, retained);
 		// int ret = esp_mqtt_client_enqueue(mqtt_client, topic, payload, 0, qos, retained, true);
 		return ret == 0;
 	}
@@ -450,31 +458,31 @@ void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event
 			int qos = 0;
 
 			// Deepsleep-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleep), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleep).str, qos);
 
 			// RFID-"mqtt_debug"-ID-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRfid), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRfid).str, qos);
 
 			// Loudness-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLoudness), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLoudness).str, qos);
 
 			// Sleep-Timer-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleepTimer), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicSleepTimer).str, qos);
 
 			// Ambient-Light-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicAmbientLight), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicAmbientLight).str, qos);
 
 			// Next/previous/stop/play-track-subscription
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicTrackControl), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicTrackControl).str, qos);
 
 			// Lock controls
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLockControls), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLockControls).str, qos);
 
 			// Current repeat-Mode
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRepeatMode), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicRepeatMode).str, qos);
 
 			// LED-brightness
-			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLedBrightness), qos);
+			esp_mqtt_client_subscribe(client, Mqtt_GetCommandTopic(topicLedBrightness).str, qos);
 
 			// Publish current state
 			publishMqtt(topicState, "Online", false);
